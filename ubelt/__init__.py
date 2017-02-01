@@ -18,7 +18,7 @@ GLOBAL_MODULES = [
 ]
 
 
-__DYNAMIC__ = True
+__DYNAMIC__ = False
 _DOELSE = False
 
 if __DYNAMIC__:
