@@ -58,60 +58,49 @@ def _infer_length(iterable):
 
 class ProgIter(object):
     """
-    Attributes
-    ----------
+    Attributes:
+        iterable : sequence
+            A python iterable
+        label : int
+            Maximum length of the process
+                (estimated from iterable if not specified)
+        label : str
+            Message to print
+        freq : int
+            How many iterations to wait between messages.
+        adjust : bool
+            if True freq is adjusted based on time_thresh
+        eta_window : int
+            number of previous measurements to use in eta calculation
+        clearline : bool
+            if true messages are printed on the same line
+        adjust : bool
+            if True `freq` is adjusted based on time_thresh
+        time_thresh : float
+            desired amount of time to wait between messages if adjust is True
+            otherwise does nothing
+        stream : file
+            defaults to sys.stdout
+        enabled : bool
+             if False nothing happens.
+        verbose : int
+            verbosity mode
+            0 - no verbosity,
+            1 - verbosity with clearline=True and adjust=True
+            2 - verbosity without clearline=False and adjust=True
+            3 - verbosity without clearline=False and adjust=False
 
-    iterable : sequence
-        A python iterable
+    Reference:
+        http://datagenetics.com/blog/february12017/index.html
 
-    label : int
-        Maximum length of the process
-            (estimated from iterable if not specified)
-
-    label : str
-        Message to print
-
-    freq : int
-        How many iterations to wait between messages.
-
-    adjust : bool
-        if True freq is adjusted based on time_thresh
-
-    eta_window : int
-        number of previous measurements to use in eta calculation
-
-    clearline : bool
-        if true messages are printed on the same line
-
-    adjust : bool
-        if True `freq` is adjusted based on time_thresh
-
-    time_thresh : float
-        desired amount of time to wait between messages if adjust is True
-        otherwise does nothing
-
-    stream : file
-        defaults to sys.stdout
-
-    enabled : bool
-         if False nothing happens.
-
-    verbose : int
-        verbosity mode
-        0 - no verbosity,
-        1 - verbosity with clearline=True and adjust=True
-        2 - verbosity without clearline=False and adjust=True
-        3 - verbosity without clearline=False and adjust=False
-
-    Examples
-    ----------
-    >>> from sklearn.externals.progiter import ProgIter
-    >>> def is_prime(n):
-    ...     return n >= 2 and not any(n % i == 0 for i in range(2, n))
-    >>> for n in ProgIter(range(10000), verbose=2):
-    >>>     # do some work
-    >>>     is_prime(n)
-    10000/10000... rate=13294.94 Hz, eta=0:00:00, total=0:00:00, wall=13:34 EST
+    Examples:
+        >>> from sklearn.externals.progiter import ProgIter
+        >>> def is_prime(n):
+        ...     return n >= 2 and not any(n % i == 0 for i in range(2, n))
+        >>> for n in ProgIter(range(10000), verbose=2):
+        >>>     # do some work
+        >>>     is_prime(n)
+        10000/10000... rate=13294.94 Hz, eta=0:00:00, total=0:00:00, wall=13:34 EST
 
     Notes
     ----------
