@@ -38,7 +38,7 @@ if _DOELSE:
     from ubelt import util_decor
     from ubelt import util_list
     from ubelt import util_time
-    from ubelt.util_dict import (group_items,)
+    from ubelt.util_dict import (dict_hist, dict_subset, dict_take, group_items,)
     from ubelt.util_decor import (memoize,)
     from ubelt.util_list import (compress, flatten, take,)
     from ubelt.util_time import (Timer, Timerit, VERBOSE_TIME,)
