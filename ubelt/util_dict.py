@@ -51,7 +51,7 @@ def group_items(item_list, groupid_list, sorted_=True):
 
 def dict_hist(item_list, weight_list=None, ordered=False, labels=None):
     r"""
-    Builds a histogram of items in item_list
+    Builds a histogram of items
 
     Args:
         item_list (list): list with hashable items
@@ -101,9 +101,11 @@ def dict_hist(item_list, weight_list=None, ordered=False, labels=None):
 
 def dict_subset(dict_, keys, default=util_const.NoParam):
     r"""
+    Get a subset of a dictionary
+
     Args:
-        dict_ (dict):
-        keys (list):
+        dict_ (dict): superset dictionary
+        keys (list): keys to take from `dict_`
 
     Returns:
         dict: subset dictionary
@@ -127,7 +129,7 @@ def dict_subset(dict_, keys, default=util_const.NoParam):
 
 def dict_take(dict_, keys, default=util_const.NoParam):
     r"""
-    generate multiple values from a dictionary
+    Generates values from a dictionary
 
     Args:
         dict_ (dict):
