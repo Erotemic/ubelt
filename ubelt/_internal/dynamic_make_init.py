@@ -76,6 +76,10 @@ def __execute_fromimport_star(module, modname, imports, ignore_list=[],
             is_valid = not any((is_ignore, is_private, is_conflit, is_module))
             #is_valid = is_valid and is_defined_by_module2(getattr(child_module, attrname), child_module)
             return (is_forced or is_valid)
+        if hasattr(child_module, '__all__'):
+            from_imports.append((name, getattr(child_module, '__all__')))
+            continue
+
         allattrs = dir(child_module)
         fromlist_ = [attrname for attrname in allattrs if valid_attrname(attrname)]
         #if verbose:

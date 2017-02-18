@@ -3,6 +3,8 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import time
 import sys
 
+__all__ = ['Timer', 'Timerit']
+
 VERBOSE_TIME = 1
 
 # Use time.clock in win32

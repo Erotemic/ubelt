@@ -10,13 +10,16 @@ CommandLine:
 from __future__ import absolute_import, division, print_function, unicode_literals
 import sys
 
-__version__ = '0.0.11'
+__version__ = '0.0.12'
 
 GLOBAL_MODULES = [
     'util_dict',
     'util_decor',
     'util_list',
     'util_time',
+    'util_mixins',
+    'util_test',
+    'meta',
 ]
 
 
@@ -38,10 +41,16 @@ if _DOELSE:
     from ubelt import util_decor
     from ubelt import util_list
     from ubelt import util_time
+    from ubelt import util_mixins
+    from ubelt import util_test
+    from ubelt import meta
     from ubelt.util_dict import (dict_hist, dict_subset, dict_take, group_items,)
     from ubelt.util_decor import (memoize,)
     from ubelt.util_list import (compress, flatten, take,)
-    from ubelt.util_time import (Timer, Timerit, VERBOSE_TIME,)
+    from ubelt.util_time import (Timer, Timerit,)
+    from ubelt.util_mixins import (NiceRepr,)
+    from ubelt.util_test import (doctest_package,)
+
     # </AUTOGEN_INIT>
 
 del _DOELSE

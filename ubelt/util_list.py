@@ -10,7 +10,7 @@ def take(items, indices):
 
     Args:
         items (list): some indexable object
-        indices (list OR slice OR int): some indexing object
+        indices (sequence): sequence of indexing objects
 
     Returns:
         iter or scalar: subset of the list
@@ -22,27 +22,10 @@ def take(items, indices):
         >>> import ubelt as ub
         >>> items = [0, 1, 2, 3]
         >>> indices = [2, 0]
-        >>> ub.take(items, indices)
+        >>> list(ub.take(items, indices))
         [2, 0]
-
-    Example:
-        >>> import ubelt as ub
-        >>> items = [0, 1, 2, 3]
-        >>> index = 2
-        >>> ub.take(items, index)
-        2
-
-    Example:
-        >>> import ubelt as ub
-        >>> items = [0, 1, 2, 3]
-        >>> index = slice(1, None, 2)
-        >>> ub.take(items, index)
-        [1, 3]
     """
-    try:
-        return [items[index] for index in indices]
-    except TypeError:
-        return items[indices]
+    return (items[index] for index in indices)
 
 
 def compress(items, flags):
@@ -61,10 +44,10 @@ def compress(items, flags):
         >>> import ubelt as ub
         >>> items = [1, 2, 3, 4, 5]
         >>> flags = [False, True, True, False, True]
-        >>> ub.compress(items, flags)
+        >>> list(ub.compress(items, flags))
         [2, 3, 5]
     """
-    return list(it.compress(items, flags))
+    return it.compress(items, flags)
 
 
 def flatten(nested_list):
@@ -78,7 +61,16 @@ def flatten(nested_list):
     Example:
         >>> import ubelt as ub
         >>> nested_list = [['a', 'b'], ['c', 'd']]
-        >>> ub.flatten(nested_list)
+        >>> list(ub.flatten(nested_list))
         ['a', 'b', 'c', 'd']
     """
-    return list(it.chain.from_iterable(nested_list))
+    return it.chain.from_iterable(nested_list)
+
+
+if __name__ == '__main__':
+    r"""
+    CommandLine:
+        python -m ubelt.util_list
+    """
+    import ubelt as ub  # NOQA
+    ub.doctest_package()

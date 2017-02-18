@@ -4,8 +4,8 @@ import six
 from os.path import exists
 
 
-def write_to(fpath, to_write, aslines=False, mode='w', verbose=None):
-    """
+def writeto(fpath, to_write, aslines=False, mode='w', verbose=None):
+    r"""
     Writes text to a file. Automatically encodes text as utf8.
 
     Args:
@@ -22,7 +22,8 @@ def write_to(fpath, to_write, aslines=False, mode='w', verbose=None):
     Example:
         >>> from ubelt.util_io import *  # NOQA
         >>> import ubelt as ub
-        >>> fpath = ub.unixjoin(ub.get_app_resource_dir('ubelt'), 'testwrite.txt')
+        >>> dpath = ub.get_app_resource_dir('ubelt')
+        >>> fpath = ub.unixjoin(dpath, 'testwrite.txt')
         >>> ub.delete(fpath)
         >>> to_write = 'utf-8 symbols Δ, Й, ק, م, ๗, あ, 叶, 葉, and 말.'
         >>> aslines = False
@@ -30,8 +31,8 @@ def write_to(fpath, to_write, aslines=False, mode='w', verbose=None):
         >>> onlyifdiff = False
         >>> mode = u'w'
         >>> n = 2
-        >>> write_to(fpath, to_write, aslines, verbose, onlyifdiff, mode, n)
-        >>> read_ = ub.read_from(fpath)
+        >>> writeto(fpath, to_write, aslines, verbose, onlyifdiff, mode, n)
+        >>> read_ = ub.readfrom(fpath)
         >>> print('read_    = ' + read_)
         >>> print('to_write = ' + to_write)
         >>> assert read_ == to_write
@@ -49,8 +50,8 @@ def write_to(fpath, to_write, aslines=False, mode='w', verbose=None):
             file_.write(to_write)
 
 
-def read_from(fpath, aslines=False, errors='replace', verbose=None):
-    """
+def readfrom(fpath, aslines=False, errors='replace', verbose=None):
+    r"""
     Reads text from a file. Automatically returns utf8.
 
     Args:
@@ -78,3 +79,12 @@ def read_from(fpath, aslines=False, errors='replace', verbose=None):
         else:
             text = file_.read().decode('utf8', errors=errors)
     return text
+
+
+if __name__ == '__main__':
+    r"""
+    CommandLine:
+        python -m ubelt.util_io
+    """
+    import ubelt as ub  # NOQA
+    ub.doctest_package()

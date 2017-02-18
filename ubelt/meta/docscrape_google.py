@@ -228,7 +228,7 @@ def split_google_docblocks(docstr):
             print('ERROR IN PARSING')
             print('adjusted = %r' % (adjusted,))
             print(docstr)
-            raise AssertionError('Google Style Docstring Missformat')
+            raise ValueError('Google Style Docstring Missformat')
 
     base_indent = 0
     # We will group lines by their indentation.
