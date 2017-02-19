@@ -367,8 +367,6 @@ def doctest_package(package_name=None, command=None, argv=None, verbose=None,
             cov_report = stream.read()
             print('Coverage Report:')
             print(cov_report)
-            import utool
-            utool.embed()
         return n_passed == n_total
         # TODO: test summary
 
