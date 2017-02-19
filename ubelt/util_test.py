@@ -2,6 +2,7 @@
 from __future__ import print_function, division, absolute_import, unicode_literals
 import warnings
 import sys
+import six
 from ubelt import util_mixins
 from ubelt import util_str
 
@@ -86,6 +87,11 @@ class DocExample(util_mixins.NiceRepr):
         example.callname = callname
         example.block = block
         example.num = num
+        example.src = None
+        example.want = None
+
+    def _parse(example):
+        example.src, example.want = parse_src_want(example.block)
 
     def is_disabled(example):
         return example.block.startswith('>>> # DISABLE_DOCTEST')
@@ -105,6 +111,20 @@ class DocExample(util_mixins.NiceRepr):
             example.unique_callname,
         }
 
+    def format_src(example, linenums=True, colored=True):
+        """
+        Adds prefix and line numbers to a doctest
+        """
+        doctest_src = example.src
+        doctest_src = util_str.indent(doctest_src, '>>> ')
+        if linenums:
+            doctest_src = '\n'.join([
+                '%3d %s' % (count, line)
+                for count, line in enumerate(doctest_src.splitlines(), start=1)])
+        if colored:
+            doctest_src = util_str.highlight_code(doctest_src, 'python')
+            return doctest_src
+
     def run_example(example, verbose=None):
         """
         Executes the doctest
@@ -119,22 +139,23 @@ class DocExample(util_mixins.NiceRepr):
         """
         if verbose is None:
             verbose = 2
-        src, want = parse_src_want(example.block)
+        example._parse()
         failed = False
         if verbose >= 1:
             print('============')
             print('* BEGIN EXAMPLE : {}'.format(example.callname))
             print(example.cmdline)
             if verbose >= 2:
-                print(format_doctest(src))
+                print(example.format_src())
         else:
             sys.stdout.write('.')  # nocover
             sys.stdout.flush()  # nocover
         # Prepare for actual test run
         test_locals = {}
-        code = compile(src, '<string>', 'exec')
+        code = compile(example.src, '<string>', 'exec')
+        cap = util_str.CaptureStdout(enabled=verbose <= 1)
         try:
-            with util_str.CaptureStdout(enabled=not verbose) as cap:
+            with cap:
                 exec(code, test_locals)
         # Handle anything that could go wrong
         except ExitTestException:  # nocover
@@ -144,8 +165,10 @@ class DocExample(util_mixins.NiceRepr):
                 print('')
                 print('report failure')
                 print(example.cmdline)
-                print(format_doctest(src))
+                print(example.format_src())
             failed = True  # nocover
+            import utool
+            utool.embed()
             print('* FAILURE: {}, {}'.format(example.callname, type(ex)))
             print(cap.text)
             raise
@@ -207,21 +230,6 @@ def parse_testables(package_name):
                     yield example
 
 
-def format_doctest(src, linenums=True, colored=True):
-    """
-    Adds prefix and line numbers to a doctest
-    """
-    doctest_src = src
-    doctest_src = util_str.indent(doctest_src, '>>> ')
-    if linenums:
-        doctest_src = '\n'.join([
-            '%3d %s' % (count, line)
-            for count, line in enumerate(doctest_src.splitlines(), start=1)])
-    if colored:
-        doctest_src = util_str.highlight_code(doctest_src, 'python')
-        return doctest_src
-
-
 def doctest_package(package_name=None, command=None, argv=None, verbose=None,
                     check_coverage=None):
     r"""
@@ -246,12 +254,6 @@ def doctest_package(package_name=None, command=None, argv=None, verbose=None,
     from ubelt.meta import dynamic_analysis
     print('Start doctest_package({})'.format(package_name))
 
-    if verbose is None:
-        if '--quiet' in sys.argv:
-            verbose = 0
-        else:
-            verbose = 2
-
     if package_name is None:
         # Determine package name via caller if not specified
         frame_parent = dynamic_analysis.get_parent_frame()
@@ -270,6 +272,14 @@ def doctest_package(package_name=None, command=None, argv=None, verbose=None,
 
     # Parse all valid examples
     examples = list(parse_testables(package_name))
+
+    if verbose is None:
+        if '--verbose' in sys.argv:
+            verbose = 2
+        elif '--quiet' in sys.argv:
+            verbose = 0
+        else:
+            verbose = 1 if len(examples) > 1 else 2
 
     if command == 'list':
         print('Listing tests')
@@ -316,6 +326,10 @@ def doctest_package(package_name=None, command=None, argv=None, verbose=None,
                 'if __name__ == .__main__.:',
                 'print(.*)',
             ]
+            if six.PY2:
+                exclude_lines.append('.*if six.PY3:')
+            elif six.PY3:
+                exclude_lines.append('.*if six.PY2:')
             for line in exclude_lines:
                 cov.exclude(line)
             print('Starting coverage')
@@ -324,7 +338,7 @@ def doctest_package(package_name=None, command=None, argv=None, verbose=None,
             import imp
             for modname in modnames:
                 if modname in sys.modules:
-                    print('realoading modname = %r' % (modname,))
+                    # print('realoading modname = %r' % (modname,))
                     imp.reload(sys.modules[modname])
 
         n_total = len(enabled_examples)

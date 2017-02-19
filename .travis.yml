@@ -18,8 +18,8 @@ install:
   #- travis_retry python setup.py build develop
   - travis_retry pip install -e .
 script: 
-  #- travis_wait ./run_tests.py
-  - travis_wait python -m ubelt all
+  - travis_wait ./run_tests.py
+  #- travis_wait python -m ubelt all
 #after_failure: 
 #  - cat failed_doctests.txt
 cache: 

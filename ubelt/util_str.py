@@ -1,6 +1,8 @@
+# -*- coding: utf-8 -*-
 from __future__ import print_function, division, absolute_import, unicode_literals
 import sys
 from six.moves import cStringIO
+import six
 
 
 
@@ -17,30 +19,42 @@ class CaptureStdout(object):
     Example:
         >>> from ubelt.util_str import *  # NOQA
         >>> self = CaptureStdout(enabled=True)
-        >>> print('not captured1')
-        >>> self.__enter__()
-        >>> print('capture this')
-        >>> self.__exit__(None, None, None)
-        >>> print('not captured2')
-        >>> assert self.text == 'capture this\n', 'failed to capture text'
+        >>> print('dont capture the table flip (╯°□°）╯︵ ┻━┻')
+        >>> with self:
+        >>>     print('capture the heart ♥')
+        >>> print('dont capture look of disapproval ಠ_ಠ')
+        >>> assert self.text == 'capture the heart ♥\n', 'failed to capture text'
     """
     def __init__(self, enabled=True):
         self.enabled = enabled
         self.orig_stdout = sys.stdout
-        self.captured_stdout = cStringIO()
+        self.cap_stdout = cStringIO()
+        if six.PY2:
+            # http://stackoverflow.com/questions/1817695/stringio-accept-utf8
+            import codecs
+            codecinfo = codecs.lookup("utf8")
+            self.cap_stdout = codecs.StreamReaderWriter(
+                self.cap_stdout, codecinfo.streamreader,
+                codecinfo.streamwriter)
         self.text = None
 
     def __enter__(self):
         if self.enabled:
-            sys.stdout = self.captured_stdout
+            sys.stdout = self.cap_stdout
         return self
 
     def __exit__(self, type_, value, trace):
         if self.enabled:
-            self.captured_stdout.seek(0)
-            self.text = self.captured_stdout.read()
-            self.captured_stdout.close()
-            sys.stdout = self.orig_stdout
+            try:
+                self.cap_stdout.seek(0)
+                self.text = self.cap_stdout.read()
+                if six.PY2:
+                    self.text = self.text.decode('utf8')
+            except Exception:  # nocover
+                pass
+            finally:
+                self.cap_stdout.close()
+                sys.stdout = self.orig_stdout
         if trace is not None:
             return False  # return a falsey value on error
 

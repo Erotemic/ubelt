@@ -17,7 +17,7 @@ def writeto(fpath, to_write, aslines=False, mode='w', verbose=None):
         n (int):  (default = 2)
 
     CommandLine:
-        python -m ubelt.util_io write_to
+        python -m ubelt.util_io writeto --verbose
 
     Example:
         >>> from ubelt.util_io import *  # NOQA

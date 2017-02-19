@@ -66,7 +66,7 @@ if _DOELSE:
     from ubelt.util_stress import (find_nth_prime,)
     from ubelt.util_str import (CaptureStdout, cStringIO, highlight_code, indent,)
     from ubelt.util_test import (DocExample, ExitTestException, doctest_package,
-                                 format_doctest, parse_src_want, parse_testables,)
+                                 parse_src_want, parse_testables,)
     from ubelt.util_time import (Timer, Timerit,)
     
     # </AUTOGEN_INIT>
