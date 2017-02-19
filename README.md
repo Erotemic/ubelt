@@ -2,7 +2,7 @@
 [![Pypi](https://img.shields.io/pypi/v/ubelt.svg)](https://pypi.python.org/pypi/ubelt)
 
 This is a migration of the most useful parts of `utool` into a standalone
-library with full test coverage and minimal dependencies.
+library with full test coverage (ideally) and minimal dependencies.
 
 So far this is very much a work in progress.
 
