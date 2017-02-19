@@ -23,7 +23,7 @@ script:
   - travis_wait python -m ubelt all
 after_success: 
   #- coveralls || echo "Coveralls upload failed"
-  - coveralls 
+  - codecov 
 #after_failure: 
 #  - cat failed_doctests.txt
 cache: 
