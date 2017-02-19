@@ -58,6 +58,10 @@ if __name__ == '__main__':
         name='ubelt',
         version=version,
         author='Jon Crall',
+        install_requires=[
+            'six >= 1.10.0',
+            'Pygments >= 2.2.0',
+        ]
         author_email='erotemic@gmail.com',
         url='https://github.com/Erotemic/ubelt',
         license='Apache 2',
