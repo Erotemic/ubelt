@@ -22,7 +22,8 @@ script:
   #- travis_wait ./run_tests.py
   - travis_wait python -m ubelt all
 after_success: 
-  - source coveralls || echo "Coveralls upload failed"
+  #- coveralls || echo "Coveralls upload failed"
+  - coveralls 
 #after_failure: 
 #  - cat failed_doctests.txt
 cache: 
