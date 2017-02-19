@@ -6,7 +6,7 @@ import time
 import datetime
 import collections
 from math import log10, floor
-from sklearn.externals import six
+import six
 
 # VT100 ANSI definitions
 # https://en.wikipedia.org/wiki/ANSI_escape_code#CSI_codes
