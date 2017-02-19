@@ -1,3 +1,6 @@
+[![Travis](https://img.shields.io/travis/Erotemic/ubelt.svg)](https://travis-ci.org/Erotemic/ubelt)
+[![Pypi](https://img.shields.io/pypi/v/ubelt.svg)](https://pypi.python.org/pypi/ubelt)
+
 This is a migration of the most useful parts of `utool` into a standalone
 library with full test coverage and minimal dependencies.
 
