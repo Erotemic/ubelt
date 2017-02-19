@@ -334,6 +334,21 @@ def doctest_package(package_name=None, command=None, argv=None, verbose=None,
                 cov.exclude(line)
             print('Starting coverage')
             cov.start()
+            # Dump the coveragerc file for codecov.io
+            from os.path import exists
+            rcpath = '.coveragerc'
+            if not exists(rcpath) and not exists('__init__.py'):
+                import textwrap
+                rctext = textwrap.dedent(
+                    r'''
+                    [report]
+                    exclude_lines =
+                    '''
+                )
+                rctext += util_str.indent('\n'.join(exclude_lines))
+                print(rctext)
+                from ubelt import util_io
+                util_io.writeto(rcpath, rctext)
             # Hack to reload modules for coverage
             import imp
             for modname in modnames:
