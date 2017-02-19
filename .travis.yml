@@ -11,6 +11,7 @@ python:
   - "3.4"
 before_install:
   - pip install pip -U
+  - pip install codecov -U
 #  - pip install networkx
 #  - pip install jedi
 #  - pip install delorean
@@ -18,8 +19,10 @@ install:
   #- travis_retry python setup.py build develop
   - travis_retry pip install -e .
 script: 
-  - travis_wait ./run_tests.py
-  #- travis_wait python -m ubelt all
+  #- travis_wait ./run_tests.py
+  - travis_wait python -m ubelt all
+after_success: 
+  - source coveralls || echo "Coveralls upload failed"
 #after_failure: 
 #  - cat failed_doctests.txt
 cache: 

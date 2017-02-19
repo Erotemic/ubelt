@@ -356,8 +356,8 @@ def doctest_package(package_name=None, command=None, argv=None, verbose=None,
         if check_coverage:
             print('Stoping coverage')
             cov.stop()
-            # print('Saving coverage')
-            # cov.save()
+            print('Saving coverage for codecov')
+            cov.save()
             print('Generating coverage html report')
             cov.html_report()
             from six.moves import cStringIO
@@ -367,6 +367,8 @@ def doctest_package(package_name=None, command=None, argv=None, verbose=None,
             cov_report = stream.read()
             print('Coverage Report:')
             print(cov_report)
+            import utool
+            utool.embed()
         return n_passed == n_total
         # TODO: test summary
 
