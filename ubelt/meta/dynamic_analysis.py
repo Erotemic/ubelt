@@ -15,7 +15,7 @@ def get_stack_frame(N=0, strict=True):
         python -m dynamic_analysis get_stack_frame
 
     Example:
-        >>> from ubelt.dynamic_analysis import *  # NOQA
+        >>> from ubelt.meta.dynamic_analysis import *  # NOQA
         >>> frame_cur = get_stack_frame(N=0)
         >>> print('frame_cur = %r' % (frame_cur,))
         >>> assert frame_cur.f_globals['frame_cur'] is frame_cur
@@ -49,7 +49,7 @@ def get_parent_frame(N=0):
         python -m dynamic_analysis get_parent_frame
 
     Example:
-        >>> from ubelt.dynamic_analysis import *  # NOQA
+        >>> from ubelt.meta.dynamic_analysis import *  # NOQA
         >>> root0 = get_stack_frame(N=0)
         >>> def foo():
         >>>     child = get_stack_frame(N=0)

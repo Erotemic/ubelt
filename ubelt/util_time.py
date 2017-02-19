@@ -19,12 +19,12 @@ class Timer(object):
         >>> import ubelt as ub
         >>> timer = ub.Timer('Timer test!', verbose=1)
         >>> with timer:
-        >>>     prime = ub.get_nth_prime(400)
+        >>>     prime = ub.find_nth_prime(40)
         >>> assert timer.ellapsed > 0
     """
     def __init__(self, label='', verbose=None, newline=True):
         if verbose is None:
-            verbose = VERBOSE_TIME
+            verbose = VERBOSE_TIME  # nocover
         self.label = label
         self.verbose = verbose
         self.newline = newline
@@ -59,7 +59,7 @@ class Timer(object):
         self.ellapsed = self.toc()
         if trace is not None:
             # return False on error
-            return False
+            return False  # nocover
 
 
 class Timerit(object):
@@ -82,12 +82,12 @@ class Timerit(object):
     Example:
         >>> import ubelt as ub
         >>> num = 15
-        >>> t1 = ub.Timerit(num)
+        >>> t1 = ub.Timerit(num, verbose=2)
         >>> for timer in t1:
         >>>     # <write untimed setup code here> this example has no setup
         >>>     with timer:
         >>>         # <write code to time here> for example...
-        >>>         ub.get_nth_prime_bruteforce(100)
+        >>>         ub.find_nth_prime(100)
         >>> # <you can now access Timerit attributes>
         >>> print('t1.total_time = %r' % (t1.total_time,))
         >>> assert t1.total_time > 0
@@ -96,16 +96,16 @@ class Timerit(object):
 
     Example:
         >>> import ubelt as ub
-        >>> num = 10000
+        >>> num = 10
         >>> n = 50
         >>> # If the timer object is unused, time will still be recoreded,
         >>> # but with less precision.
         >>> for _ in ub.Timerit(num, 'inprecise'):
-        >>>     ub.get_nth_prime_bruteforce(n)
+        >>>     ub.find_nth_prime(n)
         >>> # Using the timer object results in the most precise timeings
         >>> for timer in ub.Timerit(num, 'precise'):
         >>>     with timer:
-        >>>         ub.get_nth_prime_bruteforce(n)
+        >>>         ub.find_nth_prime(n)
     """
     def __init__(self, num, label=None, unit=None, verbose=None):
         if verbose is None:
@@ -119,7 +119,7 @@ class Timerit(object):
         self.unit = unit
 
     def __iter__(self):
-        if self.verbose > 1:
+        if self.verbose >= 2:
             if self.label is None:
                 print('Timing for %d loops' % self.num)
             else:
@@ -171,7 +171,7 @@ if __name__ == '__main__':
     r"""
     CommandLine:
         python -m ubelt.util_time
-        python -m ubelt.util_time --allexamples
+        python -m ubelt.util_time all
     """
-    # TODO ub.doctest_funcs()
-    pass
+    import ubelt as ub  # NOQA
+    ub.doctest_package()

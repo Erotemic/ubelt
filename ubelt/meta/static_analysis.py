@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
 import ast
+import pkgutil
+from os.path import (join, exists, expanduser, realpath, split, splitext,
+                     isfile, basename, dirname)
 
 
 class TopLevelDocstrVisitor(ast.NodeVisitor):
@@ -49,11 +52,12 @@ def parse_docstrs(source):
         source (str):
 
     CommandLine:
-        python -m ubelt.static_analysis parse_docstrs
+        python -m ubelt.meta.static_analysis parse_docstrs
 
     Example:
+        >>> from ubelt.meta.static_analysis import *  # NOQA
         >>> import ubelt as ub
-        >>> fpath = ub.static_analysis.__file__.replace('.pyc', '.py')
+        >>> fpath = ub.meta.static_analysis.__file__.replace('.pyc', '.py')
         >>> source = ub.readfrom(fpath)
         >>> parse_docstrs(source)
     """
@@ -73,40 +77,43 @@ def package_modnames(package_name, with_pkg=False, with_mod=True,
         with_pkg (bool): (default = False)
         with_mod (bool): (default = True)
 
+    Yields:
+        str: module names belonging to the package
+
     References:
         http://stackoverflow.com/questions/1707709/list-modules-in-py-package
 
+    CommandLine:
+        python -m ubelt.meta.static_analysis package_modnames
+
     Example:
-        >>> import ubelt as ub
-        >>> package = ub
-        >>> result = package_modnames(package)
-        >>> print(result)
+        >>> from ubelt.meta.static_analysis import *  # NOQA
+        >>> modnames = list(package_modnames('ubelt'))
+        >>> assert 'ubelt.meta.static_analysis' in modnames
+        >>> print('\n'.join(modnames))
     """
-    from os.path import isfile
-    import pkgutil
     modpath = modname_to_modpath(package_name, hide_init=True)
-    # If input is a file, just return it
     if isfile(modpath):
-        return [package_name]
-    # Otherwise, if it is a package, find sub-packages and sub-modules
-    walker = pkgutil.walk_packages(
-        [modpath], prefix=package_name + '.', onerror=lambda x: None)
-    module_list = []
-    for importer, modname, ispkg in walker:
-        if any(modname.startswith(prefix) for prefix in ignore_prefix):
-            continue
-        if any(modname.endswith(suffix) for suffix in ignore_suffix):
-            continue
-        if not ispkg and with_mod:
-            module_list.append(modname)
-        if ispkg and with_pkg:
-            module_list.append(modname)
-    return module_list
+        # If input is a file, just return it
+        yield package_name
+    else:
+        # Otherwise, if it is a package, find sub-packages and sub-modules
+        walker = pkgutil.walk_packages(
+            [modpath], prefix=package_name + '.', onerror=lambda x: None)
+        for importer, modname, ispkg in walker:
+            if any(modname.startswith(prefix) for prefix in ignore_prefix):
+                continue
+            if any(modname.endswith(suffix) for suffix in ignore_suffix):
+                continue
+            if not ispkg and with_mod:
+                yield modname
+            if ispkg and with_pkg:
+                yield modname
 
 
 def modpath_to_modname(modpath):
     r"""
-    returns importable name from file path
+    Determines importable name from file path
 
     Args:
         modpath (str): module filepath
@@ -115,13 +122,14 @@ def modpath_to_modname(modpath):
         str: modname
 
     Example:
-        >>> modpath = ut.util_path.__file__
-        >>> modname = ut.get_modname_from_modpath(modpath)
-        >>> result = modname
-        >>> print(result)
-        utool.util_path
+        >>> from ubelt.meta.static_analysis import *  # NOQA
+        >>> import ubelt.meta.static_analysis
+        >>> modpath = ubelt.meta.static_analysis.__file__
+        >>> print('modpath = %r' % (modpath,))
+        >>> modname = modpath_to_modname(modpath)
+        >>> print('modname = %r' % (modname,))
+        >>> assert modname == 'ubelt.meta.static_analysis'
     """
-    from os.path import join, exists, expanduser, realpath, split, splitext
     modpath_ = realpath(expanduser(modpath))
     full_dpath, fname_ext = split(modpath_)
     fname, ext = splitext(fname_ext)
@@ -150,25 +158,23 @@ def modname_to_modpath(modname, hide_init=True, hide_main=True):
         str: modpath
 
     Example:
+        >>> from ubelt.meta.static_analysis import *  # NOQA
         >>> import sys
         >>> modname = 'ubelt.progiter'
+        >>> already_exists = modname not in sys.modules
         >>> modpath = modname_to_modpath(modname)
-        >>> assert modname not in sys.modules
+        >>> assert already_exists or modname not in sys.modules
     """
-    from os.path import dirname, basename, join, exists
-    import pkgutil
-    init_name = '__init__.py'
-    main_name = '__main__.py'
     loader = pkgutil.find_loader(modname)
     modpath = loader.get_filename().replace('.pyc', '.py')
     if '.' not in basename(modpath):
-        modpath = join(modpath, init_name)
+        modpath = join(modpath, '__init__.py')
     if hide_init:
-        if modpath.endswith(init_name) or modpath.endswith(main_name):
+        if modpath.endswith(('__init__.py', '__main__.py')):
             modpath = dirname(modpath)
     if not hide_main:
-        if modpath.endswith(init_name):
-            main_modpath = modpath[:-len(init_name)] + main_name
+        if modpath.endswith('__init__.py'):
+            main_modpath = modpath[:-len('__init__.py')] + '__main__.py'
             if exists(main_modpath):
                 modpath = main_modpath
     return modpath
@@ -177,8 +183,8 @@ def modname_to_modpath(modname, hide_init=True, hide_main=True):
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m ubelt.static_analysis
-        python -m ubelt.static_analysis --allexamples
+        python -m ubelt.meta.static_analysis
+        python -m ubelt.meta.static_analysis all
     """
     import ubelt as ub  # NOQA
     ub.doctest_package()

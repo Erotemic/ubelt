@@ -21,17 +21,14 @@ def writeto(fpath, to_write, aslines=False, mode='w', verbose=None):
 
     Example:
         >>> from ubelt.util_io import *  # NOQA
+        >>> import os
         >>> import ubelt as ub
-        >>> dpath = ub.get_app_resource_dir('ubelt')
-        >>> fpath = ub.unixjoin(dpath, 'testwrite.txt')
-        >>> ub.delete(fpath)
+        >>> dpath = ub.ensure_app_resource_dir('ubelt')
+        >>> fpath = dpath + '/' + 'testwrite.txt'
+        >>> if exists(fpath):
+        >>>     os.remove(fpath)
         >>> to_write = 'utf-8 symbols Δ, Й, ק, م, ๗, あ, 叶, 葉, and 말.'
-        >>> aslines = False
-        >>> verbose = True
-        >>> onlyifdiff = False
-        >>> mode = u'w'
-        >>> n = 2
-        >>> writeto(fpath, to_write, aslines, verbose, onlyifdiff, mode, n)
+        >>> writeto(fpath, to_write)
         >>> read_ = ub.readfrom(fpath)
         >>> print('read_    = ' + read_)
         >>> print('to_write = ' + to_write)

@@ -19,33 +19,29 @@ class _NoParamType(object):
         http://stackoverflow.com/questions/41048643/a-second-none
 
     Example:
-        >>> # DISABLE_DOCTEST
-        >>> import ubelt as ut
+        >>> import ubelt as ub
         >>> from ubelt import util_const
         >>> from ubelt.util_const import _NoParamType, NoParam
         >>> from six.moves import cPickle as pickle
         >>> import copy
         >>> id_ = id(NoParam)
         >>> versions = {
-        ... 'ut.util_const.NoParam': ut.util_const.NoParam,
+        ... 'ub.util_const.NoParam': ub.util_const.NoParam,
         ... 'NoParam': NoParam,
         ... '_NoParamType()': _NoParamType(),
-        ... 'ut.NoParam': ut.NoParam,
+        ... 'ub.NoParam': ub.NoParam,
         ... 'copy': copy.copy(NoParam),
         ... 'deepcopy': copy.deepcopy(NoParam),
         ... 'pickle': pickle.loads(pickle.dumps(NoParam))
         ... }
-        >>> print(ut.align(ut.repr4(ut.map_vals(id, versions)), ':'))
+        >>> #print(ub.align(ub.repr4(ub.map_vals(id, versions)), ':'))
+        >>> print(versions)
         >>> assert all(id(v) == id_ for v in versions.values())
         >>> import imp
         >>> imp.reload(util_const)
         >>> assert id(util_const.NoParam) == id_
         >>> assert all(id(v) == id_ for v in versions.values())
-        >>> #ut.rrrr()
-        >>> #import imp
-        >>> #imp.reload(ut.util_const)
-        >>> #versions['post_reload1'] = ut.util_const.NoParam
-        >>> #versions['post_reload2'] = ut.util_const.NoParam
+        >>> assert str(NoParam) == repr(NoParam)
     """
     def __new__(cls):
         return NoParam
@@ -69,12 +65,12 @@ class _NoParamType(object):
 try:
     # If the module is reloaded (via imp.reload), globals() will contain
     # NoParam. This skips the code that would instantiate a second object
-    NoParam
+    NoParam  # pragma: no cover
     # Note: it is possible to hack around this via
     # >>> del util_const.NoParam
     # >>> imp.reload(util_const)
-except NameError:
+except NameError:  # pragma: no cover
     # When the module is first loaded, globals() will not contain NoParam. A
     # NameError will be thrown, causing the first instance of NoParam to be
     # instanciated.
-    NoParam = object.__new__(_NoParamType)
+    NoParam = object.__new__(_NoParamType)  # pragma: no cover

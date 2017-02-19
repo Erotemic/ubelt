@@ -70,13 +70,18 @@ def dict_hist(item_list, weight_list=None, ordered=False, labels=None):
         python -m ubelt.util_dict --test-dict_hist
 
     Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ubelt.util_dict import *  # NOQA
         >>> import ubelt as ub
         >>> item_list = [1, 2, 39, 900, 1232, 900, 1232, 2, 2, 2, 900]
-        >>> hist_ = dict_hist(item_list)
-        >>> result = ub.repr2(hist_)
-        >>> print(result)
+        >>> hist1 = ub.dict_hist(item_list)
+        >>> hist2 = ub.dict_hist(item_list, ordered=True)
+        >>> try:
+        >>>     hist3 = ub.dict_hist(item_list, labels=[])
+        >>> except KeyError:
+        >>>     pass
+        >>> else:
+        >>>     raise AssertionError('expected key error')
+        >>> #result = ub.repr2(hist_)
+        >>> print(hist1)
         {1: 1, 2: 4, 39: 1, 900: 3, 1232: 2}
     """
     if labels is None:
@@ -111,15 +116,13 @@ def dict_subset(dict_, keys, default=util_const.NoParam):
         dict: subset dictionary
 
     Example:
-        >>> # ENABLE_DOCTEST
-        >>> from ubelt.util_dict import *  # NOQA
         >>> import ubelt as ub
         >>> dict_ = {'K': 3, 'dcvs_clip_max': 0.2, 'p': 0.1}
         >>> keys = ['K', 'dcvs_clip_max']
         >>> d = tuple([])
-        >>> subdict_ = dict_subset(dict_, keys)
-        >>> result = ub.dict_str(subdict_, sorted_=True, newlines=False)
-        >>> print(result)
+        >>> subdict_ = ub.dict_subset(dict_, keys)
+        >>> #result = ub.dict_str(subdict_, sorted_=True, newlines=False)
+        >>> print(subdict_)
         {'K': 3, 'dcvs_clip_max': 0.2}
     """
     items = dict_take(dict_, keys, default)
@@ -139,15 +142,15 @@ def dict_take(dict_, keys, default=util_const.NoParam):
     CommandLine:
         python -m ubelt.util_dict dict_take_gen
 
-    Example1:
+    Example:
         >>> import ubelt as ub
         >>> dict_ = {1: 'a', 2: 'b', 3: 'c'}
         >>> keys = [1, 2, 3, 4, 5]
         >>> result = list(ub.dict_take(dict_, keys, None))
         >>> assert result == ['a', 'b', 'c', None, None]
 
-    Example2:
-        >>> from ubelt.util_dict import *  # NOQA
+    Example:
+        >>> import ubelt as ub
         >>> dict_ = {1: 'a', 2: 'b', 3: 'c'}
         >>> keys = [1, 2, 3, 4, 5]
         >>> try:
@@ -162,3 +165,13 @@ def dict_take(dict_, keys, default=util_const.NoParam):
     else:
         for key in keys:
             yield dict_.get(key, default)
+
+
+if __name__ == '__main__':
+    r"""
+    CommandLine:
+        python -m ubelt.util_dict
+        python -m ubelt.util_dict all
+    """
+    import ubelt as ub  # NOQA
+    ub.doctest_package()

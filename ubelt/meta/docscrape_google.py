@@ -4,7 +4,7 @@ Handles parsing of information out of google style docstrings
 
 CommaneLine:
     # Run the doctests
-    tox -e py jedi/evaluate/docscrape_google.py
+    python -m ubelt.meta.docscrape_google all
 """
 from __future__ import print_function, division, absolute_import
 import re
@@ -22,7 +22,7 @@ def parse_google_args(docstr):
         dict: dictionaries of parameter hints
 
     Example:
-        >>> from jedi.evaluate.docscrape_google import *  # NOQA
+        >>> from ubelt.meta.docscrape_google import *  # NOQA
         >>> docstr = parse_google_args.__doc__
         >>> argdict_list = list(parse_google_args(docstr))
         >>> print([sorted(d.items()) for d in argdict_list])
@@ -46,11 +46,18 @@ def parse_google_returns(docstr):
         dict: dictionaries of return value hints
 
     Example:
-        >>> from jedi.evaluate.docscrape_google import *  # NOQA
+        >>> from ubelt.meta.docscrape_google import *  # NOQA
         >>> docstr = parse_google_returns.__doc__
         >>> retdict_list = list(parse_google_returns(docstr))
         >>> print([sorted(d.items()) for d in retdict_list])
         [[('type', 'dict')]]
+
+    Example:
+        >>> from ubelt.meta.docscrape_google import *  # NOQA
+        >>> docstr = split_google_docblocks.__doc__
+        >>> retdict_list = list(parse_google_returns(docstr))
+        >>> print([sorted(d.items()) for d in retdict_list])
+        [[('type', 'list')]]
     """
     blocks = split_google_docblocks(docstr)
     for key, lines in blocks:
@@ -68,7 +75,7 @@ def parse_google_retblock(lines):
         lines (str): unindented lines from a Returns or Yields section
 
     Example:
-        >>> from jedi.evaluate.docscrape_google import *  # NOQA
+        >>> from ubelt.meta.docscrape_google import *  # NOQA
         >>> # Test various ways that arglines can be written
         >>> line_list = [
         ...     '',
@@ -123,7 +130,7 @@ def parse_google_argblock(lines):
         http://www.sphinx-doc.org/en/stable/ext/example_google.html#example-google
 
     Example:
-        >>> from jedi.evaluate.docscrape_google import *  # NOQA
+        >>> from ubelt.meta.docscrape_google import *  # NOQA
         >>> # Test various ways that arglines can be written
         >>> line_list = [
         ...     '',
@@ -178,7 +185,7 @@ def split_google_docblocks(docstr):
             tag and the second item is the bock corresponding to that tag.
 
     Example:
-        >>> from jedi.evaluate.docscrape_google import *  # NOQA
+        >>> from ubelt.meta.docscrape_google import *  # NOQA
         >>> docstr = split_google_docblocks.__doc__
         >>> groups = split_google_docblocks(docstr)
         >>> #print('groups = %s' % (groups,))
@@ -313,3 +320,8 @@ def split_google_docblocks(docstr):
         groups.append((key, subblock))
         line_offset += len(lines)
     return groups
+
+
+if __name__ == '__main__':
+    import ubelt as ub  # NOQA
+    ub.doctest_package()

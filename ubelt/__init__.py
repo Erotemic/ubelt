@@ -13,12 +13,17 @@ import sys
 __version__ = '0.0.12'
 
 GLOBAL_MODULES = [
-    'util_dict',
+    'util_const',
     'util_decor',
+    'util_dict',
+    'util_io',
     'util_list',
-    'util_time',
     'util_mixins',
+    'util_platform',
+    'util_stress',
+    'util_str',
     'util_test',
+    'util_time',
     'meta',
 ]
 
@@ -37,20 +42,33 @@ else:
 if _DOELSE:
     # <AUTOGEN_INIT>
 
-    from ubelt import util_dict
+    from ubelt import util_const
     from ubelt import util_decor
+    from ubelt import util_dict
+    from ubelt import util_io
     from ubelt import util_list
-    from ubelt import util_time
     from ubelt import util_mixins
+    from ubelt import util_platform
+    from ubelt import util_stress
+    from ubelt import util_str
     from ubelt import util_test
+    from ubelt import util_time
     from ubelt import meta
-    from ubelt.util_dict import (dict_hist, dict_subset, dict_take, group_items,)
+    from ubelt.util_const import (NoParam,)
     from ubelt.util_decor import (memoize,)
+    from ubelt.util_dict import (dict_hist, dict_subset, dict_take, group_items,)
+    from ubelt.util_io import (readfrom, writeto,)
     from ubelt.util_list import (compress, flatten, take,)
-    from ubelt.util_time import (Timer, Timerit,)
     from ubelt.util_mixins import (NiceRepr,)
-    from ubelt.util_test import (doctest_package,)
-
+    from ubelt.util_platform import (DARWIN, LINUX, WIN32, ensure_app_resource_dir,
+                                     ensuredir, get_app_resource_dir,
+                                     get_resource_dir,)
+    from ubelt.util_stress import (find_nth_prime,)
+    from ubelt.util_str import (CaptureStdout, cStringIO, highlight_code, indent,)
+    from ubelt.util_test import (DocExample, ExitTestException, doctest_package,
+                                 format_doctest, parse_src_want, parse_testables,)
+    from ubelt.util_time import (Timer, Timerit,)
+    
     # </AUTOGEN_INIT>
 
 del _DOELSE
