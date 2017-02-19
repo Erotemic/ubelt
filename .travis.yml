@@ -2,7 +2,8 @@ language: python
 python:
   - "2.7"
   - "3.4"
-#before_install:
+before_install:
+  - pip install pip -U
 #  - pip install networkx
 #  - pip install jedi
 #  - pip install delorean
