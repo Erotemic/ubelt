@@ -61,7 +61,8 @@ if __name__ == '__main__':
         install_requires=[
             'six >= 1.10.0',
             'Pygments >= 2.2.0',
-        ]
+            'coverage >= 4.3.4',
+        ],
         author_email='erotemic@gmail.com',
         url='https://github.com/Erotemic/ubelt',
         license='Apache 2',

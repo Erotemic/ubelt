@@ -1,4 +1,11 @@
 language: python
+sudo: false
+
+cache:
+  apt: true
+  directories:
+  - $HOME/.cache/pip
+  - $HOME/download
 python:
   - "2.7"
   - "3.4"
