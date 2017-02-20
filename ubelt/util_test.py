@@ -74,8 +74,8 @@ class ExitTestException(Exception):
     pass
 
 
-class DocExample(util_mixins.NiceRepr):
 # class DocExample(object):
+class DocExample(util_mixins.NiceRepr):
     """
     Holds information necessary to execute and verify a doctest
     """
@@ -176,7 +176,12 @@ class DocExample(util_mixins.NiceRepr):
         if not failed and verbose >= 1:
             if cap.text is not None:
                 assert isinstance(cap.text, six.text_type), 'do not use ascii'
-            print(cap.text)
+            try:
+                print(cap.text)
+            except UnicodeEncodeError:
+                print('Weird travis bug')
+                print('type(cap.text) = %r' % (type(cap.text),))
+                print('cap.text = %r' % (cap.text,))
             print('* SUCCESS: {}'.format(example.callname))
         summary = {
             'passed': not failed
