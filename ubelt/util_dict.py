@@ -193,7 +193,7 @@ def map_vals(func, dict_):
 
     """
     if not hasattr(func, '__call__'):
-        func = op.itemgetter(func)
+        func = func.__getitem__
     keyval_list = [(key, func(val)) for key, val in six.iteritems(dict_)]
     dictclass = odict if isinstance(dict_, odict) else dict
     newdict = dictclass(keyval_list)
@@ -226,7 +226,7 @@ def map_keys(func, dict_):
 
     """
     if not hasattr(func, '__call__'):
-        func = op.itemgetter(func)
+        func = func.__getitem__
     keyval_list = [(func(key), val) for key, val in six.iteritems(dict_)]
     # newdict = type(dict_)(keyval_list)
     dictclass = odict if isinstance(dict_, odict) else dict

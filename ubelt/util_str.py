@@ -32,7 +32,7 @@ class CaptureStdout(object):
         if six.PY2:
             # http://stackoverflow.com/questions/1817695/stringio-accept-utf8
             import codecs
-            codecinfo = codecs.lookup("utf8")
+            codecinfo = codecs.lookup('utf8')
             self.cap_stdout = codecs.StreamReaderWriter(
                 self.cap_stdout, codecinfo.streamreader,
                 codecinfo.streamwriter)
