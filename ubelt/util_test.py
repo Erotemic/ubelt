@@ -174,6 +174,8 @@ class DocExample(util_mixins.NiceRepr):
             raise
 
         if not failed and verbose >= 1:
+            if cap.text is not None:
+                assert isinstance(cap.text, six.text_type), 'do not use ascii'
             print(cap.text)
             print('* SUCCESS: {}'.format(example.callname))
         summary = {

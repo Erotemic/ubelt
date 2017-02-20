@@ -5,7 +5,6 @@ from six.moves import cStringIO
 import six
 
 
-
 class CaptureStdout(object):
     r"""
     Context manager that captures stdout and stores it in an internal stream
@@ -23,7 +22,8 @@ class CaptureStdout(object):
         >>> with self:
         >>>     print('capture the heart ♥')
         >>> print('dont capture look of disapproval ಠ_ಠ')
-        >>> assert self.text == 'capture the heart ♥\n', 'failed to capture text'
+        >>> assert isinstance(self.text, six.text_type)
+        >>> assert self.text == 'capture the heart ♥\n', 'failed capture text'
     """
     def __init__(self, enabled=True):
         self.enabled = enabled
