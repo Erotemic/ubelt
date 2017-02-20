@@ -167,13 +167,14 @@ class DocExample(util_mixins.NiceRepr):
                 print(example.cmdline)
                 print(example.format_src())
             failed = True  # nocover
-            import utool
-            utool.embed()
+            # import utool
+            # utool.embed()
             print('* FAILURE: {}, {}'.format(example.callname, type(ex)))
             print(cap.text)
             raise
 
-        if verbose >= 1 and not failed:
+        if not failed and verbose >= 1:
+            print(cap.text)
             print('* SUCCESS: {}'.format(example.callname))
         summary = {
             'passed': not failed
@@ -226,7 +227,7 @@ def parse_testables(package_name):
                     # print('num = %r' % (num,))
                     example = DocExample(modpath, callname, block, num)
                     # print('example = %r' % (example,))
-                    test_name = modname + '.' + callname
+                    # test_name = modname + '.' + callname
                     yield example
 
 

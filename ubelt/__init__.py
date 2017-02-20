@@ -24,6 +24,7 @@ GLOBAL_MODULES = [
     'util_str',
     'util_test',
     'util_time',
+    'progiter',
     'meta',
 ]
 
@@ -53,10 +54,12 @@ if _DOELSE:
     from ubelt import util_str
     from ubelt import util_test
     from ubelt import util_time
+    from ubelt import progiter
     from ubelt import meta
     from ubelt.util_const import (NoParam,)
     from ubelt.util_decor import (memoize,)
-    from ubelt.util_dict import (dict_hist, dict_subset, dict_take, group_items,)
+    from ubelt.util_dict import (dict_hist, dict_subset, dict_take, group_items,
+                                 map_keys, map_vals, odict,)
     from ubelt.util_io import (readfrom, writeto,)
     from ubelt.util_list import (compress, flatten, take,)
     from ubelt.util_mixins import (NiceRepr,)
@@ -68,6 +71,7 @@ if _DOELSE:
     from ubelt.util_test import (DocExample, ExitTestException, doctest_package,
                                  parse_src_want, parse_testables,)
     from ubelt.util_time import (Timer, Timerit,)
+    from ubelt.progiter import (ProgIter,)
     
     # </AUTOGEN_INIT>
 

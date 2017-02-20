@@ -146,7 +146,6 @@ def modpath_to_modname(modpath):
     return modname
 
 
-
 def modname_to_modpath(modname, hide_init=True, hide_main=True):
     r"""
     Determines the path to a python module without directly import it
@@ -157,12 +156,20 @@ def modname_to_modpath(modname, hide_init=True, hide_main=True):
     Returns:
         str: modpath
 
+    CommandLine:
+        python -m ubelt.meta.static_analysis modname_to_modpath
+
+    TODO:
+        Test with a module we know wont be imported by ubelt.
+        Maybe make this a non-doctest and put in tests directory.
+
     Example:
         >>> from ubelt.meta.static_analysis import *  # NOQA
         >>> import sys
         >>> modname = 'ubelt.progiter'
-        >>> already_exists = modname not in sys.modules
+        >>> already_exists = modname in sys.modules
         >>> modpath = modname_to_modpath(modname)
+        >>> print('modpath = %r' % (modpath,))
         >>> assert already_exists or modname not in sys.modules
     """
     loader = pkgutil.find_loader(modname)

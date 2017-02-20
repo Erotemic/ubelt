@@ -8,6 +8,10 @@ import collections
 from math import log10, floor
 import six
 
+__all__ = [
+    'ProgIter',
+]
+
 # VT100 ANSI definitions
 # https://en.wikipedia.org/wiki/ANSI_escape_code#CSI_codes
 CLEARLINE_EL0 = '\33[0K'  # clear line to right

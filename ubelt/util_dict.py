@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
+import six
+from collections import OrderedDict as odict
 import collections
 import operator as op
 import itertools as it
@@ -165,6 +167,73 @@ def dict_take(dict_, keys, default=util_const.NoParam):
     else:
         for key in keys:
             yield dict_.get(key, default)
+
+
+def map_vals(func, dict_):
+    r"""
+    applies a function to each of the keys in a dictionary
+
+    Args:
+        func (callable): a function or indexable object
+        dict_ (dict): a dictionary
+
+    Returns:
+        newdict: transformed dictionary
+
+    CommandLine:
+        python -m ubelt.util_dict map_vals
+
+    Example:
+        >>> import ubelt as ub
+        >>> dict_ = {'a': [1, 2, 3], 'b': []}
+        >>> func = len
+        >>> newdict = ub.map_vals(func, dict_)
+        >>> assert newdict ==  {'a': 3, 'b': 0}
+        >>> print(newdict)
+
+    """
+    if not hasattr(func, '__call__'):
+        func = op.itemgetter(func)
+    keyval_list = [(key, func(val)) for key, val in six.iteritems(dict_)]
+    dictclass = odict if isinstance(dict_, odict) else dict
+    newdict = dictclass(keyval_list)
+    # newdict = type(dict_)(keyval_list)
+    return newdict
+
+
+def map_keys(func, dict_):
+    r"""
+    applies a function to each of the keys in a dictionary
+
+    Args:
+        func (callable): a function or indexable object
+        dict_ (dict): a dictionary
+
+    Returns:
+        newdict: transformed dictionary
+
+    CommandLine:
+        python -m ubelt.util_dict map_keys
+
+    Example:
+        >>> import ubelt as ub
+        >>> dict_ = {'a': [1, 2, 3], 'b': []}
+        >>> func = ord
+        >>> newdict = ub.map_keys(func, dict_)
+        >>> print(newdict)
+        >>> assert newdict == {97: [1, 2, 3], 98: []}
+        >>> #ut.assert_raises(AssertionError, map_keys, len, dict_)
+
+    """
+    if not hasattr(func, '__call__'):
+        func = op.itemgetter(func)
+    keyval_list = [(func(key), val) for key, val in six.iteritems(dict_)]
+    # newdict = type(dict_)(keyval_list)
+    dictclass = odict if isinstance(dict_, odict) else dict
+    newdict = dictclass(keyval_list)
+    assert len(newdict) == len(dict_), (
+        'multiple input keys were mapped to the same output key')
+    return newdict
 
 
 if __name__ == '__main__':
