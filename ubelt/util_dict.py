@@ -106,6 +106,43 @@ def dict_hist(item_list, weight_list=None, ordered=False, labels=None):
     return hist_
 
 
+def find_duplicates(items, k=2):
+    r"""
+    Determine if there are duplicates in a list and at which indices they
+    appear.
+
+    Args:
+        items (list): a list of hashable items possibly containing duplicates
+        k (int): only return items that appear at least `k` times (default=2)
+
+    Returns:
+        dict: keys are duplicate items and values are indicies at which they
+            appear
+
+    CommandLine:
+        python -m ubelt.util_dict find_duplicates
+
+    Example:
+        >>> import ubelt as ub
+        >>> items = [0, 0, 1, 2, 3, 3, 0, 12, 2, 9]
+        >>> duplicates = ub.find_duplicates(items)
+        >>> print('items = %r' % (items,))
+        >>> print('duplicates = %r' % (duplicates,))
+        >>> assert duplicates == {0: [0, 1, 6], 2: [3, 8], 3: [4, 5]}
+        >>> assert ub.find_duplicates(items, 3) == {0: [0, 1, 6]}
+    """
+    # Build mapping from items to the indices at which they appear
+    duplicates = collections.defaultdict(list)
+    for count, item in enumerate(items):
+        duplicates[item].append(count)
+    # remove singleton items
+    for key in list(duplicates.keys()):
+        if len(duplicates[key]) < k:
+            del duplicates[key]
+    duplicates = dict(duplicates)
+    return duplicates
+
+
 def dict_subset(dict_, keys, default=util_const.NoParam):
     r"""
     Get a subset of a dictionary

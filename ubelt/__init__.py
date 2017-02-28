@@ -58,8 +58,9 @@ if _DOELSE:
     from ubelt import meta
     from ubelt.util_const import (NoParam,)
     from ubelt.util_decor import (memoize,)
-    from ubelt.util_dict import (dict_hist, dict_subset, dict_take, group_items,
-                                 map_keys, map_vals, odict,)
+    from ubelt.util_dict import (dict_hist, dict_subset, dict_take,
+                                 find_duplicates, group_items, map_keys, map_vals,
+                                 odict,)
     from ubelt.util_io import (readfrom, writeto,)
     from ubelt.util_list import (compress, flatten, take,)
     from ubelt.util_mixins import (NiceRepr,)
