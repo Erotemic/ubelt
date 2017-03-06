@@ -21,7 +21,8 @@ Some of the code introspection features will be ported, but most
   `ubelt`.
 
 ## Available Functions:
-This list of functions and classes is currently available
+This list of functions and classes is currently available. 
+See the corresponding doc-strings for more details.
 
 ```
 import ubelt as ub
