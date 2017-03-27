@@ -7,11 +7,13 @@ from six.moves import zip_longest
 
 class chunks(object):
     r"""
-    generates successive n-sized chunks from `iterable`.
+    Generates successive n-sized chunks from `iterable`.
+    If the last chunk has less than n elements, `bordermode` is used to
+    determine fill values.
 
     Args:
         iterable (list): input to iterate over
-        chunksize (int): size of sublist to return
+        chunksize (int): size of each sublist yielded
         bordermode (str): determines how to handle the last case if the
             length of the iterable is not divisible by chunksize valid values
             are: {'none', 'cycle', 'replicate'}
@@ -31,7 +33,6 @@ class chunks(object):
         >>> assert list(genresult) == [[1, 2, 3], [4, 5, 6], [7, 1, 2]]
         >>> genresult = ub.chunks(iterable, chunksize=3, bordermode='replicate')
         >>> assert list(genresult) == [[1, 2, 3], [4, 5, 6], [7, 7, 7]]
-
     """
     def __init__(self, iterable, chunksize, bordermode='none'):
         self.bordermode = bordermode
@@ -54,12 +55,11 @@ class chunks(object):
     @staticmethod
     def noborder(iterable, chunksize):
         # feed the same iter to zip_longest multiple times, this causes it to
-        # consume successive values of the same sequence rather than striped
-        # values
+        # consume successive values of the same sequence
         sentinal = object()
         copied_iters = [iter(iterable)] * chunksize
         chunks_with_sentinals = zip_longest(*copied_iters, fillvalue=sentinal)
-        # Yeild smaller chunks without sentinals
+        # Dont fill empty space in the last chunk, just return it as is
         for chunk in chunks_with_sentinals:
             if len(chunk) > 0:
                 yield [item for item in chunk if item is not sentinal]
@@ -69,6 +69,7 @@ class chunks(object):
         sentinal = object()
         copied_iters = [iter(iterable)] * chunksize
         chunks_with_sentinals = zip_longest(*copied_iters, fillvalue=sentinal)
+        # Fill empty space in the last chunk with values from the beginning
         bordervalues = it.cycle(iter(iterable))
         for chunk in chunks_with_sentinals:
             if len(chunk) > 0:
@@ -79,15 +80,16 @@ class chunks(object):
     def replicate(iterable, chunksize):
         sentinal = object()
         copied_iters = [iter(iterable)] * chunksize
+        # Fill empty space in the last chunk by replicating the last value
         chunks_with_sentinals = zip_longest(*copied_iters, fillvalue=sentinal)
         for chunk in chunks_with_sentinals:
             if len(chunk) > 0:
-                filtered_chunk = [item for item in chunk if item is not sentinal]
-                if len(filtered_chunk) == chunksize:
-                    yield filtered_chunk
+                filt_chunk = [item for item in chunk if item is not sentinal]
+                if len(filt_chunk) == chunksize:
+                    yield filt_chunk
                 else:
-                    sizediff = (chunksize - len(filtered_chunk))
-                    padded_chunk = filtered_chunk + [filtered_chunk[-1]] * sizediff
+                    sizediff = (chunksize - len(filt_chunk))
+                    padded_chunk = filt_chunk + [filt_chunk[-1]] * sizediff
                     yield padded_chunk
 
 
