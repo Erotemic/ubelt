@@ -225,9 +225,10 @@ def parse_testables(package_name):
         for callname, docstr in docstrs.items():
             if docstr is not None:
                 blocks = docscrape_google.split_google_docblocks(docstr)
-                example_blocks = (
-                    (type_, block) for type_, block in blocks
-                    if type_.startswith('Example'))
+                example_blocks = []
+                for type_, block in blocks:
+                    if type_.startswith('Example'):
+                        example_blocks.append((type_, block))
                 for num, (type_, block) in enumerate(example_blocks):
                     # print('modpath = %r' % (modpath,))
                     # print('callname = %r' % (callname,))

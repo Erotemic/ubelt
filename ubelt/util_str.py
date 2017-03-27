@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function, division, absolute_import, unicode_literals
 import sys
+import textwrap
 from six.moves import cStringIO
 import six
 
@@ -83,9 +84,54 @@ def indent(text, prefix='    '):
     return prefix + text.replace('\n', '\n' + prefix)
 
 
+def codeblock(block_str):
+    """
+    Wraps multiline string blocks and returns unindented code.
+    Useful for templated code defined in indented parts of code.
+
+    Args:
+        block_str (str): typically in the form of a multiline string
+
+    Returns:
+        str: the unindented string
+
+    CommandLine:
+        python -m ubelt.util_str codeblock
+
+    Example:
+        >>> from ubelt.util_str import *  # NOQA
+        >>> # Simulate an indented part of code
+        >>> if True:
+        >>>     # notice the indentation on this will be normal
+        >>>     codeblock_version = codeblock(
+        ...             '''
+        ...             def foo():
+        ...                 return 'bar'
+        ...             '''
+        ...         )
+        >>>     # notice the indentation and newlines on this will be odd
+        >>>     normal_version = ('''
+        ...         def foo():
+        ...             return 'bar'
+        ...     ''')
+        >>> assert normal_version != codeblock_version
+        >>> print('Without codeblock')
+        >>> print(normal_version)
+        >>> print('With codeblock')
+        >>> print(codeblock_version)
+    """
+    return textwrap.dedent(block_str).strip('\n')
+
+
 def highlight_code(text, lexer_name='python', **kwargs):
     """
     Highlights a block of text using language syntax
+
+    Example:
+        >>> import ubelt as ub
+        >>> text = 'import ubelt as ub; print(ub)'
+        >>> new_text = ub.highlight_code(text)
+        >>> print(new_text)
     """
     # Resolve extensions to languages
     lexer_name = {

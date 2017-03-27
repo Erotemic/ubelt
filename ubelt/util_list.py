@@ -1,6 +1,103 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
 import itertools as it
+import six
+from six.moves import zip_longest
+
+
+class Chunks(object):
+    r"""
+    generates successive n-sized chunks from `iterable`.
+
+    References:
+        http://stackoverflow.com/questions/434287/iterate-over-a-list-in-chunks
+
+    CommandLine:
+        python -m ubelt.util_list Chunks
+
+    Example:
+        >>> import ubelt as ub
+        >>> iterable = [1, 2, 3, 4, 5, 6, 7]
+        >>> genresult = ub.Chunks(iterable, chunksize=3, bordermode='none')
+        >>> assert list(genresult) == [[1, 2, 3], [4, 5, 6], [7]]
+        >>> genresult = ub.Chunks(iterable, chunksize=3, bordermode='cycle')
+        >>> assert list(genresult) == [[1, 2, 3], [4, 5, 6], [7, 1, 2]]
+        >>> genresult = ub.Chunks(iterable, chunksize=3, bordermode='replicate')
+        >>> assert list(genresult) == [[1, 2, 3], [4, 5, 6], [7, 7, 7]]
+
+    """
+    def __init__(self, iterable, chunksize, bordermode='none'):
+        """
+        Args:
+            iterable (list): input to iterate over
+            chunksize (int): size of sublist to return
+            bordermode (str): determines how to handle the last case if the
+                length of the iterable is not divisible by chunksize valid values
+                are: {'none', 'cycle', 'replicate'}
+        """
+        self.bordermode = bordermode
+        self.iterable = iterable
+        self.chunksize = chunksize
+
+    def __iter__(self):
+        bordermode = self.bordermode
+        iterable = self.iterable
+        chunksize = self.chunksize
+        if bordermode is None or bordermode == 'none':
+            return self._noborder(iterable, chunksize)
+        elif bordermode == 'cycle':
+            return self._cycle(iterable, chunksize)
+        elif bordermode == 'replicate':
+            return self._replicate(iterable, chunksize)
+        else:
+            raise ValueError('unknown bordermode=%r' % (bordermode,))
+
+    @staticmethod
+    def _noborder(iterable, chunksize):
+        # feed the same iter to zip_longest multiple times, this causes it to
+        # consume successive values of the same sequence rather than striped
+        # values
+        sentinal = object()
+        copied_iters = [iter(iterable)] * chunksize
+        chunks_with_sentinals = zip_longest(*copied_iters, fillvalue=sentinal)
+        # Yeild smaller chunks without sentinals
+        for chunk in chunks_with_sentinals:
+            if len(chunk) > 0:
+                yield [item for item in chunk if item is not sentinal]
+
+    @staticmethod
+    def _cycle(iterable, chunksize):
+        # feed the same iter to zip_longest multiple times, this causes it to
+        # consume successive values of the same sequence rather than striped
+        # values
+        sentinal = object()
+        copied_iters = [iter(iterable)] * chunksize
+        chunks_with_sentinals = zip_longest(*copied_iters, fillvalue=sentinal)
+        bordervalues = it.cycle(iter(iterable))
+        # Yeild smaller chunks without sentinals
+        for chunk in chunks_with_sentinals:
+            if len(chunk) > 0:
+                yield [item if item is not sentinal else six.next(bordervalues)
+                       for item in chunk]
+
+    @staticmethod
+    def _replicate(iterable, chunksize):
+        # feed the same iter to zip_longest multiple times, this causes it to
+        # consume successive values of the same sequence rather than striped
+        # values
+        sentinal = object()
+        copied_iters = [iter(iterable)] * chunksize
+        chunks_with_sentinals = zip_longest(*copied_iters, fillvalue=sentinal)
+        # Yeild smaller chunks without sentinals
+        for chunk in chunks_with_sentinals:
+            if len(chunk) > 0:
+                filtered_chunk = [item for item in chunk if item is not sentinal]
+                if len(filtered_chunk) == chunksize:
+                    yield filtered_chunk
+                else:
+                    sizediff = (chunksize - len(filtered_chunk))
+                    padded_chunk = filtered_chunk + [filtered_chunk[-1]] * sizediff
+                    yield padded_chunk
 
 
 def take(items, indices):

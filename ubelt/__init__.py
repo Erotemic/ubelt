@@ -6,6 +6,24 @@ CommandLine:
     python -c "import ubelt"
     python -c "import ubelt" --print-ubelt-init
     python -c "import ubelt" --update-ubelt-init --dyn
+
+TODO:
+    The following functions and classes are candidates to be ported from utool:
+    * Cacher
+    * reload_class
+    * inject_func_as_method
+    * inject_func_as_property
+    * embed
+    * repr2
+    * identity
+    * rsync
+    * grab_file_url
+    * parse_cfgstr3
+    * accumulate
+    * itertwo
+    * iterwin
+    * ParamInfo - move to dtool
+
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import sys
@@ -19,6 +37,7 @@ GLOBAL_MODULES = [
     'util_io',
     'util_list',
     'util_mixins',
+    'util_path',
     'util_platform',
     'util_stress',
     'util_str',
@@ -49,6 +68,7 @@ if _DOELSE:
     from ubelt import util_io
     from ubelt import util_list
     from ubelt import util_mixins
+    from ubelt import util_path
     from ubelt import util_platform
     from ubelt import util_stress
     from ubelt import util_str
@@ -62,13 +82,15 @@ if _DOELSE:
                                  find_duplicates, group_items, map_keys, map_vals,
                                  odict,)
     from ubelt.util_io import (readfrom, writeto,)
-    from ubelt.util_list import (compress, flatten, take,)
+    from ubelt.util_list import (Chunks, compress, flatten, take,)
     from ubelt.util_mixins import (NiceRepr,)
+    from ubelt.util_path import (augpath, split,)
     from ubelt.util_platform import (DARWIN, LINUX, WIN32, ensure_app_resource_dir,
                                      ensuredir, get_app_resource_dir,
                                      get_resource_dir,)
     from ubelt.util_stress import (find_nth_prime,)
-    from ubelt.util_str import (CaptureStdout, cStringIO, highlight_code, indent,)
+    from ubelt.util_str import (CaptureStdout, cStringIO, codeblock,
+                                highlight_code, indent,)
     from ubelt.util_test import (DocExample, ExitTestException, doctest_package,
                                  parse_src_want, parse_testables,)
     from ubelt.util_time import (Timer, Timerit,)

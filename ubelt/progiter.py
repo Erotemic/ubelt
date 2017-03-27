@@ -94,6 +94,9 @@ class ProgIter(object):
             2 - verbosity without clearline=False and adjust=True
             3 - verbosity without clearline=False and adjust=False
 
+    SeeAlso:
+        tqdm
+
     Reference:
         http://datagenetics.com/blog/february12017/index.html
 

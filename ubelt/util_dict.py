@@ -19,6 +19,13 @@ def group_items(item_list, groupid_list, sorted_=True):
         sorted_ (bool): if True preserves the ordering of items within groups
             (default = True)
 
+    TODO:
+        change names from
+            item_list: values
+            groupid_list: keys
+        allow keys to be an iterable or a function so this can work similar to
+        itertools.groupby
+
     Returns:
         dict: groupid_to_items: maps a groupid to a list of items
 
@@ -32,7 +39,7 @@ def group_items(item_list, groupid_list, sorted_=True):
         >>> #print(result)
         {'dairy': ['cheese'], 'fruit': ['jam', 'bannana'], 'protein': ['ham', 'spam', 'eggs']}
     """
-    pair_list_ = list(zip(groupid_list, item_list))
+    pair_list_ = zip(groupid_list, item_list)
     if sorted_:
         # Sort by groupid for cache efficiency
         try:
