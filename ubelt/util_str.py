@@ -125,7 +125,13 @@ def codeblock(block_str):
 
 def highlight_code(text, lexer_name='python', **kwargs):
     """
-    Highlights a block of text using language syntax
+    Highlights a block of text using ansii tags based on language syntax.
+    If pygments is not installed, the plain text is returned.
+
+    Args:
+        text (str): plain text to highlight
+        lexer_name (str): name of language
+        **kwargs: passed to pygments.lexers.get_lexer_by_name
 
     Example:
         >>> import ubelt as ub
