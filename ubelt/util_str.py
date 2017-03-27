@@ -85,7 +85,7 @@ def indent(text, prefix='    '):
 
 
 def codeblock(block_str):
-    """
+    r"""
     Wraps multiline string blocks and returns unindented code.
     Useful for templated code defined in indented parts of code.
 
@@ -124,7 +124,7 @@ def codeblock(block_str):
 
 
 def highlight_code(text, lexer_name='python', **kwargs):
-    """
+    r"""
     Highlights a block of text using ansii tags based on language syntax.
     If pygments is not installed, the plain text is returned.
 
