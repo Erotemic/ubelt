@@ -9,6 +9,13 @@ class chunks(object):
     r"""
     generates successive n-sized chunks from `iterable`.
 
+    Args:
+        iterable (list): input to iterate over
+        chunksize (int): size of sublist to return
+        bordermode (str): determines how to handle the last case if the
+            length of the iterable is not divisible by chunksize valid values
+            are: {'none', 'cycle', 'replicate'}
+
     References:
         http://stackoverflow.com/questions/434287/iterate-over-a-list-in-chunks
 
@@ -27,14 +34,6 @@ class chunks(object):
 
     """
     def __init__(self, iterable, chunksize, bordermode='none'):
-        """
-        Args:
-            iterable (list): input to iterate over
-            chunksize (int): size of sublist to return
-            bordermode (str): determines how to handle the last case if the
-                length of the iterable is not divisible by chunksize valid values
-                are: {'none', 'cycle', 'replicate'}
-        """
         self.bordermode = bordermode
         self.iterable = iterable
         self.chunksize = chunksize
@@ -67,14 +66,10 @@ class chunks(object):
 
     @staticmethod
     def cycle(iterable, chunksize):
-        # feed the same iter to zip_longest multiple times, this causes it to
-        # consume successive values of the same sequence rather than striped
-        # values
         sentinal = object()
         copied_iters = [iter(iterable)] * chunksize
         chunks_with_sentinals = zip_longest(*copied_iters, fillvalue=sentinal)
         bordervalues = it.cycle(iter(iterable))
-        # Yeild smaller chunks without sentinals
         for chunk in chunks_with_sentinals:
             if len(chunk) > 0:
                 yield [item if item is not sentinal else six.next(bordervalues)
@@ -82,13 +77,9 @@ class chunks(object):
 
     @staticmethod
     def replicate(iterable, chunksize):
-        # feed the same iter to zip_longest multiple times, this causes it to
-        # consume successive values of the same sequence rather than striped
-        # values
         sentinal = object()
         copied_iters = [iter(iterable)] * chunksize
         chunks_with_sentinals = zip_longest(*copied_iters, fillvalue=sentinal)
-        # Yeild smaller chunks without sentinals
         for chunk in chunks_with_sentinals:
             if len(chunk) > 0:
                 filtered_chunk = [item for item in chunk if item is not sentinal]
