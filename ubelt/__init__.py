@@ -82,7 +82,7 @@ if _DOELSE:
                                  find_duplicates, group_items, map_keys, map_vals,
                                  odict,)
     from ubelt.util_io import (readfrom, writeto,)
-    from ubelt.util_list import (Chunks, compress, flatten, take,)
+    from ubelt.util_list import (chunks, compress, flatten, take,)
     from ubelt.util_mixins import (NiceRepr,)
     from ubelt.util_path import (augpath, split,)
     from ubelt.util_platform import (DARWIN, LINUX, WIN32, ensure_app_resource_dir,

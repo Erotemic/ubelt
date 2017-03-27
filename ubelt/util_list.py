@@ -5,7 +5,7 @@ import six
 from six.moves import zip_longest
 
 
-class Chunks(object):
+class chunks(object):
     r"""
     generates successive n-sized chunks from `iterable`.
 
@@ -13,16 +13,16 @@ class Chunks(object):
         http://stackoverflow.com/questions/434287/iterate-over-a-list-in-chunks
 
     CommandLine:
-        python -m ubelt.util_list Chunks
+        python -m ubelt.util_list chunks
 
     Example:
         >>> import ubelt as ub
         >>> iterable = [1, 2, 3, 4, 5, 6, 7]
-        >>> genresult = ub.Chunks(iterable, chunksize=3, bordermode='none')
+        >>> genresult = ub.chunks(iterable, chunksize=3, bordermode='none')
         >>> assert list(genresult) == [[1, 2, 3], [4, 5, 6], [7]]
-        >>> genresult = ub.Chunks(iterable, chunksize=3, bordermode='cycle')
+        >>> genresult = ub.chunks(iterable, chunksize=3, bordermode='cycle')
         >>> assert list(genresult) == [[1, 2, 3], [4, 5, 6], [7, 1, 2]]
-        >>> genresult = ub.Chunks(iterable, chunksize=3, bordermode='replicate')
+        >>> genresult = ub.chunks(iterable, chunksize=3, bordermode='replicate')
         >>> assert list(genresult) == [[1, 2, 3], [4, 5, 6], [7, 7, 7]]
 
     """
@@ -44,16 +44,16 @@ class Chunks(object):
         iterable = self.iterable
         chunksize = self.chunksize
         if bordermode is None or bordermode == 'none':
-            return self._noborder(iterable, chunksize)
+            return self.noborder(iterable, chunksize)
         elif bordermode == 'cycle':
-            return self._cycle(iterable, chunksize)
+            return self.cycle(iterable, chunksize)
         elif bordermode == 'replicate':
-            return self._replicate(iterable, chunksize)
+            return self.replicate(iterable, chunksize)
         else:
             raise ValueError('unknown bordermode=%r' % (bordermode,))
 
     @staticmethod
-    def _noborder(iterable, chunksize):
+    def noborder(iterable, chunksize):
         # feed the same iter to zip_longest multiple times, this causes it to
         # consume successive values of the same sequence rather than striped
         # values
@@ -66,7 +66,7 @@ class Chunks(object):
                 yield [item for item in chunk if item is not sentinal]
 
     @staticmethod
-    def _cycle(iterable, chunksize):
+    def cycle(iterable, chunksize):
         # feed the same iter to zip_longest multiple times, this causes it to
         # consume successive values of the same sequence rather than striped
         # values
@@ -81,7 +81,7 @@ class Chunks(object):
                        for item in chunk]
 
     @staticmethod
-    def _replicate(iterable, chunksize):
+    def replicate(iterable, chunksize):
         # feed the same iter to zip_longest multiple times, this causes it to
         # consume successive values of the same sequence rather than striped
         # values
