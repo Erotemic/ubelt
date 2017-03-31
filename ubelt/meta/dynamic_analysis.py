@@ -26,7 +26,7 @@ def get_stack_frame(N=0, strict=True):
     # Use N+1 to always skip the frame of this function
     for _ix in range(N + 1):
         frame_next = frame_cur.f_back
-        if frame_next is None:
+        if frame_next is None:  # nocover
             if strict:
                 raise AssertionError('Frame level %r is root' % _ix)
             else:
@@ -76,8 +76,8 @@ def get_parent_frame(N=0):
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m ubelt.dynamic_analysis
-        python -m ubelt.dynamic_analysis --allexamples
+        python -m ubelt.meta.dynamic_analysis
+        python -m ubelt.meta.dynamic_analysis --allexamples
     """
     import ubelt as ub  # NOQA
     ub.doctest_package()

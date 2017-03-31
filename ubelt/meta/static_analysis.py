@@ -171,13 +171,23 @@ def modname_to_modpath(modname, hide_init=True, hide_main=True):
         >>> modpath = modname_to_modpath(modname)
         >>> print('modpath = %r' % (modpath,))
         >>> assert already_exists or modname not in sys.modules
+
+    Example:
+        >>> from ubelt.meta.static_analysis import *  # NOQA
+        >>> import sys
+        >>> modname = 'ubelt.__main__'
+        >>> modpath = modname_to_modpath(modname, hide_main=False)
+        >>> assert modpath.endswith('__main__.py')
+        >>> modname = 'ubelt'
+        >>> modpath = modname_to_modpath(modname, hide_init=False)
+        >>> assert modpath.endswith('__init__.py')
     """
     loader = pkgutil.find_loader(modname)
     modpath = loader.get_filename().replace('.pyc', '.py')
-    if '.' not in basename(modpath):
-        modpath = join(modpath, '__init__.py')
+    # if '.' not in basename(modpath):
+    #     modpath = join(modpath, '__init__.py')
     if hide_init:
-        if modpath.endswith(('__init__.py', '__main__.py')):
+        if modpath.endswith(('__init__.py')):
             modpath = dirname(modpath)
     if not hide_main:
         if modpath.endswith('__init__.py'):
