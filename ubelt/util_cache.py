@@ -22,11 +22,10 @@ class Cacher(object):
         python -m ubelt.util_cache Cacher
 
     Example:
-        >>> from ubelt.util_cache import Cacher
-        >>> fname = 'test_process'
-        >>> cfgstr = 'indicate params that uniquely determine the process'
+        >>> import ubelt as ub
+        >>> cfgstr = 'repr-of-params-that-uniquely-determine-the-process'
         >>> # Create a cacher and try loading the data
-        >>> cacher = Cacher(fname, cfgstr)
+        >>> cacher = ub.Cacher('test_process', cfgstr)
         >>> cacher.clear()
         >>> data = cacher.tryload()
         >>> if data is None:
@@ -43,10 +42,9 @@ class Cacher(object):
     Example:
         >>> # The previous example can be shorted if only a single value
         >>> from ubelt.util_cache import Cacher
-        >>> fname = 'test_process'
-        >>> cfgstr = 'indicate params that uniquely determine the process'
+        >>> cfgstr = 'repr-of-params-that-uniquely-determine-the-process'
         >>> # Create a cacher and try loading the data
-        >>> cacher = Cacher(fname, cfgstr)
+        >>> cacher = Cacher('test_process', cfgstr)
         >>> myvar = cacher.tryload()
         >>> if myvar is None:
         >>>     myvar = ('result of expensive process', 'another result')

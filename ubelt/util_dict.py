@@ -84,6 +84,13 @@ def dict_hist(item_list, weight_list=None, ordered=False, labels=None):
     Example:
         >>> import ubelt as ub
         >>> item_list = [1, 2, 39, 900, 1232, 900, 1232, 2, 2, 2, 900]
+        >>> hist = ub.dict_hist(item_list)
+        >>> print(hist)
+        {1232: 2, 1: 1, 2: 4, 900: 3, 39: 1}
+
+    Example:
+        >>> import ubelt as ub
+        >>> item_list = [1, 2, 39, 900, 1232, 900, 1232, 2, 2, 2, 900]
         >>> hist1 = ub.dict_hist(item_list)
         >>> hist2 = ub.dict_hist(item_list, ordered=True)
         >>> try:
@@ -172,7 +179,6 @@ def dict_subset(dict_, keys, default=util_const.NoParam):
         >>> import ubelt as ub
         >>> dict_ = {'K': 3, 'dcvs_clip_max': 0.2, 'p': 0.1}
         >>> keys = ['K', 'dcvs_clip_max']
-        >>> d = tuple([])
         >>> subdict_ = ub.dict_subset(dict_, keys)
         >>> #result = ub.dict_str(subdict_, sorted_=True, newlines=False)
         >>> print(subdict_)
