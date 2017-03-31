@@ -29,25 +29,28 @@ def group_items(item_list, groupid_list, sorted_=True):
     Returns:
         dict: groupid_to_items: maps a groupid to a list of items
 
+    CommandLine:
+        python -m ubelt.util_dict group_items
+
     Example:
         >>> import ubelt as ub
         >>> item_list    = ['ham',     'jam',   'spam',     'eggs',    'cheese', 'bannana']
         >>> groupid_list = ['protein', 'fruit', 'protein',  'protein', 'dairy',  'fruit']
-        >>> ub.group_items(item_list, iter(groupid_list))
-        >>> #groupid_to_items = ub.group_items(item_list, iter(groupid_list))
+        >>> result = ub.group_items(item_list, groupid_list)
         >>> #result = ub.dict_str(groupid_to_items, nl=False, strvals=False)
-        >>> #print(result)
+        >>> print(result)
         {'dairy': ['cheese'], 'fruit': ['jam', 'bannana'], 'protein': ['ham', 'spam', 'eggs']}
     """
     pair_list_ = zip(groupid_list, item_list)
     if sorted_:
         # Sort by groupid for cache efficiency
+        # TODO: test if this actually gives a savings
         try:
             pair_list = sorted(pair_list_, key=op.itemgetter(0))
-        except TypeError:
+        except TypeError:  # nocover
             # Python 3 does not allow sorting mixed types
             pair_list = sorted(pair_list_, key=lambda tup: str(tup[0]))
-    else:
+    else:  # nocover
         pair_list = pair_list_
 
     # Initialize a dict of lists
@@ -76,7 +79,7 @@ def dict_hist(item_list, weight_list=None, ordered=False, labels=None):
           are the number of times the item appears in item_list.
 
     CommandLine:
-        python -m ubelt.util_dict --test-dict_hist
+        python -m ubelt.util_dict dict_hist
 
     Example:
         >>> import ubelt as ub
@@ -91,7 +94,11 @@ def dict_hist(item_list, weight_list=None, ordered=False, labels=None):
         >>>     raise AssertionError('expected key error')
         >>> #result = ub.repr2(hist_)
         >>> print(hist1)
-        {1: 1, 2: 4, 39: 1, 900: 3, 1232: 2}
+        >>> weight_list = [1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1]
+        >>> hist4 = ub.dict_hist(item_list, weight_list=weight_list)
+        >>> print(hist4)
+        {1232: 2, 1: 1, 2: 4, 900: 3, 39: 1}
+        {1232: 0, 1: 1, 2: 4, 900: 1, 39: 1}
     """
     if labels is None:
         hist_ = collections.defaultdict(lambda: 0)
@@ -234,7 +241,12 @@ def map_vals(func, dict_):
         >>> newdict = ub.map_vals(func, dict_)
         >>> assert newdict ==  {'a': 3, 'b': 0}
         >>> print(newdict)
-
+        >>> # Can also use indexables as `func`
+        >>> dict_ = {'a': 0, 'b': 1}
+        >>> func = [42, 21]
+        >>> newdict = ub.map_vals(func, dict_)
+        >>> assert newdict ==  {'a': 42, 'b': 21}
+        >>> print(newdict)
     """
     if not hasattr(func, '__call__'):
         func = func.__getitem__
@@ -266,6 +278,12 @@ def map_keys(func, dict_):
         >>> newdict = ub.map_keys(func, dict_)
         >>> print(newdict)
         >>> assert newdict == {97: [1, 2, 3], 98: []}
+        >>> #ut.assert_raises(AssertionError, map_keys, len, dict_)
+        >>> dict_ = {0: [1, 2, 3], 1: []}
+        >>> func = ['a', 'b']
+        >>> newdict = ub.map_keys(func, dict_)
+        >>> print(newdict)
+        >>> assert newdict == {'a': [1, 2, 3], 'b': []}
         >>> #ut.assert_raises(AssertionError, map_keys, len, dict_)
 
     """
