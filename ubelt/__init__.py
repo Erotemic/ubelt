@@ -27,7 +27,7 @@ TODO:
 from __future__ import absolute_import, division, print_function, unicode_literals
 import sys
 
-__version__ = '0.0.12'
+__version__ = '0.0.15'
 
 GLOBAL_MODULES = [
     'util_const',
@@ -65,6 +65,7 @@ if _DOELSE:
     from ubelt import util_const
     from ubelt import util_decor
     from ubelt import util_dict
+    from ubelt import util_cache
     from ubelt import util_io
     from ubelt import util_list
     from ubelt import util_mixins
@@ -81,6 +82,7 @@ if _DOELSE:
     from ubelt.util_dict import (dict_hist, dict_subset, dict_take,
                                  find_duplicates, group_items, map_keys, map_vals,
                                  odict,)
+    from ubelt.util_cache import (Cacher, consensed_cfgstr,)
     from ubelt.util_io import (readfrom, writeto,)
     from ubelt.util_list import (chunks, compress, flatten, take,)
     from ubelt.util_mixins import (NiceRepr,)

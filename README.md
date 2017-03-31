@@ -62,7 +62,7 @@ This can be accessed using `ub.doctest_package`.
 
 ## Examples
 
-Here are some examples of some cool features
+Here are some examples of some features inside `ubelt`
 
 
 ### Caching

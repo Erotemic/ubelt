@@ -95,16 +95,16 @@ class ProgIter(object):
             3 - verbosity without clearline=False and adjust=False
 
     SeeAlso:
-        tqdm
+        tqdm - https://pypi.python.org/pypi/tqdm
 
     Reference:
         http://datagenetics.com/blog/february12017/index.html
 
     Examples:
-        >>> from ubelt.progiter import *  # NOQA
+        >>> import ubelt as ub
         >>> def is_prime(n):
         ...     return n >= 2 and not any(n % i == 0 for i in range(2, n))
-        >>> for n in ProgIter(range(100), verbose=2):
+        >>> for n in ub.ProgIter(range(100), verbose=2):
         >>>     # do some work
         >>>     is_prime(n)
         10000/10000... rate=13294.94 Hz, eta=0:00:00, total=0:00:00, wall=13:34 EST
