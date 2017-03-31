@@ -44,7 +44,7 @@ def parse_src_want(docsrc):
         if not finished_want:
             if line.startswith('>>> ') or line.startswith('... '):
                 finished_want = True
-            else:
+            else:  # nocover
                 reversed_want_lines.append(line)
                 if len(line.strip()) == 0:
                     reversed_want_lines = []
@@ -62,7 +62,7 @@ def parse_src_want(docsrc):
         # Check if the last line has a "want"
         import ast
         tree = ast.parse(src)
-        if isinstance(tree.body[-1], ast.Expr):
+        if isinstance(tree.body[-1], ast.Expr):  # pragma: no branch
             lines = src.splitlines()
             # Hack to insert result variable
             lines[-1] = 'result = ' + lines[-1]
@@ -78,6 +78,15 @@ class ExitTestException(Exception):
 class DocExample(util_mixins.NiceRepr):
     """
     Holds information necessary to execute and verify a doctest
+
+    Example:
+        >>> from ubelt.util_test import *  # NOQA
+        >>> package_name = 'ubelt'
+        >>> testable_examples = parse_testables(package_name)
+        >>> example = next(testable_examples)
+        >>> print(example.want)
+        >>> print(example.want)
+        >>> print(example.valid_testnames)
     """
 
     def __init__(example, modpath, callname, block, num):
@@ -87,11 +96,23 @@ class DocExample(util_mixins.NiceRepr):
         example.callname = callname
         example.block = block
         example.num = num
-        example.src = None
-        example.want = None
+        example._src = None
+        example._want = None
+
+    @property
+    def src(example):
+        if example._src is None:
+            example._parse()
+        return example._src
+
+    @property
+    def want(example):
+        if example._want is None:
+            example._parse()
+        return example._want
 
     def _parse(example):
-        example.src, example.want = parse_src_want(example.block)
+        example._src, example._want = parse_src_want(example.block)
 
     def is_disabled(example):
         return example.block.startswith('>>> # DISABLE_DOCTEST')
@@ -114,6 +135,15 @@ class DocExample(util_mixins.NiceRepr):
     def format_src(example, linenums=True, colored=True):
         """
         Adds prefix and line numbers to a doctest
+
+        Example:
+            >>> from ubelt.util_test import *  # NOQA
+            >>> package_name = 'ubelt'
+            >>> testable_examples = parse_testables(package_name)
+            >>> example = next(testable_examples)
+            >>> print(example.format_src())
+            >>> print(example.format_src(linenums=False, colored=False))
+            >>> assert not example.is_disabled()
         """
         doctest_src = example.src
         doctest_src = util_str.indent(doctest_src, '>>> ')
@@ -123,7 +153,7 @@ class DocExample(util_mixins.NiceRepr):
                 for count, line in enumerate(doctest_src.splitlines(), start=1)])
         if colored:
             doctest_src = util_str.highlight_code(doctest_src, 'python')
-            return doctest_src
+        return doctest_src
 
     def run_example(example, verbose=None):
         """
@@ -147,9 +177,9 @@ class DocExample(util_mixins.NiceRepr):
             print(example.cmdline)
             if verbose >= 2:
                 print(example.format_src())
-        else:
-            sys.stdout.write('.')  # nocover
-            sys.stdout.flush()  # nocover
+        else:  # nocover
+            sys.stdout.write('.')
+            sys.stdout.flush()
         # Prepare for actual test run
         test_locals = {}
         code = compile(example.src, '<string>', 'exec')
@@ -161,12 +191,12 @@ class DocExample(util_mixins.NiceRepr):
         except ExitTestException:  # nocover
             print('Test gracefully exists')
         except Exception as ex:  # nocover
-            if verbose <= 0:  # nocover
+            if verbose <= 0:
                 print('')
                 print('report failure')
                 print(example.cmdline)
                 print(example.format_src())
-            failed = True  # nocover
+            failed = True
             # import utool
             # utool.embed()
             print('* FAILURE: {}, {}'.format(example.callname, type(ex)))
@@ -174,11 +204,11 @@ class DocExample(util_mixins.NiceRepr):
             raise
 
         if not failed and verbose >= 1:
-            if cap.text is not None:
+            if cap.text is not None:  # nocover
                 assert isinstance(cap.text, six.text_type), 'do not use ascii'
             try:
                 print(cap.text)
-            except UnicodeEncodeError:
+            except UnicodeEncodeError:  # nocover
                 print('Weird travis bug')
                 print('type(cap.text) = %r' % (type(cap.text),))
                 print('cap.text = %r' % (cap.text,))
@@ -215,10 +245,10 @@ def parse_testables(package_name):
     modnames = static_analysis.package_modnames(package_name)
     for modname in modnames:
         modpath = static_analysis.modname_to_modpath(modname, hide_init=False)
-        if not exists(modpath):
+        if not exists(modpath):  # nocover
             warnings.warn(
-                'Module {} does not exist. Is it an old pyc file?'.format(
-                    modname))
+                'Module {} does not exist. '
+                'Is it an old pyc file?'.format(modname))
             continue
         source = util_io.readfrom(modpath)
         docstrs = static_analysis.parse_docstrs(source)
@@ -240,7 +270,7 @@ def parse_testables(package_name):
 
 
 def doctest_package(package_name=None, command=None, argv=None, verbose=None,
-                    check_coverage=None):
+                    check_coverage=None):  # nocover
     r"""
     Executes requestsed google-style doctests in a package.
     Main entry point into the testing framework.
@@ -334,6 +364,7 @@ def doctest_package(package_name=None, command=None, argv=None, verbose=None,
                 'if _debug:',
                 'if __name__ == .__main__.:',
                 'print(.*)',
+                # Exclude this function as well
             ]
             if six.PY2:
                 exclude_lines.append('.*if six.PY3:')
@@ -398,7 +429,7 @@ if __name__ == '__main__':
     r"""
     CommandLine:
         python -m ubelt.util_test
-        python -m ubelt.util_test --allexamples
+        python -m ubelt.util_test all
     """
     import ubelt as ub  # NOQA
     ub.doctest_package()
