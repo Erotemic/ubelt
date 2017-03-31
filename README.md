@@ -66,6 +66,7 @@ Here are some examples of some features inside `ubelt`
 
 
 ### Caching
+Cache intermediate results in a script with minimal boilerplate.
 ```python
 >>> import ubelt as ub
 >>> cfgstr = 'repr-of-params-that-uniquely-determine-the-process'
@@ -81,6 +82,7 @@ Here are some examples of some features inside `ubelt`
 
 
 ### Timing
+Quickly time a single line.
 ```python
 >>> import ubelt as ub
 >>> timer = ub.Timer('Timer demo!', verbose=1)
