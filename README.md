@@ -48,6 +48,7 @@ ub.CaptureStdout
 ub.Timer
 ub.Timerit
 ub.ProgIter
+ub.Cacher
 ```
 
 A minimal version of the doctest harness has been completed.
