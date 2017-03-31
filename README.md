@@ -106,9 +106,9 @@ The quick and dirty way just requires one indent.
 >>>     ub.find_nth_prime(100)
 ```
 
-For more accurate timings or to incorporate an untimed setup phase, use the
-loop variable as a context manager.  You can also access properties of the
-`ub.Timerit` class to programmatically use results.
+Use the loop variable as a context manager for more accurate timings or to
+incorporate an setup phase that is not timed.  You can also access properties
+of the `ub.Timerit` class to programmatically use results.
 ```python
 >>> import ubelt as ub
 >>> t1 = ub.Timerit(num=200, verbose=2)
@@ -122,6 +122,7 @@ loop variable as a context manager.  You can also access properties of the
 
 ### Grouping
 
+Group items in a sequence into a dictionary by a second id list
 ```python
 >>> import ubelt as ub
 >>> item_list    = ['ham',     'jam',   'spam',     'eggs',    'cheese', 'bannana']
@@ -147,28 +148,26 @@ Find the frequency of items in a sequence
 ### Dictionary Manipulation
 
 
-Take a subset of a dictionary
+Take a subset of a dictionary.
 ```python
 >>> import ubelt as ub
 >>> dict_ = {'K': 3, 'dcvs_clip_max': 0.2, 'p': 0.1}
->>> keys = ['K', 'dcvs_clip_max']
->>> subdict_ = ub.dict_subset(dict_, keys)
+>>> subdict_ = ub.dict_subset(dict_, ['K', 'dcvs_clip_max'])
 >>> print(subdict_)
 {'K': 3, 'dcvs_clip_max': 0.2}
 ```
 
 
-Take only the values
+Take only the values, optionally specify a default value.
 ```python
 >>> import ubelt as ub
 >>> dict_ = {1: 'a', 2: 'b', 3: 'c'}
->>> keys = [1, 2, 3, 4, 5]
->>> print(list(ub.dict_take(dict_, keys, default=None)))
+>>> print(list(ub.dict_take(dict_, [1, 2, 3, 4, 5], default=None)))
 ['a', 'b', 'c', None, None]
 ```
 
 
-Change the values in a dict based on a function
+Apply a function to each value in the dictionary (see also `ub.map_keys`).
 ```python
 >>> import ubelt as ub
 >>> dict_ = {'a': [1, 2, 3], 'b': []}
