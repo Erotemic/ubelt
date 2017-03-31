@@ -9,7 +9,6 @@ CommandLine:
 
 TODO:
     The following functions and classes are candidates to be ported from utool:
-    * Cacher
     * reload_class
     * inject_func_as_method
     * inject_func_as_property
@@ -34,6 +33,7 @@ GLOBAL_MODULES = [
     'util_const',
     'util_decor',
     'util_dict',
+    'util_cache',
     'util_io',
     'util_list',
     'util_mixins',
@@ -95,7 +95,7 @@ if _DOELSE:
                                  parse_src_want, parse_testables,)
     from ubelt.util_time import (Timer, Timerit,)
     from ubelt.progiter import (ProgIter,)
-    
+
     # </AUTOGEN_INIT>
 
 del _DOELSE
