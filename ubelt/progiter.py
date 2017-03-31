@@ -23,17 +23,17 @@ DECTCEM_SHOW = '\033[?25h'  # show cursor
 WIN32 = sys.platform.startswith('win32')
 WITH_ANSI = not WIN32
 
-if WIN32:
+if WIN32:  # nocover
     # Use time.clock in win32
     default_timer = time.clock
-else:
+else:  # nocover
     default_timer = time.time
 
-if WITH_ANSI:
+if WITH_ANSI:  # pragma: nobranch
     CLEAR_BEFORE = '\r'
     AT_END = '\n'
     CLEAR_AFTER = ''
-else:
+else:  # nocover
     CLEAR_BEFORE = '\r' + CLEARLINE_EL2 + DECTCEM_HIDE
     CLEAR_AFTER = CLEARLINE_EL0
     AT_END = DECTCEM_SHOW + '\n'
@@ -44,7 +44,7 @@ def _infer_length(iterable):
     # adapted from click implementation
     try:
         return len(iterable)
-    except (AttributeError, TypeError):
+    except (AttributeError, TypeError):  # nocover
         try:
             get_hint = type(iterable).__length_hint__
         except AttributeError:
@@ -121,13 +121,13 @@ class ProgIter(object):
         if label is None:
             label = ''
         if verbose is not None:
-            if verbose <= 0:
+            if verbose <= 0:  # nocover
                 enabled = False
-            elif verbose == 1:
+            elif verbose == 1:  # nocover
                 enabled, clearline, adjust = 1, 1, 1
-            elif verbose == 2:
+            elif verbose == 2:  # nocover
                 enabled, clearline, adjust = 1, 0, 1
-            elif verbose >= 3:
+            elif verbose >= 3:  # nocover
                 enabled, clearline, adjust = 1, 0, 0
         if stream is None:
             stream = sys.stdout
@@ -146,21 +146,21 @@ class ProgIter(object):
         self.started = False
         self.finished = False
 
-    def __call__(self, iterable):
+    def __call__(self, iterable):  # nocover
         self.iterable = iterable
         return iter(self)
 
-    def __enter__(self):
+    def __enter__(self):  # nocover
         return self
 
     def __exit__(self, type_, value, trace):
         if trace is not None:
             return False
-        else:
+        else:  # nocover
             self.end()
 
     def __iter__(self):
-        if not self.enabled:
+        if not self.enabled:  # nocover
             return iter(self.iterable)
         else:
             return self.iter_rate()
@@ -382,7 +382,7 @@ class ProgIter(object):
         try:
             # flush sometimes causes issues in IPython notebooks
             self.stream.flush()
-        except IOError:
+        except IOError:  # nocover
             pass
 
     def write(self, msg):
