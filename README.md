@@ -174,13 +174,17 @@ Change the values in a dict based on a function
 See also [`tqdm`](https://pypi.python.org/pypi/tqdm) for an alternative
 implementation.
 ```python
->>> from ubelt.progiter import *  # NOQA
+>>> import ubelt as ub
 >>> def is_prime(n):
 ...     return n >= 2 and not any(n % i == 0 for i in range(2, n))
->>> for n in ProgIter(range(100), verbose=2):
+>>> for n in ub.ProgIter(range(1000), verbose=2):
 >>>     # do some work
 >>>     is_prime(n)
-10000/10000... rate=13294.94 Hz, eta=0:00:00, total=0:00:00, wall=13:34 EST
+    0/1000... rate=0.00 Hz, eta=?, total=0:00:00, wall=14:05 EST 
+    1/1000... rate=82241.25 Hz, eta=0:00:00, total=0:00:00, wall=14:05 EST 
+  257/1000... rate=177204.69 Hz, eta=0:00:00, total=0:00:00, wall=14:05 EST 
+  642/1000... rate=94099.22 Hz, eta=0:00:00, total=0:00:00, wall=14:05 EST 
+ 1000/1000... rate=71886.74 Hz, eta=0:00:00, total=0:00:00, wall=14:05 EST 
 ```
 
 
