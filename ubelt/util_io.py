@@ -33,6 +33,21 @@ def writeto(fpath, to_write, aslines=False, mode='w', verbose=None):
         >>> print('read_    = ' + read_)
         >>> print('to_write = ' + to_write)
         >>> assert read_ == to_write
+
+    Example:
+        >>> from ubelt.util_io import *  # NOQA
+        >>> import os
+        >>> import ubelt as ub
+        >>> dpath = ub.ensure_app_resource_dir('ubelt')
+        >>> fpath = dpath + '/' + 'testwrite2.txt'
+        >>> if exists(fpath):
+        >>>     os.remove(fpath)
+        >>> to_write = ['a\n', 'b\n', 'c\n', 'd\n']
+        >>> writeto(fpath, to_write, aslines=True)
+        >>> read_ = ub.readfrom(fpath, aslines=True)
+        >>> print('read_    = {}'.format(read_))
+        >>> print('to_write = {}'.format(to_write))
+        >>> assert read_ == to_write
     """
     if verbose:
         print('Writing to text file: %r ' % (fpath,))
@@ -43,7 +58,7 @@ def writeto(fpath, to_write, aslines=False, mode='w', verbose=None):
         else:
             # Ensure python2 writes in bytes
             if six.PY2 and isinstance(to_write, unicode):
-                to_write = to_write.encode('utf8')
+                to_write = to_write.encode('utf8')  # nocover
             file_.write(to_write)
 
 
