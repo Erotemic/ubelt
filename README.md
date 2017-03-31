@@ -20,6 +20,12 @@ Some of the code introspection features will be ported, but most
   auto-generation abilities will be ported into a new module that depends on
   `ubelt`.
 
+
+## Installation:
+```
+pip install git+https://github.com/Erotemic/ubelt.git
+```
+
 ## Available Functions:
 This list of functions and classes is currently available. 
 See the corresponding doc-strings for more details.
@@ -170,7 +176,7 @@ Change the values in a dict based on a function
 ```
 
 
-### Keep track of loop progress
+### Loop Progress
 See also [`tqdm`](https://pypi.python.org/pypi/tqdm) for an alternative
 implementation.
 ```python
@@ -185,11 +191,4 @@ implementation.
   257/1000... rate=177204.69 Hz, eta=0:00:00, total=0:00:00, wall=14:05 EST 
   642/1000... rate=94099.22 Hz, eta=0:00:00, total=0:00:00, wall=14:05 EST 
  1000/1000... rate=71886.74 Hz, eta=0:00:00, total=0:00:00, wall=14:05 EST 
-```
-
-
-
-## Installation:
-```
-pip install git+https://github.com/Erotemic/ubelt.git
 ```
