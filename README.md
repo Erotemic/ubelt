@@ -140,7 +140,7 @@ Find the frequency of items in a sequence
 
 
 Take a subset of a dictionary
-```
+```python
 >>> import ubelt as ub
 >>> dict_ = {'K': 3, 'dcvs_clip_max': 0.2, 'p': 0.1}
 >>> keys = ['K', 'dcvs_clip_max']
@@ -171,6 +171,8 @@ Change the values in a dict based on a function
 
 
 ### Keep track of loop progress
+See also [`tqdm`](https://pypi.python.org/pypi/tqdm) for an alternative
+implementation.
 ```python
 >>> from ubelt.progiter import *  # NOQA
 >>> def is_prime(n):
@@ -178,8 +180,8 @@ Change the values in a dict based on a function
 >>> for n in ProgIter(range(100), verbose=2):
 >>>     # do some work
 >>>     is_prime(n)
-```
 10000/10000... rate=13294.94 Hz, eta=0:00:00, total=0:00:00, wall=13:34 EST
+```
 
 
 
