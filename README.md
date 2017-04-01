@@ -44,6 +44,7 @@ ub.readfrom
 ub.writeto
 ub.ensuredir
 ub.ensure_app_resource_dir
+ub.chunks
 ub.compress
 ub.take
 ub.flatten
@@ -104,7 +105,11 @@ The quick and dirty way just requires one indent.
 >>> import ubelt as ub
 >>> for _ in ub.Timerit(num=200, verbose=2):
 >>>     ub.find_nth_prime(100)
+Timing for 200 loops
+Timing complete, 200 loops
+    time per loop : 0.003288508653640747 seconds
 ```
+
 
 Use the loop variable as a context manager for more accurate timings or to
 incorporate an setup phase that is not timed.  You can also access properties
@@ -117,6 +122,10 @@ of the `ub.Timerit` class to programmatically use results.
 >>>     with timer:
 >>>         ub.find_nth_prime(setup_vars)
 >>> print('t1.total_time = %r' % (t1.total_time,))
+Timing for 200 loops
+Timing complete, 200 loops
+    time per loop : 0.003165217638015747 seconds
+t1.total_time = 0.6330435276031494
 ```
 
 
