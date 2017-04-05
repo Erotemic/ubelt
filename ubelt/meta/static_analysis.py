@@ -2,8 +2,9 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 import ast
 import pkgutil
+# import six
 from os.path import (join, exists, expanduser, realpath, split, splitext,
-                     isfile, basename, dirname)
+                     isfile, dirname)
 
 
 class TopLevelDocstrVisitor(ast.NodeVisitor):
@@ -14,22 +15,36 @@ class TopLevelDocstrVisitor(ast.NodeVisitor):
     def __init__(self):
         super(TopLevelDocstrVisitor, self).__init__()
         self.docstrs = {}
+        self.linenos = {}
         self._current_classname = None
 
-    def visit_FunctionDef(self, node):
-        funcname = node.name
+    def _get_docstring(self, node):
+        # TODO: probably need to work around clean docstring
         docstr = ast.get_docstring(node)
-        if self._current_classname is None:
-            self.docstrs[funcname] = docstr
+        if docstr is not None:
+            # TODO: add in line-numbers
+            nodeline = node.lineno
+            # docline = node.body[0].lineno
         else:
-            methodname = self._current_classname + '.' + funcname
-            self.docstrs[methodname] = docstr
+            nodeline = None
+        return (docstr, nodeline)
+
+    def visit_FunctionDef(self, node):
+        docstr, lineno = self._get_docstring(node)
+        if self._current_classname is None:
+            callname = node.name
+        else:
+            callname = self._current_classname + '.' + node.name
+        self.docstrs[callname] = docstr
+        self.linenos[callname] = lineno
 
     def visit_ClassDef(self, node):
-        classname = node.name
-        docstr = ast.get_docstring(node)
-        self._current_classname = classname
-        self.docstrs[classname] = docstr
+        callname = node.name
+        # docstr = ast.get_docstring(node)
+        docstr, lineno = self._get_docstring(node)
+        self._current_classname = callname
+        self.docstrs[callname] = docstr
+        self.linenos[callname] = lineno
         self.generic_visit(node)
         self._current_classname = None
 
@@ -44,12 +59,13 @@ class TopLevelDocstrVisitor(ast.NodeVisitor):
         ast.NodeVisitor.generic_visit(self, node)
 
 
-def parse_docstrs(source):
+def parse_docstrs(source=None, fpath=None):
     r"""
     Statically finds docstrings in python source
 
     Args:
-        source (str):
+        source (str): python text
+        fpath (str): filepath to read if source is not specified
 
     CommandLine:
         python -m ubelt.meta.static_analysis parse_docstrs
@@ -58,24 +74,48 @@ def parse_docstrs(source):
         >>> from ubelt.meta.static_analysis import *  # NOQA
         >>> import ubelt as ub
         >>> fpath = ub.meta.static_analysis.__file__.replace('.pyc', '.py')
-        >>> source = ub.readfrom(fpath)
-        >>> parse_docstrs(source)
+        >>> parse_docstrs(fpath=fpath)
     """
-    pt = ast.parse(source.encode('utf-8'))
-    self = TopLevelDocstrVisitor()
-    self.visit(pt)
-    return self.docstrs
+    if source is None:  # pragma: no branch
+        with open(fpath) as file_:
+            source = file_.read()
+    try:
+        pt = ast.parse(source.encode('utf-8'))
+        self = TopLevelDocstrVisitor()
+        self.visit(pt)
+        return self.docstrs
+    except Exception as ex:  # nocover
+        if fpath:
+            print('Failed to parse docstring for fpath=%r' % (fpath,))
+        else:
+            print('Failed to parse docstring')
+        raise
+
+
+# class PatternMatcher(object):
+#     pass
+
+# def _matches(pattern, text, method='glob'):
+#     import fnmatch
+#     import re
+#     if method == 'glob':
+#         return fnmatch.fnmatch(text, pattern)
+#     elif method == 'glob':
+#         return re.match(pattern, text) is not None
+#     else:
+#         raise KeyError('unknown method=%r' % method)
 
 
 def package_modnames(package_name, with_pkg=False, with_mod=True,
-                     ignore_prefix=[], ignore_suffix=[]):
+                     ignore_patterns=[]):
     r"""
     Finds sub-packages and sub-modules belonging to a package.
 
     Args:
         package_name (str): package or module name
-        with_pkg (bool): (default = False)
-        with_mod (bool): (default = True)
+        with_pkg (bool): if True includes package directories with __init__ files
+            (default = False)
+        with_mod (bool): if True includes module files (default = True)
 
     Yields:
         str: module names belonging to the package
@@ -88,26 +128,37 @@ def package_modnames(package_name, with_pkg=False, with_mod=True,
 
     Example:
         >>> from ubelt.meta.static_analysis import *  # NOQA
-        >>> modnames = list(package_modnames('ubelt'))
-        >>> assert 'ubelt.meta.static_analysis' in modnames
-        >>> print('\n'.join(modnames))
+        >>> ignore = ['*util_*']
+        >>> with_pkg, with_mod = False, True
+        >>> names = list(package_modnames('ubelt', with_pkg, with_mod, ignore))
+        >>> assert 'ubelt.meta' not in names
+        >>> assert 'ubelt.meta.static_analysis' in names
+        >>> print('\n'.join(names))
+
+    Example:
+        >>> from ubelt.meta.static_analysis import *  # NOQA
+        >>> with_pkg, with_mod = True, False
+        >>> names = list(package_modnames('ubelt', with_pkg, with_mod))
+        >>> assert 'ubelt.meta' in names
+        >>> assert 'ubelt.meta.static_analysis' not in names
+        >>> print('\n'.join(names))
     """
+    from fnmatch import fnmatch
     modpath = modname_to_modpath(package_name, hide_init=True)
     if isfile(modpath):
         # If input is a file, just return it
         yield package_name
     else:
         # Otherwise, if it is a package, find sub-packages and sub-modules
-        walker = pkgutil.walk_packages(
-            [modpath], prefix=package_name + '.', onerror=lambda x: None)
+        prefix = package_name + '.'
+        walker = pkgutil.walk_packages([modpath], prefix=prefix,
+                                       onerror=lambda x: None)  # nocover
         for importer, modname, ispkg in walker:
-            if any(modname.startswith(prefix) for prefix in ignore_prefix):
+            if any(fnmatch(modname, pat) for pat in ignore_patterns):
                 continue
-            if any(modname.endswith(suffix) for suffix in ignore_suffix):
-                continue
-            if not ispkg and with_mod:
+            elif not ispkg and with_mod:
                 yield modname
-            if ispkg and with_pkg:
+            elif ispkg and with_pkg:
                 yield modname
 
 
@@ -177,10 +228,16 @@ def modname_to_modpath(modname, hide_init=True, hide_main=True):
         >>> import sys
         >>> modname = 'ubelt.__main__'
         >>> modpath = modname_to_modpath(modname, hide_main=False)
+        >>> print('modpath = %r' % (modpath,))
         >>> assert modpath.endswith('__main__.py')
         >>> modname = 'ubelt'
         >>> modpath = modname_to_modpath(modname, hide_init=False)
+        >>> print('modpath = %r' % (modpath,))
         >>> assert modpath.endswith('__init__.py')
+        >>> modname = 'ubelt'
+        >>> modpath = modname_to_modpath(modname, hide_init=False, hide_main=False)
+        >>> print('modpath = %r' % (modpath,))
+        >>> assert modpath.endswith('__main__.py')
     """
     loader = pkgutil.find_loader(modname)
     modpath = loader.get_filename().replace('.pyc', '.py')
@@ -192,7 +249,7 @@ def modname_to_modpath(modname, hide_init=True, hide_main=True):
     if not hide_main:
         if modpath.endswith('__init__.py'):
             main_modpath = modpath[:-len('__init__.py')] + '__main__.py'
-            if exists(main_modpath):
+            if exists(main_modpath):  # pragma: no branch
                 modpath = main_modpath
     return modpath
 

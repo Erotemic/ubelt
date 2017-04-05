@@ -90,9 +90,9 @@ class DocExample(util_mixins.NiceRepr):
     """
 
     def __init__(example, modpath, callname, block, num):
+        from ubelt.meta import static_analysis as static
         example.modpath = modpath
-        from ubelt.meta import static_analysis
-        example.modname = static_analysis.modpath_to_modname(modpath)
+        example.modname = static.modpath_to_modname(modpath)
         example.callname = callname
         example.block = block
         example.num = num
@@ -191,7 +191,8 @@ class DocExample(util_mixins.NiceRepr):
         except ExitTestException:  # nocover
             print('Test gracefully exists')
         except Exception as ex:  # nocover
-            if verbose <= 0:
+            if verbose > 0:
+                # TODO: print out nice line number
                 print('')
                 print('report failure')
                 print(example.cmdline)
@@ -201,6 +202,10 @@ class DocExample(util_mixins.NiceRepr):
             # utool.embed()
             print('* FAILURE: {}, {}'.format(example.callname, type(ex)))
             print(cap.text)
+            # TODO: remove appropriate amount of traceback
+            # exc_type, exc_value, exc_traceback = sys.exc_info()
+            # exc_traceback = exc_traceback.tb_next
+            # six.reraise(exc_type, exc_value, exc_traceback)
             raise
 
         if not failed and verbose >= 1:
@@ -222,7 +227,7 @@ class DocExample(util_mixins.NiceRepr):
         return self.modname + ' ' + self.callname
 
 
-def parse_testables(package_name):
+def parse_testables(package_name, ignore_patterns=[]):
     r"""
     Finds all functions/callables with Google-style example blocks
 
@@ -237,21 +242,22 @@ def parse_testables(package_name):
         >>>     print(example)
         >>> #assert 'parse_testables' in testable_examples
     """
-    from ubelt.meta import static_analysis
+    from ubelt.meta import static_analysis as static
     from ubelt.meta import docscrape_google
-    from ubelt import util_io
     from os.path import exists
 
-    modnames = static_analysis.package_modnames(package_name)
+    modnames = static.package_modnames(package_name,
+                                       ignore_patterns=ignore_patterns)
     for modname in modnames:
-        modpath = static_analysis.modname_to_modpath(modname, hide_init=False)
+        modpath = static.modname_to_modpath(modname, hide_init=False)
         if not exists(modpath):  # nocover
             warnings.warn(
                 'Module {} does not exist. '
                 'Is it an old pyc file?'.format(modname))
             continue
-        source = util_io.readfrom(modpath)
-        docstrs = static_analysis.parse_docstrs(source)
+
+        docstrs = static.parse_docstrs(fpath=modpath)
+
         for callname, docstr in docstrs.items():
             if docstr is not None:
                 blocks = docscrape_google.split_google_docblocks(docstr)
@@ -269,8 +275,9 @@ def parse_testables(package_name):
                     yield example
 
 
-def doctest_package(package_name=None, command=None, argv=None, verbose=None,
-                    check_coverage=None):  # nocover
+def doctest_package(package_name=None, command=None, argv=None,
+                    check_coverage=None, ignore_patterns=[],
+                    verbose=None):  # nocover
     r"""
     Executes requestsed google-style doctests in a package.
     Main entry point into the testing framework.
@@ -280,6 +287,10 @@ def doctest_package(package_name=None, command=None, argv=None, verbose=None,
         command (str): determines which doctests to run.
             if command is None, this is determined by parsing sys.argv
         argv (list): if None uses sys.argv
+        verbose (bool):  verbosity flag
+        ignore_patterns (list): ignores any modname matching any of these
+            glob-like patterns
+        check_coverage (None): if True outputs coverage report
 
     CommandLine:
         python -m ubelt.util_test doctest_package
@@ -289,7 +300,7 @@ def doctest_package(package_name=None, command=None, argv=None, verbose=None,
         >>> package_name = 'ubelt.util_test'
         >>> result = doctest_package(package_name, 'list', argv=[''])
     """
-    from ubelt.meta import static_analysis
+    from ubelt.meta import static_analysis as static
     from ubelt.meta import dynamic_analysis
     print('Start doctest_package({})'.format(package_name))
 
@@ -297,7 +308,7 @@ def doctest_package(package_name=None, command=None, argv=None, verbose=None,
         # Determine package name via caller if not specified
         frame_parent = dynamic_analysis.get_parent_frame()
         frame_fpath = frame_parent.f_globals['__file__']
-        package_name = static_analysis.modpath_to_modname(frame_fpath)
+        package_name = static.modpath_to_modname(frame_fpath)
 
     if command is None:
         if argv is None:
@@ -310,7 +321,8 @@ def doctest_package(package_name=None, command=None, argv=None, verbose=None,
             command = None
 
     # Parse all valid examples
-    examples = list(parse_testables(package_name))
+    examples = list(parse_testables(
+        package_name, ignore_patterns=ignore_patterns))
 
     if verbose is None:
         if '--verbose' in sys.argv:
@@ -417,7 +429,7 @@ def doctest_package(package_name=None, command=None, argv=None, verbose=None,
             cov.html_report()
             from six.moves import cStringIO
             stream = cStringIO()
-            cov_percent = cov.report(file=stream)
+            cov_percent = cov.report(file=stream)  # NOQA
             stream.seek(0)
             cov_report = stream.read()
             print('Coverage Report:')
