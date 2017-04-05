@@ -66,5 +66,5 @@ if __name__ == '__main__':
         author_email='erotemic@gmail.com',
         url='https://github.com/Erotemic/ubelt',
         license='Apache 2',
-        packages=['ubelt'],
+        packages=['ubelt', 'ubelt.meta', 'ubelt._internal'],
     )
