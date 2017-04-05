@@ -77,8 +77,8 @@ def parse_docstrs(source=None, fpath=None):
         >>> parse_docstrs(fpath=fpath)
     """
     if source is None:  # pragma: no branch
-        with open(fpath) as file_:
-            source = file_.read()
+        with open(fpath, 'rb') as file_:
+            source = file_.read().decode('utf-8')
     try:
         pt = ast.parse(source.encode('utf-8'))
         self = TopLevelDocstrVisitor()
