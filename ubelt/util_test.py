@@ -189,7 +189,8 @@ class DocExample(util_mixins.NiceRepr):
                 exec(code, test_locals)
         # Handle anything that could go wrong
         except ExitTestException:  # nocover
-            print('Test gracefully exists')
+            if verbose > 0:
+                print('Test gracefully exists')
         except Exception as ex:  # nocover
             if verbose > 0:
                 # TODO: print out nice line number
