@@ -71,7 +71,7 @@ class Timerit(object):
     Args:
         num (int): number of times to run the loop
         label (str): identifier for printing
-        unit (str): reporting unit of time (e.g. 'ms', 's', None)
+        bestof (int): takes the max over this number of trials
         verbose (int): verbosity level
 
     CommandLine:
@@ -107,7 +107,7 @@ class Timerit(object):
         >>>     with timer:
         >>>         ub.find_nth_prime(n)
     """
-    def __init__(self, num, label=None, unit=None, verbose=None):
+    def __init__(self, num, label=None, bestof=3, verbose=None):
         if verbose is None:
             verbose = VERBOSE_TIME
         self.num = num
@@ -116,7 +116,7 @@ class Timerit(object):
         self.verbose = verbose
         self.total_time = None
         self.n_loops = None
-        self.unit = unit
+        self.bestof = bestof
 
     def __iter__(self):
         if self.verbose >= 2:
@@ -154,18 +154,41 @@ class Timerit(object):
 
     @property
     def ave_secs(self):
-        return self.total_time / self.n_loops
+        # Takes the best of each trial
+        import ubelt as ub
+        chunks = list(ub.chunks(self.times, self.bestof))
+        seconds = sum(map(min, chunks)) / len(chunks)
+        return seconds
+        # return self.total_time / self.n_loops
+
+    def _seconds_str(self):
+        units = [
+            ('s', 1e0),
+            ('ms', 1e-3),
+            ('µs', 1e-6),
+            ('ns', 1e-9),
+        ]
+        seconds = self.ave_secs
+        for unit, mag in units:
+            if seconds > mag:
+                break
+        unit_sec = seconds / mag
+        precision = 4
+        fmtstr = '{:.%d} {}' % (precision,)
+        unit_str = fmtstr.format(unit_sec, unit)
+        return unit_str
 
     def _print_report(self, verbose=1):
-        ave_secs = self.ave_secs
+        # ave_secs = self.ave_secs
         if self.label is None:
-            print('Timing complete, %d loops' % (self.n_loops,))
+            print('Timing complete, %d loops, best of %d' % (
+                self.n_loops, self.bestof))
         else:
-            print('Timing complete for: %s, %d loops' % (self.label,
-                                                         self.n_loops))
+            print('Timing complete for: %s, %d loops, best of %d' % (
+                self.label, self.n_loops, self.bestof))
         if verbose > 2:
             print('    body took: %s seconds' % self.total_time)
-        print('    time per loop : %s seconds' % (ave_secs,))
+        print('    time per loop : %s seconds' % (self._seconds_str(),))
 
 if __name__ == '__main__':
     r"""
