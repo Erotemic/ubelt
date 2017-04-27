@@ -2,6 +2,7 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 import six
 from collections import OrderedDict as odict
+from collections import defaultdict as ddict
 import collections
 import operator as op
 import itertools as it
@@ -54,7 +55,7 @@ def group_items(item_list, groupid_list, sorted_=True):
         pair_list = pair_list_
 
     # Initialize a dict of lists
-    groupid_to_items = collections.defaultdict(list)
+    groupid_to_items = ddict(list)
     # Insert each item into the correct group
     for groupid, item in pair_list:
         groupid_to_items[groupid].append(item)
@@ -108,7 +109,7 @@ def dict_hist(item_list, weight_list=None, ordered=False, labels=None):
         {1232: 0, 1: 1, 2: 4, 900: 1, 39: 1}
     """
     if labels is None:
-        hist_ = collections.defaultdict(lambda: 0)
+        hist_ = ddict(lambda: 0)
     else:
         hist_ = {k: 0 for k in labels}
     if weight_list is None:
@@ -153,7 +154,7 @@ def find_duplicates(items, k=2):
         >>> assert ub.find_duplicates(items, 3) == {0: [0, 1, 6]}
     """
     # Build mapping from items to the indices at which they appear
-    duplicates = collections.defaultdict(list)
+    duplicates = ddict(list)
     for count, item in enumerate(items):
         duplicates[item].append(count)
     # remove singleton items
@@ -302,6 +303,61 @@ def map_keys(func, dict_):
     assert len(newdict) == len(dict_), (
         'multiple input keys were mapped to the same output key')
     return newdict
+
+
+def invert_dict(dict_, unique_vals=True):
+    r"""
+    Swaps the keys and values in a dictionary.
+
+    Args:
+        dict_ (dict): dictionary to invert
+        unique_vals (bool): if False, inverted keys are returned in a set.
+            The default is True.
+
+    Returns:
+        dict: inverted_dict
+
+    Notes:
+        The must values be hashable.
+
+        If the original dictionary contains duplicate values, then only one of
+        the corresponding keys will be returned and the others will be
+        discarded.  This can be prevented by setting `unique_vals=True`,
+        causing the inverted keys to be returned in a set.
+
+    CommandLine:
+        python -m ubelt.util_dict invert_dict
+
+    Example:
+        >>> import ubelt as ub
+        >>> dict_ = {'a': 1, 'b': 2}
+        >>> inverted_dict = ub.invert_dict(dict_)
+        >>> assert inverted_dict == {1: 'a', 2: 'b'}
+
+    Example:
+        >>> import ubelt as ub
+        >>> dict_ = ub.odict([(2, 'a'), (1, 'b'), (0, 'c'), (None, 'd')])
+        >>> inverted_dict = ub.invert_dict(dict_)
+        >>> assert list(inverted_dict.keys())[0] == 'a'
+
+    Example:
+        >>> import ubelt as ub
+        >>> dict_ = {'a': 1, 'b': 0, 'c': 0, 'd': 0, 'f': 2}
+        >>> inverted_dict = ub.invert_dict(dict_, unique_vals=False)
+        >>> assert inverted_dict == {0: {'b', 'c', 'd'}, 1: {'a'}, 2: {'f'}}
+    """
+    if unique_vals:
+        if isinstance(dict_, odict):
+            inverted_dict = odict((val, key) for key, val in dict_.items())
+        else:
+            inverted_dict = {val: key for key, val in dict_.items()}
+    else:
+        # Handle non-unique keys using groups
+        inverted_dict = ddict(set)
+        for key, value in dict_.items():
+            inverted_dict[value].add(key)
+        inverted_dict = dict(inverted_dict)
+    return inverted_dict
 
 
 if __name__ == '__main__':
