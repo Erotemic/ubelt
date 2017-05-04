@@ -8,7 +8,6 @@ CommaneLine:
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import re
-import sys
 
 
 def parse_google_args(docstr):
@@ -196,6 +195,11 @@ def split_google_docblocks(docstr):
     import re
     import textwrap
     import collections
+    import six
+
+    if not isinstance(docstr, six.string_types):
+        raise TypeError('Input docstr must be a string. Got {} instead'.format(
+            type(docstr)))
 
     def get_indentation(line_):
         """ returns number of preceding spaces """
