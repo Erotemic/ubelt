@@ -6,7 +6,7 @@ from six.moves import zip_longest
 
 
 class chunks(object):
-    r"""
+    """
     Generates successive n-sized chunks from `iterable`.
     If the last chunk has less than n elements, `bordermode` is used to
     determine fill values.
@@ -94,7 +94,7 @@ class chunks(object):
 
 
 def take(items, indices):
-    r"""
+    """
     Selects a subset of a list based on a list of indices.
     This is similar to np.take, but pure python.
 
@@ -119,7 +119,7 @@ def take(items, indices):
 
 
 def compress(items, flags):
-    r"""
+    """
     Selects items where the corresponding value in flags is True
     This is similar to np.compress and it.compress
 
@@ -141,7 +141,7 @@ def compress(items, flags):
 
 
 def flatten(nested_list):
-    r"""
+    """
     Args:
         nested_list (list): list of lists
 
@@ -157,8 +157,79 @@ def flatten(nested_list):
     return it.chain.from_iterable(nested_list)
 
 
+def unique(items):
+    """
+    Generates unique items in the order they appear.
+
+    Args:
+        items (sequence): list of hashable items
+
+    Yields:
+        hashable: a unique item from the input sequence
+
+    CommandLine:
+        python -m utool.util_list --exec-unique_ordered
+
+    Example:
+        >>> import ubelt as ub
+        >>> items = [4, 6, 6, 0, 6, 1, 0, 2, 2, 1]
+        >>> unique_items = list(ub.unique(items))
+        >>> assert unique_items == [4, 6, 0, 1, 2]
+    """
+    seen = set()
+    for item in items:
+        if item not in seen:
+            seen.add(item)
+            yield item
+
+
+def boolmask(indices, maxval=None):
+    """
+    Constructs a list of booleans where an item is True if its position is in
+    `indices` otherwise it is False.
+
+    Args:
+        indices (list): list of integer indices
+        maxval (int): length of the returned list. If not specified
+            this is inverred from `indices`
+
+    Returns:
+        list: mask: list of booleans. mask[idx] is True if idx in indices
+
+    Example:
+        >>> import ubelt as ub
+        >>> indices = [0, 1, 4]
+        >>> mask = ub.boolmask(indices, maxval=5)
+        >>> assert mask == [True, True, False, False, True]
+    """
+    if maxval is None:
+        indices = list(indices)
+        maxval = max(indices) + 1
+    mask = [False] * maxval
+    for index in indices:
+        mask[index] = True
+    return mask
+
+
+def unique_flags(items):
+    """
+    Returns a list of booleans corresponding to the first instance of each
+    unique item.
+
+    Args:
+        items (list): list of items
+
+    Returns:
+        flags : list of bools : flags the items that are unique
+    """
+    len_ = len(items)
+    unique_indices = dict(zip(reversed(items), reversed(range(len_))))
+    flags = boolmask(unique_indices.values(), len_)
+    return flags
+
+
 if __name__ == '__main__':
-    r"""
+    """
     CommandLine:
         python -m ubelt.util_list
     """

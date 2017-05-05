@@ -5,8 +5,6 @@ import sys
 
 __all__ = ['Timer', 'Timerit']
 
-VERBOSE_TIME = 1
-
 # Use time.clock in win32
 default_timer = time.clock if sys.platform.startswith('win32') else time.time
 
@@ -22,9 +20,11 @@ class Timer(object):
         >>>     prime = ub.find_nth_prime(40)
         >>> assert timer.ellapsed > 0
     """
+    DEFAULT_VERBOSE = True
+
     def __init__(self, label='', verbose=None, newline=True):
         if verbose is None:
-            verbose = VERBOSE_TIME  # nocover
+            verbose = self.DEFAULT_VERBOSE  # nocover
         self.label = label
         self.verbose = verbose
         self.newline = newline
@@ -107,9 +107,11 @@ class Timerit(object):
         >>>     with timer:
         >>>         ub.find_nth_prime(n)
     """
+    DEFAULT_VERBOSE = True
+
     def __init__(self, num, label=None, bestof=3, verbose=None):
         if verbose is None:
-            verbose = VERBOSE_TIME
+            verbose = self.DEFAULT_VERBOSE
         self.num = num
         self.label = label
         self.times = []
@@ -117,6 +119,20 @@ class Timerit(object):
         self.total_time = None
         self.n_loops = None
         self.bestof = bestof
+
+    def call(self, func, *args, **kwargs):
+        """
+        Alternative way to time a simple function call using condensed syntax
+
+        Example:
+            >>> import ubelt as ub
+            >>> ave_sec = ub.Timerit(num=10, verbose=0).call(ub.find_nth_prime, 50)
+            >>> assert ave_sec > 0
+        """
+        for timer in self:
+            with timer:
+                func(*args, **kwargs)
+        return self.ave_secs
 
     def __iter__(self):
         if self.verbose >= 2:
