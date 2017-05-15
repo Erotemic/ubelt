@@ -49,6 +49,7 @@ class Cacher(object):
         >>> if myvar is None:
         >>>     myvar = ('result of expensive process', 'another result')
         >>>     cacher.save(myvar)
+        >>> assert cacher.exists(), 'should now exist'
     """
     def __init__(self, fname, cfgstr=None, cache_dir=None, appname='ubelt',
                  ext='.cPkl', verbose=None, enabled=True):
@@ -90,7 +91,16 @@ class Cacher(object):
         fpath = _args2_fpath(self.dpath, self.fname, cfgstr, self.ext)
         return fpath
 
+    def exists(self, cfgstr=None):
+        """
+        Check to see if the cache exists
+        """
+        return exists(self.get_fpath())
+
     def clear(self, cfgstr=None):
+        """
+        Removes the cache from disk
+        """
         fpath = self.get_fpath(cfgstr)
         if self.verbose > 0:
             print('[cache] Clear cache')
