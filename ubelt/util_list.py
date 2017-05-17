@@ -2,6 +2,7 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 import itertools as it
 import six
+import math
 from six.moves import zip_longest
 
 
@@ -14,6 +15,8 @@ class chunks(object):
     Args:
         iterable (list): input to iterate over
         chunksize (int): size of each sublist yielded
+        nchunks (int): number of chunks to create (
+            cannot be specified with chunksize)
         bordermode (str): determines how to handle the last case if the
             length of the iterable is not divisible by chunksize valid values
             are: {'none', 'cycle', 'replicate'}
@@ -34,7 +37,13 @@ class chunks(object):
         >>> genresult = ub.chunks(iterable, chunksize=3, bordermode='replicate')
         >>> assert list(genresult) == [[1, 2, 3], [4, 5, 6], [7, 7, 7]]
     """
-    def __init__(self, iterable, chunksize, bordermode='none'):
+    def __init__(self, iterable, chunksize=None, nchunks=None,
+                 bordermode='none'):
+        if nchunks is not None and chunksize is not None:
+            raise ValueError('Cannot specify both chunksize and nchunks')
+        if nchunks is not None:
+            chunksize = int(math.ceil(len(iterable) / nchunks))
+
         self.bordermode = bordermode
         self.iterable = iterable
         self.chunksize = chunksize
