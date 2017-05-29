@@ -97,6 +97,17 @@ class Cacher(object):
         """
         return exists(self.get_fpath())
 
+    def existing_versions(self):
+        """
+        Returns data with different cfgstr values that were previously computed
+        with this cacher.
+        """
+        import glob
+        pattern = self.fname + '_*' + self.ext
+        for fname in glob.glob1(self.dpath, pattern):
+            fpath = join(self.dpath, fname)
+            yield fpath
+
     def clear(self, cfgstr=None):
         """
         Removes the cache from disk
