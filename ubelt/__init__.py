@@ -82,7 +82,7 @@ if _DOELSE:
     from ubelt.util_dict import (ddict, dict_hist, dict_subset, dict_take,
                                  find_duplicates, group_items, invert_dict,
                                  map_keys, map_vals, odict,)
-    from ubelt.util_cache import (Cacher, consensed_cfgstr,)
+    from ubelt.util_cache import (Cacher,)
     from ubelt.util_io import (readfrom, writeto,)
     from ubelt.util_list import (boolmask, chunks, compress, flatten, take, unique,
                                  unique_flags,)
@@ -96,7 +96,7 @@ if _DOELSE:
                                 highlight_code, indent,)
     from ubelt.util_test import (DocExample, ExitTestException, doctest_package,
                                  parse_src_want, parse_testables,)
-    from ubelt.util_time import (Timer, Timerit,)
+    from ubelt.util_time import (Timer, Timerit, timestamp,)
     from ubelt.progiter import (ProgIter,)
     
     # </AUTOGEN_INIT>

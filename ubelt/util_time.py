@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
+# import datetime
 import time
 import sys
 
-__all__ = ['Timer', 'Timerit']
+__all__ = ['Timer', 'Timerit', 'timestamp']
 
 # Use time.clock in win32
 default_timer = time.clock if sys.platform.startswith('win32') else time.time
@@ -205,6 +206,22 @@ class Timerit(object):
         if verbose > 2:
             print('    body took: %s seconds' % self.total_time)
         print('    time per loop : %s seconds' % (self._seconds_str(),))
+
+
+def timestamp(method='iso8601'):
+    """ make an iso8601 timestamp """
+    if method == 'iso8601':
+        # ISO 8601
+        # datetime.datetime.utcnow().isoformat()
+        # datetime.datetime.now().isoformat()
+        # utcnow
+        tz_hour = time.timezone // 3600
+        utc_offset = '-' + str(tz_hour) if tz_hour < 0 else '+' + str(tz_hour)
+        stamp = time.strftime('%Y-%m-%dT%H%M%S') + utc_offset
+        return stamp
+    else:
+        raise ValueError('only iso8601 is accepted for now')
+
 
 if __name__ == '__main__':
     r"""
