@@ -84,8 +84,8 @@ if _DOELSE:
                                  map_keys, map_vals, odict,)
     from ubelt.util_cache import (Cacher,)
     from ubelt.util_io import (readfrom, writeto,)
-    from ubelt.util_list import (boolmask, chunks, compress, flatten, take, unique,
-                                 unique_flags,)
+    from ubelt.util_list import (argsort, boolmask, chunks, compress, flatten,
+                                 take, unique, unique_flags,)
     from ubelt.util_mixins import (NiceRepr,)
     from ubelt.util_path import (augpath, split,)
     from ubelt.util_platform import (DARWIN, LINUX, WIN32, ensure_app_resource_dir,
