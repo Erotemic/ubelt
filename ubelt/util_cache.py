@@ -198,21 +198,23 @@ class Cacher(object):
 
         if not self.enabled:
             if verbose > 1:
-                print('[cacher] ... cache disabled: dpath=%s cfgstr=%r'
-                        (basename(dpath), cfgstr,))
+                print('[cacher] ... cache disabled: dpath={}, cfgstr={}'.format(
+                    basename(dpath), cfgstr))
             raise IOError(3, 'Cache Loading Is Disabled')
 
         fpath = self.get_fpath(cfgstr=cfgstr)
 
         if not exists(fpath):
             if verbose > 0:
-                print('[cacher] ... cache does not exist: dpath=%r fname=%r cfgstr=%r' % (
-                    basename(dpath), fname, cfgstr,))
+                print('[cacher] ... cache does not exist: '
+                      'dpath={} fname={} cfgstr={}'.format(
+                          basename(dpath), fname, cfgstr))
             raise IOError(2, 'No such file or directory: %r' % (fpath,))
         else:
             if verbose > 2:
-                print('[cacher] ... cache exists: dpath=%r fname=%r cfgstr=%r' % (
-                    basename(dpath), fname, cfgstr,))
+                print('[cacher] ... cache exists: '
+                      'dpath={} fname={} cfgstr={}'.format(
+                          basename(dpath), fname, cfgstr))
             # import utool as ut
             # nbytes = ut.get_file_nBytes(fpath)
             # big_verbose = (nbytes > 1E6 and verbose > 2) or verbose > 2
@@ -225,11 +227,11 @@ class Cacher(object):
         except (EOFError, IOError, ImportError) as ex:  # nocover
             print('CORRUPTED? fpath = %s' % (fpath,))
             if verbose > 1:
-                print('[cacher] ... cache miss dpath=%s cfgstr=%r' % (
-                    basename(dpath), cfgstr,))
+                print('[cacher] ... cache miss dpath={} cfgstr={}'.format(
+                    basename(dpath), cfgstr))
             raise IOError(str(ex))
         except Exception:  # nocover
-            print('CORRUPTED? fpath = %s' % (fpath,))
+            print('CORRUPTED? fpath = {}'.format(fpath))
             raise
         else:
             if verbose > 2:
