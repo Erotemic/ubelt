@@ -11,13 +11,32 @@ class Cacher(object):
     Cacher that can be quickly integrated into existing scripts.
 
     Args:
-        fname (str):  file name
-        cfgstr (str): indicates the state
-        dpath (None): where to save the cache (default to app resource dir)
+        fname (str): A file name. This is the prefix that will be used by the
+            cache. It will alwasys be used as-is.
+
+        cfgstr (str): indicates the state. Either this string or a hash of this
+            string will be used to identify the cache. A cfgstr should always
+            be reasonably readable, thus it is good practice to hash extremely
+            detailed cfgstrs to a reasonable readable level. Use meta to store
+            make original details persist.
+
+        dpath (str): Specifies where to save the cache. If unspecified,
+            Cacher defaults to an application resource dir as given by appname.
+
         appname (str): application name (default = 'ubelt')
+            Specifies a folder in the application resource directory where to
+            cache the data if dpath is not specified.
+
         ext (str): extension (default = '.cPkl')
-        verbose (bool): verbosity flag (default = None)
-        enabled (bool): (default = True)
+
+        meta (str): cfgstr metadata that is also saved with the cfgstr.
+            This data is not used in the hash, but if useful to send in if the
+            cfgstr itself contains hashes.
+
+        verbose (int): level of verbosity (default=1)
+
+        enabled (bool): if set to False, then the load and save methods will
+            do nothing.  (default = True)
 
     CommandLine:
         python -m ubelt.util_cache Cacher
@@ -53,7 +72,7 @@ class Cacher(object):
         >>> assert cacher.exists(), 'should now exist'
     """
     def __init__(self, fname, cfgstr=None, dpath=None, appname='ubelt',
-                 ext='.cPkl', verbose=None, enabled=True):
+                 ext='.cPkl', meta=None, verbose=None, enabled=True):
         import ubelt as ub
         if verbose is None:
             verbose = 1
@@ -65,6 +84,7 @@ class Cacher(object):
         self.cfgstr = cfgstr
         self.verbose = verbose
         self.ext = ext
+        self.meta = meta
         self.enabled = enabled
 
         if len(self.ext) > 0 and self.ext[0] != '.':
@@ -176,15 +196,10 @@ class Cacher(object):
         fname = self.fname
         verbose = self.verbose
 
-        if verbose > 2:
-            display_cfgstr = self._condense_cfgstr(cfgstr)
-        else:
-            display_cfgstr = cfgstr
-
         if not self.enabled:
             if verbose > 1:
                 print('[cacher] ... cache disabled: dpath=%s cfgstr=%r'
-                        (basename(dpath), display_cfgstr,))
+                        (basename(dpath), cfgstr,))
             raise IOError(3, 'Cache Loading Is Disabled')
 
         fpath = self.get_fpath(cfgstr=cfgstr)
@@ -192,12 +207,12 @@ class Cacher(object):
         if not exists(fpath):
             if verbose > 0:
                 print('[cacher] ... cache does not exist: dpath=%r fname=%r cfgstr=%r' % (
-                    basename(dpath), fname, display_cfgstr,))
+                    basename(dpath), fname, cfgstr,))
             raise IOError(2, 'No such file or directory: %r' % (fpath,))
         else:
             if verbose > 2:
                 print('[cacher] ... cache exists: dpath=%r fname=%r cfgstr=%r' % (
-                    basename(dpath), fname, display_cfgstr,))
+                    basename(dpath), fname, cfgstr,))
             # import utool as ut
             # nbytes = ut.get_file_nBytes(fpath)
             # big_verbose = (nbytes > 1E6 and verbose > 2) or verbose > 2
@@ -253,10 +268,12 @@ class Cacher(object):
 
         # Also save metadata file to reconstruct hashing
         with open(meta_fpath, 'a') as file_:
+            # TODO: maybe append this in json format?
             file_.write('\n\nsaving {}\n'.format(ub.timestamp()))
             file_.write(self.fname + '\n')
             file_.write(condensed + '\n')
-            file_.write(cfgstr)
+            file_.write(cfgstr + '\n')
+            file_.write(str(self.meta) + '\n')
 
         with open(data_fpath, 'wb') as file_:
             # Use protocol 2 to support python2 and 3
