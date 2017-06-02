@@ -67,6 +67,9 @@ class Cacher(object):
         self.ext = ext
         self.enabled = enabled
 
+        if len(self.ext) > 0 and self.ext[0] != '.':
+            raise ValueError('Please be explicit and use a dot in ext')
+
     def _rectify_cfgstr(self, cfgstr=None):
         cfgstr = self.cfgstr if cfgstr is None else cfgstr
         if cfgstr is None:
@@ -76,6 +79,19 @@ class Cacher(object):
         assert self.fname is not None, 'no fname specified in Cacher'
         assert self.dpath is not None, 'no dpath specified in Cacher'
         return cfgstr
+
+    def _condense_cfgstr(self, cfgstr=None):
+        cfgstr = self._rectify_cfgstr(cfgstr)
+        max_len = 32
+        hashlen = 32
+        if len(cfgstr) > max_len:
+            hasher = hashlib.sha256()
+            hasher.update(cfgstr.encode('utf8'))
+            hashed_cfgstr = hasher.hexdigest()[:hashlen]
+            condensed = hashed_cfgstr
+        else:
+            condensed = cfgstr
+        return condensed
 
     def get_fpath(self, cfgstr=None):
         """
@@ -92,21 +108,7 @@ class Cacher(object):
             >>> self = Cacher('test_cacher3', cfgstr='cfg1' * 32)
             >>> self.get_fpath()
         """
-        cfgstr = self._rectify_cfgstr(cfgstr)
-
-        if len(self.ext) > 0 and self.ext[0] != '.':
-            raise ValueError('Please be explicit and use a dot in ext')
-
-        max_len = 32
-        hashlen = 32
-        if len(cfgstr) > max_len:
-            hasher = hashlib.sha256()
-            hasher.update(cfgstr.encode('utf8'))
-            hashed_cfgstr = hasher.hexdigest()[:hashlen]
-            condensed = hashed_cfgstr
-        else:
-            condensed = cfgstr
-
+        condensed = self._condense_cfgstr(cfgstr)
         fname_cfgstr = '{}_{}{}'.format(self.fname, condensed, self.ext)
         fpath = join(self.dpath, fname_cfgstr)
         fpath = normpath(fpath)
@@ -174,10 +176,15 @@ class Cacher(object):
         fname = self.fname
         verbose = self.verbose
 
+        if verbose > 2:
+            display_cfgstr = self._condense_cfgstr(cfgstr)
+        else:
+            display_cfgstr = cfgstr
+
         if not self.enabled:
             if verbose > 1:
                 print('[cacher] ... cache disabled: dpath=%s cfgstr=%r'
-                        (basename(dpath), cfgstr,))
+                        (basename(dpath), display_cfgstr,))
             raise IOError(3, 'Cache Loading Is Disabled')
 
         fpath = self.get_fpath(cfgstr=cfgstr)
@@ -185,12 +192,12 @@ class Cacher(object):
         if not exists(fpath):
             if verbose > 0:
                 print('[cacher] ... cache does not exist: dpath=%r fname=%r cfgstr=%r' % (
-                    basename(dpath), fname, cfgstr,))
+                    basename(dpath), fname, display_cfgstr,))
             raise IOError(2, 'No such file or directory: %r' % (fpath,))
         else:
             if verbose > 2:
                 print('[cacher] ... cache exists: dpath=%r fname=%r cfgstr=%r' % (
-                    basename(dpath), fname, cfgstr,))
+                    basename(dpath), fname, display_cfgstr,))
             # import utool as ut
             # nbytes = ut.get_file_nBytes(fpath)
             # big_verbose = (nbytes > 1E6 and verbose > 2) or verbose > 2
@@ -235,9 +242,11 @@ class Cacher(object):
         import ubelt as ub
         if not self.enabled:
             return
-        cfgstr = self._rectify_cfgstr(cfgstr)
         if self.verbose > 0:
             print('[cacher] ... {} Cacher save'.format(self.fname))
+
+        cfgstr = self._rectify_cfgstr(cfgstr)
+        condensed = self._condense_cfgstr(cfgstr)
 
         data_fpath = self.get_fpath(cfgstr=cfgstr)
         meta_fpath = data_fpath + '.meta'
@@ -245,6 +254,8 @@ class Cacher(object):
         # Also save metadata file to reconstruct hashing
         with open(meta_fpath, 'a') as file_:
             file_.write('\n\nsaving {}\n'.format(ub.timestamp()))
+            file_.write(self.fname + '\n')
+            file_.write(condensed + '\n')
             file_.write(cfgstr)
 
         with open(data_fpath, 'wb') as file_:
