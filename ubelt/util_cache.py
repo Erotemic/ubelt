@@ -144,10 +144,30 @@ class Cacher(object):
         """
         Returns data with different cfgstr values that were previously computed
         with this cacher.
+
+        Example:
+            >>> from ubelt.util_cache import Cacher
+            >>> # Ensure that some data exists
+            >>> known_fnames = set()
+            >>> cacher = Cacher('versioned_data', cfgstr='1')
+            >>> cacher.ensure(lambda: 'data1')
+            >>> known_fnames.add(cacher.get_fpath())
+            >>> cacher = Cacher('versioned_data', cfgstr='2')
+            >>> cacher.ensure(lambda: 'data2')
+            >>> known_fnames.add(cacher.get_fpath())
+            >>> # List previously computed configs for this type
+            >>> from os.path import basename
+            >>> cacher = Cacher('versioned_data', cfgstr='2')
+            >>> exist_fpaths = set(cacher.existing_versions())
+            >>> exist_fnames = list(map(basename, exist_fpaths))
+            >>> print(exist_fnames)
+            >>> assert exist_fpaths == known_fnames
+
+            ['versioned_data_1.cPkl', 'versioned_data_2.cPkl']
         """
         import glob
-        pattern = self.fname + '_*' + self.ext
-        for fname in glob.glob1(self.dpath, pattern):
+        pattern = join(self.dpath, self.fname + '_*' + self.ext)
+        for fname in glob.iglob(pattern):
             fpath = join(self.dpath, fname)
             yield fpath
 
@@ -157,9 +177,9 @@ class Cacher(object):
         """
         fpath = self.get_fpath(cfgstr)
         if self.verbose > 0:
-            print('[cacher] Clear cache')
+            print('[cacher] clear cache')
         if exists(fpath):
-            print('[cacher] Removing %s' % (fpath,))
+            print('[cacher] removing %s' % (fpath,))
             os.remove(fpath)
         else:
             print('[cacher] ... nothing to clear')
@@ -169,15 +189,18 @@ class Cacher(object):
         Like load, but returns None if the load fails
         """
         cfgstr = self._rectify_cfgstr(cfgstr)
-        try:
+        if self.enabled:
+            try:
+                if self.verbose > 1:
+                    print('[cacher] tryload fname={}'.format(self.fname))
+                return self.load(cfgstr)
+            except IOError:
+                if self.verbose > 0:
+                    print('[cacher] ... {} cache miss'.format(self.fname))
+        else:
             if self.verbose > 1:
-                print('[cacher] tryload fname=%s' % (self.fname,))
-                # if self.verbose > 2:
-                #     print('[cacher] cfgstr=%r' % (cfgstr,))
-            return self.load(cfgstr)
-        except IOError:
-            if self.verbose > 0:
-                print('[cacher] ... %s Cacher miss' % (self.fname))
+                print('[cacher] ... cache disabled: fname={}'.format(self.fname))
+        return None
 
     def load(self, cfgstr=None):
         """
@@ -198,47 +221,41 @@ class Cacher(object):
 
         if not self.enabled:
             if verbose > 1:
-                print('[cacher] ... cache disabled: dpath={}, cfgstr={}'.format(
-                    basename(dpath), cfgstr))
+                print('[cacher] ... cache disabled: fname={}'.format(self.fname))
             raise IOError(3, 'Cache Loading Is Disabled')
 
         fpath = self.get_fpath(cfgstr=cfgstr)
 
         if not exists(fpath):
-            if verbose > 0:
+            if verbose > 2:
                 print('[cacher] ... cache does not exist: '
                       'dpath={} fname={} cfgstr={}'.format(
                           basename(dpath), fname, cfgstr))
             raise IOError(2, 'No such file or directory: %r' % (fpath,))
         else:
-            if verbose > 2:
+            if verbose > 3:
                 print('[cacher] ... cache exists: '
                       'dpath={} fname={} cfgstr={}'.format(
                           basename(dpath), fname, cfgstr))
-            # import utool as ut
-            # nbytes = ut.get_file_nBytes(fpath)
-            # big_verbose = (nbytes > 1E6 and verbose > 2) or verbose > 2
-            # if big_verbose:
-            #     print('[cacher] About to read file of size %s' % (ut.byte_str2(nbytes),))
         try:
             with open(fpath, 'rb') as file_:
                 data = pickle.load(file_)
-            # data = util_io.load_data(fpath, verbose=verbose > 2)
         except (EOFError, IOError, ImportError) as ex:  # nocover
-            print('CORRUPTED? fpath = %s' % (fpath,))
+            if verbose > 0:
+                print('CORRUPTED? fpath = %s' % (fpath,))
             if verbose > 1:
-                print('[cacher] ... cache miss dpath={} cfgstr={}'.format(
+                print('[cacher] ... CORRUPTED? dpath={} cfgstr={}'.format(
                     basename(dpath), cfgstr))
             raise IOError(str(ex))
         except Exception:  # nocover
-            print('CORRUPTED? fpath = {}'.format(fpath))
+            if verbose > 0:
+                print('CORRUPTED? fpath = {}'.format(fpath))
             raise
         else:
-            if verbose > 2:
+            if self.verbose > 2:
+                print('[cacher] ... {} cache hit'.format(self.fname))
+            elif verbose > 1:
                 print('[cacher] ... cache hit')
-
-        if self.verbose > 1:
-            print('[cacher] ... {} Cacher hit'.format(self.fname))
         return data
 
     def save(self, data, cfgstr=None):
@@ -260,7 +277,7 @@ class Cacher(object):
         if not self.enabled:
             return
         if self.verbose > 0:
-            print('[cacher] ... {} Cacher save'.format(self.fname))
+            print('[cacher] ... {} cache save'.format(self.fname))
 
         cfgstr = self._rectify_cfgstr(cfgstr)
         condensed = self._condense_cfgstr(cfgstr)
@@ -283,11 +300,10 @@ class Cacher(object):
 
     def ensure(self, func, *args, **kwargs):
         r"""
-        Wraps around a function
+        Wraps around a function. A cfgstr must be stored in base cacher
 
         Args:
-            self (?):
-            func (function):  live python function
+            func (callable): function that will compute data on cache miss
             *args: passed to func
             **kwargs: passed to func
 
@@ -310,99 +326,6 @@ class Cacher(object):
             data = func(*args, **kwargs)
             self.save(data)
         return data
-
-
-# def consensed_cfgstr(prefix, cfgstr, max_len=128, cfgstr_hashlen=32):
-#     if len(prefix) + len(cfgstr) > max_len:
-#         import hashlib
-#         hasher = hashlib.sha256()
-#         hasher.update(cfgstr.encode('utf8'))
-#         hashed_cfgstr = hasher.hexdigest()[:cfgstr_hashlen]
-#         condensed = hashed_cfgstr
-#     else:
-#         condensed = cfgstr
-#     # Hack for prettier names
-#     # if prefix.endswith('_') or condensed.startswith('_'):  # nocover
-#     #     fname_cfgstr = prefix + condensed
-#     # else:
-#     fname_cfgstr = prefix + '_' + condensed
-#     return fname_cfgstr
-
-
-# def _args2_fpath(dpath, fname, cfgstr, ext):
-#     r"""
-#     Ensures that the filename is not too long
-
-#     Internal util_cache helper function
-#     Windows MAX_PATH=260 characters
-#     Absolute length is limited to 32,000 characters
-#     Each filename component is limited to 255 characters
-
-#     Args:
-#         dpath (str):
-#         fname (str):
-#         cfgstr (str):
-#         ext (str):
-
-#     Returns:
-#         str: fpath
-
-#     CommandLine:
-#         python -m utool.util_cache --test-_args2_fpath
-
-#     Example:
-#         >>> # ENABLE_DOCTEST
-#         >>> from ubelt.util_cache import *  # NOQA
-#         >>> from ubelt.util_cache import _args2_fpath
-#         >>> import ubelt as ut
-#         >>> dpath = 'F:\\.cache\\tmp'
-#         >>> fname = 'vsm'
-#         >>> cfgstr = '_'.join([
-#         >>>     'PZ_MTEST_DSUUIDS((9)67fdifdsalfsjdsfl)',
-#         >>>     'QSUUIDS((9)67fdsafdasfdsal)',
-#         >>>     'zebra_plains_vsone_NN(single,K1+1,last,cks1024)',
-#         >>>     'FILT(ratio<0.625;1.0,fg;1.0)',
-#         >>>     'SV(0.01;2;1.57minIn=4,nRR=50,nsum,)', 'AGG(nsum)',
-#         >>>     'FLANN(4_kdtrees)', 'FEATWEIGHT(ON,uselabel,rf)',
-#         >>>     'FEAT(hesaff+sift_)', 'CHIP(sz450)',
-#         >>> ])
-#         >>> assert len(cfgstr) > 260
-#         >>> ext = '.cPkl'
-#         >>> fpath = _args2_fpath(dpath, fname, cfgstr, ext)
-#         >>> result = str(fpath.replace('\\', '/'))
-#         >>> print('result = %s' % (result,))
-#         >>> target = 'F:/.cache/tmp/vsm_96f53cd002c5415ff9e90302b872abb7.cPkl'
-#         >>> print('target = %s' % (target,))
-#         >>> assert result == target
-
-#     Example:
-#         >>> # ENABLE_DOCTEST
-#         >>> from ubelt.util_cache import *  # NOQA
-#         >>> from ubelt.util_cache import _args2_fpath
-#         >>> import ubelt as ut
-#         >>> dpath = 'F:\\.cache\\tmp'
-#         >>> fname = 'vsm'
-#         >>> cfgstr = '_'.join([
-#         >>>     'PZ_DUUIDS((9),iksidjaidurfd)',
-#         >>> ])
-#         >>> ext = '.cPkl'
-#         >>> fpath = _args2_fpath(dpath, fname, cfgstr, ext)
-#         >>> result = str(fpath.replace('\\', '/'))
-#         >>> print('result = %s' % (result,))
-#         >>> target = 'F:/.cache/tmp/vsm_PZ_DUUIDS((9),iksidjaidurfd).cPkl'
-#         >>> print('target = %s' % (target,))
-#         >>> assert result == target
-#     """
-#     if len(ext) > 0 and ext[0] != '.':
-#         raise ValueError('Please be explicit and use a dot in ext')
-#     prefix = fname
-#     max_len = 128
-#     cfgstr_hashlen = 32
-#     fname_cfgstr = consensed_cfgstr(prefix, cfgstr, max_len=max_len,
-#                                     cfgstr_hashlen=cfgstr_hashlen)
-#     fpath = join(dpath, fname_cfgstr + ext)
-#     fpath = normpath(fpath)
-#     return fpath
 
 
 if __name__ == '__main__':

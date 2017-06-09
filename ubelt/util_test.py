@@ -33,13 +33,32 @@ def parse_src_want(docsrc):
         >>> src, want = parse_src_want(docsrc)
         >>> 'I want to see this str'
         I want to see this str
+
+    DistableExample:
+        >>> from ubelt.util_test import *  # NOQA
+        >>> from ubelt.meta import docscrape_google
+        >>> import inspect
+        >>> docstr = inspect.getdoc(parse_src_want)
+        >>> blocks = dict(docscrape_google.split_google_docblocks(docstr))
+        >>> str = (
+            '''
+            TODO: be able to parse docstrings like this.
+            ''')
+        >>> print('Intermediate want')
+        Intermediate want
+        >>> docsrc = blocks['Example']
+        >>> src, want = parse_src_want(docsrc)
+        >>> 'I want to see this str'
+        I want to see this str
     """
     reversed_src_lines = []
     reversed_want_lines = []
     finished_want = False
 
     # Read the example block backwards to get the want string
-    # and then the rest should all be source
+    # and then the rest should all be source.
+    # TODO: be able to parse intermedidate want strings
+    # as well as deal with unbalanced strings.
     for line in reversed(docsrc.splitlines()):
         if not finished_want:
             if line.startswith('>>> ') or line.startswith('... '):
