@@ -38,7 +38,7 @@ def group_items(item_list, groupid_list, sorted_=True):
         >>> item_list    = ['ham',     'jam',   'spam',     'eggs',    'cheese', 'bannana']
         >>> groupid_list = ['protein', 'fruit', 'protein',  'protein', 'dairy',  'fruit']
         >>> result = ub.group_items(item_list, groupid_list)
-        >>> #result = ub.dict_str(groupid_to_items, nl=False, strvals=False)
+        >>> #result = ub.repr2(groupid_to_items, nl=False, strvals=False)
         >>> print(result)
         {'dairy': ['cheese'], 'fruit': ['jam', 'bannana'], 'protein': ['ham', 'spam', 'eggs']}
     """
@@ -181,7 +181,7 @@ def dict_subset(dict_, keys, default=util_const.NoParam):
         >>> dict_ = {'K': 3, 'dcvs_clip_max': 0.2, 'p': 0.1}
         >>> keys = ['K', 'dcvs_clip_max']
         >>> subdict_ = ub.dict_subset(dict_, keys)
-        >>> #result = ub.dict_str(subdict_, sorted_=True, newlines=False)
+        >>> #result = ub.repr2(subdict_, sorted_=True, newlines=False)
         >>> print(subdict_)
         {'K': 3, 'dcvs_clip_max': 0.2}
     """
