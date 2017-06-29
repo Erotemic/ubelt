@@ -84,7 +84,7 @@ def parse_docstrs(source=None, fpath=None):
         self = TopLevelDocstrVisitor()
         self.visit(pt)
         return self.docstrs
-    except Exception as ex:  # nocover
+    except Exception:  # nocover
         if fpath:
             print('Failed to parse docstring for fpath=%r' % (fpath,))
         else:

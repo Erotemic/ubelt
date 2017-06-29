@@ -236,9 +236,12 @@ def split_google_docblocks(docstr):
     indents = [x for x, f in zip(line_indent, is_nonzero) if f]
     if len(indents) >= 1:
         if indents[0] != 0:
-            print('ERROR IN PARSING')
+            print('ERROR IN PARSING DOCSTRING')
             print('adjusted = %r' % (adjusted,))
+            print('Docstring:')
+            print('----------')
             print(docstr)
+            print('----------')
             raise ValueError('Google Style Docstring Missformat')
 
     base_indent = 0

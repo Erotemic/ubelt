@@ -247,7 +247,30 @@ class DocExample(util_mixins.NiceRepr):
         return self.modname + ' ' + self.callname
 
 
-def parse_testables(package_name, ignore_patterns=[]):
+def parse_docstr_examples(docstr, callname=None, modpath=None):
+    """
+    Parses Google-style doctests from a docstr and generates example objects
+    """
+    try:
+        from ubelt.meta import docscrape_google
+        blocks = docscrape_google.split_google_docblocks(docstr)
+        example_blocks = []
+        for type_, block in blocks:
+            if type_.startswith('Example'):
+                example_blocks.append((type_, block))
+            if type_.startswith('Doctest'):
+                example_blocks.append((type_, block))
+        for num, (type_, block) in enumerate(example_blocks):
+            example = DocExample(modpath, callname, block, num)
+            yield example
+    except Exception as ex:  # nocover
+        msg = ('Cannot scrape callname={} in modpath={}.\n'
+               'Caused by={}')
+        msg = msg.format(callname, modpath, ex)
+        raise Exception(msg)
+
+
+def parse_testables(package_name, ignore_patterns=[], strict=False, verbose=False):
     r"""
     Finds all functions/callables with Google-style example blocks
 
@@ -257,13 +280,16 @@ def parse_testables(package_name, ignore_patterns=[]):
     Example:
         >>> from ubelt.util_test import *  # NOQA
         >>> package_name = 'ubelt'
-        >>> testable_examples = parse_testables(package_name)
+        >>> testable_examples = list(parse_testables(package_name, verbose=True))
+        >>> this_example = None
         >>> for example in testable_examples:
         >>>     print(example)
-        >>> #assert 'parse_testables' in testable_examples
+        >>>     if example.callname == 'parse_testables':
+        >>>         this_example = example
+        >>> assert this_example is not None
+        >>> assert this_example.callname == 'parse_testables'
     """
     from ubelt.meta import static_analysis as static
-    from ubelt.meta import docscrape_google
     from os.path import exists
 
     modnames = static.package_modnames(package_name,
@@ -275,23 +301,23 @@ def parse_testables(package_name, ignore_patterns=[]):
                 'Module {} does not exist. '
                 'Is it an old pyc file?'.format(modname))
             continue
+        if verbose:  # nocover
+            print('Parsing module={} at path={}'.format(modname, modpath))
 
-        docstrs = static.parse_docstrs(fpath=modpath)
+        try:
+            docstrs = static.parse_docstrs(fpath=modpath)
+        except Exception as ex:  # nocover
+            msg = 'Cannot parse module={} at path={}.\nCaused by={}'
+            msg = msg.format(modname, modpath, ex)
+            if strict:
+                raise Exception(msg)
+            else:
+                warnings.warn(msg)
+                continue
 
         for callname, docstr in docstrs.items():
             if docstr is not None:
-                blocks = docscrape_google.split_google_docblocks(docstr)
-                example_blocks = []
-                for type_, block in blocks:
-                    if type_.startswith('Example'):
-                        example_blocks.append((type_, block))
-                for num, (type_, block) in enumerate(example_blocks):
-                    # print('modpath = %r' % (modpath,))
-                    # print('callname = %r' % (callname,))
-                    # print('num = %r' % (num,))
-                    example = DocExample(modpath, callname, block, num)
-                    # print('example = %r' % (example,))
-                    # test_name = modname + '.' + callname
+                for example in parse_docstr_examples(docstr, callname, modpath):
                     yield example
 
 
