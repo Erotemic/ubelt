@@ -22,8 +22,15 @@ Some of the code introspection features will be ported, but most
 
 
 ## Installation:
+
+#### From github:
 ```
 pip install git+https://github.com/Erotemic/ubelt.git
+```
+
+#### From pypi:
+```
+pip install ubelt
 ```
 
 ## Available Functions:

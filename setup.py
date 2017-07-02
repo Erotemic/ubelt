@@ -23,9 +23,10 @@ Pypi:
      https://testpypi.python.org/pypi?:action=display&name=ubelt
 
      # Register on Pypi live
+     # MANUALLY: edit ~/.pypirc to include a password
      python setup.py register -r pypi
-     # Note you need to temporarily edit your ~/.pypirc to include a password
      python setup.py sdist upload -r pypi
+     # MANUALLY: remove password from ~/.pypirc
 
      # Check the url to make sure everything worked
      https://pypi.python.org/pypi?:action=display&name=ubelt
@@ -50,6 +51,13 @@ def parse_version():
     visitor.visit(pt)
     return visitor.version
 
+
+def parse_description():
+    from os.path import dirname, join
+    readme_fpath = join(dirname(__file__), 'README.md')
+    with open(readme_fpath, 'r') as f:
+        return f.read()
+
 version = parse_version()
 
 
@@ -58,6 +66,8 @@ if __name__ == '__main__':
         name='ubelt',
         version=version,
         author='Jon Crall',
+        description='A "utility belt" of commonly needed utility and helper functions',
+        long_description=parse_description(),
         install_requires=[
             'six >= 1.10.0',
             'Pygments >= 2.2.0',
@@ -67,4 +77,17 @@ if __name__ == '__main__':
         url='https://github.com/Erotemic/ubelt',
         license='Apache 2',
         packages=['ubelt', 'ubelt.meta', 'ubelt._internal'],
+        classifiers=[
+            # List of classifiers available at:
+            # https://pypi.python.org/pypi?%3Aaction=list_classifiers
+            'Development Status :: 3 - Alpha',
+            'Intended Audience :: Developers',
+            'Topic :: Software Development :: Libraries :: Python Modules',
+            'Topic :: Utilities',
+            'License :: OSI Approved :: Apache License v2.0',
+            # Supported Python versions
+            'Programming Language :: Python :: 2.7',
+            'Programming Language :: Python :: 3',
+        ],
+
     )
