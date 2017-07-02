@@ -53,10 +53,13 @@ def parse_version():
 
 
 def parse_description():
-    from os.path import dirname, join
+    from os.path import dirname, join, exists
     readme_fpath = join(dirname(__file__), 'README.md')
-    with open(readme_fpath, 'r') as f:
-        return f.read()
+    # This breaks on pip install, so check that it exists.
+    if exists(readme_fpath):
+        with open(readme_fpath, 'r') as f:
+            # TODO: strip out markdown to make a clean readme for pypi
+            return f.read()
 
 version = parse_version()
 
@@ -90,5 +93,4 @@ if __name__ == '__main__':
             'Programming Language :: Python :: 2.7',
             'Programming Language :: Python :: 3',
         ],
-
     )
