@@ -55,6 +55,7 @@ def parse_version():
 def parse_description():
     from os.path import dirname, join, exists
     readme_fpath = join(dirname(__file__), 'README.md')
+    print('readme_fpath = %r' % (readme_fpath,))
     # This breaks on pip install, so check that it exists.
     if exists(readme_fpath):
         with open(readme_fpath, 'r') as f:
@@ -70,7 +71,7 @@ if __name__ == '__main__':
         version=version,
         author='Jon Crall',
         description='A "utility belt" of commonly needed utility and helper functions',
-        long_description=parse_description(),
+        # long_description=parse_description(),
         install_requires=[
             'six >= 1.10.0',
             'Pygments >= 2.2.0',
