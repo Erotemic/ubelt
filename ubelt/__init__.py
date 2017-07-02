@@ -26,7 +26,7 @@ TODO:
 from __future__ import absolute_import, division, print_function, unicode_literals
 import sys
 
-__version__ = '0.0.22'
+__version__ = '0.0.23'
 
 GLOBAL_MODULES = [
     'util_const',
@@ -97,7 +97,7 @@ if _DOELSE:
                                  parse_testables,)
     from ubelt.util_time import (Timer, Timerit, timestamp,)
     from ubelt.progiter import (ProgIter,)
-    
+
     # </AUTOGEN_INIT>
 
 del _DOELSE
