@@ -3,7 +3,7 @@
 [![Codecov](https://codecov.io/github/Erotemic/ubelt/badge.svg?branch=master&service=github)](https://codecov.io/github/Erotemic/ubelt?branch=master)
 
 
-## What is UBelt?
+## Purpose
 UBelt is a "utility belt" of commonly needed utility and helper functions.
 It is a migration of the most useful parts of `utool`
   (https://github.com/Erotemic/utool) into a minimal and standalone module.
