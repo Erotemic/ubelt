@@ -26,7 +26,7 @@ TODO:
 from __future__ import absolute_import, division, print_function, unicode_literals
 import sys
 
-__version__ = '0.0.25'
+__version__ = '0.0.26'
 
 GLOBAL_MODULES = [
     'util_const',
