@@ -29,20 +29,6 @@ Pypi:
      https://pypi.org/project/ubelt/
 
      # ---------- OLD ----------------
-
-     # Register on Pypi test
-     python setup.py register -r pypitest
-     python setup.py sdist upload -r pypitest
-
-     # Check the url to make sure everything worked
-     https://testpypi.python.org/pypi?:action=display&name=ubelt
-
-     # Register on Pypi live
-     # MANUALLY: edit ~/.pypirc to include a password
-     python setup.py register -r pypi
-     python setup.py sdist upload -r pypi
-     # MANUALLY: remove password from ~/.pypirc
-
      # Check the url to make sure everything worked
      https://pypi.python.org/pypi?:action=display&name=ubelt
 
@@ -77,11 +63,11 @@ def parse_description():
     print('readme_fpath = %r' % (readme_fpath,))
     # This breaks on pip install, so check that it exists.
     if exists(readme_fpath):
-        try:
-            # convert markdown to rst for pypi
-            import pypandoc
-            return pypandoc.convert(readme_fpath, 'rst')
-        except Exception as ex:
+        # try:
+        #     # convert markdown to rst for pypi
+        #     import pypandoc
+        #     return pypandoc.convert(readme_fpath, 'rst')
+        # except Exception as ex:
             # strip out markdown to make a clean readme for pypi
             textlines = []
             with open(readme_fpath, 'r') as f:
