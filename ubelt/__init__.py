@@ -26,7 +26,7 @@ TODO:
 from __future__ import absolute_import, division, print_function, unicode_literals
 import sys
 
-__version__ = '0.0.21'
+__version__ = '0.0.22'
 
 GLOBAL_MODULES = [
     'util_const',
@@ -91,13 +91,13 @@ if _DOELSE:
                                      ensuredir, get_app_resource_dir,
                                      get_resource_dir,)
     from ubelt.util_stress import (find_nth_prime,)
-    from ubelt.util_str import (CaptureStdout, cStringIO, codeblock,
-                                highlight_code, indent,)
+    from ubelt.util_str import (CaptureStdout, codeblock, highlight_code, indent,)
     from ubelt.util_test import (DocExample, ExitTestException, doctest_package,
-                                 parse_src_want, parse_testables,)
+                                 parse_docstr_examples, parse_src_want,
+                                 parse_testables,)
     from ubelt.util_time import (Timer, Timerit, timestamp,)
     from ubelt.progiter import (ProgIter,)
-
+    
     # </AUTOGEN_INIT>
 
 del _DOELSE
