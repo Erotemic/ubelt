@@ -15,6 +15,21 @@ Pypi:
      git tag $VERSION -m "tarball tag $VERSION"
      git push --tags origin master
 
+     # NEW API TO UPLOAD TO PYPI
+     # https://packaging.python.org/tutorials/distributing-packages/
+
+     # Build wheel or source distribution
+     python setup.py bdist_wheel --universal
+
+     # Use twine to upload. This will prompt for username and password
+     pip install twine
+     twine upload --username erotemic --skip-existing dist/*
+
+     # Check the url to make sure everything worked
+     https://pypi.org/project/ubelt/
+
+     # ---------- OLD ----------------
+
      # Register on Pypi test
      python setup.py register -r pypitest
      python setup.py sdist upload -r pypitest
@@ -30,6 +45,7 @@ Pypi:
 
      # Check the url to make sure everything worked
      https://pypi.python.org/pypi?:action=display&name=ubelt
+
 """
 from setuptools import setup
 
@@ -87,7 +103,7 @@ if __name__ == '__main__':
         version=version,
         author='Jon Crall',
         description='A "utility belt" of commonly needed utility and helper functions',
-        # long_description=parse_description(),
+        long_description=parse_description(),
         install_requires=[
             'six >= 1.10.0',
             'Pygments >= 2.2.0',
