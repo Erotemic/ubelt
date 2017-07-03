@@ -9,6 +9,9 @@ Developing:
     pip install -e ubelt
 
 Pypi:
+     # Presetup
+     pip install twine
+
      # First tag the source-code
      VERSION=$(python -c "import setup; print(setup.version)")
      echo $VERSION
@@ -22,7 +25,6 @@ Pypi:
      python setup.py bdist_wheel --universal
 
      # Use twine to upload. This will prompt for username and password
-     pip install twine
      twine upload --username erotemic --skip-existing dist/*
 
      # Check the url to make sure everything worked
