@@ -9,18 +9,35 @@ LINUX  = sys.platform.startswith('linux')
 DARWIN = sys.platform.startswith('darwin')
 
 
-def get_resource_dir():
+def platform_resource_dir():
     """
     Returns a directory which should be writable for any application
+    This should be used for persistent configuration files.
     """
-    #resource_prefix = '~'
-    if WIN32:
+    if WIN32:  # nocover
         dpath_ = '~/AppData/Roaming'
-    elif LINUX:
+    elif LINUX:  # nocover
         dpath_ = '~/.config'
-    elif DARWIN:
+    elif DARWIN:  # nocover
         dpath_  = '~/Library/Application Support'
-    else:
+    else:  # nocover
+        raise NotImplementedError('Unknown Platform  %r' % (sys.platform,))
+    dpath = normpath(expanduser(dpath_))
+    return dpath
+
+
+def platform_cache_dir():
+    """
+    Returns a directory which should be writable for any application
+    This should be used for temporary deletable data.
+    """
+    if WIN32:  # nocover
+        dpath_ = '~/AppData/Local'
+    elif LINUX:  # nocover
+        dpath_ = '~/.cache'
+    elif DARWIN:  # nocover
+        dpath_  = '~/Library/Caches'
+    else:  # nocover
         raise NotImplementedError('Unknown Platform  %r' % (sys.platform,))
     dpath = normpath(expanduser(dpath_))
     return dpath
@@ -29,6 +46,7 @@ def get_resource_dir():
 def get_app_resource_dir(appname, *args):
     r"""
     Returns a writable directory for an application
+    This should be used for persistent configuration files.
 
     Args:
         appname (str): the name of the application
@@ -37,12 +55,48 @@ def get_app_resource_dir(appname, *args):
     Returns:
         str: dpath: writable cache directory
     """
-    dpath = join(get_resource_dir(), appname, *args)
+    dpath = join(platform_resource_dir(), appname, *args)
     return dpath
 
 
 def ensure_app_resource_dir(appname, *args):
+    """
+    Example:
+        >>> from ubelt.util_platform import *  # NOQA
+        >>> import ubelt as ub
+        >>> dpath = ub.ensure_app_resource_dir('ubelt')
+        >>> assert exists(dpath)
+    """
     dpath = get_app_resource_dir(appname, *args)
+    ensuredir(dpath)
+    return dpath
+
+
+def get_app_cache_dir(appname, *args):
+    r"""
+    Returns a writable directory for an application.
+    This should be used for temporary deletable data.
+
+    Args:
+        appname (str): the name of the application
+        *args: any other subdirectories may be specified
+
+    Returns:
+        str: dpath: writable cache directory
+    """
+    dpath = join(platform_cache_dir(), appname, *args)
+    return dpath
+
+
+def ensure_app_cache_dir(appname, *args):
+    """
+    Example:
+        >>> from ubelt.util_platform import *  # NOQA
+        >>> import ubelt as ub
+        >>> dpath = ub.ensure_app_cache_dir('ubelt')
+        >>> assert exists(dpath)
+    """
+    dpath = get_app_cache_dir(appname, *args)
     ensuredir(dpath)
     return dpath
 
@@ -59,18 +113,39 @@ def ensuredir(dpath, mode=0o1777, verbose=None):
 
     Returns:
         str: path - the ensured directory
+
+    Example:
+        >>> from ubelt.util_platform import *  # NOQA
+        >>> import ubelt as ub
+        >>> cache_dpath = ub.ensure_app_cache_dir('ubelt')
+        >>> dpath = join(cache_dpath, 'ensuredir')
+        >>> if exists(dpath):
+        >>>     os.rmdir(dpath)
+        >>> assert not exists(dpath)
+        >>> ub.ensuredir(dpath)
+        >>> assert exists(dpath)
+        >>> os.rmdir(dpath)
     """
-    if verbose is None:
+    if verbose is None:  # nocover
         verbose = 0
-    if isinstance(dpath, (list, tuple)):
+    if isinstance(dpath, (list, tuple)):  # nocover
         dpath = join(*dpath)
     if not exists(dpath):
-        if verbose:
-            print('[util_path] mkdir(%r)' % dpath)
+        if verbose:  # nocover
+            print('[ubelt] mkdir(%r)' % dpath)
         try:
             os.makedirs(normpath(dpath), mode=mode)
-        except OSError as ex:
+        except OSError as ex:  # nocover
             print('Error in ensuredir')
             raise
     return dpath
 
+
+if __name__ == '__main__':
+    r"""
+    CommandLine:
+        python -m ubelt.util_platform
+        python -m ubelt.util_platform all
+    """
+    import ubelt as ub  # NOQA
+    ub.doctest_package()

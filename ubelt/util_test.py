@@ -34,7 +34,7 @@ def parse_src_want(docsrc):
         >>> 'I want to see this str'
         I want to see this str
 
-    DistableExample:
+    DisableExample:
         >>> from ubelt.util_test import *  # NOQA
         >>> from ubelt.meta import docscrape_google
         >>> import inspect

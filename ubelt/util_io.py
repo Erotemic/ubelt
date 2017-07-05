@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
 import six
-from os.path import exists
+import os
+from os.path import exists, join  # NOQA
 
 
 def writeto(fpath, to_write, aslines=False, mode='w', verbose=None):
@@ -21,9 +22,8 @@ def writeto(fpath, to_write, aslines=False, mode='w', verbose=None):
 
     Example:
         >>> from ubelt.util_io import *  # NOQA
-        >>> import os
         >>> import ubelt as ub
-        >>> dpath = ub.ensure_app_resource_dir('ubelt')
+        >>> dpath = ub.ensure_app_cache_dir('ubelt')
         >>> fpath = dpath + '/' + 'testwrite.txt'
         >>> if exists(fpath):
         >>>     os.remove(fpath)
@@ -36,9 +36,8 @@ def writeto(fpath, to_write, aslines=False, mode='w', verbose=None):
 
     Example:
         >>> from ubelt.util_io import *  # NOQA
-        >>> import os
         >>> import ubelt as ub
-        >>> dpath = ub.ensure_app_resource_dir('ubelt')
+        >>> dpath = ub.ensure_app_cache_dir('ubelt')
         >>> fpath = dpath + '/' + 'testwrite2.txt'
         >>> if exists(fpath):
         >>>     os.remove(fpath)
@@ -57,7 +56,7 @@ def writeto(fpath, to_write, aslines=False, mode='w', verbose=None):
             file_.writelines(to_write)
         else:
             # Ensure python2 writes in bytes
-            if six.PY2 and isinstance(to_write, unicode):
+            if six.PY2 and isinstance(to_write, unicode):  # NOQA
                 to_write = to_write.encode('utf8')  # nocover
             file_.write(to_write)
 
@@ -91,6 +90,35 @@ def readfrom(fpath, aslines=False, errors='replace', verbose=None):
         else:
             text = file_.read().decode('utf8', errors=errors)
     return text
+
+
+def touch(fname, mode=0o666, dir_fd=None, **kwargs):
+    r"""
+    change file timestamps
+
+    Works like the touch unix utility
+
+    References:
+        https://stackoverflow.com/questions/1158076/implement-touch-using-python
+
+    Example:
+        >>> from ubelt.util_io import *  # NOQA
+        >>> import ubelt as ub
+        >>> dpath = ub.ensure_app_cache_dir('ubelt')
+        >>> fpath = join(dpath, 'touch_file')
+        >>> assert not exists(fpath)
+        >>> ub.touch(fpath)
+        >>> assert exists(fpath)
+        >>> os.unlink(fpath)
+    """
+    if six.PY2:  # nocover
+        with open(fname, 'a'):
+            os.utime(fname, None)
+    else:
+        flags = os.O_CREAT | os.O_APPEND
+        with os.fdopen(os.open(fname, flags=flags, mode=mode, dir_fd=dir_fd)) as f:
+            os.utime(f.fileno() if os.utime in os.supports_fd else fname,
+                     dir_fd=None if os.supports_fd else dir_fd, **kwargs)
 
 
 if __name__ == '__main__':

@@ -77,7 +77,7 @@ class Cacher(object):
         if verbose is None:
             verbose = 1
         if dpath is None:  # pragma: no branch
-            dpath = ub.get_app_resource_dir(appname)
+            dpath = ub.ensure_app_cache_dir(appname)
         ub.ensuredir(dpath)
         self.dpath = dpath
         self.fname = fname
