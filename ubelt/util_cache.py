@@ -260,6 +260,11 @@ class Cacher(object):
 
     def save(self, data, cfgstr=None):
         """
+        Writes data to path specified by `self.fpath(cfgstr)`.
+
+        Metadata containing information about the cache will also be appended
+        to an adjacent file with the `.meta` suffix.
+
         Example:
             >>> from ubelt.util_cache import *  # NOQA
             >>> # Normal functioning
@@ -267,7 +272,7 @@ class Cacher(object):
             >>> cacher = Cacher('test_enabled_save', cfgstr)
             >>> cacher.save('data')
             >>> assert exists(cacher.get_fpath()), 'should be enabeled'
-            >>> assert exists(cacher.get_fpath() + '.meta'), 'should have metadata'
+            >>> assert exists(cacher.get_fpath() + '.meta'), 'missing metadata'
             >>> # Setting the cacher as enabled=False turns it off
             >>> cacher2 = Cacher('test_disabled_save', 'params', enabled=False)
             >>> cacher2.save('data')
@@ -281,6 +286,9 @@ class Cacher(object):
 
         cfgstr = self._rectify_cfgstr(cfgstr)
         condensed = self._condense_cfgstr(cfgstr)
+
+        # Make sure the cache directory exists
+        ub.ensuredir(self.dpath)
 
         data_fpath = self.get_fpath(cfgstr=cfgstr)
         meta_fpath = data_fpath + '.meta'
