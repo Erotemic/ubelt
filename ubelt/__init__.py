@@ -78,9 +78,10 @@ if _DOELSE:
     from ubelt import meta
     from ubelt.util_const import (NoParam,)
     from ubelt.util_decor import (memoize,)
-    from ubelt.util_dict import (ddict, dict_hist, dict_subset, dict_take,
-                                 find_duplicates, group_items, invert_dict,
-                                 map_keys, map_vals, odict,)
+    from ubelt.util_dict import (AutoDict, AutoOrderedDict, ddict, dict_hist,
+                                 dict_subset, dict_take, find_duplicates,
+                                 group_items, invert_dict, map_keys, map_vals,
+                                 odict,)
     from ubelt.util_cache import (Cacher,)
     from ubelt.util_io import (readfrom, touch, writeto,)
     from ubelt.util_list import (argsort, boolmask, chunks, compress, flatten,

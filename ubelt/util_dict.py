@@ -10,6 +10,58 @@ from ubelt import util_const
 from six.moves import zip
 
 
+class AutoDict(dict):
+    """
+    An infinitely nested default dict of dicts.
+
+    Implementation of perl's autovivification feature.
+
+    SeeAlso:
+        ub.AutoOrderedDict - the ordered version
+
+    References:
+        http://stackoverflow.com/questions/651794/init-dict-of-dicts
+
+    Example:
+        >>> import ubelt as ub
+        >>> dict_ = ub.AutoDict()
+        >>> dict_[0][10][100] = None
+        >>> assert str(dict) == '{0: {10: {100: None}}}'
+    """
+    def __getitem__(self, key):
+        try:
+            value = super(AutoDict, self).__getitem__(key)
+            # value = dict.__getitem__(self, key)
+        except KeyError:
+            value = self[key] = type(self)()
+        return value
+
+
+class AutoOrderedDict(odict):
+    """
+    An an infinitely nested default dict of dicts that maintains the ordering
+    of items.
+
+    SeeAlso:
+        ub.AutoDict - the unordered version
+
+    Example:
+        >>> import ubelt as ub
+        >>> dict_ = ub.OrderedAutoDict()
+        >>> dict_[0][3] = 3
+        >>> dict_[0][2] = 2
+        >>> dict_[0][1] = 1
+        >>> assert list(dict_[0].values()) == [3, 2, 1]
+    """
+    def __getitem__(self, key):
+        try:
+            value = super(AutoOrderedDict, self).__getitem__(key)
+            # value = odict.__getitem__(self, key)
+        except KeyError:
+            value = self[key] = type(self)()
+        return value
+
+
 def group_items(item_list, groupid_list, sorted_=True):
     r"""
     Groups a list of items by group id.
