@@ -26,12 +26,12 @@ class AutoDict(dict):
         >>> import ubelt as ub
         >>> dict_ = ub.AutoDict()
         >>> dict_[0][10][100] = None
-        >>> assert str(dict) == '{0: {10: {100: None}}}'
+        >>> assert str(dict_) == '{0: {10: {100: None}}}'
     """
     def __getitem__(self, key):
         try:
-            value = super(AutoDict, self).__getitem__(key)
-            # value = dict.__getitem__(self, key)
+            # value = super(AutoDict, self).__getitem__(key)
+            value = dict.__getitem__(self, key)
         except KeyError:
             value = self[key] = type(self)()
         return value
@@ -47,7 +47,7 @@ class AutoOrderedDict(odict):
 
     Example:
         >>> import ubelt as ub
-        >>> dict_ = ub.OrderedAutoDict()
+        >>> dict_ = ub.AutoOrderedDict()
         >>> dict_[0][3] = 3
         >>> dict_[0][2] = 2
         >>> dict_[0][1] = 1
@@ -55,8 +55,8 @@ class AutoOrderedDict(odict):
     """
     def __getitem__(self, key):
         try:
-            value = super(AutoOrderedDict, self).__getitem__(key)
-            # value = odict.__getitem__(self, key)
+            # value = super(AutoOrderedDict, self).__getitem__(key)
+            value = odict.__getitem__(self, key)
         except KeyError:
             value = self[key] = type(self)()
         return value
