@@ -88,10 +88,11 @@ if _DOELSE:
                                  take, unique, unique_flags,)
     from ubelt.util_mixins import (NiceRepr,)
     from ubelt.util_path import (augpath, split,)
-    from ubelt.util_platform import (DARWIN, LINUX, WIN32, ensure_app_cache_dir,
-                                     ensure_app_resource_dir, ensuredir,
-                                     get_app_cache_dir, get_app_resource_dir,
-                                     platform_cache_dir, platform_resource_dir,)
+    from ubelt.util_platform import (DARWIN, LINUX, PY2, PY3, WIN32, cmd,
+                                     ensure_app_cache_dir, ensure_app_resource_dir,
+                                     ensuredir, get_app_cache_dir,
+                                     get_app_resource_dir, platform_cache_dir,
+                                     platform_resource_dir, startfile,)
     from ubelt.util_stress import (find_nth_prime,)
     from ubelt.util_str import (CaptureStdout, cStringIO, codeblock,
                                 highlight_code, indent,)
