@@ -62,7 +62,10 @@ def get_app_resource_dir(appname, *args):
         *args: any other subdirectories may be specified
 
     Returns:
-        str: dpath: writable cache directory
+        str: dpath: writable resource directory for this application
+
+    SeeAlso:
+        ensure_app_resource_dir
     """
     dpath = join(platform_resource_dir(), appname, *args)
     return dpath
@@ -70,6 +73,8 @@ def get_app_resource_dir(appname, *args):
 
 def ensure_app_resource_dir(appname, *args):
     """
+    Calls `get_app_resource_dir` but ensures the directory exists.
+
     SeeAlso:
         get_app_resource_dir
 
@@ -94,7 +99,10 @@ def get_app_cache_dir(appname, *args):
         *args: any other subdirectories may be specified
 
     Returns:
-        str: dpath: writable cache directory
+        str: dpath: writable cache directory for this application
+
+    SeeAlso:
+        ensure_app_cache_dir
     """
     dpath = join(platform_cache_dir(), appname, *args)
     return dpath
@@ -102,6 +110,8 @@ def get_app_cache_dir(appname, *args):
 
 def ensure_app_cache_dir(appname, *args):
     """
+    Calls `get_app_cache_dir` but ensures the directory exists.
+
     SeeAlso:
         get_app_cache_dir
 
