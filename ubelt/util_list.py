@@ -36,10 +36,18 @@ class chunks(object):
         >>> assert list(genresult) == [[1, 2, 3], [4, 5, 6], [7, 1, 2]]
         >>> genresult = ub.chunks(iterable, chunksize=3, bordermode='replicate')
         >>> assert list(genresult) == [[1, 2, 3], [4, 5, 6], [7, 7, 7]]
+
+    Doctest:
+        >>> import ubelt as ub
+        >>> assert len(list(ub.chunks(range(2), nchunks=2))) == 2
+        >>> assert len(list(ub.chunks(range(3), nchunks=2))) == 2
+        >>> assert len(list(ub.chunks([], 2, None, 'none'))) == 0
+        >>> assert len(list(ub.chunks([], 2, None, 'cycle'))) == 0
+        >>> assert len(list(ub.chunks([], 2, None, 'replicate'))) == 0
     """
     def __init__(self, iterable, chunksize=None, nchunks=None,
                  bordermode='none'):
-        if nchunks is not None and chunksize is not None:
+        if nchunks is not None and chunksize is not None:  # nocover
             raise ValueError('Cannot specify both chunksize and nchunks')
         if nchunks is not None:
             chunksize = int(math.ceil(len(iterable) / nchunks))
@@ -70,8 +78,7 @@ class chunks(object):
         chunks_with_sentinals = zip_longest(*copied_iters, fillvalue=sentinal)
         # Dont fill empty space in the last chunk, just return it as is
         for chunk in chunks_with_sentinals:
-            if len(chunk) > 0:
-                yield [item for item in chunk if item is not sentinal]
+            yield [item for item in chunk if item is not sentinal]
 
     @staticmethod
     def cycle(iterable, chunksize):
@@ -81,9 +88,8 @@ class chunks(object):
         # Fill empty space in the last chunk with values from the beginning
         bordervalues = it.cycle(iter(iterable))
         for chunk in chunks_with_sentinals:
-            if len(chunk) > 0:
-                yield [item if item is not sentinal else six.next(bordervalues)
-                       for item in chunk]
+            yield [item if item is not sentinal else six.next(bordervalues)
+                   for item in chunk]
 
     @staticmethod
     def replicate(iterable, chunksize):
@@ -92,14 +98,13 @@ class chunks(object):
         # Fill empty space in the last chunk by replicating the last value
         chunks_with_sentinals = zip_longest(*copied_iters, fillvalue=sentinal)
         for chunk in chunks_with_sentinals:
-            if len(chunk) > 0:
-                filt_chunk = [item for item in chunk if item is not sentinal]
-                if len(filt_chunk) == chunksize:
-                    yield filt_chunk
-                else:
-                    sizediff = (chunksize - len(filt_chunk))
-                    padded_chunk = filt_chunk + [filt_chunk[-1]] * sizediff
-                    yield padded_chunk
+            filt_chunk = [item for item in chunk if item is not sentinal]
+            if len(filt_chunk) == chunksize:
+                yield filt_chunk
+            else:
+                sizediff = (chunksize - len(filt_chunk))
+                padded_chunk = filt_chunk + [filt_chunk[-1]] * sizediff
+                yield padded_chunk
 
 
 def take(items, indices):
@@ -208,7 +213,9 @@ def boolmask(indices, maxval=None):
     Example:
         >>> import ubelt as ub
         >>> indices = [0, 1, 4]
-        >>> mask = ub.boolmask(indices, maxval=5)
+        >>> mask = ub.boolmask(indices, maxval=6)
+        >>> assert mask == [True, True, False, False, True, False]
+        >>> mask = ub.boolmask(indices)
         >>> assert mask == [True, True, False, False, True]
     """
     if maxval is None:
@@ -230,6 +237,12 @@ def unique_flags(items):
 
     Returns:
         flags : list of bools : flags the items that are unique
+
+    Example:
+        >>> import ubelt as ub
+        >>> indices = [0, 5, 1, 1, 0, 2, 4]
+        >>> flags = ub.unique_flags(indices)
+        >>> assert flags == [True, True, True, False, False, True, True]
     """
     len_ = len(items)
     unique_indices = dict(zip(reversed(items), reversed(range(len_))))
