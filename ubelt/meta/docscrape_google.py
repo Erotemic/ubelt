@@ -263,6 +263,7 @@ def split_google_docblocks(docstr):
         ['Warns', 'Warning', 'Warnings'],
         ['Returns', 'Return'],
         ['Example', 'Examples'],
+        ['Doctest'],
         ['Note', 'Notes'],
         ['Yields', 'Yield'],
         ['Attributes'],

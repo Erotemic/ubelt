@@ -16,6 +16,9 @@ def platform_resource_dir():
     """
     Returns a directory which should be writable for any application
     This should be used for persistent configuration files.
+
+    Returns:
+        str : path to the resource dir used by the current operating system
     """
     if WIN32:  # nocover
         dpath_ = '~/AppData/Roaming'
@@ -33,6 +36,9 @@ def platform_cache_dir():
     """
     Returns a directory which should be writable for any application
     This should be used for temporary deletable data.
+
+    Returns:
+        str : path to the cache dir used by the current operating system
     """
     if WIN32:  # nocover
         dpath_ = '~/AppData/Local'
@@ -64,6 +70,9 @@ def get_app_resource_dir(appname, *args):
 
 def ensure_app_resource_dir(appname, *args):
     """
+    SeeAlso:
+        get_app_resource_dir
+
     Example:
         >>> from ubelt.util_platform import *  # NOQA
         >>> import ubelt as ub
@@ -93,6 +102,9 @@ def get_app_cache_dir(appname, *args):
 
 def ensure_app_cache_dir(appname, *args):
     """
+    SeeAlso:
+        get_app_cache_dir
+
     Example:
         >>> from ubelt.util_platform import *  # NOQA
         >>> import ubelt as ub
@@ -145,6 +157,7 @@ def ensuredir(dpath, mode=0o1777, verbose=None):
 
 
 def _run_process(proc):
+    """ helper for cmd """
     while True:
         # returns None while subprocess is running
         retcode = proc.poll()
@@ -163,88 +176,91 @@ def cmd(command, shell=False, detatch=False, verbose=False, verbout=None):
     Trying to clean up cmd
 
     Args:
-        command (str): string command
+        command (str): bash-like command string or tuple of executable and args
         shell (bool): if True, process is run in shell
-        detatch (bool): if True, process is run in background
+        detatch (bool): if True, process is detached and run in background.
         verbose (int): verbosity mode
         verbout (bool): if True, `command` writes to stdout in realtime.
-            defaults to True iff verbose > 0
+            defaults to True iff verbose > 0. Note when detatch is True
+            all stdout is lost.
 
     Returns:
-        dict: info - information about command status
+        dict: info - information about command status.
+            if detatch is False `info` contains captured standard out,
+            standard error, and the return code
+            if detatch is False `info` contains a reference to the process.
 
     CommandLine:
         python -m ubelt.util_platform cmd
-        python -m ubelt.util_platform cmd:0
 
-    Example:
+    Doctest:
         >>> import ubelt as ub
-        >>> info = ub.cmd('echo hello world')
-        >>> assert info['out'].strip() == 'hello world'
-        >>> #info = ub.cmd(['echo' 'hello world'])
-        >>> #assert info['out'].strip() == 'hello world'
-        >>> print('info = {!r}'.format(info))
+        >>> from os.path import join, exists
+        >>> verbose = 0
+        >>> # ----
+        >>> info = ub.cmd('echo str noshell', verbose=verbose)
+        >>> assert info['out'].strip() == 'str noshell'
+        >>> # ----
+        >>> info = ub.cmd(('echo', 'tuple noshell'), verbose=verbose)
+        >>> assert info['out'].strip() == 'tuple noshell'
+        >>> # ----
+        >>> info = ub.cmd('echo "str\n\nshell"', verbose=verbose, shell=True)
+        >>> assert info['out'].strip() == 'str\n\nshell'
+        >>> # ----
+        >>> info = ub.cmd(('echo', 'tuple shell'), verbose=verbose, shell=True)
+        >>> assert info['out'].strip() == 'tuple shell'
+        >>> # ----
+        >>> fpath1 = join(ub.get_app_cache_dir('ubelt'), 'cmdout1.txt')
+        >>> fpath2 = join(ub.get_app_cache_dir('ubelt'), 'cmdout2.txt')
+        >>> ub.delete(fpath1)
+        >>> ub.delete(fpath2)
+        >>> info = ub.cmd(('touch', fpath1), detatch=True)
+        >>> info = ub.cmd('echo writing2 > ' + fpath2, shell=True, detatch=True)
+        >>> while not exists(fpath1):
+        >>>     pass
+        >>> while not exists(fpath2):
+        >>>     pass
+        >>> assert ub.readfrom(fpath1) == ''
+        >>> assert ub.readfrom(fpath2).strip() == 'writing2'
 
-    # Example1:
+    # Doctest:
     #     >>> import ubelt as ub
-    #     >>> varydict = {
-    #     >>>    'shell': [True, False],
-    #     >>>    'detatch': [False],
-    #     >>>    'sudo': [True, False] if ub.get_argflag('--test-sudo') else [False],
-    #     >>>    'args': ['echo hello world', ('echo', 'hello world')],
-    #     >>> }
-    #     >>> for count, kw in enumerate(ub.all_dict_combinations(varydict), start=1):
-    #     >>>     print('+ --- TEST CMD %d ---' % (count,))
-    #     >>>     print('testing cmd with params ' + ub.dict_str(kw))
-    #     >>>     args = kw.pop('args')
-    #     >>>     restup = ub.cmd(args, pad_stdout=False, **kw)
-    #     >>>     tupfields = ('out', 'err', 'ret')
-    #     >>>     output = str(list(zip(tupfields, restup)), nobraces=True)
-    #     >>>     print('L ___ TEST CMD %d ___\n' % (count,))
+    #     >>> info = ub.cmd('ping localhost -c 2', verbose=1)
 
-    # Example2:
-    #     >>> # ping is not as universal of a command as I thought
-    #     >>> from ubelt.util_cplat import *  # NOQA
-    #     >>> import ubelt as ub
-    #     >>> varydict = {
-    #     >>>    'shell': [True, False],
-    #     >>>    'detatch': [True],
-    #     >>>    'args': ['ping localhost', ('ping', 'localhost')],
-    #     >>> }
-    #     >>> proc_list = []
-    #     >>> for count, kw in enumerate(ub.all_dict_combinations(varydict), start=1):
-    #     >>>     print('+ --- TEST CMD %d ---' % (count,))
-    #     >>>     print('testing cmd with params ' + ub.dict_str(kw))
-    #     >>>     args = kw.pop('args')
-    #     >>>     restup = ub.cmd(args, pad_stdout=False, **kw)
-    #     >>>     out, err, proc = restup
-    #     >>>     proc_list.append(proc)
-    #     >>>     print(proc)
-    #     >>>     print(proc)
-    #     >>>     print(proc.poll())
-    #     >>>     print('L ___ TEST CMD %d ___\n' % (count,))
     """
     import shlex
-    if isinstance(command, (list, tuple)):
-        raise ValueError('command tuple not supported yet')
-    args = shlex.split(command, posix=not WIN32)
-    if verbose is True:
-        verbose = 2
+    import subprocess
+    import pipes
     if verbout is None:
         verbout = verbose >= 1
-    if verbose >= 2:
+    if verbose >= 2:  # nocover
         print('+=== START CMD ===')
         print('Command:')
         print(command)
-        if verbout:
+        if verbout and not detatch:
             print('----')
             print('Stdout:')
-    import subprocess
+
+    # When shell=True, args is a string sent to the shell (e.g. bin/sh)
+    # When shell=False, args is a list of executable and arguments
+    if shell:
+        if isinstance(command, (list, tuple)):
+            args = ' '.join(list(map(pipes.quote, command)))
+        else:
+            args = command
+    else:
+        if isinstance(command, (list, tuple)):
+            args = command
+        else:
+            args = shlex.split(command, posix=not WIN32)
+    # Create a new process to execute the command
     proc = subprocess.Popen(args, stdout=subprocess.PIPE,
                             stderr=subprocess.STDOUT, shell=shell,
                             universal_newlines=True)
     if detatch:
         info = {'proc': proc}
+        if verbose >= 2:  # nocover
+            print('...detatching')
     else:
         write_fn = sys.stdout.write
         flush_fn = sys.stdout.flush
@@ -253,13 +269,13 @@ def cmd(command, shell=False, detatch=False, verbose=False, verbout=None):
             #line_ = line if six.PY2 else line.decode('utf-8')
             line_ = line if PY2 else line
             if len(line_) > 0:
-                if verbout:
+                if verbout:  # nocover
                     write_fn(line_)
                     flush_fn()
                 logged_out.append(line)
         try:
             out = ''.join(logged_out)
-        except UnicodeDecodeError:
+        except UnicodeDecodeError:  # nocover
             # from utool import util_str  # NOQA
             # logged_out = util_str.ensure_unicode_strlist(logged_out)
             # out = ''.join(logged_out)
@@ -272,42 +288,91 @@ def cmd(command, shell=False, detatch=False, verbose=False, verbout=None):
             'err': err,
             'ret': ret,
         }
-    if verbose >= 2:
-        print('L___ END CMD ___')
+        if verbose >= 2:  # nocover
+            print('L___ END CMD ___')
     return info
 
 
-def startfile(fpath, detatch=True, quote=False, verbose=False, quiet=True):
+def startfile(fpath, verbose=True):  # nocover
     """
     Uses default program defined by the system to open a file.
 
-    References:
-        http://stackoverflow.com/questions/2692873/quote-posix-shell-special-characters-in-python-output
+    Args:
+        fpath (str): a file to open using the program associated with the
+            files extension type.
+        verbose (int): verbosity
 
+    References:
+        http://stackoverflow.com/questions/2692873/quote-posix
+
+    DisableExample:
+        >>> # This test interacts with a GUI frontend, not sure how to test.
+        >>> import ubelt as ub
+        >>> base = ub.ensure_app_cache_dir('ubelt')
+        >>> fpath1 = join(base, 'test_open.txt')
+        >>> ub.touch(fpath1)
+        >>> proc = ub.startfile(fpath1)
     """
     import pipes
     if verbose:
-        print('[ubelt] startfile(%r)' % fpath)
+        print('[ubelt] startfile("{}")'.format(fpath))
     fpath = normpath(fpath)
-    # print('[cplat] fpath=%s' % fpath)
     if not exists(fpath):
         raise Exception('Cannot start nonexistant file: %r' % fpath)
-    #if quote:
-    #    fpath = '"%s"' % (fpath,)
     if not WIN32:
         fpath = pipes.quote(fpath)
     if LINUX:
-        outtup = cmd(('xdg-open', fpath), detatch=detatch, verbose=verbose, quiet=quiet)
+        info = cmd(('xdg-open', fpath), detatch=True, verbose=verbose)
     elif DARWIN:
-        outtup = cmd(('open', fpath), detatch=detatch, verbose=verbose, quiet=quiet)
+        info = cmd(('open', fpath), detatch=True, verbose=verbose)
     elif WIN32:
         os.startfile(fpath)
+        info = None
     else:
         raise RuntimeError('Unknown Platform')
-    if outtup is not None:
-        out, err, ret = outtup
-        if not ret:
-            raise Exception(out + ' -- ' + err)
+    if info is not None:
+        if not info['proc']:
+            raise Exception('startfile failed')
+
+
+def editfile(fpath, verbose=True):  # nocover
+    """
+    Opens a file or python module in your preferred visual editor.
+
+    Your preferred visual editor is gvim... unless you specify one using the
+    VISUAL environment variable. This function is extremely useful in an
+    IPython development environment.
+
+    Args:
+        fpath (str): a file path or python module / function
+        verbose (int): verbosity
+
+    DisableExample:
+        >>> # This test interacts with a GUI frontend, not sure how to test.
+        >>> import ubelt as ub
+        >>> ub.editfile(ub.util_test.__file__)
+        >>> ub.editfile(ub)
+        >>> ub.editfile(ub.editfile)
+    """
+    import six
+    if not isinstance(fpath, six.string_types):
+        from six import types
+        if isinstance(fpath, types.ModuleType):
+            fpath = fpath.__file__
+        else:
+            fpath =  sys.modules[fpath.__module__].__file__
+        fpath_py = fpath.replace('.pyc', '.py')
+        if exists(fpath_py):
+            fpath = fpath_py
+
+    if verbose:
+        print('[ubelt] editfile("{}")'.format(fpath))
+
+    editor = os.environ.get('VISUAL', 'gvim')
+
+    if not exists(fpath):
+        raise IOError('Cannot start nonexistant file: %r' % fpath)
+    cmd([editor, fpath], fpath, detatch=True)
 
 
 if __name__ == '__main__':
