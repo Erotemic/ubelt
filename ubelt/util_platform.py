@@ -276,11 +276,7 @@ def cmd(command, shell=False, detatch=False, verbose=False, verbout=None):
         try:
             out = ''.join(logged_out)
         except UnicodeDecodeError:  # nocover
-            # from utool import util_str  # NOQA
-            # logged_out = util_str.ensure_unicode_strlist(logged_out)
-            # out = ''.join(logged_out)
             out = '\n'.join(_.decode('utf-8') for _ in logged_out)
-            # raise
         (out_, err) = proc.communicate()
         ret = proc.wait()
         info = {

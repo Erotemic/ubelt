@@ -83,24 +83,25 @@ if _DOELSE:
                                  group_items, invert_dict, map_keys, map_vals,
                                  odict,)
     from ubelt.util_cache import (Cacher,)
-    from ubelt.util_io import (readfrom, touch, writeto,)
+    from ubelt.util_io import (delete, readfrom, touch, writeto,)
     from ubelt.util_list import (argsort, boolmask, chunks, compress, flatten,
                                  take, unique, unique_flags,)
     from ubelt.util_mixins import (NiceRepr,)
-    from ubelt.util_path import (augpath, delete, split,)
+    from ubelt.util_path import (augpath, split,)
     from ubelt.util_platform import (DARWIN, LINUX, PY2, PY3, WIN32, cmd, editfile,
                                      ensure_app_cache_dir, ensure_app_resource_dir,
                                      ensuredir, get_app_cache_dir,
                                      get_app_resource_dir, platform_cache_dir,
                                      platform_resource_dir, startfile,)
     from ubelt.util_stress import (find_nth_prime,)
-    from ubelt.util_str import (CaptureStdout, codeblock, highlight_code, indent,)
+    from ubelt.util_str import (CaptureStdout, cStringIO, codeblock,
+                                highlight_code, indent,)
     from ubelt.util_test import (DocExample, ExitTestException, doctest_package,
                                  parse_docstr_examples, parse_src_want,
                                  parse_testables,)
     from ubelt.util_time import (Timer, Timerit, timestamp,)
     from ubelt.progiter import (ProgIter,)
-
+    
     # </AUTOGEN_INIT>
 
 del _DOELSE
