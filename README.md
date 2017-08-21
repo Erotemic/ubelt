@@ -63,6 +63,10 @@ ub.Timer
 ub.Timerit
 ub.ProgIter
 ub.Cacher
+ub.cmd
+ub.editfile
+ub.startfile
+ub.delete
 ```
 
 A minimal version of the doctest harness has been completed.
