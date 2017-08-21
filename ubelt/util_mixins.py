@@ -20,7 +20,7 @@ class NiceRepr(object):
         >>> assert str(bar) == '<Bar(info)>'
         >>> assert repr(bar).startswith('<Bar(info) at ')
         >>> assert 'object at' in str(foo)
-        >>> assert 'object at' in str(bar)
+        >>> assert 'object at' in repr(foo)
     """
     def __repr__(self):
         try:
