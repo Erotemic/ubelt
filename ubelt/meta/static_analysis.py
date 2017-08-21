@@ -3,7 +3,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import ast
 import pkgutil
 # import six
-from os.path import (join, exists, expanduser, realpath, split, splitext,
+from os.path import (join, exists, expanduser, abspath, split, splitext,
                      isfile, dirname)
 
 
@@ -176,12 +176,13 @@ def modpath_to_modname(modpath):
         >>> from ubelt.meta.static_analysis import *  # NOQA
         >>> import ubelt.meta.static_analysis
         >>> modpath = ubelt.meta.static_analysis.__file__
-        >>> print('modpath = %r' % (modpath,))
+        >>> modpath = modpath.replace('.pyc', '.py')
+        >>> print('modpath = %r' % (modpath))
         >>> modname = modpath_to_modname(modpath)
         >>> print('modname = %r' % (modname,))
         >>> assert modname == 'ubelt.meta.static_analysis'
     """
-    modpath_ = realpath(expanduser(modpath))
+    modpath_ = abspath(expanduser(modpath))
     full_dpath, fname_ext = split(modpath_)
     fname, ext = splitext(fname_ext)
     _modsubdir_list = [fname]
