@@ -321,14 +321,15 @@ class ProgIter(object):
     def build_message_template(self):
         """ Defines the template for the progress line """
         tzname = time.tzname[0]
-        if self.length <= 0:
+        length_unknown = self.length is None or self.length <= 0
+        if length_unknown:
             n_chrs = 4
         else:
             n_chrs = int(floor(log10(float(self.length))) + 1)
         msg_body = [
             (self.label),
             (' {iter_idx:' + str(n_chrs) + 'd}/'),
-            ('?' if self.length <= 0 else six.text_type(self.length)),
+            ('?' if length_unknown else six.text_type(self.length)),
             ('... '),
             ('rate={rate:4.2f} Hz,'),
             ('' if self.length == 0 else ' eta={eta},'),

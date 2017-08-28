@@ -7,16 +7,43 @@ from os.path import (join, exists, expanduser, abspath, split, splitext,
                      isfile, dirname)
 
 
-class TopLevelDocstrVisitor(ast.NodeVisitor):
+class TopLevelVisitor(ast.NodeVisitor):
     """
-    Other visit_<classname> values:
+    Parses top-level function names and docstrings
+
+    References:
+        # For other visit_<classname> values see
         http://greentreesnakes.readthedocs.io/en/latest/nodes.html
+
+    Example:
+        >>> from ubelt.meta.static_analysis import *  # NOQA
+        >>> import ubelt as ub
+        >>> source = ub.codeblock(
+            '''
+            def foobar():
+                \"\"\" my docstring \"\"\"
+                def subfunc():
+                    pass
+            class Spam(object):
+                def eggs():
+                    pass
+            ''')
+        >>> self = TopLevelVisitor.parse(source)
+        >>> assert self.docstrs['foobar'].strip() == 'my docstring'
+        >>> assert 'subfunc' not in self.docstrs
     """
     def __init__(self):
-        super(TopLevelDocstrVisitor, self).__init__()
+        super(TopLevelVisitor, self).__init__()
         self.docstrs = {}
         self.linenos = {}
         self._current_classname = None
+
+    @classmethod
+    def parse(TopLevelVisitor, source):
+        pt = ast.parse(source.encode('utf-8'))
+        self = TopLevelVisitor()
+        self.visit(pt)
+        return self
 
     def _get_docstring(self, node):
         # TODO: probably need to work around clean docstring
@@ -80,9 +107,7 @@ def parse_docstrs(source=None, fpath=None):
         with open(fpath, 'rb') as file_:
             source = file_.read().decode('utf-8')
     try:
-        pt = ast.parse(source.encode('utf-8'))
-        self = TopLevelDocstrVisitor()
-        self.visit(pt)
+        self = TopLevelVisitor.parse(source)
         return self.docstrs
     except Exception:  # nocover
         if fpath:
