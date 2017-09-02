@@ -144,6 +144,7 @@ def highlight_code(text, lexer_name='python', **kwargs):
         'py': 'python',
         'h': 'cpp',
         'cpp': 'cpp',
+        'cxx': 'cpp',
         'c': 'cpp',
     }.get(lexer_name.replace('.', ''), lexer_name)
     try:
