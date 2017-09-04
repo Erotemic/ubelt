@@ -29,6 +29,7 @@ import sys
 __version__ = '0.0.30'
 
 GLOBAL_MODULES = [
+    'util_arg',
     'util_const',
     'util_decor',
     'util_dict',
@@ -61,6 +62,7 @@ else:
 if _DOELSE:
     # <AUTOGEN_INIT>
 
+    from ubelt import util_arg
     from ubelt import util_const
     from ubelt import util_decor
     from ubelt import util_dict
@@ -76,6 +78,7 @@ if _DOELSE:
     from ubelt import util_time
     from ubelt import progiter
     from ubelt import meta
+    from ubelt.util_arg import (argflag, argval,)
     from ubelt.util_const import (NoParam,)
     from ubelt.util_decor import (memoize,)
     from ubelt.util_dict import (AutoDict, AutoOrderedDict, ddict, dict_hist,
@@ -101,7 +104,7 @@ if _DOELSE:
                                  parse_testables,)
     from ubelt.util_time import (Timer, Timerit, timestamp,)
     from ubelt.progiter import (ProgIter,)
-
+    
     # </AUTOGEN_INIT>
 
 del _DOELSE
