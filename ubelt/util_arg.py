@@ -18,11 +18,12 @@ def argval(key, default=util_const.NoParam, argv=None):
         argv (list): overrides `sys.argv` if specified
 
     Returns:
-        str: value : the value specified after the key.
+        str: value : the value specified after the key. It they key is
+            specified multiple times, then the first value is returned.
 
     Doctest:
         >>> import ubelt as ub
-        >>> argv = ['--ans=6', '--quest=the grail', '--ans' ,'42', '--bad']
+        >>> argv = ['--ans', '42', '--quest=the grail', '--ans=6', '--bad']
         >>> assert ub.argval('--spam', argv=argv) == ub.NoParam
         >>> assert ub.argval('--quest', argv=argv) == 'the grail'
         >>> assert ub.argval('--ans', argv=argv) == '42'
@@ -34,16 +35,16 @@ def argval(key, default=util_const.NoParam, argv=None):
 
     keys = [key] if isinstance(key, six.string_types) else key
     n_max = len(argv) - 1
-    value = default
     for argx, item in enumerate(argv):
         for key_ in keys:
             if item == key_:
                 if argx < n_max:
                     value = argv[argx + 1]
-                    break
+                    return value
             elif item.startswith(key_ + '='):
                 value = ''.join(item.split('=')[1:])
-                break
+                return value
+    value = default
     return value
 
 
@@ -57,7 +58,7 @@ def argflag(key, argv=None):
         argv (list): overrides `sys.argv` if specified
 
     Returns:
-        bool: flag : True if the key was specified
+        bool: flag : True if the key (or any of the keys) was specified
 
     Doctest:
         >>> import ubelt as ub
