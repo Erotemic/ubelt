@@ -21,7 +21,10 @@ def parse_src_want(docsrc):
         docsrc (str):
 
     CommandLine:
-        python -m util_test parse_src_want
+        python -m ubelt.util_test parse_src_want
+
+    References:
+        https://stackoverflow.com/questions/46061949/how-to-parse-python-code-line-by-line-until-an-expression-is-complete/46064074#46064074
 
     Example:
         >>> from ubelt.util_test import *  # NOQA
@@ -34,7 +37,7 @@ def parse_src_want(docsrc):
         >>> 'I want to see this str'
         I want to see this str
 
-    DisableExample:
+    Example:
         >>> from ubelt.util_test import *  # NOQA
         >>> from ubelt.meta import docscrape_google
         >>> import inspect
@@ -51,41 +54,69 @@ def parse_src_want(docsrc):
         >>> 'I want to see this str'
         I want to see this str
     """
-    reversed_src_lines = []
-    reversed_want_lines = []
-    finished_want = False
+    from six.moves import cStringIO as StringIO
+    from tokenize import generate_tokens
+    import tokenize
 
-    # Read the example block backwards to get the want string
-    # and then the rest should all be source.
-    # TODO: be able to parse intermedidate want strings
-    # as well as deal with unbalanced strings.
-    for line in reversed(docsrc.splitlines()):
-        if not finished_want:
-            if line.startswith('>>> ') or line.startswith('... '):
-                finished_want = True
-            else:  # nocover
-                reversed_want_lines.append(line)
-                if len(line.strip()) == 0:
-                    reversed_want_lines = []
-                continue
-        reversed_src_lines.append(line[4:])
-    src = '\n'.join(reversed_src_lines[::-1])
-    if len(reversed_want_lines):
-        want = '\n'.join(reversed_want_lines[::-1])
+    def is_complete_statement(lines):
+        """
+        Checks if the line is a complete python statment.
+        TODO: move to static_analysis.
+        """
+        try:
+            stream = StringIO()
+            stream.write('\n'.join(lines))
+            stream.seek(0)
+            for t in generate_tokens(stream.readline):
+                pass
+        except tokenize.TokenError as ex:
+            message = ex.args[0]
+            if message.startswith('EOF in multi-line'):
+                return False
+            raise
+        else:
+            return True
+
+    # parse and differenatiate between doctest source and want statements.
+    parsed = []
+    current = []
+    for linex, line in enumerate(docsrc.splitlines()):
+        if not current and not line.startswith(('>>>', '...')):
+            parsed.append(('want', line))
+        else:
+            prefix = line[:4]
+            suffix = line[4:]
+            if prefix.strip() not in {'>>>', '...', ''}:  # nocover
+                raise SyntaxError(
+                    'Bad indentation in doctest on line {}: {!r}'.format(
+                        linex, line))
+            current.append(suffix)
+            if is_complete_statement(current):
+                statement = ('\n'.join(current))
+                parsed.append(('source', statement))
+                current = []
+
+    statements = [val for type_, val in parsed if type_ == 'source']
+    wants = [val for type_, val in parsed if type_ == 'want']
+
+    src = '\n'.join([line for val in statements for line in val.splitlines()])
+    # take just the last want for now
+    if len(wants) > 0:
+        want = wants[-1]
     else:
         want = None
 
     # FIXME: hacks src to make output lines assign
     # to a special result variable instead
-    if want is not None and 'result = ' not in src:
-        # Check if the last line has a "want"
-        import ast
-        tree = ast.parse(src)
-        if isinstance(tree.body[-1], ast.Expr):  # pragma: no branch
-            lines = src.splitlines()
-            # Hack to insert result variable
-            lines[-1] = 'result = ' + lines[-1]
-            src = '\n'.join(lines)
+    # if want is not None and 'result = ' not in src:
+    #     # Check if the last line has a "want"
+    #     import ast
+    #     tree = ast.parse(src)
+    #     if isinstance(tree.body[-1], ast.Expr):  # pragma: no branch
+    #         lines = src.splitlines()
+    #         # Hack to insert result variable
+    #         lines[-1] = 'result = ' + lines[-1]
+    #         src = '\n'.join(lines)
     return src, want
 
 
