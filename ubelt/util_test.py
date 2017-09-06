@@ -54,20 +54,19 @@ def parse_src_want(docsrc):
         >>> 'I want to see this str'
         I want to see this str
     """
-    from six.moves import cStringIO as StringIO
-    from tokenize import generate_tokens
     import tokenize
+    from six.moves import cStringIO as StringIO
 
     def is_complete_statement(lines):
         """
-        Checks if the line is a complete python statment.
+        Checks if the lines form a complete python statment.
         TODO: move to static_analysis.
         """
         try:
             stream = StringIO()
             stream.write('\n'.join(lines))
             stream.seek(0)
-            for t in generate_tokens(stream.readline):
+            for t in tokenize.generate_tokens(stream.readline):
                 pass
         except tokenize.TokenError as ex:
             message = ex.args[0]
