@@ -54,27 +54,12 @@ def parse_src_want(docsrc):
         >>> 'I want to see this str'
         I want to see this str
     """
-    import tokenize
-    from six.moves import cStringIO as StringIO
+    from ubelt.meta import static_analysis as static
 
-    def is_complete_statement(lines):
-        """
-        Checks if the lines form a complete python statment.
-        TODO: move to static_analysis.
-        """
-        try:
-            stream = StringIO()
-            stream.write('\n'.join(lines))
-            stream.seek(0)
-            for t in tokenize.generate_tokens(stream.readline):
-                pass
-        except tokenize.TokenError as ex:
-            message = ex.args[0]
-            if message.startswith('EOF in multi-line'):
-                return False
-            raise
-        else:
-            return True
+    # TODO: new strategy.
+    # Parse as much as possible until we get to a non-doctest line then check
+    # if the syntax is a valid parse tree. if not, add the line and potentially
+    # continue. Otherwise infer that it is a want line.
 
     # parse and differenatiate between doctest source and want statements.
     parsed = []
@@ -90,7 +75,7 @@ def parse_src_want(docsrc):
                     'Bad indentation in doctest on line {}: {!r}'.format(
                         linex, line))
             current.append(suffix)
-            if is_complete_statement(current):
+            if static.is_complete_statement(current):
                 statement = ('\n'.join(current))
                 parsed.append(('source', statement))
                 current = []
