@@ -2,7 +2,9 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 import ast
 import pkgutil
-# import six
+import tokenize
+import six
+from six.moves import cStringIO as StringIO
 from os.path import (join, exists, expanduser, abspath, split, splitext,
                      isfile, dirname)
 
@@ -278,6 +280,55 @@ def modname_to_modpath(modname, hide_init=True, hide_main=True):
             if exists(main_modpath):  # pragma: no branch
                 modpath = main_modpath
     return modpath
+
+
+def is_complete_statement(lines):
+    """
+    Checks if the lines form a complete python statment.
+    Currently only handles balanced parans.
+
+    Args:
+        lines (list): list of strings
+
+    Doctest:
+        >>> from ubelt.meta.static_analysis import *  # NOQA
+        >>> assert is_complete_statement(['print(foobar)'])
+        >>> assert is_complete_statement(['foo = bar']) is True
+        >>> assert is_complete_statement(['foo = (']) is False
+        >>> assert is_complete_statement(['foo = (', "')(')"]) is True
+        >>> assert is_complete_statement(
+        >>>     ['foo = (', "'''", ")]'''", ')']) is True
+        >>> #assert is_complete_statement(['foo = ']) is False
+        >>> #assert is_complete_statement(['== ']) is False
+
+    """
+    # import token
+    if six.PY2:
+        block = '\n'.join(lines).encode('utf8')
+    else:
+        block = '\n'.join(lines)
+    stream = StringIO()
+    stream.write(block)
+    stream.seek(0)
+    try:
+        # tokens = []
+        for t in tokenize.generate_tokens(stream.readline):
+            # tok_type = token.tok_name[t[0]]
+            # tokens.append((tok_type, t[1]))
+            pass
+    except tokenize.TokenError as ex:
+        message = ex.args[0]
+        if message.startswith('EOF in multi-line'):
+            return False
+        raise
+    else:
+        # FIXME: breaks on try: Except: else:
+        # try:
+        #     # Now check if forms a valid parse tree
+        #     ast.parse(block)
+        # except SyntaxError:
+        #     return False
+        return True
 
 
 if __name__ == '__main__':
