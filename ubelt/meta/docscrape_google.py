@@ -223,7 +223,7 @@ def parse_google_argblock(lines):
     endofstr = r'\Z'
     # Define characters that can be part of variable / type names
     varname = named('name', '[A-Za-z_][A-Za-z0-9_]*')
-    typename = named('type', '[^)]*')
+    typename = named('type', '[^)]*?')
     argdesc = named('desc', '.*?')
     # Types are optional, and must be enclosed in parens
     optional_type = optional(whitespace.join(['\(', typename, '\)']))
