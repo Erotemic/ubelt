@@ -104,10 +104,12 @@ if _DOELSE:
     from ubelt.util_test import (DocExample, ExitTestException, doctest_package,
                                  parse_docstr_examples, parse_src_want,
                                  parse_testables,)
-    from ubelt.util_repr import (repr2,)
+    from ubelt.util_repr import (FormatFuncs, Formatters, dict_itemstr_list,
+                                 format_dict, format_list, format_object,
+                                 join_itemstrs, list_itemstr_list, repr2,)
     from ubelt.util_time import (Timer, Timerit, timestamp,)
     from ubelt.progiter import (ProgIter,)
-
+    
     # </AUTOGEN_INIT>
 
 del _DOELSE

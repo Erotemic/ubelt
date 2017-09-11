@@ -2,7 +2,11 @@ import six
 import math
 import collections
 
-__all__ = ['repr2']
+# __all__ = [
+#     'repr2',
+#     'format_list',
+#     'format_dict',
+# ]
 
 
 def repr2(val, **kwargs):
@@ -11,10 +15,11 @@ def repr2(val, **kwargs):
     pretty version that works the same in both 2 and 3
 
     CommandLine:
-        python -m ubelt.util_repr repr2:1
+        python -m ubelt.util_repr repr2:0
 
     Example:
         >>> from ubelt.util_repr import *
+        >>> import ubelt as ub
         >>> dict_ = {
         ...     'custom_types': [slice(0, 1, None), 1/3],
         ...     'nest_dict': {'k1': [1, 2, {3: {4, 5}}],
@@ -26,6 +31,7 @@ def repr2(val, **kwargs):
         ...     'one_tup': tuple([1]),
         ...     'simple_dict': {'spam': 'eggs', 'ham': 'jam'},
         ...     'simple_list': [1, 2, 'red', 'blue'],
+        ...     'odict': ub.odict([(1, '1'), (2, '2')]),
         ... }
         >>> result = repr2(dict_, nl=3, precision=2); print(result)
         >>> result = repr2(dict_, nl=2, precision=2); print(result)
@@ -33,6 +39,10 @@ def repr2(val, **kwargs):
         >>> result = repr2(dict_, nl=1, precision=2, itemsep='', explicit=True); print(result)
         >>> result = repr2(dict_, nl=1, precision=2, nobr=1, itemsep='', explicit=True); print(result)
         >>> result = repr2(dict_, nl=3, precision=2, cbr=True); print(result)
+        >>> result = repr2(dict_, nl=3, precision=2, si=True); print(result)
+        >>> result = repr2(dict_, nl=3, sort=True); print(result)
+        >>> result = repr2(dict_, nl=3, sort=False, trailing_sep=False); print(result)
+        >>> result = repr2(dict_, nl=3, sort=False, trailing_sep=False, nobr=True); print(result)
 
     Example:
         >>> from ubelt.util_repr import *
@@ -46,11 +56,10 @@ def repr2(val, **kwargs):
         >>> print('---')
         >>> print(result)
     """
-    if kwargs.get('recursive', True):
-        if isinstance(val, dict):
-            return format_dict(val, **kwargs)
-        elif isinstance(val, (list, tuple, set, frozenset)):
-            return format_list(val, **kwargs)
+    if isinstance(val, dict):
+        return format_dict(val, **kwargs)
+    elif isinstance(val, (list, tuple, set, frozenset)):
+        return format_list(val, **kwargs)
     # check any registered functions for special formatters
     for type, func in Formatters.func_registry.items():
         if isinstance(val, type):
@@ -114,7 +123,7 @@ def format_object(val, **kwargs):
     itemstr = base_valfunc(val)
 
     # Remove unicode repr from python2 to agree with python3 output
-    if six.PY2 and isinstance(val, six.string_types):
+    if six.PY2 and isinstance(val, six.string_types):  # nocover
         if itemstr.startswith(("u'", 'u"')):
             itemstr = itemstr[1:]
     return itemstr
@@ -128,13 +137,21 @@ def format_list(list_, **kwargs):
     Args:
         list_ (list): input list
         **kwargs: nl, newlines, packed, nobr, nobraces, itemsep,
-                  trailing_sep, strvals, recursive,
+                  trailing_sep, strvals
                   indent_, precision, use_numpy, with_dtype, force_dtype,
                   stritems, strkeys, align, explicit, sort, key_order,
                   maxlen
 
     Returns:
         str: retstr
+
+    CommandLine:
+        python -m ubelt.util_repr format_list
+
+    Example:
+        >>> import ubelt as ub
+        >>> result = ub.format_list([]); print(result)
+        >>> result = ub.format_list([], nobr=True); print(repr(result))
     """
     newlines = kwargs.pop('nl', kwargs.pop('newlines', 1))
     kwargs['nl'] = _rectify_countdown_or_bool(newlines)
@@ -143,7 +160,6 @@ def format_list(list_, **kwargs):
 
     itemsep = kwargs.get('itemsep', ' ')
     # Doesn't actually put in trailing comma if on same line
-    trailing_sep = kwargs.get('trailsep', kwargs.get('trailing_sep', newlines > 0))
     compact_brace = kwargs.get('cbr', kwargs.get('compact_brace', False))
 
     itemstrs = list_itemstr_list(list_, **kwargs)
@@ -157,6 +173,8 @@ def format_list(list_, **kwargs):
         lbr, rbr  = '{', '}'
     else:
         lbr, rbr  = '[', ']'
+
+    trailing_sep = kwargs.get('trailsep', kwargs.get('trailing_sep', newlines > 0 and len(itemstrs)))
 
     # The trailing separator is always needed for single item tuples
     if is_tuple and len(list_) <= 1:
@@ -183,7 +201,7 @@ def format_dict(dict_, **kwargs):
         dict_ (dict_):  a dictionary
         **kwargs: si, stritems, strkeys, strvals, sk, sv, nl, newlines, nobr,
                   nobraces, cbr, compact_brace, trailing_sep,
-                  explicit, itemsep, precision, kvsep, sort, recursive
+                  explicit, itemsep, precision, kvsep, sort
 
     Kwargs:
         sort (None): returns str sorted by a metric (default = None)
@@ -378,9 +396,10 @@ def _rectify_countdown_or_bool(count_or_bool):
         >>> a5 = (_rectify_countdown_or_bool(-2))
         >>> a6 = (_rectify_countdown_or_bool(True))
         >>> a7 = (_rectify_countdown_or_bool(False))
-        >>> result = [a1, a2, a3, a4, a5, a6, a7]
+        >>> a8 = (_rectify_countdown_or_bool(None))
+        >>> result = [a1, a2, a3, a4, a5, a6, a7, a8]
         >>> print(result)
-        [1.0, 0.0, 0, 0.0, -1.0, True, False]
+        [1.0, 0.0, 0, 0.0, -1.0, True, False, None]
     """
     if count_or_bool is True or count_or_bool is False:
         count_or_bool_ = count_or_bool
