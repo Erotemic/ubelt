@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function, division, absolute_import, unicode_literals
 import sys
+import codecs
 import unicodedata
 import textwrap
 from six.moves import cStringIO
@@ -199,7 +200,7 @@ def hzcat(args, sep=''):
          ｜ ｜ ['á', 'á', 'á']]｜ ｜ [7, 'θ']]
     """
     # TODO: ensure unicode data works correctly for python2
-    args = [unicodedata.normalize('NFC', val) for val in args]
+    args = [unicodedata.normalize('NFC', ensure_unicode(val)) for val in args]
     arglines = [a.split('\n') for a in args]
     height = max(map(len, arglines))
     # Do vertical padding
@@ -224,6 +225,25 @@ def hzcat(args, sep=''):
     all_lines = [line.rstrip(' ') for line in all_lines]
     ret = '\n'.join(all_lines)
     return ret
+
+
+def ensure_unicode(text):
+    """
+    Casts bytes into utf8 (mostly for python2 compatibility)
+
+    References:
+        http://stackoverflow.com/questions/12561063/python-extract-data-from-file
+    """
+    if isinstance(text, six.text_type):
+        return text
+    else:
+        try:
+            return six.text_type(text)
+        except UnicodeDecodeError:
+            if text.startswith(codecs.BOM_UTF8):
+                # Can safely remove the utf8 marker
+                text = text[len(codecs.BOM_UTF8):]
+            return text.decode('utf-8')
 
 
 if __name__ == '__main__':
