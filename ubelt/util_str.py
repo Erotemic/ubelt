@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function, division, absolute_import, unicode_literals
 import sys
+import unicodedata
 import textwrap
 from six.moves import cStringIO
 import six
@@ -160,6 +161,69 @@ def highlight_code(text, lexer_name='python', **kwargs):
         warnings.warn('pygments is not installed')
         new_text = text
     return new_text
+
+
+def hzcat(args, sep=''):
+    """
+    Horizontally concatenates strings preserving indentation
+
+    Concats a list of objects ensuring that the next item in the list
+    is all the way to the right of any previous items.
+
+    Args:
+        args (list): strings to concat
+        sep (str): separator (defaults to '')
+
+    CommandLine:
+        python -m ubelt.util_str hzcat
+
+    Example1:
+        >>> from ubelt.util_str import *
+        >>> import ubelt as ub
+        >>> B = repr2([[1, 2], [3, 457]], nl=1, cbr=True, trailsep=False)
+        >>> C = repr2([[5, 6], [7, 8]], nl=1, cbr=True, trailsep=False)
+        >>> args = ['A = ', B, ' * ', C]
+        >>> print(ub.hzcat(args))
+        A = [[1, 2], * [[5, 6],
+             [3, 4]]    [7, 8]]
+
+    Example2:
+        >>> from ubelt.util_str import *
+        >>> import ubelt as ub
+        >>> aa = unicodedata.normalize('NFD', 'á')  # a unicode char with len2
+        >>> B = ub.repr2([['θ', aa], [aa, aa, aa]], nl=1, cbr=True, trailsep=False)
+        >>> C = ub.repr2([[5, 6], [7, 'θ']], nl=1, cbr=True, trailsep=False)
+        >>> args = ['A', '=', B, '*', C]
+        >>> print(ub.hzcat(args, sep='｜'))
+        A｜=｜[['θ', 'á'],     ｜*｜[[5, 6],
+         ｜ ｜ ['á', 'á', 'á']]｜ ｜ [7, 'θ']]
+    """
+    # TODO: ensure unicode data works correctly for python2
+    args = [unicodedata.normalize('NFC', val) for val in args]
+    arglines = [a.split('\n') for a in args]
+    height = max(map(len, arglines))
+    # Do vertical padding
+    arglines = [lines + [''] * (height - len(lines)) for lines in arglines]
+    # Initialize output
+    all_lines = ['' for _ in range(height)]
+    width = 0
+    n_args = len(args)
+    for sx, lines in enumerate(arglines):
+        # Concatenate the new string
+        for lx, line in enumerate(lines):
+            all_lines[lx] += line
+        # Find the new maximum horiztonal width
+        width = max(width, max(map(len, all_lines)))
+        if sx < n_args - 1:
+            # Horizontal padding on all but last iter
+            for lx, line in list(enumerate(all_lines)):
+                residual = width - len(line)
+                all_lines[lx] = line + (' ' * residual) + sep
+            width += len(sep)
+    # Clean up trailing whitespace
+    all_lines = [line.rstrip(' ') for line in all_lines]
+    ret = '\n'.join(all_lines)
+    return ret
 
 
 if __name__ == '__main__':

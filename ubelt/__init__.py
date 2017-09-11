@@ -4,7 +4,7 @@
 CommandLine:
     # Partially regenerate __init__.py
     python -c "import ubelt"
-    python -c "import ubelt" --print-ubelt-init
+    python -c "import ubelt" --print-ubelt-init --dyn
     python -c "import ubelt" --update-ubelt-init --dyn
 
 TODO:
@@ -26,7 +26,7 @@ TODO:
 from __future__ import absolute_import, division, print_function, unicode_literals
 import sys
 
-__version__ = '0.0.32'
+__version__ = '0.0.33'
 
 GLOBAL_MODULES = [
     'util_arg',
@@ -42,6 +42,7 @@ GLOBAL_MODULES = [
     'util_stress',
     'util_str',
     'util_test',
+    'util_repr',
     'util_time',
     'progiter',
     'meta',
@@ -75,6 +76,7 @@ if _DOELSE:
     from ubelt import util_stress
     from ubelt import util_str
     from ubelt import util_test
+    from ubelt import util_repr
     from ubelt import util_time
     from ubelt import progiter
     from ubelt import meta
@@ -98,10 +100,11 @@ if _DOELSE:
                                      platform_resource_dir, startfile,)
     from ubelt.util_stress import (find_nth_prime,)
     from ubelt.util_str import (CaptureStdout, cStringIO, codeblock,
-                                highlight_code, indent,)
+                                highlight_code, hzcat, indent,)
     from ubelt.util_test import (DocExample, ExitTestException, doctest_package,
                                  parse_docstr_examples, parse_src_want,
                                  parse_testables,)
+    from ubelt.util_repr import (repr2,)
     from ubelt.util_time import (Timer, Timerit, timestamp,)
     from ubelt.progiter import (ProgIter,)
 

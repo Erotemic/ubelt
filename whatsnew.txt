@@ -1,0 +1,11 @@
+version: 0.0.28
+---------------
+FEATURE: Added AutoDict and AutoOrderedDict.
+
+version: 0.0.31
+---------------
+FEATURE: Added argflag and argval
+
+version: 0.0.33
+---------------
+FEATURE: Added repr2 and hzcat
