@@ -11,14 +11,27 @@ import collections
 
 def repr2(val, **kwargs):
     """
-    Attempt to replace repr more configurable
-    pretty version that works the same in both 2 and 3
+    Constructs a "pretty" string representation.
+
+    This is an alternative to repr, and `pprint.pformat` that attempts to be
+    more both configurable and generate output that is consistent between
+    python versions.
+
+    Args:
+        val (object): an arbitrary python object
+        **kwargs: si, stritems, strkeys, strvals, sk, sv, nl, newlines, nobr,
+                  nobraces, cbr, compact_brace, trailsep, trailing_sep,
+                  explicit, itemsep, precision, kvsep, sort
+
+    Returns:
+        str: output string
 
     CommandLine:
-        python -m ubelt.util_repr repr2:0
+        python -m ubelt.util_format repr2:0
+        python -m ubelt.util_format repr2:1
 
     Example:
-        >>> from ubelt.util_repr import *
+        >>> from ubelt.util_format import *
         >>> import ubelt as ub
         >>> dict_ = {
         ...     'custom_types': [slice(0, 1, None), 1/3],
@@ -45,7 +58,7 @@ def repr2(val, **kwargs):
         >>> result = repr2(dict_, nl=3, sort=False, trailing_sep=False, nobr=True); print(result)
 
     Example:
-        >>> from ubelt.util_repr import *
+        >>> from ubelt.util_format import *
         >>> def _nest(d, w):
         ...     if d == 0:
         ...         return {}
@@ -146,7 +159,7 @@ def format_list(list_, **kwargs):
         str: retstr
 
     CommandLine:
-        python -m ubelt.util_repr format_list
+        python -m ubelt.util_format format_list
 
     Example:
         >>> import ubelt as ub
@@ -162,7 +175,10 @@ def format_list(list_, **kwargs):
     # Doesn't actually put in trailing comma if on same line
     compact_brace = kwargs.get('cbr', kwargs.get('compact_brace', False))
 
-    itemstrs = list_itemstr_list(list_, **kwargs)
+    itemstrs = list_itemstrs(list_, **kwargs)
+    if len(itemstrs) == 0:
+        nobraces = False  # force braces to prevent empty output
+
     is_tuple = isinstance(list_, tuple)
     is_set = isinstance(list_, (set, frozenset,))
     if nobraces:
@@ -233,7 +249,7 @@ def format_dict(dict_, **kwargs):
     if len(dict_) == 0:
         return 'dict()' if explicit else '{}'
 
-    itemstrs = dict_itemstr_list(dict_, **kwargs)
+    itemstrs = dict_itemstrs(dict_, **kwargs)
 
     if nobraces:
         lbr, rbr = '', ''
@@ -258,7 +274,7 @@ def join_itemstrs(itemstrs, itemsep, newlines, nobraces, trailing_sep,
         sep = ',\n'
         if nobraces:
             body_str = sep.join(itemstrs)
-            if trailing_sep:
+            if trailing_sep and len(itemstrs) > 0:
                 body_str += ','
             retstr = body_str
         else:
@@ -273,7 +289,7 @@ def join_itemstrs(itemstrs, itemsep, newlines, nobraces, trailing_sep,
                 indented = [ub.indent(s, prefix) for s in itemstrs]
 
             body_str = sep.join(indented)
-            if trailing_sep:
+            if trailing_sep and len(itemstrs) > 0:
                 body_str += ','
             if compact_brace:
                 # Why can we modify the indentation here but not above?
@@ -284,13 +300,13 @@ def join_itemstrs(itemstrs, itemsep, newlines, nobraces, trailing_sep,
     else:
         sep = ',' + itemsep
         body_str = sep.join(itemstrs)
-        if trailing_sep:
+        if trailing_sep and len(itemstrs) > 0:
             body_str += ','
         retstr  = (lbr + body_str +  rbr)
     return retstr
 
 
-def dict_itemstr_list(dict_, **kwargs):
+def dict_itemstrs(dict_, **kwargs):
     import ubelt as ub
     explicit = kwargs.get('explicit', False)
     kwargs['explicit'] = _rectify_countdown_or_bool(explicit)
@@ -338,7 +354,7 @@ def dict_itemstr_list(dict_, **kwargs):
     return itemstrs
 
 
-def list_itemstr_list(list_, **kwargs):
+def list_itemstrs(list_, **kwargs):
     items = list(list_)
     itemstrs = [repr2(item, **kwargs) for item in items]
 
@@ -387,7 +403,7 @@ def _rectify_countdown_or_bool(count_or_bool):
         python -m utool.util_str --test-_rectify_countdown_or_bool
 
     Example:
-        >>> from ubelt.util_repr import _rectify_countdown_or_bool  # NOQA
+        >>> from ubelt.util_format import _rectify_countdown_or_bool  # NOQA
         >>> count_or_bool = True
         >>> a1 = (_rectify_countdown_or_bool(2))
         >>> a2 = (_rectify_countdown_or_bool(1))
@@ -416,7 +432,9 @@ def _rectify_countdown_or_bool(count_or_bool):
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m ubelt.util_repr
+        python -m ubelt.util_format
     """
     import ubelt as ub
     ub.doctest_package()
+    import utool
+    utool.embed()

@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+
 def test_progiter():
     from six.moves import cStringIO
     from ubelt.progiter import ProgIter
@@ -79,6 +80,7 @@ def time_progiter_overhead():
     # Time the overhead of this function
     import timeit
     import textwrap
+    import ubelt as ub
     setup = textwrap.dedent(
         '''
         from sklearn.externals.progiter import ProgIter
@@ -156,11 +158,11 @@ def time_progiter_overhead():
     # work = work_strs[1]
 
     number = 10000
-    prog = ProgIter(label='timing', adjust=True)
+    prog = ub.ProgIter(label='timing', adjust=True)
     for key, stmt in prog(statements.items()):
         prog.set_extra(key)
         secs = timeit.timeit(stmt.format(work=work), setup, number=number)
         timeings[key] = secs / number
 
-    import utool as ut
-    print(ut.align(ut.repr4(timeings, precision=8), ':'))
+    # import utool as ut
+    # print(ut.align(ut.repr4(timeings, precision=8), ':'))
