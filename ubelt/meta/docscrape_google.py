@@ -28,7 +28,7 @@ def parse_google_args(docstr):
         >>> docstr = parse_google_args.__doc__
         >>> argdict_list = list(parse_google_args(docstr))
         >>> print([sorted(d.items()) for d in argdict_list])
-        [[('name', 'docstr'), ('type', 'str')]]
+        [[('desc', 'a google-style docstring'), ('name', 'docstr'), ('type', 'str')]]
     """
     blocks = split_google_docblocks(docstr)
     for key, lines in blocks:
@@ -53,14 +53,14 @@ def parse_google_returns(docstr, return_annot=None):
         >>> docstr = parse_google_returns.__doc__
         >>> retdict_list = list(parse_google_returns(docstr))
         >>> print([sorted(d.items()) for d in retdict_list])
-        [[('type', 'dict')]]
+        [[('desc', 'dictionaries of return value hints'), ('type', 'dict')]]
 
     Example:
         >>> from ubelt.meta.docscrape_google import *  # NOQA
         >>> docstr = split_google_docblocks.__doc__
         >>> retdict_list = list(parse_google_returns(docstr))
-        >>> print([sorted(d.items()) for d in retdict_list])
-        [[('type', 'list')]]
+        >>> print([sorted(d.items())[1] for d in retdict_list])
+        [('type', 'list')]
     """
     blocks = split_google_docblocks(docstr)
     for key, lines in blocks:
@@ -80,8 +80,6 @@ def parse_google_retblock(lines, return_annot=None):
 
     Yeilds:
         dict: each dict specifies the return type and its description
-
-    Notes:
 
     CommandLine:
         python -m ubelt.meta.docscrape_google parse_google_retblock
@@ -205,8 +203,6 @@ def parse_google_argblock(lines):
         ... ]
         >>> lines = '\n'.join(line_list)
         >>> argdict_list = list(parse_google_argblock(lines))
-        >>> import utool as ut
-        >>> print('argdict_list = %s' % (ut.repr4(argdict_list)),)
         >>> # All lines except the first should be accepted
         >>> assert len(argdict_list) == len(line_list) - 1
         >>> assert argdict_list[1]['desc'] == 'a description with a newline'
