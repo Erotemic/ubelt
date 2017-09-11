@@ -67,6 +67,8 @@ ub.cmd
 ub.editfile
 ub.startfile
 ub.delete
+ub.repr2
+ub.hzcat
 ```
 
 A minimal version of the doctest harness has been completed.
@@ -212,4 +214,16 @@ implementation.
   257/1000... rate=177204.69 Hz, eta=0:00:00, total=0:00:00, wall=14:05 EST 
   642/1000... rate=94099.22 Hz, eta=0:00:00, total=0:00:00, wall=14:05 EST 
  1000/1000... rate=71886.74 Hz, eta=0:00:00, total=0:00:00, wall=14:05 EST 
+```
+
+
+### Horizontal String Concatenation
+
+```python
+>>> import ubelt as ub
+>>> B = ub.repr2([[1, 2], [3, 4]], nl=1, cbr=True, trailsep=False)
+>>> C = ub.repr2([[5, 6], [7, 8]], nl=1, cbr=True, trailsep=False)
+>>> print(ub.hzcat(['A = ', B, ' * ', C]))
+A = [[1, 2], * [[5, 6],
+     [3, 4]]    [7, 8]]
 ```

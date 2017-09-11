@@ -179,10 +179,9 @@ def hzcat(args, sep=''):
         python -m ubelt.util_str hzcat
 
     Example1:
-        >>> from ubelt.util_str import *
         >>> import ubelt as ub
-        >>> B = repr2([[1, 2], [3, 457]], nl=1, cbr=True, trailsep=False)
-        >>> C = repr2([[5, 6], [7, 8]], nl=1, cbr=True, trailsep=False)
+        >>> B = ub.repr2([[1, 2], [3, 457]], nl=1, cbr=True, trailsep=False)
+        >>> C = ub.repr2([[5, 6], [7, 8]], nl=1, cbr=True, trailsep=False)
         >>> args = ['A = ', B, ' * ', C]
         >>> print(ub.hzcat(args))
         A = [[1, 2], * [[5, 6],
