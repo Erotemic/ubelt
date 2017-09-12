@@ -9,3 +9,4 @@ FEATURE: Added argflag and argval
 version: 0.0.33
 ---------------
 FEATURE: Added repr2 and hzcat
+FEATURE: Added color_text

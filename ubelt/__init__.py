@@ -99,7 +99,7 @@ if _DOELSE:
                                      get_app_resource_dir, platform_cache_dir,
                                      platform_resource_dir, startfile,)
     from ubelt.util_stress import (find_nth_prime,)
-    from ubelt.util_str import (CaptureStdout, cStringIO, codeblock,
+    from ubelt.util_str import (CaptureStdout, cStringIO, codeblock, color_text,
                                 ensure_unicode, highlight_code, hzcat, indent,)
     from ubelt.util_test import (DocExample, ExitTestException, doctest_package,
                                  parse_docstr_examples, parse_src_want,
