@@ -327,10 +327,10 @@ class ProgIter(object):
             >>> # prints a question mark if length is unknown
             >>> import ubelt as ub
             >>> sequence = (_ for _ in range(0, 10))
-            >>> prog = ub.ProgIter(sequence, show_times=False, verbose=1)
+            >>> prog = ub.ProgIter(sequence, label='unknown seq', show_times=False, verbose=1)
             >>> for n in prog:
             ...     pass
-               10/?...
+            unknown seq   10/?...
         """
         tzname = time.tzname[0]
         length_unknown = self.length is None or self.length <= 0

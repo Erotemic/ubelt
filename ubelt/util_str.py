@@ -34,7 +34,6 @@ class CaptureStdout(object):
         self.cap_stdout = cStringIO()
         if six.PY2:
             # http://stackoverflow.com/questions/1817695/stringio-accept-utf8
-            import codecs
             codecinfo = codecs.lookup('utf8')
             self.cap_stdout = codecs.StreamReaderWriter(
                 self.cap_stdout, codecinfo.streamreader,
@@ -193,17 +192,29 @@ def ensure_unicode(text):
 
     References:
         http://stackoverflow.com/questions/12561063/python-extract-data-from-file
+
+    Example:
+        >>> from ubelt.util_str import *
+        >>> assert ensure_unicode('my ünicôdé strįng') == 'my ünicôdé strįng'
+        >>> assert ensure_unicode('text1') == 'text1'
+        >>> assert ensure_unicode('text1'.encode('utf8')) == 'text1'
+        >>> assert ensure_unicode('ï»¿text1'.encode('utf8')) == 'ï»¿text1'
+        >>> assert (codecs.BOM_UTF8 + 'text»¿'.encode('utf8')).decode('utf8')
     """
     if isinstance(text, six.text_type):
         return text
     else:
-        try:
-            return six.text_type(text)
-        except UnicodeDecodeError:
-            if text.startswith(codecs.BOM_UTF8):
-                # Can safely remove the utf8 marker
-                text = text[len(codecs.BOM_UTF8):]
-            return text.decode('utf-8')
+        # try:
+        if isinstance(text, six.binary_type):
+            return text.decode('utf8')
+        else:  # nocover
+            raise ValueError('unknown input type {!r}'.format(text))
+        #     # return six.text_type(text)
+        # except UnicodeDecodeError:
+        #     if text.startswith(codecs.BOM_UTF8):
+        #         # Can safely remove the utf8 marker
+        #         text = text[len(codecs.BOM_UTF8):]
+        #     return text.decode('utf-8')
 
 
 if __name__ == '__main__':
