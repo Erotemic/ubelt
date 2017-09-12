@@ -235,7 +235,8 @@ class ProgIter(object):
                 [], maxlen=self.eta_window)
             self._measured_times.append((self._iter_idx, self._start_time))
 
-        self._cursor_at_newline = True
+        # self._cursor_at_newline = True
+        self._cursor_at_newline = not self.clearline
         self.started = True
         self.finished = False
 
@@ -319,7 +320,18 @@ class ProgIter(object):
             self.adjust_frequency()
 
     def build_message_template(self):
-        """ Defines the template for the progress line """
+        """
+        Defines the template for the progress line
+
+        Example:
+            >>> # prints a question mark if length is unknown
+            >>> import ubelt as ub
+            >>> sequence = (_ for _ in range(0, 10))
+            >>> prog = ub.ProgIter(sequence, show_times=False, verbose=1)
+            >>> for n in prog:
+            ...     pass
+               10/?...
+        """
         tzname = time.tzname[0]
         length_unknown = self.length is None or self.length <= 0
         if length_unknown:
@@ -373,6 +385,31 @@ class ProgIter(object):
         use before any custom printing when using the progress iter to ensure
         your print statement starts on a new line instead of at the end of a
         progress line
+
+        Example:
+            >>> # Unsafe version may write your message on the wrong line
+            >>> import ubelt as ub
+            >>> prog = ub.ProgIter(range(4), show_times=False, verbose=1)
+            >>> for n in prog:
+            ...     print('unsafe message')
+                 0/4...  unsafe message
+                 1/4...  unsafe message
+                unsafe message
+                unsafe message
+                 4/4...
+            >>> # apparently the safe version does this too.
+            >>> print('---')
+            >>> prog = ub.ProgIter(range(4), show_times=False, verbose=1)
+            >>> for n in prog:
+            ...     prog.ensure_newline()
+            ...     print('safe message')
+                 0/4...
+                safe message
+                 1/4...
+                safe message
+                safe message
+                safe message
+                 4/4...
         """
         if not self._cursor_at_newline:
             self.write(AT_END)
