@@ -187,7 +187,7 @@ def hzcat(args, sep=''):
 
 
 def ensure_unicode(text):
-    """
+    r"""
     Casts bytes into utf8 (mostly for python2 compatibility)
 
     References:
@@ -203,18 +203,16 @@ def ensure_unicode(text):
     """
     if isinstance(text, six.text_type):
         return text
-    else:
-        # try:
-        if isinstance(text, six.binary_type):
-            return text.decode('utf8')
-        else:  # nocover
-            raise ValueError('unknown input type {!r}'.format(text))
-        #     # return six.text_type(text)
-        # except UnicodeDecodeError:
-        #     if text.startswith(codecs.BOM_UTF8):
-        #         # Can safely remove the utf8 marker
-        #         text = text[len(codecs.BOM_UTF8):]
-        #     return text.decode('utf-8')
+    elif isinstance(text, six.binary_type):
+        return text.decode('utf8')
+    else:  # nocover
+        raise ValueError('unknown input type {!r}'.format(text))
+    # if something with the above code goes wrong, refer to this
+    # except UnicodeDecodeError:
+    #     if text.startswith(codecs.BOM_UTF8):
+    #         # Can safely remove the utf8 marker
+    #         text = text[len(codecs.BOM_UTF8):]
+    #     return text.decode('utf-8')
 
 
 if __name__ == '__main__':
