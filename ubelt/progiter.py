@@ -62,33 +62,24 @@ def _infer_length(iterable):
 
 class ProgIter(object):
     """
+    Prints progress as an iterable progresses
+
     Attributes:
-        iterable : sequence
-            A python iterable
-        label : int
-            Maximum length of the process
-                (estimated from iterable if not specified)
-        label : str
-            Message to print
-        freq : int
-            How many iterations to wait between messages.
-        adjust : bool
-            if True freq is adjusted based on time_thresh
-        eta_window : int
-            number of previous measurements to use in eta calculation
-        clearline : bool
-            if true messages are printed on the same line
-        adjust : bool
-            if True `freq` is adjusted based on time_thresh
-        time_thresh : float
-            desired amount of time to wait between messages if adjust is True
-            otherwise does nothing
-        stream : file
-            defaults to sys.stdout
-        enabled : bool
-             if False nothing happens.
-        verbose : int
-            verbosity mode
+        iterable (sequence): A python iterable
+        label (int): Maximum length of the process
+            (estimated from iterable if not specified)
+        label (str): Message to print
+        freq (int): How many iterations to wait between messages.
+        adjust (bool): if True freq is adjusted based on time_thresh
+        eta_window (int): number of previous measurements to use in eta calculation
+        clearline (bool): if true messages are printed on the same line
+        adjust (bool): if True `freq` is adjusted based on time_thresh
+        time_thresh (float): desired amount of time to wait between messages if
+            adjust is True otherwise does nothing
+        show_times (bool): shows rate, eta, and wall (defaults to True)
+        stream (file): defaults to sys.stdout
+        enabled (bool): if False nothing happens.
+        verbose (int): verbosity mode
             0 - no verbosity,
             1 - verbosity with clearline=True and adjust=True
             2 - verbosity without clearline=False and adjust=True
@@ -100,6 +91,11 @@ class ProgIter(object):
     Reference:
         http://datagenetics.com/blog/february12017/index.html
 
+    Notes:
+        Either use ProgIter in a with statement or call prog.end() at the end
+        of the computation if there is a possibility that the entire iterable
+        may not be exhausted.
+
     Examples:
         >>> import ubelt as ub
         >>> def is_prime(n):
@@ -108,16 +104,10 @@ class ProgIter(object):
         >>>     # do some work
         >>>     is_prime(n)
         10000/10000... rate=13294.94 Hz, eta=0:00:00, total=0:00:00, wall=13:34 EST
-
-    Notes
-    ----------
-    Either use ProgIter in a with statement or call prog.end() at the end of
-    the computation if there is a possibility that the entire iterable may not
-    be exhausted.
     """
     def __init__(self, iterable=None, label=None, length=None, freq=1,
                  eta_window=64, clearline=True, adjust=True, time_thresh=2.0,
-                 enabled=True, verbose=None, stream=None):
+                 show_times=True, enabled=True, verbose=None, stream=None):
         if label is None:
             label = ''
         if verbose is not None:
@@ -139,6 +129,7 @@ class ProgIter(object):
         self.freq = freq
         self.enabled = enabled
         self.adjust = adjust
+        self.show_times = show_times
         self.eta_window = eta_window
         self.time_thresh = 1.0
         self.clearline = clearline
@@ -169,6 +160,15 @@ class ProgIter(object):
         """
         specify a custom info appended to the end of the next message
         TODO: come up with a better name and rename
+
+        Example:
+            >>> import ubelt as ub
+            >>> prog = ub.ProgIter(range(100, 300, 100), show_times=False, verbose=3)
+            >>> for n in prog:
+            >>>     prog.set_extra('processesing num {}'.format(n))
+             0/2...
+             1/2...  processesing num 100
+             2/2...  processesing num 200
         """
         self.extra = extra
 
@@ -331,10 +331,16 @@ class ProgIter(object):
             (' {iter_idx:' + str(n_chrs) + 'd}/'),
             ('?' if length_unknown else six.text_type(self.length)),
             ('... '),
-            ('rate={rate:4.2f} Hz,'),
-            ('' if self.length == 0 else ' eta={eta},'),
-            (' total={total},'),
-            (' wall={wall} ' + tzname),
+        ]
+
+        if self.show_times:
+            msg_body += [
+                    ('rate={rate:4.2f} Hz,'),
+                    ('' if self.length == 0 else ' eta={eta},'),
+                    (' total={total},'),
+                    (' wall={wall} ' + tzname),
+            ]
+        msg_body += [
             (' {extra}'),
         ]
         if self.clearline:

@@ -48,7 +48,7 @@ def highlight_code(text, lexer_name='python', **kwargs):
 
 
 def color_text(text, color):
-    """
+    r"""
     Colorizes text a single color using ansii tags.
 
     Args:
@@ -64,10 +64,10 @@ def color_text(text, color):
 
     CommandLine:
         python -c "import pygments.console; print(sorted(pygments.console.codes.keys()))"
-        python -m ubelt.util_str color_text
+        python -m ubelt.util_colors color_text
 
     Example:
-        >>> from ubelt.util_str import *  # NOQA
+        >>> from ubelt.util_colors import *  # NOQA
         >>> text = 'raw text'
         >>> assert color_text(text, 'red') == '\x1b[31;01mraw text\x1b[39;49;00m'
         >>> assert color_text(text, None) == 'raw text'

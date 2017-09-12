@@ -186,7 +186,8 @@ class DocExample(util_mixins.NiceRepr):
                 '%3d %s' % (count, line)
                 for count, line in enumerate(doctest_src.splitlines(), start=1)])
         if colored:
-            doctest_src = util_str.highlight_code(doctest_src, 'python')
+            import ubelt as ub
+            doctest_src = ub.highlight_code(doctest_src, 'python')
         return doctest_src
 
     def run_example(example, verbose=None):
