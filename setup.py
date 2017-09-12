@@ -62,7 +62,7 @@ def parse_description():
     """
     from os.path import dirname, join, exists
     readme_fpath = join(dirname(__file__), 'README.md')
-    print('readme_fpath = %r' % (readme_fpath,))
+    # print('readme_fpath = %r' % (readme_fpath,))
     # This breaks on pip install, so check that it exists.
     if exists(readme_fpath):
         # try:
@@ -88,6 +88,20 @@ def parse_description():
             return text
 
 
+def parse_requirements():
+    """
+    python -c "import setup; print(setup.parse_requirements())"
+    """
+    from os.path import dirname, join, exists
+    require_fpath = join(dirname(__file__), 'requirements.txt')
+    # This breaks on pip install, so check that it exists.
+    if exists(require_fpath):
+        with open(require_fpath, 'r') as f:
+            lines = [line.strip() for line in f.readlines()]
+            lines = [line for line in lines if not line.startswith('#')]
+            return lines
+
+
 version = parse_version()
 
 
@@ -98,11 +112,7 @@ if __name__ == '__main__':
         author='Jon Crall',
         description='A "utility belt" of commonly needed utility and helper functions',
         long_description=parse_description(),
-        install_requires=[
-            'six >= 1.10.0',
-            'Pygments >= 2.2.0',
-            'coverage >= 4.3.4',
-        ],
+        install_requires=parse_requirements(),
         author_email='erotemic@gmail.com',
         url='https://github.com/Erotemic/ubelt',
         license='Apache 2',

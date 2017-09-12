@@ -135,9 +135,8 @@ def highlight_code(text, lexer_name='python', **kwargs):
         lexer_name (str): name of language
         **kwargs: passed to pygments.lexers.get_lexer_by_name
 
-    Ignore:
-        highlight_text
-        lexer_shortnames = sorted(ut.flatten(ut.take_column(pygments.lexers.LEXERS.values(), 2)))
+    CommandLine:
+        python -c "import pygments.formatters; print(list(pygments.formatters.get_all_formatters()))"
 
     Example:
         >>> import ubelt as ub
@@ -170,23 +169,27 @@ def highlight_code(text, lexer_name='python', **kwargs):
 
 def color_text(text, color):
     """
-    SeeAlso:
+    Colorizes text a single color using ansii tags.
 
-    Ignore:
-        assert color in ['', 'yellow', 'blink', 'lightgray', 'underline',
-        'darkyellow', 'blue', 'darkblue', 'faint', 'fuchsia', 'black', 'white',
-        'red', 'brown', 'turquoise', 'bold', 'darkred', 'darkgreen', 'reset',
-        'standout', 'darkteal', 'darkgray', 'overline', 'purple', 'green', 'teal',
-        'fuscia']
+    Args:
+        text (str): text to colorize
+        color (str): may be one of the following: yellow, blink, lightgray,
+            underline, darkyellow, blue, darkblue, faint, fuchsia, black,
+            white, red, brown, turquoise, bold, darkred, darkgreen, reset,
+            standout, darkteal, darkgray, overline, purple, green, teal, fuscia
+
+    Returns:
+        str: text : colorized text
 
     CommandLine:
+        python -m ubelt.util_str color_text
         python -c "import pygments.console; print(sorted(pygments.console.codes.keys()))"
-        python -m utool.util_print --exec-colorprint
-        python -m utool.util_print --exec-colorprint:1
 
-        import pygments
-        print(ut.repr4(list(pygments.formatters.get_all_formatters())))
-        print(list(pygments.styles.get_all_styles()))
+    Example:
+        >>> from ubelt.util_str import *  # NOQA
+        >>> text = 'raw text'
+        >>> assert color_text(text, 'red') == '\x1b[31;01mraw text\x1b[39;49;00m'
+        >>> assert color_text(text, None) == 'raw text'
     """
     if color is None:
         return text
@@ -194,8 +197,6 @@ def color_text(text, color):
         import pygments
         import pygments.console
         ansi_text = pygments.console.colorize(color, text)
-        ansi_reset = pygments.console.colorize('reset', '')
-        ansi_text = ansi_text + ansi_reset
         return ansi_text
     except ImportError:  # nocover
         import warnings

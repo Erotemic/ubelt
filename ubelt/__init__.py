@@ -31,6 +31,7 @@ __version__ = '0.0.33'
 GLOBAL_MODULES = [
     'util_arg',
     'util_const',
+    'util_colors',
     'util_decor',
     'util_dict',
     'util_cache',
@@ -65,6 +66,7 @@ if _DOELSE:
 
     from ubelt import util_arg
     from ubelt import util_const
+    from ubelt import util_colors
     from ubelt import util_decor
     from ubelt import util_dict
     from ubelt import util_cache
@@ -82,6 +84,7 @@ if _DOELSE:
     from ubelt import meta
     from ubelt.util_arg import (argflag, argval,)
     from ubelt.util_const import (NoParam,)
+    from ubelt.util_colors import (color_text, highlight_code,)
     from ubelt.util_decor import (memoize,)
     from ubelt.util_dict import (AutoDict, AutoOrderedDict, ddict, dict_hist,
                                  dict_subset, dict_take, find_duplicates,
@@ -99,8 +102,8 @@ if _DOELSE:
                                      get_app_resource_dir, platform_cache_dir,
                                      platform_resource_dir, startfile,)
     from ubelt.util_stress import (find_nth_prime,)
-    from ubelt.util_str import (CaptureStdout, cStringIO, codeblock, color_text,
-                                ensure_unicode, highlight_code, hzcat, indent,)
+    from ubelt.util_str import (CaptureStdout, cStringIO, codeblock,
+                                ensure_unicode, hzcat, indent,)
     from ubelt.util_test import (DocExample, ExitTestException, doctest_package,
                                  parse_docstr_examples, parse_src_want,
                                  parse_testables,)
