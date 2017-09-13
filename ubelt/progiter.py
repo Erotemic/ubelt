@@ -137,11 +137,20 @@ class ProgIter(object):
         self.started = False
         self.finished = False
 
-    def __call__(self, iterable):  # nocover
+    def __call__(self, iterable):
         self.iterable = iterable
         return iter(self)
 
-    def __enter__(self):  # nocover
+    def __enter__(self):
+        """
+        Example:
+            >>> import ubelt as ub
+            >>> # can be used as a context manager in iter mode
+            >>> n = 3
+            >>> with ub.ProgIter(label='manual', length=n, verbose=3) as prog:
+            ...     list(prog(range(n)))
+        """
+        self.begin()
         return self
 
     def __exit__(self, type_, value, trace):
@@ -173,7 +182,8 @@ class ProgIter(object):
         self.extra = extra
 
     def iter_rate(self):
-        self.begin()
+        if not self.started:
+            self.begin()
         # Wrap input iterable in a generator
         for self._iter_idx, item in enumerate(self.iterable, start=1):
             yield item
@@ -184,7 +194,34 @@ class ProgIter(object):
                 self.display_message()
         self.end()
 
-    def mark(self):
+    def step(self, inc=1):
+        """
+        Manually step progress update, either directly or by an increment.
+
+        Args:
+            idx (int): current step index (default None)
+                if specified, takes precidence over `inc`
+            inc (int): number of steps to increment (defaults to 1)
+
+        Example:
+            >>> import ubelt as ub
+            >>> n = 3
+            >>> prog = ub.ProgIter(label='manual', length=n, verbose=3)
+            >>> # Need to manually begin and end in this mode
+            >>> prog.begin()
+            >>> for _ in range(n):
+            ...     prog.step()
+            >>> prog.end()
+
+        Example:
+            >>> import ubelt as ub
+            >>> n = 3
+            >>> # can be used as a context manager in manual mode
+            >>> with ub.ProgIter(label='manual', length=n, verbose=3) as prog:
+            ...     for _ in range(n):
+            ...         prog.step()
+        """
+        self._iter_idx += inc
         self.update_measurements()
         self.update_estimates()
         self.display_message()
@@ -324,7 +361,7 @@ class ProgIter(object):
         Defines the template for the progress line
 
         Example:
-            >>> # prints a question mark if length is unknown
+            >>> # prints an eroteme if length is unknown
             >>> import ubelt as ub
             >>> sequence = (_ for _ in range(0, 10))
             >>> prog = ub.ProgIter(sequence, label='unknown seq', show_times=False, verbose=1)
