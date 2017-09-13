@@ -385,7 +385,7 @@ class ProgIter(object):
         if self.show_times:
             msg_body += [
                     ('rate={rate:4.2f} Hz,'),
-                    ('' if self.length == 0 else ' eta={eta},'),
+                    ('' if self.length else ' eta={eta},'),
                     (' total={total},'),
                     (' wall={wall} ' + tzname),
             ]
