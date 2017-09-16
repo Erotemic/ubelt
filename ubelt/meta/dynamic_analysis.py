@@ -3,11 +3,13 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import inspect
 
 
-def get_stack_frame(N=0, strict=True):
+def get_stack_frame(n=0, strict=True):
     """
+    Gets the current stack frame or any of its ancestors dynamically
+
     Args:
-        N (int): N=0 means the frame you called this function in.
-                 N=1 is the parent frame.
+        n (int): n=0 means the frame you called this function in.
+                 n=1 is the parent frame.
         strict (bool): (default = True)
 
     Returns:
@@ -18,31 +20,31 @@ def get_stack_frame(N=0, strict=True):
 
     Example:
         >>> from ubelt.meta.dynamic_analysis import *  # NOQA
-        >>> frame_cur = get_stack_frame(N=0)
+        >>> frame_cur = get_stack_frame(n=0)
         >>> print('frame_cur = %r' % (frame_cur,))
         >>> assert frame_cur.f_globals['frame_cur'] is frame_cur
     """
     frame_cur = inspect.currentframe()
-    # Use N+1 to always skip the frame of this function
-    for _ix in range(N + 1):
+    # Use n+1 to always skip the frame of this function
+    for ix in range(n + 1):
         frame_next = frame_cur.f_back
         if frame_next is None:  # nocover
             if strict:
-                raise AssertionError('Frame level %r is root' % _ix)
+                raise AssertionError('Frame level %r is root' % ix)
             else:
                 break
         frame_cur = frame_next
     return frame_cur
 
 
-def get_parent_frame(N=0):
+def get_parent_frame(n=0):
     r"""
     Returns the frame of that called you.
-    This is equivalent to `get_stack_frame(N=1)`
+    This is equivalent to `get_stack_frame(n=1)`
 
     Args:
-        N (int): N=0 means the frame you called this function in.
-                 N=1 is the parent frame.
+        n (int): n=0 means the frame you called this function in.
+                 n=1 is the parent frame.
 
     Returns:
         frame: parent_frame
@@ -52,11 +54,11 @@ def get_parent_frame(N=0):
 
     Example:
         >>> from ubelt.meta.dynamic_analysis import *  # NOQA
-        >>> root0 = get_stack_frame(N=0)
+        >>> root0 = get_stack_frame(n=0)
         >>> def foo():
-        >>>     child = get_stack_frame(N=0)
-        >>>     root1 = get_parent_frame(N=0)
-        >>>     root2 = get_stack_frame(N=1)
+        >>>     child = get_stack_frame(n=0)
+        >>>     root1 = get_parent_frame(n=0)
+        >>>     root2 = get_stack_frame(n=1)
         >>>     return child, root1, root2
         >>> # Note this wont work in IPython because several
         >>> # frames will be inserted between here and foo
@@ -69,7 +71,7 @@ def get_parent_frame(N=0):
         >>> assert root1 == root2
         >>> assert child != root1
     """
-    parent_frame = get_stack_frame(N=N + 2)
+    parent_frame = get_stack_frame(n=n + 2)
     return parent_frame
 
 
