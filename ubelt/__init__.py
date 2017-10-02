@@ -26,7 +26,7 @@ TODO:
 from __future__ import absolute_import, division, print_function, unicode_literals
 import sys
 
-__version__ = '0.0.33'
+__version__ = '0.0.34'
 
 GLOBAL_MODULES = [
     'util_arg',
@@ -96,11 +96,12 @@ if _DOELSE:
                                  take, unique, unique_flags,)
     from ubelt.util_mixins import (NiceRepr,)
     from ubelt.util_path import (augpath, split,)
-    from ubelt.util_platform import (DARWIN, LINUX, PY2, PY3, WIN32, cmd, editfile,
-                                     ensure_app_cache_dir, ensure_app_resource_dir,
-                                     ensuredir, get_app_cache_dir,
-                                     get_app_resource_dir, platform_cache_dir,
-                                     platform_resource_dir, startfile,)
+    from ubelt.util_platform import (DARWIN, LINUX, PY2, PY3, WIN32, cmd,
+                                     compressuser, editfile, ensure_app_cache_dir,
+                                     ensure_app_resource_dir, ensuredir,
+                                     get_app_cache_dir, get_app_resource_dir,
+                                     platform_cache_dir, platform_resource_dir,
+                                     startfile, userhome,)
     from ubelt.util_stress import (find_nth_prime,)
     from ubelt.util_str import (CaptureStdout, cStringIO, codeblock,
                                 ensure_unicode, hzcat, indent,)
