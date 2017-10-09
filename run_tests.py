@@ -4,7 +4,7 @@ if __name__ == '__main__':
     import pytest
     import sys
     package_name = 'ubelt'
-    pytest.main([
+    pytest_args = [
         '-p', 'no:doctest',
         '--cov-config', 'coveragerc',
         '--cov-report', 'html',
@@ -12,4 +12,6 @@ if __name__ == '__main__':
         '--xdoctest',
         '--cov=' + package_name,
         package_name,
-    ] + sys.argv[1:])
+    ]
+    pytest_args = pytest_args + sys.argv[1:]
+    pytest.main(pytest_args)
