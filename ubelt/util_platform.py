@@ -3,7 +3,8 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 from os.path import normpath, expanduser, join, exists
 import os
 import sys
-import itertools as it
+# import itertools as it
+from six.moves import zip_longest
 
 PY2 = sys.version_info.major == 2
 PY3 = sys.version_info.major == 3
@@ -299,7 +300,7 @@ def _proc_iteroutput(proc):
     # Grab any remaining data in stdout and stderr after the process finishes
     oline_iter = _textio_iterlines(proc.stdout)
     eline_iter = _textio_iterlines(proc.stderr)
-    for oline, eline in it.zip_longest(oline_iter, eline_iter):
+    for oline, eline in zip_longest(oline_iter, eline_iter):
         yield oline, eline
 
 
