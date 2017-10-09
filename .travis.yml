@@ -9,9 +9,12 @@ cache:
 python:
   - "2.7"
   - "3.4"
+  - "3.5"
+  - "3.6"
 before_install:
   - pip install pip -U
   - pip install pytest -U
+  - pip install pytest-cov -U
   - pip install codecov -U
   - pip install xdoctest -U
   - pip install pygments -U
