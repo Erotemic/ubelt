@@ -1,15 +1,15 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# import ubelt as ub
-# ub.doctest_package('ubelt', 'all')
-
-import pytest
-import sys
-pytest.main([
-    '-p', 'no:doctest',
-    '--cov=xdoctest',
-    '--cov-config', '.coveragerc',
-    '--cov-report', 'html',
-    '--xdoctest',
-    'ubelt',
-] + sys.argv[1:])
+if __name__ == '__main__':
+    import pytest
+    import sys
+    package_name = 'ubelt'
+    pytest.main([
+        '-p', 'no:doctest',
+        '--cov-config', 'coveragerc',
+        '--cov-report', 'html',
+        '--cov-report', 'term',
+        '--xdoctest',
+        '--cov=' + package_name,
+        package_name,
+    ] + sys.argv[1:])

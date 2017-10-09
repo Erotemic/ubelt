@@ -12,6 +12,8 @@ python:
 before_install:
   - pip install pip -U
   - pip install codecov -U
+  - pip install xdoctest -U
+  - pip install pytest -U
 #  - pip install networkx
 #  - pip install jedi
 #  - pip install delorean
@@ -20,7 +22,7 @@ install:
   - travis_retry pip install -e .
 script: 
   #- travis_wait ./run_tests.py
-  - travis_wait python -m ubelt all
+  - travis_wait python run_tests.py
 after_success: 
   #- coveralls || echo "Coveralls upload failed"
   - codecov 

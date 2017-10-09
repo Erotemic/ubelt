@@ -21,5 +21,7 @@ exclude_lines =
     .*if six.PY3:
 
 omit =
-    tests/*
+    ubelt/tests/*
+    ubelt/_internal/dynamic_make_init.py
+    ubelt/__main__.py
     */setup.py

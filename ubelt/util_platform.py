@@ -374,14 +374,16 @@ def cmd(command, shell=False, detatch=False, verbose=0, verbout=None):
         >>> fpath2 = join(ub.get_app_cache_dir('ubelt'), 'cmdout2.txt')
         >>> ub.delete(fpath1)
         >>> ub.delete(fpath2)
-        >>> info = ub.cmd(('touch', fpath1), detatch=True)
-        >>> info = ub.cmd('echo writing2 > ' + fpath2, shell=True, detatch=True)
+        >>> info1 = ub.cmd(('touch', fpath1), detatch=True)
+        >>> info2 = ub.cmd('echo writing2 > ' + fpath2, shell=True, detatch=True)
         >>> while not exists(fpath1):
         ...     pass
         >>> while not exists(fpath2):
         ...     pass
         >>> assert ub.readfrom(fpath1) == ''
         >>> assert ub.readfrom(fpath2).strip() == 'writing2'
+        >>> info1['proc'].wait()
+        >>> info2['proc'].wait()
 
     # Doctest:
     #     >>> import ubelt as ub

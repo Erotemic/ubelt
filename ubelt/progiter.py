@@ -96,14 +96,15 @@ class ProgIter(object):
         of the computation if there is a possibility that the entire iterable
         may not be exhausted.
 
-    Examples:
+    Example:
+        >>> # doctest: +SKIP
         >>> import ubelt as ub
         >>> def is_prime(n):
         ...     return n >= 2 and not any(n % i == 0 for i in range(2, n))
-        >>> for n in ub.ProgIter(range(100), verbose=2):
+        >>> for n in ub.ProgIter(range(100), verbose=1):
         >>>     # do some work
         >>>     is_prime(n)
-        10000/10000... rate=13294.94 Hz, eta=0:00:00, total=0:00:00, wall=13:34 EST
+        100/100... rate=301748.49 Hz, total=0:00:00, wall=10:47 EST
     """
     def __init__(self, iterable=None, label=None, length=None, freq=1,
                  eta_window=64, clearline=True, adjust=True, time_thresh=2.0,
@@ -436,6 +437,7 @@ class ProgIter(object):
              4/4...
             >>> # apparently the safe version does this too.
             >>> print('---')
+            ---
             >>> prog = ub.ProgIter(range(4), show_times=False, verbose=1)
             >>> for n in prog:
             ...     prog.ensure_newline()
