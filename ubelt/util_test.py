@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+"""
+TODO: Depricate in favor of pytest + xdoctest
+"""
 from __future__ import print_function, division, absolute_import, unicode_literals
 import warnings
 import sys
@@ -35,7 +38,7 @@ def parse_src_want(docsrc):
         >>> docsrc = blocks['Example']
         >>> src, want = parse_src_want(docsrc)
         >>> 'I want to see this str'
-        I want to see this str
+        'I want to see this str'
 
     Example:
         >>> from ubelt.util_test import *  # NOQA
@@ -52,7 +55,7 @@ def parse_src_want(docsrc):
         >>> docsrc = blocks['Example']
         >>> src, want = parse_src_want(docsrc)
         >>> 'I want to see this str'
-        I want to see this str
+        'I want to see this str'
     """
     from ubelt.meta import static_analysis as static
 
@@ -294,6 +297,7 @@ def parse_testables(package_name, ignore_patterns=[], strict=False, verbose=Fals
         python -m ubelt.util_test parse_testables
 
     Example:
+        >>> # pytest.skip
         >>> from ubelt.util_test import *  # NOQA
         >>> package_name = 'ubelt'
         >>> testable_examples = list(parse_testables(package_name, verbose=True))
@@ -358,6 +362,7 @@ def doctest_package(package_name=None, command=None, argv=None,
         python -m ubelt.util_test doctest_package
 
     Example:
+        >>> # pytest.skip
         >>> from ubelt.util_test import *  # NOQA
         >>> package_name = 'ubelt.util_test'
         >>> result = doctest_package(package_name, 'list', argv=[''])

@@ -8,11 +8,11 @@ def test_progiter():
     # Define a function that takes some time
     def is_prime(n):
         return n >= 2 and not any(n % i == 0 for i in range(2, n))
-    N = 5000
+    N = 500
 
     if False:
         stream = cStringIO()
-        prog = ProgIter(range(N), clearline=False, stream=stream, freq=500,
+        prog = ProgIter(range(N), clearline=False, stream=stream, freq=N // 10,
                         adjust=False)
         stream.seek(0)
         print(stream.read())
@@ -27,7 +27,7 @@ def test_progiter():
         print(stream.read())
 
     length = 1000
-    N = 50000
+    N = 5000
     N0 = N - length
     print('N = %r' % (N,))
     print('N0 = %r' % (N0,))

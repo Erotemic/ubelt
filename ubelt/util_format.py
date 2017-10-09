@@ -424,7 +424,7 @@ def _rectify_countdown_or_bool(count_or_bool):
         >>> a8 = (_rectify_countdown_or_bool(None))
         >>> result = [a1, a2, a3, a4, a5, a6, a7, a8]
         >>> print(result)
-        [1.0, 0.0, 0, 0.0, -1.0, True, False, None]
+        [1, 0, 0, 0, -1, True, False, False]
     """
     if count_or_bool is True or count_or_bool is False:
         count_or_bool_ = count_or_bool

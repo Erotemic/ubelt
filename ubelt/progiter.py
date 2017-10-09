@@ -429,24 +429,24 @@ class ProgIter(object):
             >>> prog = ub.ProgIter(range(4), show_times=False, verbose=1)
             >>> for n in prog:
             ...     print('unsafe message')
-                 0/4...  unsafe message
-                 1/4...  unsafe message
-                unsafe message
-                unsafe message
-                 4/4...
+             0/4...  unsafe message
+             1/4...  unsafe message
+            unsafe message
+            unsafe message
+             4/4...
             >>> # apparently the safe version does this too.
             >>> print('---')
             >>> prog = ub.ProgIter(range(4), show_times=False, verbose=1)
             >>> for n in prog:
             ...     prog.ensure_newline()
             ...     print('safe message')
-                 0/4...
-                safe message
-                 1/4...
-                safe message
-                safe message
-                safe message
-                 4/4...
+             0/4...
+            safe message
+             1/4...
+            safe message
+            safe message
+            safe message
+             4/4...
         """
         if not self._cursor_at_newline:
             self.write(AT_END)

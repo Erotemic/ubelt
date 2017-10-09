@@ -46,7 +46,7 @@ def test_compact_brace():
     assert result == ub.codeblock(
         '''
         {
-            'n3': {
+            'mm3': {
                 'mm2': {
                     'mm1': {},
                     'n1': {},
@@ -56,7 +56,7 @@ def test_compact_brace():
                     'n1': {},
                 },
             },
-            'mm3': {
+            'n3': {
                 'mm2': {
                     'mm1': {},
                     'n1': {},
@@ -73,14 +73,14 @@ def test_compact_brace():
     print(result)
     assert result == ub.codeblock(
         '''
-        {'n3': {'mm2': {'mm1': {},
-                        'n1': {},},
-                'n2': {'mm1': {},
-                       'n1': {},},},
-         'mm3': {'mm2': {'mm1': {},
+        {'mm3': {'mm2': {'mm1': {},
                          'n1': {},},
                  'n2': {'mm1': {},
-                        'n1': {},},},}
+                        'n1': {},},},
+         'n3': {'mm2': {'mm1': {},
+                        'n1': {},},
+                'n2': {'mm1': {},
+                       'n1': {},},},}
         ''')
 
 

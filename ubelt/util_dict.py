@@ -134,8 +134,7 @@ def group_items(item_list, groupid_list, sorted_=True):
         >>> item_list    = ['ham',     'jam',   'spam',     'eggs',    'cheese', 'bannana']
         >>> groupid_list = ['protein', 'fruit', 'protein',  'protein', 'dairy',  'fruit']
         >>> result = ub.group_items(item_list, groupid_list)
-        >>> #result = ub.repr2(groupid_to_items, nl=False, strvals=False)
-        >>> print(result)
+        >>> print(ub.repr2(result, nl=0))
         {'dairy': ['cheese'], 'fruit': ['jam', 'bannana'], 'protein': ['ham', 'spam', 'eggs']}
     """
     pair_list_ = zip(groupid_list, item_list)
@@ -182,8 +181,8 @@ def dict_hist(item_list, weight_list=None, ordered=False, labels=None):
         >>> import ubelt as ub
         >>> item_list = [1, 2, 39, 900, 1232, 900, 1232, 2, 2, 2, 900]
         >>> hist = ub.dict_hist(item_list)
-        >>> print(hist)
-        {1232: 2, 1: 1, 2: 4, 900: 3, 39: 1}
+        >>> print(ub.repr2(hist, nl=0))
+        {1: 1, 2: 4, 39: 1, 900: 3, 1232: 2}
 
     Example:
         >>> import ubelt as ub
@@ -197,12 +196,12 @@ def dict_hist(item_list, weight_list=None, ordered=False, labels=None):
         >>> else:
         >>>     raise AssertionError('expected key error')
         >>> #result = ub.repr2(hist_)
-        >>> print(hist1)
         >>> weight_list = [1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1]
         >>> hist4 = ub.dict_hist(item_list, weight_list=weight_list)
-        >>> print(hist4)
-        {1232: 2, 1: 1, 2: 4, 900: 3, 39: 1}
-        {1232: 0, 1: 1, 2: 4, 900: 1, 39: 1}
+        >>> print(ub.repr2(hist1, nl=0))
+        {1: 1, 2: 4, 39: 1, 900: 3, 1232: 2}
+        >>> print(ub.repr2(hist4, nl=0))
+        {1: 1, 2: 4, 39: 1, 900: 1, 1232: 0}
     """
     if labels is None:
         hist_ = ddict(lambda: 0)
@@ -277,8 +276,7 @@ def dict_subset(dict_, keys, default=util_const.NoParam):
         >>> dict_ = {'K': 3, 'dcvs_clip_max': 0.2, 'p': 0.1}
         >>> keys = ['K', 'dcvs_clip_max']
         >>> subdict_ = ub.dict_subset(dict_, keys)
-        >>> #result = ub.repr2(subdict_, sorted_=True, newlines=False)
-        >>> print(subdict_)
+        >>> print(ub.repr2(subdict_, nl=0))
         {'K': 3, 'dcvs_clip_max': 0.2}
     """
     items = dict_take(dict_, keys, default)

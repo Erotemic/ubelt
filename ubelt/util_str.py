@@ -144,8 +144,8 @@ def hzcat(args, sep=''):
         >>> C = ub.repr2([[5, 6], [7, 8]], nl=1, cbr=True, trailsep=False)
         >>> args = ['A = ', B, ' * ', C]
         >>> print(ub.hzcat(args))
-        A = [[1, 2], * [[5, 6],
-             [3, 4]]    [7, 8]]
+        A = [[1, 2],   * [[5, 6],
+             [3, 457]]    [7, 8]]
 
     Example2:
         >>> from ubelt.util_str import *

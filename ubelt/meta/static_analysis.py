@@ -154,6 +154,7 @@ def package_modnames(package_name, with_pkg=False, with_mod=True,
         python -m ubelt.meta.static_analysis package_modnames
 
     Example:
+        >>> # pytest.skip
         >>> from ubelt.meta.static_analysis import *  # NOQA
         >>> ignore = ['*util_*']
         >>> with_pkg, with_mod = False, True
@@ -163,6 +164,7 @@ def package_modnames(package_name, with_pkg=False, with_mod=True,
         >>> print('\n'.join(names))
 
     Example:
+        >>> # pytest.skip
         >>> from ubelt.meta.static_analysis import *  # NOQA
         >>> with_pkg, with_mod = True, False
         >>> names = list(package_modnames('ubelt', with_pkg, with_mod))
@@ -200,6 +202,7 @@ def modpath_to_modname(modpath):
         str: modname
 
     Example:
+        >>> # pytest.skip
         >>> from ubelt.meta.static_analysis import *  # NOQA
         >>> import ubelt.meta.static_analysis
         >>> modpath = ubelt.meta.static_analysis.__file__
@@ -243,6 +246,7 @@ def modname_to_modpath(modname, hide_init=True, hide_main=True):
         Maybe make this a non-doctest and put in tests directory.
 
     Example:
+        >>> # pytest.skip
         >>> from ubelt.meta.static_analysis import *  # NOQA
         >>> import sys
         >>> modname = 'ubelt.progiter'
@@ -252,6 +256,7 @@ def modname_to_modpath(modname, hide_init=True, hide_main=True):
         >>> assert already_exists or modname not in sys.modules
 
     Example:
+        >>> # pytest.skip
         >>> from ubelt.meta.static_analysis import *  # NOQA
         >>> import sys
         >>> modname = 'ubelt.__main__'
