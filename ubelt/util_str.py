@@ -151,12 +151,12 @@ def hzcat(args, sep=''):
         >>> from ubelt.util_str import *
         >>> import ubelt as ub
         >>> aa = unicodedata.normalize('NFD', 'á')  # a unicode char with len2
-        >>> B = ub.repr2([['θ', aa], [aa, aa, aa]], nl=1, cbr=True, trailsep=False)
-        >>> C = ub.repr2([[5, 6], [7, 'θ']], nl=1, cbr=True, trailsep=False)
+        >>> B = ub.repr2([['θ', aa], [aa, aa, aa]], nl=1, si=True, cbr=True, trailsep=False)
+        >>> C = ub.repr2([[5, 6], [7, 'θ']], nl=1, si=True, cbr=True, trailsep=False)
         >>> args = ['A', '=', B, '*', C]
         >>> print(ub.hzcat(args, sep='｜'))
-        A｜=｜[['θ', 'á'],     ｜*｜[[5, 6],
-         ｜ ｜ ['á', 'á', 'á']]｜ ｜ [7, 'θ']]
+        A｜=｜[[θ, á],   ｜*｜[[5, 6],
+         ｜ ｜ [á, á, á]]｜ ｜ [7, θ]]
     """
     # TODO: ensure unicode data works correctly for python2
     args = [unicodedata.normalize('NFC', ensure_unicode(val)) for val in args]
