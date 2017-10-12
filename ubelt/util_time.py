@@ -199,10 +199,10 @@ class Timerit(object):
         # ave_secs = self.ave_secs
         if self.label is None:
             print('Timing complete, %d loops, best of %d' % (
-                self.n_loops, self.bestof))
+                self.n_loops, min(self.n_loops, self.bestof)))
         else:
             print('Timing complete for: %s, %d loops, best of %d' % (
-                self.label, self.n_loops, self.bestof))
+                self.label, self.n_loops, min(self.n_loops, self.bestof)))
         if verbose > 2:
             print('    body took: %s seconds' % self.total_time)
         print('    time per loop : %s seconds' % (self._seconds_str(),))
