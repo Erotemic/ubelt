@@ -24,20 +24,54 @@ class AutoDict(dict):
 
     Example:
         >>> import ubelt as ub
-        >>> dict_ = ub.AutoDict()
-        >>> dict_[0][10][100] = None
-        >>> assert str(dict_) == '{0: {10: {100: None}}}'
+        >>> auto = ub.AutoDict()
+        >>> auto[0][10][100] = None
+        >>> assert str(auto) == '{0: {10: {100: None}}}'
     """
+    _base = dict
+
     def __getitem__(self, key):
         try:
             # value = super(AutoDict, self).__getitem__(key)
-            value = dict.__getitem__(self, key)
+            value = self._base.__getitem__(self, key)
         except KeyError:
             value = self[key] = type(self)()
         return value
 
+    def to_dict(self):
+        """
+        Recursively casts a AutoDict into a regular dictionary. All nested
+        AutoDict values are also converted.
 
-class AutoOrderedDict(odict):
+        Returns:
+            dict: static version of this class
+
+        Example:
+            >>> from ubelt.util_dict import AutoDict
+            >>> auto = AutoDict()
+            >>> auto[1] = 1
+            >>> auto['n1'] = AutoDict()
+            >>> auto['n1']['n2'] = AutoDict()
+            >>> auto['n1']['n2'][2] = 2
+            >>> auto['n1']['n2'][3] = 3
+            >>> auto['dict'] = {}
+            >>> auto['dict']['n3'] = AutoDict()
+            >>> auto['dict']['n3']['n4'] = AutoDict()
+            >>> print('auto = {!r}'.format(auto))
+            >>> static = auto.to_dict()
+            >>> print('static = {!r}'.format(static))
+            >>> assert not isinstance(static, AutoDict), '{}'.format(type(static))
+            >>> assert not isinstance(static['n1'], AutoDict), '{}'.format(type(static['n1']))
+            >>> assert not isinstance(static['n1']['n2'], AutoDict)
+            >>> assert isinstance(static['dict']['n3'], AutoDict)
+            >>> assert isinstance(static['dict']['n3']['n4'], AutoDict)
+        """
+        return self._base(
+            (key, (value.to_dict() if isinstance(value, AutoDict) else value))
+            for key, value in self.items())
+
+
+class AutoOrderedDict(odict, AutoDict):
     """
     An an infinitely nested default dict of dicts that maintains the ordering
     of items.
@@ -45,21 +79,31 @@ class AutoOrderedDict(odict):
     SeeAlso:
         ub.AutoDict - the unordered version
 
-    Example:
+    Example0:
         >>> import ubelt as ub
-        >>> dict_ = ub.AutoOrderedDict()
-        >>> dict_[0][3] = 3
-        >>> dict_[0][2] = 2
-        >>> dict_[0][1] = 1
-        >>> assert list(dict_[0].values()) == [3, 2, 1]
+        >>> auto = ub.AutoOrderedDict()
+        >>> auto[0][3] = 3
+        >>> auto[0][2] = 2
+        >>> auto[0][1] = 1
+        >>> assert list(auto[0].values()) == [3, 2, 1]
+
+    Example1:
+        >>> # To Dict should repsect ordering
+        >>> from ubelt.util_dict import AutoOrderedDict, AutoDict
+        >>> auto = AutoOrderedDict()
+        >>> auto[0][3] = 3
+        >>> auto[0][2] = 2
+        >>> auto[0][1] = 1
+        >>> auto[0][4] = AutoDict()
+        >>> assert isinstance(auto, AutoDict)
+        >>> print('auto = {!r}'.format(auto))
+        >>> static = auto.to_dict()
+        >>> print('static = {!r}'.format(static))
+        >>> assert not isinstance(static, AutoDict), 'bad cast {}'.format(type(static))
+        >>> assert not isinstance(static[0][4], AutoDict), 'bad cast {}'.format(type(static[0][4]))
+        >>> assert list(auto[0].values())[0:3] == [3, 2, 1], 'maintain order'
     """
-    def __getitem__(self, key):
-        try:
-            # value = super(AutoOrderedDict, self).__getitem__(key)
-            value = odict.__getitem__(self, key)
-        except KeyError:
-            value = self[key] = type(self)()
-        return value
+    _base = odict
 
 
 def group_items(item_list, groupid_list, sorted_=True):
