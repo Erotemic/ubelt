@@ -7,7 +7,8 @@ import sys
 import multiprocessing
 import textwrap
 
-def indent(str_, indent='    '):
+
+def _indent(str_, indent='    '):
     return indent + str_.replace('\n', '\n' + indent)
 
 
@@ -52,8 +53,8 @@ def __execute_fromimport_star(module, modname, imports, ignore_list=[],
                      'zip', 'map', 'range', 'list', 'zip_longest', 'filter',
                      'filterfalse', 'dirname', 'realpath', 'join', 'exists',
                      'normpath', 'splitext', 'expanduser', 'relpath', 'isabs',
-                     'commonprefix', 'basename', 'input', 'reduce',
-                    ] + ignore_list)
+                     'commonprefix', 'basename', 'input', 'reduce'] +
+                    ignore_list)
 
     for name in imports:
         #absname = modname + '.' + name
@@ -120,15 +121,18 @@ def _initstr(modname, imports, from_imports, withheader=True):
     ] if len(str_) > 0])
     return initstr
 
+
 def _make_module_header():
     return '\n'.join([
-        '# flake8: noqa',
+        '# flake8:' + ' noqa',  # the plus prevents it from triggering on this file
         'from __future__ import absolute_import, division, print_function, unicode_literals'])
+
 
 def _make_imports_str(imports, rootmodname='.'):
     imports_fmtstr = 'from {rootmodname} import %s'.format(
         rootmodname=rootmodname)
     return '\n'.join([imports_fmtstr % (name,) for name in imports])
+
 
 def _make_fromimport_str(from_imports, rootmodname='.'):
     if rootmodname == '.':
@@ -145,13 +149,13 @@ def _make_fromimport_str(from_imports, rootmodname='.'):
             rawstr = ''
 
         # not sure why this isn't 76? >= maybe?
-        import textwrap
         packstr = '\n'.join(textwrap.wrap(rawstr, break_long_words=False,
                                           width=79, initial_indent='',
                                           subsequent_indent=newline_prefix))
         return packstr
     from_str = '\n'.join(map(_pack_fromimport, from_imports))
     return from_str
+
 
 def dynamic_import(modname, imports, ignore_froms=[],
                    dump=False, ignore_startswith=[], ignore_endswith=[],
@@ -194,40 +198,46 @@ def dynamic_import(modname, imports, ignore_froms=[],
         is_main_proc = multiprocessing.current_process().name == 'MainProcess'
         if is_main_proc:
             initstr = _initstr(modname, imports, from_imports)
-            print(indent(initstr))
+            print(_indent(initstr))
     # Overwrite the __init__.py file with new explicit imports
     if overwrite_requested:
         is_main_proc = multiprocessing.current_process().name == 'MainProcess'
         if is_main_proc:
-            from os.path import join, exists
-            initstr = _initstr(modname, imports, from_imports, withheader=False)
-            new_else = indent(initstr)
-            #print(new_else)
-            # Get path to init file so we can overwrite it
-            init_fpath = join(module.__path__[0], '__init__.py')
-            print('attempting to update: %r' % init_fpath)
-            assert exists(init_fpath)
-            new_lines = []
-            editing = False
-            updated = False
-            #start_tag = '# <AUTOGEN_INIT>'
-            #end_tag = '# </AUTOGEN_INIT>'
-            with open(init_fpath, 'r') as file_:
-                #text = file_.read()
-                lines = file_.readlines()
-                for line in lines:
-                    if not editing:
-                        new_lines.append(line)
-                    if line.strip().startswith('# <AUTOGEN_INIT>'):
-                        new_lines.append('\n' + new_else + '\n    # </AUTOGEN_INIT>\n')
-                        editing = True
-                        updated = True
-                    if line.strip().startswith('# </AUTOGEN_INIT>'):
-                        editing = False
-            if updated:
-                print('writing updated file: %r' % init_fpath)
-                new_text = ''.join(new_lines)
-                with open(init_fpath, 'w') as file_:
-                    file_.write(new_text)
-            else:
-                print('no write hook for file: %r' % init_fpath)
+            modpath = module.__path__[0]
+            initstr = _initstr(modname, imports, from_imports,
+                               withheader=False)
+            initstr = _indent(initstr)
+            _autogen_write(modpath, initstr, with_indent=True)
+
+
+def _autogen_write(modpath, initstr):
+    from os.path import join, exists
+    #print(new_else)
+    # Get path to init file so we can overwrite it
+    init_fpath = join(modpath, '__init__.py')
+    print('attempting to update: %r' % init_fpath)
+    assert exists(init_fpath)
+    new_lines = []
+    editing = False
+    updated = False
+    #start_tag = '# <AUTOGEN_INIT>'
+    #end_tag = '# </AUTOGEN_INIT>'
+    with open(init_fpath, 'r') as file_:
+        #text = file_.read()
+        lines = file_.readlines()
+        for line in lines:
+            if not editing:
+                new_lines.append(line)
+            if line.strip().startswith('# <AUTOGEN_INIT>'):
+                new_lines.append('\n' + initstr + '\n    # </AUTOGEN_INIT>\n')
+                editing = True
+                updated = True
+            if line.strip().startswith('# </AUTOGEN_INIT>'):
+                editing = False
+    if updated:
+        print('writing updated file: %r' % init_fpath)
+        new_text = ''.join(new_lines)
+        with open(init_fpath, 'w') as file_:
+            file_.write(new_text)
+    else:
+        print('no write hook for file: %r' % init_fpath)
