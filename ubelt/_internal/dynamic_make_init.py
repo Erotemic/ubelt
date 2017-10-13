@@ -3,6 +3,7 @@
 NEEDS CLEANUP SO IT EITHER DOES THE IMPORTS OR GENERATES THE FILE, NOT BOTH
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
+from os.path import dirname, basename, join
 import sys
 import multiprocessing
 import textwrap
@@ -109,7 +110,7 @@ def __execute_fromimport_star(module, modname, imports, ignore_list=[],
     return from_imports
 
 
-def _initstr(modname, imports, from_imports, withheader=True):
+def _make_initstr(modname, imports, from_imports, withheader=True):
     """ Calls the other string makers """
     header         = _make_module_header() if withheader else ''
     import_str     = _make_imports_str(imports, modname)
@@ -157,7 +158,15 @@ def _make_fromimport_str(from_imports, rootmodname='.'):
     return from_str
 
 
-def dynamic_import(modname, imports, ignore_froms=[],
+def _find_local_modnames(pkgpath):
+    # Automatically find the imports if they are not specified
+    import glob
+    modpaths = list(map(basename, glob.glob(join(pkgpath, '*.py'))))
+    imports = [m[:-3] for m in modpaths if not m.startswith('_')]
+    return imports
+
+
+def dynamic_import(modname, imports=None, ignore_froms=[],
                    dump=False, ignore_startswith=[], ignore_endswith=[],
                    ignore_list=[], check_not_imported=True, verbose=False):
     """
@@ -169,6 +178,13 @@ def dynamic_import(modname, imports, ignore_froms=[],
     Using __import__ like this is typically not considered good style However,
     it is better than import * and this will generate the good file text that
     can be used when the module is 'frozen"
+
+    Notes:
+        >>> # The easiest way to use this in your code is to add these lines
+        >>> # to the module __init__ file
+        >>> from ubelt._internal import dynamic_import
+        >>> exec(dynamic_import(__name__))
+
     """
     if verbose:
         print('[UTIL_IMPORT] Running Dynamic Imports for modname=%r ' % modname)
@@ -177,6 +193,11 @@ def dynamic_import(modname, imports, ignore_froms=[],
         module = sys.modules[modname]
     except:
         module = __import__(modname)
+
+    if imports is None:
+        pkgpath = dirname(module.__file__)
+        imports = _find_local_modnames(pkgpath)
+
     # Import the modules
     __excecute_imports(module, modname, imports, verbose=verbose)
     # If developing do explicit import stars
@@ -194,20 +215,21 @@ def dynamic_import(modname, imports, ignore_froms=[],
     if verbose:
         print('[UTIL_IMPORT] Finished Dynamic Imports for modname=%r ' % modname)
 
+    initstr = _make_initstr(modname, imports, from_imports, withheader=False)
+
     if dump_requested:
         is_main_proc = multiprocessing.current_process().name == 'MainProcess'
         if is_main_proc:
-            initstr = _initstr(modname, imports, from_imports)
-            print(_indent(initstr))
+            _initstr = _make_initstr(modname, imports, from_imports)
+            print(_indent(_initstr))
     # Overwrite the __init__.py file with new explicit imports
     if overwrite_requested:
         is_main_proc = multiprocessing.current_process().name == 'MainProcess'
         if is_main_proc:
             modpath = module.__path__[0]
-            initstr = _initstr(modname, imports, from_imports,
-                               withheader=False)
-            initstr = _indent(initstr)
-            _autogen_write(modpath, initstr, with_indent=True)
+            _autogen_write(modpath, _indent(initstr), with_indent=True)
+
+    return initstr
 
 
 def _autogen_write(modpath, initstr):

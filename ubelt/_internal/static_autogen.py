@@ -21,10 +21,11 @@ def autogen_init(modpath_or_name, imports=None, dry=False):
 
     Notes:
         This will partially override the __init__ file. By default everything
-        after the last, multiline comment is overwritten. For more fine grained
-        control, you can specify XML-like `# <AUTOGEN_INIT>` and `#
-        </AUTOGEN_INIT>` comments around the volitle area. If specified only
-        the area between these tags will be overwritten.
+        up to the last comment / __future__ import is preserved, and everything
+        after is overriden.  For more fine grained control, you can specify
+        XML-like `# <AUTOGEN_INIT>` and `# </AUTOGEN_INIT>` comments around the
+        volitle area. If specified only the area between these tags will be
+        overwritten.
 
         To autogenerate a module on demand, its useful to keep a doctr comment
         in the __init__ file like this:
@@ -41,7 +42,7 @@ def autogen_init(modpath_or_name, imports=None, dry=False):
 
     modname, imports, from_imports = _static_parse_imports(modpath,
                                                            imports=imports)
-    initstr = _initstr(modname, imports, from_imports)
+    initstr = _initstr(modname, imports, from_imports, withheader=False)
     if dry:
         print(initstr)
     else:
@@ -99,6 +100,10 @@ def _autogen_init_write(modpath, initstr):
     init_indent = ''
     for lineno, line in enumerate(lines):
         if not explicit and line.strip() in ['"""', "'''"]:
+            startline = lineno + 1
+        if not explicit and line.strip().startswith('from __future__'):
+            startline = lineno + 1
+        if not explicit and line.strip().startswith('#'):
             startline = lineno + 1
         if line.strip().startswith('# <AUTOGEN_INIT>'):  # allow tags too
             init_indent = line[:line.find('#')]
