@@ -15,10 +15,10 @@ stable package.
 
 In addition to utility functions `utool` also contains a custom doctest
   harness and code introspection and auto-generation features.
-This port will contain a rewrite of the doctest harness.
-Some of the code introspection features will be ported, but most
-  auto-generation abilities will be ported into a new module that depends on
-  `ubelt`.
+A rewrite of the test harness has been ported to a new module called:
+[`xdoctest`](https://github.com/Erotemic/xdoctest).  A small subset of the
+auto-generation and code introspection will be ported / made visible through
+`ubelt`.
 
 
 ## Installation:
