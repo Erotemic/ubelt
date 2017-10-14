@@ -49,7 +49,6 @@ GLOBAL_MODULES = [
     'meta',
 ]
 
-
 __DYNAMIC__ = '--dyn' in sys.argv
 
 if __DYNAMIC__:
