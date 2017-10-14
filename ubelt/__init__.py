@@ -15,7 +15,6 @@ TODO:
     * inject_func_as_method
     * inject_func_as_property
     * embed
-    * repr2
     * identity
     * rsync
     * grab_file_url

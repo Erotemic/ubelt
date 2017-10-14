@@ -4,8 +4,8 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 
 def main():
-    from ubelt import util_test
-    util_test.doctest_package('ubelt')
+    import xdoctest
+    xdoctest.doctest_module('ubelt')
 
 
 if __name__ == '__main__':

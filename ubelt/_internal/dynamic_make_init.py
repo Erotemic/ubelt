@@ -227,7 +227,7 @@ def dynamic_import(modname, imports=None, ignore_froms=[],
         is_main_proc = multiprocessing.current_process().name == 'MainProcess'
         if is_main_proc:
             modpath = module.__path__[0]
-            _autogen_write(modpath, _indent(initstr), with_indent=True)
+            _autogen_write(modpath, _indent(initstr))
 
     return initstr
 
