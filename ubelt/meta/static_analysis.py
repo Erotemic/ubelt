@@ -2,9 +2,6 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 import ast
 import pkgutil
-import tokenize
-import six
-from six.moves import cStringIO as StringIO
 from os.path import (join, exists, expanduser, abspath, split, splitext,
                      isfile, dirname)
 
@@ -12,6 +9,8 @@ from os.path import (join, exists, expanduser, abspath, split, splitext,
 class TopLevelVisitor(ast.NodeVisitor):
     """
     Parses top-level function names and docstrings
+
+    REWORK: using enhancements from xdoctest
 
     References:
         # For other visit_<classname> values see
@@ -88,52 +87,7 @@ class TopLevelVisitor(ast.NodeVisitor):
         ast.NodeVisitor.generic_visit(self, node)
 
 
-def parse_docstrs(source=None, fpath=None):
-    r"""
-    Statically finds docstrings in python source
-
-    Args:
-        source (str): python text
-        fpath (str): filepath to read if source is not specified
-
-    CommandLine:
-        python -m ubelt.meta.static_analysis parse_docstrs
-
-    Example:
-        >>> from ubelt.meta.static_analysis import *  # NOQA
-        >>> import ubelt as ub
-        >>> fpath = ub.meta.static_analysis.__file__.replace('.pyc', '.py')
-        >>> parse_docstrs(fpath=fpath)
-    """
-    if source is None:  # pragma: no branch
-        with open(fpath, 'rb') as file_:
-            source = file_.read().decode('utf-8')
-    try:
-        self = TopLevelVisitor.parse(source)
-        return self.docstrs
-    except Exception:  # nocover
-        if fpath:
-            print('Failed to parse docstring for fpath=%r' % (fpath,))
-        else:
-            print('Failed to parse docstring')
-        raise
-
-
-# class PatternMatcher(object):
-#     pass
-
-# def _matches(pattern, text, method='glob'):
-#     import fnmatch
-#     import re
-#     if method == 'glob':
-#         return fnmatch.fnmatch(text, pattern)
-#     elif method == 'glob':
-#         return re.match(pattern, text) is not None
-#     else:
-#         raise KeyError('unknown method=%r' % method)
-
-
-def package_modnames(package_name, with_pkg=False, with_mod=True,
+def package_modnames(package_name, with_pkg=False, with_mod=True,  # nocover
                      ignore_patterns=[]):
     r"""
     Finds sub-packages and sub-modules belonging to a package.
@@ -191,9 +145,11 @@ def package_modnames(package_name, with_pkg=False, with_mod=True,
                 yield modname
 
 
-def modpath_to_modname(modpath):
+def modpath_to_modname(modpath):  # nocover
     r"""
     Determines importable name from file path
+
+    DEPRICATE: in favor of version from xdoctest
 
     Args:
         modpath (str): module filepath
@@ -228,9 +184,11 @@ def modpath_to_modname(modpath):
     return modname
 
 
-def modname_to_modpath(modname, hide_init=True, hide_main=True):
+def modname_to_modpath(modname, hide_init=True, hide_main=True):  # nocover
     r"""
     Determines the path to a python module without directly import it
+
+    DEPRICATE: in favor of version from xdoctest
 
     Args:
         modname (str): module filepath
@@ -285,55 +243,6 @@ def modname_to_modpath(modname, hide_init=True, hide_main=True):
             if exists(main_modpath):  # pragma: no branch
                 modpath = main_modpath
     return modpath
-
-
-def is_complete_statement(lines):
-    """
-    Checks if the lines form a complete python statment.
-    Currently only handles balanced parans.
-
-    Args:
-        lines (list): list of strings
-
-    Doctest:
-        >>> from ubelt.meta.static_analysis import *  # NOQA
-        >>> assert is_complete_statement(['print(foobar)'])
-        >>> assert is_complete_statement(['foo = bar']) is True
-        >>> assert is_complete_statement(['foo = (']) is False
-        >>> assert is_complete_statement(['foo = (', "')(')"]) is True
-        >>> assert is_complete_statement(
-        >>>     ['foo = (', "'''", ")]'''", ')']) is True
-        >>> #assert is_complete_statement(['foo = ']) is False
-        >>> #assert is_complete_statement(['== ']) is False
-
-    """
-    # import token
-    if six.PY2:
-        block = '\n'.join(lines).encode('utf8')
-    else:
-        block = '\n'.join(lines)
-    stream = StringIO()
-    stream.write(block)
-    stream.seek(0)
-    try:
-        # tokens = []
-        for t in tokenize.generate_tokens(stream.readline):
-            # tok_type = token.tok_name[t[0]]
-            # tokens.append((tok_type, t[1]))
-            pass
-    except tokenize.TokenError as ex:
-        message = ex.args[0]
-        if message.startswith('EOF in multi-line'):
-            return False
-        raise
-    else:
-        # FIXME: breaks on try: Except: else:
-        # try:
-        #     # Now check if forms a valid parse tree
-        #     ast.parse(block)
-        # except SyntaxError:
-        #     return False
-        return True
 
 
 if __name__ == '__main__':

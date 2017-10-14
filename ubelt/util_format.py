@@ -443,7 +443,5 @@ if __name__ == '__main__':
     CommandLine:
         python -m ubelt.util_format
     """
-    import ubelt as ub
+    import xdoctest as xdoc
     xdoc.doctest_module()
-    import utool
-    utool.embed()
