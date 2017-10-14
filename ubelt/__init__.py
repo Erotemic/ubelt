@@ -44,7 +44,6 @@ GLOBAL_MODULES = [
     'util_platform',
     'util_stress',
     'util_str',
-    'util_test',
     'util_format',
     'util_time',
     'progiter',
@@ -79,7 +78,6 @@ if _DOELSE:
     from ubelt import util_platform
     from ubelt import util_stress
     from ubelt import util_str
-    from ubelt import util_test
     from ubelt import util_format
     from ubelt import util_time
     from ubelt import progiter
@@ -107,9 +105,6 @@ if _DOELSE:
     from ubelt.util_stress import (find_nth_prime,)
     from ubelt.util_str import (CaptureStdout, cStringIO, codeblock,
                                 ensure_unicode, hzcat, indent,)
-    from ubelt.util_test import (DocExample, ExitTestException, doctest_package,
-                                 parse_docstr_examples, parse_src_want,
-                                 parse_testables,)
     from ubelt.util_format import (FormatFuncs, Formatters, dict_itemstrs,
                                    format_dict, format_list, format_object,
                                    join_itemstrs, list_itemstrs, repr2,)

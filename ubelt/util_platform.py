@@ -3,6 +3,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 from os.path import normpath, expanduser, join, exists
 import os
 import sys
+import six
 # import itertools as it
 from six.moves import zip_longest
 
@@ -515,16 +516,14 @@ def editfile(fpath, verbose=True):  # nocover
         verbose (int): verbosity
 
     DisableExample:
-        >>> # TODO: it would be nice if doctest respected this docblock header.
         >>> # This test interacts with a GUI frontend, not sure how to test.
         >>> import ubelt as ub
-        >>> ub.editfile(ub.util_test.__file__)
+        >>> ub.editfile(ub.util_platform.__file__)
         >>> ub.editfile(ub)
         >>> ub.editfile(ub.editfile)
     """
-    import six
+    from six import types
     if not isinstance(fpath, six.string_types):
-        from six import types
         if isinstance(fpath, types.ModuleType):
             fpath = fpath.__file__
         else:
