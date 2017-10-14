@@ -6,7 +6,7 @@ if __name__ == '__main__':
     package_name = 'ubelt'
     pytest_args = [
         '-p', 'no:doctest',
-        '--cov-config', 'coveragerc',
+        '--cov-config', '.coveragerc',
         '--cov-report', 'html',
         '--cov-report', 'term',
         '--xdoctest',
