@@ -222,4 +222,4 @@ if __name__ == '__main__':
         python -m ubelt.util_str all
     """
     import ubelt as ub  # NOQ
-    ub.doctest_package()
+    xdoc.doctest_module()

@@ -229,5 +229,5 @@ if __name__ == '__main__':
         python -m ubelt.util_time
         python -m ubelt.util_time all
     """
-    import ubelt as ub  # NOQA
-    ub.doctest_package()
+    import xdoctest as xdoc
+    xdoc.doctest_module()

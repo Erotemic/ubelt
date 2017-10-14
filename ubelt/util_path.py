@@ -39,5 +39,5 @@ if __name__ == '__main__':
         python -m ubelt.util_path
         python -m ubelt.util_path all
     """
-    import ubelt as ub  # NOQA
-    ub.doctest_package()
+    import xdoctest as xdoc
+    xdoc.doctest_module()

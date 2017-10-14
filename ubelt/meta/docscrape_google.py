@@ -392,5 +392,5 @@ def split_google_docblocks(docstr):
 
 
 if __name__ == '__main__':
-    import ubelt as ub  # NOQA
-    ub.doctest_package()
+    import xdoctest as xdoc
+    xdoc.doctest_module()

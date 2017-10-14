@@ -167,5 +167,5 @@ if __name__ == '__main__':
     CommandLine:
         python -m ubelt.util_io
     """
-    import ubelt as ub  # NOQA
-    ub.doctest_package()
+    import xdoctest as xdoc
+    xdoc.doctest_module()

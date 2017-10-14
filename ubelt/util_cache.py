@@ -342,5 +342,5 @@ if __name__ == '__main__':
         python -m ubelt.util_cache
         python -m ubelt.util_cache all
     """
-    import ubelt as ub  # NOQA
-    ub.doctest_package()
+    import xdoctest as xdoc
+    xdoc.doctest_module()

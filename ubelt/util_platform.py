@@ -548,5 +548,5 @@ if __name__ == '__main__':
         python -m ubelt.util_platform
         python -m ubelt.util_platform all
     """
-    import ubelt as ub  # NOQA
-    ub.doctest_package()
+    import xdoctest as xdoc
+    xdoc.doctest_module()

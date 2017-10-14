@@ -81,5 +81,5 @@ if __name__ == '__main__':
         python -m ubelt.meta.dynamic_analysis
         python -m ubelt.meta.dynamic_analysis --allexamples
     """
-    import ubelt as ub  # NOQA
-    ub.doctest_package()
+    import xdoctest as xdoc
+    xdoc.doctest_module()
