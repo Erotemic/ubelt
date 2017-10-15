@@ -1,3 +1,4 @@
 pytest
 xdoctest
 pytest-cov
+coverage >= 4.3.4
