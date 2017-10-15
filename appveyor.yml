@@ -12,8 +12,8 @@ environment:
     - PYTHON: "C:\\Python34"
     - PYTHON: "C:\\Python35"
     - PYTHON: "C:\\Python27-x64"
-    - PYTHON: "C:\\Python33-x64"
-      DISTUTILS_USE_SDK: "1"
+    #- PYTHON: "C:\\Python33-x64"
+    #  DISTUTILS_USE_SDK: "1"
     - PYTHON: "C:\\Python34-x64"
       DISTUTILS_USE_SDK: "1"
     - PYTHON: "C:\\Python35-x64"
@@ -21,8 +21,8 @@ environment:
 install:
   # We need wheel installed to build wheels
   - "%PYTHON%\\python.exe -m pip install wheel"
-  - "%PYTHON%\\python.exe -m pip -r requirements.txt"
-  - "%PYTHON%\\python.exe -m pip -r optional-requirements.txt"
+  - "%PYTHON%\\python.exe -m pip install -r requirements.txt"
+  - "%PYTHON%\\python.exe -m pip install -r optional-requirements.txt"
 
 build: off
 
