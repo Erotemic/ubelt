@@ -229,6 +229,8 @@ def userhome(username=None):
             # get the directory name for the current user
             c_users = dirname(userhome())
             userhome_dpath = join(c_users, username)
+            if not exists(userhome_dpath):
+                raise KeyError('Unknown user: {}'.format(username))
         else:
             import pwd
             try:
