@@ -1,6 +1,6 @@
 [![Travis](https://img.shields.io/travis/Erotemic/ubelt/master.svg?label=Travis%20CI)](https://travis-ci.org/Erotemic/ubelt)
 [![Codecov](https://codecov.io/github/Erotemic/ubelt/badge.svg?branch=master&service=github)](https://codecov.io/github/Erotemic/ubelt?branch=master)
-[![Appveyor](https://ci.appveyor.com/api/projects/status/github/Erotemic/ubelt?svg=True?label=AppVeyor)](https://ci.appveyor.com/project/Erotemic/ubelt/branch/master)
+[![Appveyor](https://ci.appveyor.com/api/projects/status/github/Erotemic/ubelt?svg=True,label=AppVeyor)](https://ci.appveyor.com/project/Erotemic/ubelt/branch/master)
 [![Pypi](https://img.shields.io/pypi/v/ubelt.svg)](https://pypi.python.org/pypi/ubelt)
 
 
