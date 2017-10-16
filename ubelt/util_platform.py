@@ -6,6 +6,11 @@ import sys
 import six
 # import itertools as it
 from six.moves import zip_longest
+from threading  import Thread
+if six.PY2:
+    import Queue as queue
+else:
+    import queue
 
 PY2 = sys.version_info.major == 2
 PY3 = sys.version_info.major == 3
@@ -13,6 +18,7 @@ PY3 = sys.version_info.major == 3
 WIN32  = sys.platform.startswith('win32')
 LINUX  = sys.platform.startswith('linux')
 DARWIN = sys.platform.startswith('darwin')
+POSIX = 'posix' in sys.builtin_module_names
 
 
 def platform_resource_dir():
@@ -297,9 +303,72 @@ def _textio_iterlines(stream):
         line = stream.readline()
 
 
-def _proc_iteroutput(proc):
+def _proc_async_iter_stream(proc, stream, buffersize=10):
+    """
+    Reads output from a process in a separate thread
+    """
+    def enqueue_output(proc, stream, stream_queue):
+        while proc.poll() is None:
+            line = stream.readline()
+            # print('ENQUEUE LIVE {!r} {!r}'.format(stream, line))
+            stream_queue.put(line)
+
+        for line in _textio_iterlines(stream):
+            # print('ENQUEUE FINAL {!r} {!r}'.format(stream, line))
+            stream_queue.put(line)
+
+        # print("STREAM IS DONE {!r}".format(stream))
+        stream_queue.put(None)  # signal that the stream is finished
+        # stream.close()
+    stream_queue = queue.Queue(maxsize=buffersize)
+    _thread = Thread(target=enqueue_output, args=(proc, stream, stream_queue))
+    _thread.daemon = True  # thread dies with the program
+    _thread.start()
+    return stream_queue
+
+
+def _proc_iteroutput_thread(proc):
     """
     Iterates over output from a process line by line
+
+    Yields:
+        tuple[(str, str)]: oline, eline: stdout and stderr line
+
+    References:
+        https://stackoverflow.com/questions/375427/non-blocking-read-subproc
+    """
+
+    # Create threads that read stdout / stderr and queue up the output
+    stdout_queue = _proc_async_iter_stream(proc, proc.stdout)
+    stderr_queue = _proc_async_iter_stream(proc, proc.stderr)
+
+    stdout_live = True
+    stderr_live = True
+
+    # read from the output asychronously until
+    while stdout_live or stderr_live:
+        if stdout_live:
+            try:
+                oline = stdout_queue.get_nowait()
+                stdout_live = oline is not None
+            except queue.Empty:
+                oline = None
+        if stderr_live:
+            try:
+                eline = stderr_queue.get_nowait()
+                stderr_live = eline is not None
+            except queue.Empty:
+                eline = None
+        if oline is not None or eline is not None:
+            yield oline, eline
+
+
+def _proc_iteroutput_select(proc):  # nocover
+    """
+    Iterates over output from a process line by line
+
+    UNIX only. Use `_proc_iteroutput_thread` instead for a cross platform
+    solution based on threads.
 
     Yields:
         tuple[(str, str)]: oline, eline: stdout and stderr line
@@ -333,6 +402,7 @@ def _proc_tee_output(proc, stdout=None, stderr=None):
     """
     logged_out = []
     logged_err = []
+    _proc_iteroutput = _proc_iteroutput_thread
     for oline, eline in _proc_iteroutput(proc):
         if oline:
             if stdout:
@@ -372,6 +442,7 @@ def cmd(command, shell=False, detatch=False, verbose=0, verbout=None):
 
     References:
         https://stackoverflow.com/questions/11495783/redirect-subprocess-stderr-to-stdout
+        https://stackoverflow.com/questions/7729336/how-can-i-print-and-display-subprocess-stdout-and-stderr-output-without-distorti
 
     Doctest:
         >>> import ubelt as ub
@@ -404,10 +475,6 @@ def cmd(command, shell=False, detatch=False, verbose=0, verbout=None):
         >>> assert ub.readfrom(fpath2).strip() == 'writing2'
         >>> info1['proc'].wait()
         >>> info2['proc'].wait()
-
-    # Doctest:
-    #     >>> import ubelt as ub
-    #     >>> info = ub.cmd('ping localhost -c 2', verbose=1)
     """
     import shlex
     import subprocess
