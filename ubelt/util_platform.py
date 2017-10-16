@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
-from os.path import normpath, expanduser, join, exists
+from os.path import normpath, expanduser, join, exists, dirname
 import os
 import sys
 import six
@@ -163,8 +163,7 @@ def ensuredir(dpath, mode=0o1777, verbose=None):
             print('[ubelt] mkdir(%r)' % dpath)
         try:
             os.makedirs(normpath(dpath), mode=mode)
-        except OSError as ex:  # nocover
-            print('Error in ensuredir')
+        except OSError:  # nocover
             raise
     return dpath
 
@@ -199,7 +198,7 @@ def userhome(username=None):
         username (str): name of a user on the system
 
     Returns:
-        str: home_dpath: path to the home directory
+        str: userhome_dpath: path to the home directory
 
     Example:
         >>> from ubelt.util_platform import *
@@ -209,19 +208,35 @@ def userhome(username=None):
         >>> assert userhome(username) == expanduser('~')
     """
     if username is None:
+        # get home directory for the current user
         if 'HOME' in os.environ:
-            home_dpath = os.environ['HOME']
+            userhome_dpath = os.environ['HOME']
         else:  # nocover
-            import pwd
-            home_dpath = pwd.getpwuid(os.getuid()).pw_dir
+            if WIN32:
+                if 'USERPROFILE' in os.environ:
+                    userhome_dpath = os.environ['USERPROFILE']
+                elif 'HOMEPATH' in os.environ:
+                    drive = os.environ.get('HOMEDRIVE', '')
+                    userhome_dpath = join(drive, os.environ['HOMEPATH'])
+                else:
+                    raise OSError("Cannot determine the user's home directory")
+            else:
+                import pwd
+                userhome_dpath = pwd.getpwuid(os.getuid()).pw_dir
     else:
-        import pwd
-        try:
-            pwent = pwd.getpwnam(username)
-        except KeyError:  # nocover
-            raise KeyError('Unknown user: {}'.format(username))
-        home_dpath = pwent.pw_dir
-    return home_dpath
+        # A specific user directory was requested
+        if WIN32:  # nocover
+            # get the directory name for the current user
+            c_users = dirname(userhome())
+            userhome_dpath = join(c_users, username)
+        else:
+            import pwd
+            try:
+                pwent = pwd.getpwnam(username)
+            except KeyError:  # nocover
+                raise KeyError('Unknown user: {}'.format(username))
+            userhome_dpath = pwent.pw_dir
+    return userhome_dpath
 
 
 def compressuser(path):
@@ -243,12 +258,12 @@ def compressuser(path):
         >>> assert compressuser(path + '/1') == '~/1'
     """
     path = normpath(path)
-    home_dpath = userhome()
-    if path.startswith(home_dpath):
-        if len(path) == len(home_dpath):
+    userhome_dpath = userhome()
+    if path.startswith(userhome_dpath):
+        if len(path) == len(userhome_dpath):
             path = '~'
-        elif path[len(home_dpath)] == os.path.sep:
-            path = '~' + path[len(home_dpath):]
+        elif path[len(userhome_dpath)] == os.path.sep:
+            path = '~' + path[len(userhome_dpath):]
     return path
 
 
