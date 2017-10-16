@@ -4,14 +4,6 @@ import sys
 from os.path import expanduser, basename
 
 
-def test_compressuser():
-    path = expanduser('~')
-    assert path != '~'
-    assert ub.compressuser(path) == '~'
-    assert ub.compressuser(path + '1') == path + '1'
-    assert ub.compressuser(path + '/1') == '~/1'
-
-
 def test_compressuser_without_home():
     username = basename(expanduser('~'))
     not_the_user = 'foobar_' + username
@@ -74,7 +66,10 @@ def test_cmd_interleaved_streams_sh():
     assert result['err'] == '!E0\n!E5\n!E10\n!E15\n!E20\n!E25\n'
 
 
+@pytest.mark.skipif(sys.platform == 'win32',
+                    reason="does not run on windows")
 def test_cmd_interleaved_streams_py():
+    # apparently multiline quotes dont work on win32
     py_script = ub.codeblock(
         r'''
         python -c "
@@ -93,19 +88,3 @@ def test_cmd_interleaved_streams_py():
 
     assert result['out'] == 'O0\nO1\nO2\nO3\nO4\nO5\nO6\nO7\nO8\nO9\nO10\nO11\nO12\nO13\nO14\nO15\nO16\nO17\nO18\nO19\nO20\nO21\nO22\nO23\nO24\nO25\nO26\nO27\nO28\nO29\n'
     assert result['err'] == '!E0\n!E5\n!E10\n!E15\n!E20\n!E25\n'
-
-    # args = ['python', '-c', ub.codeblock(
-    #     r'''
-    #     import sys
-    #     import time
-    #     for i in range(30):
-    #         time.sleep(.1)
-    #         sys.stdout.write('O{}\n'.format(i))
-    #         sys.stdout.flush()
-    #         if i % 5 == 0:
-    #             sys.stderr.write('!E{}\n'.format(i))
-    #             sys.stderr.flush()
-    #     ''').lstrip()]
-
-    # print('stdout:\n' + ''.join(logged_out))
-    # print('stderr:\n' + ''.join(logged_err))

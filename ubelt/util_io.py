@@ -87,6 +87,12 @@ def readfrom(fpath, aslines=False, errors='replace', verbose=None):
         if aslines:
             text = [line.decode('utf8', errors=errors)
                     for line in file_.readlines()]
+            if sys.platform.startswith('win32'):  # nocover
+                # fix line endings on windows
+                text = [
+                    line[:-2] + '\n' if line.endswith('\r\n') else line
+                    for line in text
+                ]
         else:
             text = file_.read().decode('utf8', errors=errors)
     return text
