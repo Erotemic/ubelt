@@ -213,6 +213,7 @@ def userhome(username=None):
             userhome_dpath = os.environ['HOME']
         else:  # nocover
             if WIN32:
+                # win32 fallback when HOME is not defined
                 if 'USERPROFILE' in os.environ:
                     userhome_dpath = os.environ['USERPROFILE']
                 elif 'HOMEPATH' in os.environ:
@@ -221,6 +222,7 @@ def userhome(username=None):
                 else:
                     raise OSError("Cannot determine the user's home directory")
             else:
+                # posix fallback when HOME is not defined
                 import pwd
                 userhome_dpath = pwd.getpwuid(os.getuid()).pw_dir
     else:
@@ -257,7 +259,7 @@ def compressuser(path):
         >>> assert path != '~'
         >>> assert compressuser(path) == '~'
         >>> assert compressuser(path + '1') == path + '1'
-        >>> assert compressuser(path + '/1') == '~/1'
+        >>> assert compressuser(path + '/1') == join('~', '1')
     """
     path = normpath(path)
     userhome_dpath = userhome()

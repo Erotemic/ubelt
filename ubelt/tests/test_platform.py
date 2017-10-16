@@ -1,5 +1,5 @@
 import ubelt as ub
-from os.path import expanduser
+from os.path import expanduser, basename
 
 
 def test_compressuser():
@@ -11,9 +11,7 @@ def test_compressuser():
 
 
 def test_compressuser_without_home():
-    import pwd
-    import os
-    username = pwd.getpwuid(os.getuid()).pw_name
+    username = basename(expanduser('~'))
     not_the_user = 'foobar_' + username
     ub.compressuser(not_the_user) == not_the_user
 
