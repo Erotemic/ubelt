@@ -95,24 +95,24 @@ def download(url, fpath=None, chunk_size=None, hash_prefix=None, verbose=True):
 
     tmp = tempfile.NamedTemporaryFile(delete=False)
     try:
-        if hash_prefix:
-            sha256 = hashlib.sha256()
+        # if hash_prefix:
+        #     sha256 = hashlib.sha256()
         with tqdm(total=file_size, disable=not verbose) as pbar:
             while True:
                 buffer = urldata.read(8192)
                 if len(buffer) == 0:
                     break
                 tmp.write(buffer)
-                if hash_prefix:
-                    sha256.update(buffer)
+                # if hash_prefix:
+                #     sha256.update(buffer)
                 pbar.update(len(buffer))
 
         tmp.close()
-        if hash_prefix:
-            digest = sha256.hexdigest()
-            if digest[:len(hash_prefix)] != hash_prefix:
-                raise RuntimeError('invalid hash value (expected "{}", got "{}")'
-                                   .format(hash_prefix, digest))
+        # if hash_prefix:
+        #     digest = sha256.hexdigest()
+        #     if digest[:len(hash_prefix)] != hash_prefix:
+        #         raise RuntimeError('invalid hash value (expected "{}", got "{}")'
+        #                            .format(hash_prefix, digest))
         shutil.move(tmp.name, fpath)
     finally:
         tmp.close()
