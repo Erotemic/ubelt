@@ -2,26 +2,26 @@ from os.path import basename, join, exists
 import sys
 import os
 import shutil
-from ubelt import util_platform
 import tempfile
+from ubelt import util_platform
 
 
-try:
+try:  # nocover
     from requests.utils import urlparse
     import requests.get as urlopen
-    requests_available = True
-except ImportError:
-    requests_available = False
+    _have_requests = True
+except ImportError:  # nocover
+    _have_requests = False
     if sys.version_info[0] == 2:
-        from urlparse import urlparse  # noqa f811
-        from urllib2 import urlopen  # noqa f811
+        from urlparse import urlparse  # NOQA
+        from urllib2 import urlopen  # NOQA
     else:
         from urllib.request import urlopen  # NOQA
         from urllib.parse import urlparse  # NOQA
 
-try:
+try:  # nocover
     from tqdm import tqdm
-except ImportError:
+except ImportError:  # nocover
     # fake tqdm if it's not installed
     class tqdm(object):
 
@@ -41,14 +41,14 @@ except ImportError:
             sys.stderr.write('\n')
 
 
-def download(url, fpath=None, chunk_size=None, hash_prefix=None, verbose=True):
+def download(url, fpath=None, hash_prefix=None, chunksize=8192, verbose=True):
     """
     downloads a url to a fpath.
 
     Args:
         url (str): url to download
         fpath (str): path to download to. Defaults to basename of url
-        chunk_size (int): download chunksize
+        chunksize (int): download chunksize
         verbose (bool): verbosity
 
     Notes:
@@ -65,22 +65,18 @@ def download(url, fpath=None, chunk_size=None, hash_prefix=None, verbose=True):
 
     Example:
         >>> from ubelt.util_download import *  # NOQA
-        >>> url = 'http://i.imgur.com/JGrqMnV.png'
+        >>> url = 'http://i.imgur.com/rqwaDag.png'
         >>> fpath = download(url)
         >>> print(basename(fpath))
-        JGrqMnV.png
+        rqwaDag.png
     """
     if fpath is None:
         dpath = util_platform.ensure_app_cache_dir('ubelt')
         fname = basename(url)
         fpath = join(dpath, fname)
 
-    if chunk_size is None:
-        chunk_size = 2 ** 13  # 8192
-        # chunk_size = 2 ** 20
-
     urldata = urlopen(url)
-    if requests_available:
+    if _have_requests:
         file_size = int(urldata.headers["Content-Length"])
         urldata = urldata.raw
     else:
@@ -116,18 +112,15 @@ def download(url, fpath=None, chunk_size=None, hash_prefix=None, verbose=True):
         shutil.move(tmp.name, fpath)
     finally:
         tmp.close()
-        if os.path.exists(tmp.name):
+        if exists(tmp.name):
             os.remove(tmp.name)
     return fpath
 
 
-def grab_file(url, fpath=None, dpath=None, fname=None, redownload=False,
-              verbose=1, **download_kw):
+def grabdata(url, fpath=None, dpath=None, fname=None, redo=False,
+             verbose=1, **download_kw):
     """
-    Downloads a file and returns the local path of the file.
-
-    The resulting file is cached, so multiple calls to this function do not
-    result in multiple dowloads.
+    Downloads a file, caches it, and returns its local path.
 
     Args:
         url (str): url to the file to download
@@ -137,36 +130,31 @@ def grab_file(url, fpath=None, dpath=None, fname=None, redownload=False,
             application cache.
         fname (str): What to name the downloaded file. Defaults to the url
             basename.
-        redownload (bool): if True forces redownload of the file
-            (default = False)
+        redo (bool): if True forces redownload of the file (default = False)
         verbose (bool):  verbosity flag (default = True)
+        **download_kw: additional kwargs to pass to ub.download
 
     Returns:
         str: fpath - file path string
 
-    CommandLine:
-        python -m utool.util_grabdata --test-grab_file_url:0
-
     Example:
         >>> import ubelt as ub
-        >>> file_url = 'http://i.imgur.com/JGrqMnV.png'
-        >>> redownload = True
-        >>> fname = 'lena.png'
-        >>> lena_fpath = ub.grab_data(file_url, fname=fname, redownload=redownload)
+        >>> file_url = 'http://i.imgur.com/rqwaDag.png'
+        >>> lena_fpath = ub.grabdata(file_url, fname='mario.png')
         >>> result = basename(lena_fpath)
         >>> print(result)
-        lena.png
+        mario.png
     """
     if fpath is None:
-        dpath = util_platform.ensure_app_cache_dir('ubelt')
+        if dpath is None:
+            dpath = util_platform.ensure_app_cache_dir('ubelt')
         if fname is None:
             fname = basename(url)
-        if fpath is None:
-            fpath = join(dpath, fname)
+        fpath = join(dpath, fname)
     elif dpath is not None or fname is not None:
         raise ValueError('Cannot specify dpath or fname with fpath')
 
-    if redownload or not exists(fpath):
+    if redo or not exists(fpath):
         if verbose:
             print('Downloading file %s' % fpath)
         fpath = download(url, fpath, verbose=verbose, **download_kw)
@@ -174,3 +162,12 @@ def grab_file(url, fpath=None, dpath=None, fname=None, redownload=False,
         if verbose:
             print('Already have file %s' % fpath)
     return fpath
+
+
+if __name__ == '__main__':
+    r"""
+    CommandLine:
+        python -m ubelt.util_download
+    """
+    import xdoctest
+    xdoctest.doctest_module(__file__)
