@@ -543,7 +543,7 @@ def cmd(command, shell=False, detatch=False, verbose=0, verbout=None):
             'ret': ret,
         }
         if verbose >= 3:  # nocover
-            print('L___ END CMD ___')
+            print('L___ END CMD ___')  # TODO: use nicer unicode chars
     return info
 
 

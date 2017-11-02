@@ -176,9 +176,9 @@ class ProgIter(object):
             >>> prog = ub.ProgIter(range(100, 300, 100), show_times=False, verbose=3)
             >>> for n in prog:
             >>>     prog.set_extra('processesing num {}'.format(n))
-             0/2...
-             1/2...  processesing num 100
-             2/2...  processesing num 200
+            0/2...
+            1/2...  processesing num 100
+            2/2...  processesing num 200
         """
         self.extra = extra
 

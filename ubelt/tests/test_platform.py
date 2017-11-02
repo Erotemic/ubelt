@@ -33,12 +33,14 @@ def test_cmd_multiline_stdout():
     import threading
     # check which threads currently exist (ideally 1)
     existing_threads = list(threading.enumerate())
+    print('existing_threads = {!r}'.format(existing_threads))
 
     command = 'python -c "for i in range(100): print(str(i))"'
     result = ub.cmd(command, verbose=2)
     assert result['out'] == '\n'.join(list(map(str, range(100)))) + '\n'
 
     after_threads = list(threading.enumerate())
+    print('after_threads = {!r}'.format(after_threads))
     assert len(existing_threads) <= len(after_threads), (
         'we should be cleaning up our threads')
 
