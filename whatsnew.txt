@@ -1,12 +1,19 @@
-version: 0.0.28
+version: 0.0.34
 ---------------
-FEATURE: Added AutoDict and AutoOrderedDict.
+FEATURE: Added ub.download and ub.grabdata
 
-version: 0.0.31
----------------
-FEATURE: Added argflag and argval
 
 version: 0.0.33
 ---------------
-FEATURE: Added repr2 and hzcat
-FEATURE: Added color_text
+FEATURE: Added ub.repr2 and ub.hzcat
+FEATURE: Added ub.color_text
+
+
+version: 0.0.31
+---------------
+FEATURE: Added ub.argflag and ub.argval
+
+
+version: 0.0.28
+---------------
+FEATURE: Added ub.AutoDict and ub.AutoOrderedDict.
