@@ -68,10 +68,14 @@ def _static_parse_imports(modpath, imports=None, use_all=True):
     else:
         imports = []
         import_paths = []
-        for sub_modpath in static.package_modpaths(modpath):
+        for sub_modpath in static.package_modpaths(modpath, with_pkg=True,
+                                                   recursive=False):
+            print('sub_modpath = {!r}'.format(sub_modpath))
             sub_modname = static.modpath_to_modname(sub_modpath)
             rel_modname = sub_modname[len(modname) + 1:]
             if rel_modname.startswith('_'):
+                continue
+            if not rel_modname:
                 continue
             imports.append(rel_modname)
             import_paths.append(sub_modpath)

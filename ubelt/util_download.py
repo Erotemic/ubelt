@@ -26,22 +26,28 @@ except ImportError:  # nocover
     class tqdm(object):
 
         def __init__(self, total, disable=False):
+            from ubelt import progiter
+            self.prog = progiter.ProgIter(length=total, enabled=not disable)
             self.disable = disable
-            self.total = total
-            self.n = 0
+            # self.total = total
+            # self.n = 0
 
         def update(self, n):
-            self.n += n
+            # self.n += n
             if not self.disable:
-                sys.stderr.write("\r{0:.1f}%".format(100 * self.n / float(self.total)))
-                sys.stderr.flush()
+                self.prog.step(n)
+                # sys.stderr.write("\r{0:.1f}%".format(100 * self.n / float(self.total)))
+                # sys.stderr.flush()
 
         def __enter__(self):
+            if not self.disable:
+                self.prog.begin()
             return self
 
         def __exit__(self, exc_type, exc_val, exc_tb):
             if not self.disable:
-                sys.stderr.write('\n')
+                self.prog.end()
+                # sys.stderr.write('\n')
 
 
 def download(url, fpath=None, hash_prefix=None, chunksize=8192, verbose=True):

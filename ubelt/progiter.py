@@ -77,6 +77,7 @@ class ProgIter(object):
         time_thresh (float): desired amount of time to wait between messages if
             adjust is True otherwise does nothing
         show_times (bool): shows rate, eta, and wall (defaults to True)
+        start (int): starting index offset (defaults to 0)
         stream (file): defaults to sys.stdout
         enabled (bool): if False nothing happens.
         verbose (int): verbosity mode
@@ -107,8 +108,9 @@ class ProgIter(object):
         100/100... rate=301748.49 Hz, total=0:00:00, wall=10:47 EST
     """
     def __init__(self, iterable=None, label=None, length=None, freq=1,
-                 eta_window=64, clearline=True, adjust=True, time_thresh=2.0,
-                 show_times=True, enabled=True, verbose=None, stream=None):
+                 start=0, eta_window=64, clearline=True, adjust=True,
+                 time_thresh=2.0, show_times=True, enabled=True, verbose=None,
+                 stream=None):
         if label is None:
             label = ''
         if verbose is not None:
@@ -128,6 +130,7 @@ class ProgIter(object):
         self.label = label
         self.length = length
         self.freq = freq
+        self.offset = start
         self.enabled = enabled
         self.adjust = adjust
         self.show_times = show_times
@@ -177,8 +180,8 @@ class ProgIter(object):
             >>> for n in prog:
             >>>     prog.set_extra('processesing num {}'.format(n))
             0/2...
-            1/2...  processesing num 100
-            2/2...  processesing num 200
+            1/2...processesing num 100
+            2/2...processesing num 200
         """
         self.extra = extra
 
@@ -186,7 +189,7 @@ class ProgIter(object):
         if not self.started:
             self.begin()
         # Wrap input iterable in a generator
-        for self._iter_idx, item in enumerate(self.iterable, start=1):
+        for self._iter_idx, item in enumerate(self.iterable, start=self.offset + 1):
             yield item
             if (self._iter_idx) % self.freq == 0:
                 # update progress information every so often
@@ -234,12 +237,12 @@ class ProgIter(object):
         self._est_seconds_left = None
         self._total_seconds = 0
         self._between_time = 0
-        self._iter_idx = 0
-        self._last_idx = -1
+        self._iter_idx = self.offset
+        self._last_idx = self.offset - 1
         # now time is actually not right now
         # now refers the the most recent measurment
         # last refers to the measurement before that
-        self._now_idx = 0
+        self._now_idx = self.offset
         self._now_time = 0
         self._between_count = -1
         self._max_between_time = -1.0
@@ -380,7 +383,11 @@ class ProgIter(object):
             (self.label),
             (' {iter_idx:' + str(n_chrs) + 'd}/'),
             ('?' if length_unknown else six.text_type(self.length)),
-            ('... '),
+            ('...'),
+        ]
+
+        msg_body += [
+            ('{extra} '),
         ]
 
         if self.show_times:
@@ -390,9 +397,6 @@ class ProgIter(object):
                     (' total={total},'),
                     (' wall={wall} ' + tzname),
             ]
-        msg_body += [
-            (' {extra}'),
-        ]
         if self.clearline:
             msg_body = [CLEAR_BEFORE] + msg_body + [CLEAR_AFTER]
         else:

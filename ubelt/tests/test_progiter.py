@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
+from six.moves import cStringIO
+from ubelt.progiter import ProgIter
 
 
 def test_progiter():
-    from six.moves import cStringIO
-    from ubelt.progiter import ProgIter
     from ubelt import Timer
     # Define a function that takes some time
     def is_prime(n):
@@ -74,6 +74,35 @@ def test_progiter():
         piterable = ProgIter(iterable, length=length, adjust=False,
                              clearline=False, freq=100, label='demo3')
         list(piterable)
+
+
+def test_progiter_offset_10():
+    """
+    pytest -s  ~/code/ubelt/ubelt/tests/test_progiter.py::test_progiter_offset_10
+    """
+    # Define a function that takes some time
+    stream = cStringIO()
+    list(ProgIter(range(10), length=20, verbose=3, start=10, stream=stream,
+                  freq=5, show_times=False))
+    stream.seek(0)
+    want = ['10/20...', '15/20...', '20/20...']
+    got = [line.strip() for line in stream.readlines()]
+    assert got == want
+
+
+def test_progiter_offset_0():
+    """
+    pytest -s  ~/code/ubelt/ubelt/tests/test_progiter.py::test_progiter_offset_0
+    """
+    # Define a function that takes some time
+    stream = cStringIO()
+    for _ in ProgIter(range(10), length=20, verbose=3, start=0, stream=stream,
+                      freq=5, show_times=False):
+        pass
+    stream.seek(0)
+    want = ['0/20...', '5/20...', '10/20...']
+    got = [line.strip() for line in stream.readlines()]
+    assert got == want
 
 
 def time_progiter_overhead():
