@@ -25,20 +25,23 @@ except ImportError:  # nocover
     # fake tqdm if it's not installed
     class tqdm(object):
 
-        def __init__(self, total):
+        def __init__(self, total, disable=False):
+            self.disable = disable
             self.total = total
             self.n = 0
 
         def update(self, n):
             self.n += n
-            sys.stderr.write("\r{0:.1f}%".format(100 * self.n / float(self.total)))
-            sys.stderr.flush()
+            if not self.disable:
+                sys.stderr.write("\r{0:.1f}%".format(100 * self.n / float(self.total)))
+                sys.stderr.flush()
 
         def __enter__(self):
             return self
 
         def __exit__(self, exc_type, exc_val, exc_tb):
-            sys.stderr.write('\n')
+            if not self.disable:
+                sys.stderr.write('\n')
 
 
 def download(url, fpath=None, hash_prefix=None, chunksize=8192, verbose=True):
