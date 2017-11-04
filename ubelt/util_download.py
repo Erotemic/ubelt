@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
 from os.path import basename, join, exists
 import sys
 import os
@@ -23,34 +26,18 @@ try:  # nocover
     from tqdm import tqdm
 except ImportError:  # nocover
     # fake tqdm if it's not installed
-    class tqdm(object):
-
+    from ubelt import progiter
+    class FakeTQDM(progiter.ProgIter):
         def __init__(self, total, disable=False):
-            from ubelt import progiter
-            self.prog = progiter.ProgIter(length=total, enabled=not disable)
-            self.disable = disable
-            # self.total = total
-            # self.n = 0
+            super(FakeTQDM, self).__init__(enabled=not disable, length=total)
 
         def update(self, n):
-            # self.n += n
-            if not self.disable:
-                self.prog.step(n)
-                # sys.stderr.write("\r{0:.1f}%".format(100 * self.n / float(self.total)))
-                # sys.stderr.flush()
-
-        def __enter__(self):
-            if not self.disable:
-                self.prog.begin()
-            return self
-
-        def __exit__(self, exc_type, exc_val, exc_tb):
-            if not self.disable:
-                self.prog.end()
-                # sys.stderr.write('\n')
+            if self.enabled:
+                self.step(n)
+    tqdm = FakeTQDM
 
 
-def download(url, fpath=None, hash_prefix=None, chunksize=8192, verbose=True):
+def download(url, fpath=None, hash_prefix=None, chunksize=8192, verbose=1):
     """
     downloads a url to a fpath.
 
@@ -68,9 +55,6 @@ def download(url, fpath=None, hash_prefix=None, chunksize=8192, verbose=True):
         http://blog.moleculea.com/2012/10/04/urlretrieve-progres-indicator/
         http://stackoverflow.com/questions/15644964/python-progress-bar-and-downloads
         http://stackoverflow.com/questions/16694907/how-to-download-large-file-in-python-with-requests-py
-
-    TODO:
-        Delete any partially downloaded files
 
     Example:
         >>> from ubelt.util_download import *  # NOQA
@@ -164,11 +148,9 @@ def grabdata(url, fpath=None, dpath=None, fname=None, redo=False,
         raise ValueError('Cannot specify dpath or fname with fpath')
 
     if redo or not exists(fpath):
-        if verbose:
-            print('Downloading file %s' % fpath)
         fpath = download(url, fpath, verbose=verbose, **download_kw)
     else:
-        if verbose:
+        if verbose >= 2:
             print('Already have file %s' % fpath)
     return fpath
 
@@ -176,7 +158,7 @@ def grabdata(url, fpath=None, dpath=None, fname=None, redo=False,
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m ubelt.util_download
+        python -m ubelt.util_download all
     """
     import xdoctest
     xdoctest.doctest_module(__file__)

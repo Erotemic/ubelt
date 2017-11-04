@@ -40,8 +40,11 @@ else:  # nocover
 
 
 def _infer_length(iterable):
-    # use PEP 424 length hint if available
-    # adapted from click implementation
+    """
+    Try and infer the length using the PEP 424 length hint if available.
+
+    adapted from click implementation
+    """
     try:
         return len(iterable)
     except (AttributeError, TypeError):  # nocover
@@ -111,6 +114,10 @@ class ProgIter(object):
                  start=0, eta_window=64, clearline=True, adjust=True,
                  time_thresh=2.0, show_times=True, enabled=True, verbose=None,
                  stream=None):
+        """
+        Notes:
+            See attributes for arg information
+        """
         if label is None:
             label = ''
         if verbose is not None:
@@ -157,7 +164,7 @@ class ProgIter(object):
         self.begin()
         return self
 
-    def __exit__(self, type_, value, trace):
+    def __exit__(self, type, value, trace):
         if trace is not None:
             return False
         else:  # nocover
@@ -253,6 +260,8 @@ class ProgIter(object):
         """
         Initializes information used to measure progress
         """
+        if not self.enabled:
+            return
         # Prepare for iteration
         if self.length is None:
             self.length = _infer_length(self.iterable)
