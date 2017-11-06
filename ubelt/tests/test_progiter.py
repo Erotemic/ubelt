@@ -3,6 +3,61 @@ from six.moves import cStringIO
 from ubelt.progiter import ProgIter
 
 
+def test_rate_format_string():
+    # Less of a test than a demo
+    rates = [1 * 10 ** i for i in range(-10, 10)]
+
+    texts = []
+    for rate in rates:
+        rate_format = '4.2f' if rate > .001 else 'g'
+        # Really cool: you can embed format strings inside format strings
+        msg = '{rate:{rate_format}}'.format(rate=rate, rate_format=rate_format)
+        texts.append(msg)
+    assert texts == ['1e-10',
+                     '1e-09',
+                     '1e-08',
+                     '1e-07',
+                     '1e-06',
+                     '1e-05',
+                     '0.0001',
+                     '0.001',
+                     '0.01',
+                     '0.10',
+                     '1.00',
+                     '10.00',
+                     '100.00',
+                     '1000.00',
+                     '10000.00',
+                     '100000.00',
+                     '1000000.00',
+                     '10000000.00',
+                     '100000000.00',
+                     '1000000000.00']
+
+
+def test_rate_format():
+    # Define a function that takes some time
+    import ubelt as ub
+    stream = cStringIO()
+    prog = ub.ProgIter(stream=stream)
+    prog.begin()
+
+    prog._iters_per_second = .000001
+    msg = prog.format_message()
+    rate_part = msg.split('rate=')[1].split(' Hz')[0]
+    assert rate_part == '1e-06'
+
+    prog._iters_per_second = .1
+    msg = prog.format_message()
+    rate_part = msg.split('rate=')[1].split(' Hz')[0]
+    assert rate_part == '0.10'
+
+    prog._iters_per_second = 10000
+    msg = prog.format_message()
+    rate_part = msg.split('rate=')[1].split(' Hz')[0]
+    assert rate_part == '10000.00'
+
+
 def test_progiter():
     from ubelt import Timer
     # Define a function that takes some time

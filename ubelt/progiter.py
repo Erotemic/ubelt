@@ -401,7 +401,7 @@ class ProgIter(object):
 
         if self.show_times:
             msg_body += [
-                    ('rate={rate:4.2f} Hz,'),
+                    ('rate={rate:{rate_format}} Hz,'),
                     (' eta={eta},' if self.length else ''),
                     (' total={total},'),
                     (' wall={wall} ' + tzname),
@@ -425,6 +425,7 @@ class ProgIter(object):
         msg = self._msg_fmtstr.format(
             iter_idx=self._now_idx,
             rate=self._iters_per_second,
+            rate_format='4.2f' if self._iters_per_second > .001 else 'g',
             eta=eta, total=total,
             wall=time.strftime('%H:%M'),
             extra=self.extra,
