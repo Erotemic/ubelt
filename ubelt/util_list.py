@@ -8,17 +8,17 @@ from six.moves import zip_longest
 
 class chunks(object):
     """
-    Generates successive n-sized chunks from `iterable`.
+    Generates successive n-sized chunks from `sequence`.
     If the last chunk has less than n elements, `bordermode` is used to
     determine fill values.
 
     Args:
-        iterable (list): input to iterate over
+        sequence (list): input to iterate over
         chunksize (int): size of each sublist yielded
         nchunks (int): number of chunks to create (
             cannot be specified with chunksize)
         bordermode (str): determines how to handle the last case if the
-            length of the iterable is not divisible by chunksize valid values
+            length of the sequence is not divisible by chunksize valid values
             are: {'none', 'cycle', 'replicate'}
 
     References:
@@ -29,12 +29,12 @@ class chunks(object):
 
     Example:
         >>> import ubelt as ub
-        >>> iterable = [1, 2, 3, 4, 5, 6, 7]
-        >>> genresult = ub.chunks(iterable, chunksize=3, bordermode='none')
+        >>> sequence = [1, 2, 3, 4, 5, 6, 7]
+        >>> genresult = ub.chunks(sequence, chunksize=3, bordermode='none')
         >>> assert list(genresult) == [[1, 2, 3], [4, 5, 6], [7]]
-        >>> genresult = ub.chunks(iterable, chunksize=3, bordermode='cycle')
+        >>> genresult = ub.chunks(sequence, chunksize=3, bordermode='cycle')
         >>> assert list(genresult) == [[1, 2, 3], [4, 5, 6], [7, 1, 2]]
-        >>> genresult = ub.chunks(iterable, chunksize=3, bordermode='replicate')
+        >>> genresult = ub.chunks(sequence, chunksize=3, bordermode='replicate')
         >>> assert list(genresult) == [[1, 2, 3], [4, 5, 6], [7, 7, 7]]
 
     Doctest:
@@ -45,56 +45,56 @@ class chunks(object):
         >>> assert len(list(ub.chunks([], 2, None, 'cycle'))) == 0
         >>> assert len(list(ub.chunks([], 2, None, 'replicate'))) == 0
     """
-    def __init__(self, iterable, chunksize=None, nchunks=None,
+    def __init__(self, sequence, chunksize=None, nchunks=None,
                  bordermode='none'):
         if nchunks is not None and chunksize is not None:  # nocover
             raise ValueError('Cannot specify both chunksize and nchunks')
         if nchunks is not None:
-            chunksize = int(math.ceil(len(iterable) / nchunks))
+            chunksize = int(math.ceil(len(sequence) / nchunks))
 
         self.bordermode = bordermode
-        self.iterable = iterable
+        self.sequence = sequence
         self.chunksize = chunksize
 
     def __iter__(self):
         bordermode = self.bordermode
-        iterable = self.iterable
+        sequence = self.sequence
         chunksize = self.chunksize
         if bordermode is None or bordermode == 'none':
-            return self.noborder(iterable, chunksize)
+            return self.noborder(sequence, chunksize)
         elif bordermode == 'cycle':
-            return self.cycle(iterable, chunksize)
+            return self.cycle(sequence, chunksize)
         elif bordermode == 'replicate':
-            return self.replicate(iterable, chunksize)
+            return self.replicate(sequence, chunksize)
         else:
             raise ValueError('unknown bordermode=%r' % (bordermode,))
 
     @staticmethod
-    def noborder(iterable, chunksize):
+    def noborder(sequence, chunksize):
         # feed the same iter to zip_longest multiple times, this causes it to
         # consume successive values of the same sequence
         sentinal = object()
-        copied_iters = [iter(iterable)] * chunksize
+        copied_iters = [iter(sequence)] * chunksize
         chunks_with_sentinals = zip_longest(*copied_iters, fillvalue=sentinal)
         # Dont fill empty space in the last chunk, just return it as is
         for chunk in chunks_with_sentinals:
             yield [item for item in chunk if item is not sentinal]
 
     @staticmethod
-    def cycle(iterable, chunksize):
+    def cycle(sequence, chunksize):
         sentinal = object()
-        copied_iters = [iter(iterable)] * chunksize
+        copied_iters = [iter(sequence)] * chunksize
         chunks_with_sentinals = zip_longest(*copied_iters, fillvalue=sentinal)
         # Fill empty space in the last chunk with values from the beginning
-        bordervalues = it.cycle(iter(iterable))
+        bordervalues = it.cycle(iter(sequence))
         for chunk in chunks_with_sentinals:
             yield [item if item is not sentinal else six.next(bordervalues)
                    for item in chunk]
 
     @staticmethod
-    def replicate(iterable, chunksize):
+    def replicate(sequence, chunksize):
         sentinal = object()
-        copied_iters = [iter(iterable)] * chunksize
+        copied_iters = [iter(sequence)] * chunksize
         # Fill empty space in the last chunk by replicating the last value
         chunks_with_sentinals = zip_longest(*copied_iters, fillvalue=sentinal)
         for chunk in chunks_with_sentinals:
@@ -105,6 +105,34 @@ class chunks(object):
                 sizediff = (chunksize - len(filt_chunk))
                 padded_chunk = filt_chunk + [filt_chunk[-1]] * sizediff
                 yield padded_chunk
+
+
+def iterable(obj, strok=False):
+    """
+    Checks if the input implements the iterator interface. An exception is made
+    for strings, which return False unless `strok` is True
+
+    Args:
+        obj (object): a scalar or iterable input
+        strok (bool): if True allow strings to be interpreted as iterable
+
+    Returns:
+        bool: True if the input is iterable
+
+    Example:
+        >>> import ubelt as ub
+        >>> obj_list = [3, [3], '3', (3,), [3, 4, 5], {}]
+        >>> result = [ub.iterable(obj) for obj in obj_list]
+        >>> assert result == [False, True, False, True, True, True]
+        >>> result = [ub.iterable(obj, strok=True) for obj in obj_list]
+        >>> assert result == [False, True, True, True, True, True]
+    """
+    try:
+        iter(obj)
+    except:
+        return False
+    else:
+        return strok or not isinstance(obj, six.string_types)
 
 
 def take(items, indices):
@@ -329,7 +357,7 @@ def argsort(indexable, key=None, reverse=False):
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ubelt.util_list
+        python -m ubelt.util_list all
     """
     import xdoctest as xdoc
     xdoc.doctest_module()

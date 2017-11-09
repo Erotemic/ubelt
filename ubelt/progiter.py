@@ -39,21 +39,21 @@ else:  # nocover
     AT_END = DECTCEM_SHOW + '\n'
 
 
-def _infer_length(iterable):
+def _infer_length(sequence):
     """
     Try and infer the length using the PEP 424 length hint if available.
 
     adapted from click implementation
     """
     try:
-        return len(iterable)
+        return len(sequence)
     except (AttributeError, TypeError):  # nocover
         try:
-            get_hint = type(iterable).__length_hint__
+            get_hint = type(sequence).__length_hint__
         except AttributeError:
             return None
         try:
-            hint = get_hint(iterable)
+            hint = get_hint(sequence)
         except TypeError:
             return None
         if (hint is NotImplemented or
@@ -65,12 +65,12 @@ def _infer_length(iterable):
 
 class ProgIter(object):
     """
-    Prints progress as an iterable progresses
+    Prints progress as an iterator progresses
 
     Attributes:
-        iterable (sequence): A python iterable
+        sequence (iterable): An iterable sequence
         label (int): Maximum length of the process
-            (estimated from iterable if not specified)
+            (estimated from sequence if not specified)
         label (str): Message to print
         freq (int): How many iterations to wait between messages.
         adjust (bool): if True freq is adjusted based on time_thresh
@@ -97,7 +97,7 @@ class ProgIter(object):
 
     Notes:
         Either use ProgIter in a with statement or call prog.end() at the end
-        of the computation if there is a possibility that the entire iterable
+        of the computation if there is a possibility that the entire sequence
         may not be exhausted.
 
     Example:
@@ -110,7 +110,7 @@ class ProgIter(object):
         >>>     is_prime(n)
         100/100... rate=301748.49 Hz, total=0:00:00, wall=10:47 EST
     """
-    def __init__(self, iterable=None, label=None, length=None, freq=1,
+    def __init__(self, sequence=None, label=None, length=None, freq=1,
                  start=0, eta_window=64, clearline=True, adjust=True,
                  time_thresh=2.0, show_times=True, enabled=True, verbose=None,
                  stream=None):
@@ -133,7 +133,7 @@ class ProgIter(object):
             stream = sys.stdout
 
         self.stream = stream
-        self.iterable = iterable
+        self.sequence = sequence
         self.label = label
         self.length = length
         self.freq = freq
@@ -148,8 +148,8 @@ class ProgIter(object):
         self.started = False
         self.finished = False
 
-    def __call__(self, iterable):
-        self.iterable = iterable
+    def __call__(self, sequence):
+        self.sequence = sequence
         return iter(self)
 
     def __enter__(self):
@@ -172,7 +172,7 @@ class ProgIter(object):
 
     def __iter__(self):
         if not self.enabled:  # nocover
-            return iter(self.iterable)
+            return iter(self.sequence)
         else:
             return self.iter_rate()
 
@@ -195,8 +195,8 @@ class ProgIter(object):
     def iter_rate(self):
         if not self.started:
             self.begin()
-        # Wrap input iterable in a generator
-        for self._iter_idx, item in enumerate(self.iterable, start=self.offset + 1):
+        # Wrap input sequence in a generator
+        for self._iter_idx, item in enumerate(self.sequence, start=self.offset + 1):
             yield item
             if (self._iter_idx) % self.freq == 0:
                 # update progress information every so often
@@ -240,7 +240,7 @@ class ProgIter(object):
     def reset_internals(self):
         # Prepare for iteration
         if self.length is None:
-            self.length = _infer_length(self.iterable)
+            self.length = _infer_length(self.sequence)
         self._est_seconds_left = None
         self._total_seconds = 0
         self._between_time = 0
@@ -264,7 +264,7 @@ class ProgIter(object):
             return
         # Prepare for iteration
         if self.length is None:
-            self.length = _infer_length(self.iterable)
+            self.length = _infer_length(self.sequence)
 
         self.reset_internals()
         self._msg_fmtstr = self.build_message_template()

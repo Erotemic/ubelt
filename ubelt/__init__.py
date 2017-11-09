@@ -97,7 +97,7 @@ if _DOELSE:
                                    join_itemstrs, list_itemstrs, repr2,)
     from ubelt.util_io import (delete, readfrom, touch, writeto,)
     from ubelt.util_list import (argsort, boolmask, chunks, compress, flatten,
-                                 take, unique, unique_flags,)
+                                 iterable, take, unique, unique_flags,)
     from ubelt.util_mixins import (NiceRepr,)
     from ubelt.util_path import (augpath, split,)
     from ubelt.util_platform import (DARWIN, LINUX, POSIX, PY2, PY3, Thread, WIN32,

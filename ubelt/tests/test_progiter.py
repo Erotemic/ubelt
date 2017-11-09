@@ -92,19 +92,19 @@ def test_progiter():
     print('However, the overhead of enabled progress is minimal and typically '
           'insignificant')
     print('this is verbosity mode verbose=0')
-    iterable = (is_prime(n) for n in range(N0, N))
+    sequence = (is_prime(n) for n in range(N0, N))
     with Timer('demo0'):
-        piterable = ProgIter(iterable, length=length, label='demo0',
+        psequence = ProgIter(sequence, length=length, label='demo0',
                              enabled=False)
-        list(piterable)
+        list(psequence)
 
     print('\n-----')
     print('Demo #1: progress is shown by default in the same line')
     print('this is verbosity mode verbose=1')
-    iterable = (is_prime(n) for n in range(N0, N))
+    sequence = (is_prime(n) for n in range(N0, N))
     with Timer('demo1'):
-        piterable = ProgIter(iterable, length=length, label='demo1')
-        list(piterable)
+        psequence = ProgIter(sequence, length=length, label='demo1')
+        list(psequence)
 
     # Default behavior adjusts frequency of progress reporting so
     # the performance of the loop is minimally impacted
@@ -114,21 +114,21 @@ def test_progiter():
     print('Notice the adjustment behavior of the print frequency')
     print('this is verbosity mode verbose=2')
     with Timer('demo2'):
-        iterable = (is_prime(n) for n in range(N0, N))
-        piterable = ProgIter(iterable, length=length, clearline=False,
+        sequence = (is_prime(n) for n in range(N0, N))
+        psequence = ProgIter(sequence, length=length, clearline=False,
                              label='demo2')
-        list(piterable)
+        list(psequence)
         # import utool as ut
-        # print(ut.repr4(piterable.__dict__))
+        # print(ut.repr4(psequence.__dict__))
 
     print('\n-----')
     print('Demo #3: Adjustments can be turned off to give constant feedback')
     print('this is verbosity mode verbose=3')
-    iterable = (is_prime(n) for n in range(N0, N))
+    sequence = (is_prime(n) for n in range(N0, N))
     with Timer('demo3'):
-        piterable = ProgIter(iterable, length=length, adjust=False,
+        psequence = ProgIter(sequence, length=length, adjust=False,
                              clearline=False, freq=100, label='demo3')
-        list(piterable)
+        list(psequence)
 
 
 def test_progiter_offset_10():
@@ -179,28 +179,28 @@ def time_progiter_overhead():
         vec1 = rng.rand(113, ndims)
         vec2 = rng.rand(71, ndims)
 
-        def minimal_wraper1(iterable):
-            for item in iterable:
+        def minimal_wraper1(sequence):
+            for item in sequence:
                 yield item
 
-        def minimal_wraper2(iterable):
-            for count, item in enumerate(iterable, start=1):
+        def minimal_wraper2(sequence):
+            for count, item in enumerate(sequence, start=1):
                 yield item
 
-        def minimal_wraper3(iterable):
+        def minimal_wraper3(sequence):
             count = 0
-            for item in iterable:
+            for item in sequence:
                 yield item
                 count += 1
 
-        def minwrap4(iterable):
-            for count, item in enumerate(iterable, start=1):
+        def minwrap4(sequence):
+            for count, item in enumerate(sequence, start=1):
                 yield item
                 if count % 100:
                     pass
 
-        def minwrap5(iterable):
-            for count, item in enumerate(iterable, start=1):
+        def minwrap5(sequence):
+            for count, item in enumerate(sequence, start=1):
                 yield item
                 if time.time() < 100:
                     pass
