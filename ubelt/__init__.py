@@ -15,7 +15,6 @@ TODO:
     * inject_func_as_method
     * inject_func_as_property
     * embed
-    * identity
     * rsync
     * grab_file_url
     * parse_cfgstr3
@@ -37,6 +36,7 @@ GLOBAL_MODULES = [
     'util_decor',
     'util_dict',
     'util_download',
+    'util_func',
     'util_format',
     'util_io',
     'util_list',
@@ -71,6 +71,7 @@ if _DOELSE:
     from ubelt import util_decor
     from ubelt import util_dict
     from ubelt import util_download
+    from ubelt import util_func
     from ubelt import util_format
     from ubelt import util_io
     from ubelt import util_list
@@ -92,6 +93,7 @@ if _DOELSE:
                                  group_items, invert_dict, map_keys, map_vals,
                                  odict,)
     from ubelt.util_download import (download, grabdata, urlopen, urlparse,)
+    from ubelt.util_func import (identity,)
     from ubelt.util_format import (FormatFuncs, Formatters, dict_itemstrs,
                                    format_dict, format_list, format_object,
                                    join_itemstrs, list_itemstrs, repr2,)
