@@ -26,7 +26,7 @@ TODO:
 from __future__ import absolute_import, division, print_function, unicode_literals
 import sys
 
-__version__ = '0.0.35'
+__version__ = '0.0.34'
 
 GLOBAL_MODULES = [
     'util_arg',
@@ -110,7 +110,7 @@ if _DOELSE:
     from ubelt.util_stress import (find_nth_prime,)
     from ubelt.util_time import (Timer, Timerit, timestamp,)
     from ubelt.progiter import (ProgIter,)
-    
+
     # </AUTOGEN_INIT>
 
 del _DOELSE
