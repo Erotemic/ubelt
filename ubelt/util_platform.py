@@ -12,7 +12,6 @@ import subprocess
 # import itertools as it
 from six.moves import zip_longest
 from threading  import Thread
-from . import util_path
 if six.PY2:
     import Queue as queue
 else:
@@ -386,6 +385,7 @@ def cmd(command, shell=False, detatch=False, verbose=0, verbout=None):
             print('Command:')
             print(command)
         else:
+            from ubelt import util_path
             compname = platform.node()
             username = getpass.getuser()
             cwd = util_path.compressuser(os.getcwd())

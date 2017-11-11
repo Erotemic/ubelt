@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
 import os
-from . import util_platform
+import sys
 from os.path import (splitext, split, join, expanduser, expandvars, realpath,
                      abspath, normpath, dirname, exists)
 
@@ -79,7 +79,7 @@ def userhome(username=None):
         if 'HOME' in os.environ:
             userhome_dpath = os.environ['HOME']
         else:  # nocover
-            if util_platform.WIN32:
+            if sys.platform.startswith('win32'):
                 # win32 fallback when HOME is not defined
                 if 'USERPROFILE' in os.environ:
                     userhome_dpath = os.environ['USERPROFILE']
@@ -94,7 +94,7 @@ def userhome(username=None):
                 userhome_dpath = pwd.getpwuid(os.getuid()).pw_dir
     else:
         # A specific user directory was requested
-        if util_platform.WIN32:  # nocover
+        if sys.platform.startswith('win32'):  # nocover
             # get the directory name for the current user
             c_users = dirname(userhome())
             userhome_dpath = join(c_users, username)
