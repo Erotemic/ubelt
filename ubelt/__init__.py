@@ -8,20 +8,19 @@ CommandLine:
     python -c "import ubelt" --update-ubelt-init --dyn
 
     # TODO: ensure this new way will work with multilevel modules
-    # python -c "import ubelt._internal as a; a.autogen_init('ubelt')"
+    python -c "import ubelt._internal as a; a.autogen_init('ubelt', dry=True)"
 TODO:
     The following functions and classes are candidates to be ported from utool:
     * reload_class
     * inject_func_as_method
     * inject_func_as_property
-    * embed
-    * rsync
-    * grab_file_url
     * parse_cfgstr3
     * accumulate
     * itertwo
     * iterwin
     * ParamInfo - move to dtool
+    * embed
+    * rsync
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import sys
@@ -63,7 +62,6 @@ else:
 
 if _DOELSE:
     # <AUTOGEN_INIT>
-
     from ubelt import util_arg
     from ubelt import util_cache
     from ubelt import util_colors
@@ -92,28 +90,26 @@ if _DOELSE:
                                  dict_subset, dict_take, find_duplicates,
                                  group_items, invert_dict, map_keys, map_vals,
                                  odict,)
-    from ubelt.util_download import (download, grabdata, urlopen, urlparse,)
+    from ubelt.util_download import (download, grabdata,)
     from ubelt.util_func import (identity,)
-    from ubelt.util_format import (FormatFuncs, Formatters, dict_itemstrs,
-                                   format_dict, format_list, format_object,
-                                   join_itemstrs, list_itemstrs, repr2,)
+    from ubelt.util_format import (repr2,)
     from ubelt.util_io import (delete, readfrom, touch, writeto,)
     from ubelt.util_list import (argsort, boolmask, chunks, compress, flatten,
                                  iterable, take, unique, unique_flags,)
     from ubelt.util_mixins import (NiceRepr,)
-    from ubelt.util_path import (augpath, split,)
-    from ubelt.util_platform import (DARWIN, LINUX, POSIX, PY2, PY3, Thread, WIN32,
-                                     cmd, compressuser, editfile,
-                                     ensure_app_cache_dir, ensure_app_resource_dir,
-                                     ensuredir, get_app_cache_dir,
-                                     get_app_resource_dir, platform_cache_dir,
-                                     platform_resource_dir, startfile, userhome,)
-    from ubelt.util_str import (CaptureStdout, cStringIO, codeblock,
-                                ensure_unicode, hzcat, indent,)
+    from ubelt.util_path import (augpath, compressuser, truepath, userhome,)
+    from ubelt.util_platform import (DARWIN, LINUX, POSIX, PY2, PY3, WIN32, cmd,
+                                     editfile, ensure_app_cache_dir,
+                                     ensure_app_resource_dir, ensuredir,
+                                     get_app_cache_dir, get_app_resource_dir,
+                                     platform_cache_dir, platform_resource_dir,
+                                     startfile,)
+    from ubelt.util_str import (CaptureStdout, codeblock, ensure_unicode, hzcat,
+                                indent,)
     from ubelt.util_stress import (find_nth_prime,)
     from ubelt.util_time import (Timer, Timerit, timestamp,)
     from ubelt.progiter import (ProgIter,)
-    
+
     # </AUTOGEN_INIT>
 
 del _DOELSE

@@ -1,13 +1,17 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
 import six
-from collections import OrderedDict as odict
-from collections import defaultdict as ddict
 import collections
 import operator as op
 import itertools as it
-from ubelt import util_const
+from collections import OrderedDict
+from collections import defaultdict
 from six.moves import zip
+from ubelt import util_const
+
+
+odict = OrderedDict
+ddict = defaultdict
 
 
 class AutoDict(dict):

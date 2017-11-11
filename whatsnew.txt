@@ -1,6 +1,33 @@
 version: 0.0.34
 ---------------
-FEATURE: Added ub.download and ub.grabdata
+
+FEATURE: Added ub.truepath
+
+FEATURE: Added ub.iterable
+
+FEATURE: Added util_func.py with ub.identity
+
+FEATURE: Added util_download.py with ub.download and ub.grabdata
+
+ENH: __init__ imports are now statically generated, this fixes
+   the random third party attributes (e.g. expanduser, Thread) that were
+    exposed in the __init__ file.
+
+ENH: ProgIter now uses scientific notation when it is small
+
+ENH: AutoOrderedDict now inherits from AutoDict
+
+ENH: tests are now running using pytest and xdoctest
+
+ENH: ub.cmd now uses thread based logging 
+
+FIX: Fixed many failing tests on windows
+
+FIX: Small bug and documentation fixes.
+
+ISSUE: ub.cmd does not work correctly on windows
+
+ISSUE: some unicode formatting does not work correctly on windows
 
 
 version: 0.0.33
