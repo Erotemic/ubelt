@@ -4,8 +4,8 @@ import collections
 
 # __all__ = [
 #     'repr2',
-#     'format_list',
-#     'format_dict',
+#     '_format_list',
+#     '_format_dict',
 # ]
 
 
@@ -70,18 +70,18 @@ def repr2(val, **kwargs):
         >>> print(result)
     """
     if isinstance(val, dict):
-        return format_dict(val, **kwargs)
+        return _format_dict(val, **kwargs)
     elif isinstance(val, (list, tuple, set, frozenset)):
-        return format_list(val, **kwargs)
+        return _format_list(val, **kwargs)
     # check any registered functions for special formatters
-    for type, func in Formatters.func_registry.items():
+    for type, func in _Formatters.func_registry.items():
         if isinstance(val, type):
             return func(val, **kwargs)
     # base case
-    return format_object(val, **kwargs)
+    return _format_object(val, **kwargs)
 
 
-class Formatters(object):
+class _Formatters(object):
     # set_types = [set, frozenset]
     # list_types = [list, tuple]
     # dict_types = [dict]
@@ -106,13 +106,13 @@ class Formatters(object):
         return _decorator
 
 
-class FormatFuncs(object):
+class _FormatFuncs(object):
     """
     Standard custom formatting funcs for non-nested types
     """
     # TODO: add support for custom type for pandas / numpy
 
-    @Formatters.register(float)
+    @_Formatters.register(float)
     def format_float(val, **kwargs):
         precision = kwargs.get('precision', None)
         if precision is None:
@@ -120,15 +120,15 @@ class FormatFuncs(object):
         else:
             return ('{:.%df}' % precision).format(val)
 
-    @Formatters.register(slice)
+    @_Formatters.register(slice)
     def format_slice(val, **kwargs):
         if kwargs.get('itemsep', ' ') == '':
             return 'slice(%r,%r,%r)' % (val.start, val.stop, val.step)
         else:
-            return format_object(val, **kwargs)
+            return _format_object(val, **kwargs)
 
 
-def format_object(val, **kwargs):
+def _format_object(val, **kwargs):
     stritems = kwargs.get('si', kwargs.get('stritems', False))
     strvals = stritems or kwargs.get('sv', kwargs.get('strvals', False))
     base_valfunc = six.text_type if strvals else repr
@@ -142,29 +142,29 @@ def format_object(val, **kwargs):
     return itemstr
 
 
-def format_list(list_, **kwargs):
+def _format_list(list_, **kwargs):
     r"""
     Makes a pretty printable / human-readable string representation of a
     sequence. In most cases this string could be evaled.
 
     Args:
         list_ (list): input list
-        **kwargs: nl, newlines, packed, nobr, nobraces, itemsep,
-                  trailing_sep, strvals
-                  indent_, precision, use_numpy, with_dtype, force_dtype,
-                  stritems, strkeys, align, explicit, sort, key_order,
-                  maxlen
+        **kwargs: nl, newlines, packed, nobr, nobraces, itemsep, trailing_sep,
+            strvals indent_, precision, use_numpy, with_dtype, force_dtype,
+            stritems, strkeys, align, explicit, sort, key_order, maxlen
 
     Returns:
         str: retstr
 
-    CommandLine:
-        python -m ubelt.util_format format_list
-
     Example:
-        >>> import ubelt as ub
-        >>> result = ub.format_list([]); print(result)
-        >>> result = ub.format_list([], nobr=True); print(repr(result))
+        >>> print(_format_list([]))
+        []
+        >>> print(_format_list([], nobr=True))
+        []
+        >>> print(_format_list([1], nl=0))
+        [1]
+        >>> print(_format_list([1], nobr=True))
+        1,
     """
     newlines = kwargs.pop('nl', kwargs.pop('newlines', 1))
     kwargs['nl'] = _rectify_countdown_or_bool(newlines)
@@ -175,7 +175,7 @@ def format_list(list_, **kwargs):
     # Doesn't actually put in trailing comma if on same line
     compact_brace = kwargs.get('cbr', kwargs.get('compact_brace', False))
 
-    itemstrs = list_itemstrs(list_, **kwargs)
+    itemstrs = _list_itemstrs(list_, **kwargs)
     if len(itemstrs) == 0:
         nobraces = False  # force braces to prevent empty output
 
@@ -199,19 +199,15 @@ def format_list(list_, **kwargs):
     if len(itemstrs) == 0:
         newlines = False
 
-    retstr = join_itemstrs(itemstrs, itemsep, newlines, nobraces, trailing_sep,
-                           compact_brace,
-                           lbr, rbr)
+    retstr = _join_itemstrs(itemstrs, itemsep, newlines, nobraces,
+                            trailing_sep, compact_brace, lbr, rbr)
     return retstr
 
 
-def format_dict(dict_, **kwargs):
+def _format_dict(dict_, **kwargs):
     r"""
     Makes a pretty printable / human-readable string representation of a
     dictionary. In most cases this string could be evaled.
-
-    Args:
-        dict_ (dict_): a dictionary
 
     Args:
         dict_ (dict_):  a dictionary
@@ -249,7 +245,7 @@ def format_dict(dict_, **kwargs):
     if len(dict_) == 0:
         return 'dict()' if explicit else '{}'
 
-    itemstrs = dict_itemstrs(dict_, **kwargs)
+    itemstrs = _dict_itemstrs(dict_, **kwargs)
 
     if nobraces:
         lbr, rbr = '', ''
@@ -258,13 +254,13 @@ def format_dict(dict_, **kwargs):
     else:
         lbr, rbr = '{', '}'
 
-    retstr = join_itemstrs(itemstrs, itemsep, newlines, nobraces, trailing_sep,
-                           compact_brace, lbr, rbr)
+    retstr = _join_itemstrs(itemstrs, itemsep, newlines, nobraces,
+                            trailing_sep, compact_brace, lbr, rbr)
     return retstr
 
 
-def join_itemstrs(itemstrs, itemsep, newlines, nobraces, trailing_sep,
-                  compact_brace, lbr, rbr):
+def _join_itemstrs(itemstrs, itemsep, newlines, nobraces, trailing_sep,
+                   compact_brace, lbr, rbr):
     """
     Joins stringified items with separators newlines and container-braces.
     """
@@ -306,13 +302,13 @@ def join_itemstrs(itemstrs, itemsep, newlines, nobraces, trailing_sep,
     return retstr
 
 
-def dict_itemstrs(dict_, **kwargs):
+def _dict_itemstrs(dict_, **kwargs):
     """
     Example:
         >>> from ubelt.util_format import *
         >>> dict_ =  {'b': .1, 'l': 'st', 'g': 1.0, 's': 10, 'm': 0.9, 'w': .5}
         >>> kwargs = {'strkeys': True}
-        >>> itemstrs = dict_itemstrs(dict_, **kwargs)
+        >>> itemstrs = _dict_itemstrs(dict_, **kwargs)
         >>> char_order = [p[0] for p in itemstrs]
         >>> assert char_order == ['b', 'g', 'l', 'm', 's', 'w']
     """
@@ -363,7 +359,7 @@ def dict_itemstrs(dict_, **kwargs):
     return itemstrs
 
 
-def list_itemstrs(list_, **kwargs):
+def _list_itemstrs(list_, **kwargs):
     items = list(list_)
     itemstrs = [repr2(item, **kwargs) for item in items]
 

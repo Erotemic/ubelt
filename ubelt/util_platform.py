@@ -1,12 +1,18 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
-from os.path import normpath, expanduser, join, exists, dirname
+from os.path import normpath, expanduser, join, exists
 import os
 import sys
+import getpass
+import pipes
+import platform
+import shlex
 import six
+import subprocess
 # import itertools as it
 from six.moves import zip_longest
 from threading  import Thread
+from . import util_path
 if six.PY2:
     import Queue as queue
 else:
@@ -88,7 +94,6 @@ def ensure_app_resource_dir(appname, *args):
         get_app_resource_dir
 
     Example:
-        >>> from ubelt.util_platform import *  # NOQA
         >>> import ubelt as ub
         >>> dpath = ub.ensure_app_resource_dir('ubelt')
         >>> assert exists(dpath)
@@ -125,7 +130,6 @@ def ensure_app_cache_dir(appname, *args):
         get_app_cache_dir
 
     Example:
-        >>> from ubelt.util_platform import *  # NOQA
         >>> import ubelt as ub
         >>> dpath = ub.ensure_app_cache_dir('ubelt')
         >>> assert exists(dpath)
@@ -172,109 +176,6 @@ def ensuredir(dpath, mode=0o1777, verbose=None):
         except OSError:  # nocover
             raise
     return dpath
-
-
-# def username():
-#     """
-#     Returns the current user's name
-
-#     Returns:
-#         str: name: current users name
-
-#     Example:
-#         >>> from ubelt.util_platform import *
-#         >>> assert userhome() == expanduser('~')
-#     """
-#     # if 'USER' in os.environ:
-#     #     name = os.environ['USER']
-#     # else:
-#     import pwd
-#     name = pwd.getpwuid(os.getuid()).pw_name
-#     import getpass
-#     getpass.getuser()
-#     return name
-
-
-def userhome(username=None):
-    """
-    Returns the user's home directory.
-    If `username` is None, this is the directory for the current user.
-
-    Args:
-        username (str): name of a user on the system
-
-    Returns:
-        str: userhome_dpath: path to the home directory
-
-    Example:
-        >>> from ubelt.util_platform import *
-        >>> import getpass
-        >>> username = getpass.getuser()
-        >>> assert userhome() == expanduser('~')
-        >>> assert userhome(username) == expanduser('~')
-    """
-    if username is None:
-        # get home directory for the current user
-        if 'HOME' in os.environ:
-            userhome_dpath = os.environ['HOME']
-        else:  # nocover
-            if WIN32:
-                # win32 fallback when HOME is not defined
-                if 'USERPROFILE' in os.environ:
-                    userhome_dpath = os.environ['USERPROFILE']
-                elif 'HOMEPATH' in os.environ:
-                    drive = os.environ.get('HOMEDRIVE', '')
-                    userhome_dpath = join(drive, os.environ['HOMEPATH'])
-                else:
-                    raise OSError("Cannot determine the user's home directory")
-            else:
-                # posix fallback when HOME is not defined
-                import pwd
-                userhome_dpath = pwd.getpwuid(os.getuid()).pw_dir
-    else:
-        # A specific user directory was requested
-        if WIN32:  # nocover
-            # get the directory name for the current user
-            c_users = dirname(userhome())
-            userhome_dpath = join(c_users, username)
-            if not exists(userhome_dpath):
-                raise KeyError('Unknown user: {}'.format(username))
-        else:
-            import pwd
-            try:
-                pwent = pwd.getpwnam(username)
-            except KeyError:  # nocover
-                raise KeyError('Unknown user: {}'.format(username))
-            userhome_dpath = pwent.pw_dir
-    return userhome_dpath
-
-
-def compressuser(path):
-    """
-    Inverse of `os.path.expanduser`
-
-    Args:
-        path (str): path in system file structure
-
-    Returns:
-        str: path: shortened path replacing the home directory with a tilde
-
-    Example:
-        >>> from ubelt.util_platform import *
-        >>> path = expanduser('~')
-        >>> assert path != '~'
-        >>> assert compressuser(path) == '~'
-        >>> assert compressuser(path + '1') == path + '1'
-        >>> assert compressuser(path + '/1') == join('~', '1')
-    """
-    path = normpath(path)
-    userhome_dpath = userhome()
-    if path.startswith(userhome_dpath):
-        if len(path) == len(userhome_dpath):
-            path = '~'
-        elif path[len(userhome_dpath)] == os.path.sep:
-            path = '~' + path[len(userhome_dpath):]
-    return path
 
 
 # def _run_process(proc):
@@ -476,9 +377,6 @@ def cmd(command, shell=False, detatch=False, verbose=0, verbout=None):
         >>> info1['proc'].wait()
         >>> info2['proc'].wait()
     """
-    import shlex
-    import subprocess
-    import pipes
     if verbout is None:
         verbout = verbose >= 1
     if verbose >= 2:  # nocover
@@ -488,11 +386,9 @@ def cmd(command, shell=False, detatch=False, verbose=0, verbout=None):
             print('Command:')
             print(command)
         else:
-            import getpass
-            import platform
             compname = platform.node()
             username = getpass.getuser()
-            cwd = compressuser(os.getcwd())
+            cwd = util_path.compressuser(os.getcwd())
             ps1 = '[ubelt.cmd] {}@{}:{}$ '.format(username, compname, cwd)
             print(ps1 + command)
         if verbout >= 3 and not detatch:
@@ -567,7 +463,6 @@ def startfile(fpath, verbose=True):  # nocover
         >>> ub.touch(fpath1)
         >>> proc = ub.startfile(fpath1)
     """
-    import pipes
     if verbose:
         print('[ubelt] startfile("{}")'.format(fpath))
     fpath = normpath(fpath)

@@ -4,6 +4,7 @@ New static version of dynamic_make_init.py
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import textwrap
+from os.path import join, exists
 
 
 def autogen_init(modpath_or_name, imports=None, attrs=True, use_all=True,
@@ -35,14 +36,25 @@ def autogen_init(modpath_or_name, imports=None, attrs=True, use_all=True,
         in the __init__ file like this:
             python -c "import ubelt._internal as a; a.autogen_init('<your_module_path_or_name>')"
     """
-    from os.path import exists
+    from xdoctest import static_analysis as static
     if exists(modpath_or_name):
         modpath = modpath_or_name
     else:
-        from xdoctest import static_analysis as static
         modpath = static.modname_to_modpath(modpath_or_name)
         if modpath is None:
             raise ValueError('Invalid module {}'.format(modpath_or_name))
+
+    if imports is None:
+        # the __init__ file may have a variable describing the correct imports
+        # should imports specify the name of this variable or should it always
+        # be GLOBAL_MODULES?
+        with open(join(modpath, '__init__.py'), 'r') as file:
+            source = file.read()
+        varname = 'GLOBAL_MODULES'
+        try:
+            imports = static.parse_static_value(varname, source)
+        except NameError:
+            pass
 
     modname, imports, from_imports = _static_parse_imports(modpath,
                                                            imports=imports,
@@ -62,26 +74,29 @@ def _static_parse_imports(modpath, imports=None, use_all=True):
     from xdoctest import static_analysis as static
     modname = static.modpath_to_modname(modpath)
     if imports is not None:
-        import_paths = [
-            static.modname_to_modpath(modname + '.' + m) for m in imports
-        ]
+        import_paths = {
+            m: static.modname_to_modpath(modname + '.' + m, hide_init=False)
+            for m in imports
+        }
     else:
         imports = []
-        import_paths = []
+        import_paths = {}
         for sub_modpath in static.package_modpaths(modpath, with_pkg=True,
                                                    recursive=False):
-            print('sub_modpath = {!r}'.format(sub_modpath))
+            # print('sub_modpath = {!r}'.format(sub_modpath))
             sub_modname = static.modpath_to_modname(sub_modpath)
             rel_modname = sub_modname[len(modname) + 1:]
             if rel_modname.startswith('_'):
                 continue
             if not rel_modname:
                 continue
+            import_paths[rel_modname] = sub_modpath
             imports.append(rel_modname)
-            import_paths.append(sub_modpath)
+        imports = sorted(imports)
 
     from_imports = []
-    for sub_modpath, rel_modname in zip(import_paths, imports):
+    for rel_modname in imports:
+        sub_modpath = import_paths[rel_modname]
         with open(sub_modpath, 'r') as file:
             source = file.read()
         valid_callnames = None
@@ -93,12 +108,13 @@ def _static_parse_imports(modpath, imports=None, use_all=True):
         if valid_callnames is None:
             # The __all__ variable is not specified or we dont care
             top_level = static.TopLevelVisitor.parse(source)
+            attrnames = list(top_level.assignments) + list(top_level.calldefs.keys())
             valid_callnames = []
-            for callname in top_level.calldefs.keys():
-                if '.' in callname or callname.startswith('_'):
+            for attr in attrnames:
+                if '.' in attr or attr.startswith('_'):
                     continue
-                valid_callnames.append(callname)
-        from_imports.append((rel_modname, valid_callnames))
+                valid_callnames.append(attr)
+        from_imports.append((rel_modname, sorted(valid_callnames)))
     return modname, imports, from_imports
 
 

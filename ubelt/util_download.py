@@ -26,18 +26,18 @@ except ImportError:  # nocover
         from urllib.parse import urlparse  # NOQA
 
 try:  # nocover
-    from tqdm import tqdm
+    from tqdm import tqdm as _tqdm
 except ImportError:  # nocover
     # fake tqdm if it's not installed
     from ubelt import progiter
-    class FakeTQDM(progiter.ProgIter):
+    class _FakeTQDM(progiter.ProgIter):
         def __init__(self, total, disable=False):
-            super(FakeTQDM, self).__init__(enabled=not disable, length=total)
+            super(_FakeTQDM, self).__init__(enabled=not disable, length=total)
 
         def update(self, n):
             if self.enabled:
                 self.step(n)
-    tqdm = FakeTQDM
+    _tqdm = _FakeTQDM
 
 
 def download(url, fpath=None, hash_prefix=None, chunksize=8192, verbose=1):
@@ -89,7 +89,7 @@ def download(url, fpath=None, hash_prefix=None, chunksize=8192, verbose=1):
     try:
         # if hash_prefix:
         #     sha256 = hashlib.sha256()
-        with tqdm(total=file_size, disable=not verbose) as pbar:
+        with _tqdm(total=file_size, disable=not verbose) as pbar:
             while True:
                 buffer = urldata.read(8192)
                 if len(buffer) == 0:
