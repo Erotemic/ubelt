@@ -14,14 +14,13 @@ TODO:
     * reload_class
     * inject_func_as_method
     * inject_func_as_property
-    * embed
-    * rsync
-    * grab_file_url
     * parse_cfgstr3
     * accumulate
     * itertwo
     * iterwin
     * ParamInfo - move to dtool
+    * embed
+    * rsync
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import sys
