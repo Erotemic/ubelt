@@ -81,7 +81,7 @@ def test_progiter():
         stream.seek(0)
         print(stream.read())
 
-    length = 1000
+    length = 200
     N = 5000
     N0 = N - length
     print('N = %r' % (N,))

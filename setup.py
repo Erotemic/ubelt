@@ -38,11 +38,16 @@ Pypi:
 from setuptools import setup
 
 
-def parse_version():
-    """ Statically parse the version number from __init__.py """
+def parse_version(package):
+    """
+    Statically parse the version number from __init__.py
+
+    CommandLine:
+        python -c "import setup; print(setup.parse_version('ubelt'))"
+    """
     from os.path import dirname, join
     import ast
-    init_fpath = join(dirname(__file__), 'ubelt', '__init__.py')
+    init_fpath = join(dirname(__file__), package, '__init__.py')
     with open(init_fpath) as file_:
         sourcecode = file_.read()
     pt = ast.parse(sourcecode)
@@ -58,7 +63,10 @@ def parse_version():
 
 def parse_description():
     """
-    python -c "import setup; print(setup.parse_description())"
+    Parse the description in the README file
+
+    CommandLine:
+        python -c "import setup; print(setup.parse_description())"
     """
     from os.path import dirname, join, exists
     readme_fpath = join(dirname(__file__), 'README.md')
@@ -90,7 +98,10 @@ def parse_description():
 
 def parse_requirements(fname='requirements.txt'):
     """
-    python -c "import setup; print(setup.parse_requirements())"
+    Parse the package dependencies listed in a requirements file.
+
+    CommandLine:
+        python -c "import setup; print(setup.parse_requirements())"
     """
     from os.path import dirname, join, exists
     require_fpath = join(dirname(__file__), fname)
@@ -102,13 +113,10 @@ def parse_requirements(fname='requirements.txt'):
             return lines
 
 
-version = parse_version()
-
-
 if __name__ == '__main__':
     setup(
         name='ubelt',
-        version=version,
+        version=parse_version('ubelt'),
         author='Jon Crall',
         description='A "utility belt" of commonly needed utility and helper functions',
         long_description=parse_description(),
