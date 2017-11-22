@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function, division, absolute_import, unicode_literals
 import sys
+import re
 import codecs
 import unicodedata
 import textwrap
@@ -215,11 +216,198 @@ def ensure_unicode(text):
     #     return text.decode('utf-8')
 
 
+def strip_ansi(text):
+    r"""
+    Removes all ansi directives from the string.
+
+    References:
+        http://stackoverflow.com/questions/14693701/remove-ansi
+        https://stackoverflow.com/questions/13506033/filtering-out-ansi
+
+    Examples:
+        >>> line = ('\t\u001b[0;35mBlabla\u001b[0m     '
+        ...         '\u001b[0;36m172.18.0.2\u001b[0m')
+        >>> escaped_line = strip_ansi(line)
+        >>> assert escaped_line == '\tBlabla     172.18.0.2'
+    """
+    ansi_escape3 = re.compile(r'(\x9B|\x1B\[)[0-?]*[ -/]*[@-~]',
+                              flags=re.IGNORECASE)
+    text = ansi_escape3.sub('', text)
+    return text
+
+
+def align(text, character='=', replchar=None, pos=0):
+    r"""
+    Left justifies text on the left side of character
+
+    Args:
+        line_list (list of strs): strings to align
+        character (str): character to align
+        replchar (str): if not None, replace character with this
+        pos (int or list or None): does one alignment for all chars beyond this
+            column position. If pos is None, then all chars are aligned.
+
+    Returns:
+        str: new_text
+
+    SeeAlso:
+        ub.align_lines
+
+    Example:
+        >>> character = '='
+        >>> text = 'a = b=\none = two\nthree = fish\n'
+        >>> print(align(text, '='))
+        a     = b=
+        one   = two
+        three = fish
+    """
+    line_list = text.splitlines()
+    new_lines = align_lines(line_list, character, replchar, pos=pos)
+    new_text = '\n'.join(new_lines)
+    return new_text
+
+
+def align_lines(line_list, character='=', replchar=None, pos=0):
+    r"""
+    Left justifies text on the left side of character
+
+    Args:
+        line_list (list of strs): strings to align
+        character (str): character to align
+        replchar (str): if not None, replace character with this
+        pos (int or list or None): does one alignment for all chars beyond this
+            column position. If pos is None, then all chars are aligned.
+
+    Returns:
+        list: new_lines
+
+    SeeAlso:
+        ub.align
+
+    Example0:
+        >>> line_list = 'a = b\none = two\nthree = fish'.split('\n')
+        >>> character = '='
+        >>> new_lines = align_lines(line_list, character)
+        >>> print('\n'.join(new_lines))
+        a     = b
+        one   = two
+        three = fish
+
+    Example1:
+        >>> line_list = 'foofish:\n    a = b\n    one    = two\n    three    = fish'.split('\n')
+        >>> character = '='
+        >>> new_lines = align_lines(line_list, character)
+        >>> print('\n'.join(new_lines))
+        foofish:
+            a        = b
+            one      = two
+            three    = fish
+
+    Example2:
+        >>> character = ':'
+        >>> text = codeblock('''
+            {'max': '1970/01/01 02:30:13',
+             'mean': '1970/01/01 01:10:15',
+             'min': '1970/01/01 00:01:41',
+             'range': '2:28:32',
+             'std': '1:13:57',}''').split('\n')
+        >>> new_lines = align_lines(text, ':', ' :')
+        >>> print('\n'.join(new_lines))
+        {'max'   : '1970/01/01 02:30:13',
+         'mean'  : '1970/01/01 01:10:15',
+         'min'   : '1970/01/01 00:01:41',
+         'range' : '2:28:32',
+         'std'   : '1:13:57',}
+
+    Example3:
+        >>> line_list = 'foofish:\n a = b = c\n one = two = three\nthree=4= fish'.split('\n')
+        >>> character = '='
+        >>> # align the second occurence of a character
+        >>> new_lines = align_lines(line_list, character, pos=None)
+        >>> print('\n'.join(new_lines))
+        foofish:
+         a   = b   = c
+         one = two = three
+        three=4    = fish
+
+    Ignore:
+        # use this as test case
+        \begin{tabular}{lrrll}
+        \toprule
+        {} &  Names &  Annots & Annots size & Training Edges \\
+        \midrule
+        training &    390 &    1164 &   2.98\pm2.83 &           9360 \\
+        testing  &    363 &    1119 &   3.08\pm2.82 &              - \\
+        \bottomrule
+        \end{tabular}
+
+    """
+    # def visible_len(str_):
+    #     """
+    #     returns num printed characters accounting for utf8 and ansi
+    #     Returns:
+    #         http://stackoverflow.com/questions/2247205/length-special-chars
+    #     """
+    #     import unicodedata
+    #     str_ = ensure_unicode(str_)
+    #     str_ = strip_ansi(str_)
+    #     str_ = unicodedata.normalize('NFC', str_)
+    #     return len(str_)
+
+    # FIXME: continue to fix ansi
+    if pos is None:
+        # Align all occurences
+        num_pos = max([line.count(character) for line in line_list])
+        pos = list(range(num_pos))
+
+    # Allow multiple alignments
+    if isinstance(pos, list):
+        pos_list = pos
+        # recursive calls
+        new_lines = line_list
+        for pos in pos_list:
+            new_lines = align_lines(new_lines, character=character,
+                                    replchar=replchar, pos=pos)
+        return new_lines
+
+    # base case
+    if replchar is None:
+        replchar = character
+
+    # the pos-th character to align
+    lpos = pos
+    rpos = lpos + 1
+
+    tup_list = [line.split(character) for line in line_list]
+
+    # Find how much padding is needed
+    maxlen = 0
+    for tup in tup_list:
+        if len(tup) >= rpos + 1:
+            tup = [strip_ansi(x) for x in tup]
+            left_lenlist = list(map(len, tup[0:rpos]))
+            left_len = sum(left_lenlist) + lpos * len(replchar)
+            maxlen = max(maxlen, left_len)
+
+    # Pad each line to align the pos-th occurence of the chosen character
+    new_lines = []
+    for tup in tup_list:
+        if len(tup) >= rpos + 1:
+            lhs = character.join(tup[0:rpos])
+            rhs = character.join(tup[rpos:])
+            # pad the new line with requested justification
+            newline = lhs.ljust(maxlen) + replchar + rhs
+            new_lines.append(newline)
+        else:
+            new_lines.append(replchar.join(tup))
+    return new_lines
+
+
 if __name__ == '__main__':
     r"""
     CommandLine:
         python -m ubelt.util_str
         python -m ubelt.util_str all
     """
-    import ubelt as ub  # NOQ
+    import xdoctest as xdoc
     xdoc.doctest_module()
