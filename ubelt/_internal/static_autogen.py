@@ -5,6 +5,7 @@ New static version of dynamic_make_init.py
 from __future__ import absolute_import, division, print_function, unicode_literals
 import textwrap
 from os.path import join, exists
+from six.moves import builtins
 
 
 def autogen_init(modpath_or_name, imports=None, attrs=True, use_all=True,
@@ -109,9 +110,13 @@ def _static_parse_imports(modpath, imports=None, use_all=True):
             # The __all__ variable is not specified or we dont care
             top_level = static.TopLevelVisitor.parse(source)
             attrnames = list(top_level.assignments) + list(top_level.calldefs.keys())
+            # list of names we wont export by default
+            invalid_callnames = dir(builtins)
             valid_callnames = []
             for attr in attrnames:
                 if '.' in attr or attr.startswith('_'):
+                    continue
+                if attr in invalid_callnames:
                     continue
                 valid_callnames.append(attr)
         from_imports.append((rel_modname, sorted(valid_callnames)))
