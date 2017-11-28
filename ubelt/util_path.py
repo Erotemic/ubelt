@@ -6,14 +6,18 @@ from os.path import (splitext, split, join, expanduser, expandvars, realpath,
                      abspath, normpath, dirname, exists)
 
 
-def augpath(path, suffix='', prefix=''):
+def augpath(path, suffix='', prefix='', ext=None):
     """
-    Augments a filename with a suffix and/or a prefix while maintaining the
-    extension.
+    Augments a filename with a prefix, suffix, and/or a new extension.
+
+    A prefix can be added to the basename.  A suffix can be added between the
+    basename and the extension.  The extension can be replaced with a new one.
 
     Args:
         path (str): string representation of a path
-        suffix (str): augment filename before extension
+        suffix (str): placed in front of the basename
+        prefix (str): placed between the basename and trailing extension
+        ext (str): if specified, replaces the trailing extension
 
     Returns:
         str: newpath
@@ -23,15 +27,27 @@ def augpath(path, suffix='', prefix=''):
         >>> path = 'foo.bar'
         >>> suffix = '_suff'
         >>> prefix = 'pref_'
-        >>> newpath = ub.augpath(path, suffix, prefix)
+        >>> ext = '.baz'
+        >>> newpath = ub.augpath(path, suffix, prefix, ext=ext)
         >>> print('newpath = %s' % (newpath,))
-        newpath = pref_foo_suff.bar
+        newpath = pref_foo_suff.baz
+
+    Example:
+        >>> augpath('foo.bar')
+        foo.bar
+        >>> augpath('foo.bar', ext='.BAZ')
+        foo.BAZ
+        >>> augpath('foo.bar', suffix='_')
+        foo_.bar
+        >>> augpath('foo.bar', prefix='_')
+        _foo.bar
     """
     # Breakup path
     dpath, fname = split(path)
     fname_noext, orig_ext = splitext(fname)
+    ext = orig_ext if ext is None else ext
     # Augment and recombine into new path
-    new_fname = ''.join((prefix, fname_noext, suffix, orig_ext))
+    new_fname = ''.join((prefix, fname_noext, suffix, ext))
     newpath = join(dpath, new_fname)
     return newpath
 
