@@ -34,13 +34,13 @@ def augpath(path, suffix='', prefix='', ext=None):
 
     Example:
         >>> augpath('foo.bar')
-        foo.bar
+        'foo.bar'
         >>> augpath('foo.bar', ext='.BAZ')
-        foo.BAZ
+        'foo.BAZ'
         >>> augpath('foo.bar', suffix='_')
-        foo_.bar
+        'foo_.bar'
         >>> augpath('foo.bar', prefix='_')
-        _foo.bar
+        '_foo.bar'
     """
     # Breakup path
     dpath, fname = split(path)
