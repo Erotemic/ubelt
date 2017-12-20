@@ -41,6 +41,10 @@ class Cacher(object):
         log (func): overloads the print function. Useful for sending output to
             loggers (e.g. logging.info, tqdm.tqdm.write, ...)
 
+        protocol (int): protocol version used by pickle.  If python 2
+            compatibility is not required, then it is better to use protocol 4.
+            (default=2)
+
     CommandLine:
         python -m ubelt.util_cache Cacher
 
@@ -75,7 +79,8 @@ class Cacher(object):
         >>> assert cacher.exists(), 'should now exist'
     """
     def __init__(self, fname, cfgstr=None, dpath=None, appname='ubelt',
-                 ext='.pkl', meta=None, verbose=None, enabled=True, log=None):
+                 ext='.pkl', meta=None, verbose=None, enabled=True, log=None,
+                 protocol=2):
         import ubelt as ub
         if verbose is None:
             verbose = 1
@@ -89,6 +94,7 @@ class Cacher(object):
         self.ext = ext
         self.meta = meta
         self.enabled = enabled
+        self.protocol = protocol
         self.log = print if log is None else log
 
         if len(self.ext) > 0 and self.ext[0] != '.':
@@ -330,7 +336,7 @@ class Cacher(object):
 
         with open(data_fpath, 'wb') as file_:
             # Use protocol 2 to support python2 and 3
-            pickle.dump(data, file_, protocol=2)
+            pickle.dump(data, file_, protocol=self.protocol)
 
     def ensure(self, func, *args, **kwargs):
         r"""
