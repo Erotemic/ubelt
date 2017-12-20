@@ -27,16 +27,19 @@ class Cacher(object):
             Specifies a folder in the application resource directory where to
             cache the data if dpath is not specified.
 
-        ext (str): extension (default = '.cPkl')
+        ext (str): extension (default = '.pkl')
 
-        meta (str): cfgstr metadata that is also saved with the cfgstr.
+        meta (object): cfgstr metadata that is also saved with the cfgstr.
             This data is not used in the hash, but if useful to send in if the
             cfgstr itself contains hashes.
 
-        verbose (int): level of verbosity (default=1)
+        verbose (int): level of verbosity. Can be 1, 2 or 3. (default=1)
 
         enabled (bool): if set to False, then the load and save methods will
             do nothing.  (default = True)
+
+        log (func): overloads the print function. Useful for sending output to
+            loggers (e.g. logging.info, tqdm.tqdm.write, ...)
 
     CommandLine:
         python -m ubelt.util_cache Cacher
@@ -72,7 +75,7 @@ class Cacher(object):
         >>> assert cacher.exists(), 'should now exist'
     """
     def __init__(self, fname, cfgstr=None, dpath=None, appname='ubelt',
-                 ext='.cPkl', meta=None, verbose=None, enabled=True):
+                 ext='.pkl', meta=None, verbose=None, enabled=True, log=None):
         import ubelt as ub
         if verbose is None:
             verbose = 1
@@ -86,6 +89,7 @@ class Cacher(object):
         self.ext = ext
         self.meta = meta
         self.enabled = enabled
+        self.log = print if log is None else log
 
         if len(self.ext) > 0 and self.ext[0] != '.':
             raise ValueError('Please be explicit and use a dot in ext')
@@ -163,43 +167,65 @@ class Cacher(object):
             >>> print(exist_fnames)
             >>> assert exist_fpaths == known_fnames
 
-            ['versioned_data_1.cPkl', 'versioned_data_2.cPkl']
+            ['versioned_data_1.pkl', 'versioned_data_2.pkl']
         """
         import glob
         pattern = join(self.dpath, self.fname + '_*' + self.ext)
         for fname in glob.iglob(pattern):
-            fpath = join(self.dpath, fname)
-            yield fpath
+            data_fpath = join(self.dpath, fname)
+            yield data_fpath
 
     def clear(self, cfgstr=None):
         """
-        Removes the cache from disk
+        Removes the saved cache and metadata from disk
         """
-        fpath = self.get_fpath(cfgstr)
+        data_fpath = self.get_fpath(cfgstr)
         if self.verbose > 0:
-            print('[cacher] clear cache')
-        if exists(fpath):
-            print('[cacher] removing %s' % (fpath,))
-            os.remove(fpath)
-        else:
-            print('[cacher] ... nothing to clear')
+            self.log('[cacher] clear cache')
+        if exists(data_fpath):
+            if self.verbose > 0:
+                self.log('[cacher] removing {}'.format(data_fpath))
+            os.remove(data_fpath)
 
-    def tryload(self, cfgstr=None):
+            # Remove the metadata if it exists
+            meta_fpath = data_fpath + '.meta'
+            if exists(meta_fpath):
+                os.remove(meta_fpath)
+        else:
+            if self.verbose > 0:
+                self.log('[cacher] ... nothing to clear')
+
+    def tryload(self, cfgstr=None, on_error='raise'):
         """
-        Like load, but returns None if the load fails
+        Like load, but returns None if the load fails due to a cache miss.
+
+        Args:
+            on_error (str): how to handle non-io errors errors. Either raise,
+                which re-raises the exception, or clear which clears the cache
+                and returns None.
         """
         cfgstr = self._rectify_cfgstr(cfgstr)
         if self.enabled:
             try:
                 if self.verbose > 1:
-                    print('[cacher] tryload fname={}'.format(self.fname))
+                    self.log('[cacher] tryload fname={}'.format(self.fname))
                 return self.load(cfgstr)
             except IOError:
                 if self.verbose > 0:
-                    print('[cacher] ... {} cache miss'.format(self.fname))
+                    self.log('[cacher] ... {} cache miss'.format(self.fname))
+            except Exception:
+                if self.verbose > 0:
+                    self.log('[cacher] ... failed to load')
+                if on_error == 'raise':
+                    raise
+                elif on_error == 'clear':
+                    self.clear(cfgstr)
+                    return None
+                else:
+                    raise KeyError('Unknown method on_error={}'.format(on_error))
         else:
             if self.verbose > 1:
-                print('[cacher] ... cache disabled: fname={}'.format(self.fname))
+                self.log('[cacher] ... cache disabled: fname={}'.format(self.fname))
         return None
 
     def load(self, cfgstr=None):
@@ -221,41 +247,41 @@ class Cacher(object):
 
         if not self.enabled:
             if verbose > 1:
-                print('[cacher] ... cache disabled: fname={}'.format(self.fname))
+                self.log('[cacher] ... cache disabled: fname={}'.format(self.fname))
             raise IOError(3, 'Cache Loading Is Disabled')
 
         fpath = self.get_fpath(cfgstr=cfgstr)
 
         if not exists(fpath):
             if verbose > 2:
-                print('[cacher] ... cache does not exist: '
-                      'dpath={} fname={} cfgstr={}'.format(
-                          basename(dpath), fname, cfgstr))
+                self.log('[cacher] ... cache does not exist: '
+                         'dpath={} fname={} cfgstr={}'.format(
+                             basename(dpath), fname, cfgstr))
             raise IOError(2, 'No such file or directory: %r' % (fpath,))
         else:
             if verbose > 3:
-                print('[cacher] ... cache exists: '
-                      'dpath={} fname={} cfgstr={}'.format(
-                          basename(dpath), fname, cfgstr))
+                self.log('[cacher] ... cache exists: '
+                         'dpath={} fname={} cfgstr={}'.format(
+                             basename(dpath), fname, cfgstr))
         try:
             with open(fpath, 'rb') as file_:
                 data = pickle.load(file_)
         except (EOFError, IOError, ImportError) as ex:  # nocover
             if verbose > 0:
-                print('CORRUPTED? fpath = %s' % (fpath,))
+                self.log('CORRUPTED? fpath = %s' % (fpath,))
             if verbose > 1:
-                print('[cacher] ... CORRUPTED? dpath={} cfgstr={}'.format(
+                self.log('[cacher] ... CORRUPTED? dpath={} cfgstr={}'.format(
                     basename(dpath), cfgstr))
             raise IOError(str(ex))
         except Exception:  # nocover
             if verbose > 0:
-                print('CORRUPTED? fpath = {}'.format(fpath))
+                self.log('CORRUPTED? fpath = {}'.format(fpath))
             raise
         else:
             if self.verbose > 2:
-                print('[cacher] ... {} cache hit'.format(self.fname))
+                self.log('[cacher] ... {} cache hit'.format(self.fname))
             elif verbose > 1:
-                print('[cacher] ... cache hit')
+                self.log('[cacher] ... cache hit')
         return data
 
     def save(self, data, cfgstr=None):
@@ -282,7 +308,7 @@ class Cacher(object):
         if not self.enabled:
             return
         if self.verbose > 0:
-            print('[cacher] ... {} cache save'.format(self.fname))
+            self.log('[cacher] ... {} cache save'.format(self.fname))
 
         cfgstr = self._rectify_cfgstr(cfgstr)
         condensed = self._condense_cfgstr(cfgstr)

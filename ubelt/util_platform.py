@@ -203,7 +203,7 @@ def _textio_iterlines(stream):
         line = stream.readline()
 
 
-def _proc_async_iter_stream(proc, stream, buffersize=10):
+def _proc_async_iter_stream(proc, stream, buffersize=1):
     """
     Reads output from a process in a separate thread
     """
@@ -230,6 +230,10 @@ def _proc_async_iter_stream(proc, stream, buffersize=10):
 def _proc_iteroutput_thread(proc):
     """
     Iterates over output from a process line by line
+
+    Note:
+        WARNING. current implementation has bugs. It is sometimes broken on
+        windows and may cause deadlocks on UNIX. Needs to be fixed.
 
     Yields:
         tuple[(str, str)]: oline, eline: stdout and stderr line
@@ -302,7 +306,13 @@ def _proc_tee_output(proc, stdout=None, stderr=None):
     """
     logged_out = []
     logged_err = []
-    _proc_iteroutput = _proc_iteroutput_thread
+    if POSIX:
+        # the select-based version is stable, but slow
+        _proc_iteroutput = _proc_iteroutput_select
+    else:
+        # FIXME: the thread version is broken on windows
+        # FIXME: the thread version sometimes deadlocks on unix
+        _proc_iteroutput = _proc_iteroutput_thread
     for oline, eline in _proc_iteroutput(proc):
         if oline:
             if stdout:
@@ -347,7 +357,7 @@ def cmd(command, shell=False, detatch=False, verbose=0, verbout=None):
     Doctest:
         >>> import ubelt as ub
         >>> from os.path import join, exists
-        >>> verbose = 0
+        >>> verbose = 3
         >>> # ----
         >>> info = ub.cmd('echo str noshell', verbose=verbose)
         >>> assert info['out'].strip() == 'str noshell'
@@ -528,6 +538,7 @@ if __name__ == '__main__':
     CommandLine:
         python -m ubelt.util_platform
         python -m ubelt.util_platform all
+        pytest ubelt/util_platform.py
     """
     import xdoctest as xdoc
     xdoc.doctest_module()
