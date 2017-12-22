@@ -14,7 +14,7 @@ def memoize(func):
         func (function):  live python function
 
     Returns:
-        func:
+        func: memoized wrapper
 
     CommandLine:
         python -m ubelt.util_decor memoize
