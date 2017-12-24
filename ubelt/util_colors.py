@@ -39,7 +39,7 @@ def highlight_code(text, lexer_name='python', **kwargs):
         import pygments.formatters
         import pygments.formatters.terminal
 
-        if sys.platform.startswith('win32'):
+        if sys.platform.startswith('win32'):  # nocover
             # Hack on win32 to support colored output
             import colorama
             colorama.init()
@@ -86,7 +86,7 @@ def color_text(text, color):
         import pygments
         import pygments.console
 
-        if sys.platform.startswith('win32'):
+        if sys.platform.startswith('win32'):  # nocover
             # Hack on win32 to support colored output
             import colorama
             colorama.init()
