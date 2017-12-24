@@ -30,6 +30,9 @@ def test_cmd_stderr():
 
 
 def test_cmd_multiline_stdout():
+    """
+    pytest ubelt/tests/test_platform.py::test_cmd_multiline_stdout
+    """
     import threading
     # check which threads currently exist (ideally 1)
     existing_threads = list(threading.enumerate())

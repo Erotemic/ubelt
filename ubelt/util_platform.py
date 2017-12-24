@@ -363,13 +363,15 @@ def cmd(command, shell=False, detatch=False, verbose=0, verbout=None):
         >>> assert info['out'].strip() == 'str noshell'
         >>> # ----
         >>> info = ub.cmd(('echo', 'tuple noshell'), verbose=verbose)
-        >>> assert info['out'].strip() == 'tuple noshell'
+        >>> # windows echo will output extra single quotes
+        >>> assert info['out'].strip().strip("'") == 'tuple noshell'
         >>> # ----
         >>> info = ub.cmd('echo "str\n\nshell"', verbose=verbose, shell=True)
         >>> assert info['out'].strip() == 'str\n\nshell'
         >>> # ----
         >>> info = ub.cmd(('echo', 'tuple shell'), verbose=verbose, shell=True)
-        >>> assert info['out'].strip() == 'tuple shell'
+        >>> # windows echo will output extra single quotes
+        >>> assert info['out'].strip().strip("'") == 'tuple shell'
         >>> # ----
         >>> fpath1 = join(ub.get_app_cache_dir('ubelt'), 'cmdout1.txt')
         >>> fpath2 = join(ub.get_app_cache_dir('ubelt'), 'cmdout2.txt')
@@ -404,6 +406,10 @@ def cmd(command, shell=False, detatch=False, verbose=0, verbout=None):
         if verbout >= 3 and not detatch:
             print('----')
             print('Stdout:')
+
+    if WIN32:
+        # We must run in a shell on windows
+        shell = True
 
     # When shell=True, args is a string sent to the shell (e.g. bin/sh)
     # When shell=False, args is a list of executable and arguments
