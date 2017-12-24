@@ -144,7 +144,7 @@ def parse_google_retblock(lines, return_annot=None):
             retdict['desc'] = final_desc
             return retdict
         retdict = None
-        noindent_pat = re.compile('^[^\s]')
+        noindent_pat = re.compile(r'^[^\s]')
         for line in lines.split('\n'):
             # Lines without indentation should declare new type hints
             if noindent_pat.match(line):
@@ -222,12 +222,12 @@ def parse_google_argblock(lines):
     typename = named('type', '[^)]*?')
     argdesc = named('desc', '.*?')
     # Types are optional, and must be enclosed in parens
-    optional_type = optional(whitespace.join(['\(', typename, '\)']))
+    optional_type = optional(whitespace.join([r'\(', typename, r'\)']))
     # Each arg hint must defined a on newline without any indentation
     argdef = whitespace.join([varname, optional_type, ':'])
     # the description is everything after the colon until either the next line
     # without any indentation or the end of the string
-    end_desc = regex_or(['^' + positive_lookahead('[^\s]'), endofstr])
+    end_desc = regex_or(['^' + positive_lookahead(r'[^\s]'), endofstr])
 
     flags = re.MULTILINE | re.DOTALL
     argline_pat = re.compile('^' + argdef + argdesc + end_desc, flags=flags)
