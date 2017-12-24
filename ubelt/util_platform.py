@@ -329,7 +329,15 @@ def _proc_tee_output(proc, stdout=None, stderr=None):
 
 def cmd(command, shell=False, detatch=False, verbose=0, verbout=None):
     r"""
-    Trying to clean up cmd
+    Executes a command in a subprocess.
+
+    The advantage of this wrapper around subprocess is that
+    (1) you control if the subprocess prints to stdout,
+    (2) the text written to stdout and stderr is returned for parsing,
+    (3) cross platform behavior that lets you specify the command as a string
+    or tuple regardless of whether or not shell=True.
+    (4) ability to detatch, return the process object and allow the process to
+    run in the background (eventually we may return a Future object instead).
 
     Args:
         command (str): bash-like command string or tuple of executable and args
@@ -346,13 +354,20 @@ def cmd(command, shell=False, detatch=False, verbose=0, verbout=None):
             standard error, and the return code
             if detatch is False `info` contains a reference to the process.
 
+    Notes:
+        Inputs can either be text or tuple based. On unix we ensure conversion
+        to text if shell=True, and to tuple if shell=False. On windows, the
+        input is always text based.  See [3] for a potential cross-platform
+        shlex solution for windows.
+
     CommandLine:
         python -m ubelt.util_platform cmd
         python -c "import ubelt as ub; ub.cmd('ping localhost -c 2', verbose=2)"
 
     References:
-        https://stackoverflow.com/questions/11495783/redirect-subprocess-stderr-to-stdout
-        https://stackoverflow.com/questions/7729336/how-can-i-print-and-display-subprocess-stdout-and-stderr-output-without-distorti
+        [1] https://stackoverflow.com/questions/11495783/redirect-subprocess-stderr-to-stdout
+        [2] https://stackoverflow.com/questions/7729336/how-can-i-print-and-display-subprocess-stdout-and-stderr-output-without-distorti
+        [3] https://stackoverflow.com/questions/33560364/python-windows-parsing-command-lines-with-shlex
 
     Doctest:
         >>> info = cmd('echo str noshell', verbose=0)
@@ -402,14 +417,16 @@ def cmd(command, shell=False, detatch=False, verbose=0, verbout=None):
         command_text = command
         command_tup = None
 
-    if shell:
+    if shell or WIN32:
         # When shell=True, args is sent to the shell (e.g. bin/sh) as text
         args = command_text
     else:
         # When shell=False, args is a list of executable and arguments
         if command_tup is None:
             # parse this out of the string
-            command_tup = shlex.split(command_text, posix=not WIN32)
+            # NOTE: perhaps use the solution from [3] here?
+            command_tup = shlex.split(command_text)
+            # command_tup = shlex.split(command_text, posix=not WIN32)
         args = command_tup
 
     if verbout is None:
