@@ -1,6 +1,10 @@
 # -*- coding: utf-8 -*-
+"""
+pytest ubelt/tests/test_progiter.py
+"""
 from six.moves import cStringIO
 from ubelt.progiter import ProgIter
+import sys
 
 
 def test_rate_format_string():
@@ -142,6 +146,10 @@ def test_progiter_offset_10():
     stream.seek(0)
     want = ['10/20...', '15/20...', '20/20...']
     got = [line.strip() for line in stream.readlines()]
+    if sys.platform.startswith('win32'): # nocover
+        # on windows \r seems to be mixed up with ansi sequences
+        from xdoctest.utils import strip_ansi
+        got = [strip_ansi(line).strip() for line in got]
     assert got == want
 
 
@@ -157,6 +165,10 @@ def test_progiter_offset_0():
     stream.seek(0)
     want = ['0/20...', '5/20...', '10/20...']
     got = [line.strip() for line in stream.readlines()]
+    if sys.platform.startswith('win32'): # nocover
+        # on windows \r seems to be mixed up with ansi sequences
+        from xdoctest.utils import strip_ansi
+        got = [strip_ansi(line).strip() for line in got]
     assert got == want
 
 
