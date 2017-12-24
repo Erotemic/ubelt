@@ -173,9 +173,12 @@ def truepath(path, real=False):
         On windows expanduser will expand environment variables formatted as
         %name%, whereas on unix, this will not occur.
 
+    CommandLine:
+        python -m ubelt.util_path truepath
+
     Example:
         >>> import ubelt as ub
-        >>> assert ub.truepath('~/foo') == ub.truepath('$HOME/foo')
+        >>> assert ub.truepath('~/foo') == join(ub.userhome(), 'foo')
         >>> assert ub.truepath('~/foo') == ub.truepath('~/foo/bar/..')
         >>> assert ub.truepath('~/foo', real=True) == ub.truepath('~/foo')
     """

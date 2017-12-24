@@ -6,7 +6,7 @@ import os
 from os.path import exists, join  # NOQA
 
 
-def writeto(fpath, to_write, aslines=False, mode='w', verbose=None):
+def writeto(fpath, to_write, aslines=False, verbose=None):
     r"""
     Writes text to a file. Automatically encodes text as utf8.
 
@@ -15,7 +15,6 @@ def writeto(fpath, to_write, aslines=False, mode='w', verbose=None):
         to_write (str): text to write (must be unicode text)
         aslines (bool): if True to_write is assumed to be a list of lines
         verbose (bool): verbosity flag
-        mode (unicode): (default = u'w')
         n (int):  (default = 2)
 
     CommandLine:
@@ -52,13 +51,15 @@ def writeto(fpath, to_write, aslines=False, mode='w', verbose=None):
     if verbose:
         print('Writing to text file: %r ' % (fpath,))
 
-    with open(fpath, mode) as file_:
+    with open(fpath, 'wb') as file_:
         if aslines:
+            to_write = (line.encode('utf8') for line in to_write)
             file_.writelines(to_write)
         else:
             # Ensure python2 writes in bytes
             if six.PY2 and isinstance(to_write, unicode):  # NOQA
                 to_write = to_write.encode('utf8')  # nocover
+            to_write = to_write.encode('utf8')  # nocover
             file_.write(to_write)
 
 
