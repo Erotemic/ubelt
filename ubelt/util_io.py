@@ -77,7 +77,7 @@ def writeto(fpath, to_write, aslines=False, verbose=None):
 
 if six.PY2:  # nocover
     def _ensure_bytes(text):
-        if isinstance(to_write, unicode):  # NOQA
+        if isinstance(text, unicode):  # NOQA
             text = text.encode('utf8')
         return text
 else:
