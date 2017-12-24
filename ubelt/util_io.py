@@ -1,21 +1,35 @@
 # -*- coding: utf-8 -*-
+"""
+Functions for reading and writing files on disk.
+
+`writeto` and `readfrom` wrap `open().write()` and `open().read()` and primarilly
+serve to indicate that the type of data being written and read is unicode text.
+
+`delete` wraps `os.unlink` and `shutil.rmtree` and does not throw an error if
+the file or directory does not exist.
+"""
 from __future__ import absolute_import, division, print_function, unicode_literals
+import shutil
 import six
 import sys
 import os
 from os.path import exists, join  # NOQA
 
 
+__all__ = [
+    'readfrom', 'writeto', 'touch', 'delete',
+]
+
+
 def writeto(fpath, to_write, aslines=False, verbose=None):
     r"""
-    Writes text to a file. Automatically encodes text as utf8.
+    Writes (utf8) text to a file.
 
     Args:
         fpath (str): file path
         to_write (str): text to write (must be unicode text)
         aslines (bool): if True to_write is assumed to be a list of lines
         verbose (bool): verbosity flag
-        n (int):  (default = 2)
 
     CommandLine:
         python -m ubelt.util_io writeto --verbose
@@ -51,21 +65,31 @@ def writeto(fpath, to_write, aslines=False, verbose=None):
     if verbose:
         print('Writing to text file: %r ' % (fpath,))
 
-    with open(fpath, 'wb') as file_:
+    with open(fpath, 'wb') as file:
         if aslines:
-            to_write = (line.encode('utf8') for line in to_write)
-            file_.writelines(to_write)
+            to_write = map(_ensure_bytes , to_write)
+            file.writelines(to_write)
         else:
-            # Ensure python2 writes in bytes
-            if six.PY2 and isinstance(to_write, unicode):  # NOQA
-                to_write = to_write.encode('utf8')  # nocover
-            to_write = to_write.encode('utf8')  # nocover
-            file_.write(to_write)
+            # convert to bytes for writing
+            bytes = _ensure_bytes(to_write)
+            file.write(bytes)
+
+
+if six.PY2:  # nocover
+    def _ensure_bytes(text):
+        if isinstance(to_write, unicode):  # NOQA
+            text = text.encode('utf8')
+        return text
+else:
+    def _ensure_bytes(text):
+        """ ensures text is in a suitable format for writing """
+        return text.encode('utf8')
+
 
 
 def readfrom(fpath, aslines=False, errors='replace', verbose=None):
     r"""
-    Reads text from a file. Automatically returns utf8.
+    Reads (utf8) text from a file.
 
     Args:
         fpath (str): file path
@@ -74,21 +98,15 @@ def readfrom(fpath, aslines=False, errors='replace', verbose=None):
 
     Returns:
         str: text from fpath (this is unicode)
-
-    Ignore:
-        x = b'''/whaleshark_003_fors\xc3\xb8g.wmv" />\r\n'''
-        ub.writeto('foo.txt', x)
-        y = ub.readfrom('foo.txt')
-        y.encode('utf8') == x
     """
     if verbose:
         print('[util_io] * Reading text file: %r ' % (fpath,))
     if not exists(fpath):
         raise IOError('File %r does not exist' % (fpath,))
-    with open(fpath, 'rb') as file_:
+    with open(fpath, 'rb') as file:
         if aslines:
             text = [line.decode('utf8', errors=errors)
-                    for line in file_.readlines()]
+                    for line in file.readlines()]
             if sys.platform.startswith('win32'):  # nocover
                 # fix line endings on windows
                 text = [
@@ -96,15 +114,23 @@ def readfrom(fpath, aslines=False, errors='replace', verbose=None):
                     for line in text
                 ]
         else:
-            text = file_.read().decode('utf8', errors=errors)
+            text = file.read().decode('utf8', errors=errors)
     return text
 
 
-def touch(fname, mode=0o666, dir_fd=None, **kwargs):
+def touch(fpath, mode=0o666, dir_fd=None, **kwargs):
     r"""
     change file timestamps
 
     Works like the touch unix utility
+
+    Args:
+        fpath (str): name of the file
+        mode (int): file permissions (python3 and unix only)
+        dir_fd (file): optional directory file descriptor. If specified, fpath
+            is interpreted as relative to this descriptor (python 3 only).
+        **kwargs : extra args passed to `os.utime` (python 3 only).
+
 
     References:
         https://stackoverflow.com/questions/1158076/implement-touch-using-python
@@ -120,12 +146,12 @@ def touch(fname, mode=0o666, dir_fd=None, **kwargs):
         >>> os.unlink(fpath)
     """
     if six.PY2:  # nocover
-        with open(fname, 'a'):
-            os.utime(fname, None)
+        with open(fpath, 'a'):
+            os.utime(fpath, None)
     else:
         flags = os.O_CREAT | os.O_APPEND
-        with os.fdopen(os.open(fname, flags=flags, mode=mode, dir_fd=dir_fd)) as f:
-            os.utime(f.fileno() if os.utime in os.supports_fd else fname,
+        with os.fdopen(os.open(fpath, flags=flags, mode=mode, dir_fd=dir_fd)) as f:
+            os.utime(f.fileno() if os.utime in os.supports_fd else fpath,
                      dir_fd=None if os.supports_fd else dir_fd, **kwargs)
 
 
@@ -136,6 +162,7 @@ def delete(path, verbose=False):
 
     Args:
         path (str): file or directory to remove
+        verbose (bool): if True prints what is being done
 
     Doctest:
         >>> import ubelt as ub
@@ -155,7 +182,6 @@ def delete(path, verbose=False):
         >>> ub.delete(dpath1)
         >>> assert not any(map(exists, (dpath1, fpath1, fpath2)))
     """
-    import shutil
     if not os.path.exists(path):
         if verbose:  # nocover
             print('Not deleting non-existant path="{}"'.format(path))
