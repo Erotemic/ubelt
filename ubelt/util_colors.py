@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function, division, absolute_import, unicode_literals
+import sys
 
 
 def highlight_code(text, lexer_name='python', **kwargs):
@@ -37,9 +38,16 @@ def highlight_code(text, lexer_name='python', **kwargs):
         import pygments.lexers
         import pygments.formatters
         import pygments.formatters.terminal
+
+        if sys.platform.startswith('win32'):
+            # Hack on win32 to support colored output
+            import colorama
+            colorama.init()
+
         formater = pygments.formatters.terminal.TerminalFormatter(bg='dark')
         lexer = pygments.lexers.get_lexer_by_name(lexer_name, **kwargs)
         new_text = pygments.highlight(text, lexer, formater)
+
     except ImportError:  # nocover
         import warnings
         warnings.warn('pygments is not installed')
@@ -77,6 +85,12 @@ def color_text(text, color):
     try:
         import pygments
         import pygments.console
+
+        if sys.platform.startswith('win32'):
+            # Hack on win32 to support colored output
+            import colorama
+            colorama.init()
+
         ansi_text = pygments.console.colorize(color, text)
         return ansi_text
     except ImportError:  # nocover
