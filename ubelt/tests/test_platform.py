@@ -31,6 +31,7 @@ def test_cmd_stderr():
 
 def test_cmd_multiline_stdout():
     """
+    python ubelt/tests/test_platform.py test_cmd_multiline_stdout
     pytest ubelt/tests/test_platform.py::test_cmd_multiline_stdout
     """
     import threading
@@ -52,7 +53,7 @@ def test_cmd_multiline_stdout():
                     reason="does not run on windows")
 def test_cmd_interleaved_streams_sh():
     """
-    A test that ``Crosses the Streams''
+    A test that ``Crosses the Streams'' of stdout and stderr
     """
     sh_script = ub.codeblock(
         r'''
@@ -93,3 +94,8 @@ def test_cmd_interleaved_streams_py():
 
     assert result['out'] == 'O0\nO1\nO2\nO3\nO4\nO5\nO6\nO7\nO8\nO9\nO10\nO11\nO12\nO13\nO14\nO15\nO16\nO17\nO18\nO19\nO20\nO21\nO22\nO23\nO24\nO25\nO26\nO27\nO28\nO29\n'
     assert result['err'] == '!E0\n!E5\n!E10\n!E15\n!E20\n!E25\n'
+
+
+if __name__ == '__main__':
+    import xdoctest
+    xdoctest.doctest_module(__file__)

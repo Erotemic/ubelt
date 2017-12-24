@@ -355,24 +355,26 @@ def cmd(command, shell=False, detatch=False, verbose=0, verbout=None):
         https://stackoverflow.com/questions/7729336/how-can-i-print-and-display-subprocess-stdout-and-stderr-output-without-distorti
 
     Doctest:
+        >>> info = cmd('echo str noshell', verbose=0)
+        >>> assert info['out'].strip() == 'str noshell'
+
+    Doctest:
+        >>> # windows echo will output extra single quotes
+        >>> info = cmd(('echo', 'tuple noshell'), verbose=0)
+        >>> assert info['out'].strip().strip("'") == 'tuple noshell'
+
+    Doctest:
+        >>> # Note this command is formatted to work on win32 and unix
+        >>> info = cmd('echo str&&echo shell', verbose=0, shell=True)
+        >>> assert info['out'].strip() == 'str\nshell'
+
+    Doctest:
+        >>> info = cmd(('echo', 'tuple shell'), verbose=0, shell=True)
+        >>> assert info['out'].strip().strip("'") == 'tuple shell'
+
+    Doctest:
         >>> import ubelt as ub
         >>> from os.path import join, exists
-        >>> verbose = 3
-        >>> # ----
-        >>> info = ub.cmd('echo str noshell', verbose=verbose)
-        >>> assert info['out'].strip() == 'str noshell'
-        >>> # ----
-        >>> info = ub.cmd(('echo', 'tuple noshell'), verbose=verbose)
-        >>> # windows echo will output extra single quotes
-        >>> assert info['out'].strip().strip("'") == 'tuple noshell'
-        >>> # ----
-        >>> info = ub.cmd('echo "str\n\nshell"', verbose=verbose, shell=True)
-        >>> assert info['out'].strip() == 'str\n\nshell'
-        >>> # ----
-        >>> info = ub.cmd(('echo', 'tuple shell'), verbose=verbose, shell=True)
-        >>> # windows echo will output extra single quotes
-        >>> assert info['out'].strip().strip("'") == 'tuple shell'
-        >>> # ----
         >>> fpath1 = join(ub.get_app_cache_dir('ubelt'), 'cmdout1.txt')
         >>> fpath2 = join(ub.get_app_cache_dir('ubelt'), 'cmdout2.txt')
         >>> ub.delete(fpath1)
@@ -388,41 +390,44 @@ def cmd(command, shell=False, detatch=False, verbose=0, verbout=None):
         >>> info1['proc'].wait()
         >>> info2['proc'].wait()
     """
+    # if WIN32:
+    #     # We must run in a shell on windows. Why is this?
+    #     shell = True
+
+    # Determine if command is specified as text or a tuple
+    if isinstance(command, (list, tuple)):
+        command_tup = command
+        command_text = ' '.join(list(map(pipes.quote, command_tup)))
+    else:
+        command_text = command
+        command_tup = None
+
+    if shell:
+        # When shell=True, args is sent to the shell (e.g. bin/sh) as text
+        args = command_text
+    else:
+        # When shell=False, args is a list of executable and arguments
+        if command_tup is None:
+            # parse this out of the string
+            command_tup = shlex.split(command_text, posix=not WIN32)
+        args = command_tup
+
     if verbout is None:
         verbout = verbose >= 1
     if verbose >= 2:  # nocover
         if verbose >= 3:
             print('+=== START CMD ===')
             print('CWD:' + os.getcwd())
-            print('Command:')
-            print(command)
-        else:
-            from ubelt import util_path
-            compname = platform.node()
-            username = getpass.getuser()
-            cwd = util_path.compressuser(os.getcwd())
-            ps1 = '[ubelt.cmd] {}@{}:{}$ '.format(username, compname, cwd)
-            print(ps1 + command)
+        from ubelt import util_path
+        compname = platform.node()
+        username = getpass.getuser()
+        cwd = util_path.compressuser(os.getcwd())
+        ps1 = '[ubelt.cmd] {}@{}:{}$ '.format(username, compname, cwd)
+        print(ps1 + command_text)
         if verbout >= 3 and not detatch:
             print('----')
             print('Stdout:')
 
-    if WIN32:
-        # We must run in a shell on windows
-        shell = True
-
-    # When shell=True, args is a string sent to the shell (e.g. bin/sh)
-    # When shell=False, args is a list of executable and arguments
-    if shell:
-        if isinstance(command, (list, tuple)):
-            args = ' '.join(list(map(pipes.quote, command)))
-        else:
-            args = command
-    else:
-        if isinstance(command, (list, tuple)):
-            args = command
-        else:
-            args = shlex.split(command, posix=not WIN32)
 
     # Create a new process to execute the command
     proc = subprocess.Popen(args, stdout=subprocess.PIPE,
