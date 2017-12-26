@@ -2,6 +2,7 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 # import datetime
 import time
+import math
 import sys
 
 __all__ = ['Timer', 'Timerit', 'timestamp']
@@ -171,28 +172,81 @@ class Timerit(object):
 
     @property
     def ave_secs(self):
-        # Takes the best of each trial
+        return self.mean()
+
+    def mean(self):
+        """
+        The mean of the best results of each trial
+
+        Example:
+            >>> self = Timerit(num=10, verbose=0)
+            >>> self.call(ub.find_nth_prime, 50)
+            >>> assert self.mean() > 0
+        """
         import ubelt as ub
-        chunks = list(ub.chunks(self.times, self.bestof))
-        seconds = sum(map(min, chunks)) / len(chunks)
-        return seconds
-        # return self.total_time / self.n_loops
+        chunks = ub.chunks(self.times, self.bestof)
+        times = list(map(min, chunks))
+        mean = sum(times) / len(times)
+        return mean
+
+    def std(self):
+        """
+        The standard deviation of the best results of each trial.
+
+        Note:
+            As mentioned in the timeit source code, the standard deviation is
+            not often useful. Typically the minimum value is most informative.
+
+        Example:
+            >>> self = Timerit(num=10, verbose=1)
+            >>> self.call(ub.find_nth_prime, 50)
+            >>> assert self.std() > 0
+        """
+        import ubelt as ub
+        chunks = ub.chunks(self.times, self.bestof)
+        times = list(map(min, chunks))
+        mean = sum(times) / len(times)
+        std = math.sqrt(sum((t - mean) ** 2 for t in times) / len(times))
+        return std
 
     def _seconds_str(self):
+        def _trychar(char, fallback):
+            # Logic from ipython timeit to handle terminals that cant show mu
+            if hasattr(sys.stdout, 'encoding') and sys.stdout.encoding:
+                try:
+                    char.encode(sys.stdout.encoding)
+                except:
+                    pass
+                else:
+                    return char
+            return fallback
+
         units = [
             ('s', 1e0),
             ('ms', 1e-3),
-            ('µs', 1e-6),
+            (_trychar('µs', 'us'), 1e-6),
             ('ns', 1e-9),
         ]
-        seconds = self.ave_secs
+
+        mean = self.mean()
+
         for unit, mag in units:
-            if seconds > mag:
+            if mean > mag:
                 break
-        unit_sec = seconds / mag
+        unit_sec = mean / mag
         precision = 4
-        fmtstr = '{:.%d} {}' % (precision,)
-        unit_str = fmtstr.format(unit_sec, unit)
+
+        show_std = 1
+        if show_std:
+            # Is this useful?
+            std = self.std()
+            unit_std = std / mag
+            pm = _trychar('±', '+-')
+            fmtstr = '{:.%d} {} {} {:.%d}' % (precision, precision - 2,)
+            unit_str = fmtstr.format(unit_sec, unit, pm, unit_std)
+        else:
+            fmtstr = '{:.%d} {}' % (precision,)
+            unit_str = fmtstr.format(unit_sec, unit)
         return unit_str
 
     def _print_report(self, verbose=1):
@@ -205,7 +259,7 @@ class Timerit(object):
                 self.label, self.n_loops, min(self.n_loops, self.bestof)))
         if verbose > 2:
             print('    body took: %s seconds' % self.total_time)
-        print('    time per loop : %s seconds' % (self._seconds_str(),))
+        print('    time per loop : %s' % (self._seconds_str(),))
 
 
 def timestamp(method='iso8601'):

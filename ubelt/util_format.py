@@ -216,7 +216,9 @@ def _format_dict(dict_, **kwargs):
                   explicit, itemsep, precision, kvsep, sort
 
     Kwargs:
-        sort (None): returns str sorted by a metric (default = None)
+        sort (None): if True, sorts ALL collectsions and subcollections,
+            note, collections with undefined orders (e.g. dicts, sets) are
+            sorted by default. (default = None)
         nl (int): prefered alias for newline. can be a coundown variable
             (default = None)
         explicit (int): can be a countdown variable. if True, uses
@@ -304,6 +306,8 @@ def _join_itemstrs(itemstrs, itemsep, newlines, nobraces, trailing_sep,
 
 def _dict_itemstrs(dict_, **kwargs):
     """
+    Create a string representation for each item in a dict.
+
     Example:
         >>> from ubelt.util_format import *
         >>> dict_ =  {'b': .1, 'l': 'st', 'g': 1.0, 's': 10, 'm': 0.9, 'w': .5}
@@ -350,6 +354,7 @@ def _dict_itemstrs(dict_, **kwargs):
 
     sort = kwargs.get('sort', None)
     if sort is None:
+        # Force ordering on unordered dicts
         sort = True
     if isinstance(dict_, collections.OrderedDict):
         # never sort ordered dicts; they are perfect just the way they are!
@@ -360,6 +365,9 @@ def _dict_itemstrs(dict_, **kwargs):
 
 
 def _list_itemstrs(list_, **kwargs):
+    """
+    Create a string representation for each item in a list.
+    """
     items = list(list_)
     itemstrs = [repr2(item, **kwargs) for item in items]
 
@@ -373,6 +381,10 @@ def _list_itemstrs(list_, **kwargs):
 
 
 def _sort_itemstrs(items, itemstrs):
+    """
+    Equivalent to `sorted(items)` except if `items` are unorderable, then
+    string values are used to define an ordering.
+    """
     # First try to sort items by their normal values
     # If that doesnt work, then sort by their string values
     import ubelt as ub
