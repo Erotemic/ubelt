@@ -102,7 +102,7 @@ class Timerit(object):
         >>> n = 50
         >>> # If the timer object is unused, time will still be recoreded,
         >>> # but with less precision.
-        >>> for _ in ub.Timerit(num, 'inprecise'):
+        >>> for _ in ub.Timerit(num, 'imprecise'):
         >>>     ub.find_nth_prime(n)
         >>> # Using the timer object results in the most precise timeings
         >>> for timer in ub.Timerit(num, 'precise'):
@@ -179,6 +179,7 @@ class Timerit(object):
         The mean of the best results of each trial
 
         Example:
+            >>> import ubelt as ub
             >>> self = Timerit(num=10, verbose=0)
             >>> self.call(ub.find_nth_prime, 50)
             >>> assert self.mean() > 0
@@ -198,6 +199,7 @@ class Timerit(object):
             not often useful. Typically the minimum value is most informative.
 
         Example:
+            >>> import ubelt as ub
             >>> self = Timerit(num=10, verbose=1)
             >>> self.call(ub.find_nth_prime, 50)
             >>> assert self.std() > 0
