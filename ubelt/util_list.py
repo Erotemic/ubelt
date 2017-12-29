@@ -21,6 +21,9 @@ class chunks(object):
             length of the sequence is not divisible by chunksize valid values
             are: {'none', 'cycle', 'replicate'}
 
+    TODO:
+        should this handle the case when sequence is a string?
+
     References:
         http://stackoverflow.com/questions/434287/iterate-over-a-list-in-chunks
 

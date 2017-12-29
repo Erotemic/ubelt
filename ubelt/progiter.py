@@ -67,6 +67,17 @@ class ProgIter(object):
     """
     Prints progress as an iterator progresses
 
+    Note:
+        USE `tqdm` INSTEAD.  The main difference between `ProgIter` and `tqdm`
+        is that ProgIter does not use threading where as `tqdm` does.
+        `ProgIter` is simpler than `tqdm` and thus more stable in certain
+        circumstances. However, `tqdm` is recommended for the majority of use
+        cases.
+
+    Note:
+        The API on `ProgIter` will change to become inter-compatible with
+        `tqdm`.
+
     Attributes:
         sequence (iterable): An iterable sequence
         label (int): Maximum length of the process
@@ -113,10 +124,11 @@ class ProgIter(object):
     def __init__(self, sequence=None, label=None, length=None, freq=1,
                  start=0, eta_window=64, clearline=True, adjust=True,
                  time_thresh=2.0, show_times=True, enabled=True, verbose=None,
-                 stream=None):
+                 stream=None, **kwargs):
         """
         Notes:
             See attributes for arg information
+            **kwargs accepts most of the tqdm api
         """
         if label is None:
             label = ''
@@ -131,6 +143,25 @@ class ProgIter(object):
                 enabled, clearline, adjust = 1, 0, 0
         if stream is None:
             stream = sys.stdout
+
+        # --- Accept the tqdm api ---
+        label = kwargs.pop('desc', label)
+        sequence = kwargs.pop('iterable', sequence)
+        length = kwargs.pop('total', length)
+        stream = kwargs.pop('file', stream)
+        enabled = not kwargs.pop('disable', not enabled)
+        start = kwargs.pop('initial', start)
+        if kwargs.get('miniters', None) is not None:
+            adjust = False
+        freq = not kwargs.pop('miniters', freq)
+        if len(kwargs) > 0:
+            raise ValueError('ProgIter given unknown kwargs {}'.format(kwargs))
+        # --- Accept some of the old api ---
+        label = kwargs.pop('label', label)
+        length = kwargs.pop('length', length)
+        enabled = kwargs.pop('enabled', enabled)
+        start = kwargs.pop('start', start)
+        # ----------------------------
 
         self.stream = stream
         self.sequence = sequence
@@ -484,6 +515,12 @@ class ProgIter(object):
 
     def write(self, msg):
         self.stream.write(msg)
+
+    # TODO: tqdm api
+    # def set_description(self, desc=None):
+    # def set_postfix(self, ordered_dict=None, **kwargs):
+    # update = step
+    # close = end
 
 
 if __name__ == '__main__':
