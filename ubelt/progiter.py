@@ -14,31 +14,28 @@ __all__ = [
     'ProgIter',
 ]
 
-# VT100 ANSI definitions
-# https://en.wikipedia.org/wiki/ANSI_escape_code#CSI_codes
-CLEARLINE_EL0 = '\33[0K'  # clear line to right
-CLEARLINE_EL1 = '\33[1K'  # clear line to left
-CLEARLINE_EL2 = '\33[2K'  # clear line
-DECTCEM_HIDE = '\033[?25l'  # hide cursor
-DECTCEM_SHOW = '\033[?25h'  # show cursor
-
-WIN32 = sys.platform.startswith('win32')
-WITH_ANSI = not WIN32
-
-if WIN32:  # nocover
+if sys.platform.startswith('win32'):  # nocover
     # Use time.clock in win32
     default_timer = time.clock
 else:  # nocover
     default_timer = time.time
 
-if WITH_ANSI:  # pragma: nobranch
-    CLEAR_BEFORE = '\r'
-    AT_END = '\n'
-    CLEAR_AFTER = ''
-else:  # nocover
-    CLEAR_BEFORE = '\r' + CLEARLINE_EL2 + DECTCEM_HIDE
-    CLEAR_AFTER = CLEARLINE_EL0
-    AT_END = DECTCEM_SHOW + '\n'
+CLEAR_BEFORE = '\r'
+AT_END = '\n'
+CLEAR_AFTER = ''
+
+# Turns out we probably dont need all this ansi stuff
+# VT100 ANSI definitions
+# https://en.wikipedia.org/wiki/ANSI_escape_code#CSI_codes
+# CLEARLINE_EL0 = '\33[0K'  # clear line to right
+# CLEARLINE_EL1 = '\33[1K'  # clear line to left
+# CLEARLINE_EL2 = '\33[2K'  # clear line
+# DECTCEM_HIDE = '\033[?25l'  # hide cursor
+# DECTCEM_SHOW = '\033[?25h'  # show cursor
+# if WITH_ANSI:  # pragma: nobranch
+#     CLEAR_BEFORE = '\r' + CLEARLINE_EL2 + DECTCEM_HIDE
+#     CLEAR_AFTER = CLEARLINE_EL0
+#     AT_END = DECTCEM_SHOW + '\n'
 
 
 def _infer_length(iterable):
@@ -551,6 +548,9 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
         r"""
         builds a formatted progres message with the current values.
         This contains the special characters needed to clear lines.
+
+        CommandLine:
+            python -m ubelt.progiter ProgIter.format_message
 
         Example:
             >>> self = ProgIter(clearline=False, show_times=False)
