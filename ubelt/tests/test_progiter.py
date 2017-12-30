@@ -42,8 +42,8 @@ def test_rate_format_string():
 def test_rate_format():
     # Define a function that takes some time
     import ubelt as ub
-    stream = cStringIO()
-    prog = ub.ProgIter(stream=stream)
+    file = cStringIO()
+    prog = ub.ProgIter(file=file)
     prog.begin()
 
     prog._iters_per_second = .000001
@@ -70,11 +70,11 @@ def test_progiter():
     N = 500
 
     if False:
-        stream = cStringIO()
-        prog = ProgIter(range(N), clearline=False, stream=stream, freq=N // 10,
+        file = cStringIO()
+        prog = ProgIter(range(N), clearline=False, file=file, freq=N // 10,
                         adjust=False)
-        stream.seek(0)
-        print(stream.read())
+        file.seek(0)
+        print(file.read())
 
         prog = ProgIter(range(N), clearline=False)
         for n in prog:
@@ -82,12 +82,12 @@ def test_progiter():
             prog.set_extra('n=%r, was_prime=%r' % (n, was_prime,))
             if (n + 1) % 128 == 0 and was_prime:
                 prog.set_extra('n=%r, was_prime=%r EXTRA' % (n, was_prime,))
-        stream.seek(0)
-        print(stream.read())
+        file.seek(0)
+        print(file.read())
 
-    length = 200
+    total = 200
     N = 5000
-    N0 = N - length
+    N0 = N - total
     print('N = %r' % (N,))
     print('N0 = %r' % (N0,))
 
@@ -98,7 +98,7 @@ def test_progiter():
     print('this is verbosity mode verbose=0')
     sequence = (is_prime(n) for n in range(N0, N))
     with Timer('demo0'):
-        psequence = ProgIter(sequence, length=length, label='demo0',
+        psequence = ProgIter(sequence, total=total, desc='demo0',
                              enabled=False)
         list(psequence)
 
@@ -107,7 +107,7 @@ def test_progiter():
     print('this is verbosity mode verbose=1')
     sequence = (is_prime(n) for n in range(N0, N))
     with Timer('demo1'):
-        psequence = ProgIter(sequence, length=length, label='demo1')
+        psequence = ProgIter(sequence, total=total, desc='demo1')
         list(psequence)
 
     # Default behavior adjusts frequency of progress reporting so
@@ -119,8 +119,8 @@ def test_progiter():
     print('this is verbosity mode verbose=2')
     with Timer('demo2'):
         sequence = (is_prime(n) for n in range(N0, N))
-        psequence = ProgIter(sequence, length=length, clearline=False,
-                             label='demo2')
+        psequence = ProgIter(sequence, total=total, clearline=False,
+                             desc='demo2')
         list(psequence)
         # import utool as ut
         # print(ut.repr4(psequence.__dict__))
@@ -130,8 +130,8 @@ def test_progiter():
     print('this is verbosity mode verbose=3')
     sequence = (is_prime(n) for n in range(N0, N))
     with Timer('demo3'):
-        psequence = ProgIter(sequence, length=length, adjust=False,
-                             clearline=False, freq=100, label='demo3')
+        psequence = ProgIter(sequence, total=total, adjust=False,
+                             clearline=False, freq=100, desc='demo3')
         list(psequence)
 
 
@@ -140,13 +140,13 @@ def test_progiter_offset_10():
     pytest -s  ~/code/ubelt/ubelt/tests/test_progiter.py::test_progiter_offset_10
     """
     # Define a function that takes some time
-    stream = cStringIO()
-    list(ProgIter(range(10), length=20, verbose=3, start=10, stream=stream,
+    file = cStringIO()
+    list(ProgIter(range(10), total=20, verbose=3, start=10, file=file,
                   freq=5, show_times=False))
-    stream.seek(0)
+    file.seek(0)
     want = ['10/20...', '15/20...', '20/20...']
-    got = [line.strip() for line in stream.readlines()]
-    if sys.platform.startswith('win32'): # nocover
+    got = [line.strip() for line in file.readlines()]
+    if sys.platform.startswith('win32'):  # nocover
         # on windows \r seems to be mixed up with ansi sequences
         from xdoctest.utils import strip_ansi
         got = [strip_ansi(line).strip() for line in got]
@@ -158,14 +158,14 @@ def test_progiter_offset_0():
     pytest -s  ~/code/ubelt/ubelt/tests/test_progiter.py::test_progiter_offset_0
     """
     # Define a function that takes some time
-    stream = cStringIO()
-    for _ in ProgIter(range(10), length=20, verbose=3, start=0, stream=stream,
+    file = cStringIO()
+    for _ in ProgIter(range(10), total=20, verbose=3, start=0, file=file,
                       freq=5, show_times=False):
         pass
-    stream.seek(0)
+    file.seek(0)
     want = ['0/20...', '5/20...', '10/20...']
-    got = [line.strip() for line in stream.readlines()]
-    if sys.platform.startswith('win32'): # nocover
+    got = [line.strip() for line in file.readlines()]
+    if sys.platform.startswith('win32'):  # nocover
         # on windows \r seems to be mixed up with ansi sequences
         from xdoctest.utils import strip_ansi
         got = [strip_ansi(line).strip() for line in got]
@@ -185,7 +185,7 @@ def time_progiter_overhead():
         from six.moves import cStringIO, range
         import utool as ut
         N = 500
-        stream = cStringIO()
+        file = cStringIO()
         rng = np.random.RandomState(42)
         ndims = 2
         vec1 = rng.rand(113, ndims)
@@ -226,22 +226,22 @@ def time_progiter_overhead():
         'minwrap3'       : '[{work} for n in minimal_wraper3(range(N))]',
         'minwrap4'       : '[{work} for n in minwrap4(range(N))]',
         'minwrap5'       : '[{work} for n in minwrap5(range(N))]',
-        '(sk-disabled)'  : '[{work} for n in ProgIter(range(N), enabled=False, stream=stream)]',  # NOQA
-        '(sk-plain)'     : '[{work} for n in ProgIter(range(N), stream=stream)]',  # NOQA
-        '(sk-freq)'      : '[{work} for n in ProgIter(range(N), stream=stream, freq=100)]',  # NOQA
-        '(sk-no-adjust)' : '[{work} for n in ProgIter(range(N), stream=stream, adjust=False, freq=200)]',  # NOQA
-        '(sk-high-freq)' : '[{work} for n in ProgIter(range(N), stream=stream, adjust=False, freq=200)]',  # NOQA
+        '(sk-disabled)'  : '[{work} for n in ProgIter(range(N), enabled=False, file=file)]',  # NOQA
+        '(sk-plain)'     : '[{work} for n in ProgIter(range(N), file=file)]',  # NOQA
+        '(sk-freq)'      : '[{work} for n in ProgIter(range(N), file=file, freq=100)]',  # NOQA
+        '(sk-no-adjust)' : '[{work} for n in ProgIter(range(N), file=file, adjust=False, freq=200)]',  # NOQA
+        '(sk-high-freq)' : '[{work} for n in ProgIter(range(N), file=file, adjust=False, freq=200)]',  # NOQA
 
-        # '(ut-disabled)'  : '[{work} for n in ut.ProgIter(range(N), enabled=False, stream=stream)]',    # NOQA
-        # '(ut-plain)'     : '[{work} for n in ut.ProgIter(range(N), stream=stream)]',  # NOQA
-        # '(ut-freq)'      : '[{work} for n in ut.ProgIter(range(N), freq=100, stream=stream)]',  # NOQA
-        # '(ut-no-adjust)' : '[{work} for n in ut.ProgIter(range(N), freq=200, adjust=False, stream=stream)]',  # NOQA
-        # '(ut-high-freq)' : '[{work} for n in ut.ProgIter(range(N), stream=stream, adjust=False, freq=200)]',  # NOQA
+        # '(ut-disabled)'  : '[{work} for n in ut.ProgIter(range(N), enabled=False, file=file)]',    # NOQA
+        # '(ut-plain)'     : '[{work} for n in ut.ProgIter(range(N), file=file)]',  # NOQA
+        # '(ut-freq)'      : '[{work} for n in ut.ProgIter(range(N), freq=100, file=file)]',  # NOQA
+        # '(ut-no-adjust)' : '[{work} for n in ut.ProgIter(range(N), freq=200, adjust=False, file=file)]',  # NOQA
+        # '(ut-high-freq)' : '[{work} for n in ut.ProgIter(range(N), file=file, adjust=False, freq=200)]',  # NOQA
     }
     # statements = {
     #     'calc_baseline': '[vec1.dot(vec2.T) for n in range(M)]',  # NOQA
-    #     'calc_plain': '[vec1.dot(vec2.T) for n in ProgIter(range(M), stream=stream)]',  # NOQA
-    #     'calc_plain_ut': '[vec1.dot(vec2.T) for n in ut.ProgIter(range(M), stream=stream)]',  # NOQA
+    #     'calc_plain': '[vec1.dot(vec2.T) for n in ProgIter(range(M), file=file)]',  # NOQA
+    #     'calc_plain_ut': '[vec1.dot(vec2.T) for n in ut.ProgIter(range(M), file=file)]',  # NOQA
     # }
     timeings = {}
 
@@ -254,7 +254,7 @@ def time_progiter_overhead():
     # work = work_strs[1]
 
     number = 10000
-    prog = ub.ProgIter(label='timing', adjust=True)
+    prog = ub.ProgIter(desc='timing', adjust=True)
     for key, stmt in prog(statements.items()):
         prog.set_extra(key)
         secs = timeit.timeit(stmt.format(work=work), setup, number=number)
@@ -262,3 +262,50 @@ def time_progiter_overhead():
 
     # import utool as ut
     # print(ut.align(ut.repr4(timeings, precision=8), ':'))
+
+
+def test_unknown_total():
+    """
+    Make sure a question mark is printed if the total is unknown
+    """
+    iterable = (_ for _ in range(0, 10))
+    file = cStringIO()
+    prog = ProgIter(iterable, desc='unknown seq', file=file,
+                    show_times=False, verbose=1)
+    for n in prog:
+        pass
+    file.seek(0)
+    got = [line.strip() for line in file.readlines()]
+    # prints an eroteme if total is unknown
+    assert len(got) > 0, 'should have gotten something'
+    assert all('?' in line for line in got), 'all lines should have an eroteme'
+
+
+def test_initial():
+    """
+    Make sure a question mark is printed if the total is unknown
+    """
+    file = cStringIO()
+    prog = ProgIter(initial=9001, file=file, show_times=False, clearline=False)
+    message = prog.format_message()
+    assert message == ' 9001/?... \n'
+
+
+def test_clearline():
+    """
+    Make sure a question mark is printed if the total is unknown
+    """
+    file = cStringIO()
+    # Clearline=False version should simply have a newline at the end.
+    prog = ProgIter(file=file, show_times=False, clearline=False)
+    message = prog.format_message()
+    assert message.strip(' ') == '0/?... \n'
+    # Clearline=True version should carrage return at the begining and have no
+    # newline at the end.
+    prog = ProgIter(file=file, show_times=False, clearline=True)
+    message = prog.format_message()
+    assert message.strip(' ') == '\r    0/?...'
+
+# def test_tqdm_compatibility():
+#     import tqdm
+#     pass

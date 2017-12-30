@@ -7,6 +7,8 @@ import datetime
 import collections
 from math import log10, floor
 import six
+from collections import OrderedDict
+import numbers
 
 __all__ = [
     'ProgIter',
@@ -39,21 +41,21 @@ else:  # nocover
     AT_END = DECTCEM_SHOW + '\n'
 
 
-def _infer_length(sequence):
+def _infer_length(iterable):
     """
     Try and infer the length using the PEP 424 length hint if available.
 
     adapted from click implementation
     """
     try:
-        return len(sequence)
+        return len(iterable)
     except (AttributeError, TypeError):  # nocover
         try:
-            get_hint = type(sequence).__length_hint__
+            get_hint = type(iterable).__length_hint__
         except AttributeError:
             return None
         try:
-            hint = get_hint(sequence)
+            hint = get_hint(iterable)
         except TypeError:
             return None
         if (hint is NotImplemented or
@@ -63,7 +65,104 @@ def _infer_length(sequence):
         return hint
 
 
-class ProgIter(object):
+class _TQDMCompat(object):  # nocover
+
+    # TQDM Compatibility API
+    @classmethod
+    def write(cls, s, file=None, end='\n', nolock=False):
+        """ simply writes to stdout """
+        fp = file if file is not None else sys.stdout
+        fp.write(s)
+        fp.write(end)
+
+    def set_description(self, desc=None, refresh=True):
+        """ tqdm api compatibility. Changes the description of progress """
+        self.desc = desc
+
+    def set_description_str(self, desc=None, refresh=True):
+        """ tqdm api compatibility. Changes the description of progress """
+        pass
+
+    def update(self, n=1):
+        """ alias of `step` for tqdm compatibility """
+        self.step(n)
+
+    def close(self):
+        """ alias of `end` for tqdm compatibility """
+        self.end()
+
+    def unpause(self):
+        """ tqdm api compatibility. does nothing """
+        pass
+
+    def moveto(self, n):
+        """ tqdm api compatibility. does nothing """
+        pass
+
+    def clear(self, nolock=False):
+        """ tqdm api compatibility. does nothing """
+        pass
+
+    def refresh(self, nolock=False):
+        """
+        tqdm api compatibility. redisplays message
+        (can cause a message to print twice)
+        """
+        self.display_message()
+
+        pass
+
+    @classmethod
+    def set_lock(cls, lock):
+        """ tqdm api compatibility. does nothing """
+        pass
+
+    @classmethod
+    def get_lock(cls):
+        """ tqdm api compatibility. does nothing """
+        pass
+
+    def set_postfix(self, ordered_dict=None, refresh=True, **kwargs):
+        """ tqdm api compatibility. calls set_extra """
+        # Sort in alphabetical order to be more deterministic
+        postfix = OrderedDict([] if ordered_dict is None else ordered_dict)
+        for key in sorted(kwargs.keys()):
+            postfix[key] = kwargs[key]
+        # Preprocess stats according to datatype
+        for key in postfix.keys():
+            # Number: limit the length of the string
+            if isinstance(postfix[key], numbers.Number):
+                postfix[key] = '{0:2.3g}'.format(postfix[key])
+            # Else for any other type, try to get the string conversion
+            elif not isinstance(postfix[key], six.string_types):
+                postfix[key] = str(postfix[key])
+            # Else if it's a string, don't need to preprocess anything
+        # Stitch together to get the final postfix
+        postfix = ', '.join(key + '=' + postfix[key].strip()
+                                 for key in postfix.keys())
+        self.set_postfix_str(postfix, refresh=refresh)
+
+    def set_postfix_str(self, s='', refresh=True):
+        """ tqdm api compatibility. calls set_extra """
+        self.set_extra(str(s))
+        if refresh:
+            self.refresh()
+
+
+class _BackwardsCompat(object):  # nocover
+    # Backwards Compatibility API
+    @property
+    def length(self):
+        """ alias of total """
+        return self.total
+
+    @property
+    def label(self):
+        """ alias of desc """
+        return self.desc
+
+
+class ProgIter(_TQDMCompat, _BackwardsCompat):
     """
     Prints progress as an iterator progresses
 
@@ -79,10 +178,10 @@ class ProgIter(object):
         `tqdm`.
 
     Attributes:
-        sequence (iterable): An iterable sequence
-        label (int): Maximum length of the process
-            (estimated from sequence if not specified)
-        label (str): Message to print
+        iterable (iterable): An iterable iterable
+        desc (str): description label to show with progress
+        total (int): Maximum length of the process
+            (estimated from iterable if not specified)
         freq (int): How many iterations to wait between messages.
         adjust (bool): if True freq is adjusted based on time_thresh
         eta_window (int): number of previous measurements to use in eta calculation
@@ -91,7 +190,7 @@ class ProgIter(object):
         time_thresh (float): desired amount of time to wait between messages if
             adjust is True otherwise does nothing
         show_times (bool): shows rate, eta, and wall (defaults to True)
-        start (int): starting index offset (defaults to 0)
+        initial (int): starting index offset (defaults to 0)
         stream (file): defaults to sys.stdout
         enabled (bool): if False nothing happens.
         verbose (int): verbosity mode
@@ -108,7 +207,7 @@ class ProgIter(object):
 
     Notes:
         Either use ProgIter in a with statement or call prog.end() at the end
-        of the computation if there is a possibility that the entire sequence
+        of the computation if there is a possibility that the entire iterable
         may not be exhausted.
 
     Example:
@@ -119,10 +218,10 @@ class ProgIter(object):
         >>> for n in ub.ProgIter(range(100), verbose=1):
         >>>     # do some work
         >>>     is_prime(n)
-        100/100... rate=301748.49 Hz, total=0:00:00, wall=10:47 EST
+        100/100... rate=... Hz, total=..., wall=... EST
     """
-    def __init__(self, sequence=None, label=None, length=None, freq=1,
-                 start=0, eta_window=64, clearline=True, adjust=True,
+    def __init__(self, iterable=None, desc=None, total=None, freq=1,
+                 initial=0, eta_window=64, clearline=True, adjust=True,
                  time_thresh=2.0, show_times=True, enabled=True, verbose=None,
                  stream=None, **kwargs):
         """
@@ -130,8 +229,8 @@ class ProgIter(object):
             See attributes for arg information
             **kwargs accepts most of the tqdm api
         """
-        if label is None:
-            label = ''
+        if desc is None:
+            desc = ''
         if verbose is not None:
             if verbose <= 0:  # nocover
                 enabled = False
@@ -145,30 +244,28 @@ class ProgIter(object):
             stream = sys.stdout
 
         # --- Accept the tqdm api ---
-        label = kwargs.pop('desc', label)
-        sequence = kwargs.pop('iterable', sequence)
-        length = kwargs.pop('total', length)
-        stream = kwargs.pop('file', stream)
-        enabled = not kwargs.pop('disable', not enabled)
-        start = kwargs.pop('initial', start)
-        if kwargs.get('miniters', None) is not None:
-            adjust = False
-        freq = not kwargs.pop('miniters', freq)
-        if len(kwargs) > 0:
+        if kwargs:
+            stream = kwargs.pop('file', stream)
+            enabled = not kwargs.pop('disable', not enabled)
+            if kwargs.get('miniters', None) is not None:
+                adjust = False
+            freq = kwargs.pop('miniters', freq)
+
+            # Accept the old api keywords
+            desc = kwargs.pop('label', desc)
+            total = kwargs.pop('length', total)
+            enabled = kwargs.pop('enabled', enabled)
+            initial = kwargs.pop('start', initial)
+        if kwargs:
             raise ValueError('ProgIter given unknown kwargs {}'.format(kwargs))
-        # --- Accept some of the old api ---
-        label = kwargs.pop('label', label)
-        length = kwargs.pop('length', length)
-        enabled = kwargs.pop('enabled', enabled)
-        start = kwargs.pop('start', start)
-        # ----------------------------
+            # ----------------------------
 
         self.stream = stream
-        self.sequence = sequence
-        self.label = label
-        self.length = length
+        self.iterable = iterable
+        self.desc = desc
+        self.total = total
         self.freq = freq
-        self.offset = start
+        self.initial = initial
         self.enabled = enabled
         self.adjust = adjust
         self.show_times = show_times
@@ -178,18 +275,21 @@ class ProgIter(object):
         self.extra = ''
         self.started = False
         self.finished = False
+        self._reset_internals()
 
-    def __call__(self, sequence):
-        self.sequence = sequence
+    def __call__(self, iterable):
+        self.iterable = iterable
         return iter(self)
 
     def __enter__(self):
         """
+        CommandLine:
+            python -m ubelt.progiter ProgIter.__enter__
+
         Example:
-            >>> import ubelt as ub
             >>> # can be used as a context manager in iter mode
             >>> n = 3
-            >>> with ub.ProgIter(label='manual', length=n, verbose=3) as prog:
+            >>> with ProgIter(desc='manual', total=n, verbose=3) as prog:
             ...     list(prog(range(n)))
         """
         self.begin()
@@ -203,9 +303,9 @@ class ProgIter(object):
 
     def __iter__(self):
         if not self.enabled:  # nocover
-            return iter(self.sequence)
+            return iter(self.iterable)
         else:
-            return self.iter_rate()
+            return self._iterate()
 
     def set_extra(self, extra):
         """
@@ -223,16 +323,17 @@ class ProgIter(object):
         """
         self.extra = extra
 
-    def iter_rate(self):
+    def _iterate(self):
+        """ iterates with progress """
         if not self.started:
             self.begin()
         # Wrap input sequence in a generator
-        for self._iter_idx, item in enumerate(self.sequence, start=self.offset + 1):
+        for self._iter_idx, item in enumerate(self.iterable, start=self.initial + 1):
             yield item
             if (self._iter_idx) % self.freq == 0:
                 # update progress information every so often
-                self.update_measurements()
-                self.update_estimates()
+                self._update_measurements()
+                self._update_estimates()
                 self.display_message()
         self.end()
 
@@ -248,7 +349,7 @@ class ProgIter(object):
         Example:
             >>> import ubelt as ub
             >>> n = 3
-            >>> prog = ub.ProgIter(label='manual', length=n, verbose=3)
+            >>> prog = ub.ProgIter(desc='manual', total=n, verbose=3)
             >>> # Need to manually begin and end in this mode
             >>> prog.begin()
             >>> for _ in range(n):
@@ -259,33 +360,37 @@ class ProgIter(object):
             >>> import ubelt as ub
             >>> n = 3
             >>> # can be used as a context manager in manual mode
-            >>> with ub.ProgIter(label='manual', length=n, verbose=3) as prog:
+            >>> with ub.ProgIter(desc='manual', total=n, verbose=3) as prog:
             ...     for _ in range(n):
             ...         prog.step()
         """
         self._iter_idx += inc
-        self.update_measurements()
-        self.update_estimates()
+        self._update_measurements()
+        self._update_estimates()
         self.display_message()
 
-    def reset_internals(self):
+    def _reset_internals(self):
+        """
+        Initialize all variables used in the internal state
+        """
         # Prepare for iteration
-        if self.length is None:
-            self.length = _infer_length(self.sequence)
+        if self.total is None:
+            self.total = _infer_length(self.iterable)
         self._est_seconds_left = None
         self._total_seconds = 0
         self._between_time = 0
-        self._iter_idx = self.offset
-        self._last_idx = self.offset - 1
+        self._iter_idx = self.initial
+        self._last_idx = self.initial - 1
         # now time is actually not right now
         # now refers the the most recent measurment
         # last refers to the measurement before that
-        self._now_idx = self.offset
+        self._now_idx = self.initial
         self._now_time = 0
         self._between_count = -1
         self._max_between_time = -1.0
         self._max_between_count = -1.0
         self._iters_per_second = 0.0
+        self._update_message_template()
 
     def begin(self):
         """
@@ -293,14 +398,10 @@ class ProgIter(object):
         """
         if not self.enabled:
             return
-        # Prepare for iteration
-        if self.length is None:
-            self.length = _infer_length(self.sequence)
 
-        self.reset_internals()
-        self._msg_fmtstr = self.build_message_template()
+        self._reset_internals()
 
-        self.tryflush()
+        self._tryflush()
         self.display_message()
 
         # Time progress was initialized
@@ -326,15 +427,15 @@ class ProgIter(object):
             return
         # Write the final progress line if it was not written in the loop
         if self._iter_idx != self._now_idx:
-            self.update_measurements()
-            self.update_estimates()
+            self._update_measurements()
+            self._update_estimates()
             self._est_seconds_left = 0
             self.display_message()
         self.ensure_newline()
         self._cursor_at_newline = True
         self.finished = True
 
-    def adjust_frequency(self):
+    def _adjust_frequency(self):
         # Adjust frequency so the next print will not happen until
         # approximatly `time_thresh` seconds have passed as estimated by
         # iter_idx.
@@ -361,7 +462,7 @@ class ProgIter(object):
         else:
             self.freq = new_freq
 
-    def update_measurements(self):
+    def _update_measurements(self):
         """
         update current measurements and estimated of time and progress
         """
@@ -377,7 +478,7 @@ class ProgIter(object):
 
         # Record that measures were updated
 
-    def update_estimates(self):
+    def _update_estimates(self):
         # Estimate rate of progress
         if self.eta_window is None:
             self._iters_per_second = self._now_idx / self._total_seconds
@@ -388,9 +489,9 @@ class ProgIter(object):
             self._iters_per_second =  ((self._now_idx - prev_idx) /
                                        (self._now_time - prev_time))
 
-        if self.length is not None:
-            # Estimate time remaining if length is given
-            iters_left = self.length - self._now_idx
+        if self.total is not None:
+            # Estimate time remaining if total is given
+            iters_left = self.total - self._now_idx
             est_eta = iters_left / self._iters_per_second
             self._est_seconds_left  = est_eta
 
@@ -398,31 +499,33 @@ class ProgIter(object):
         # so progress doesnt slow down actual function
         if self.adjust and (self._between_time < self.time_thresh or
                             self._between_time > self.time_thresh * 2.0):
-            self.adjust_frequency()
+            self._adjust_frequency()
 
-    def build_message_template(self):
+    def _update_message_template(self):
+        self._msg_fmtstr = self._build_message_template()
+
+    def _build_message_template(self):
         """
         Defines the template for the progress line
 
         Example:
-            >>> # prints an eroteme if length is unknown
-            >>> import ubelt as ub
-            >>> sequence = (_ for _ in range(0, 10))
-            >>> prog = ub.ProgIter(sequence, label='unknown seq', show_times=False, verbose=1)
-            >>> for n in prog:
-            ...     pass
-            unknown seq   10/?...
+            >>> self = ProgIter(show_times=True)
+            >>> print(self._build_message_template().strip())
+            {iter_idx:4d}/?...{extra} rate={rate:{rate_format}} Hz, total={total}, wall={wall} ...
+            >>> self = ProgIter(show_times=False)
+            >>> print(self._build_message_template().strip())
+            {iter_idx:4d}/?...{extra}
         """
         tzname = time.tzname[0]
-        length_unknown = self.length is None or self.length <= 0
+        length_unknown = self.total is None or self.total <= 0
         if length_unknown:
             n_chrs = 4
         else:
-            n_chrs = int(floor(log10(float(self.length))) + 1)
+            n_chrs = int(floor(log10(float(self.total))) + 1)
         msg_body = [
-            (self.label),
+            (self.desc),
             (' {iter_idx:' + str(n_chrs) + 'd}/'),
-            ('?' if length_unknown else six.text_type(self.length)),
+            ('?' if length_unknown else six.text_type(self.total)),
             ('...'),
         ]
 
@@ -433,8 +536,8 @@ class ProgIter(object):
         if self.show_times:
             msg_body += [
                     ('rate={rate:{rate_format}} Hz,'),
-                    (' eta={eta},' if self.length else ''),
-                    (' total={total},'),
+                    (' eta={eta},' if self.total else ''),
+                    (' total={total},'),  # this is total time
                     (' wall={wall} ' + tzname),
             ]
         if self.clearline:
@@ -445,7 +548,19 @@ class ProgIter(object):
         return msg_fmtstr_time
 
     def format_message(self):
-        """ formats the progress template with current values """
+        r"""
+        builds a formatted progres message with the current values.
+        This contains the special characters needed to clear lines.
+
+        Example:
+            >>> self = ProgIter(clearline=False, show_times=False)
+            >>> print(repr(self.format_message()))
+            '    0/?... \n'
+            >>> self.begin()
+            >>> self.step()
+            >>> print(repr(self.format_message()))
+            ' 1/?... \n'
+        """
         if self._est_seconds_left is None:
             eta = '?'
         else:
@@ -453,6 +568,7 @@ class ProgIter(object):
                 seconds=int(self._est_seconds_left)))
         total = six.text_type(datetime.timedelta(
             seconds=int(self._total_seconds)))
+        # similar to tqdm.format_meter
         msg = self._msg_fmtstr.format(
             iter_idx=self._now_idx,
             rate=self._iters_per_second,
@@ -496,31 +612,27 @@ class ProgIter(object):
              4/4...
         """
         if not self._cursor_at_newline:
-            self.write(AT_END)
+            self._write(AT_END)
             self._cursor_at_newline = True
 
     def display_message(self):
         """ Writes current progress to the output stream """
         msg = self.format_message()
-        self.write(msg)
-        self.tryflush()
+        self._write(msg)
+        self._tryflush()
         self._cursor_at_newline = not self.clearline
 
-    def tryflush(self):
+    def _tryflush(self):
+        """ flush to the internal stream """
         try:
             # flush sometimes causes issues in IPython notebooks
             self.stream.flush()
         except IOError:  # nocover
             pass
 
-    def write(self, msg):
+    def _write(self, msg):
+        """ write to the internal stream """
         self.stream.write(msg)
-
-    # TODO: tqdm api
-    # def set_description(self, desc=None):
-    # def set_postfix(self, ordered_dict=None, **kwargs):
-    # update = step
-    # close = end
 
 
 if __name__ == '__main__':
