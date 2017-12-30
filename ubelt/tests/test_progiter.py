@@ -295,18 +295,28 @@ def test_initial():
 def test_clearline():
     """
     Make sure a question mark is printed if the total is unknown
+
+    pytest ubelt/tests/test_progiter.py::test_clearline
     """
     file = cStringIO()
     # Clearline=False version should simply have a newline at the end.
     prog = ProgIter(file=file, show_times=False, clearline=False)
     message = prog.format_message()
-    assert strip_ansi(message.strip(' ')) == '0/?... \n'
+    assert strip_ansi(message).strip(' ') == '0/?... \n'
     # Clearline=True version should carrage return at the begining and have no
     # newline at the end.
     prog = ProgIter(file=file, show_times=False, clearline=True)
     message = prog.format_message()
-    assert strip_ansi(message.strip(' ')) == '\r    0/?...'
+    assert strip_ansi(message).strip(' ') == '\r    0/?...'
 
 # def test_tqdm_compatibility():
 #     import tqdm
 #     pass
+
+if __name__ == '__main__':
+    r"""
+    CommandLine:
+        pytest ubelt/tests/test_progiter.py
+    """
+    import pytest
+    pytest.main([__file__])
