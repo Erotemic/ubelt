@@ -212,12 +212,22 @@ class Timerit(object):
         return std
 
     def _seconds_str(self):
+        """
+        CommandLine:
+            python -m ubelt.util_time Timerit._seconds_str
+
+        Example:
+            >>> self = Timerit(num=100, bestof=10, verbose=0)
+            >>> self.call(lambda : sum(range(100)))
+            >>> print(self._seconds_str())
+            ... '2.038 µs ± 0.25'
+        """
         def _trychar(char, fallback):
             # Logic from ipython timeit to handle terminals that cant show mu
             if hasattr(sys.stdout, 'encoding') and sys.stdout.encoding:
                 try:
                     char.encode(sys.stdout.encoding)
-                except:
+                except:  # nocover
                     pass
                 else:
                     return char
@@ -238,17 +248,17 @@ class Timerit(object):
         unit_sec = mean / mag
         precision = 4
 
-        show_std = 1
-        if show_std:
-            # Is this useful?
-            std = self.std()
-            unit_std = std / mag
-            pm = _trychar('±', '+-')
-            fmtstr = '{:.%d} {} {} {:.%d}' % (precision, precision - 2,)
-            unit_str = fmtstr.format(unit_sec, unit, pm, unit_std)
-        else:
-            fmtstr = '{:.%d} {}' % (precision,)
-            unit_str = fmtstr.format(unit_sec, unit)
+        # show_std = 1
+        # if show_std:
+        # Is this useful?
+        std = self.std()
+        unit_std = std / mag
+        pm = _trychar('±', '+-')
+        fmtstr = '{:.%d} {} {} {:.%d}' % (precision, precision - 2,)
+        unit_str = fmtstr.format(unit_sec, unit, pm, unit_std)
+        # else:
+        #     fmtstr = '{:.%d} {}' % (precision,)
+        #     unit_str = fmtstr.format(unit_sec, unit)
         return unit_str
 
     def _print_report(self, verbose=1):
@@ -265,7 +275,17 @@ class Timerit(object):
 
 
 def timestamp(method='iso8601'):
-    """ make an iso8601 timestamp """
+    """
+    make an iso8601 timestamp
+
+    CommandLine:
+        python -m ubelt.util_time timestamp
+
+    Example:
+        >>> stamp = timestamp()
+        >>> print('stamp = {!r}'.format(stamp))
+        ...-...-...T...
+    """
     if method == 'iso8601':
         # ISO 8601
         # datetime.datetime.utcnow().isoformat()
@@ -275,7 +295,7 @@ def timestamp(method='iso8601'):
         utc_offset = '-' + str(tz_hour) if tz_hour < 0 else '+' + str(tz_hour)
         stamp = time.strftime('%Y-%m-%dT%H%M%S') + utc_offset
         return stamp
-    else:
+    else:  # nocover
         raise ValueError('only iso8601 is accepted for now')
 
 
