@@ -2,6 +2,15 @@ version: 0.0.37
 ---------------
 ENH: ProgIter now supports a more tqdm-like api
 
+FIX: ub.cmd tests now work on windows
+
+FIX: terminal colors now work on windows
+
+ENH: Added standard deviation to timerit
+
+ENH: Minor enhancements to ub.Cacher
+
+DEP: Removed most of the static_analysis module. Use code in xdoctest for now. Note: some of this functionality may return as general utilities in the future, but the existing constructs were only needed for doctests, which are now done via xdoctest.
 
 version: 0.0.34
 ---------------
