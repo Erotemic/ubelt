@@ -1,3 +1,8 @@
+version: 0.0.37
+---------------
+ENH: ProgIter now supports a more tqdm-like api
+
+
 version: 0.0.34
 ---------------
 
