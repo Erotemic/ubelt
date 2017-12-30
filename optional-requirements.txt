@@ -2,3 +2,4 @@ pytest
 xdoctest >= 0.0.9
 pytest-cov
 coverage >= 4.3.4
+tqdm
