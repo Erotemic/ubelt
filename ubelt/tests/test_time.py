@@ -10,7 +10,7 @@ def test_timer_nonewline():
         timer = ub.Timer(newline=False)
         timer.tic()
         timer.toc()
-    assert cap.text.startswith("\ntic('')...toc('')")
+    assert cap.text.replace('u', '').startswith("\ntic('')...toc('')")
 
 
 def test_timestamp():
