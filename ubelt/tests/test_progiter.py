@@ -3,6 +3,7 @@
 pytest ubelt/tests/test_progiter.py
 """
 from six.moves import cStringIO
+from xdoctest.utils import strip_ansi
 from ubelt.progiter import ProgIter
 import sys
 
@@ -288,7 +289,7 @@ def test_initial():
     file = cStringIO()
     prog = ProgIter(initial=9001, file=file, show_times=False, clearline=False)
     message = prog.format_message()
-    assert message == ' 9001/?... \n'
+    assert strip_ansi(message) == ' 9001/?... \n'
 
 
 def test_clearline():
@@ -299,12 +300,12 @@ def test_clearline():
     # Clearline=False version should simply have a newline at the end.
     prog = ProgIter(file=file, show_times=False, clearline=False)
     message = prog.format_message()
-    assert message.strip(' ') == '0/?... \n'
+    assert strip_ansi(message.strip(' ')) == '0/?... \n'
     # Clearline=True version should carrage return at the begining and have no
     # newline at the end.
     prog = ProgIter(file=file, show_times=False, clearline=True)
     message = prog.format_message()
-    assert message.strip(' ') == '\r    0/?...'
+    assert strip_ansi(message.strip(' ')) == '\r    0/?...'
 
 # def test_tqdm_compatibility():
 #     import tqdm
