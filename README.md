@@ -61,8 +61,8 @@ ub.NiceRepr
 ub.NoParam
 ub.CaptureStdout
 ub.Timer
-ub.Timerit
-ub.ProgIter
+ub.Timerit (powerful multiline alternative to timeit)
+ub.ProgIter (simplified alternative to tqdm)
 ub.Cacher
 ub.cmd
 ub.editfile
@@ -72,6 +72,8 @@ ub.repr2
 ub.hzcat
 ub.argval
 ub.argflag
+ub.modname_to_modpath (works via static analysis)
+ub.modpath_to_modname (works via static analysis)
 ub.import_module_from_path
 ub.import_module_from_name
 ub.download
