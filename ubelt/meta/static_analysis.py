@@ -29,39 +29,53 @@ def split_modpath(modpath):
     return static.split_modpath(modpath)
 
 
-def modpath_to_modname(modpath):
+def modpath_to_modname(modpath, hide_init=True, hide_main=False):
     r"""
     Determines importable name from file path
 
+    Converts the path to a module (__file__) to the importable python name
+    (__name__) without importing the module.
+
+    The filename is converted to a module name, and parent directories are
+    recursively included until a directory without an __init__.py file is
+    encountered.
+
     Args:
         modpath (str): module filepath
+        hide_init (bool): removes the __init__ suffix (default True)
+        hide_init (bool): removes the __main__ suffix (default False)
 
     Returns:
         str: modname
 
     Example:
-        >>> from ubelt.meta.static_analysis import *  # NOQA
         >>> import ubelt.meta.static_analysis
         >>> modpath = ubelt.meta.static_analysis.__file__
-        >>> modpath = modpath.replace('.pyc', '.py')
-        >>> print('modpath = %r' % (modpath))
-        >>> modname = modpath_to_modname(modpath)
-        >>> print('modname = %r' % (modname,))
-        >>> assert modname == 'ubelt.meta.static_analysis'
+        >>> modpath_to_modname(modpath)
+        ubelt.meta.static_analysis
     """
     from xdoctest import static_analysis as static
-    return static.modpath_to_modname(modpath)
+    return static.modpath_to_modname(modpath, hide_init, hide_main)
 
 
 def modname_to_modpath(modname, hide_init=True, hide_main=True):  # nocover
     r"""
+    Finds the path to a python module from its name.
+
     Determines the path to a python module without directly import it
+
+    Converts the name of a module (__name__) to the path (__file__) where it is
+    located without importing the module. Returns None if the module does not
+    exist.
 
     Args:
         modname (str): module filepath
+        hide_init (bool): if False, __init__.py will be returned for packages
+        hide_main (bool): if False, and hide_init is True, __main__.py will be
+            returned for packages, if it exists.
 
     Returns:
-        str: modpath
+        str: modpath - path to the module, or None if it doesn't exist
 
     CommandLine:
         python -m ubelt.meta.static_analysis modname_to_modpath
