@@ -3,9 +3,30 @@
 The static_analysis module in xdoctest should be used instead
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
-import pkgutil
-from os.path import (join, exists, expanduser, abspath, split, splitext,
-                     isfile, dirname)
+from os.path import join  # NOQA
+
+
+def split_modpath(modpath):
+    """
+    Splits the modpath into the dir that must be in PYTHONPATH for the module
+    to be imported and the modulepath relative to this directory.
+
+    Args:
+        modpath (str): module filepath
+
+    Returns:
+        str: directory
+
+    Example:
+        >>> from xdoctest import static_analysis
+        >>> modpath = static_analysis.__file__
+        >>> modpath = modpath.replace('.pyc', '.py')
+        >>> dpath, rel_modpath = split_modpath(modpath)
+        >>> assert join(dpath, rel_modpath) == modpath
+        >>> assert rel_modpath == join('xdoctest', 'static_analysis.py')
+    """
+    from xdoctest import static_analysis as static
+    return static.split_modpath(modpath)
 
 
 def modpath_to_modname(modpath):
@@ -44,10 +65,6 @@ def modname_to_modpath(modname, hide_init=True, hide_main=True):  # nocover
 
     CommandLine:
         python -m ubelt.meta.static_analysis modname_to_modpath
-
-    TODO:
-        Test with a module we know wont be imported by ubelt.
-        Maybe make this a non-doctest and put in tests directory.
 
     Example:
         >>> from ubelt.meta.static_analysis import *  # NOQA
