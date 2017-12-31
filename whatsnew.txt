@@ -1,5 +1,9 @@
 version: 0.0.37
 ---------------
+ENH: can now choose ub.cmd tee backend (select or thread) on posix. 
+
+FIX: fixed unused argument `chunksize` in util_download
+
 ENH: ProgIter now supports a more tqdm-like api
 
 FIX: ub.cmd tests now work on windows
