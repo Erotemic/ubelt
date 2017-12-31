@@ -37,6 +37,7 @@ def autogen_init(modpath_or_name, imports=None, attrs=True, use_all=True,
         in the __init__ file like this:
             python -c "import ubelt._internal as a; a.autogen_init('<your_module_path_or_name>')"
     """
+    # from ubelt import util_import
     from xdoctest import static_analysis as static
     if exists(modpath_or_name):
         modpath = modpath_or_name
