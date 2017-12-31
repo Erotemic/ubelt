@@ -7,7 +7,8 @@ from os.path import (splitext, split, join, expanduser, expandvars, realpath,
                      abspath, normpath, dirname, exists)
 
 __all__ = [
-    'TempDir', 'augpath', 'compressuser', 'truepath', 'userhome'
+    'TempDir', 'augpath', 'compressuser', 'truepath', 'userhome',
+    'ensuredir',
 ]
 
 
