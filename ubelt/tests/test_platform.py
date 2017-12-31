@@ -29,10 +29,19 @@ def test_cmd_stderr():
     assert result['err'].strip() == 'hello stderr'
 
 
-def test_cmd_multiline_stdout():
+def test_cmd_tee_auto():
     """
-    python ubelt/tests/test_platform.py test_cmd_multiline_stdout
-    pytest ubelt/tests/test_platform.py::test_cmd_multiline_stdout
+    pytest ubelt/tests/test_platform.py -k tee
+    pytest ubelt/tests/test_platform.py
+    """
+    command = 'python -c "for i in range(100): print(str(i))"'
+    result = ub.cmd(command, verbose=2, tee='auto')
+    assert result['out'] == '\n'.join(list(map(str, range(100)))) + '\n'
+
+
+def test_cmd_tee_thread():
+    """
+    pytest ubelt/tests/test_platform.py::test_cmd_tee_thread
     """
     import threading
     # check which threads currently exist (ideally 1)
@@ -40,7 +49,7 @@ def test_cmd_multiline_stdout():
     print('existing_threads = {!r}'.format(existing_threads))
 
     command = 'python -c "for i in range(100): print(str(i))"'
-    result = ub.cmd(command, verbose=2)
+    result = ub.cmd(command, verbose=2, tee='thread')
     assert result['out'] == '\n'.join(list(map(str, range(100)))) + '\n'
 
     after_threads = list(threading.enumerate())
@@ -49,11 +58,39 @@ def test_cmd_multiline_stdout():
         'we should be cleaning up our threads')
 
 
-@pytest.mark.skipif(sys.platform == 'win32',
-                    reason="does not run on windows")
+@pytest.mark.skipif(sys.platform == 'win32', reason='not available on win32')
+def test_cmd_tee_select():
+    command = 'python -c "for i in range(100): print(str(i))"'
+    result = ub.cmd(command, verbose=2, tee='select')
+    assert result['out'] == '\n'.join(list(map(str, range(100)))) + '\n'
+
+
+@pytest.mark.skipif(sys.platform == 'win32', reason='not available on win32')
+def test_cmd_tee_badmethod():
+    """
+    pytest ubelt/tests/test_platform.py::test_cmd_tee_badmethod
+    """
+    command = 'python -c "for i in range(100): print(str(i))"'
+    with pytest.raises(ValueError):
+        ub.cmd(command, verbose=2, tee='bad tee backend')
+
+
+def test_cmd_multiline_stdout():
+    """
+    python ubelt/tests/test_platform.py test_cmd_multiline_stdout
+    pytest ubelt/tests/test_platform.py::test_cmd_multiline_stdout
+    """
+    command = 'python -c "for i in range(100): print(str(i))"'
+    result = ub.cmd(command, verbose=2)
+    assert result['out'] == '\n'.join(list(map(str, range(100)))) + '\n'
+
+
+@pytest.mark.skipif(sys.platform == 'win32', reason='does not run on win32')
 def test_cmd_interleaved_streams_sh():
     """
     A test that ``Crosses the Streams'' of stdout and stderr
+
+    pytest ubelt/tests/test_platform.py::test_cmd_interleaved_streams_sh
     """
     sh_script = ub.codeblock(
         r'''
@@ -72,8 +109,7 @@ def test_cmd_interleaved_streams_sh():
     assert result['err'] == '!E0\n!E5\n!E10\n!E15\n!E20\n!E25\n'
 
 
-@pytest.mark.skipif(sys.platform == 'win32',
-                    reason="does not run on windows")
+@pytest.mark.skipif(sys.platform == 'win32', reason='does not run on win32')
 def test_cmd_interleaved_streams_py():
     # apparently multiline quotes dont work on win32
     py_script = ub.codeblock(

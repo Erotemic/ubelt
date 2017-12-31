@@ -5,39 +5,37 @@ Helpers for downloading data
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 from os.path import basename, join, exists
-import sys
 import os
 import shutil
 import tempfile
 from ubelt import util_platform
 
-
-try:  # nocover
-    from requests.utils import urlparse
-    import requests.get as urlopen
-    _have_requests = True
-except ImportError:  # nocover
-    _have_requests = False
-    if sys.version_info[0] == 2:
-        from urlparse import urlparse  # NOQA
-        from urllib2 import urlopen  # NOQA
-    else:
-        from urllib.request import urlopen  # NOQA
-        from urllib.parse import urlparse  # NOQA
+# try:  # nocover
+# from requests import get as urlopen
+# _have_requests = True
+# except ImportError:  # nocover
+# _have_requests = False
+import sys
+if sys.version_info[0] == 2:  # nocover
+    from urlparse import urlparse  # NOQA
+    from urllib2 import urlopen  # NOQA
+else:
+    from urllib.request import urlopen  # NOQA
+    from urllib.parse import urlparse  # NOQA
 
 try:  # nocover
     from tqdm import tqdm as _tqdm
 except ImportError:  # nocover
     # fake tqdm if it's not installed
     from ubelt import progiter
-    class _FakeTQDM(progiter.ProgIter):
-        def __init__(self, total, disable=False):
-            super(_FakeTQDM, self).__init__(enabled=not disable, length=total)
+    # class _FakeTQDM(progiter.ProgIter):
+    #     def __init__(self, total, disable=False):
+    #         super(_FakeTQDM, self).__init__(enabled=not disable, length=total)
 
-        def update(self, n):
-            if self.enabled:
-                self.step(n)
-    _tqdm = _FakeTQDM
+    #     def update(self, n):
+    #         if self.enabled:
+    #             self.step(n)
+    _tqdm = progiter.ProgIter
 
 
 def download(url, fpath=None, hash_prefix=None, chunksize=8192, verbose=1):
@@ -72,15 +70,15 @@ def download(url, fpath=None, hash_prefix=None, chunksize=8192, verbose=1):
         fpath = join(dpath, fname)
 
     urldata = urlopen(url)
-    if _have_requests:
-        file_size = int(urldata.headers["Content-Length"])
-        urldata = urldata.raw
+    # if _have_requests:
+    # file_size = int(urldata.headers["Content-Length"])
+    # urldata = urldata.raw
+    # else:
+    meta = urldata.info()
+    if hasattr(meta, 'getheaders'):  # nocover
+        file_size = int(meta.getheaders("Content-Length")[0])
     else:
-        meta = urldata.info()
-        if hasattr(meta, 'getheaders'):
-            file_size = int(meta.getheaders("Content-Length")[0])
-        else:
-            file_size = int(meta.get_all("Content-Length")[0])
+        file_size = int(meta.get_all("Content-Length")[0])
 
     if verbose:
         print('Downloading url=%r to fpath=%r' % (url, fpath))
@@ -91,7 +89,7 @@ def download(url, fpath=None, hash_prefix=None, chunksize=8192, verbose=1):
         #     sha256 = hashlib.sha256()
         with _tqdm(total=file_size, disable=not verbose) as pbar:
             while True:
-                buffer = urldata.read(8192)
+                buffer = urldata.read(chunksize)
                 if len(buffer) == 0:
                     break
                 tmp.write(buffer)
@@ -108,7 +106,8 @@ def download(url, fpath=None, hash_prefix=None, chunksize=8192, verbose=1):
         shutil.move(tmp.name, fpath)
     finally:
         tmp.close()
-        if exists(tmp.name):
+        # If for some reason the move failed, delete the temporary file
+        if exists(tmp.name):  # nocover
             os.remove(tmp.name)
     return fpath
 

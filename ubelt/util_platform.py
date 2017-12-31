@@ -251,7 +251,7 @@ def _proc_iteroutput_thread(proc):
 
     # read from the output asychronously until
     while stdout_live or stderr_live:
-        if stdout_live:
+        if stdout_live:  # pragma: nobranch
             try:
                 oline = stdout_queue.get_nowait()
                 stdout_live = oline is not None
@@ -297,7 +297,7 @@ def _proc_iteroutput_select(proc):  # nocover
         yield oline, eline
 
 
-def _proc_tee_output(proc, stdout=None, stderr=None):
+def _tee_output(make_proc, stdout=None, stderr=None, backend='auto'):
     """
     Simultaniously reports and captures stdout and stderr from a process
 
@@ -306,13 +306,21 @@ def _proc_tee_output(proc, stdout=None, stderr=None):
     """
     logged_out = []
     logged_err = []
-    if POSIX:
+    if backend == 'auto':
+        backend = 'select' if POSIX else 'thread'
+
+    if backend == 'select':
+        if not POSIX:  # nocover
+            raise NotImplementedError('select is only available on posix')
         # the select-based version is stable, but slow
         _proc_iteroutput = _proc_iteroutput_select
-    else:
-        # FIXME: the thread version is broken on windows
+    elif backend == 'thread':
         # FIXME: the thread version sometimes deadlocks on unix
         _proc_iteroutput = _proc_iteroutput_thread
+    else:
+        raise ValueError('backend must be select, thread, or auto')
+
+    proc = make_proc()
     for oline, eline in _proc_iteroutput(proc):
         if oline:
             if stdout:
@@ -320,14 +328,15 @@ def _proc_tee_output(proc, stdout=None, stderr=None):
                 stdout.flush()
             logged_out.append(oline)
         if eline:
-            if stderr:
+            if stderr:  # pragma: nobranch
                 stderr.write(eline)
                 stderr.flush()
             logged_err.append(eline)
-    return logged_out, logged_err
+    return proc, logged_out, logged_err
 
 
-def cmd(command, shell=False, detatch=False, verbose=0, verbout=None):
+def cmd(command, shell=False, detatch=False, verbose=0, verbout=None,
+        tee='auto'):
     r"""
     Executes a command in a subprocess.
 
@@ -347,6 +356,8 @@ def cmd(command, shell=False, detatch=False, verbose=0, verbout=None):
         verbout (int): if True, `command` writes to stdout in realtime.
             defaults to True iff verbose > 0. Note when detatch is True
             all stdout is lost.
+        tee (str): backend for tee output. Can be either: auto, select (POSIX
+            only), or thread.
 
     Returns:
         dict: info - information about command status.
@@ -405,10 +416,6 @@ def cmd(command, shell=False, detatch=False, verbose=0, verbout=None):
         >>> info1['proc'].wait()
         >>> info2['proc'].wait()
     """
-    # if WIN32:
-    #     # We must run in a shell on windows. Why is this?
-    #     shell = True
-
     # Determine if command is specified as text or a tuple
     if isinstance(command, (list, tuple)):
         command_tup = command
@@ -445,13 +452,16 @@ def cmd(command, shell=False, detatch=False, verbose=0, verbout=None):
             print('----')
             print('Stdout:')
 
-
     # Create a new process to execute the command
-    proc = subprocess.Popen(args, stdout=subprocess.PIPE,
-                            stderr=subprocess.PIPE, shell=shell,
-                            universal_newlines=True)
+    def make_proc():
+        # delay the creation of the process until we validate all args
+        proc = subprocess.Popen(args, stdout=subprocess.PIPE,
+                                stderr=subprocess.PIPE, shell=shell,
+                                universal_newlines=True)
+        return proc
+
     if detatch:
-        info = {'proc': proc}
+        info = {'proc': make_proc()}
         if verbose >= 2:  # nocover
             print('...detatching')
     else:
@@ -459,7 +469,9 @@ def cmd(command, shell=False, detatch=False, verbose=0, verbout=None):
             stdout, stderr = sys.stdout, sys.stderr
         else:
             stdout, stderr = None, None
-        logged_out, logged_err = _proc_tee_output(proc, stdout, stderr)
+
+        proc, logged_out, logged_err = _tee_output(make_proc, stdout, stderr,
+                                                   backend=tee)
 
         try:
             out = ''.join(logged_out)
