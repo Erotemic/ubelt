@@ -309,9 +309,64 @@ def test_clearline():
     message = prog.format_message()
     assert strip_ansi(message).strip(' ') == '\r    0/?...'
 
-# def test_tqdm_compatibility():
-#     import tqdm
-#     pass
+
+def test_disabled():
+    prog = ProgIter(range(20), enabled=True)
+    prog.begin()
+    assert prog.started
+
+    prog = ProgIter(range(20), enabled=False)
+    prog.begin()
+    assert not prog.started
+
+
+def test_eta_window_None():
+    # nothing to check (that I can think of) run test for coverage
+    prog = ProgIter(range(20), enabled=True, eta_window=None)
+    for _ in prog:
+        pass
+
+
+def test_adjust_freq():
+    # nothing to check (that I can think of) run test for coverage
+    prog = ProgIter(range(20), enabled=True, eta_window=None)
+
+    # Adjust frequency up to have each update happen every 1sec or so
+    prog.freq = 1
+    prog.time_thresh = 1.0
+    prog._max_between_count = -1.0
+    prog._max_between_time = -1.0
+    prog._between_time = 1
+    prog._between_count = 1000
+    prog._adjust_frequency()
+    assert prog.freq == 257
+
+    # Adjust frequency down to have each update happen every 1sec or so
+    prog.freq = 1000
+    prog.time_thresh = 1.0
+    prog._max_between_count = -1.0
+    prog._max_between_time = -1.0
+    prog._between_time = 1
+    prog._between_count = 1
+    prog._adjust_frequency()
+    assert prog.freq == 334
+
+    # No need to adjust frequency to have each update happen every 1sec or so
+    prog.freq = 1
+    prog.time_thresh = 1.0
+    prog._max_between_count = -1.0
+    prog._max_between_time = -1.0
+    prog._between_time = 1
+    prog._between_count = 1
+    prog._adjust_frequency()
+    assert prog.freq == 1
+
+
+def test_tqdm_compatibility():
+    prog = ProgIter(range(20), total=20, miniters=17, show_times=False)
+    assert prog.freq == 17
+    for _ in prog:
+        pass
 
 if __name__ == '__main__':
     r"""
