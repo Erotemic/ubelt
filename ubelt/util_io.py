@@ -86,7 +86,6 @@ else:
         return text.encode('utf8')
 
 
-
 def readfrom(fpath, aslines=False, errors='replace', verbose=None):
     r"""
     Reads (utf8) text from a file.

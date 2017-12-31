@@ -192,6 +192,45 @@ def truepath(path, real=False):
     return path
 
 
+def ensuredir(dpath, mode=0o1777, verbose=None):
+    r"""
+    Ensures that directory will exist. creates new dir with sticky bits by
+    default
+
+    Args:
+        dpath (str): dir to ensure. Can also be a tuple to send to join
+        mode (int): octal mode of directory (default 0o1777)
+        verbose (int): verbosity (default 0)
+
+    Returns:
+        str: path - the ensured directory
+
+    Example:
+        >>> from ubelt.util_platform import *  # NOQA
+        >>> import ubelt as ub
+        >>> cache_dpath = ub.ensure_app_cache_dir('ubelt')
+        >>> dpath = join(cache_dpath, 'ensuredir')
+        >>> if exists(dpath):
+        ...     os.rmdir(dpath)
+        >>> assert not exists(dpath)
+        >>> ub.ensuredir(dpath)
+        >>> assert exists(dpath)
+        >>> os.rmdir(dpath)
+    """
+    if verbose is None:  # nocover
+        verbose = 0
+    if isinstance(dpath, (list, tuple)):  # nocover
+        dpath = join(*dpath)
+    if not exists(dpath):
+        if verbose:  # nocover
+            print('[ubelt] mkdir(%r)' % dpath)
+        try:
+            os.makedirs(normpath(dpath), mode=mode)
+        except OSError:  # nocover
+            raise
+    return dpath
+
+
 if __name__ == '__main__':
     r"""
     CommandLine:
