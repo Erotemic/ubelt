@@ -237,8 +237,6 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
                 enabled, clearline, adjust = 1, 0, 1
             elif verbose >= 3:  # nocover
                 enabled, clearline, adjust = 1, 0, 0
-        if stream is None:
-            stream = sys.stdout
 
         # --- Accept the tqdm api ---
         if kwargs:
@@ -256,6 +254,9 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
         if kwargs:
             raise ValueError('ProgIter given unknown kwargs {}'.format(kwargs))
             # ----------------------------
+
+        if stream is None:
+            stream = sys.stdout
 
         self.stream = stream
         self.iterable = iterable
