@@ -222,16 +222,6 @@ class Timerit(object):
             >>> print(self._seconds_str())
             ... '2.038 µs ± 0.25'
         """
-        def _trychar(char, fallback):
-            # Logic from ipython timeit to handle terminals that cant show mu
-            if hasattr(sys.stdout, 'encoding') and sys.stdout.encoding:
-                try:
-                    char.encode(sys.stdout.encoding)
-                except:  # nocover
-                    pass
-                else:
-                    return char
-            return fallback
 
         units = [
             ('s', 1e0),
@@ -242,7 +232,7 @@ class Timerit(object):
 
         mean = self.mean()
 
-        for unit, mag in units:
+        for unit, mag in units:  # pragma: nobranch
             if mean > mag:
                 break
         unit_sec = mean / mag
@@ -297,6 +287,27 @@ def timestamp(method='iso8601'):
         return stamp
     else:  # nocover
         raise ValueError('only iso8601 is accepted for now')
+
+
+def _trychar(char, fallback):  # nocover
+    """
+    CommandLine:
+        python -m ubelt.util_time _trychar
+        pytest ubelt/util_time.py::_trychar:0 -s
+
+    Example:
+        >>> char = _trychar('µs', 'us')
+        >>> print('char = {}'.format(char))
+    """
+    # Logic from ipython timeit to handle terminals that cant show mu
+    if hasattr(sys.stdout, 'encoding') and sys.stdout.encoding:  # pragma: nobranch
+        try:
+            char.encode(sys.stdout.encoding)
+        except:  # nocover
+            pass
+        else:
+            return char
+    return fallback  # nocover
 
 
 if __name__ == '__main__':
