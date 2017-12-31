@@ -266,9 +266,12 @@ class TempDir(object):
             shutil.rmtree(self.dpath)
             self.dpath = None
 
-    def __enter__(self):
+    def start(self):
         self.ensure()
         return self
+
+    def __enter__(self):
+        return self.start()
 
     def __exit__(self, type_, value, trace):
         self.cleanup()
