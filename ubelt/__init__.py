@@ -102,11 +102,12 @@ if _DOELSE:  # pragma: nobranch
     from ubelt.util_io import (readfrom, writeto, touch, delete,)
     from ubelt.util_list import (argsort, boolmask, chunks, compress, flatten,
                                  iterable, take, unique, unique_flags,)
-    from ubelt.util_import import (import_module_from_name,
+    from ubelt.util_import import (split_modpath, modname_to_modpath,
+                                   modpath_to_modname, import_module_from_name,
                                    import_module_from_path,)
     from ubelt.util_mixins import (NiceRepr,)
-    from ubelt.util_path import (TempDir, abspath, augpath, compressuser,
-                                 ensuredir, expandvars, split, truepath, userhome,)
+    from ubelt.util_path import (TempDir, augpath, compressuser, truepath,
+                                 userhome,)
     from ubelt.util_platform import (DARWIN, LINUX, POSIX, PY2, PY3, WIN32,
                                      editfile, ensure_app_cache_dir,
                                      ensure_app_resource_dir, get_app_cache_dir,

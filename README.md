@@ -235,7 +235,20 @@ A = [[1, 2], * [[5, 6],
      [3, 4]]    [7, 8]]
 ```
 
-### Command Line interaction with captured and real-time output 
+### Command Line interaction 
+
+The `ub.cmd` function provides a simple interface to the command line.  It is
+an alternative to `os.system` and `subprocess` (although it uses `subprocess`
+under the hood). Its key feature is that it prints `stdout` and `stderr` to the
+terminal in real-time, while simultaneously capturing the output.
+
+This allows you to easily run a command line executable as part of a python
+process, see what it is doing, and then do something based on its output, just
+as you would if you were interacting with the command line itself.
+
+Also, `ub.cmd` removes the need to think about if you need to pass a list of
+args, or a string. Both will work. This utility has been tested on both windows
+and linux.
 
 ```python
 >>> info = cmd(('echo', 'simple cmdline interface'), verbose=1)
