@@ -7,6 +7,14 @@ import textwrap
 from six.moves import cStringIO
 import six
 
+__all__ = [
+    'CaptureStdout',
+    'indent',
+    'codeblock',
+    'hzcat',
+    'ensure_unicode',
+]
+
 
 class CaptureStdout(object):
     r"""

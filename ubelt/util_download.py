@@ -38,6 +38,9 @@ except ImportError:  # nocover
     _tqdm = progiter.ProgIter
 
 
+__all__ = ['download', 'grabdata']
+
+
 def download(url, fpath=None, hash_prefix=None, chunksize=8192, verbose=1):
     """
     downloads a url to a fpath.

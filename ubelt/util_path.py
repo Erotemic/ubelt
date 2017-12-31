@@ -2,6 +2,7 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 import os
 import sys
+import shutil
 from os.path import (splitext, split, join, expanduser, expandvars, realpath,
                      abspath, normpath, dirname, exists)
 
@@ -229,6 +230,48 @@ def ensuredir(dpath, mode=0o1777, verbose=None):
         except OSError:  # nocover
             raise
     return dpath
+
+
+class TempDir(object):
+    """
+    Context for creating and cleaning up temporary directories.
+
+    Example:
+        >>> with TempDir() as self:
+        >>>     dpath = self.dpath
+        >>>     assert exists(dpath)
+        >>> assert not exists(dpath)
+
+    Example:
+        >>> self = TempDir()
+        >>> dpath = self.ensure()
+        >>> assert exists(dpath)
+        >>> self.cleanup()
+        >>> assert not exists(dpath)
+    """
+    def __init__(self):
+        self.dpath = None
+
+    def __del__(self):
+        self.cleanup()
+
+    def ensure(self):
+        import tempfile
+        if not self.dpath:
+            self.dpath = tempfile.mkdtemp()
+        return self.dpath
+
+    def cleanup(self):
+        if self.dpath:
+            shutil.rmtree(self.dpath)
+            self.dpath = None
+
+    def __enter__(self):
+        self.ensure()
+        return self
+
+    def __exit__(self, type_, value, trace):
+        self.cleanup()
 
 
 if __name__ == '__main__':
