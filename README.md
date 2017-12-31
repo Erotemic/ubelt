@@ -70,6 +70,12 @@ ub.startfile
 ub.delete
 ub.repr2
 ub.hzcat
+ub.argval
+ub.argflag
+ub.import_module_from_path
+ub.import_module_from_name
+ub.download
+ub.AutoDict
 ```
 
 A minimal version of the doctest harness has been completed.
@@ -227,4 +233,14 @@ implementation.
 >>> print(ub.hzcat(['A = ', B, ' * ', C]))
 A = [[1, 2], * [[5, 6],
      [3, 4]]    [7, 8]]
+```
+
+### Command Line interaction with captured and real-time output 
+
+```python
+>>> info = cmd(('echo', 'simple cmdline interface'), verbose=1)
+simple cmdline interface
+>>> assert info['ret'] == 0
+>>> assert info['out'].strip() == 'simple cmdline interface'
+>>> assert info['err'].strip() == ''
 ```

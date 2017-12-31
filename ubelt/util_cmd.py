@@ -209,13 +209,20 @@ def cmd(command, shell=False, detatch=False, verbose=0, verbout=None,
         shlex solution for windows.
 
     CommandLine:
-        python -m ubelt.util_platform cmd
+        python -m ubelt.util_cmd cmd
         python -c "import ubelt as ub; ub.cmd('ping localhost -c 2', verbose=2)"
 
     References:
         [1] https://stackoverflow.com/questions/11495783/redirect-subprocess-stderr-to-stdout
         [2] https://stackoverflow.com/questions/7729336/how-can-i-print-and-display-subprocess-stdout-and-stderr-output-without-distorti
         [3] https://stackoverflow.com/questions/33560364/python-windows-parsing-command-lines-with-shlex
+
+    Example:
+        >>> info = cmd(('echo', 'simple cmdline interface'), verbose=1)
+        simple cmdline interface
+        >>> assert info['ret'] == 0
+        >>> assert info['out'].strip() == 'simple cmdline interface'
+        >>> assert info['err'].strip() == ''
 
     Doctest:
         >>> info = cmd('echo str noshell', verbose=0)
