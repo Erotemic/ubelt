@@ -51,7 +51,7 @@ def modpath_to_modname(modpath, hide_init=True, hide_main=False):
     Example:
         >>> import ubelt.meta.static_analysis
         >>> modpath = ubelt.meta.static_analysis.__file__
-        >>> modpath_to_modname(modpath)
+        >>> print(modpath_to_modname(modpath))
         ubelt.meta.static_analysis
     """
     from xdoctest import static_analysis as static
