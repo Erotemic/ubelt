@@ -3,6 +3,12 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import sys
 
 
+__all__ = [
+    'import_module_from_name',
+    'import_module_from_path',
+]
+
+
 class PythonPathContext(object):
     """
     Context for temporarilly adding a dir to the PYTHONPATH.

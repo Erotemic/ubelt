@@ -25,7 +25,7 @@ TODO:
 from __future__ import absolute_import, division, print_function, unicode_literals
 import sys
 
-__version__ = '0.0.37'
+__version__ = '0.0.38'
 
 GLOBAL_MODULES = [
     'util_arg',
@@ -92,28 +92,28 @@ if _DOELSE:  # pragma: nobranch
     from ubelt.util_const import (NoParam,)
     from ubelt.util_cmd import (cmd,)
     from ubelt.util_decor import (memoize,)
-    from ubelt.util_dict import (AutoDict, AutoOrderedDict, OrderedDict, ddict,
-                                 defaultdict, dict_hist, dict_subset, dict_take,
-                                 find_duplicates, group_items, invert_dict,
-                                 map_keys, map_vals, odict,)
-    from ubelt.util_download import (download, grabdata, urlopen, urlparse,)
+    from ubelt.util_dict import (AutoDict, AutoOrderedDict, ddict, dict_hist,
+                                 dict_subset, dict_take, find_duplicates,
+                                 group_items, invert_dict, map_keys, map_vals,
+                                 odict,)
+    from ubelt.util_download import (download, grabdata,)
     from ubelt.util_func import (identity,)
     from ubelt.util_format import (repr2,)
     from ubelt.util_io import (readfrom, writeto, touch, delete,)
     from ubelt.util_list import (argsort, boolmask, chunks, compress, flatten,
                                  iterable, take, unique, unique_flags,)
-    from ubelt.util_import import (PythonPathContext, import_module_from_name,
+    from ubelt.util_import import (import_module_from_name,
                                    import_module_from_path,)
     from ubelt.util_mixins import (NiceRepr,)
-    from ubelt.util_path import (abspath, augpath, compressuser, ensuredir,
-                                 expandvars, split, truepath, userhome,)
+    from ubelt.util_path import (TempDir, abspath, augpath, compressuser,
+                                 ensuredir, expandvars, split, truepath, userhome,)
     from ubelt.util_platform import (DARWIN, LINUX, POSIX, PY2, PY3, WIN32,
                                      editfile, ensure_app_cache_dir,
                                      ensure_app_resource_dir, get_app_cache_dir,
                                      get_app_resource_dir, platform_cache_dir,
                                      platform_resource_dir, startfile,)
-    from ubelt.util_str import (CaptureStdout, cStringIO, codeblock,
-                                ensure_unicode, hzcat, indent,)
+    from ubelt.util_str import (CaptureStdout, indent, codeblock, hzcat,
+                                ensure_unicode,)
     from ubelt.util_stress import (find_nth_prime,)
     from ubelt.util_time import (Timer, Timerit, timestamp,)
     from ubelt.progiter import (ProgIter,)

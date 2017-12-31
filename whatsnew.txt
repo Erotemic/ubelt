@@ -1,5 +1,11 @@
 version: 0.0.37
 ---------------
+ADD: Added ub.TempDir
+
+ADD: Added ub.import_module_from_path
+
+ADD: Added ub.import_module_from_name
+
 ENH: can now choose ub.cmd tee backend (select or thread) on posix. 
 
 FIX: fixed unused argument `chunksize` in util_download

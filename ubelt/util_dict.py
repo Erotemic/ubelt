@@ -13,6 +13,21 @@ from ubelt import util_const
 odict = OrderedDict
 ddict = defaultdict
 
+__all__ = [
+    'AutoDict',
+    'AutoOrderedDict',
+    'ddict',
+    'dict_hist',
+    'dict_subset',
+    'dict_take',
+    'find_duplicates',
+    'group_items',
+    'invert_dict',
+    'map_keys',
+    'map_vals',
+    'odict'
+]
+
 
 class AutoDict(dict):
     """
