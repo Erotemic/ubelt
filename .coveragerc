@@ -13,8 +13,8 @@ exclude_lines =
     if 0:
     if trace is not None
     verbose = .*
-    raise
-    pass
+    ^ *raise
+    ^ *pass *$
     if _debug:
     if __name__ == .__main__.:
     print(.*)
