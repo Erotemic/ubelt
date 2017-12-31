@@ -78,12 +78,14 @@ class Cacher(object):
         >>>     cacher.save(myvar)
         >>> assert cacher.exists(), 'should now exist'
     """
+    VERBOSE = 1  # default verbosity
+
     def __init__(self, fname, cfgstr=None, dpath=None, appname='ubelt',
                  ext='.pkl', meta=None, verbose=None, enabled=True, log=None,
                  protocol=2):
         import ubelt as ub
         if verbose is None:
-            verbose = 1
+            verbose = self.VERBOSE
         if dpath is None:  # pragma: no branch
             dpath = ub.ensure_app_cache_dir(appname)
         ub.ensuredir(dpath)
@@ -272,17 +274,18 @@ class Cacher(object):
         try:
             with open(fpath, 'rb') as file_:
                 data = pickle.load(file_)
-        except (EOFError, IOError, ImportError) as ex:  # nocover
+        except Exception as ex:
             if verbose > 0:
                 self.log('CORRUPTED? fpath = %s' % (fpath,))
             if verbose > 1:
                 self.log('[cacher] ... CORRUPTED? dpath={} cfgstr={}'.format(
                     basename(dpath), cfgstr))
-            raise IOError(str(ex))
-        except Exception:  # nocover
-            if verbose > 0:
-                self.log('CORRUPTED? fpath = {}'.format(fpath))
-            raise
+            if isinstance(ex, (EOFError, IOError, ImportError)):
+                raise IOError(str(ex))
+            else:
+                if verbose > 1:
+                    self.log('[cacher] ... unknown reason for exception')
+                raise
         else:
             if self.verbose > 2:
                 self.log('[cacher] ... {} cache hit'.format(self.fname))
