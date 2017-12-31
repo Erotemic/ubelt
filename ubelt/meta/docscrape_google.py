@@ -7,10 +7,6 @@ CommaneLine:
     python -m ubelt.meta.docscrape_google all
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
-import re
-import textwrap
-import collections
-import six
 
 
 def parse_google_args(docstr):
@@ -30,11 +26,8 @@ def parse_google_args(docstr):
         >>> print([sorted(d.items()) for d in argdict_list])
         [[('desc', 'a google-style docstring'), ('name', 'docstr'), ('type', 'str')]]
     """
-    blocks = split_google_docblocks(docstr)
-    for key, lines in blocks:
-        if key == 'Args':
-            for argdict in parse_google_argblock(lines):
-                yield argdict
+    from xdoctest.docscrape_google import parse_google_args
+    return parse_google_args(docstr)
 
 
 def parse_google_returns(docstr, return_annot=None):
@@ -62,14 +55,8 @@ def parse_google_returns(docstr, return_annot=None):
         >>> print([sorted(d.items())[1] for d in retdict_list])
         [('type', 'list')]
     """
-    blocks = split_google_docblocks(docstr)
-    for key, lines in blocks:
-        if key == 'Returns':
-            for retdict in parse_google_retblock(lines, return_annot):
-                yield retdict
-        if key == 'Yields':
-            for retdict in parse_google_retblock(lines, return_annot):
-                yield retdict
+    from xdoctest.docscrape_google import parse_google_returns
+    return parse_google_returns(docstr, return_annot)
 
 
 def parse_google_retblock(lines, return_annot=None):
@@ -127,46 +114,8 @@ def parse_google_retblock(lines, return_annot=None):
         ... ])))
         >>> assert len(hints) == 0
     """
-    if return_annot is not None:
-        # If the function has a return type annotation then the return block
-        # should only be interpreted as a description. The formatting of the
-        # lines is not modified in this case.
-        retdict = {'type': return_annot, 'desc': lines}
-        yield retdict
-    else:
-        # Otherwise, this examines each line without any extra indentation (wrt
-        # the returns block) splits each line using a colon, and interprets
-        # anything to the left of the colon as the type hint. The rest of the
-        # parts are the description. Extra whitespace is removed from the
-        # descriptions.
-        def finalize(retdict):
-            final_desc = ' '.join([p for p in retdict['desc'] if p])
-            retdict['desc'] = final_desc
-            return retdict
-        retdict = None
-        noindent_pat = re.compile(r'^[^\s]')
-        for line in lines.split('\n'):
-            # Lines without indentation should declare new type hints
-            if noindent_pat.match(line):
-                if retdict is not None:
-                    # Finalize and return any previously constructed type hint
-                    yield finalize(retdict)
-                    retdict = None
-                if ':' in line:
-                    parts = line.split(':')
-                    retdict = {
-                        'type': parts[0].strip(),
-                        'desc': [':'.join(parts[1:]).strip()],
-                    }
-                else:
-                    # warning (malformatted google docstring)
-                    pass
-            else:
-                # Lines with indentation should extend previous descriptions.
-                if retdict is not None:
-                    retdict['desc'].append(line.strip())
-        if retdict is not None:
-            yield finalize(retdict)
+    from xdoctest.docscrape_google import parse_google_retblock
+    return parse_google_retblock(lines, return_annot)
 
 
 def parse_google_argblock(lines):
@@ -207,37 +156,8 @@ def parse_google_argblock(lines):
         >>> assert len(argdict_list) == len(line_list) - 1
         >>> assert argdict_list[1]['desc'] == 'a description with a newline'
     """
-    def named(key, pattern):
-        return '(?P<{}>{})'.format(key, pattern)
-    def optional(pattern):
-        return '({})?'.format(pattern)
-    def positive_lookahead(pattern):
-        return '(?={})'.format(pattern)
-    def regex_or(patterns):
-        return '({})'.format('|'.join(patterns))
-    whitespace = r'\s*'
-    endofstr = r'\Z'
-    # Define characters that can be part of variable / type names
-    varname = named('name', '[A-Za-z_][A-Za-z0-9_]*')
-    typename = named('type', '[^)]*?')
-    argdesc = named('desc', '.*?')
-    # Types are optional, and must be enclosed in parens
-    optional_type = optional(whitespace.join([r'\(', typename, r'\)']))
-    # Each arg hint must defined a on newline without any indentation
-    argdef = whitespace.join([varname, optional_type, ':'])
-    # the description is everything after the colon until either the next line
-    # without any indentation or the end of the string
-    end_desc = regex_or(['^' + positive_lookahead(r'[^\s]'), endofstr])
-
-    flags = re.MULTILINE | re.DOTALL
-    argline_pat = re.compile('^' + argdef + argdesc + end_desc, flags=flags)
-
-    for match in argline_pat.finditer(lines):
-        argdict = match.groupdict()
-        # Clean description
-        desc_lines = [p.strip() for p in argdict['desc'].split('\n')]
-        argdict['desc'] = ' '.join([p for p in desc_lines if p])
-        yield argdict
+    from xdoctest.docscrape_google import parse_google_argblock
+    return parse_google_argblock(lines)
 
 
 def split_google_docblocks(docstr):
@@ -258,137 +178,8 @@ def split_google_docblocks(docstr):
         >>> print([k for k, v in groups])
         ['Args', 'Returns', 'Example']
     """
-    if not isinstance(docstr, six.string_types):
-        raise TypeError('Input docstr must be a string. Got {} instead'.format(
-            type(docstr)))
-
-    def get_indentation(line_):
-        """ returns number of preceding spaces """
-        return len(line_) - len(line_.lstrip())
-
-    # Parse out initial documentation lines
-    # Then parse out the blocked lines.
-    docstr = textwrap.dedent(docstr)
-    docstr_lines = docstr.split('\n')
-    line_indent = [get_indentation(line) for line in docstr_lines]
-    line_len = [len(line) for line in docstr_lines]
-
-    # The first line may not have the correct indentation if it starts
-    # right after the triple quotes. Adjust it in this case to ensure that
-    # base indent is always 0
-    adjusted = False
-    is_nonzero = [len_ > 0 for len_ in line_len]
-    if len(line_indent) >= 2:
-        if line_len[0] != 0:
-            indents = [x for x, f in zip(line_indent, is_nonzero) if f]
-            if len(indents) >= 2:
-                indent_adjust = min(indents[1:])
-                line_indent[0] += indent_adjust
-                line_len[0] += indent_adjust
-                docstr_lines[0] = (' ' * indent_adjust) + docstr_lines[0]
-                adjusted = True
-    if adjusted:
-        # Redo prepreocessing, but this time on a rectified input
-        docstr = textwrap.dedent('\n'.join(docstr_lines))
-        docstr_lines = docstr.split('\n')
-        line_indent = [get_indentation(line) for line in docstr_lines]
-        line_len = [len(line) for line in docstr_lines]
-
-    indents = [x for x, f in zip(line_indent, is_nonzero) if f]
-    if len(indents) >= 1:
-        if indents[0] != 0:
-            print('ERROR IN PARSING DOCSTRING')
-            print('adjusted = %r' % (adjusted,))
-            print('Docstring:')
-            print('----------')
-            print(docstr)
-            print('----------')
-            raise ValueError('Google Style Docstring Missformat')
-
-    base_indent = 0
-    # We will group lines by their indentation.
-    # Rectify empty lines by giving them their parent's indentation.
-    true_indent = []
-    prev_indent = None
-    for indent_, len_ in zip(line_indent, line_len):
-        if len_ == 0:
-            # Empty lines take on their parents indentation
-            indent_ = prev_indent
-        true_indent.append(indent_)
-        prev_indent = indent_
-
-    # List of google style tags grouped by alias
-    tag_groups = [
-        ['Args', 'Arguments', 'Parameters', 'Other Parameters'],
-        ['Kwargs', 'Keyword Args', 'Keyword Arguments'],
-        ['Warns', 'Warning', 'Warnings'],
-        ['Returns', 'Return'],
-        ['Example', 'Examples'],
-        ['Doctest'],
-        ['Note', 'Notes'],
-        ['Yields', 'Yield'],
-        ['Attributes'],
-        ['Methods'],
-        ['Raises'],
-        ['References'],
-        ['See Also'],
-        ['Todo'],
-    ]
-    # Map aliased tags to a cannonical name (the first item in the group).
-    tag_aliases = dict([(item, group[0]) for group in tag_groups for item in group])
-    tag_pattern = '^' + '(' + '|'.join(tag_aliases.keys()) + '): *$'
-
-    group_id = 0
-    prev_indent = 0
-    group_list = []
-    in_tag = False
-    for line_num, (line, indent_) in enumerate(zip(docstr_lines, true_indent)):
-        if re.match(tag_pattern, line):
-            # Check if we can look ahead
-            if line_num + 1 < len(docstr_lines):
-                # A tag is only valid if its next line is properly indented,
-                # empty, or is a tag itself.
-                indent_increase = true_indent[line_num + 1] > base_indent
-                indent_zero = line_len[line_num + 1] == 0
-                matches_tag = re.match(tag_pattern, docstr_lines[line_num + 1])
-                if (indent_increase or indent_zero or matches_tag):
-                    group_id += 1
-                    in_tag = True
-            else:
-                group_id += 1
-                in_tag = True
-        # If the indentation goes back to the base, then we have left the tag
-        elif in_tag and indent_ != prev_indent and indent_ == base_indent:
-            group_id += 1
-            in_tag = False
-        group_list.append(group_id)
-        prev_indent = indent_
-
-    # Group docstr lines by group list
-    groups_ = collections.defaultdict(list)
-    for groupid, line in zip(group_list, docstr_lines):
-        groups_[groupid].append(line)
-
-    groups = []
-    line_offset = 0
-    for k, lines in groups_.items():
-        if len(lines) == 0 or (len(lines) == 1 and len(lines[0]) == 0):
-            continue
-        elif len(lines) >= 1 and re.match(tag_pattern, lines[0]):
-            # An encoded google sub-block
-            key = lines[0].strip().rstrip(':')
-            val = lines[1:]
-            subblock = textwrap.dedent('\n'.join(val))
-        else:
-            # A top level text documentation block
-            key = '__DOC__'
-            val = lines[:]
-            subblock = '\n'.join(val)
-
-        key = tag_aliases.get(key, key)
-        groups.append((key, subblock))
-        line_offset += len(lines)
-    return groups
+    from xdoctest.docscrape_google import split_google_docblocks
+    return split_google_docblocks(docstr)
 
 
 if __name__ == '__main__':
