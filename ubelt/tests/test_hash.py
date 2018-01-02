@@ -31,24 +31,25 @@ import itertools as it
 def test_hash_data():
     counter = [0]
     failed = []
-    def check_hash(input_, want=None):
+    def check_hash(want, input_):
         count = counter[0] = counter[0] + 1
         got = ub.hash_data(input_)
         # assert got.startswith(want), 'want={}, got={}'.format(want, got)
+        print('check_hash({!r}, {!r})'.format(got, input_))
         if want is not None and not got.startswith(want):
             item = (got, input_, count, want)
             failed.append(item)
-            print(item)
 
-    check_hash('1', 'egexcbwgdtmjrzafljtjwqpgfhmfetjs')
-    check_hash(['1'], 'sybsuxbnerizstuljuwfqtairufvhyrl')
-    check_hash(tuple(['1']), 'sybsuxbnerizstuljuwfqtairufvhyrl')
-    check_hash(b'12', 'ftzqivzayzivmobwymodjnnzzxzrvvjz')
-    check_hash([b'1', b'2'], 'qzxwryuzknxbtlkzpsrkhwijqhiiqrkd')
-    check_hash(['1', '2', '3'], 'rdycrmgwpmgpsmfxyzrwkeahirtudoxl')
-    check_hash(['1', np.array([1, 2, 3], dtype=np.int64), '3'], 'hebvtnbqjsdusmeqqqvadipihgmqgsos')
-    check_hash('123', 'lxssoxdkstvccsyqaybaokehclyctgmn')
-    check_hash(zip([1, 2, 3], [4, 5, 6]), 'rsizgermosnbnswfohzlfhvhzdoojzob')
+    check_hash('egexcbwgdtmjrzafljtjwqpgfhmfetjs', '1')
+    check_hash('hjvebphzylxgtxncyphclsjglvmstsbq', ['1'])
+    check_hash('hjvebphzylxgtxncyphclsjglvmstsbq', tuple(['1']))
+    check_hash('ftzqivzayzivmobwymodjnnzzxzrvvjz', b'12')
+    check_hash('jiwjkgkffldfoysfqblsemzkailyridf', [b'1', b'2'])
+    check_hash('foevisahdffoxfasicvyklrmuuwqnfcc', ['1', '2', '3'])
+    check_hash('qasnkfhlewxsgsocddkybvvkxttdmzqn', ['1', np.array([1, 2, 3], dtype=np.int64), '3'])
+    check_hash('lxssoxdkstvccsyqaybaokehclyctgmn', '123')
+    check_hash('ektrgalbjkljglbwhqosfovyefmsadkd', zip([1, 2, 3], [4, 5, 6]))
+
     print(ub.repr2(failed, nl=1))
     assert len(failed) == 0
 
@@ -100,9 +101,12 @@ def test_ndarray_int_object_convert():
     assert s2 == s4
     assert s3 == s4
 
+
+def test_ndarray_zeros():
+    data = np.zeros((3, 3), dtype=np.int64)
     hashid = ub.hash_data(data)
-    assert hashid == ub.hash_data(data.ravel()), (
-        'currently we expect ravel not to matter')
+    assert hashid != ub.hash_data(data.ravel()), (
+        'shape should influence data')
     assert hashid != ub.hash_data(data.astype(np.float32))
     assert hashid != ub.hash_data(data.astype(np.int32))
     assert hashid != ub.hash_data(data.astype(np.int8))
@@ -112,6 +116,13 @@ def hash_sequence(data):
     tracer = HashTracer()
     ub.hash_data(data, hasher=tracer)
     return tracer.sequence
+
+
+def test_nesting():
+    assert hash_sequence([1, 1, 1]) != hash_sequence([[1], 1, 1])
+    assert hash_sequence([[1], 1]) != hash_sequence([[1, 1]])
+    assert hash_sequence([1, [1]]) != hash_sequence([[1, 1]])
+    assert hash_sequence([[[1]]]) != hash_sequence([[1]])
 
 
 def test_numpy_int():
@@ -137,14 +148,15 @@ def test_numpy_float():
 
 def test_numpy_random_state():
     data = np.random.RandomState(0)
-    assert ub.hash_data(data).startswith('txftmrnxysmz')
+    assert ub.hash_data(data).startswith('ckukrhjsraipjyrwddcvqsvvmuuxztld')
     # hash_sequence(data)
 
 
 def test_uuid():
     import uuid
     data = uuid.UUID('12345678-1234-1234-1234-123456789abc')
-    assert hash_sequence(data) == [b'UUID\x124Vx\x124\x124\x124\x124Vx\x9a\xbc']
+    sequence = b''.join(hash_sequence(data))
+    assert sequence == b'UUID\x124Vx\x124\x124\x124\x124Vx\x9a\xbc'
     assert ub.hash_data(data).startswith('nkklelnjzqbi')
     assert ub.hash_data(data.bytes) != ub.hash_data(data), (
         'the fact that it is a UUID should reflect in the hash')

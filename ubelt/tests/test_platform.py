@@ -39,9 +39,13 @@ def test_cmd_tee_auto():
     assert result['out'] == '\n'.join(list(map(str, range(100)))) + '\n'
 
 
+# @pytest.mark.skip
+@pytest.mark.timeout(5)
 def test_cmd_tee_thread():
     """
     pytest ubelt/tests/test_platform.py::test_cmd_tee_thread
+
+    FIXME: this test hangs on calculex for some reason
     """
     import threading
     # check which threads currently exist (ideally 1)
@@ -133,5 +137,9 @@ def test_cmd_interleaved_streams_py():
 
 
 if __name__ == '__main__':
+    """
+        pytest ubelt/tests/test_platform.py
+    """
+
     import xdoctest
     xdoctest.doctest_module(__file__)

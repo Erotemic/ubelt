@@ -175,7 +175,8 @@ def import_module_from_path(modpath):
         https://stackoverflow.com/questions/67631/import-module-given-path
 
     Notes:
-        if the module is part of a package, the package will be imported first
+        If the module is part of a package, the package will be imported first.
+        These modules may cause problems when reloading via IPython magic
 
     Example:
         >>> from ubelt import util_import
@@ -184,22 +185,36 @@ def import_module_from_path(modpath):
         >>> assert module is util_import
     """
     # the importlib version doesnt work in pytest
+    module = _custom_import_modpath(modpath)
+    # TODO: use this implementation once pytest fixes importlib
+    # module = _pkgutil_import_modpath(modpath)
+    return module
+
+
+def _custom_import_modpath(modpath):
     import xdoctest.static_analysis as static
     dpath, rel_modpath = static.split_modpath(modpath)
     modname = static.modpath_to_modname(modpath)
     with PythonPathContext(dpath):
         module = import_module_from_name(modname)
-    # TODO: use this implementation once pytest fixes importlib
-    # if six.PY2:  # nocover
-    #     import imp
-    #     module = imp.load_source(modname, modpath)
-    # elif sys.version_info[0:2] <= (3, 4):  # nocover
-    #     assert sys.version_info[0:2] <= (3, 2), '3.0 to 3.2 is not supported'
-    #     from importlib.machinery import SourceFileLoader
-    #     module = SourceFileLoader(modname, modpath).load_module()
-    # else:
-    #     import importlib.util
-    #     spec = importlib.util.spec_from_file_location(modname, modpath)
-    #     module = importlib.util.module_from_spec(spec)
-    #     spec.loader.exec_module(module)
+    return module
+
+
+def _pkgutil_import_modpath(modpath):  # nocover
+    import six
+    import xdoctest.static_analysis as static
+    dpath, rel_modpath = static.split_modpath(modpath)
+    modname = static.modpath_to_modname(modpath)
+    if six.PY2:  # nocover
+        import imp
+        module = imp.load_source(modname, modpath)
+    elif sys.version_info[0:2] <= (3, 4):  # nocover
+        assert sys.version_info[0:2] <= (3, 2), '3.0 to 3.2 is not supported'
+        from importlib.machinery import SourceFileLoader
+        module = SourceFileLoader(modname, modpath).load_module()
+    else:
+        import importlib.util
+        spec = importlib.util.spec_from_file_location(modname, modpath)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
     return module
