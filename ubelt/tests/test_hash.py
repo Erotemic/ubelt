@@ -129,7 +129,10 @@ def test_numpy_float():
     assert hash_sequence(np.float16(3.0)) == hash_sequence(3.0)
     assert hash_sequence(np.float32(3.0)) == hash_sequence(3.0)
     assert hash_sequence(np.float64(3.0)) == hash_sequence(3.0)
-    assert hash_sequence(np.float128(3.0)) == hash_sequence(3.0)
+    try:
+        assert hash_sequence(np.float128(3.0)) == hash_sequence(3.0)
+    except AttributeError:
+        pass
 
 
 def test_numpy_random_state():

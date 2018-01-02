@@ -145,7 +145,7 @@ def import_module_from_name(modname):
         >>> # test with modules that wont be imported in normal circumstances
         >>> # todo write a test where we gaurentee this
         >>> modname_list = [
-        >>>     'test',
+        >>>     #'test',
         >>>     'pickletools',
         >>>     'lib2to3.fixes.fix_apply',
         >>> ]
