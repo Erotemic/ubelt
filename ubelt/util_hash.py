@@ -7,6 +7,10 @@ NOTE:
     future and should not be relied on between versions. Eventually we plan to
     change this policy and gaurentee a stable hashing scheme across future
     versions.
+
+TODO: Before we merge this... should we:
+    [ ] Change default base to 16?
+    [ ] Remove hashlen?
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import hashlib
@@ -17,6 +21,8 @@ from six.moves import zip
 __all__ = ['hash_data', 'hash_file']
 
 HASH_VERSION = 1  # incremented when we make a change that modifies hashes
+
+_ALPHABET_16 = list('0123456789abcdef')
 
 _ALPHABET_26 = [
     'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o',
@@ -367,11 +373,13 @@ def _convert_hexstr_base(hexstr, alphabet):
 
     Example:
         >>> print(_convert_hexstr_base('ffffffff', _ALPHABET_26))
-        vxlrmxn
+        nxmrlxv
         >>> print(_convert_hexstr_base('0', _ALPHABET_26))
         0
         >>> print(_convert_hexstr_base('-ffffffff', _ALPHABET_26))
-        -vxlrmxn
+        -nxmrlxv
+        >>> print(_convert_hexstr_base('aafffff1', _ALPHABET_16))
+        aafffff1
 
     Sympy:
         >>> import sympy as sy
@@ -405,9 +413,8 @@ def _convert_hexstr_base(hexstr, alphabet):
         digits.append(alphabet[x % bigbase])
         x //= bigbase
     if sign < 0:
-        digits.reverse()
         digits.append('-')
-        digits.reverse()
+    digits.reverse()
     newbase_str = ''.join(digits)
     return newbase_str
 
@@ -428,7 +435,7 @@ def hash_data(data, hasher=None, hashlen=None, alphabet=None):
 
     Example:
         >>> print(hash_data([1, 2, (3, '4')], hashlen=8, hasher='sha512'))
-        vctyzxid
+        hpddmqdi
     """
     alphabet = _rectify_alphabet(alphabet)
     hashlen = _rectify_hashlen(hashlen)
@@ -475,7 +482,7 @@ def hash_file(fpath, blocksize=65536, stride=1, hasher=None, hashlen=None,
         >>> fpath = join(ub.ensure_app_cache_dir('ubelt'), 'tmp.txt')
         >>> ub.writeto(fpath, 'foobar')
         >>> print(ub.hash_file(fpath, hasher='sha512', hashlen=8))
-        ruvvlhnz
+        vkiodmcj
     """
     alphabet = _rectify_alphabet(alphabet)
     hashlen = _rectify_hashlen(hashlen)
