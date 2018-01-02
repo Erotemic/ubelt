@@ -20,6 +20,7 @@ class chunks(object):
         bordermode (str): determines how to handle the last case if the
             length of the sequence is not divisible by chunksize valid values
             are: {'none', 'cycle', 'replicate'}
+        total (int): hints about the length of the sequence
 
     TODO:
         should this handle the case when sequence is a string?
@@ -47,17 +48,42 @@ class chunks(object):
         >>> assert len(list(ub.chunks([], 2, None, 'none'))) == 0
         >>> assert len(list(ub.chunks([], 2, None, 'cycle'))) == 0
         >>> assert len(list(ub.chunks([], 2, None, 'replicate'))) == 0
+
+    Doctest:
+        >>> def _check_len(self):
+        ...     assert len(self) == len(list(self))
+        >>> _check_len(chunks(list(range(3)), nchunks=2))
+        >>> _check_len(chunks(list(range(2)), nchunks=2))
+        >>> _check_len(chunks(list(range(2)), nchunks=3))
+
+    Doctest:
+        >>> import pytest
+        >>> assert pytest.raises(ValueError, chunks, range(9))
+        >>> assert pytest.raises(ValueError, chunks, range(9), chunksize=2, nchunks=2)
+        >>> assert pytest.raises(TypeError, len, chunks((_ for _ in range(2)), 2))
+
     """
     def __init__(self, sequence, chunksize=None, nchunks=None,
-                 bordermode='none'):
+                 total=None, bordermode='none'):
         if nchunks is not None and chunksize is not None:  # nocover
             raise ValueError('Cannot specify both chunksize and nchunks')
+        if nchunks is None and chunksize is None:  # nocover
+            raise ValueError('Must specify either chunksize or nchunks')
         if nchunks is not None:
-            chunksize = int(math.ceil(len(sequence) / nchunks))
+            if total is None:
+                total = len(sequence)
+            chunksize = int(math.ceil(total / nchunks))
 
         self.bordermode = bordermode
         self.sequence = sequence
         self.chunksize = chunksize
+        self.total = total
+
+    def __len__(self):
+        if self.total is None:
+            self.total = len(self.sequence)
+        nchunks = int(math.ceil(self.total / self.chunksize))
+        return nchunks
 
     def __iter__(self):
         bordermode = self.bordermode
