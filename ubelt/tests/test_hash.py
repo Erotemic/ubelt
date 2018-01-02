@@ -46,7 +46,7 @@ def test_hash_data():
     check_hash(b'12', 'ftzqivzayzivmobwymodjnnzzxzrvvjz')
     check_hash([b'1', b'2'], 'qzxwryuzknxbtlkzpsrkhwijqhiiqrkd')
     check_hash(['1', '2', '3'], 'rdycrmgwpmgpsmfxyzrwkeahirtudoxl')
-    check_hash(['1', np.array([1, 2, 3]), '3'], 'hebvtnbqjsdusmeqqqvadipihgmqgsos')
+    check_hash(['1', np.array([1, 2, 3], dtype=np.int64), '3'], 'hebvtnbqjsdusmeqqqvadipihgmqgsos')
     check_hash('123', 'lxssoxdkstvccsyqaybaokehclyctgmn')
     check_hash(zip([1, 2, 3], [4, 5, 6]), 'rsizgermosnbnswfohzlfhvhzdoojzob')
     print(ub.repr2(failed, nl=1))

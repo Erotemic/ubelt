@@ -2,7 +2,7 @@
 """
 Wrappers around hashlib functions to generate hash signatures for common data.
 
-The hashes should be the same across platforms for the same data.
+The hashes should be determenistic across platforms.
 
 NOTE:
     The exact hashes generated for data object and files may change in the
