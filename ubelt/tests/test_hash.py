@@ -1,29 +1,31 @@
+# -*- coding: utf-8 -*-
+from __future__ import absolute_import, division, print_function, unicode_literals
 import ubelt as ub
 import numpy as np
 import itertools as it
 
 
-def _benchmark():
-    """
-    On 64-bit processors sha512 may be faster than sha256
-        %timeit hashlib.sha256().update(b'8' * 1000)
-        3.62 µs per loop
-        %timeit hashlib.sha512().update(b'8' * 1000)
-        2.5 µs per loop
+# def _benchmark():
+#     """
+#     On 64-bit processors sha512 may be faster than sha256
+#         %timeit hashlib.sha256().update(b'8' * 1000)
+#         3.62 µs per loop
+#         %timeit hashlib.sha512().update(b'8' * 1000)
+#         2.5 µs per loop
 
-        %timeit hashlib.sha256().update(b'8' * 1)
-        318 ns
-        %timeit hashlib.sha512().update(b'8' * 1)
-        342 ns
+#         %timeit hashlib.sha256().update(b'8' * 1)
+#         318 ns
+#         %timeit hashlib.sha512().update(b'8' * 1)
+#         342 ns
 
-        %timeit hashlib.sha256().update(b'8' * 100000)
-        306 µs
-        %timeit hashlib.sha512().update(b'8' * 100000)
-        213 µs
+#         %timeit hashlib.sha256().update(b'8' * 100000)
+#         306 µs
+#         %timeit hashlib.sha512().update(b'8' * 100000)
+#         213 µs
 
-    References:
-        https://crypto.stackexchange.com/questions/26336/sha512-faster-than-sha256
-    """
+#     References:
+#         https://crypto.stackexchange.com/questions/26336/sha512-faster-than-sha256
+#     """
 
 
 def test_hash_data():
