@@ -13,6 +13,12 @@ NOTE:
 TODO: Before we merge this... should we:
     [ ] Change default base to 16?
     [ ] Remove hashlen?
+    [ ] How is the custom hashing scheme different or better than simply using
+    pickle. Perhaps its not, and it should be using pickle.
+        * Reason1: compatibility between python 2 and 3. We dont differentiate
+        between bytes and unicode, whereas pickle would.
+        * Reason2: safety: this will complain about unordered things such as
+            dicts.
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import hashlib
@@ -62,6 +68,7 @@ if six.PY2:
         int_ = int(codecs.encode(bytes_, 'hex'), 16)
         return int_
 else:
+    codecs = None
     def _int_to_bytes(int_):
         r"""
         Converts an integer into its byte representation
@@ -215,6 +222,11 @@ class HashableExtensions():
         """
         Numpy extensions are builtin
         """
+        # system checks
+        numpy_floating_types = (np.float16, np.float32, np.float64)
+        if hasattr(np, 'float128'):  # nocover
+            numpy_floating_types = numpy_floating_types + (np.float128,)
+
         @self.add_iterable_check
         def is_object_ndarray(data):
             # ndarrays of objects cannot be hashed directly.
@@ -222,15 +234,26 @@ class HashableExtensions():
 
         @self.register(np.ndarray)
         def hash_numpy_array(data):
+            """
+            Example:
+                >>> data_f32 = np.zeros((3, 3, 3), dtype=np.float64)
+                >>> data_i64 = np.zeros((3, 3, 3), dtype=np.int64)
+                >>> data_i32 = np.zeros((3, 3, 3), dtype=np.int32)
+                >>> hash_f64 = _hashable_sequence(data_f32, types=True)
+                >>> hash_i64 = _hashable_sequence(data_i64, types=True)
+                >>> hash_i32 = _hashable_sequence(data_i64, types=True)
+                >>> assert hash_i64 != hash_f64
+                >>> assert hash_i64 != hash_i32
+            """
             if data.dtype.kind == 'O':
                 msg = 'directly hashing ndarrays with dtype=object is unstable'
                 raise TypeError(msg)
-                # warnings.warn(msg, RuntimeWarning)
-                # hashable = data.dumps()
             else:
-                # NOTE: tobytes() views the array in 1D (via ravel())
-                # this means the shape is not encoded in the hash
-                hashable = data.tobytes()
+                # tobytes() views the array in 1D (via ravel())
+                # encode the shape as well
+                header = b''.join(_hashable_sequence((len(data.shape), data.shape)))
+                dtype = b''.join(_hashable_sequence(data.dtype.descr))
+                hashable = header + dtype + data.tobytes()
             prefix = b'NDARR'
             return prefix, hashable
 
@@ -239,22 +262,24 @@ class HashableExtensions():
         def _hash_numpy_int(data):
             return _convert_to_hashable(int(data))
 
-        numpy_floating_types = (np.float16, np.float32, np.float64)
-        if hasattr(np, 'float128'):  # nocover
-            numpy_floating_types = numpy_floating_types + (np.float128,)
-
         @self.register(numpy_floating_types)
         def _hash_numpy_float(data):
             return _convert_to_hashable(float(data))
 
         @self.register(np.random.RandomState)
         def _hash_numpy_random_state(data):
+            """
+            Example:
+                >>> rng = np.random.RandomState(0)
+                >>> _hashable_sequence(rng, types=True)
+            """
             ver, ints, pos, has_gauss, cached = data.get_state()
-            hashable = (_convert_to_hashable(ver)[1] +
-                        _convert_to_hashable(ints)[1] +
-                        _convert_to_hashable(pos)[1] +
-                        _convert_to_hashable(has_gauss)[1] +
-                        _convert_to_hashable(cached)[1])
+            hashable = b''.join(_hashable_sequence(data.get_state()))
+            # hashable = (_convert_to_hashable(ver)[1] +
+            #             _convert_to_hashable(ints)[1] +
+            #             _convert_to_hashable(pos)[1] +
+            #             _convert_to_hashable(has_gauss)[1] +
+            #             _convert_to_hashable(cached)[1])
             prefix = b'RNG'
             return prefix, hashable
 
@@ -281,13 +306,32 @@ except ImportError:  # nocover
 _HASHABLE_EXTENSIONS._register_builtin_class_extensions()
 
 
-def _convert_to_hashable(data):
+def _hashable_sequence(data, types=True):
+    """
+    Extracts the sequence of bytes that would be hashed by hash_data
+
+    >>> data = [2, (3, 4)]
+    >>> _hashable_sequence(data, types=False)
+    >>> _hashable_sequence(data, types=True)
+    """
+    class HashTracer(object):
+        def __init__(self):
+            self.sequence = []
+        def update(self, bytes):
+            self.sequence.append(bytes)
+    hasher = HashTracer()
+    _update_hasher(hasher, data, types=types)
+    return hasher.sequence
+
+
+def _convert_to_hashable(data, types=True):
     r"""
     Converts `data` into a hashable byte representation if an appropriate
     hashing function is known.
 
     Args:
-        data (object): arbitrary data
+        data (object): ordered data with structure
+        types (bool): include type prefixes in the hash
 
     Returns:
         tuple(bytes, bytes): prefix, hashable:
@@ -298,7 +342,7 @@ def _convert_to_hashable(data):
         TypeError : if data has no registered hash methods
 
     Example:
-        >>> assert _convert_to_hashable(None) == (b'NONE', b'')
+        >>> assert _convert_to_hashable(None) == (b'NULL', b'NONE')
         >>> assert _convert_to_hashable('string') == (b'TXT', b'string')
         >>> assert _convert_to_hashable(1) == (b'INT', b'\x00\x00\x00\x01')
         >>> assert _convert_to_hashable(1.0) == (b'FLT', b'\x00\x00\x00\x01/\x00\x00\x00\x01')
@@ -306,8 +350,8 @@ def _convert_to_hashable(data):
     """
     # HANDLE MOST COMMON TYPES FIRST
     if data is None:
-        hashable = b''
-        prefix = b'NONE'
+        hashable = b'NONE'
+        prefix = b'NULL'
     elif isinstance(data, six.binary_type):
         hashable = data
         prefix = b'TXT'
@@ -330,20 +374,28 @@ def _convert_to_hashable(data):
         # Then dynamically look up any other type
         hash_func = _HASHABLE_EXTENSIONS.lookup(data)
         prefix, hashable = hash_func(data)
-    return prefix, hashable
+    if types:
+        return prefix, hashable
+    else:
+        return b'', hashable
 
 
-def _update_hasher(hasher, data):
+def _update_hasher(hasher, data, types=True):
     """
     Converts `data` into a byte representation and calls update on the hasher
     `hashlib.HASH` algorithm.
+
+    Args:
+        hasher (HASH): instance of a hashlib algorithm
+        data (object): ordered data with structure
+        types (bool): include type prefixes in the hash
 
     Example:
         >>> hasher = hashlib.sha512()
         >>> data = [1, 2, ['a', 2, 'c']]
         >>> _update_hasher(hasher, data)
         >>> print(hasher.hexdigest()[0:8])
-        e31406aa
+        2ba8d82b
     """
     # Determine if the data should be hashed directly or iterated through
     if isinstance(data, (tuple, list, zip)):
@@ -354,27 +406,36 @@ def _update_hasher(hasher, data):
 
     if needs_iteration:
         # Denote that we are hashing over an iterable
-        SEP = b'SEP'
-        iter_prefix = b'ITER'
+        # SEP = b'SEP'
+        # ITER_PREFIX = b'ITER'
+        # SEP = b','
+        # ITER_PREFIX = b'['
+        # ITER_SUFFIX = b']'
+        # Multiple structure bytes makes it harder accidently make conflicts
+        SEP = b'_,_'
+        ITER_PREFIX = b'_[_'
+        ITER_SUFFIX = b'_]_'
+
         iter_ = iter(data)
-        hasher.update(iter_prefix)
+        hasher.update(ITER_PREFIX)
         # first, try to nest quickly without recursive calls
         # (this works if all data in the sequence is a non-iterable)
         try:
             for item in iter_:
-                prefix, hashable = _convert_to_hashable(item)
-                binary_data = SEP + prefix + hashable
+                prefix, hashable = _convert_to_hashable(item, types)
+                binary_data = prefix + hashable + SEP
                 hasher.update(binary_data)
         except TypeError:
             # need to use recursive calls
             # Update based on current item
-            _update_hasher(hasher, item)
+            _update_hasher(hasher, item, types)
             for item in iter_:
                 # Ensure the items have a spacer between them
+                _update_hasher(hasher, item, types)
                 hasher.update(SEP)
-                _update_hasher(hasher, item)
+        hasher.update(ITER_SUFFIX)
     else:
-        prefix, hashable = _convert_to_hashable(data)
+        prefix, hashable = _convert_to_hashable(data, types)
         binary_data = prefix + hashable
         hasher.update(binary_data)
 
@@ -451,7 +512,7 @@ def hash_data(data, hasher=None, hashlen=None, alphabet=None):
 
     Example:
         >>> print(hash_data([1, 2, (3, '4')], hashlen=8, hasher='sha512'))
-        hpddmqdi
+        frqkjbsq
     """
     alphabet = _rectify_alphabet(alphabet)
     hashlen = _rectify_hashlen(hashlen)
