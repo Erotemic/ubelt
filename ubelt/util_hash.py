@@ -35,9 +35,10 @@ _HASH_LEN = 32
 
 if six.PY2:
     _stringlike = (basestring, bytes)  # NOQA
+    _intlike = (int, long)  # NOQA
 else:
     _stringlike = (str, bytes)  # NOQA
-
+    _intlike = (int,)
 
 # Default to 512 because it is often faster than 256 on 64bit systems:
 # Reference: https://crypto.stackexchange.com/questions/26336/faster
@@ -188,6 +189,14 @@ class HashableExtensions():
             >>> import pytest
             >>> assert pytest.raises(TypeError, self.lookup, data)
 
+            >>> # If ub.hash_data doesnt support your object,
+            >>> # then you can register it.
+            >>> @self.register(Foo)
+            >>> def _hashfoo(data):
+            >>>     return b'FOO', data.attr
+            >>> func = self.lookup(data)
+            >>> assert func(data)[1] == 1
+
             >>> data = uuid.uuid4()
             >>> self.lookup(data)
         """
@@ -293,6 +302,7 @@ def _convert_to_hashable(data):
         >>> assert _convert_to_hashable('string') == (b'TXT', b'string')
         >>> assert _convert_to_hashable(1) == (b'INT', b'\x00\x00\x00\x01')
         >>> assert _convert_to_hashable(1.0) == (b'FLT', b'\x00\x00\x00\x01/\x00\x00\x00\x01')
+        >>> assert _convert_to_hashable(_intlike[-1](1)) == (b'INT', b'\x00\x00\x00\x01')
     """
     # HANDLE MOST COMMON TYPES FIRST
     if data is None:
@@ -305,7 +315,7 @@ def _convert_to_hashable(data):
         # convert unicode into bytes
         hashable = data.encode('utf-8')
         prefix = b'TXT'
-    elif isinstance(data, int):
+    elif isinstance(data, _intlike):
         # warnings.warn('Hashing ints is slow, numpy is prefered')
         hashable = _int_to_bytes(data)
         # hashable = data.to_bytes(8, byteorder='big')
