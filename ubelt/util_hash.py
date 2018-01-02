@@ -2,6 +2,8 @@
 """
 Wrappers around hashlib functions to generate hash signatures for common data.
 
+The hashes should be the same across platforms for the same data.
+
 NOTE:
     The exact hashes generated for data object and files may change in the
     future and should not be relied on between versions. Eventually we plan to
@@ -228,7 +230,11 @@ class HashableExtensions():
         def _hash_numpy_int(data):
             return _convert_to_hashable(int(data))
 
-        @self.register((np.float128, np.float64, np.float32, np.float16))
+        numpy_floating_types = (np.float16, np.float32, np.float64)
+        if hasattr(np, 'float128'):  # nocover
+            numpy_floating_types = numpy_floating_types + (np.float128,)
+
+        @self.register(numpy_floating_types)
         def _hash_numpy_float(data):
             return _convert_to_hashable(float(data))
 
