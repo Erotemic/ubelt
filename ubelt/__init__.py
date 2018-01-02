@@ -40,6 +40,7 @@ GLOBAL_MODULES = [
     'util_format',
     'util_io',
     'util_list',
+    'util_hash',
     'util_import',
     'util_mixins',
     'util_path',
@@ -77,6 +78,7 @@ if _DOELSE:  # pragma: nobranch
     from ubelt import util_format
     from ubelt import util_io
     from ubelt import util_list
+    from ubelt import util_hash
     from ubelt import util_import
     from ubelt import util_mixins
     from ubelt import util_path
@@ -102,6 +104,7 @@ if _DOELSE:  # pragma: nobranch
     from ubelt.util_io import (readfrom, writeto, touch, delete,)
     from ubelt.util_list import (argsort, boolmask, chunks, compress, flatten,
                                  iterable, take, unique, unique_flags,)
+    from ubelt.util_hash import (hash_data, hash_file,)
     from ubelt.util_import import (split_modpath, modname_to_modpath,
                                    modpath_to_modname, import_module_from_name,
                                    import_module_from_path,)
