@@ -3,6 +3,7 @@ import pytest
 from os.path import basename, join, exists
 
 
+@pytest.mark.timeout(5)
 def test_download_no_fpath():
     url = 'http://i.imgur.com/rqwaDag.png'
 
@@ -19,6 +20,7 @@ def test_download_no_fpath():
     assert exists(fpath)
 
 
+@pytest.mark.timeout(5)
 def test_download_with_fpath():
     url = 'http://i.imgur.com/rqwaDag.png'
 
@@ -38,6 +40,7 @@ def test_download_with_fpath():
     assert len(data) > 1200, 'should have downloaded some bytes'
 
 
+@pytest.mark.timeout(5)
 def test_download_chunksize():
     # url = 'https://www.dropbox.com/s/jl506apezj42zjz/ibeis-win32-setup-ymd_hm-2015-08-01_16-28.exe?dl=1'
     url = 'http://i.imgur.com/rqwaDag.png'
@@ -55,6 +58,7 @@ def test_download_chunksize():
     assert exists(fpath)
 
 
+@pytest.mark.timeout(5)
 def test_grabdata_cache():
     """
     Check where the url is downloaded to when fpath is not specified.
@@ -76,6 +80,7 @@ def test_grabdata_cache():
     assert exists(fpath)
 
 
+@pytest.mark.timeout(5)
 def test_grabdata_url_only():
     """
     Check where the url is downloaded to when fpath is not specified.
@@ -91,6 +96,7 @@ def test_grabdata_url_only():
     assert exists(fpath)
 
 
+@pytest.mark.timeout(5)
 def test_download_bad_url():
     """
     Check where the url is downloaded to when fpath is not specified.
@@ -108,6 +114,7 @@ def test_download_bad_url():
         ub.download(url, fpath=fpath)
 
 
+@pytest.mark.timeout(5)
 def test_grabdata_fname_only():
     url = 'http://i.imgur.com/rqwaDag.png'
 
@@ -120,6 +127,7 @@ def test_grabdata_fname_only():
     assert exists(fpath)
 
 
+@pytest.mark.timeout(5)
 def test_grabdata_dpath_only():
     url = 'http://i.imgur.com/rqwaDag.png'
 
@@ -132,6 +140,7 @@ def test_grabdata_dpath_only():
     assert exists(fpath)
 
 
+@pytest.mark.timeout(5)
 def test_grabdata_fpath_and_dpath():
     url = 'http://i.imgur.com/rqwaDag.png'
     with pytest.raises(ValueError):
