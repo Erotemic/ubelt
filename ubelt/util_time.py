@@ -1,18 +1,21 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
-# import datetime
 import time
 import math
 import sys
+import gc
+import itertools as it
 
 __all__ = ['Timer', 'Timerit', 'timestamp']
 
-# Use time.clock in win32
-default_timer = time.clock if sys.platform.startswith('win32') else time.time
+if sys.version_info.major == 2:
+    default_timer = time.clock if sys.platform.startswith('win32') else time.time
+else:
+    default_timer = time.perf_counter
 
 
 class Timer(object):
-    r"""
+    """
     Timer with-statment context object.
 
     Example:
@@ -57,7 +60,7 @@ class Timer(object):
         self.tic()
         return self
 
-    def __exit__(self, type_, value, trace):
+    def __exit__(self, ex_type, ex_value, trace):
         self.ellapsed = self.toc()
         if trace is not None:
             # return False on error
@@ -65,7 +68,7 @@ class Timer(object):
 
 
 class Timerit(object):
-    r"""
+    """
     Reports the average time to run a block of code.
 
     Unlike `timeit`, `Timerit` can handle multiline blocks of code
@@ -106,8 +109,8 @@ class Timerit(object):
         >>>     ub.find_nth_prime(n)
         >>> # Using the timer object results in the most precise timeings
         >>> for timer in ub.Timerit(num, 'precise'):
-        >>>     with timer:
-        >>>         ub.find_nth_prime(n)
+        >>>     # with blocks can be run without indentation
+        >>>     with timer: ub.find_nth_prime(n)
     """
     DEFAULT_VERBOSE = True
 
@@ -124,7 +127,10 @@ class Timerit(object):
 
     def call(self, func, *args, **kwargs):
         """
-        Alternative way to time a simple function call using condensed syntax
+        Alternative way to time a simple function call using condensed syntax.
+
+        Returns:
+            the expected execution time of `func(*args, **kwargs)` in seconds
 
         Example:
             >>> import ubelt as ub
@@ -147,24 +153,26 @@ class Timerit(object):
         # Create a foreground and background timer
         bg_timer = Timer(verbose=0)   # (ideally this is unused)
         fg_timer = Timer(verbose=0)   # (used directly by user)
-        # Core timing loop
-        for i in range(self.num):
-            # Start background timer (in case the user doesnt use fg_timer)
-            # Yield foreground timer to let the user run a block of code
-            # When we return from yield the user code will have just finishec
-            # Then record background time + loop overhead
-            bg_timer.tic()
-            yield fg_timer
-            bg_time = bg_timer.toc()
-            # Check if the fg_timer object was used, but fallback on bg_timer
-            if fg_timer.ellapsed >= 0:
-                block_time = fg_timer.ellapsed  # high precision
-            else:
-                block_time = bg_time  # low precision
-            # record timeings
-            self.times.append(block_time)
-            self.total_time += block_time
-            self.n_loops += 1
+        # disable the garbage collector while timeing
+        with ToggleGC(False):
+            # Core timing loop
+            for i in it.repeat(None, self.num):
+                # Start background timer (in case the user doesnt use fg_timer)
+                # Yield foreground timer to let the user run a block of code
+                # When we return from yield the user code will have just finished
+                # Then record background time + loop overhead
+                bg_timer.tic()
+                yield fg_timer
+                bg_time = bg_timer.toc()
+                # Check if the fg_timer object was used, but fallback on bg_timer
+                if fg_timer.ellapsed >= 0:
+                    block_time = fg_timer.ellapsed  # higher precision
+                else:
+                    block_time = bg_time  # low precision
+                # record timeings
+                self.times.append(block_time)
+                self.total_time += block_time
+                self.n_loops += 1
         # Timeing complete, print results
         assert len(self.times) == self.num, 'incorrectly recorded times'
         if self.verbose > 0:
@@ -172,11 +180,48 @@ class Timerit(object):
 
     @property
     def ave_secs(self):
-        return self.mean()
+        """
+        The expected execution time of the timed code snippet in seconds.
+        This is the minimum value recorded over all runs.
+
+        SeeAlso:
+            self.min
+            self.mean
+            self.std
+        """
+        return self.min()
+
+    def min(self):
+        """
+        The best time overall.
+
+        This is typically the best metric to consider when evaluating the
+        execution time of a function. To understand why consider this quote
+        from the docs of the original timeit module:
+
+        '''
+        In a typical case, the lowest value gives a lower bound for how fast
+        your machine can run the given code snippet; higher values in the
+        result vector are typically not caused by variability in Python's
+        speed, but by other processes interfering with your timing accuracy.
+        So the min() of the result is probably the only number you should be
+        interested in.
+        '''
+
+        Example:
+            >>> import ubelt as ub
+            >>> self = Timerit(num=10, verbose=0)
+            >>> self.call(ub.find_nth_prime, 50)
+            >>> assert self.min() > 0
+        """
+        return min(self.times)
 
     def mean(self):
         """
-        The mean of the best results of each trial
+        The mean of the best results of each trial.
+
+        Note:
+            This is typically less informative than simply looking at the min
 
         Example:
             >>> import ubelt as ub
@@ -217,10 +262,11 @@ class Timerit(object):
             python -m ubelt.util_time Timerit._seconds_str
 
         Example:
+            >>> from ubelt.util_time import *
             >>> self = Timerit(num=100, bestof=10, verbose=0)
             >>> self.call(lambda : sum(range(100)))
             >>> print(self._seconds_str())
-            ... '2.038 µs ± 0.25'
+            ... 'best=3.423 µs, ave=3.451 ± 0.027 µs'
         """
 
         units = [
@@ -235,33 +281,77 @@ class Timerit(object):
         for unit, mag in units:  # pragma: nobranch
             if mean > mag:
                 break
-        unit_sec = mean / mag
+
+        unit_min = self.min() / mag
+        unit_mean = mean / mag
         precision = 4
 
-        # show_std = 1
-        # if show_std:
-        # Is this useful?
+        # Is showing the std useful? It probably doesnt hurt.
         std = self.std()
         unit_std = std / mag
         pm = _trychar('±', '+-')
-        fmtstr = '{:.%d} {} {} {:.%d}' % (precision, precision - 2,)
-        unit_str = fmtstr.format(unit_sec, unit, pm, unit_std)
-        # else:
-        #     fmtstr = '{:.%d} {}' % (precision,)
-        #     unit_str = fmtstr.format(unit_sec, unit)
+        fmtstr = ('best={min:.{pr1}} {unit}, '
+                  'mean={mean:.{pr1}} {pm} {std:.{pr2}} {unit}')
+        pr1 = precision
+        pr2 = max(precision - 2, 1)
+        unit_str = fmtstr.format(min=unit_min, unit=unit, mean=unit_mean,
+                                 pm=pm, std=unit_std, pr1=pr1, pr2=pr2)
         return unit_str
 
-    def _print_report(self, verbose=1):
-        # ave_secs = self.ave_secs
+    def _report(self, verbose=1):
+        """
+        Creates a human readable report
+        """
+        report_lines = []
+        pline = report_lines.append
         if self.label is None:
-            print('Timing complete, %d loops, best of %d' % (
+            pline('Timed for: %d loops, best of %d' % (
                 self.n_loops, min(self.n_loops, self.bestof)))
         else:
-            print('Timing complete for: %s, %d loops, best of %d' % (
+            pline('Timed %s for: %d loops, best of %d' % (
                 self.label, self.n_loops, min(self.n_loops, self.bestof)))
         if verbose > 2:
-            print('    body took: %s seconds' % self.total_time)
-        print('    time per loop : %s' % (self._seconds_str(),))
+            pline('    body took: %s seconds' % self.total_time)
+        pline('    time per loop: %s' % (self._seconds_str(),))
+        return '\n'.join(report_lines)
+
+    def _print_report(self, verbose=1):
+        """
+        Prints human readable report using the print function
+        """
+        print(self._report(verbose=verbose))
+
+
+class ToggleGC(object):
+    """
+    Context manager to disable garbage collection.
+
+    Example:
+        >>> import gc
+        >>> prev = gc.isenabled()
+        >>> with ToggleGC(False):
+        >>>     assert not gc.isenabled()
+        >>>     with ToggleGC(True):
+        >>>         assert gc.isenabled()
+        >>>     assert not gc.isenabled()
+        >>> assert gc.isenabled() == prev
+    """
+    def __init__(self, flag):
+        self.flag = flag
+        self.prev = None
+
+    def __enter__(self):
+        self.prev = gc.isenabled()
+        if self.flag:
+            gc.enable()
+        else:
+            gc.disable()
+
+    def __exit__(self, ex_type, ex_value, trace):
+        if self.prev:
+            gc.enable()
+        else:
+            gc.disable()
 
 
 def timestamp(method='iso8601'):
@@ -311,10 +401,10 @@ def _trychar(char, fallback):  # nocover
 
 
 if __name__ == '__main__':
-    r"""
+    """
     CommandLine:
         python -m ubelt.util_time
         python -m ubelt.util_time all
     """
     import xdoctest as xdoc
-    xdoc.doctest_module()
+    xdoc.doctest_module(__file__)

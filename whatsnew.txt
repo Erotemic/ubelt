@@ -3,6 +3,8 @@ version: 0.0.38
 ADD: new arg `total` to ub.chunks lets you specify how long an iterable is if
 `len` is not available (for generators)
 
+ENH: `ub.Timerit` reports better measures of expected time.
+
 
 version: 0.0.37
 ---------------
