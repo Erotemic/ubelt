@@ -20,6 +20,7 @@ __all__ = [
     'dict_hist',
     'dict_subset',
     'dict_take',
+    'dict_union',
     'find_duplicates',
     'group_items',
     'invert_dict',
@@ -313,8 +314,23 @@ def dict_take(dict_, keys, default=util_const.NoParam):
             yield dict_.get(key, default)
 
 
+def dict_union(*args):
+    """
+    Combines the disjoint keys in multiple dictionaries. For intersecting keys,
+    dictionaries towards the end of the sequence are given precidence.
+
+    Args:
+        *args : a sequence of dictionaries
+
+    Example:
+        >>> result = dict_union({'a': 1, 'b': 1}, {'b': 2, 'c': 2})
+        >>> assert result == {'a': 1, 'b': 2, 'c': 2}
+    """
+    return dict(it.chain.from_iterable(d.items() for d in args))
+
+
 def map_vals(func, dict_):
-    r"""
+    """
     applies a function to each of the keys in a dictionary
 
     Args:

@@ -1,13 +1,14 @@
 version: 0.0.38
 ---------------
-ADD: new arg `total` to ub.chunks lets you specify how long an iterable is if
-`len` is not available (for generators)
-
-ENH: `ub.Timerit` reports better measures of expected time.
-
 ADD: `ub.hash_data` and `ub.hash_file` for easy hashing of arbitrary structured
     data and file.
 
+ADD: `ub.dict_union` combines multiple dictionaries and returns the result.
+
+ENH: `ub.Timerit` reports better measures of expected time.
+
+ENH: new arg `total` to ub.chunks lets you specify how long an iterable is if
+`len` is not available (for generators)
 
 version: 0.0.37
 ---------------
