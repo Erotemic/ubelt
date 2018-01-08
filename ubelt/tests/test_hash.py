@@ -3,8 +3,11 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import ubelt as ub
 import numpy as np
 import itertools as it
-
+import uuid
+from os.path import join
+from ubelt.util_hash import _convert_hexstr_base, _ALPHABET_16
 from ubelt.util_hash import _hashable_sequence
+from ubelt.util_hash import _rectify_hasher
 hash_sequence = _hashable_sequence
 
 def _benchmark():
@@ -14,7 +17,6 @@ def _benchmark():
     References:
         https://crypto.stackexchange.com/questions/26336/sha512-faster-than-sha256
     """
-    from ubelt.util_hash import _rectify_hasher
     result = ub.AutoOrderedDict()
     algos = ['sha1', 'sha256', 'sha512']
     for n in ub.ProgIter([1, 10, 100, 1000, 10000, 100000], desc='time'):
@@ -176,7 +178,6 @@ def test_numpy_random_state():
 
 
 def test_uuid():
-    import uuid
     data = uuid.UUID('12345678-1234-1234-1234-123456789abc')
     sequence = b''.join(hash_sequence(data))
     assert sequence == b'UUID\x124Vx\x124\x124\x124\x124Vx\x9a\xbc'
@@ -185,23 +186,22 @@ def test_uuid():
         'the fact that it is a UUID should reflect in the hash')
 
 
-def test_hash_data_custom_alphabet():
+def test_hash_data_custom_base():
     data = 1
-    # A larger alphabet means the string can be shorter
-    hashid_26 = ub.hash_data(data, alphabet='default')
+    # A larger base means the string can be shorter
+    hashid_26 = ub.hash_data(data, base='default')
     assert len(hashid_26) == 109
     assert hashid_26.startswith('lejivmqndqzp')
-    hashid_16 = ub.hash_data(data, alphabet='hex')
+    hashid_16 = ub.hash_data(data, base='hex')
     assert hashid_16.startswith('8bf2a1f4dbea6e59e5c2ec4077498c44')
     assert len(hashid_16) == 128
     # Binary should have len 512 because the default hasher is sha512
-    hashid_2 = ub.hash_data(data, alphabet=['0', '1'])
+    hashid_2 = ub.hash_data(data, base=['0', '1'])
     assert len(hashid_2) == 512
     assert hashid_2.startswith('10001011111100101010000111110100')
 
 
 def test_hash_file():
-    from os.path import join
     fpath = join(ub.ensure_app_cache_dir('ubelt'), 'tmp.txt')
     ub.writeto(fpath, 'foobar')
     hashid1_a = ub.hash_file(fpath, hasher='sha512', hashlen=8, stride=1, blocksize=1)
@@ -216,7 +216,6 @@ def test_hash_file():
 
 
 def test_convert_base_hex():
-    from ubelt.util_hash import _convert_hexstr_base, _ALPHABET_16
     # Test that hex values are unchanged
     for i in it.chain(range(-10, 10), range(-1000, 1000, 7)):
         text = hex(i).replace('0x', '')
@@ -225,17 +224,15 @@ def test_convert_base_hex():
 
 
 def test_convert_base_decimal():
-    from ubelt.util_hash import _convert_hexstr_base
-    alphabet_10 = list(map(str, range(10)))
+    base_10 = list(map(str, range(10)))
     # Test that decimal values agree with python conversion
     for i in it.chain(range(-10, 10), range(-1000, 1000, 7)):
         text_16 = hex(i).replace('0x', '')
-        text_10 = _convert_hexstr_base(text_16, alphabet_10)
+        text_10 = _convert_hexstr_base(text_16, base_10)
         assert int(text_16, 16) == int(text_10, 10)
 
 
 def test_convert_base_simple():
-    from ubelt.util_hash import _convert_hexstr_base, _ALPHABET_16
     # Quick one-of tests
     assert _convert_hexstr_base('aaa0111', _ALPHABET_16) == 'aaa0111'
 
@@ -243,8 +240,8 @@ def test_convert_base_simple():
     assert _convert_hexstr_base('aaa0111', list('012')) == '110110122202020220'
     assert _convert_hexstr_base('aaa0111', list('0123')) == '22222200010101'
 
-    alphabet_10 = list(map(str, range(10)))
-    assert _convert_hexstr_base('aaa0111', alphabet_10) == '178913553'
+    base_10 = list(map(str, range(10)))
+    assert _convert_hexstr_base('aaa0111', base_10) == '178913553'
 
 
 def test_no_prefix():
