@@ -16,7 +16,7 @@ else:
 
 class Timer(object):
     """
-    Timer with-statment context object.
+    Timer with-statement context object.
 
     Example:
         >>> import ubelt as ub
@@ -153,11 +153,11 @@ class Timerit(object):
         # Create a foreground and background timer
         bg_timer = Timer(verbose=0)   # (ideally this is unused)
         fg_timer = Timer(verbose=0)   # (used directly by user)
-        # disable the garbage collector while timeing
+        # disable the garbage collector while timing
         with ToggleGC(False):
             # Core timing loop
             for i in it.repeat(None, self.num):
-                # Start background timer (in case the user doesnt use fg_timer)
+                # Start background timer (in case the user doesn't use fg_timer)
                 # Yield foreground timer to let the user run a block of code
                 # When we return from yield the user code will have just finished
                 # Then record background time + loop overhead
@@ -169,11 +169,11 @@ class Timerit(object):
                     block_time = fg_timer.ellapsed  # higher precision
                 else:
                     block_time = bg_time  # low precision
-                # record timeings
+                # record timings
                 self.times.append(block_time)
                 self.total_time += block_time
                 self.n_loops += 1
-        # Timeing complete, print results
+        # Timing complete, print results
         assert len(self.times) == self.num, 'incorrectly recorded times'
         if self.verbose > 0:
             self._print_report(self.verbose)
@@ -286,7 +286,7 @@ class Timerit(object):
         unit_mean = mean / mag
         precision = 4
 
-        # Is showing the std useful? It probably doesnt hurt.
+        # Is showing the std useful? It probably doesn't hurt.
         std = self.std()
         unit_std = std / mag
         pm = _trychar('±', '+-')
