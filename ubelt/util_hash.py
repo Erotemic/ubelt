@@ -6,17 +6,7 @@ The hashes should be determenistic across platforms.
 
 NOTE:
     The exact hashes generated for data object and files may change in the
-    future and should not be relied on between versions. Eventually we plan to
-    change this policy and gaurentee a stable hashing scheme across future
-    versions.
-
-TODO: Before we merge this... should we:
-    How is the custom hashing scheme different or better than simply using
-    pickle. Perhaps its not, and it should be using pickle.
-        * Reason1: compatibility between python 2 and 3. We dont differentiate
-        between bytes and unicode, whereas pickle would.
-        * Reason2: safety: this will complain about unordered things such as
-            dicts.
+    future. When this happens the `HASH_VERSION` attribute will be incremented.
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import hashlib
@@ -141,6 +131,8 @@ def _rectify_base(base):
         >>> assert _rectify_base('abc') is _ALPHABET_26
         >>> assert _rectify_base(10) is _ALPHABET_10
         >>> assert _rectify_base(['1', '2']) == ['1', '2']
+        >>> import pytest
+        >>> assert pytest.raises(TypeError, _rectify_base, 'uselist')
     """
     if base is NoParam or base == 'default':
         return DEFAULT_ALPHABET
