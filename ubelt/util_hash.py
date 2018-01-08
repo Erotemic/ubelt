@@ -131,31 +131,31 @@ def _rectify_hasher(hasher):
     return hasher
 
 
-def _rectify_alphabet(alphabet):
+def _rectify_base(base):
     """
-    transforms alphabet shorthand into the full list representation
+    transforms base shorthand into the full list representation
 
     Example:
-        >>> assert _rectify_alphabet(NoParam) is _ALPHABET_26
-        >>> assert _rectify_alphabet('hex') is _ALPHABET_16
-        >>> assert _rectify_alphabet('abc') is _ALPHABET_26
-        >>> assert _rectify_alphabet(10) is _ALPHABET_10
-        >>> assert _rectify_alphabet(['1', '2']) == ['1', '2']
+        >>> assert _rectify_base(NoParam) is _ALPHABET_26
+        >>> assert _rectify_base('hex') is _ALPHABET_16
+        >>> assert _rectify_base('abc') is _ALPHABET_26
+        >>> assert _rectify_base(10) is _ALPHABET_10
+        >>> assert _rectify_base(['1', '2']) == ['1', '2']
     """
-    if alphabet is NoParam or alphabet == 'default':
+    if base is NoParam or base == 'default':
         return DEFAULT_ALPHABET
-    elif alphabet in [26, 'alpha', 'abc']:
+    elif base in [26, 'alpha', 'abc']:
         return _ALPHABET_26
-    elif alphabet in [16, 'hex']:
+    elif base in [16, 'hex']:
         return _ALPHABET_16
-    elif alphabet in [10, 'dec']:
+    elif base in [10, 'dec']:
         return _ALPHABET_10
     else:
-        if not isinstance(alphabet, (list, tuple)):
+        if not isinstance(base, (list, tuple)):
             raise TypeError(
-                    'alphabet must be a key, list, or tuple not {}'.format(
-                        type(alphabet)))
-        return alphabet
+                    'base must be a key, list, or tuple not {}'.format(
+                        type(base)))
+        return base
 
 
 def _rectify_hashlen(hashlen):
@@ -323,7 +323,7 @@ except ImportError:  # nocover
 _HASHABLE_EXTENSIONS._register_builtin_class_extensions()
 
 
-class HashTracer(object):
+class _HashTracer(object):
     """ helper class to extract hashed sequences """
 
     def __init__(self):
@@ -344,7 +344,7 @@ def _hashable_sequence(data, use_prefix=True):
         >>> assert result1 == b'_[_\x00\x00\x00\x02_,__[_\x00\x00\x00\x03_,_\x00\x00\x00\x04_,__]__]_'
         >>> assert result2 == b'_[_INT\x00\x00\x00\x02_,__[_INT\x00\x00\x00\x03_,_INT\x00\x00\x00\x04_,__]__]_'
     """
-    hasher = HashTracer()
+    hasher = _HashTracer()
     _update_hasher(hasher, data, use_prefix=use_prefix)
     return hasher.sequence
 
@@ -458,13 +458,13 @@ def _update_hasher(hasher, data, use_prefix=True):
         hasher.update(binary_data)
 
 
-def _convert_hexstr_base(hexstr, alphabet):
+def _convert_hexstr_base(hexstr, base):
     r"""
     Packs a long hexstr into a shorter length string with a larger base.
 
     Args:
         hexstr (str): string of hexidecimal symbols to convert
-        alphabet (list): symbols of the conversion base
+        base (list): symbols of the conversion base
 
     Example:
         >>> print(_convert_hexstr_base('ffffffff', _ALPHABET_26))
@@ -479,13 +479,13 @@ def _convert_hexstr_base(hexstr, alphabet):
     Sympy:
         >>> import sympy as sy
         >>> # Determine the length savings with lossless conversion
-        >>> consts = dict(hexbase=16, hexlen=256, bigbase=27)
-        >>> symbols = sy.symbols('hexbase, hexlen, bigbase, newlen')
-        >>> haexbase, hexlen, bigbase, newlen = symbols
-        >>> eqn = sy.Eq(16 ** hexlen,  bigbase ** newlen)
+        >>> consts = dict(hexbase=16, hexlen=256, baselen=27)
+        >>> symbols = sy.symbols('hexbase, hexlen, baselen, newlen')
+        >>> haexbase, hexlen, baselen, newlen = symbols
+        >>> eqn = sy.Eq(16 ** hexlen,  baselen ** newlen)
         >>> newlen_ans = sy.solve(eqn, newlen)[0].subs(consts).evalf()
         >>> print('newlen_ans = %r' % (newlen_ans,))
-        >>> # for a 27 char alphabet we can get 216
+        >>> # for a 26 char base we can get 216
         >>> print('Required length for lossless conversion len2 = %r' % (len2,))
         >>> def info(base, len):
         ...     bits = base ** len
@@ -497,10 +497,10 @@ def _convert_hexstr_base(hexstr, alphabet):
         >>> info(27, 64)
         >>> info(27, 216)
     """
-    if alphabet is _ALPHABET_16:
+    if base is _ALPHABET_16:
         # already in hex, no conversion needed
         return hexstr
-    bigbase = len(alphabet)
+    baselen = len(base)
     x = int(hexstr, 16)  # first convert to base 16
     if x == 0:
         return '0'
@@ -508,8 +508,8 @@ def _convert_hexstr_base(hexstr, alphabet):
     x *= sign
     digits = []
     while x:
-        digits.append(alphabet[x % bigbase])
-        x //= bigbase
+        digits.append(base[x % baselen])
+        x //= baselen
     if sign < 0:
         digits.append('-')
     digits.reverse()
@@ -517,27 +517,27 @@ def _convert_hexstr_base(hexstr, alphabet):
     return newbase_str
 
 
-def _digest_hasher(hasher, hashlen, alphabet):
+def _digest_hasher(hasher, hashlen, base):
     """ counterpart to _update_hasher """
     # Get a 128 character hex string
     hex_text = hasher.hexdigest()
     # Shorten length of string (by increasing base)
-    base_text = _convert_hexstr_base(hex_text, alphabet)
+    base_text = _convert_hexstr_base(hex_text, base)
     # Truncate
     text = base_text[:hashlen]
     return text
 
 
-def hash_data(data, hasher=NoParam, hashlen=NoParam, alphabet=NoParam):
+def hash_data(data, hasher=NoParam, hashlen=NoParam, base=NoParam):
     r"""
     Get a unique hash depending on the state of the data.
 
     Args:
         data (object): any sort of loosely organized data
+        hasher (HASH): hash algorithm from hashlib, defaults to `sha512`.
         hashlen (int): maximum number of symbols in the returned hash. If
             not specified, all are returned.
-        alphabet (list): alphabet of symbols. If not specified uses base 26.
-        hasher (HASH): hash algorithm from hashlib, defaults to `sha512`.
+        base (list): list of symbols or shorthand key. Defaults to base 26
 
     Returns:
         str: text -  hash string
@@ -546,28 +546,31 @@ def hash_data(data, hasher=NoParam, hashlen=NoParam, alphabet=NoParam):
         >>> print(hash_data([1, 2, (3, '4')], hashlen=8, hasher='sha512'))
         frqkjbsq
     """
-    alphabet = _rectify_alphabet(alphabet)
+    base = _rectify_base(base)
     hashlen = _rectify_hashlen(hashlen)
     hasher = _rectify_hasher(hasher)()
     # Feed the data into the hasher
     _update_hasher(hasher, data)
     # Get the hashed representation
-    text = _digest_hasher(hasher, hashlen, alphabet)
+    text = _digest_hasher(hasher, hashlen, base)
     return text
 
 
 def hash_file(fpath, blocksize=65536, stride=1, hasher=NoParam,
-              hashlen=NoParam, alphabet=NoParam):
+              hashlen=NoParam, base=NoParam):
     r"""
     Hashes the data in a file on disk.
 
     Args:
         fpath (str):  file path string
         blocksize (int): 2 ** 16. Affects speed of reading file
-        hasher (None):  defaults to sha1 for fast (but non-robust) hashing
         stride (int): strides > 1 skip data to hash, useful for faster
                       hashing, but less accurate, also makes hash dependant on
                       blocksize.
+        hasher (HASH): hash algorithm from hashlib, defaults to `sha512`.
+        hashlen (int): maximum number of symbols in the returned hash. If
+            not specified, all are returned.
+        base (list): list of symbols or shorthand key. Defaults to base 26
 
     Notes:
         For better hashes keep stride = 1
@@ -586,7 +589,7 @@ def hash_file(fpath, blocksize=65536, stride=1, hasher=NoParam,
         >>> print(ub.hash_file(fpath, hasher='sha512', hashlen=8))
         vkiodmcj
     """
-    alphabet = _rectify_alphabet(alphabet)
+    base = _rectify_base(base)
     hashlen = _rectify_hashlen(hashlen)
     hasher = _rectify_hasher(hasher)()
     with open(fpath, 'rb') as file:
@@ -603,7 +606,7 @@ def hash_file(fpath, blocksize=65536, stride=1, hasher=NoParam,
                 hasher.update(buf)
                 buf = file.read(blocksize)
     # Get the hashed representation
-    text = _digest_hasher(hasher, hashlen, alphabet)
+    text = _digest_hasher(hasher, hashlen, base)
     return text
 
 if __name__ == '__main__':
