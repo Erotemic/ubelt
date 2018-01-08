@@ -4,28 +4,72 @@ import ubelt as ub
 import numpy as np
 import itertools as it
 
+from ubelt.util_hash import _hashable_sequence
+hash_sequence = _hashable_sequence
 
-# def _benchmark():
-#     """
-#     On 64-bit processors sha512 may be faster than sha256
-#         %timeit hashlib.sha256().update(b'8' * 1000)
-#         3.62 µs per loop
-#         %timeit hashlib.sha512().update(b'8' * 1000)
-#         2.5 µs per loop
+def _benchmark():
+    """
+    On 64-bit processors sha512 may be faster than sha256
 
-#         %timeit hashlib.sha256().update(b'8' * 1)
-#         318 ns
-#         %timeit hashlib.sha512().update(b'8' * 1)
-#         342 ns
+    References:
+        https://crypto.stackexchange.com/questions/26336/sha512-faster-than-sha256
+    """
+    from ubelt.util_hash import _rectify_hasher
+    result = ub.AutoOrderedDict()
+    algos = ['sha1', 'sha256', 'sha512']
+    for n in ub.ProgIter([1, 10, 100, 1000, 10000, 100000], desc='time'):
+        # for key in hashlib.algorithms_guaranteed:
+        for key in algos:
+            hashtype = _rectify_hasher(key)
+            t1 = ub.Timerit(100, bestof=10, label=key, verbose=0)
+            for timer in t1:
+                data = b'8' * n
+                with timer:
+                    hasher = hashtype()
+                    hasher.update(data)
+            result[key][n] = t1.min()
+    import pandas as pd
+    print(pd.DataFrame(result))
 
-#         %timeit hashlib.sha256().update(b'8' * 100000)
-#         306 µs
-#         %timeit hashlib.sha512().update(b'8' * 100000)
-#         213 µs
+    result = ub.AutoOrderedDict()
+    for n in ub.ProgIter([1, 10, 100, 1000, 10000, 100000], desc='time'):
+        # for key in hashlib.algorithms_guaranteed:
+        for key in algos:
+            hashtype = _rectify_hasher(key)
+            t1 = ub.Timerit(100, bestof=10, label=key, verbose=0)
+            for timer in t1:
+                data = b'8' * n
+                hasher = hashtype()
+                hasher.update(data)
+                with timer:
+                    hasher.hexdigest()
+            result[key][n] = t1.min()
+    import pandas as pd
+    print(pd.DataFrame(result))
+    """
+    CommandLine:
+        python -m test_hash _benchmark
 
-#     References:
-#         https://crypto.stackexchange.com/questions/26336/sha512-faster-than-sha256
-#     """
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> from test_hash import *  # NOQA
+        >>> result = _benchmark()
+        >>> print(result)
+    %timeit hashlib.sha256().update(b'8' * 1000)
+    3.62 µs per loop
+    %timeit hashlib.sha512().update(b'8' * 1000)
+    2.5 µs per loop
+
+    %timeit hashlib.sha256().update(b'8' * 1)
+    318 ns
+    %timeit hashlib.sha512().update(b'8' * 1)
+    342 ns
+
+    %timeit hashlib.sha256().update(b'8' * 100000)
+    306 µs
+    %timeit hashlib.sha512().update(b'8' * 100000)
+    213 µs
+    """
 
 
 def test_hash_data():
@@ -72,21 +116,6 @@ def test_numpy_object_array():
     assert ub.hash_data(([1, 2, 3],)) == objhash
 
 
-class HashTracer(object):
-    """ class which extracts the sequence that would be hashed """
-    def __init__(self):
-        self.sequence = []
-
-    def hexdigest(self):
-        return b'00000000'
-
-    def __call__(self):
-        return self
-
-    def update(self, data):
-        self.sequence.append(data)
-
-
 def test_ndarray_int_object_convert():
     data_list = [[1, 2, 3], [4, 5, 6]]
 
@@ -110,12 +139,6 @@ def test_ndarray_zeros():
     assert hashid != ub.hash_data(data.astype(np.float32))
     assert hashid != ub.hash_data(data.astype(np.int32))
     assert hashid != ub.hash_data(data.astype(np.int8))
-
-
-def hash_sequence(data):
-    tracer = HashTracer()
-    ub.hash_data(data, hasher=tracer)
-    return tracer.sequence
 
 
 def test_nesting():
@@ -164,12 +187,17 @@ def test_uuid():
 
 def test_hash_data_custom_alphabet():
     data = 1
-    hashid_26 = ub.hash_data(data, alphabet=None)
+    # A larger alphabet means the string can be shorter
+    hashid_26 = ub.hash_data(data, alphabet='default')
+    assert len(hashid_26) == 109
     assert hashid_26.startswith('lejivmqndqzp')
     hashid_16 = ub.hash_data(data, alphabet='hex')
-    assert hashid_16 == '8bf2a1f4dbea6e59e5c2ec4077498c44'
+    assert hashid_16.startswith('8bf2a1f4dbea6e59e5c2ec4077498c44')
+    assert len(hashid_16) == 128
+    # Binary should have len 512 because the default hasher is sha512
     hashid_2 = ub.hash_data(data, alphabet=['0', '1'])
-    assert hashid_2 == '10001011111100101010000111110100'
+    assert len(hashid_2) == 512
+    assert hashid_2.startswith('10001011111100101010000111110100')
 
 
 def test_hash_file():
@@ -217,6 +245,13 @@ def test_convert_base_simple():
 
     alphabet_10 = list(map(str, range(10)))
     assert _convert_hexstr_base('aaa0111', alphabet_10) == '178913553'
+
+
+def test_no_prefix():
+    full = b''.join(_hashable_sequence(1, use_prefix=True))
+    part = b''.join(_hashable_sequence(1, use_prefix=False))
+    assert full == b'INT\x00\x00\x00\x01'
+    assert part == b'\x00\x00\x00\x01'
 
 
 if __name__ == '__main__':
