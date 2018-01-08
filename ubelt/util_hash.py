@@ -11,9 +11,7 @@ NOTE:
     versions.
 
 TODO: Before we merge this... should we:
-    [ ] Change default base to 16?
-    [ ] Remove hashlen?
-    [ ] How is the custom hashing scheme different or better than simply using
+    How is the custom hashing scheme different or better than simply using
     pickle. Perhaps its not, and it should be using pickle.
         * Reason1: compatibility between python 2 and 3. We dont differentiate
         between bytes and unicode, whereas pickle would.
@@ -25,19 +23,21 @@ import hashlib
 import six
 import uuid
 from six.moves import zip
+# we will use NoParam instead of None because None is a valid hashlen setting
+from ubelt.util_const import NoParam
 
 __all__ = ['hash_data', 'hash_file']
 
 HASH_VERSION = 1  # incremented when we make a change that modifies hashes
 
-_ALPHABET_16 = list('0123456789abcdef')
+_ALPHABET_10 = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
 
-_ALPHABET_26 = [
-    'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o',
-    'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z']
+_ALPHABET_16 = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+                'a', 'b', 'c', 'd', 'e', 'f']
 
-
-_HASH_LEN = 32
+_ALPHABET_26 = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j',
+                'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't',
+                'u', 'v', 'w', 'x', 'y', 'z']
 
 if six.PY2:
     _stringlike = (basestring, bytes)  # NOQA
@@ -48,10 +48,13 @@ else:
 
 # Default to 512 because it is often faster than 256 on 64bit systems:
 # Reference: https://crypto.stackexchange.com/questions/26336/faster
-DEFAULT_HASHER = hashlib.sha512
+DEFAULT_ALPHABET = _ALPHABET_26
+DEFAULT_HASHER = hashlib.sha512  # note: using sha1 is a bit faster
+DEFAULT_HASHLEN = None
 
 
 if six.PY2:
+    HASH = type(hashlib.sha1())  # python2 doesn't expose the hash type
     import codecs
     def _py2_to_bytes(int_, length, byteorder='big'):
         h = '%x' % int_
@@ -68,6 +71,7 @@ if six.PY2:
         int_ = int(codecs.encode(bytes_, 'hex'), 16)
         return int_
 else:
+    HASH = hashlib._hashlib.HASH
     codecs = None
     def _int_to_bytes(int_):
         r"""
@@ -101,47 +105,67 @@ def _rectify_hasher(hasher):
     Convert a string-based key into a hasher class
 
     Example:
-        >>> assert _rectify_hasher(None) is DEFAULT_HASHER
+        >>> assert _rectify_hasher(NoParam) is DEFAULT_HASHER
         >>> assert _rectify_hasher('sha1') is hashlib.sha1
         >>> assert _rectify_hasher('sha256') is hashlib.sha256
         >>> assert _rectify_hasher('sha512') is hashlib.sha512
         >>> assert _rectify_hasher('md5') is hashlib.md5
         >>> assert _rectify_hasher(hashlib.sha1) is hashlib.sha1
-        >>> #assert _rectify_hasher(hashlib.sha1())
+        >>> assert _rectify_hasher(hashlib.sha1())().name == 'sha1'
         >>> import pytest
         >>> assert pytest.raises(KeyError, _rectify_hasher, '42')
         >>> #assert pytest.raises(TypeError, _rectify_hasher, object)
     """
-    if hasher is None:
+    if hasher is NoParam or hasher == 'default':
         hasher = DEFAULT_HASHER
     elif isinstance(hasher, six.string_types):
         if hasher not in hashlib.algorithms_available:
             raise KeyError('unknown hasher: {}'.format(hasher))
         else:
             hasher = getattr(hashlib, hasher)
+    elif isinstance(hasher, HASH):
+        # by default the result of this function is a class we will make an
+        # instance of, if we already have an instance, wrap it in a callable
+        # so the external syntax does not need to change.
+        return lambda: hasher
     return hasher
 
 
 def _rectify_alphabet(alphabet):
     """
+    transforms alphabet shorthand into the full list representation
+
     Example:
-        >>> assert _rectify_alphabet(None) is _ALPHABET_26
+        >>> assert _rectify_alphabet(NoParam) is _ALPHABET_26
+        >>> assert _rectify_alphabet('hex') is _ALPHABET_16
+        >>> assert _rectify_alphabet('abc') is _ALPHABET_26
+        >>> assert _rectify_alphabet(10) is _ALPHABET_10
         >>> assert _rectify_alphabet(['1', '2']) == ['1', '2']
     """
-    if alphabet is None:
+    if alphabet is NoParam or alphabet == 'default':
+        return DEFAULT_ALPHABET
+    elif alphabet in [26, 'alpha', 'abc']:
         return _ALPHABET_26
+    elif alphabet in [16, 'hex']:
+        return _ALPHABET_16
+    elif alphabet in [10, 'dec']:
+        return _ALPHABET_10
     else:
+        if not isinstance(alphabet, (list, tuple)):
+            raise TypeError(
+                    'alphabet must be a key, list, or tuple not {}'.format(
+                        type(alphabet)))
         return alphabet
 
 
 def _rectify_hashlen(hashlen):
     """
     Example:
-        >>> assert _rectify_hashlen(None) is _HASH_LEN
+        >>> assert _rectify_hashlen(NoParam) is DEFAULT_HASHLEN
         >>> assert _rectify_hashlen(8) == 8
     """
-    if hashlen is None:
-        return _HASH_LEN
+    if hashlen is NoParam or hashlen == 'default':
+        return DEFAULT_HASHLEN
     else:
         return hashlen
 
@@ -162,7 +186,6 @@ class HashableExtensions():
             for hash_type in hash_types:
                 key = (hash_type.__module__, hash_type.__name__)
                 self.keyed_extensions[key] = (hash_type, hash_func)
-                # self.extensions.append((hash_type, hash_func))
             return hash_func
         return _wrap
 
@@ -239,9 +262,9 @@ class HashableExtensions():
                 >>> data_f32 = np.zeros((3, 3, 3), dtype=np.float64)
                 >>> data_i64 = np.zeros((3, 3, 3), dtype=np.int64)
                 >>> data_i32 = np.zeros((3, 3, 3), dtype=np.int32)
-                >>> hash_f64 = _hashable_sequence(data_f32, types=True)
-                >>> hash_i64 = _hashable_sequence(data_i64, types=True)
-                >>> hash_i32 = _hashable_sequence(data_i64, types=True)
+                >>> hash_f64 = _hashable_sequence(data_f32, use_prefix=True)
+                >>> hash_i64 = _hashable_sequence(data_i64, use_prefix=True)
+                >>> hash_i32 = _hashable_sequence(data_i64, use_prefix=True)
                 >>> assert hash_i64 != hash_f64
                 >>> assert hash_i64 != hash_i32
             """
@@ -271,15 +294,9 @@ class HashableExtensions():
             """
             Example:
                 >>> rng = np.random.RandomState(0)
-                >>> _hashable_sequence(rng, types=True)
+                >>> _hashable_sequence(rng, use_prefix=True)
             """
-            ver, ints, pos, has_gauss, cached = data.get_state()
             hashable = b''.join(_hashable_sequence(data.get_state()))
-            # hashable = (_convert_to_hashable(ver)[1] +
-            #             _convert_to_hashable(ints)[1] +
-            #             _convert_to_hashable(pos)[1] +
-            #             _convert_to_hashable(has_gauss)[1] +
-            #             _convert_to_hashable(cached)[1])
             prefix = b'RNG'
             return prefix, hashable
 
@@ -306,32 +323,40 @@ except ImportError:  # nocover
 _HASHABLE_EXTENSIONS._register_builtin_class_extensions()
 
 
-def _hashable_sequence(data, types=True):
-    """
+class HashTracer(object):
+    """ helper class to extract hashed sequences """
+
+    def __init__(self):
+        self.sequence = []
+
+    def update(self, bytes):
+        self.sequence.append(bytes)
+
+
+def _hashable_sequence(data, use_prefix=True):
+    r"""
     Extracts the sequence of bytes that would be hashed by hash_data
 
-    >>> data = [2, (3, 4)]
-    >>> _hashable_sequence(data, types=False)
-    >>> _hashable_sequence(data, types=True)
+    Example:
+        >>> data = [2, (3, 4)]
+        >>> result1 = (b''.join(_hashable_sequence(data, use_prefix=False)))
+        >>> result2 = (b''.join(_hashable_sequence(data, use_prefix=True)))
+        >>> assert result1 == b'_[_\x00\x00\x00\x02_,__[_\x00\x00\x00\x03_,_\x00\x00\x00\x04_,__]__]_'
+        >>> assert result2 == b'_[_INT\x00\x00\x00\x02_,__[_INT\x00\x00\x00\x03_,_INT\x00\x00\x00\x04_,__]__]_'
     """
-    class HashTracer(object):
-        def __init__(self):
-            self.sequence = []
-        def update(self, bytes):
-            self.sequence.append(bytes)
     hasher = HashTracer()
-    _update_hasher(hasher, data, types=types)
+    _update_hasher(hasher, data, use_prefix=use_prefix)
     return hasher.sequence
 
 
-def _convert_to_hashable(data, types=True):
+def _convert_to_hashable(data, use_prefix=True):
     r"""
     Converts `data` into a hashable byte representation if an appropriate
     hashing function is known.
 
     Args:
         data (object): ordered data with structure
-        types (bool): include type prefixes in the hash
+        use_prefix (bool): include type prefixes in the hash
 
     Returns:
         tuple(bytes, bytes): prefix, hashable:
@@ -368,19 +393,17 @@ def _convert_to_hashable(data, types=True):
         a, b = float(data).as_integer_ratio()
         hashable = _int_to_bytes(a) + b'/' +  _int_to_bytes(b)
         prefix = b'FLT'
-        # hashable = repr(data).encode('utf8')
-        # prefix = b'FLT'
     else:
         # Then dynamically look up any other type
         hash_func = _HASHABLE_EXTENSIONS.lookup(data)
         prefix, hashable = hash_func(data)
-    if types:
+    if use_prefix:
         return prefix, hashable
     else:
         return b'', hashable
 
 
-def _update_hasher(hasher, data, types=True):
+def _update_hasher(hasher, data, use_prefix=True):
     """
     Converts `data` into a byte representation and calls update on the hasher
     `hashlib.HASH` algorithm.
@@ -388,7 +411,7 @@ def _update_hasher(hasher, data, types=True):
     Args:
         hasher (HASH): instance of a hashlib algorithm
         data (object): ordered data with structure
-        types (bool): include type prefixes in the hash
+        use_prefix (bool): include type prefixes in the hash
 
     Example:
         >>> hasher = hashlib.sha512()
@@ -406,11 +429,6 @@ def _update_hasher(hasher, data, types=True):
 
     if needs_iteration:
         # Denote that we are hashing over an iterable
-        # SEP = b'SEP'
-        # ITER_PREFIX = b'ITER'
-        # SEP = b','
-        # ITER_PREFIX = b'['
-        # ITER_SUFFIX = b']'
         # Multiple structure bytes makes it harder accidently make conflicts
         SEP = b'_,_'
         ITER_PREFIX = b'_[_'
@@ -422,20 +440,20 @@ def _update_hasher(hasher, data, types=True):
         # (this works if all data in the sequence is a non-iterable)
         try:
             for item in iter_:
-                prefix, hashable = _convert_to_hashable(item, types)
+                prefix, hashable = _convert_to_hashable(item, use_prefix)
                 binary_data = prefix + hashable + SEP
                 hasher.update(binary_data)
         except TypeError:
             # need to use recursive calls
             # Update based on current item
-            _update_hasher(hasher, item, types)
+            _update_hasher(hasher, item, use_prefix)
             for item in iter_:
                 # Ensure the items have a spacer between them
-                _update_hasher(hasher, item, types)
+                _update_hasher(hasher, item, use_prefix)
                 hasher.update(SEP)
         hasher.update(ITER_SUFFIX)
     else:
-        prefix, hashable = _convert_to_hashable(data, types)
+        prefix, hashable = _convert_to_hashable(data, use_prefix)
         binary_data = prefix + hashable
         hasher.update(binary_data)
 
@@ -479,6 +497,9 @@ def _convert_hexstr_base(hexstr, alphabet):
         >>> info(27, 64)
         >>> info(27, 216)
     """
+    if alphabet is _ALPHABET_16:
+        # already in hex, no conversion needed
+        return hexstr
     bigbase = len(alphabet)
     x = int(hexstr, 16)  # first convert to base 16
     if x == 0:
@@ -496,7 +517,7 @@ def _convert_hexstr_base(hexstr, alphabet):
     return newbase_str
 
 
-def hash_data(data, hasher=None, hashlen=None, alphabet=None):
+def hash_data(data, hasher=NoParam, hashlen=NoParam, alphabet=NoParam):
     r"""
     Get a unique hash depending on the state of the data.
 
@@ -521,18 +542,15 @@ def hash_data(data, hasher=None, hashlen=None, alphabet=None):
     _update_hasher(hasher, data)
     # Get a 128 character hex string
     hex_text = hasher.hexdigest()
-    if alphabet == 'hex':
-        base_text = hex_text
-    else:
-        # Shorten length of string (by increasing base)
-        base_text = _convert_hexstr_base(hex_text, alphabet)
+    # Shorten length of string (by increasing base)
+    base_text = _convert_hexstr_base(hex_text, alphabet)
     # Truncate
     text = base_text[:hashlen]
     return text
 
 
-def hash_file(fpath, blocksize=65536, stride=1, hasher=None, hashlen=None,
-              alphabet=None):
+def hash_file(fpath, blocksize=65536, stride=1, hasher=NoParam,
+              hashlen=NoParam, alphabet=NoParam):
     r"""
     Hashes the data in a file on disk.
 
