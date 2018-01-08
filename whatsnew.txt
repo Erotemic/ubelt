@@ -5,6 +5,9 @@ ADD: new arg `total` to ub.chunks lets you specify how long an iterable is if
 
 ENH: `ub.Timerit` reports better measures of expected time.
 
+ADD: `ub.hash_data` and `ub.hash_file` for easy hashing of arbitrary structured
+    data and file.
+
 
 version: 0.0.37
 ---------------

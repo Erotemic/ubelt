@@ -10,6 +10,7 @@ from ubelt.util_hash import _hashable_sequence
 from ubelt.util_hash import _rectify_hasher
 hash_sequence = _hashable_sequence
 
+
 def _benchmark():
     """
     On 64-bit processors sha512 may be faster than sha256
