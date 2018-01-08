@@ -95,9 +95,9 @@ if _DOELSE:  # pragma: nobranch
     from ubelt.util_cmd import (cmd,)
     from ubelt.util_decor import (memoize,)
     from ubelt.util_dict import (AutoDict, AutoOrderedDict, ddict, dict_hist,
-                                 dict_subset, dict_take, find_duplicates,
-                                 group_items, invert_dict, map_keys, map_vals,
-                                 odict,)
+                                 dict_subset, dict_take, dict_union,
+                                 find_duplicates, group_items, invert_dict,
+                                 map_keys, map_vals, odict,)
     from ubelt.util_download import (download, grabdata,)
     from ubelt.util_func import (identity,)
     from ubelt.util_format import (repr2,)
