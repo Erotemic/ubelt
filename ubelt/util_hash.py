@@ -517,16 +517,27 @@ def _convert_hexstr_base(hexstr, alphabet):
     return newbase_str
 
 
+def _digest_hasher(hasher, hashlen, alphabet):
+    """ counterpart to _update_hasher """
+    # Get a 128 character hex string
+    hex_text = hasher.hexdigest()
+    # Shorten length of string (by increasing base)
+    base_text = _convert_hexstr_base(hex_text, alphabet)
+    # Truncate
+    text = base_text[:hashlen]
+    return text
+
+
 def hash_data(data, hasher=NoParam, hashlen=NoParam, alphabet=NoParam):
     r"""
     Get a unique hash depending on the state of the data.
 
     Args:
         data (object): any sort of loosely organized data
-        hashlen (None): maximum number of symbols in the returned hash.
+        hashlen (int): maximum number of symbols in the returned hash. If
+            not specified, all are returned.
         alphabet (list): alphabet of symbols. If not specified uses base 26.
-        hasher (HASH): hash algorithm from hashlib, if None uses
-            `DEFAULT_HASHER`.
+        hasher (HASH): hash algorithm from hashlib, defaults to `sha512`.
 
     Returns:
         str: text -  hash string
@@ -540,12 +551,8 @@ def hash_data(data, hasher=NoParam, hashlen=NoParam, alphabet=NoParam):
     hasher = _rectify_hasher(hasher)()
     # Feed the data into the hasher
     _update_hasher(hasher, data)
-    # Get a 128 character hex string
-    hex_text = hasher.hexdigest()
-    # Shorten length of string (by increasing base)
-    base_text = _convert_hexstr_base(hex_text, alphabet)
-    # Truncate
-    text = base_text[:hashlen]
+    # Get the hashed representation
+    text = _digest_hasher(hasher, hashlen, alphabet)
     return text
 
 
@@ -595,9 +602,9 @@ def hash_file(fpath, blocksize=65536, stride=1, hasher=NoParam,
             while len(buf) > 0:
                 hasher.update(buf)
                 buf = file.read(blocksize)
-        hexid = hasher.hexdigest()
-        hashid = _convert_hexstr_base(hexid, alphabet)[:hashlen]
-        return hashid
+    # Get the hashed representation
+    text = _digest_hasher(hasher, hashlen, alphabet)
+    return text
 
 if __name__ == '__main__':
     r"""
