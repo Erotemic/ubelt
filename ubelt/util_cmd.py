@@ -12,6 +12,11 @@ from six.moves import zip_longest
 from six.moves import queue
 from ubelt.util_platform import POSIX, WIN32
 
+if POSIX:
+    import select
+else:  # nocover
+    select = NotImplemented
+
 __all__ = ['cmd']
 
 # def _run_process(proc):
@@ -69,8 +74,10 @@ def _proc_iteroutput_thread(proc):
     Iterates over output from a process line by line
 
     Note:
-        WARNING. current implementation has bugs. It is sometimes broken on
-        windows and may cause deadlocks on UNIX. Needs to be fixed.
+        WARNING. current implementation might have bugs with other threads.
+        This behavior was seen when using earlier versions of tqdm. I'm not
+        sure if this was our bug or tqdm's. Newever versions of tqdm fix this,
+        but I cannot gaurentee that there isn't an issue on our end.
 
     Yields:
         tuple[(str, str)]: oline, eline: stdout and stderr line
@@ -115,7 +122,6 @@ def _proc_iteroutput_select(proc):  # nocover
         tuple[(str, str)]: oline, eline: stdout and stderr line
     """
     # Read output while the external program is running
-    import select
     while proc.poll() is None:
         reads = [proc.stdout.fileno(), proc.stderr.fileno()]
         ret = select.select(reads, [], [])
@@ -144,7 +150,8 @@ def _tee_output(make_proc, stdout=None, stderr=None, backend='auto'):
     logged_out = []
     logged_err = []
     if backend == 'auto':
-        backend = 'select' if POSIX else 'thread'
+        # backend = 'select' if POSIX else 'thread'
+        backend = 'thread'
 
     if backend == 'select':
         if not POSIX:  # nocover
@@ -152,7 +159,7 @@ def _tee_output(make_proc, stdout=None, stderr=None, backend='auto'):
         # the select-based version is stable, but slow
         _proc_iteroutput = _proc_iteroutput_select
     elif backend == 'thread':
-        # FIXME: the thread version sometimes deadlocks on unix
+        # the thread version is fast, but might run into issues.
         _proc_iteroutput = _proc_iteroutput_thread
     else:
         raise ValueError('backend must be select, thread, or auto')

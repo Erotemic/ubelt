@@ -33,14 +33,16 @@ def test_cmd_tee_auto():
     assert result['out'] == '\n'.join(list(map(str, range(100)))) + '\n'
 
 
-@pytest.mark.skipif(platform.node() == 'calculex', reason='deadlock on this machine. FIXME')
-@pytest.mark.timeout(5)
 def test_cmd_tee_thread():
     """
-    pytest ubelt/tests/test_cmd.py::test_cmd_tee_thread
-
-    FIXME: this test hangs on calculex for some reason
+    CommandLine:
+        pytest ubelt/tests/test_cmd.py::test_cmd_tee_thread -s
+        python ubelt/tests/test_cmd.py test_cmd_tee_thread
     """
+    if 'tqdm' in sys.modules:
+        if tuple(map(int, sys.modules['tqdm'].__version__.split('.'))) < (4, 19):
+            pytest.skip(reason='threads cause issues with early tqdms')
+
     import threading
     # check which threads currently exist (ideally 1)
     existing_threads = list(threading.enumerate())
