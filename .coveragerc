@@ -23,7 +23,7 @@ exclude_lines =
 omit =
     ubelt/tests/*
     ubelt/_internal/dynamic_make_init.py
-    ubelt/_internal/static_autogen.py
     ubelt/_internal/__init__.py
     ubelt/__main__.py
     */setup.py
+    #ubelt/_internal/static_autogen.py

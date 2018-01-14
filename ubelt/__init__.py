@@ -8,7 +8,7 @@ CommandLine:
     python -c "import ubelt" --update-ubelt-init --dyn
 
     # TODO: ensure this new way will work with multilevel modules
-    python -c "import ubelt._internal as a; a.autogen_init('ubelt', dry=True)"
+    python -c "import ubelt.tools as t; t.autogen_init('ubelt', dry=True)"
 TODO:
     The following functions and classes are candidates to be ported from utool:
     * reload_class
@@ -121,7 +121,7 @@ if _DOELSE:  # pragma: nobranch
     from ubelt.util_stress import (find_nth_prime,)
     from ubelt.util_time import (Timer, Timerit, timestamp,)
     from ubelt.progiter import (ProgIter,)
-    
+
     # </AUTOGEN_INIT>
 
 del _DOELSE
