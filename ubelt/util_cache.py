@@ -4,6 +4,7 @@ import os
 import hashlib
 from os.path import join, normpath, basename, exists
 from six.moves import cPickle as pickle
+import warnings
 
 
 class Cacher(object):
@@ -105,7 +106,6 @@ class Cacher(object):
     def _rectify_cfgstr(self, cfgstr=None):
         cfgstr = self.cfgstr if cfgstr is None else cfgstr
         if cfgstr is None:
-            import warnings
             warnings.warn('No cfgstr given in Cacher constructor or call')
             cfgstr = ''
         assert self.fname is not None, 'no fname specified in Cacher'
