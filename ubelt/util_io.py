@@ -180,8 +180,11 @@ def delete(path, verbose=False):
         >>> assert not exists(fpath1)
         >>> ub.delete(dpath1)
         >>> assert not any(map(exists, (dpath1, fpath1, fpath2)))
+
+        # TODO: test that we handle broken links
     """
-    if not os.path.exists(path):
+    if not os.path.exists(path) or os.path.islink(path):
+        # if the file does exists and is not a broken link
         if verbose:  # nocover
             print('Not deleting non-existant path="{}"'.format(path))
     else:

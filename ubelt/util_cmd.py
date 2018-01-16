@@ -312,7 +312,7 @@ def cmd(command, shell=False, detatch=False, verbose=0, verbout=None,
         return proc
 
     if detatch:
-        info = {'proc': make_proc()}
+        info = {'proc': make_proc(), 'command': command_text}
         if verbose >= 2:  # nocover
             print('...detatching')
     else:
@@ -338,6 +338,8 @@ def cmd(command, shell=False, detatch=False, verbose=0, verbout=None,
             'out': out,
             'err': err,
             'ret': ret,
+            'proc': proc,
+            'command': command_text
         }
         if verbose >= 3:  # nocover
             print('L___ END CMD ___')  # TODO: use nicer unicode chars
