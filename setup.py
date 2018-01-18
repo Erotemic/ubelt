@@ -114,11 +114,12 @@ def parse_requirements(fname='requirements.txt'):
             return lines
     return []
 
+version = parse_version('ubelt')  # needs to be a global var for git tags
 
 if __name__ == '__main__':
     setup(
         name='ubelt',
-        version=parse_version('ubelt'),
+        version=version,
         author='Jon Crall',
         description='A "utility belt" of commonly needed utility and helper functions',
         long_description=parse_description(),
