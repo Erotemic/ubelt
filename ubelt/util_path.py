@@ -132,12 +132,14 @@ def userhome(username=None):
     return userhome_dpath
 
 
-def compressuser(path):
+def compressuser(path, home='~'):
     """
     Inverse of `os.path.expanduser`
 
     Args:
         path (str): path in system file structure
+        home (str): symbol used to replace the home path. Defaults to '~', but
+            you might want to use '$HOME' or '%USERPROFILE%' instead.
 
     Returns:
         str: path: shortened path replacing the home directory with a tilde
@@ -148,14 +150,15 @@ def compressuser(path):
         >>> assert compressuser(path) == '~'
         >>> assert compressuser(path + '1') == path + '1'
         >>> assert compressuser(path + '/1') == join('~', '1')
+        >>> assert compressuser(path + '/1', '$HOME') == join('$HOME', '1')
     """
     path = normpath(path)
     userhome_dpath = userhome()
     if path.startswith(userhome_dpath):
         if len(path) == len(userhome_dpath):
-            path = '~'
+            path = home
         elif path[len(userhome_dpath)] == os.path.sep:
-            path = '~' + path[len(userhome_dpath):]
+            path = home + path[len(userhome_dpath):]
     return path
 
 
