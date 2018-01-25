@@ -333,6 +333,8 @@ def cmd(command, shell=False, detatch=False, verbose=0, verbout=None,
         except UnicodeDecodeError:  # nocover
             err = '\n'.join(_.decode('utf-8') for _ in logged_err)
         (out_, err_) = proc.communicate()
+        # calling wait means that the process will terminate and it is safe to
+        # return a reference to the process object.
         ret = proc.wait()
         info = {
             'out': out,
