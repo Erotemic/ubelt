@@ -130,17 +130,19 @@ class Timerit(object):
         Alternative way to time a simple function call using condensed syntax.
 
         Returns:
-            the expected execution time of `func(*args, **kwargs)` in seconds
+            self: Use `ave_secs`, `min`, or `mean` to obtain a scalar.
 
         Example:
             >>> import ubelt as ub
-            >>> ave_sec = ub.Timerit(num=10, verbose=0).call(ub.find_nth_prime, 50)
+            >>> ave_sec = ub.Timerit(num=10, verbose=0).call(ub.find_nth_prime, 50).ave_secs
             >>> assert ave_sec > 0
         """
         for timer in self:
             with timer:
                 func(*args, **kwargs)
-        return self.ave_secs
+        return self
+        # the expected execution time of `func(*args, **kwargs)` in seconds
+        # return self.ave_secs
 
     def __iter__(self):
         if self.verbose >= 2:

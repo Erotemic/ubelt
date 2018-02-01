@@ -1,3 +1,9 @@
+version: 0.0.39
+---------------
+ENH: Changed ub.Timerit.call API to return a reference to the Timerit object
+instead of of the average seconds. Note this change is backwards incompatible.
+
+
 version: 0.0.38
 ---------------
 ADD: `ub.hash_data` and `ub.hash_file` for easy hashing of arbitrary structured
