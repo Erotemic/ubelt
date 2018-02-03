@@ -148,8 +148,6 @@ class _FormatterExtensions(object):
             >>> data = np.ma.empty((0, 10), dtype=np.float64)
             >>> print(ub.repr2(data, strvals=False))
             np.ma.empty((0, 10), dtype=np.float64)
-            >>> with pytest.raises(ValueError):
-            >>>     ub.repr2(data, strvals=True, with_dtype=True)
         """
         @self.register(np.ndarray)
         def format_ndarray(data, **kwargs):
@@ -159,9 +157,10 @@ class _FormatterExtensions(object):
             suppress_small = kwargs.get('supress_small', None)
             max_line_width = kwargs.get('max_line_width', None)
             with_dtype = kwargs.get('with_dtype', not strvals)
+            newlines = kwargs.pop('nl', kwargs.pop('newlines', 1))
 
-            if with_dtype and strvals:
-                raise ValueError('cannot format with strvals and dtype')
+            # if with_dtype and strvals:
+            #     raise ValueError('cannot format with strvals and dtype')
 
             separator = ',' + itemsep
 
@@ -184,7 +183,7 @@ class _FormatterExtensions(object):
                 if with_dtype:
                     dtype_repr = (np_nice + '.' +
                                   np.core.arrayprint.dtype_short_repr(data.dtype))
-                    suffix = ', dtype={})'.format(dtype_repr)
+                    suffix = ',{}dtype={})'.format(itemsep, dtype_repr)
                 else:
                     suffix = ')'
 
@@ -198,6 +197,9 @@ class _FormatterExtensions(object):
                                        suppress_small=suppress_small,
                                        prefix=prefix,
                                        max_line_width=max_line_width)
+            if not newlines:
+                # remove newlines if we need to
+                body = re.sub('\n *', '', body)
             formatted = prefix + body + suffix
             return formatted
 
@@ -325,7 +327,7 @@ def _format_dict(dict_, **kwargs):
         sort (None): if True, sorts ALL collectsions and subcollections,
             note, collections with undefined orders (e.g. dicts, sets) are
             sorted by default. (default = None)
-        nl (int): prefered alias for newline. can be a coundown variable
+        nl (int): prefered alias for newline. can be a countdown variable
             (default = None)
         explicit (int): can be a countdown variable. if True, uses
             dict(a=b) syntax instead of {'a': b}
