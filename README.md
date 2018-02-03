@@ -95,9 +95,6 @@ from ubelt.util_time import (Timer, Timerit, timestamp,)
 from ubelt.progiter import (ProgIter,)
 ```
 
-A minimal version of the doctest harness has been completed.
-This can be accessed using `ub.doctest_package`.
-
 ## Examples
 
 Here are some examples of some features inside `ubelt`
