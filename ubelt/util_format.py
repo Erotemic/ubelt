@@ -1,3 +1,4 @@
+import re
 import six
 import math
 import collections
@@ -74,14 +75,18 @@ def repr2(val, **kwargs):
     elif isinstance(val, (list, tuple, set, frozenset)):
         return _format_list(val, **kwargs)
     # check any registered functions for special formatters
-    for type, func in _Formatters.func_registry.items():
+    func = _FORMATTER_EXTENSIONS.lookup(val)
+    for type, func in _FORMATTER_EXTENSIONS.func_registry.items():
         if isinstance(val, type):
             return func(val, **kwargs)
     # base case
     return _format_object(val, **kwargs)
 
 
-class _Formatters(object):
+class _FormatterExtensions(object):
+    """
+    Singleton helper class for managing non-builtin (e.g. numpy) format types
+    """
     # set_types = [set, frozenset]
     # list_types = [list, tuple]
     # dict_types = [dict]
@@ -92,18 +97,129 @@ class _Formatters(object):
     # @classmethod
     # def sequence_types(cls):
     #     return cls.list_types + cls.set_types
-    # TODO: register numpy and pandas by default if available
-    func_registry = {}
 
-    @classmethod
-    def register(cls, type):
+    def __init__(self):
+        self.func_registry = {}
+
+    def register(self, type):
         """
         Registers a custom formatting function with ub.repr2
         """
         def _decorator(func):
-            cls.func_registry[type] = func
+            self.func_registry[type] = func
             return func
         return _decorator
+
+    def lookup(self, data):
+        """
+        Returns an appropriate function to format `data` if one has been
+        registered.
+        """
+        for type, func in _FORMATTER_EXTENSIONS.func_registry.items():
+            if isinstance(data, type):
+                return func
+
+    def _register_numpy_extensions(self):
+        """
+        Example:
+            >>> import sys
+            >>> import pytest
+            >>> if 'np' not in sys.modules:
+            ...     raise pytest.skip()
+            >>> import ubelt as ub
+            >>> data = np.array([[.2, 42, 5], [21.2, 3, .4]])
+            >>> print(ub.repr2(data))
+            np.array([[ 0.2, 42. ,  5. ],
+                      [21.2,  3. ,  0.4]], dtype=np.float64)
+            >>> print(ub.repr2(data, with_dtype=False))
+            np.array([[ 0.2, 42. ,  5. ],
+                      [21.2,  3. ,  0.4]])
+            >>> print(ub.repr2(data, strvals=True))
+            [[ 0.2, 42. ,  5. ],
+             [21.2,  3. ,  0.4]]
+            >>> data = np.empty((0, 10), dtype=np.float64)
+            >>> ub.repr2(data, strvals=False)
+            np.empty((0, 10), dtype=np.float64)
+            >>> ub.repr2(data, strvals=True)
+            []
+            >>> data = np.ma.empty((0, 10), dtype=np.float64)
+            >>> ub.repr2(data, strvals=False)
+            np.ma.empty((0, 10), dtype=np.float64)
+        """
+        @self.register(np.ndarray)
+        def format_ndarray(data, **kwargs):
+            strvals = kwargs.get('strvals', False)
+            itemsep = kwargs.get('itemsep', ' ')
+            precision = kwargs.get('precision', None)
+            suppress_small = kwargs.get('supress_small', None)
+            max_line_width = kwargs.get('max_line_width', None)
+            with_dtype = kwargs.get('with_dtype', not strvals)
+
+            if with_dtype and strvals:
+                raise ValueError('cannot format with strvals and dtype')
+
+            separator = ',' + itemsep
+
+            if strvals:
+                prefix = ''
+                suffix = ''
+            else:
+                modname = type(data).__module__
+                # substitute shorthand for numpy module names
+                np_nice = 'np'
+                modname = re.sub('\\bnumpy\\b', np_nice, modname)
+                modname = re.sub('\\bma.core\\b', 'ma', modname)
+
+                class_name = type(data).__name__
+                if class_name == 'ndarray':
+                    class_name = 'array'
+
+                prefix = modname + '.' + class_name + '('
+
+                if with_dtype:
+                    dtype_repr = (np_nice + '.' +
+                                  np.core.arrayprint.dtype_short_repr(data.dtype))
+                    suffix = ', dtype={})'.format(dtype_repr)
+                else:
+                    suffix = ')'
+
+            if not strvals and data.size == 0 and data.shape != (0,):
+                # Special case for displaying empty data
+                prefix = modname + '.empty('
+                body = repr(data.shape)
+            else:
+                body = np.array2string(data, precision=precision,
+                                       separator=separator,
+                                       suppress_small=suppress_small,
+                                       prefix=prefix,
+                                       max_line_width=max_line_width)
+            formatted = prefix + body + suffix
+            return formatted
+
+    def _register_builtin_extensions(self):
+        @self.register(float)
+        def format_float(data, **kwargs):
+            precision = kwargs.get('precision', None)
+            if precision is None:
+                return six.text_type(data)
+            else:
+                return ('{:.%df}' % precision).format(data)
+
+        @self.register(slice)
+        def format_slice(data, **kwargs):
+            if kwargs.get('itemsep', ' ') == '':
+                return 'slice(%r,%r,%r)' % (data.start, data.stop, data.step)
+            else:
+                return _format_object(data, **kwargs)
+
+_FORMATTER_EXTENSIONS = _FormatterExtensions()
+_FORMATTER_EXTENSIONS._register_builtin_extensions()
+try:
+    import numpy as np
+    _FORMATTER_EXTENSIONS._register_numpy_extensions()
+    # TODO: register pandas by default if available
+except ImportError:  # nocover
+    pass
 
 
 class _FormatFuncs(object):
@@ -111,21 +227,6 @@ class _FormatFuncs(object):
     Standard custom formatting funcs for non-nested types
     """
     # TODO: add support for custom type for pandas / numpy
-
-    @_Formatters.register(float)
-    def format_float(val, **kwargs):
-        precision = kwargs.get('precision', None)
-        if precision is None:
-            return six.text_type(val)
-        else:
-            return ('{:.%df}' % precision).format(val)
-
-    @_Formatters.register(slice)
-    def format_slice(val, **kwargs):
-        if kwargs.get('itemsep', ' ') == '':
-            return 'slice(%r,%r,%r)' % (val.start, val.stop, val.step)
-        else:
-            return _format_object(val, **kwargs)
 
 
 def _format_object(val, **kwargs):
