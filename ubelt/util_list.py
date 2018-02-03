@@ -149,11 +149,10 @@ def iterable(obj, strok=False):
         bool: True if the input is iterable
 
     Example:
-        >>> import ubelt as ub
         >>> obj_list = [3, [3], '3', (3,), [3, 4, 5], {}]
-        >>> result = [ub.iterable(obj) for obj in obj_list]
+        >>> result = [iterable(obj) for obj in obj_list]
         >>> assert result == [False, True, False, True, True, True]
-        >>> result = [ub.iterable(obj, strok=True) for obj in obj_list]
+        >>> result = [iterable(obj, strok=True) for obj in obj_list]
         >>> assert result == [False, True, True, True, True, True]
     """
     try:
@@ -195,8 +194,8 @@ def compress(items, flags):
     This is similar to np.compress and it.compress
 
     Args:
-        items (iterable): a sequence
-        flags (iterable): corresponding sequence of bools
+        items (sequence): a sequence
+        flags (sequence): corresponding sequence of bools
 
     Returns:
         list: a subset of masked items

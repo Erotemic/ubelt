@@ -212,7 +212,7 @@ def ensuredir(dpath, mode=0o1777, verbose=None):
         verbose (int): verbosity (default 0)
 
     Returns:
-        str: path - the ensured directory
+        str: path: the ensured directory
 
     Example:
         >>> from ubelt.util_platform import *  # NOQA

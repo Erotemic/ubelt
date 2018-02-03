@@ -35,49 +35,64 @@ pip install ubelt
 ```
 
 ## Available Functions:
-This list of functions and classes is currently available. 
-See the corresponding doc-strings for more details.
+For the following functions, see corresponding doc-strings for more details.
+
+Some of the more interesting and useful functions and classes implemented are:
 
 ```
 import ubelt as ub
 
-ub.dict_hist
-ub.dict_subset
-ub.dict_take
-ub.find_duplicates
-ub.group_items
-ub.map_keys
-ub.map_vals
-ub.readfrom
-ub.writeto
 ub.ensuredir
-ub.ensure_app_resource_dir
-ub.chunks
-ub.compress
-ub.take
-ub.flatten
-ub.memoize
-ub.NiceRepr
-ub.NoParam
-ub.CaptureStdout
-ub.Timer
-ub.Timerit (powerful multiline alternative to timeit)
-ub.ProgIter (simplified alternative to tqdm)
-ub.Cacher
-ub.cmd
-ub.editfile
-ub.startfile
-ub.delete
+ub.Timerit  # powerful multiline alternative to timeit
+ub.Cacher  # configuration based on-disk cachine
+ub.cmd  # combines the best of subprocess.Popen and os.system
+ub.hash_data  # extremely useful with Cacher to config strings
 ub.repr2
-ub.hzcat
-ub.argval
-ub.argflag
-ub.modname_to_modpath (works via static analysis)
-ub.modpath_to_modname (works via static analysis)
-ub.import_module_from_path
-ub.import_module_from_name
-ub.download
+ub.download 
 ub.AutoDict
+ub.modname_to_modpath  # (works via static analysis)
+ub.modpath_to_modname  # (works via static analysis 
+ub.import_module_from_path  # (Unlike importlib, this does not break pytest)
+ub.import_module_from_name  # (Unlike importlib, this does not break pytest)
+```
+
+
+A complete list of available functions can be seen in the auto-generate `ubelt/__init__.py` file:
+
+```
+from ubelt.util_arg import (argflag, argval,)
+from ubelt.util_cache import (Cacher,)
+from ubelt.util_colors import (color_text, highlight_code,)
+from ubelt.util_const import (NoParam,)
+from ubelt.util_cmd import (cmd,)
+from ubelt.util_decor import (memoize,)
+from ubelt.util_dict import (AutoDict, AutoOrderedDict, ddict, dict_hist,
+                             dict_subset, dict_take, dict_union,
+                             find_duplicates, group_items, invert_dict,
+                             map_keys, map_vals, odict,)
+from ubelt.util_download import (download, grabdata,)
+from ubelt.util_func import (identity,)
+from ubelt.util_format import (repr2,)
+from ubelt.util_io import (readfrom, writeto, touch, delete,)
+from ubelt.util_list import (argsort, boolmask, chunks, compress, flatten,
+                             iterable, take, unique, unique_flags,)
+from ubelt.util_hash import (hash_data, hash_file,)
+from ubelt.util_import import (split_modpath, modname_to_modpath,
+                               modpath_to_modname, import_module_from_name,
+                               import_module_from_path,)
+from ubelt.util_mixins import (NiceRepr,)
+from ubelt.util_path import (TempDir, augpath, compressuser, truepath,
+                             userhome, ensuredir,)
+from ubelt.util_platform import (DARWIN, LINUX, POSIX, PY2, PY3, WIN32,
+                                 editfile, ensure_app_cache_dir,
+                                 ensure_app_resource_dir, get_app_cache_dir,
+                                 get_app_resource_dir, platform_cache_dir,
+                                 platform_resource_dir, startfile,)
+from ubelt.util_str import (CaptureStdout, indent, codeblock, hzcat,
+                            ensure_unicode,)
+from ubelt.util_stress import (find_nth_prime,)
+from ubelt.util_time import (Timer, Timerit, timestamp,)
+from ubelt.progiter import (ProgIter,)
 ```
 
 A minimal version of the doctest harness has been completed.
@@ -209,8 +224,10 @@ Apply a function to each value in the dictionary (see also `ub.map_keys`).
 
 
 ### Loop Progress
-See also [`tqdm`](https://pypi.python.org/pypi/tqdm) for an alternative
-implementation.
+`ProgIter` is a (mostly) drop-in alternative to [`tqdm`](https://pypi.python.org/pypi/tqdm).
+It is recommended to use `tqdm` in most cases. The advantage of `ProgIter` is
+that it does not use any python threading, and therefore can be safer with code
+that makes heavy use of multiprocessing.
 ```python
 >>> import ubelt as ub
 >>> def is_prime(n):
@@ -249,8 +266,8 @@ process, see what it is doing, and then do something based on its output, just
 as you would if you were interacting with the command line itself.
 
 Also, `ub.cmd` removes the need to think about if you need to pass a list of
-args, or a string. Both will work. This utility has been tested on both windows
-and linux.
+args, or a string. Both will work. This utility has been tested on both Windows
+and Linux.
 
 ```python
 >>> info = cmd(('echo', 'simple cmdline interface'), verbose=1)

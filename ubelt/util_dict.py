@@ -136,10 +136,10 @@ def group_items(item_list, groupid_list, sorted_=True):
         # TODO: test if this actually gives a savings
         try:
             pair_list = sorted(pair_list_, key=op.itemgetter(0))
-        except TypeError:  # nocover
+        except TypeError:
             # Python 3 does not allow sorting mixed types
             pair_list = sorted(pair_list_, key=lambda tup: str(tup[0]))
-    else:  # nocover
+    else:
         pair_list = pair_list_
 
     # Initialize a dict of lists
