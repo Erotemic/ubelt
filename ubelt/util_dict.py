@@ -124,16 +124,17 @@ def group_items(item_list, groupid_list, sorted_=True):
 
     Example:
         >>> import ubelt as ub
-        >>> item_list    = ['ham',     'jam',   'spam',     'eggs',    'cheese', 'bannana']
+        >>> item_list    = ['ham',     'jam',   'spam',     'eggs',    'cheese', 'banana']
         >>> groupid_list = ['protein', 'fruit', 'protein',  'protein', 'dairy',  'fruit']
-        >>> result = ub.group_items(item_list, groupid_list)
-        >>> print(ub.repr2(result, nl=0))
-        {'dairy': ['cheese'], 'fruit': ['jam', 'bannana'], 'protein': ['ham', 'spam', 'eggs']}
+        >>> groupid_to_items = ub.group_items(item_list, groupid_list)
+        >>> print(ub.repr2(groupid_to_items, nl=0))
+        {'dairy': ['cheese'], 'fruit': ['jam', 'banana'], 'protein': ['ham', 'spam', 'eggs']}
     """
     pair_list_ = zip(groupid_list, item_list)
     if sorted_:
         # Sort by groupid for cache efficiency
         # TODO: test if this actually gives a savings
+        pair_list_ = list(pair_list_)
         try:
             pair_list = sorted(pair_list_, key=op.itemgetter(0))
         except TypeError:
