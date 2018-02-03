@@ -57,7 +57,7 @@ ub.import_module_from_name  # (Unlike importlib, this does not break pytest)
 ```
 
 
-A complete list of available functions can be seen in the auto-generate `ubelt/__init__.py` file:
+A complete list of available functions can be seen in the auto-generated `ubelt/__init__.py` file:
 
 ```
 from ubelt.util_arg import (argflag, argval,)
