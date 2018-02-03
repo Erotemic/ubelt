@@ -181,9 +181,9 @@ class _FormatterExtensions(object):
                 prefix = modname + '.' + class_name + '('
 
                 if with_dtype:
-                    dtype_repr = (np_nice + '.' +
-                                  np.core.arrayprint.dtype_short_repr(data.dtype))
-                    suffix = ',{}dtype={})'.format(itemsep, dtype_repr)
+                    dtype_repr = data.dtype.name
+                    # dtype_repr = np.core.arrayprint.dtype_short_repr(data.dtype)
+                    suffix = ',{}dtype={}.{})'.format(itemsep, np_nice, dtype_repr)
                 else:
                     suffix = ')'
 
