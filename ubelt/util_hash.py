@@ -162,7 +162,7 @@ def _rectify_hashlen(hashlen):
         return hashlen
 
 
-class HashableExtensions():
+class HashableExtensions(object):
     """
     Singleton helper class for managing non-builtin (e.g. numpy) hash types
     """
@@ -304,15 +304,12 @@ class HashableExtensions():
             return prefix, hashable
 
 _HASHABLE_EXTENSIONS = HashableExtensions()
-
-
+_HASHABLE_EXTENSIONS._register_builtin_class_extensions()
 try:
     import numpy as np
     _HASHABLE_EXTENSIONS._register_numpy_extensions()
 except ImportError:  # nocover
     pass
-
-_HASHABLE_EXTENSIONS._register_builtin_class_extensions()
 
 
 class _HashTracer(object):
