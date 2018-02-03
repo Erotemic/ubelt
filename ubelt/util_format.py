@@ -121,10 +121,13 @@ class _FormatterExtensions(object):
 
     def _register_numpy_extensions(self):
         """
+        CommandLine:
+            python -m ubelt.util_format _FormatterExtensions._register_numpy_extensions
+
         Example:
             >>> import sys
             >>> import pytest
-            >>> if 'np' not in sys.modules:
+            >>> if 'numpy' not in sys.modules:
             ...     raise pytest.skip()
             >>> import ubelt as ub
             >>> data = np.array([[.2, 42, 5], [21.2, 3, .4]])
@@ -138,13 +141,15 @@ class _FormatterExtensions(object):
             [[ 0.2, 42. ,  5. ],
              [21.2,  3. ,  0.4]]
             >>> data = np.empty((0, 10), dtype=np.float64)
-            >>> ub.repr2(data, strvals=False)
+            >>> print(ub.repr2(data, strvals=False))
             np.empty((0, 10), dtype=np.float64)
-            >>> ub.repr2(data, strvals=True)
+            >>> print(ub.repr2(data, strvals=True))
             []
             >>> data = np.ma.empty((0, 10), dtype=np.float64)
-            >>> ub.repr2(data, strvals=False)
+            >>> print(ub.repr2(data, strvals=False))
             np.ma.empty((0, 10), dtype=np.float64)
+            >>> with pytest.raises(ValueError):
+            >>>     ub.repr2(data, strvals=True, with_dtype=True)
         """
         @self.register(np.ndarray)
         def format_ndarray(data, **kwargs):
