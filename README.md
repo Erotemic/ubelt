@@ -39,7 +39,7 @@ For the following functions, see corresponding doc-strings for more details.
 
 Some of the more interesting and useful functions and classes implemented are:
 
-```
+```python
 import ubelt as ub
 
 ub.ensuredir
@@ -59,7 +59,7 @@ ub.import_module_from_name  # (Unlike importlib, this does not break pytest)
 
 A complete list of available functions can be seen in the auto-generated `ubelt/__init__.py` file:
 
-```
+```python
 from ubelt.util_arg import (argflag, argval,)
 from ubelt.util_cache import (Cacher,)
 from ubelt.util_colors import (color_text, highlight_code,)
