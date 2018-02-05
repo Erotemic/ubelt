@@ -230,13 +230,6 @@ except ImportError:  # nocover
     pass
 
 
-class _FormatFuncs(object):
-    """
-    Standard custom formatting funcs for non-nested types
-    """
-    # TODO: add support for custom type for pandas / numpy
-
-
 def _format_object(val, **kwargs):
     stritems = kwargs.get('si', kwargs.get('stritems', False))
     strvals = stritems or kwargs.get('sv', kwargs.get('strvals', False))
