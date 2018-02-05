@@ -1,3 +1,7 @@
+version: 0.0.40
+---------------
+ENH: Added numpy support to repr2
+
 version: 0.0.39
 ---------------
 ENH: Changed ub.Timerit.call API to return a reference to the Timerit object

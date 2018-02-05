@@ -25,7 +25,7 @@ TODO:
 from __future__ import absolute_import, division, print_function, unicode_literals
 import sys
 
-__version__ = '0.0.39'
+__version__ = '0.0.40'
 
 GLOBAL_MODULES = [
     'util_arg',
