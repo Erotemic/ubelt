@@ -129,6 +129,7 @@ class _FormatterExtensions(object):
             >>> import pytest
             >>> if 'numpy' not in sys.modules:
             ...     raise pytest.skip()
+            >>> # xdoctest: +IGNORE_WHITESPACE
             >>> import ubelt as ub
             >>> data = np.array([[.2, 42, 5], [21.2, 3, .4]])
             >>> print(ub.repr2(data))
