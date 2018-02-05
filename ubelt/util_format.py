@@ -191,7 +191,7 @@ class _FormatterExtensions(object):
             if not strvals and data.size == 0 and data.shape != (0,):
                 # Special case for displaying empty data
                 prefix = modname + '.empty('
-                body = repr(data.shape)
+                body = repr(tuple(map(int, data.shape)))
             else:
                 body = np.array2string(data, precision=precision,
                                        separator=separator,
