@@ -178,6 +178,9 @@ def import_module_from_path(modpath):
         If the module is part of a package, the package will be imported first.
         These modules may cause problems when reloading via IPython magic
 
+    TODO:
+        handle modules inside of zipfiles
+
     Example:
         >>> from ubelt import util_import
         >>> modpath = util_import.__file__
