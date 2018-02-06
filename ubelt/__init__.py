@@ -49,6 +49,7 @@ GLOBAL_MODULES = [
     'util_path',
     'util_platform',
     'util_str',
+    'util_smartcast',
     'util_time',
     'orderedset',
     'progiter',
