@@ -20,23 +20,26 @@ __all__ = ['smartcast']
 
 def smartcast(item, astype=None, strict=False):
     r"""
-    An alternative to `eval` that checks if a string can easily cast to a
-    standard python data type.
+    Converts a string into a standard python type.
 
-    This is an alternative to eval
-    if the variable is a string tries to cast it to a reasonable value.
-    maybe can just use eval.
+    In many cases this is a simple alternative to `eval`. However, the syntax
+    rules use here are more permissive and forgiving.
+
+    The `astype` can be specified to provide a type hint, otherwise we try to
+    cast to the following types in this order: int, float, complex, bool, none
 
     Args:
-        item (str): a string we wish to cast to another type
-        astype (type): if None, smartcast tries to infer what the best type is.
-            Otherwise, it we attempt to cast to this type.
-
-    Raises:
-        TypeError: if we cannot determine the type
+        item (str): represents some data of another type.
+        astype (type): if None, try infer what the best type is, if
+            astype == 'eval' then try to return `eval(item)`, Otherwise, try to
+            cast to this type.
+        strict (bool): if True raises a TypeError if conversion fails
 
     Returns:
         object: some item
+
+    Raises:
+        TypeError: if we cannot determine the type
 
     CommandLine:
         python -m ubelt.util_smartcast smartcast
@@ -46,25 +49,38 @@ def smartcast(item, astype=None, strict=False):
         >>> assert smartcast('1') == 1
         >>> assert smartcast('1.0') == 1.0
         >>> assert smartcast('1.2') == 1.2
-        >>> assert smartcast('True') == True
+        >>> assert smartcast('True') is True
+        >>> assert smartcast('false') is False
         >>> assert smartcast('None') is None
-        >>> # Non-string types should just be returned as themselves
-        >>> assert smartcast(1) == 1
-        >>> assert smartcast(None) is None
+        >>> assert smartcast('1', str) == '1'
+        >>> assert smartcast('1', eval) == 1
+        >>> assert smartcast('1', bool) is True
+        >>> assert smartcast('[1,2]', eval) == [1, 2]
+
+    Example:
+        >>> def check_typed_value(item, want, astype=None):
+        >>>     got = smartcast(item, astype)
+        >>>     assert got == want and isinstance(got, type(want)), (
+        >>>         'Cast {!r} to {!r}, but got {!r}'.format(item, want, got))
+        >>> check_typed_value('?', '?')
+        >>> check_typed_value('1', 1)
+        >>> check_typed_value('1.0', 1.0)
+        >>> check_typed_value('1.2', 1.2)
+        >>> check_typed_value('True', True)
+        >>> check_typed_value('None', None)
+        >>> check_typed_value('1', 1, int)
+        >>> check_typed_value('1', True, bool)
+        >>> check_typed_value('1', 1.0, float)
+        >>> check_typed_value('1', 1.0+0j, complex)
+
+    # Example:
+    #     >>> smartcast(1)
+    #     TypeError: item must be a string
     """
-    if astype is not None:
-        return _as_smart_type(item, astype)
-    if item is None:
-        return None
-    if isinstance(item, six.string_types):
-        lower = item.lower()
-        if lower == 'true':
-            return True
-        elif lower == 'false':
-            return False
-        elif lower == 'none':
-            return None
-        type_list = [int, float, complex]
+    if not isinstance(item, six.string_types):
+        raise TypeError('item must be a string')
+    if astype is None:
+        type_list = [int, float, complex, bool, NoneType]
         for astype in type_list:
             try:
                 return _as_smart_type(item, astype)
@@ -73,10 +89,9 @@ def smartcast(item, astype=None, strict=False):
         if strict:
             raise TypeError('Could not smartcast item={!r}'.format(item))
         else:
-            # We couldn't do anything, so just return the string
             return item
     else:
-        return item
+        return _as_smart_type(item, astype)
 
 
 def _as_smart_type(item, astype):
@@ -85,51 +100,61 @@ def _as_smart_type(item, astype):
     it simply calls `astype(item)`.
 
     Args:
-        item (object): variable (typically a string) to cast
+        item (str): represents some data of another type.
         astype (type or str): type to attempt to cast to
 
     Returns:
         object:
 
     CommandLine:
-        python -m ubelt.util_type --exec-_as_smart_type
+        python -m ubelt.util_smartcast _as_smart_type
 
     Example:
         >>> from ubelt.util_smartcast import *  # NOQA
-        >>> assert _as_smart_type('1', None) == '1'
         >>> assert _as_smart_type('1', int) == 1
+        >>> assert _as_smart_type('1', str) == '1'
+        >>> assert _as_smart_type('1', bool) is True
+        >>> assert _as_smart_type('0', bool) is False
+        >>> assert _as_smart_type('1', float) == 1.0
         >>> assert _as_smart_type('(1,3)', 'eval') == (1, 3)
         >>> assert _as_smart_type('(1,3)', eval) == (1, 3)
         >>> assert _as_smart_type('1::3', slice) == slice(1, None, 3)
     """
-    if astype is None or item is None:
+    # try:
+    #     if issubclass(astype, NoneType):
+    #         return item
+    # except TypeError:
+    #     pass
+    if not isinstance(item, six.string_types):
+        raise TypeError('item must be a string')
+
+    if astype is NoneType:
+        return _smartcast_none(item)
+    elif astype is bool:
+        return _smartcast_bool(item)
+    elif astype is slice:
+        return _smartcast_slice(item)
+    elif astype in [int, float, complex]:
+        return astype(item)
+    elif astype is str:
         return item
+    elif astype is eval:
+        return eval(item, {}, {})
+    # TODO:
+    #    use parse_nestings to smartcast lists/tuples/sets
     elif isinstance(astype, six.string_types):
-        # handle special ``types''
-        if astype == 'eval':
-            return eval(item, {}, {})
-        else:
-            raise NotImplementedError('Unknown smart astype=%r' % (astype,))
-    else:
-        try:
-            if issubclass(astype, NoneType):
-                return item
-        except TypeError:
-            pass
-        if isinstance(item, six.string_types):
-            if astype is bool:
-                return _smartcast_bool(item)
-            elif astype is slice:
-                return _smartcast_slice(item)
-            if astype in [int, float, complex, eval]:
-                return astype(item)
-            # TODO:
-            #    use parse_nestings to smartcast lists/tuples/sets
-            else:
-                raise NotImplementedError(
-                    'Cannot smart parse type={}'.format(astype))
-        else:
-            return astype(item)
+        # allow types to be given as strings
+        astype = {
+            'bool': bool,
+            'int': int,
+            'float': float,
+            'complex': complex,
+            'str': str,
+            'eval': eval,
+            'none': NoneType,
+        }[astype.lower()]
+        return _as_smart_type(item, astype)
+    raise NotImplementedError('Unknown smart astype=%r' % (astype,))
 
 
 def _smartcast_slice(item):
@@ -137,9 +162,20 @@ def _smartcast_slice(item):
     return slice(*args)
 
 
+def _smartcast_none(item):
+    """
+    Casts a string to None.
+    """
+    if item.lower() == 'none':
+        return None
+    else:
+        raise TypeError('string does not represent none')
+
+
 def _smartcast_bool(item):
     """
     Casts a string to a boolean.
+    Setting strict=False allows '0' and '1' to be used as a bool
     """
     lower = item.lower()
     if lower == 'true':
@@ -147,7 +183,11 @@ def _smartcast_bool(item):
     elif lower == 'false':
         return False
     else:
-        raise TypeError('string does not represent boolean')
+        try:
+            return bool(int(item))
+        except TypeError:
+            pass
+        raise TypeError('item does not represent boolean')
 
 
 def parse_nestings(string, nesters=['()', '[]', '{}', '<>', "''", '""'], escape='\\'):
@@ -300,7 +340,7 @@ def recombine_nestings(parse_tree):
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m ubelt.util_smartcast
+        python -m ubelt.util_smartcast all
     """
     import xdoctest
     xdoctest.doctest_module(__file__)
