@@ -15,7 +15,7 @@ else:
 
 NoneType = type(None)
 
-__all__ = ['smartcast']
+# __all__ = ['smartcast']
 
 
 def smartcast(item, astype=None, strict=False):
@@ -26,7 +26,8 @@ def smartcast(item, astype=None, strict=False):
     rules use here are more permissive and forgiving.
 
     The `astype` can be specified to provide a type hint, otherwise we try to
-    cast to the following types in this order: int, float, complex, bool, none
+    cast to the following types in this order: int, float, complex, bool, none,
+    list, tuple.
 
     Args:
         item (str): represents some data of another type.
@@ -81,6 +82,8 @@ def smartcast(item, astype=None, strict=False):
         raise TypeError('item must be a string')
     if astype is None:
         type_list = [int, float, complex, bool, NoneType]
+        if ',' in item:
+            type_list += [list, tuple, set]
         for astype in type_list:
             try:
                 return _as_smart_type(item, astype)
@@ -116,6 +119,7 @@ def _as_smart_type(item, astype):
         >>> assert _as_smart_type('1', bool) is True
         >>> assert _as_smart_type('0', bool) is False
         >>> assert _as_smart_type('1', float) == 1.0
+        >>> assert _as_smart_type('1', list) == [1]
         >>> assert _as_smart_type('(1,3)', 'eval') == (1, 3)
         >>> assert _as_smart_type('(1,3)', eval) == (1, 3)
         >>> assert _as_smart_type('1::3', slice) == slice(1, None, 3)
@@ -138,10 +142,14 @@ def _as_smart_type(item, astype):
         return astype(item)
     elif astype is str:
         return item
+    elif astype is list:
+        return item
     elif astype is eval:
         return eval(item, {}, {})
-    # TODO:
-    #    use parse_nestings to smartcast lists/tuples/sets
+    elif astype in [list, tuple, set]:
+        # TODO:
+        # use parse_nestings to smartcast complex lists/tuples/sets
+        return _smartcast_simple_sequence(item, astype)
     elif isinstance(astype, six.string_types):
         # allow types to be given as strings
         astype = {
@@ -156,6 +164,55 @@ def _as_smart_type(item, astype):
         return _as_smart_type(item, astype)
     raise NotImplementedError('Unknown smart astype=%r' % (astype,))
 
+
+def _smartcast_simple_sequence(item, astype=list):
+    """
+    Casts only the simplest strings to a sequence. Cannot handle any nesting.
+
+    CommandLine:
+        python -m ubelt.util_smartcast _smartcast_simple_sequence
+
+    Example:
+        >>> assert _smartcast_simple_sequence('1') == [1]
+        >>> assert _smartcast_simple_sequence('[1]') == [1]
+        >>> assert _smartcast_simple_sequence('[[1]]') == ['[1]']
+    """
+    nester = {list: '[]', tuple: '()', set: '{}'}[astype]
+    item = item.strip()
+    if item.startswith(nester[0]) and item.endswith(nester[1]):
+        item = item[1:-1]
+    return astype(smartcast(part.strip()) for part in item.split(','))
+
+
+def _smartcast_nestings(parse_tree):
+    nest = parse_tree[0]
+    values = parse_tree[1]
+    if isinstance(values, list):
+        if nest.startswith('nest'):
+            values = values[1:-1]
+        recombined = [_smartcast_nestings(item) for item in values]
+    else:
+        recombined = smartcast(values)
+    return recombined
+
+
+def _smartcast_complex_sequence(item):
+    """
+    Casts only the simplest strings to a sequence. Cannot handle any nesting.
+
+    CommandLine:
+        python -m ubelt.util_smartcast _smartcast_simple_sequence
+
+    Example:
+        >>> from ubelt.util_smartcast import *  # NOQA
+        >>> item = '[1, 2, {3, [4, 5], 6}]'
+        >>> _smartcast_complex_sequence(item)
+        >>> assert _smartcast_complex_sequence('1') == [1]
+        >>> assert _smartcast_complex_sequence('[1]') == [1]
+        >>> assert _smartcast_complex_sequence('[[1]]') == ['[1]']
+    """
+    parse_tree = parse_nestings(item)[1][0]
+    return _smartcast_nestings(parse_tree)
 
 def _smartcast_slice(item):
     args = [int(p) if p else None for p in item.split(':')]
@@ -208,15 +265,68 @@ def parse_nestings(string, nesters=['()', '[]', '{}', '<>', "''", '""'], escape=
         http://stackoverflow.com/questions/4801403/pyparsing-nested-mutiple-opener-clo
 
     CommandLine:
-        python -m ubelt.util_smartcast parse_nestings
+        python -m ubelt.util_smartcast parse_nestings:1
 
     Example:
         >>> from ubelt.util_smartcast import *  # NOQA
         >>> import ubelt as ub
         >>> string = r'lambda u: sign("\"u(\'fdfds\')") * abs(u)**3.0 * greater(u, 0)'
         >>> parse_tree = parse_nestings(string)
-        >>> print('parse_tree = {}'.format(ub.repr2(parse_tree, nl=3, si=True)))
         >>> assert recombine_nestings(parse_tree) == string
+        >>> print('parse_tree = {}'.format(ub.repr2(parse_tree, nl=2, si=True)))
+        parse_tree = (
+            nonNested,
+            [
+                (nonNested, lambda u: sign),
+                (nest(), [(ITEM, (), (nest"", [(ITEM, "), (ITEM, \"u(\'fdfds\')), (ITEM, ")]), (ITEM, ))]),
+                (nonNested,  * abs),
+                (nest(), [(ITEM, (), (nonNested, u), (ITEM, ))]),
+                (nonNested, **3.0 * greater),
+                (nest(), [(ITEM, (), (nonNested, u, 0), (ITEM, ))]),
+            ],
+        )
+
+    Example:
+        >>> from ubelt.util_smartcast import *  # NOQA
+        >>> import ubelt as ub
+        >>> string = '1'
+        >>> parse_tree = parse_nestings(string)
+        >>> assert recombine_nestings(parse_tree) == string
+        >>> print('parse_tree = {}'.format(ub.repr2(parse_tree, nl=2, si=True)))
+        parse_tree = (
+            nonNested,
+            [
+                (nonNested, 1),
+            ],
+        )
+
+    Example:
+        >>> from ubelt.util_smartcast import *  # NOQA
+        >>> import ubelt as ub
+        >>> string = '[]'
+        >>> parse_tree = parse_nestings(string)
+        >>> assert recombine_nestings(parse_tree) == string
+        >>> print('parse_tree = {}'.format(ub.repr2(parse_tree, nl=2, si=True)))
+        parse_tree = (
+            nest[],
+            [
+                (nest[], [(ITEM, [), (ITEM, ])]),
+            ],
+        )
+
+    Example:
+        >>> from ubelt.util_smartcast import *  # NOQA
+        >>> import ubelt as ub
+        >>> string = '[1]'
+        >>> parse_tree = parse_nestings(string)
+        >>> assert recombine_nestings(parse_tree) == string
+        >>> print('parse_tree = {}'.format(ub.repr2(parse_tree, nl=2, si=True)))
+        parse_tree = (
+            nest[],
+            [
+                (nest[], [(ITEM, [), (nonNested, 1), (ITEM, ])]),
+            ],
+        )
     """
     import pyparsing as pp
 
