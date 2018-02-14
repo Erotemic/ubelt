@@ -290,13 +290,15 @@ def cmd(command, shell=False, detatch=False, verbose=0, verbout=None,
     if verbout is None:
         verbout = verbose >= 1
     if verbose >= 2:  # nocover
+        from ubelt import util_path
+        cwd = util_path.getcwd()
         if verbose >= 3:
             print('+=== START CMD ===')
-            print('CWD:' + os.getcwd())
-        from ubelt import util_path
+            # print('CWD:' + os.getcwd())
+            print('CWD:' + cwd)
         compname = platform.node()
         username = getpass.getuser()
-        cwd = util_path.compressuser(os.getcwd())
+        cwd = util_path.compressuser(cwd)
         ps1 = '[ubelt.cmd] {}@{}:{}$ '.format(username, compname, cwd)
         print(ps1 + command_text)
         if verbout >= 3 and not detatch:

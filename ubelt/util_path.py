@@ -1,32 +1,46 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
+from os.path import abspath
+from os.path import dirname
+from os.path import exists
+from os.path import expanduser
+from os.path import expandvars
+from os.path import join
+from os.path import normpath
+from os.path import realpath
+from os.path import split
+from os.path import splitext
 import os
 import sys
 import shutil
-from os.path import (splitext, split, join, expanduser, expandvars, realpath,
-                     abspath, normpath, dirname, exists)
+import warnings
 
 __all__ = [
     'TempDir', 'augpath', 'compressuser', 'truepath', 'userhome',
-    'ensuredir',
+    'ensuredir', 'getcwd', 'chdir',
 ]
 
 
-def augpath(path, suffix='', prefix='', ext=None):
+def augpath(path, suffix='', prefix='', ext=None, base=None):
     """
-    Augments a filename with a prefix, suffix, and/or a new extension.
+    Augments a path with a new basename, extension, prefix and/or suffix.
 
-    A prefix can be added to the basename.  A suffix can be added between the
-    basename and the extension.  The extension can be replaced with a new one.
+    A prefix is inserted before the basename. A suffix is inserted
+    between the basename and the extension. The basename and extension can be
+    replaced with a new one.
 
     Args:
         path (str): string representation of a path
         suffix (str): placed in front of the basename
         prefix (str): placed between the basename and trailing extension
         ext (str): if specified, replaces the trailing extension
+        base (str): if specified, replaces the basename (without extension)
 
     Returns:
         str: newpath
+
+    CommandLine:
+        python -m ubelt.util_path augpath
 
     Example:
         >>> import ubelt as ub
@@ -34,9 +48,9 @@ def augpath(path, suffix='', prefix='', ext=None):
         >>> suffix = '_suff'
         >>> prefix = 'pref_'
         >>> ext = '.baz'
-        >>> newpath = ub.augpath(path, suffix, prefix, ext=ext)
+        >>> newpath = ub.augpath(path, suffix, prefix, ext=ext, base='bar')
         >>> print('newpath = %s' % (newpath,))
-        newpath = pref_foo_suff.baz
+        newpath = pref_bar_suff.baz
 
     Example:
         >>> augpath('foo.bar')
@@ -47,11 +61,14 @@ def augpath(path, suffix='', prefix='', ext=None):
         'foo_.bar'
         >>> augpath('foo.bar', prefix='_')
         '_foo.bar'
+        >>> augpath('foo.bar', base='baz')
+        'baz.bar'
     """
     # Breakup path
     dpath, fname = split(path)
     fname_noext, orig_ext = splitext(fname)
     ext = orig_ext if ext is None else ext
+    fname_noext = fname_noext if base is None else base
     # Augment and recombine into new path
     new_fname = ''.join((prefix, fname_noext, suffix, ext))
     newpath = join(dpath, new_fname)
@@ -238,6 +255,92 @@ def ensuredir(dpath, mode=0o1777, verbose=None):
         except OSError:  # nocover
             raise
     return dpath
+
+
+def chdir(path):
+    """
+    Thin wrapper around `os.chdir` that tracks the current working directory
+    using the `PWD` environment variable without resolving symbolic links.
+    Used in conjunction with `ub.getcwd`.
+
+    Args:
+        path (str): new path. Can also be '-' to specify the previous
+            directory.
+
+    CommandLine:
+        python -m ubelt.util_path chdir
+
+    Example:
+        >>> import ubelt as ub
+        >>> dpath = ub.ensure_app_resource_dir('ubelt')
+        >>> ub.chdir(dpath)
+        >>> cwd1 = ub.getcwd()
+        >>> ub.chdir('..')
+        >>> cwd2 = ub.getcwd()
+        >>> ub.chdir('-')
+        >>> cwd3 = ub.getcwd()
+        >>> assert cwd1 == cwd3
+
+    Example:
+        >>> import ubelt as ub
+        >>> import os
+        >>> os.environ.pop('OLDPWD', None)
+        >>> import pytest
+        >>> with pytest.raises(KeyError):
+        >>>     ub.chdir('-')
+    """
+    if path == '-':
+        path = os.environ['OLDPWD']
+    path_ = abspath(normpath(path))
+    os.chdir(path_)
+    if 'PWD' in os.environ:
+        os.environ['OLDPWD'] = os.environ['PWD']
+    os.environ['PWD'] = path_
+
+
+def getcwd(physical=False):
+    """
+    Workaround to get the working directory without dereferencing symlinks.
+    This will not work on all systems or if `os.chdir` was used. However,
+    `ub.chdir` can be used instead.
+
+    References:
+        https://stackoverflow.com/questions/1542803/getcwd-dereference-symlinks
+
+    Args:
+        physical (bool): if True dereference all symlinks otherwise
+            use PWD from environment even if it contains symlinks.
+
+    Example:
+        >>> import ubelt as ub
+        >>> cwd = ub.getcwd()
+        >>> dpath = ub.ensure_app_resource_dir('ubelt')
+        >>> real_dpath = ub.ensuredir(join(dpath, 'real'))
+        >>> link_dpath = join(dpath, 'link')
+        >>> ub.symlink(real_dpath, link_dpath, overwrite=True)
+        >>> ub.chdir(link_dpath)
+        >>> print(ub.compressuser(ub.getcwd(physical=False)))
+        ~/.config/ubelt/link
+        >>> print(ub.getcwd(physical=True))
+        ...config/ubelt/real
+    """
+    physical_cwd = os.getcwd()
+    if physical:
+        return physical_cwd
+    real1 = normpath(realpath(physical_cwd))
+    # test if we have the PWD environment variable
+    logical_cwd = os.getenv('PWD', None)
+    if logical_cwd is not None:
+        # PWD is not updated if os.chdir was used.
+        # Return a real path.
+        real2 = normpath(realpath(logical_cwd))
+        if real1 == real2:
+            return logical_cwd
+        else:
+            warnings.warn('ub.getcwd may not be able to resolve symlinks')
+    else:
+        warnings.warn('The PWD environment variable does not exist')
+    return physical_cwd
 
 
 class TempDir(object):
