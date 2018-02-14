@@ -1,3 +1,10 @@
+version: 0.0.41
+---------------
+ENH: Added base to `augpath`
+ENH: Added symlink function
+ENH: Added getcwd function that **attempts** respects symlinks
+
+
 version: 0.0.40
 ---------------
 ENH: Added numpy support to repr2

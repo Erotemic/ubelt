@@ -246,6 +246,8 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
                 adjust = False
             freq = kwargs.pop('miniters', freq)
 
+            kwargs.pop('leave', True)  # we always leave
+
             # Accept the old api keywords
             desc = kwargs.pop('label', desc)
             total = kwargs.pop('length', total)

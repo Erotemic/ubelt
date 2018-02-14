@@ -110,18 +110,18 @@ if _DOELSE:  # pragma: nobranch
                                    import_module_from_path,)
     from ubelt.util_mixins import (NiceRepr,)
     from ubelt.util_path import (TempDir, augpath, compressuser, truepath,
-                                 userhome, ensuredir,)
+                                 userhome, ensuredir, getcwd, chdir,)
     from ubelt.util_platform import (DARWIN, LINUX, POSIX, PY2, PY3, WIN32,
                                      editfile, ensure_app_cache_dir,
                                      ensure_app_resource_dir, get_app_cache_dir,
                                      get_app_resource_dir, platform_cache_dir,
-                                     platform_resource_dir, startfile,)
+                                     platform_resource_dir, startfile, symlink,)
     from ubelt.util_str import (CaptureStdout, indent, codeblock, hzcat,
                                 ensure_unicode,)
     from ubelt.util_stress import (find_nth_prime,)
     from ubelt.util_time import (Timer, Timerit, timestamp,)
     from ubelt.progiter import (ProgIter,)
-
+    
     # </AUTOGEN_INIT>
 
 del _DOELSE

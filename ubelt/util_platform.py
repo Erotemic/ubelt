@@ -1,11 +1,16 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
-from os.path import normpath, expanduser, join, exists
+from os.path import exists
+from os.path import expanduser
+from os.path import join
+from os.path import normpath
 import os
 import sys
 import pipes
 import six
+import warnings
 from ubelt import util_path
+from ubelt import util_io
 
 PY2 = sys.version_info.major == 2
 PY3 = sys.version_info.major == 3
@@ -208,6 +213,91 @@ def editfile(fpath, verbose=True):  # nocover
     if not exists(fpath):
         raise IOError('Cannot start nonexistant file: %r' % fpath)
     ub.cmd([editor, fpath], fpath, detatch=True)
+
+
+def symlink(real_path, link_path, overwrite=False, on_error='raise',
+            verbose=0):
+    """
+    Attempt to create a symbolic link.
+
+    Args:
+        path (str): path to real file or directory
+        link_path (str): path to desired location for symlink
+        overwrite (bool): overwrite existing symlinks.
+            This will not overwrite real files.  (default = False)
+        on_error (str): strategy for dealing with errors.
+            raise or ignore
+        verbose (int):  verbosity level (default=0)
+
+    Returns:
+        str: link path
+
+    CommandLine:
+        python -m ubelt.util_platform symlink
+
+    Example:
+        >>> import ubelt as ub
+        >>> dpath = ub.get_app_resource_dir('ubelt')
+        >>> real_path = join(dpath, 'real_file.txt')
+        >>> link_path = join(dpath, 'link_file.txt')
+        >>> [ub.delete(p) for p in [real_path, link_path]]
+        >>> ub.writeto(real_path, 'foo')
+        >>> result = symlink(real_path, link_path)
+        >>> assert ub.readfrom(result) == 'foo'
+        >>> [ub.delete(p) for p in [real_path, link_path]]
+
+    Example:
+        >>> import ubelt as ub
+        >>> real_dpath = ub.get_app_resource_dir('ubelt', 'real_dpath')
+        >>> link_dpath = ub.augpath(real_dpath, base='link_dpath')
+        >>> real_path = join(real_dpath, 'afile.txt')
+        >>> link_path = join(link_dpath, 'afile.txt')
+        >>> [ub.delete(p) for p in [real_path, link_path]]
+        >>> ub.ensuredir(real_dpath)
+        >>> ub.writeto(real_path, 'foo')
+        >>> result = symlink(real_dpath, link_dpath)
+        >>> assert ub.readfrom(link_path) == 'foo'
+        >>> ub.delete(link_dpath, verbose=0)
+        >>> assert exists(real_path)
+        >>> ub.delete(real_dpath, verbose=0)
+        >>> assert not exists(real_path)
+
+    TODO:
+        Can this be fixed on windows?
+    """
+    path = normpath(real_path)
+    link = normpath(link_path)
+    if verbose:
+        print('Creating symlink: path={} link={}'.format(path, link))
+    if os.path.islink(link):
+        if verbose:
+            print('symlink already exists')
+        os_readlink = getattr(os, "readlink", None)
+        if callable(os_readlink):
+            if os_readlink(link) == path:
+                if verbose > 1:
+                    print('[path] ... and points to the right place')
+                return link
+        else:
+            warnings.warn('Warning, symlinks are not implemented')
+        if verbose > 1:
+            print('... but it points somewhere else')
+        if overwrite:
+            util_io.delete(link, verbose > 1)
+        elif on_error == 'ignore':
+            return False
+    try:
+        os_symlink = getattr(os, "symlink", None)
+        if callable(os_symlink):
+            os_symlink(path, link)
+        else:
+            raise NotImplementedError('')
+            # win_shortcut(path, link)
+    except Exception as ex:
+        do_raise = (on_error == 'raise')
+        if do_raise:
+            raise
+    return link
 
 
 if __name__ == '__main__':
