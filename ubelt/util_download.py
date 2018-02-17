@@ -19,22 +19,19 @@ import sys
 if sys.version_info[0] == 2:  # nocover
     from urlparse import urlparse  # NOQA
     from urllib2 import urlopen  # NOQA
+    from urllib2 import URLError  # NOQA
 else:
     from urllib.request import urlopen  # NOQA
     from urllib.parse import urlparse  # NOQA
+    from urllib.error import URLError  # NOQA
+
 
 try:  # nocover
+    raise ImportError()
     from tqdm import tqdm as _tqdm
 except ImportError:  # nocover
     # fake tqdm if it's not installed
     from ubelt import progiter
-    # class _FakeTQDM(progiter.ProgIter):
-    #     def __init__(self, total, disable=False):
-    #         super(_FakeTQDM, self).__init__(enabled=not disable, length=total)
-
-    #     def update(self, n):
-    #         if self.enabled:
-    #             self.step(n)
     _tqdm = progiter.ProgIter
 
 
@@ -72,6 +69,9 @@ def download(url, fpath=None, hash_prefix=None, chunksize=8192, verbose=1):
         fname = basename(url)
         fpath = join(dpath, fname)
 
+    if verbose:
+        print('Downloading url=%r to fpath=%r' % (url, fpath))
+
     urldata = urlopen(url)
     # if _have_requests:
     # file_size = int(urldata.headers["Content-Length"])
@@ -82,9 +82,6 @@ def download(url, fpath=None, hash_prefix=None, chunksize=8192, verbose=1):
         file_size = int(meta.getheaders("Content-Length")[0])
     else:
         file_size = int(meta.get_all("Content-Length")[0])
-
-    if verbose:
-        print('Downloading url=%r to fpath=%r' % (url, fpath))
 
     tmp = tempfile.NamedTemporaryFile(delete=False)
     try:

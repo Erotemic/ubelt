@@ -2,7 +2,7 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 import getpass
 import platform
-import os
+# import os
 import sys
 import pipes
 import shlex
@@ -291,7 +291,8 @@ def cmd(command, shell=False, detatch=False, verbose=0, verbout=None,
         verbout = verbose >= 1
     if verbose >= 2:  # nocover
         from ubelt import util_path
-        cwd = util_path.getcwd()
+        import os
+        cwd = os.getcwd()
         if verbose >= 3:
             print('+=== START CMD ===')
             # print('CWD:' + os.getcwd())
