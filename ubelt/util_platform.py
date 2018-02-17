@@ -256,9 +256,16 @@ def symlink(real_path, link_path, overwrite=False, on_error='raise',
         >>> ub.ensuredir(real_dpath)
         >>> ub.writeto(real_path, 'foo')
         >>> result = symlink(real_dpath, link_dpath)
-        >>> assert ub.readfrom(link_path) == 'foo'
+        >>> assert ub.readfrom(link_path) == 'foo', 'read should be same'
+        >>> ub.writeto(link_path, 'bar')
+        >>> assert ub.readfrom(link_path) == 'bar'
+        >>> assert ub.readfrom(real_path) == 'bar', 'changing link did not change real'
+        >>> ub.writeto(real_path, 'baz')
+        >>> assert ub.readfrom(real_path) == 'bar'
+        >>> assert ub.readfrom(link_path) == 'baz', 'changing real did not change link'
         >>> ub.delete(link_dpath, verbose=0)
-        >>> assert exists(real_path)
+        >>> assert not exists(link_dpath), 'link should not exist'
+        >>> assert exists(real_path), 'real path should exist'
         >>> ub.delete(real_dpath, verbose=0)
         >>> assert not exists(real_path)
 
@@ -288,17 +295,41 @@ def symlink(real_path, link_path, overwrite=False, on_error='raise',
         elif on_error == 'ignore':
             return False
     try:
-        os_symlink = getattr(os, "symlink", None)
-        if callable(os_symlink):
-            os_symlink(path, link)
+        if sys.platform.startswith('win32'):
+            _symlink_win32(path, link)
         else:
-            raise NotImplementedError('')
-            # win_shortcut(path, link)
+            os_symlink = getattr(os, "symlink", None)
+            if os_symlink is None:
+                raise NotImplementedError('')
+            os_symlink(path, link)
     except Exception as ex:
         do_raise = (on_error == 'raise')
         if do_raise:
             raise
     return link
+
+
+def _symlink_win32(path, link):  # nocover
+    """
+    https://stackoverflow.com/questions/6260149/os-symlink-support-in-windows
+    """
+    import os
+    if False:
+        from ubelt import util_cmd
+        if os.path.isdir(path):
+            info = util_cmd.cmd('mklink /D {} {}'.format(link, path), shell=True)
+        else:
+            info = util_cmd.cmd('mklink {} {}'.format(link, path), shell=True)
+        if info['ret'] != 0:
+            raise Exception(str(info))
+    else:
+        import ctypes
+        csl = ctypes.windll.kernel32.CreateSymbolicLinkW
+        csl.argtypes = (ctypes.c_wchar_p, ctypes.c_wchar_p, ctypes.c_uint32)
+        csl.restype = ctypes.c_ubyte
+        flags = 1 if os.path.isdir(path) else 0
+        if csl(link, path, flags) == 0:
+            raise ctypes.WinError('cannot create win32 symlink')
 
 
 if __name__ == '__main__':
