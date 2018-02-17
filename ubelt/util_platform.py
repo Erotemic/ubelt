@@ -264,6 +264,7 @@ def symlink(real_path, link_path, overwrite=False, on_error='raise',
 
     TODO:
         Can this be fixed on windows?
+        The main issue is that you need admin rights on Windows to symlink.
     """
     path = normpath(real_path)
     link = normpath(link_path)

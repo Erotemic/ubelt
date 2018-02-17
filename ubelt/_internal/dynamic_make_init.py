@@ -180,6 +180,7 @@ def dynamic_import(modname, imports=None, ignore_froms=[],
     can be used when the module is 'frozen"
 
     Notes:
+        >>> # DISABLE_DOCTEST
         >>> # The easiest way to use this in your code is to add these lines
         >>> # to the module __init__ file
         >>> from ubelt._internal import dynamic_import

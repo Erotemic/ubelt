@@ -106,7 +106,8 @@ class Cacher(object):
     def _rectify_cfgstr(self, cfgstr=None):
         cfgstr = self.cfgstr if cfgstr is None else cfgstr
         if cfgstr is None:
-            warnings.warn('No cfgstr given in Cacher constructor or call')
+            warnings.warn('No cfgstr given in Cacher constructor or call',
+                          UserWarning)
             cfgstr = ''
         assert self.fname is not None, 'no fname specified in Cacher'
         assert self.dpath is not None, 'no dpath specified in Cacher'
@@ -133,8 +134,10 @@ class Cacher(object):
 
         Example:
             >>> from ubelt.util_cache import Cacher
-            >>> cacher = Cacher('test_cacher1')
-            >>> cacher.get_fpath()
+            >>> import pytest
+            >>> with pytest.warns(UserWarning):
+            >>>     cacher = Cacher('test_cacher1')
+            >>>     cacher.get_fpath()
             >>> self = Cacher('test_cacher2', cfgstr='cfg1')
             >>> self.get_fpath()
             >>> self = Cacher('test_cacher3', cfgstr='cfg1' * 32)

@@ -48,6 +48,7 @@ GLOBAL_MODULES = [
     'util_str',
     'util_stress',
     'util_time',
+    'orderedset',
     'progiter',
     'meta',
 ]
@@ -86,6 +87,7 @@ if _DOELSE:  # pragma: nobranch
     from ubelt import util_str
     from ubelt import util_stress
     from ubelt import util_time
+    from ubelt import orderedset
     from ubelt import progiter
     from ubelt import meta
     from ubelt.util_arg import (argflag, argval,)
@@ -110,7 +112,7 @@ if _DOELSE:  # pragma: nobranch
                                    import_module_from_path,)
     from ubelt.util_mixins import (NiceRepr,)
     from ubelt.util_path import (TempDir, augpath, compressuser, truepath,
-                                 userhome, ensuredir, getcwd, chdir,)
+                                 userhome, ensuredir,)
     from ubelt.util_platform import (DARWIN, LINUX, POSIX, PY2, PY3, WIN32,
                                      editfile, ensure_app_cache_dir,
                                      ensure_app_resource_dir, get_app_cache_dir,
@@ -120,6 +122,7 @@ if _DOELSE:  # pragma: nobranch
                                 ensure_unicode,)
     from ubelt.util_stress import (find_nth_prime,)
     from ubelt.util_time import (Timer, Timerit, timestamp,)
+    from ubelt.orderedset import (OrderedSet, oset,)
     from ubelt.progiter import (ProgIter,)
     
     # </AUTOGEN_INIT>

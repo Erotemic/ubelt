@@ -99,9 +99,12 @@ def test_grabdata_url_only():
 @pytest.mark.timeout(5)
 def test_download_bad_url():
     """
-    Check where the url is downloaded to when fpath is not specified.
+    Check that we error when the url is bad
+
+    CommandLine:
+        python -m ubelt.tests.test_download test_download_bad_url --verbose
     """
-    url = 'http://averyincorrecturl'
+    url = 'http://a-very-incorrect-url'
 
     dpath = ub.ensure_app_cache_dir('ubelt', 'tests')
     fname = basename(url)
@@ -110,8 +113,9 @@ def test_download_bad_url():
     ub.delete(fpath)
     assert not exists(fpath)
 
-    with pytest.raises(Exception):
-        ub.download(url, fpath=fpath)
+    from ubelt.util_download import URLError
+    with pytest.raises(URLError):
+        ub.download(url, fpath=fpath, verbose=1)
 
 
 @pytest.mark.timeout(5)

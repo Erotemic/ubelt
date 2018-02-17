@@ -1,7 +1,6 @@
 import pytest
 import sys
 import ubelt as ub
-import platform
 
 
 def test_cmd_stdout():
