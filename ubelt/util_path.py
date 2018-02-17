@@ -248,11 +248,14 @@ def ensuredir(dpath, mode=0o1777, verbose=None):
         dpath = join(*dpath)
     if not exists(dpath):
         if verbose:  # nocover
-            print('[ubelt] mkdir(%r)' % dpath)
+            print('Ensuring new directory (%r)' % dpath)
         try:
             os.makedirs(normpath(dpath), mode=mode)
         except OSError:  # nocover
             raise
+    else:
+        if verbose:  # nocover
+            print('Ensuring existing directory (%r)' % dpath)
     return dpath
 
 

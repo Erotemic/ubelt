@@ -117,7 +117,7 @@ def readfrom(fpath, aslines=False, errors='replace', verbose=None):
     return text
 
 
-def touch(fpath, mode=0o666, dir_fd=None, **kwargs):
+def touch(fpath, mode=0o666, dir_fd=None, verbose=0, **kwargs):
     r"""
     change file timestamps
 
@@ -128,6 +128,7 @@ def touch(fpath, mode=0o666, dir_fd=None, **kwargs):
         mode (int): file permissions (python3 and unix only)
         dir_fd (file): optional directory file descriptor. If specified, fpath
             is interpreted as relative to this descriptor (python 3 only).
+        verbose (int): verbosity
         **kwargs : extra args passed to `os.utime` (python 3 only).
 
 
@@ -144,6 +145,8 @@ def touch(fpath, mode=0o666, dir_fd=None, **kwargs):
         >>> assert exists(fpath)
         >>> os.unlink(fpath)
     """
+    if verbose:
+        print('Touching file {}'.format(fpath))
     if six.PY2:  # nocover
         with open(fpath, 'a'):
             os.utime(fpath, None)
@@ -180,22 +183,55 @@ def delete(path, verbose=False):
         >>> assert not exists(fpath1)
         >>> ub.delete(dpath1)
         >>> assert not any(map(exists, (dpath1, fpath1, fpath2)))
-
-        # TODO: test that we handle broken links
     """
-    if not os.path.exists(path) or os.path.islink(path):
+    if not os.path.exists(path):
+        # or os.path.islink(path):
         # if the file does exists and is not a broken link
-        if verbose:  # nocover
-            print('Not deleting non-existant path="{}"'.format(path))
+        if os.path.islink(path):
+            # if not exists(os.readlink(path)):
+            if verbose:  # nocover
+                print('Deleting broken link="{}"'.format(path))
+            os.unlink(path)
+        else:
+            if verbose:  # nocover
+                print('Not deleting non-existant path="{}"'.format(path))
     else:
-        if os.path.isfile(path) or os.path.islink(path):
+        if os.path.islink(path):
+            if verbose:  # nocover
+                print('Deleting symbolic link="{}"'.format(path))
+            os.unlink(path)
+        elif os.path.isfile(path):
             if verbose:  # nocover
                 print('Deleting file="{}"'.format(path))
             os.unlink(path)
         elif os.path.isdir(path):
-            if verbose:  # nocover
-                print('Deleting directory="{}"'.format(path))
-            shutil.rmtree(path)
+            if sys.platform.startswith('win32'):  # nocover
+                from ubelt import util_platform
+                if util_platform._win32_is_junction(path):
+                    if verbose:  # nocover
+                        print('Deleting <JUNCTION> directory="{}"'.format(path))
+                    os.rmdir(path)
+                else:
+                    if verbose:  # nocover
+                        print('Deleting directory="{}"'.format(path))
+                    pass
+                    # There is a known issue that prevents deleting directories
+                    # with junctions.
+                    # https://bugs.python.org/issue31226
+                    def onerror(islink, path, exec_info):
+                        print('Error handling {}'.format(path))
+                        if util_platform._win32_is_junction(path):
+                            os.rmdir(path)
+                    # try:
+                    shutil.rmtree(path, onerror=onerror)
+                    # except WindowsError as ex:
+                    #     # we may be trying to delete a junction
+                    #     if '[Error 3]' in ex.message:
+                    #         shutil.rmtree(path, ignore_errors=True)
+            else:
+                if verbose:  # nocover
+                    print('Deleting directory="{}"'.format(path))
+                shutil.rmtree(path)
 
 
 if __name__ == '__main__':
