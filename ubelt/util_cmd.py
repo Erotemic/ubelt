@@ -167,7 +167,7 @@ def _tee_output(make_proc, stdout=None, stderr=None, backend='auto'):
     proc = make_proc()
     for oline, eline in _proc_iteroutput(proc):
         if oline:
-            if stdout:
+            if stdout:  # pragma: nobranch
                 stdout.write(oline)
                 stdout.flush()
             logged_out.append(oline)
@@ -320,22 +320,23 @@ def cmd(command, shell=False, detatch=False, verbose=0, verbout=None,
             print('...detatching')
     else:
         if verbout:
+            # we need to tee output nad start threads if verbout is False?
             stdout, stderr = sys.stdout, sys.stderr
+            proc, logged_out, logged_err = _tee_output(make_proc, stdout, stderr,
+                                                       backend=tee)
+
+            try:
+                out = ''.join(logged_out)
+            except UnicodeDecodeError:  # nocover
+                out = '\n'.join(_.decode('utf-8') for _ in logged_out)
+            try:
+                err = ''.join(logged_err)
+            except UnicodeDecodeError:  # nocover
+                err = '\n'.join(_.decode('utf-8') for _ in logged_err)
+            (out_, err_) = proc.communicate()
         else:
-            stdout, stderr = None, None
-
-        proc, logged_out, logged_err = _tee_output(make_proc, stdout, stderr,
-                                                   backend=tee)
-
-        try:
-            out = ''.join(logged_out)
-        except UnicodeDecodeError:  # nocover
-            out = '\n'.join(_.decode('utf-8') for _ in logged_out)
-        try:
-            err = ''.join(logged_err)
-        except UnicodeDecodeError:  # nocover
-            err = '\n'.join(_.decode('utf-8') for _ in logged_err)
-        (out_, err_) = proc.communicate()
+            proc = make_proc()
+            (out, err) = proc.communicate()
         # calling wait means that the process will terminate and it is safe to
         # return a reference to the process object.
         ret = proc.wait()

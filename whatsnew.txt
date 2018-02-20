@@ -1,8 +1,12 @@
 version: 0.0.41
 ---------------
 ENH: Added base to `augpath`
-ENH: Added symlink function
-ENH: Added getcwd function that **attempts** respects symlinks
+ENH: Added symlink function that works on unix and windows*.
+(*if use has symlink permissions, it works just like unix without caveats.
+  Otherwise ub.symlink falls back to using junctions and hard links, 
+  which should still work mostly the same, except os.path.islink and
+  os.readlink will not work among other minor issues).
+ENH: ub.delete now treats nested junctions as symlinks, unlike `shutil.rmtree`.
 
 
 version: 0.0.40

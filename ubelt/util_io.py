@@ -193,6 +193,16 @@ def delete(path, verbose=False):
             if verbose:  # nocover
                 print('Deleting broken link="{}"'.format(path))
             os.unlink(path)
+        elif os.path.isdir(path):  # nocover
+            # Only on windows will a file be a directory and not exist
+            if verbose:
+                print('Deleting broken directory link="{}"'.format(path))
+            os.rmdir(path)
+        elif os.path.isfile(path):  # nocover
+            # Not sure if this can happen, but just in case (windows)...
+            if verbose:
+                print('Deleting broken file link="{}"'.format(path))
+            os.unlink(path)
         else:
             if verbose:  # nocover
                 print('Not deleting non-existant path="{}"'.format(path))
@@ -209,8 +219,8 @@ def delete(path, verbose=False):
             if sys.platform.startswith('win32'):  # nocover
                 # Workaround bug that prevents shutil from working if
                 # the directory cointains junctions
-                from ubelt import util_platform
-                util_platform._win32_rmtree(path, verbose=verbose)
+                from ubelt import _win32_links
+                _win32_links._win32_rmtree(path, verbose=verbose)
             else:
                 if verbose:  # nocover
                     print('Deleting directory="{}"'.format(path))

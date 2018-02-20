@@ -1,2 +1,3 @@
 # pywin32 == 220
 # pypiwin32 == 219
+jaraco.windows
