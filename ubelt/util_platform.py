@@ -335,7 +335,8 @@ def symlink(real_path, link_path, overwrite=False, verbose=0):
                     raise IOError('Cannot overwrite a real directory')
 
             elif os.path.isfile(link):
-                if os.stat(link).st_ino == os.stat(path).st_ino:
+                # if os.stat(link).st_ino == os.stat(path).st_ino:
+                if _win32_hardlinks_equal(link, path):
                     if verbose:
                         print('...and is a hard link that points to the same place')
                     return link
@@ -356,6 +357,43 @@ def symlink(real_path, link_path, overwrite=False, verbose=0):
     else:
         os.symlink(path, link)
     return link
+
+
+def _win32_hardlinks_equal(fpath1, fpath2):  # nocover
+    """
+    http://timgolden.me.uk/python/win32_how_do_i/see_if_two_files_are_the_same_file.html
+    """
+    import win32file
+
+    def get_read_handle(filename):
+        if os.path.isdir(filename):
+            dwFlagsAndAttributes = win32file.FILE_FLAG_BACKUP_SEMANTICS
+        else:
+            dwFlagsAndAttributes = 0
+        return win32file.CreateFile(filename, win32file.GENERIC_READ,
+                                    win32file.FILE_SHARE_READ, None,
+                                    win32file.OPEN_EXISTING,
+                                    dwFlagsAndAttributes, None)
+
+    def get_unique_id(hFile):
+        (attributes,
+         created_at, accessed_at, written_at,
+         volume,
+         file_hi, file_lo,
+         n_links,
+         index_hi, index_lo) = win32file.GetFileInformationByHandle(hFile)
+        return volume, index_hi, index_lo
+
+    try:
+        hFile1 = get_read_handle(fpath1)
+        hFile2 = get_read_handle(fpath2)
+        are_equal = (get_unique_id(hFile1) == get_unique_id(hFile2))
+    except Exception:
+        raise
+    finally:
+        hFile1.Close()
+        hFile2.Close()
+    return are_equal
 
 
 def _readlink(link):
@@ -567,7 +605,8 @@ def _win32_rmtree(path, verbose=0):
                 subdirs.append(name)
             elif type_or_size == '<JUNCTION>':
                 # remove any junctions as we encounter them
-                os.unlink(join(root, name))
+                # os.unlink(join(root, name))
+                os.rmdir(join(root, name))
         # recurse in all real directories
         for name in subdirs:
             _rmjunctions(join(root, name))
@@ -575,7 +614,7 @@ def _win32_rmtree(path, verbose=0):
     if _win32_is_junction(path):
         if verbose:
             print('Deleting <JUNCTION> directory="{}"'.format(path))
-        os.unlink(path)
+        os.rmdir(path)
     else:
         if verbose:
             print('Deleting directory="{}"'.format(path))
