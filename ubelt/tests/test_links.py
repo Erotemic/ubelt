@@ -215,7 +215,7 @@ def dirstats(dpath=None):
         L = os.path.islink(full_path)
         F = os.path.isfile(full_path)
         D = os.path.isdir(full_path)
-        J = util_platform._win32_is_junction(full_path)
+        J = ub.WIN32 and util_platform._win32_links._win32_is_junction(full_path)
         ELFD = [E, L, F, D]
         ELFDJ = [E, L, F, D, J]
         if ELFD == [1, 0, 0, 1]:
