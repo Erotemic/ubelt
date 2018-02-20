@@ -239,11 +239,11 @@ def symlink(real_path, link_path, overwrite=False, verbose=0):
         str: link path
 
     CommandLine:
-        python -m ubelt.util_platform symlink
+        python -m ubelt.util_platform symlink:0
 
     Example:
         >>> import ubelt as ub
-        >>> dpath = ub.get_app_resource_dir('ubelt')
+        >>> dpath = ub.ensure_app_cache_dir('ubelt', 'test_symlink0')
         >>> real_path = join(dpath, 'real_file.txt')
         >>> link_path = join(dpath, 'link_file.txt')
         >>> [ub.delete(p) for p in [real_path, link_path]]
@@ -256,7 +256,7 @@ def symlink(real_path, link_path, overwrite=False, verbose=0):
         >>> import ubelt as ub
         >>> from os.path import dirname
         >>> test_links = ub.import_module_from_path(dirname(__file__) + '/tests/test_links.py')
-        >>> dpath = ub.ensure_app_resource_dir('ubelt', 'test_symlink')
+        >>> dpath = ub.ensure_app_cache_dir('ubelt', 'test_symlink1')
         >>> ub.delete(dpath)
         >>> ub.ensuredir(dpath)
         >>> test_links.dirstats(dpath)
@@ -309,17 +309,50 @@ def symlink(real_path, link_path, overwrite=False, verbose=0):
             util_io.delete(link, verbose > 1)
 
     if WIN32:  # nocover
-        if not _can_symlink():
-            # we can't tell if `link` was actually a symlink, so just delete
-            # it. TODO: however, we may be able to tell if it was the last
-            # reference to the real file, data in which case we may be able to
-            # do something about it.
-            if exists(link):
+        if exists(link) and not islink(link):
+            # On windows a broken link might still exist as a hard link or a
+            # junction. Overwrite it if it is a file and we cannot symlink.
+            # However, if it is a non-junction directory then do not overwrite
+            if verbose:
+                print('link location already exists')
+            is_junc = _win32_is_junction(link)
+            if os.path.isdir(link):
+                if is_junc:
+                    pointed = _win32_read_junction(link)
+                    if path == pointed:
+                        if verbose:
+                            print('...and is a junction that points to the same place')
+                        return link
+                    else:
+                        if verbose:
+                            if not exists(pointed):
+                                print('...and is a broken junction that points somewhere else')
+                            else:
+                                print('...and is a junction that points somewhere else')
+                else:
+                    if verbose:
+                        print('...and is an existing real directory!')
+                    raise IOError('Cannot overwrite a real directory')
+
+            elif os.path.isfile(link):
+                if os.stat(link).st_ino == os.stat(path).st_ino:
+                    if verbose:
+                        print('...and is a hard link that points to the same place')
+                    return link
+                else:
+                    if verbose:
+                        print('...and is a hard link that points somewhere else')
+                    if _can_symlink():
+                        raise IOError('Cannot overwrite potentially real file if we can symlink')
+            if overwrite:
                 if verbose:
-                    print('(junction) symlink already exists, deleting it')
-                if overwrite:
-                    util_io.delete(link, verbose > 1)
-        _symlink_win32(path, link)
+                    print('...overwriting')
+                util_io.delete(link, verbose > 1)
+            else:
+                if exists(link):
+                    raise IOError('Link already exists')
+
+        _win32_symlink2(path, link)
     else:
         os.symlink(path, link)
     return link
@@ -351,6 +384,7 @@ def _can_symlink(verbose=0):  # nocover
         >>> print(_can_symlink(verbose=1))
     """
     if WIN32:
+        return False
         return _win32_can_symlink(verbose)
     else:
         return True
@@ -364,6 +398,8 @@ def _win32_can_symlink(verbose=0):  # nocover
         return __win32_can_symlink__
 
     tempdir = ensure_app_cache_dir('ubelt', '_win32_can_symlink')
+    # import shutil
+    # shutil.rmtree(tempdir)
     util_io.delete(tempdir)
     util_path.ensuredir(tempdir)
 
@@ -376,7 +412,7 @@ def _win32_can_symlink(verbose=0):  # nocover
     util_io.touch(fpath)
 
     try:
-        _symlink_win32(dpath, dlink, allow_fallback=False)
+        _win32_symlink(dpath, dlink)
         can_symlink_directories = True
         # os.path.islink(dlink)
     except OSError:
@@ -385,7 +421,7 @@ def _win32_can_symlink(verbose=0):  # nocover
         print('can_symlink_directories = {!r}'.format(can_symlink_directories))
 
     try:
-        _symlink_win32(fpath, flink, allow_fallback=False)
+        _win32_symlink(fpath, flink)
         can_symlink_files = True
         # os.path.islink(flink)
     except OSError:
@@ -399,8 +435,8 @@ def _win32_can_symlink(verbose=0):  # nocover
 
     try:
         # test that we can create junctions, even if symlinks are disabled
-        _junction_win32(dpath, dlink)
-        _junction_win32(fpath, flink)
+        _win32_junction(dpath, join(tempdir, 'djunc'))
+        _win32_junction(fpath, join(tempdir, 'fjunc.txt'))
     except Exception:
         warnings.warn('We cannot create junctions either!')
         raise
@@ -410,15 +446,21 @@ def _win32_can_symlink(verbose=0):  # nocover
 
     can_symlink = can_symlink_directories and can_symlink_files
     __win32_can_symlink__ = can_symlink
-    print('can_symlink = {!r}'.format(can_symlink))
-    print('__win32_can_symlink__ = {!r}'.format(__win32_can_symlink__))
+    if not can_symlink:
+        warnings.warn('Cannot make real symlink. Falling back to junction')
+
+    if verbose:
+        print('can_symlink = {!r}'.format(can_symlink))
+        print('__win32_can_symlink__ = {!r}'.format(__win32_can_symlink__))
     return can_symlink
 
 
-def _junction_win32(path, link):
+def _win32_junction(path, link):
     """
     On older (pre 10) versions of windows we need admin privledges to make
     symlinks, however junctions seem to work.
+
+    For paths we do a junction (softlink) and for files we use a hard link
 
     TODO:
         # Need code to test if path is a junction
@@ -430,34 +472,186 @@ def _junction_win32(path, link):
     # if platform.release() == '7':
     if isdir(path):
         # try using a junction (soft link)
-        command = 'mklink /J {} {}'.format(link, path)
+        command = 'mklink /J "{}" "{}"'.format(link, path)
     else:
         # try using a hard link
-        command = 'mklink /H {} {}'.format(link, path)
+        command = 'mklink /H "{}" "{}"'.format(link, path)
     info = util_cmd.cmd(command, shell=True)
     if info['ret'] != 0:
+        from ubelt import util_format
+        print('Failed command:')
+        print(info['command'])
+        print(util_format.repr2(info, nl=1))
         raise OSError(str(info))
 
 
 def _win32_is_junction(path):
+    """
+    Determines if a path is a win32 junction
+    """
+    if not exists(path):
+        return False
+    try:
+        return _win32_read_junction(path) is not None
+    except (ValueError, OSError):
+        return False
+
+
+def _win32_read_junction(path):
+    """
+    Returns the location that the junction points, raises ValueError if path is
+    not a junction.
+
+    CommandLine:
+        python -m ubelt.util_platform _win32_read_junction
+
+    Example:
+        >>> # DISABLE_DOCTEST
+        >>> # xdoc: +REQUIRES(WIN32)
+        >>> import ubelt as ub
+        >>> root = ub.ensure_app_cache_dir('ubelt', 'win32_symlink')
+        >>> ub.delete(root)
+        >>> ub.ensuredir(root)
+        >>> fpath = join(root, 'fpath.txt')
+        >>> dpath = join(root, 'dpath')
+        >>> fjunc = join(root, 'fjunc.txt')
+        >>> djunc = join(root, 'djunc')
+        >>> ub.touch(fpath)
+        >>> ub.ensuredir(dpath)
+        >>> ub.ensuredir(join(root, 'djunc_fake'))
+        >>> ub.ensuredir(join(root, 'djunc_fake with space'))
+        >>> ub.touch(join(root, 'djunc_fake with space file'))
+        >>> _win32_junction(fpath, fjunc)
+        >>> _win32_junction(dpath, djunc)
+        >>> # thank god colons are not allowed
+        >>> djunc2 = join(root, 'djunc2 [with pathological attrs]')
+        >>> _win32_junction(dpath, djunc2)
+        >>> _win32_is_junction(djunc)
+        >>> ub.writeto(join(djunc, 'afile.txt'), 'foo')
+        >>> assert ub.readfrom(join(dpath, 'afile.txt')) == 'foo'
+        >>> ub.writeto(fjunc, 'foo')
+
+
+        # >>> if not _win32_can_symlink(verbose=1):
+        # ...     import pytest
+        # ...     pytest.skip()
+
+    """
     if not WIN32:
         return False
     if not exists(path):
-        return False
-    # util_cmd.cmd('cmd \C"dir {}"')
+        if six.PY2:
+            raise OSError('Cannot find path={}'.format(path))
+        else:
+            raise FileNotFoundError('Cannot find path={}'.format(path))
+    target_name = os.path.basename(path)
+    for type_or_size, name, pointed in _win32_dir(path, '*'):
+        if type_or_size == '<JUNCTION>' and name == target_name:
+            return pointed
+    raise ValueError('not a junction')
+
+
+def _win32_rmtree(path, verbose=0):
+    """
+    rmtree for win32 that treats junctions like directory symlinks.
+    The junction removal portion may not be safe on race conditions.
+
+    There is a known issue that prevents shutil.rmtree from
+    deleting directories with junctions.
+    https://bugs.python.org/issue31226
+    """
+    def _rmjunctions(root):
+        subdirs = []
+        for type_or_size, name, pointed in _win32_dir(root):
+            if type_or_size == '<DIR>':
+                subdirs.append(name)
+            elif type_or_size == '<JUNCTION>':
+                # remove any junctions as we encounter them
+                os.unlink(join(root, name))
+        # recurse in all real directories
+        for name in subdirs:
+            _rmjunctions(join(root, name))
+
+    if _win32_is_junction(path):
+        if verbose:
+            print('Deleting <JUNCTION> directory="{}"'.format(path))
+        os.unlink(path)
+    else:
+        if verbose:
+            print('Deleting directory="{}"'.format(path))
+        # first remove all junctions
+        _rmjunctions(path)
+        # now we can rmtree as normal
+        import shutil
+        shutil.rmtree(path)
+
+
+def _win32_dir(path, star=''):
     from ubelt import util_cmd
-    info = util_cmd.cmd('dir "{}"*'.format(path), shell=True)
+    import re
+    wrapper = 'cmd /S /C "{}"'  # the /S will preserve all inner quotes
+    command = 'dir /-C "{}"{}'.format(path, star)
+    wrapped = wrapper.format(command)
+    info = util_cmd.cmd(wrapped, shell=True)
     if info['ret'] != 0:
+        from ubelt import util_format
+        print('Failed command:')
+        print(info['command'])
+        print(util_format.repr2(info, nl=1))
         raise OSError(str(info))
-    lines = info['out'].split('\n')
+    # parse the output of dir to get some info
+    # Remove header and footer
+    lines = info['out'].split('\n')[5:-3]
+    splitter = re.compile('( +)')
     for line in lines:
-        # not quite robust, but almost
-        if '<JUNCTION>' in line:
-            return True
-    return False
+        parts = splitter.split(line)
+        date, sep, time, sep, ampm, sep, type_or_size, sep = parts[:8]
+        name = ''.join(parts[8:])
+        # if type is a junction then name will also contain the linked loc
+        if name == '.' or name == '..':
+            continue
+        if type_or_size in ['<JUNCTION>', '<SYMLINKD>', '<SYMLINK>']:
+            # colons cannot be in path names, so use that to find where
+            # the name ends
+            pos = name.find(':')
+            bpos = name[:pos].rfind('[')
+            name = name[:bpos - 1]
+            pointed = name[bpos + 1:-1]
+            yield type_or_size, name, pointed
+        else:
+            yield type_or_size, name, None
 
 
-def _symlink_win32(path, link, allow_fallback=True):  # nocover
+def _win32_symlink(path, link):  # nocover
+    from ubelt import util_cmd
+    # # This strategy requires admin permissions
+    # import ctypes
+    # csl = ctypes.windll.kernel32.CreateSymbolicLinkW
+    # csl.argtypes = (ctypes.c_wchar_p, ctypes.c_wchar_p, ctypes.c_uint32)
+    # csl.restype = ctypes.c_ubyte
+    # flags = 1 if isdir(path) else 0
+    # if csl(link, path, flags) == 0:
+    #     raise ctypes.WinError('cannot create win32 symlink')
+
+    # This strategy requires development mode to be on I believe.
+    if isdir(path):
+        # directory symbolic link
+        command = 'mklink /D "{}" "{}"'.format(link, path)
+    else:
+        # file symbolic link
+        command = 'mklink "{}" "{}"'.format(link, path)
+    info = util_cmd.cmd(command, shell=True)
+    if info['ret'] != 0:
+        from ubelt import util_format
+        permission_msg = 'You do not have sufficient privledges'
+        if permission_msg not in info['err']:
+            print('Failed command:')
+            print(info['command'])
+            print(util_format.repr2(info, nl=1))
+        raise OSError(str(info))
+
+
+def _win32_symlink2(path, link, allow_fallback=True):  # nocover
     """
     Perform a real symbolic link if possible. However, on most versions of
     windows you need special privledges to create a real symlink. Therefore, we
@@ -475,33 +669,10 @@ def _symlink_win32(path, link, allow_fallback=True):  # nocover
         https://msdn.microsoft.com/en-us/library/windows/desktop/aa365006(v=vs.85).aspx
         https://superuser.com/a/902082/215232
     """
-    from ubelt import util_cmd
-    # # This strategy requires admin permissions
-    # import ctypes
-    # csl = ctypes.windll.kernel32.CreateSymbolicLinkW
-    # csl.argtypes = (ctypes.c_wchar_p, ctypes.c_wchar_p, ctypes.c_uint32)
-    # csl.restype = ctypes.c_ubyte
-    # flags = 1 if isdir(path) else 0
-    # if csl(link, path, flags) == 0:
-    #     raise ctypes.WinError('cannot create win32 symlink')
-
-    try:
-        # This strategy requires development mode to be on I believe.
-        if isdir(path):
-            # directory symbolic link
-            command = 'mklink /D {} {}'.format(link, path)
-        else:
-            # file symbolic link
-            command = 'mklink {} {}'.format(link, path)
-        info = util_cmd.cmd(command, shell=True)
-        if info['ret'] != 0:
-            raise OSError(str(info))
-    except OSError:
-        if allow_fallback:
-            warnings.warn('Cannot make real symlink. Falling back to junction')
-            _junction_win32(path, link)
-        else:
-            raise
+    if _can_symlink():
+        _win32_symlink(path, link)
+    else:
+        _win32_junction(path, link)
 
 
 if __name__ == '__main__':

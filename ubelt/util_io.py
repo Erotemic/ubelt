@@ -184,6 +184,7 @@ def delete(path, verbose=False):
         >>> ub.delete(dpath1)
         >>> assert not any(map(exists, (dpath1, fpath1, fpath2)))
     """
+    verbose = 4
     if not os.path.exists(path):
         # or os.path.islink(path):
         # if the file does exists and is not a broken link
@@ -206,28 +207,10 @@ def delete(path, verbose=False):
             os.unlink(path)
         elif os.path.isdir(path):
             if sys.platform.startswith('win32'):  # nocover
+                # Workaround bug that prevents shutil from working if
+                # the directory cointains junctions
                 from ubelt import util_platform
-                if util_platform._win32_is_junction(path):
-                    if verbose:  # nocover
-                        print('Deleting <JUNCTION> directory="{}"'.format(path))
-                    os.rmdir(path)
-                else:
-                    if verbose:  # nocover
-                        print('Deleting directory="{}"'.format(path))
-                    pass
-                    # There is a known issue that prevents deleting directories
-                    # with junctions.
-                    # https://bugs.python.org/issue31226
-                    def onerror(islink, path, exec_info):
-                        print('Error handling {}'.format(path))
-                        if util_platform._win32_is_junction(path):
-                            os.rmdir(path)
-                    # try:
-                    shutil.rmtree(path, onerror=onerror)
-                    # except WindowsError as ex:
-                    #     # we may be trying to delete a junction
-                    #     if '[Error 3]' in ex.message:
-                    #         shutil.rmtree(path, ignore_errors=True)
+                util_platform._win32_rmtree(path, verbose=verbose)
             else:
                 if verbose:  # nocover
                     print('Deleting directory="{}"'.format(path))
