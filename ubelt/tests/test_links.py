@@ -203,7 +203,7 @@ def dirstats(dpath=None):
         dpath = os.getcwd()
     print('===============')
     print('Listing for dpath={}'.format(dpath))
-    print('E L F D - path')
+    print('E L F D J - path')
     print('--------------')
     if not os.path.exists(dpath):
         print('... does not exist')
@@ -217,6 +217,7 @@ def dirstats(dpath=None):
         D = os.path.isdir(full_path)
         J = util_platform._win32_is_junction(full_path)
         ELFD = [E, L, F, D]
+        ELFDJ = [E, L, F, D, J]
         if ELFD == [1, 0, 0, 1]:
             path = ub.color_text(path, 'blue')
         elif ELFD == [1, 0, 1, 0]:
@@ -229,6 +230,10 @@ def dirstats(dpath=None):
             path = ub.color_text(path, 'red')
         elif ELFD == [0, 1, 0, 1]:
             pass
+        elif ELFD == [0, 0, 0, 1]:
+            pass
+        elif ELFD == [0, 0, 1, 0]:
+            pass
             # path = ub.color_text(path, 'red')
         elif ELFD == [0, 0, 0, 0]:
             print('path = {!r}'.format(path))
@@ -239,7 +244,7 @@ def dirstats(dpath=None):
             print('path = {!r}'.format(path))
             print('dpath = {!r}'.format(dpath))
             print('\n'.join(sorted(entries)))
-            raise AssertionError(str(ELFD) + str(path))
+            raise AssertionError(str(ELFDJ) + str(path))
         line = '{E:d} {L:d} {F:d} {D:d} {J:d} - {path}'.format(**locals())
         if os.path.islink(full_path):
             line += ' -> ' + os.readlink(full_path)
@@ -310,11 +315,11 @@ def test_overwrite_symlink():
         ub.symlink(happy_fpath, happy_flink, verbose=verbose)
 
         # Creating a duplicate link
-        import six
-        import sys
-        if not six.PY2 and sys.platform.startswith('win32'):
-            dirstats(dpath)
-            ub.symlink(happy_fpath, happy_flink, verbose=verbose)
+        # import six
+        # import sys
+        # if not six.PY2 and sys.platform.startswith('win32'):
+        dirstats(dpath)
+        ub.symlink(happy_fpath, happy_flink, verbose=verbose)
 
         dirstats(dpath)
         with pytest.raises(Exception):  # file exists error
