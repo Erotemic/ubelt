@@ -10,6 +10,10 @@ References:
     https://stackoverflow.com/questions/6260149/os-symlink-support-in-windows
     https://msdn.microsoft.com/en-us/library/windows/desktop/aa365006(v=vs.85).aspx
     https://superuser.com/a/902082/215232
+
+Weird Behavior:
+    - [ ] In many cases using the win32 API seems to result in privilege errors
+          but using shell commands does not have this problem.
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import os
@@ -21,37 +25,8 @@ from ubelt import util_path
 import sys
 
 if sys.platform.startswith('win32'):
-    import win32file
     import jaraco.windows.filesystem as jwfs
     # import jaraco.windows.filesystem
-
-# import ctypes
-# import ctypes.wintypes as wintypes
-# from ctypes import Structure
-# from ctypes import byref
-# FILE_ATTRIBUTE_DIRECTORY = 16  # (0x10)
-# FILE_ATTRIBUTE_REPARSE_POINT = 1024  # (0x400)
-# MAX_PATH = 260
-
-# GetLastError = ctypes.windll.kernel32.GetLastError
-
-
-# class FILETIME(Structure):
-#     _fields_ = [("dwLowDateTime", wintypes.DWORD),
-#                 ("dwHighDateTime", wintypes.DWORD)]
-
-
-# class WIN32_FIND_DATAW(Structure):
-#     _fields_ = [("dwFileAttributes", wintypes.DWORD),
-#                 ("ftCreationTime", FILETIME),
-#                 ("ftLastAccessTime", FILETIME),
-#                 ("ftLastWriteTime", FILETIME),
-#                 ("nFileSizeHigh", wintypes.DWORD),
-#                 ("nFileSizeLow", wintypes.DWORD),
-#                 ("dwReserved0", wintypes.DWORD),
-#                 ("dwReserved1", wintypes.DWORD),
-#                 ("cFileName", wintypes.WCHAR * MAX_PATH),
-#                 ("cAlternateFileName", wintypes.WCHAR * 20)]
 
 
 __win32_can_symlink__ = None
@@ -202,23 +177,28 @@ def _win32_symlink(path, link, verbose=0):  # nocover
     # This strategy requires development mode to be on I believe.
     if os.path.isdir(path):
         # directory symbolic link
-        command = 'mklink /D "{}" "{}"'.format(link, path)
         if verbose:
             print('... as directory symlink')
+        command = 'mklink /D "{}" "{}"'.format(link, path)
+        # Using the win32 API seems to result in privilege errors
+        # but using shell commands does not have this problem. Weird.
+        # jwfs.symlink(path, link, target_is_directory=True)
     else:
         # file symbolic link
-        command = 'mklink "{}" "{}"'.format(link, path)
         if verbose:
             print('... as file symlink')
-    info = util_cmd.cmd(command, shell=True)
-    if info['ret'] != 0:
-        from ubelt import util_format
-        permission_msg = 'You do not have sufficient privledges'
-        if permission_msg not in info['err']:
-            print('Failed command:')
-            print(info['command'])
-            print(util_format.repr2(info, nl=1))
-        raise OSError(str(info))
+        command = 'mklink "{}" "{}"'.format(link, path)
+
+    if command is not None:
+        info = util_cmd.cmd(command, shell=True)
+        if info['ret'] != 0:
+            from ubelt import util_format
+            permission_msg = 'You do not have sufficient privledges'
+            if permission_msg not in info['err']:
+                print('Failed command:')
+                print(info['command'])
+                print(util_format.repr2(info, nl=1))
+            raise OSError(str(info))
     return link
 
 
@@ -272,16 +252,19 @@ def _win32_junction(path, link, verbose=0):
             print('... as soft link')
     else:
         # try using a hard link
+        # jwfs.link(path, link)
         command = 'mklink /H "{}" "{}"'.format(link, path)
         if verbose:
             print('... as hard link')
-    info = util_cmd.cmd(command, shell=True)
-    if info['ret'] != 0:
-        from ubelt import util_format
-        print('Failed command:')
-        print(info['command'])
-        print(util_format.repr2(info, nl=1))
-        raise OSError(str(info))
+
+    if command is not None:
+        info = util_cmd.cmd(command, shell=True)
+        if info['ret'] != 0:
+            from ubelt import util_format
+            print('Failed command:')
+            print(info['command'])
+            print(util_format.repr2(info, nl=1))
+            raise OSError(str(info))
     return link
 
 
@@ -384,7 +367,11 @@ def _win32_read_junction(path):
                 "Expected <2684354563 or 2684354572>, but got %d" % rdb.tag)
 
     jwfs.handle_nonzero_success(jwfs.api.CloseHandle(handle))
-    return rdb.get_substitute_name()[2:]
+    subname = rdb.get_substitute_name()
+    # probably has something to do with long paths, not sure
+    if subname.startswith('?\\'):
+        subname = subname[2:]
+    return subname
 
 
 def _win32_rmtree(path, verbose=0):
@@ -476,42 +463,62 @@ def _win32_dir(path, star=''):
 def _win32_is_hardlinked(fpath1, fpath2):  # nocover
     """
     Test if two hard links point to the same location
+
+    CommandLine:
+        python -m ubelt._win32_links _win32_is_hardlinked
+
+    Example:
+        >>> # xdoc: +REQUIRES(WIN32)
+        >>> import ubelt as ub
+        >>> root = ub.ensure_app_cache_dir('ubelt', 'win32_hardlink')
+        >>> ub.delete(root)
+        >>> ub.ensuredir(root)
+        >>> fpath1 = join(root, 'fpath1')
+        >>> fpath2 = join(root, 'fpath2')
+        >>> ub.touch(fpath1)
+        >>> ub.touch(fpath2)
+        >>> fjunc1 = _win32_junction(fpath1, join(root, 'fjunc1'))
+        >>> fjunc2 = _win32_junction(fpath2, join(root, 'fjunc2'))
+        >>> assert _win32_is_hardlinked(fjunc1, fpath1)
+        >>> assert _win32_is_hardlinked(fjunc2, fpath2)
+        >>> assert not _win32_is_hardlinked(fjunc2, fpath1)
+        >>> assert not _win32_is_hardlinked(fjunc1, fpath2)
     """
-    # TODO: can we use jw for this?
-    def get_read_handle(filename):
-        if os.path.isdir(filename):
-            dwFlagsAndAttributes = win32file.FILE_FLAG_BACKUP_SEMANTICS
+    # NOTE: jwf.samefile(fpath1, fpath2) seems to behave differently
+    def get_read_handle(fpath):
+        if os.path.isdir(fpath):
+            dwFlagsAndAttributes = jwfs.api.FILE_FLAG_BACKUP_SEMANTICS
         else:
             dwFlagsAndAttributes = 0
-        return win32file.CreateFile(filename, win32file.GENERIC_READ,
-                                    win32file.FILE_SHARE_READ, None,
-                                    win32file.OPEN_EXISTING,
+        hFile = jwfs.api.CreateFile(fpath, jwfs.api.GENERIC_READ,
+                                    jwfs.api.FILE_SHARE_READ, None,
+                                    jwfs.api.OPEN_EXISTING,
                                     dwFlagsAndAttributes, None)
+        return hFile
 
     def get_unique_id(hFile):
-        (attributes,
-         created_at, accessed_at, written_at,
-         volume,
-         file_hi, file_lo,
-         n_links,
-         index_hi, index_lo) = win32file.GetFileInformationByHandle(hFile)
-        return volume, index_hi, index_lo
+        info = jwfs.api.BY_HANDLE_FILE_INFORMATION()
+        res = jwfs.api.GetFileInformationByHandle(hFile, info)
+        jwfs.handle_nonzero_success(res)
+        unique_id = (info.volume_serial_number, info.file_index_high,
+                     info.file_index_low)
+        return unique_id
 
+    hFile1 = get_read_handle(fpath1)
+    hFile2 = get_read_handle(fpath2)
     try:
-        hFile1 = get_read_handle(fpath1)
-        hFile2 = get_read_handle(fpath2)
         are_equal = (get_unique_id(hFile1) == get_unique_id(hFile2))
     except Exception:
         raise
     finally:
-        hFile1.Close()
-        hFile2.Close()
+        jwfs.api.CloseHandle(hFile1)
+        jwfs.api.CloseHandle(hFile2)
     return are_equal
 
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m ubelt._win32_links
+        python -m ubelt._win32_links all
     """
     import xdoctest
     xdoctest.doctest_module(__file__)
