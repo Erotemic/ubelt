@@ -1,3 +1,7 @@
+"""
+TODO: test _can_symlink=False variants on systems that can symlink.
+"""
+
 from os.path import isdir
 from os.path import isfile
 from os.path import join, exists, islink
@@ -209,7 +213,8 @@ def dirstats(dpath=None):
         print('... does not exist')
         return
     entries = []
-    for path in sorted(os.listdir(dpath)):
+    paths = sorted(os.listdir(dpath))
+    for path in paths:
         full_path = join(dpath, path)
         E = os.path.exists(full_path)
         L = os.path.islink(full_path)
@@ -218,28 +223,33 @@ def dirstats(dpath=None):
         J = ub.WIN32 and util_platform._win32_links._win32_is_junction(full_path)
         ELFD = [E, L, F, D]
         ELFDJ = [E, L, F, D, J]
-        if ELFD == [1, 0, 0, 1]:
-            path = ub.color_text(path, 'blue')
-        elif ELFD == [1, 0, 1, 0]:
-            path = ub.color_text(path, 'white')
-        elif ELFD == [1, 1, 0, 1]:
+        if   ELFDJ == [1, 0, 0, 1, 0]:
+            # A directory
             path = ub.color_text(path, 'green')
-        elif ELFD == [1, 1, 1, 0]:
+        elif ELFDJ == [1, 0, 1, 0, 0]:
+            # A file (or a hard link they are indistinguishable with one query)
+            path = ub.color_text(path, 'white')
+        elif ELFDJ == [1, 0, 0, 1, 1]:
+            # A directory junction
             path = ub.color_text(path, 'yellow')
-        elif ELFD == [0, 1, 0, 0]:
+        elif ELFDJ == [1, 1, 1, 0, 0]:
+            # A file link
+            path = ub.color_text(path, 'turquoise')
+        elif ELFDJ == [1, 1, 0, 1, 0]:
+            # A directory link
+            path = ub.color_text(path, 'teal')
+        elif ELFDJ == [0, 1, 0, 0, 0]:
+            # A broken file link
             path = ub.color_text(path, 'red')
-        elif ELFD == [0, 1, 0, 1]:
-            pass
-        elif ELFD == [0, 0, 0, 1]:
-            pass
-        elif ELFD == [0, 0, 1, 0]:
-            pass
-            # path = ub.color_text(path, 'red')
-        elif ELFD == [0, 0, 0, 0]:
-            print('path = {!r}'.format(path))
-            print('dpath = {!r}'.format(dpath))
-            print('\n'.join(sorted(entries)))
-            raise ValueError(dpath)
+        elif ELFDJ == [0, 1, 0, 1, 0]:
+            # A broken directory link
+            path = ub.color_text(path, 'darkred')
+        elif ELFDJ == [0, 0, 0, 1, 1]:
+            # A broken directory junction
+            path = ub.color_text(path, 'purple')
+        elif ELFDJ == [1, 0, 1, 0, 1]:
+            # A file junction? Thats not good.
+            path = ub.color_text(path, 'red')
         else:
             print('path = {!r}'.format(path))
             print('dpath = {!r}'.format(dpath))
@@ -248,8 +258,12 @@ def dirstats(dpath=None):
         line = '{E:d} {L:d} {F:d} {D:d} {J:d} - {path}'.format(**locals())
         if os.path.islink(full_path):
             line += ' -> ' + os.readlink(full_path)
+        elif ub.WIN32:
+            if util_platform._win32_links._win32_is_junction(full_path):
+                line += ' => ' + util_platform._win32_links._win32_read_junction(full_path)
         entries.append(line)
-    print('\n'.join(sorted(entries)))
+    # print('\n'.join(sorted(entries)))
+    print('\n'.join(entries))
 
 
 def test_broken_link():

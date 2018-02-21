@@ -318,6 +318,9 @@ def symlink(real_path, link_path, overwrite=False, verbose=0):
             if verbose:
                 print('link location already exists')
             is_junc = _win32_links._win32_is_junction(link)
+            # NOTE:
+            # in python2 broken junctions are directories and exist
+            # in python3 broken junctions are directories and do not exist
             if os.path.isdir(link):
                 if is_junc:
                     pointed = _win32_links._win32_read_junction(link)
@@ -337,8 +340,7 @@ def symlink(real_path, link_path, overwrite=False, verbose=0):
                     raise IOError('Cannot overwrite a real directory')
 
             elif os.path.isfile(link):
-                # if os.stat(link).st_ino == os.stat(path).st_ino:
-                if _win32_links._win32_hardlinks_equal(link, path):
+                if _win32_links._win32_is_hardlinked(link, path):
                     if verbose:
                         print('...and is a hard link that points to the same place')
                     return link
