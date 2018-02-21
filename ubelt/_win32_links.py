@@ -32,7 +32,7 @@ if sys.platform.startswith('win32'):
 __win32_can_symlink__ = None
 
 
-def _win32_can_symlink(verbose=0, force=0, testing=0):  # nocover
+def _win32_can_symlink(verbose=0, force=0, testing=0):
     """
     CommandLine:
         python -m ubelt._win32_links _win32_can_symlink
@@ -117,20 +117,16 @@ def _win32_can_symlink(verbose=0, force=0, testing=0):  # nocover
         util_io.delete(broken_fpath)
 
         if verbose:
-            import ubelt as ub
-            test_links = ub.import_module_from_path(
-                os.path.dirname(__file__) + '/tests/test_links.py')
-            test_links.dirstats(tempdir)
+            from ubelt import util_links
+            util_links._dirstats(tempdir)
 
     try:
         # Cleanup the test directory
         util_io.delete(tempdir)
     except Exception:
         print('ERROR IN DELETE')
-        import ubelt as ub
-        test_links = ub.import_module_from_path(
-            os.path.dirname(__file__) + '/tests/test_links.py')
-        test_links.dirstats(tempdir)
+        from ubelt import util_links
+        util_links._dirstats(tempdir)
         raise
 
     can_symlink = can_symlink_directories and can_symlink_files
@@ -144,7 +140,60 @@ def _win32_can_symlink(verbose=0, force=0, testing=0):  # nocover
     return can_symlink
 
 
-def _win32_symlink2(path, link, allow_fallback=True, verbose=0):  # nocover
+def _symlink(path, link, overwrite=0, verbose=0):
+    """
+    Windows helper for ub.symlink
+    """
+    if exists(link) and not os.path.islink(link):
+        # On windows a broken link might still exist as a hard link or a
+        # junction. Overwrite it if it is a file and we cannot symlink.
+        # However, if it is a non-junction directory then do not overwrite
+        if verbose:
+            print('link location already exists')
+        is_junc = _win32_is_junction(link)
+        # NOTE:
+        # in python2 broken junctions are directories and exist
+        # in python3 broken junctions are directories and do not exist
+        if os.path.isdir(link):
+            if is_junc:
+                pointed = _win32_read_junction(link)
+                if path == pointed:
+                    if verbose:
+                        print('...and is a junction that points to the same place')
+                    return link
+                else:
+                    if verbose:
+                        if not exists(pointed):
+                            print('...and is a broken junction that points somewhere else')
+                        else:
+                            print('...and is a junction that points somewhere else')
+            else:
+                if verbose:
+                    print('...and is an existing real directory!')
+                raise IOError('Cannot overwrite a real directory')
+
+        elif os.path.isfile(link):
+            if _win32_is_hardlinked(link, path):
+                if verbose:
+                    print('...and is a hard link that points to the same place')
+                return link
+            else:
+                if verbose:
+                    print('...and is a hard link that points somewhere else')
+                if _win32_can_symlink():
+                    raise IOError('Cannot overwrite potentially real file if we can symlink')
+        if overwrite:
+            if verbose:
+                print('...overwriting')
+            util_io.delete(link, verbose > 1)
+        else:
+            if exists(link):
+                raise IOError('Link already exists')
+
+    _win32_symlink2(path, link, verbose=verbose)
+
+
+def _win32_symlink2(path, link, allow_fallback=True, verbose=0):
     """
     Perform a real symbolic link if possible. However, on most versions of
     windows you need special privledges to create a real symlink. Therefore, we
@@ -163,18 +212,14 @@ def _win32_symlink2(path, link, allow_fallback=True, verbose=0):  # nocover
         return _win32_junction(path, link, verbose)
 
 
-def _win32_symlink(path, link, verbose=0):  # nocover
+def _win32_symlink(path, link, verbose=0):
+    """
+    Creates real symlink. This will only work in versions greater than Windows
+    Vista. Creating real symlinks requires admin permissions or at least
+    specially enabled symlink permissions. On Windows 10 enabling developer
+    mode should give you these permissions.
+    """
     from ubelt import util_cmd
-    # # This strategy requires admin permissions
-    # import ctypes
-    # csl = ctypes.windll.kernel32.CreateSymbolicLinkW
-    # csl.argtypes = (ctypes.c_wchar_p, ctypes.c_wchar_p, ctypes.c_uint32)
-    # csl.restype = ctypes.c_ubyte
-    # flags = 1 if isdir(path) else 0
-    # if csl(link, path, flags) == 0:
-    #     raise ctypes.WinError('cannot create win32 symlink')
-
-    # This strategy requires development mode to be on I believe.
     if os.path.isdir(path):
         # directory symbolic link
         if verbose:
@@ -183,6 +228,7 @@ def _win32_symlink(path, link, verbose=0):  # nocover
         # Using the win32 API seems to result in privilege errors
         # but using shell commands does not have this problem. Weird.
         # jwfs.symlink(path, link, target_is_directory=True)
+        # TODO: what do we need to do to use the windows api instead of shell?
     else:
         # file symbolic link
         if verbose:
@@ -208,8 +254,6 @@ def _win32_junction(path, link, verbose=0):
     symlinks, however junctions seem to work.
 
     For paths we do a junction (softlink) and for files we use a hard link
-
-    TODO:
 
     CommandLine:
         python -m ubelt._win32_links _win32_junction
@@ -238,24 +282,23 @@ def _win32_junction(path, link, verbose=0):
         >>> ub.writeto(join(djunc, 'afile.txt'), 'foo')
         >>> assert ub.readfrom(join(dpath, 'afile.txt')) == 'foo'
         >>> ub.writeto(fjunc, 'foo')
-
-        # >>> if not _win32_can_symlink(verbose=1):
-        # ...     import pytest
-        # ...     pytest.skip()
     """
     from ubelt import util_cmd
-    # if platform.release() == '7':
     if os.path.isdir(path):
         # try using a junction (soft link)
-        command = 'mklink /J "{}" "{}"'.format(link, path)
         if verbose:
             print('... as soft link')
+
+        # TODO: what is the windows api for this?
+        command = 'mklink /J "{}" "{}"'.format(link, path)
     else:
         # try using a hard link
-        # jwfs.link(path, link)
-        command = 'mklink /H "{}" "{}"'.format(link, path)
         if verbose:
             print('... as hard link')
+        # command = 'mklink /H "{}" "{}"'.format(link, path)
+
+        jwfs.link(path, link)  # this seems to be allowed
+        command = None
 
     if command is not None:
         info = util_cmd.cmd(command, shell=True)
@@ -295,16 +338,6 @@ def _win32_is_junction(path):
                 return True
         return False
     return jwfs.is_reparse_point(path) and not os.path.islink(path)
-    # try:
-    #     return _win32_read_junction(path) is not None
-    # except (ValueError, OSError):
-    #     return False
-    # data = WIN32_FIND_DATAW()
-    # h = ctypes.windll.kernel32.FindFirstFileW(path, byref(data))
-    # if (data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY and data.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT):
-    #     return True
-    # ctypes.windll.kernel32.FindClose(h)
-    # return False
 
 
 def _win32_read_junction(path):
@@ -331,6 +364,8 @@ def _win32_read_junction(path):
     """
     if not jwfs.is_reparse_point(path):
         raise ValueError('not a junction')
+
+    # --- Older version based on using shell commands ---
     # if not exists(path):
     #     if six.PY2:
     #         raise OSError('Cannot find path={}'.format(path))
@@ -342,15 +377,12 @@ def _win32_read_junction(path):
     #         return pointed
     # raise ValueError('not a junction')
 
+    # new version using the windows api
     handle = jwfs.api.CreateFile(
-            path,
-            0,
-            0,
-            None,
-            jwfs.api.OPEN_EXISTING,
-            jwfs.api.FILE_FLAG_OPEN_REPARSE_POINT | jwfs.api.FILE_FLAG_BACKUP_SEMANTICS,
-            None,
-    )
+            path, 0, 0, None, jwfs.api.OPEN_EXISTING,
+            jwfs.api.FILE_FLAG_OPEN_REPARSE_POINT |
+            jwfs.api.FILE_FLAG_BACKUP_SEMANTICS,
+            None)
 
     if handle == jwfs.api.INVALID_HANDLE_VALUE:
         raise WindowsError()
@@ -383,6 +415,8 @@ def _win32_rmtree(path, verbose=0):
     deleting directories with junctions.
     https://bugs.python.org/issue31226
     """
+
+    # --- old version using the shell ---
     # def _rmjunctions(root):
     #     subdirs = []
     #     for type_or_size, name, pointed in _win32_dir(root):
@@ -424,43 +458,7 @@ def _win32_rmtree(path, verbose=0):
         shutil.rmtree(path)
 
 
-def _win32_dir(path, star=''):
-    from ubelt import util_cmd
-    import re
-    wrapper = 'cmd /S /C "{}"'  # the /S will preserve all inner quotes
-    command = 'dir /-C "{}"{}'.format(path, star)
-    wrapped = wrapper.format(command)
-    info = util_cmd.cmd(wrapped, shell=True)
-    if info['ret'] != 0:
-        from ubelt import util_format
-        print('Failed command:')
-        print(info['command'])
-        print(util_format.repr2(info, nl=1))
-        raise OSError(str(info))
-    # parse the output of dir to get some info
-    # Remove header and footer
-    lines = info['out'].split('\n')[5:-3]
-    splitter = re.compile('( +)')
-    for line in lines:
-        parts = splitter.split(line)
-        date, sep, time, sep, ampm, sep, type_or_size, sep = parts[:8]
-        name = ''.join(parts[8:])
-        # if type is a junction then name will also contain the linked loc
-        if name == '.' or name == '..':
-            continue
-        if type_or_size in ['<JUNCTION>', '<SYMLINKD>', '<SYMLINK>']:
-            # colons cannot be in path names, so use that to find where
-            # the name ends
-            pos = name.find(':')
-            bpos = name[:pos].rfind('[')
-            name = name[:bpos - 1]
-            pointed = name[bpos + 1:-1]
-            yield type_or_size, name, pointed
-        else:
-            yield type_or_size, name, None
-
-
-def _win32_is_hardlinked(fpath1, fpath2):  # nocover
+def _win32_is_hardlinked(fpath1, fpath2):
     """
     Test if two hard links point to the same location
 
@@ -514,6 +512,46 @@ def _win32_is_hardlinked(fpath1, fpath2):  # nocover
         jwfs.api.CloseHandle(hFile1)
         jwfs.api.CloseHandle(hFile2)
     return are_equal
+
+
+def _win32_dir(path, star=''):
+    """
+    Using the windows cmd shell to get information about a directory
+    """
+    from ubelt import util_cmd
+    import re
+    wrapper = 'cmd /S /C "{}"'  # the /S will preserve all inner quotes
+    command = 'dir /-C "{}"{}'.format(path, star)
+    wrapped = wrapper.format(command)
+    info = util_cmd.cmd(wrapped, shell=True)
+    if info['ret'] != 0:
+        from ubelt import util_format
+        print('Failed command:')
+        print(info['command'])
+        print(util_format.repr2(info, nl=1))
+        raise OSError(str(info))
+    # parse the output of dir to get some info
+    # Remove header and footer
+    lines = info['out'].split('\n')[5:-3]
+    splitter = re.compile('( +)')
+    for line in lines:
+        parts = splitter.split(line)
+        date, sep, time, sep, ampm, sep, type_or_size, sep = parts[:8]
+        name = ''.join(parts[8:])
+        # if type is a junction then name will also contain the linked loc
+        if name == '.' or name == '..':
+            continue
+        if type_or_size in ['<JUNCTION>', '<SYMLINKD>', '<SYMLINK>']:
+            # colons cannot be in path names, so use that to find where
+            # the name ends
+            pos = name.find(':')
+            bpos = name[:pos].rfind('[')
+            name = name[:bpos - 1]
+            pointed = name[bpos + 1:-1]
+            yield type_or_size, name, pointed
+        else:
+            yield type_or_size, name, None
+
 
 if __name__ == '__main__':
     r"""

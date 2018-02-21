@@ -1,5 +1,6 @@
 version: 0.0.41
 ---------------
+ADD: OrderedSet / oset
 ENH: Added base to `augpath`
 ENH: Added symlink function that works on unix and windows*.
 (*if use has symlink permissions, it works just like unix without caveats.
