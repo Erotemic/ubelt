@@ -9,6 +9,7 @@ CommandLine:
 
     # TODO: ensure this new way will work with multilevel modules
     python -c "import ubelt._internal as a; a.autogen_init('ubelt', dry=True)"
+    python -c "import ubelt._internal as a; a.autogen_init('ubelt', dry=False)"
 TODO:
     The following functions and classes are candidates to be ported from utool:
     * reload_class
@@ -39,6 +40,7 @@ GLOBAL_MODULES = [
     'util_func',
     'util_format',
     'util_io',
+    'util_links',
     'util_list',
     'util_hash',
     'util_import',
@@ -66,7 +68,6 @@ else:  # pragma: nobranch
 
 if _DOELSE:  # pragma: nobranch
     # <AUTOGEN_INIT>
-
     from ubelt import util_arg
     from ubelt import util_cache
     from ubelt import util_colors
@@ -78,6 +79,7 @@ if _DOELSE:  # pragma: nobranch
     from ubelt import util_func
     from ubelt import util_format
     from ubelt import util_io
+    from ubelt import util_links
     from ubelt import util_list
     from ubelt import util_hash
     from ubelt import util_import
@@ -103,23 +105,24 @@ if _DOELSE:  # pragma: nobranch
     from ubelt.util_download import (download, grabdata,)
     from ubelt.util_func import (identity,)
     from ubelt.util_format import (repr2,)
-    from ubelt.util_io import (readfrom, writeto, touch, delete,)
+    from ubelt.util_io import (delete, readfrom, touch, writeto,)
+    from ubelt.util_links import (symlink,)
     from ubelt.util_list import (argsort, boolmask, chunks, compress, flatten,
                                  iterable, take, unique, unique_flags,)
     from ubelt.util_hash import (hash_data, hash_file,)
-    from ubelt.util_import import (split_modpath, modname_to_modpath,
-                                   modpath_to_modname, import_module_from_name,
-                                   import_module_from_path,)
+    from ubelt.util_import import (import_module_from_name,
+                                   import_module_from_path, modname_to_modpath,
+                                   modpath_to_modname, split_modpath,)
     from ubelt.util_mixins import (NiceRepr,)
-    from ubelt.util_path import (TempDir, augpath, compressuser, truepath,
-                                 userhome, ensuredir,)
+    from ubelt.util_path import (TempDir, augpath, compressuser, ensuredir,
+                                 truepath, userhome,)
     from ubelt.util_platform import (DARWIN, LINUX, POSIX, PY2, PY3, WIN32,
                                      editfile, ensure_app_cache_dir,
                                      ensure_app_resource_dir, get_app_cache_dir,
                                      get_app_resource_dir, platform_cache_dir,
-                                     platform_resource_dir, startfile, symlink,)
-    from ubelt.util_str import (CaptureStdout, indent, codeblock, hzcat,
-                                ensure_unicode,)
+                                     platform_resource_dir, startfile,)
+    from ubelt.util_str import (CaptureStdout, codeblock, ensure_unicode, hzcat,
+                                indent,)
     from ubelt.util_stress import (find_nth_prime,)
     from ubelt.util_time import (Timer, Timerit, timestamp,)
     from ubelt.orderedset import (OrderedSet, oset,)

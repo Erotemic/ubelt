@@ -184,12 +184,9 @@ def delete(path, verbose=False):
         >>> ub.delete(dpath1)
         >>> assert not any(map(exists, (dpath1, fpath1, fpath2)))
     """
-    verbose = 4
     if not os.path.exists(path):
-        # or os.path.islink(path):
         # if the file does exists and is not a broken link
         if os.path.islink(path):
-            # if not exists(os.readlink(path)):
             if verbose:  # nocover
                 print('Deleting broken link="{}"'.format(path))
             os.unlink(path)
@@ -199,7 +196,7 @@ def delete(path, verbose=False):
                 print('Deleting broken directory link="{}"'.format(path))
             os.rmdir(path)
         elif os.path.isfile(path):  # nocover
-            # Not sure if this can happen, but just in case (windows)...
+            # This is a windows only case
             if verbose:
                 print('Deleting broken file link="{}"'.format(path))
             os.unlink(path)

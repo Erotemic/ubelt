@@ -161,7 +161,7 @@ def _autogen_init_write(modpath, initstr):
     print('endline = {!r}'.format(endline))
 
     print('writing updated file: %r' % init_fpath)
-    new_text = ''.join(new_lines).rstrip()
+    new_text = ''.join(new_lines).rstrip() + '\n'
     print(new_text)
     with open(init_fpath, 'w') as file_:
         file_.write(new_text)

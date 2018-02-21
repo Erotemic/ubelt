@@ -8,75 +8,7 @@ import ubelt as ub
 import pytest
 import os
 from ubelt import util_platform
-
-
-def dirstats(dpath=None):
-    """
-    CommandLine:
-        python -m ubelt.tests.test_links dirstats
-    """
-    if dpath is None:
-        dpath = os.getcwd()
-    print('===============')
-    print('Listing for dpath={}'.format(dpath))
-    print('E L F D J - path')
-    print('--------------')
-    if not os.path.exists(dpath):
-        print('... does not exist')
-        return
-    entries = []
-    paths = sorted(os.listdir(dpath))
-    for path in paths:
-        full_path = join(dpath, path)
-        E = os.path.exists(full_path)
-        L = os.path.islink(full_path)
-        F = os.path.isfile(full_path)
-        D = os.path.isdir(full_path)
-        J = ub.WIN32 and util_platform._win32_links._win32_is_junction(full_path)
-        ELFD = [E, L, F, D]
-        ELFDJ = [E, L, F, D, J]
-        if   ELFDJ == [1, 0, 0, 1, 0]:
-            # A directory
-            path = ub.color_text(path, 'green')
-        elif ELFDJ == [1, 0, 1, 0, 0]:
-            # A file (or a hard link they are indistinguishable with one query)
-            path = ub.color_text(path, 'white')
-        elif ELFDJ == [1, 0, 0, 1, 1]:
-            # A directory junction
-            path = ub.color_text(path, 'yellow')
-        elif ELFDJ == [1, 1, 1, 0, 0]:
-            # A file link
-            path = ub.color_text(path, 'turquoise')
-        elif ELFDJ == [1, 1, 0, 1, 0]:
-            # A directory link
-            path = ub.color_text(path, 'teal')
-        elif ELFDJ == [0, 1, 0, 0, 0]:
-            # A broken file link
-            path = ub.color_text(path, 'red')
-        elif ELFDJ == [0, 1, 0, 1, 0]:
-            # A broken directory link
-            path = ub.color_text(path, 'darkred')
-        elif ELFDJ == [0, 0, 0, 1, 1]:
-            # A broken directory junction
-            path = ub.color_text(path, 'purple')
-        elif ELFDJ == [1, 0, 1, 0, 1]:
-            # A file junction? Thats not good. I guess this is a windows 7
-            # thing?
-            path = ub.color_text(path, 'red')
-        else:
-            print('path = {!r}'.format(path))
-            print('dpath = {!r}'.format(dpath))
-            print('\n'.join(sorted(entries)))
-            raise AssertionError(str(ELFDJ) + str(path))
-        line = '{E:d} {L:d} {F:d} {D:d} {J:d} - {path}'.format(**locals())
-        if os.path.islink(full_path):
-            line += ' -> ' + os.readlink(full_path)
-        elif ub.WIN32:
-            if util_platform._win32_links._win32_is_junction(full_path):
-                line += ' => ' + util_platform._win32_links._win32_read_junction(full_path)
-        entries.append(line)
-    # print('\n'.join(sorted(entries)))
-    print('\n'.join(entries))
+from ubelt import util_links
 
 
 def test_delete_symlinks():
@@ -102,7 +34,7 @@ def test_delete_symlinks():
             msg = 'not ' + msg
 
         if not positive:
-            dirstats(dpath)
+            util_links._dirstats(dpath)
             print('About to raise error: {}'.format(msg))
             print('path = {!r}'.format(path))
             print('exists(path) = {!r}'.format(exists(path)))
@@ -117,14 +49,14 @@ def test_delete_symlinks():
         check_path_condition(path, positive, want, 'has trace')
 
     def assert_broken_link(path, want=True):
-        if util_platform._can_symlink():
+        if util_links._can_symlink():
             print('path={} should{} be a broken link'.format(
                 path, ' ' if want else ' not'))
             positive = not exists(path) and islink(path)
             check_path_condition(path, positive, want, 'broken link')
         else:
             # TODO: we can test this
-            # positive = util_platform._win32_is_junction(path)
+            # positive = util_links._win32_is_junction(path)
             print('path={} should{} be a broken link (junction)'.format(
                 path, ' ' if want else ' not'))
             print('cannot check this yet')
@@ -132,29 +64,29 @@ def test_delete_symlinks():
             # positive = exists(path)
             # check_path_condition(path, positive, want, 'broken link')
 
-    dirstats(dpath)
+    util_links._dirstats(dpath)
     ub.delete(dpath, verbose=2)
     ub.ensuredir(dpath, verbose=2)
-    dirstats(dpath)
+    util_links._dirstats(dpath)
 
     ub.ensuredir(happy_dpath, verbose=2)
     ub.ensuredir(broken_dpath, verbose=2)
     ub.touch(happy_fpath, verbose=2)
     ub.touch(broken_fpath, verbose=2)
-    dirstats(dpath)
+    util_links._dirstats(dpath)
 
     ub.symlink(broken_fpath, broken_flink, verbose=2)
     ub.symlink(broken_dpath, broken_dlink, verbose=2)
     ub.symlink(happy_fpath, happy_flink, verbose=2)
     ub.symlink(happy_dpath, happy_dlink, verbose=2)
-    dirstats(dpath)
+    util_links._dirstats(dpath)
 
     # Deleting the files should not delete the symlinks (windows)
     ub.delete(broken_fpath, verbose=2)
-    dirstats(dpath)
+    util_links._dirstats(dpath)
 
     ub.delete(broken_dpath, verbose=2)
-    dirstats(dpath)
+    util_links._dirstats(dpath)
 
     assert_broken_link(broken_flink, 1)
     assert_broken_link(broken_dlink, 1)
@@ -168,22 +100,22 @@ def test_delete_symlinks():
 
     # broken symlinks no longer exist after they are deleted
     ub.delete(broken_dlink, verbose=2)
-    dirstats(dpath)
+    util_links._dirstats(dpath)
     assert_sometrace(broken_dlink, 0)
 
     ub.delete(broken_flink, verbose=2)
-    dirstats(dpath)
+    util_links._dirstats(dpath)
     assert_sometrace(broken_flink, 0)
 
     # real symlinks no longer exist after they are deleted
     # but the original data is fine
     ub.delete(happy_dlink, verbose=2)
-    dirstats(dpath)
+    util_links._dirstats(dpath)
     assert_sometrace(happy_dlink, 0)
     assert_sometrace(happy_dpath, 1)
 
     ub.delete(happy_flink, verbose=2)
-    dirstats(dpath)
+    util_links._dirstats(dpath)
     assert_sometrace(happy_flink, 0)
     assert_sometrace(happy_fpath, 1)
 
@@ -275,22 +207,22 @@ def test_broken_link():
 
     ub.delete(dpath, verbose=2)
     ub.ensuredir(dpath, verbose=2)
-    dirstats(dpath)
+    util_links._dirstats(dpath)
 
     broken_fpath = join(dpath, 'broken_fpath.txt')
     broken_flink = join(dpath, 'broken_flink.txt')
 
     ub.touch(broken_fpath, verbose=2)
-    dirstats(dpath)
+    util_links._dirstats(dpath)
     ub.symlink(broken_fpath, broken_flink, verbose=2)
 
-    dirstats(dpath)
+    util_links._dirstats(dpath)
     ub.delete(broken_fpath, verbose=2)
 
-    dirstats(dpath)
+    util_links._dirstats(dpath)
 
     # make sure I am sane that this is the correct check.
-    can_symlink = util_platform._can_symlink()
+    can_symlink = util_links._can_symlink()
     print('can_symlink = {!r}'.format(can_symlink))
     if can_symlink:
         # normal behavior
@@ -325,17 +257,17 @@ def test_overwrite_symlink():
         ub.touch(happy_fpath, verbose=verbose)
         ub.touch(other_fpath, verbose=verbose)
 
-        dirstats(dpath)
+        util_links._dirstats(dpath)
         ub.symlink(happy_fpath, happy_flink, verbose=verbose)
 
         # Creating a duplicate link
         # import six
         # import sys
         # if not six.PY2 and sys.platform.startswith('win32'):
-        dirstats(dpath)
+        util_links._dirstats(dpath)
         ub.symlink(happy_fpath, happy_flink, verbose=verbose)
 
-        dirstats(dpath)
+        util_links._dirstats(dpath)
         with pytest.raises(Exception):  # file exists error
             ub.symlink(other_fpath, happy_flink, verbose=verbose)
 
