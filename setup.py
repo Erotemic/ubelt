@@ -36,6 +36,7 @@ Pypi:
 
 """
 from setuptools import setup
+import sys
 
 
 def parse_version(package):
@@ -118,18 +119,8 @@ version = parse_version('ubelt')  # needs to be a global var for git tags
 
 if __name__ == '__main__':
     install_requires = parse_requirements('requirements.txt')
-    import sys
     if sys.platform.startswith('win32'):
         install_requires += parse_requirements('requirements-win32.txt')
-        # something is broken in pywin32 right now
-        try:
-            import win32api  # NOQA
-        except ImportError:
-            install_requires += ['pypiwin32 == 219']
-        # if sys.version_info.major == 2:
-        #     install_requires += ['pypiwin32 == 219']
-        # else:
-        #     install_requires += ['pywin32']
 
     setup(
         name='ubelt',
