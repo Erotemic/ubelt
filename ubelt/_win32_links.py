@@ -57,11 +57,20 @@ if sys.platform.startswith('win32'):
 __win32_can_symlink__ = None
 
 
-def _win32_can_symlink(verbose=0):  # nocover
+def _win32_can_symlink(verbose=0, force=0, testing=0):  # nocover
+    """
+    CommandLine:
+        python -m ubelt._win32_links _win32_can_symlink
+
+    Example:
+        >>> # xdoc: +REQUIRES(WIN32)
+        >>> import ubelt as ub
+        >>> _win32_can_symlink(verbose=1, force=1, testing=1)
+    """
     global __win32_can_symlink__
     if verbose:
         print('__win32_can_symlink__ = {!r}'.format(__win32_can_symlink__))
-    if __win32_can_symlink__ is not None:
+    if __win32_can_symlink__ is not None and not force:
         return __win32_can_symlink__
 
     from ubelt import util_platform
@@ -73,16 +82,27 @@ def _win32_can_symlink(verbose=0):  # nocover
 
     dpath = join(tempdir, 'dpath')
     fpath = join(tempdir, 'fpath.txt')
+
     dlink = join(tempdir, 'dlink')
     flink = join(tempdir, 'flink.txt')
 
     util_path.ensuredir(dpath)
     util_io.touch(fpath)
 
+    # Add broken variants of the links for testing purposes
+    # Its ugly, but so is all this windows code.
+    if testing:
+        broken_dpath = join(tempdir, 'broken_dpath')
+        broken_fpath = join(tempdir, 'broken_fpath.txt')
+        # Create files that we will delete after we link to them
+        util_path.ensuredir(broken_dpath)
+        util_io.touch(broken_fpath)
+
     try:
         _win32_symlink(dpath, dlink)
-        can_symlink_directories = True
-        # os.path.islink(dlink)
+        if testing:
+            _win32_symlink(broken_dpath, join(tempdir, 'broken_dlink'))
+        can_symlink_directories = os.path.islink(dlink)
     except OSError:
         can_symlink_directories = False
     if verbose:
@@ -90,7 +110,9 @@ def _win32_can_symlink(verbose=0):  # nocover
 
     try:
         _win32_symlink(fpath, flink)
-        can_symlink_files = True
+        if testing:
+            _win32_symlink(broken_fpath, join(tempdir, 'broken_flink'))
+        can_symlink_files = os.path.islink(flink)
         # os.path.islink(flink)
     except OSError:
         can_symlink_files = False
@@ -103,14 +125,38 @@ def _win32_can_symlink(verbose=0):  # nocover
 
     try:
         # test that we can create junctions, even if symlinks are disabled
-        _win32_junction(dpath, join(tempdir, 'djunc'))
-        _win32_junction(fpath, join(tempdir, 'fjunc.txt'))
+        djunc = _win32_junction(dpath, join(tempdir, 'djunc'))
+        fjunc = _win32_junction(fpath, join(tempdir, 'fjunc.txt'))
+        if testing:
+            _win32_junction(broken_dpath, join(tempdir, 'broken_djunc'))
+            _win32_junction(broken_fpath, join(tempdir, 'broken_fjunc.txt'))
+        assert _win32_is_junction(djunc)
+        assert _win32_is_hardlinked(fpath, fjunc)
     except Exception:
         warnings.warn('We cannot create junctions either!')
         raise
 
-    # Cleanup the test directory
-    util_io.delete(tempdir)
+    if testing:
+        # break the links
+        util_io.delete(broken_dpath)
+        util_io.delete(broken_fpath)
+
+        if verbose:
+            import ubelt as ub
+            test_links = ub.import_module_from_path(
+                os.path.dirname(__file__) + '/tests/test_links.py')
+            test_links.dirstats(tempdir)
+
+    try:
+        # Cleanup the test directory
+        util_io.delete(tempdir)
+    except Exception:
+        print('ERROR IN DELETE')
+        import ubelt as ub
+        test_links = ub.import_module_from_path(
+            os.path.dirname(__file__) + '/tests/test_links.py')
+        test_links.dirstats(tempdir)
+        raise
 
     can_symlink = can_symlink_directories and can_symlink_files
     __win32_can_symlink__ = can_symlink
@@ -262,9 +308,10 @@ def _win32_is_junction(path):
     """
     if not exists(path):
         if os.path.isdir(path):
-            return True
+            if not os.path.islink(path):
+                return True
         return False
-    return jwfs.is_reparse_point(path)
+    return jwfs.is_reparse_point(path) and not os.path.islink(path)
     # try:
     #     return _win32_read_junction(path) is not None
     # except (ValueError, OSError):
@@ -332,8 +379,9 @@ def _win32_read_junction(path):
     p_rdb = jwfs.cast(bytes, jwfs.POINTER(jwfs.api.REPARSE_DATA_BUFFER))
     rdb = p_rdb.contents
 
-    if not rdb.tag == 2684354563:   # api.IO_REPARSE_TAG_SYMLINK:
-        raise RuntimeError("Expected <2684354563>, but got %d" % rdb.tag)
+    if rdb.tag not in [2684354563, jwfs.api.IO_REPARSE_TAG_SYMLINK]:
+        raise RuntimeError(
+                "Expected <2684354563 or 2684354572>, but got %d" % rdb.tag)
 
     jwfs.handle_nonzero_success(jwfs.api.CloseHandle(handle))
     return rdb.get_substitute_name()[2:]
@@ -369,7 +417,7 @@ def _win32_rmtree(path, verbose=0):
                 if _win32_is_junction(current):
                     # remove any junctions as we encounter them
                     os.rmdir(current)
-                else:
+                elif not os.path.islink(current):
                     subdirs.append(current)
         # recurse in all real directories
         for subdir in subdirs:
@@ -425,7 +473,7 @@ def _win32_dir(path, star=''):
             yield type_or_size, name, None
 
 
-def _win32_hardlinks_equal(fpath1, fpath2):  # nocover
+def _win32_is_hardlinked(fpath1, fpath2):  # nocover
     """
     Test if two hard links point to the same location
     """
