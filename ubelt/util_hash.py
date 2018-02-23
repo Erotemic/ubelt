@@ -12,6 +12,8 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import hashlib
 import six
 import uuid
+import math
+from collections import OrderedDict
 from six.moves import zip
 # we will use NoParam instead of None because None is a valid hashlen setting
 from ubelt.util_const import NoParam
@@ -44,21 +46,43 @@ DEFAULT_HASHLEN = None
 
 
 if six.PY2:
-    HASH = type(hashlib.sha1())  # python2 doesn't expose the hash type
     import codecs
-    def _py2_to_bytes(int_, length, byteorder='big'):
-        h = '%x' % int_
-        s = ('0' * (len(h) % 2) + h).zfill(length * 2).decode('hex')
-        bytes_ =  s if byteorder == 'big' else s[::-1]
+    HASH = type(hashlib.sha1())  # python2 doesn't expose the hash type
+
+    def _py2_to_bytes(int_, length, byteorder='big', signed=True):
+        """
+        Args:
+            length (int) : number of bytes (not bits)
+
+        References:
+            https://bugs.python.org/issue16580
+        """
+        # convert nbytes to nbits
+        bit_width = length * 8
+        if int_ < 0:
+            complement = (1 << bit_width) + int_
+        else:
+            complement = int_
+        h = '%x' % complement
+        p = ('0' * (len(h) % 2) + h).zfill(length * 2)
+        s = p.decode('hex')
+        bytes_ = s if byteorder == 'big' else s[::-1]
         return bytes_
 
     def _int_to_bytes(int_):
-        length = max(4, int_.bit_length())
-        bytes_ = _py2_to_bytes(int_, length, 'big')
+        bit_length = int_.bit_length() + 1
+        length = int(math.ceil(bit_length / 8.0))  # bytelength
+        bytes_ = _py2_to_bytes(int_, length, byteorder='big', signed=True)
         return bytes_
 
     def _bytes_to_int(bytes_):
-        int_ = int(codecs.encode(bytes_, 'hex'), 16)
+        nbytes = len(bytes_)
+        nbits = nbytes * 8
+        comp = int(codecs.encode(bytes_, 'hex'), 16)
+        if comp > 1 << (nbits - 1):
+            int_ = comp - (1 << (nbits))
+        else:
+            int_ = comp
         return int_
 else:
     HASH = hashlib._hashlib.HASH
@@ -69,12 +93,18 @@ else:
         assumes int32 by default, but dynamically handles larger ints
 
         Example:
+            >>> from ubelt.util_hash import _int_to_bytes, _bytes_to_int
             >>> int_ = 1
             >>> assert _bytes_to_int((_int_to_bytes(int_))) == int_
-            >>> assert _int_to_bytes(int_) == b'\x00\x00\x00\x01'
+            >>> assert _int_to_bytes(int_) == b'\x01'
+            >>> assert _bytes_to_int((_int_to_bytes(0))) == 0
+            >>> assert _bytes_to_int((_int_to_bytes(-1))) == -1
+            >>> assert _bytes_to_int((_int_to_bytes(-1000000))) == -1000000
+            >>> assert _bytes_to_int((_int_to_bytes(1000000))) == 1000000
         """
-        length = max(4, int_.bit_length())
-        bytes_ = int_.to_bytes(length, byteorder='big')
+        bit_length = int_.bit_length() + 1
+        length = math.ceil(bit_length / 8.0)  # bytelength
+        bytes_ = int_.to_bytes(length, byteorder='big', signed=True)
         return bytes_
 
     def _bytes_to_int(bytes_):
@@ -82,11 +112,11 @@ else:
         Converts a string of bytes into its integer representation (big-endian)
 
         Example:
-            >>> bytes_ = b'\x00\x00\x00\x01'
+            >>> bytes_ = b'\x01'
             >>> assert _int_to_bytes((_bytes_to_int(bytes_))) == bytes_
             >>> assert _bytes_to_int(bytes_) == 1
         """
-        int_ = int.from_bytes(bytes_, 'big')
+        int_ = int.from_bytes(bytes_, 'big', signed=True)
         return int_
 
 
@@ -296,11 +326,31 @@ class HashableExtensions(object):
         """
         Register hashing extensions for a selection of classes included in
         python stdlib.
+
+        Example:
+            >>> data = uuid.UUID('7e9d206b-dc02-4240-8bdb-fffe858121d0')
+            >>> print(hash_data(data)[0:8])
+            cryarepd
+            >>> data = OrderedDict([('a', 1), ('b', 2), ('c', [1, 2, 3]),
+            >>>                     (4, OrderedDict())])
+            >>> print(hash_data(data)[0:8])
+            qjspicvv
+
+            gpxtclct
         """
         @self.register(uuid.UUID)
         def _hash_uuid(data):
             hashable = data.bytes
             prefix = b'UUID'
+            return prefix, hashable
+
+        @self.register(OrderedDict)
+        def _hash_ordered_dict(data):
+            """
+            Note, we should not be hashing dicts because they are unordered
+            """
+            hashable = b''.join(_hashable_sequence(list(data.items())))
+            prefix = b'ODICT'
             return prefix, hashable
 
 _HASHABLE_EXTENSIONS = HashableExtensions()
@@ -330,8 +380,8 @@ def _hashable_sequence(data, use_prefix=True):
         >>> data = [2, (3, 4)]
         >>> result1 = (b''.join(_hashable_sequence(data, use_prefix=False)))
         >>> result2 = (b''.join(_hashable_sequence(data, use_prefix=True)))
-        >>> assert result1 == b'_[_\x00\x00\x00\x02_,__[_\x00\x00\x00\x03_,_\x00\x00\x00\x04_,__]__]_'
-        >>> assert result2 == b'_[_INT\x00\x00\x00\x02_,__[_INT\x00\x00\x00\x03_,_INT\x00\x00\x00\x04_,__]__]_'
+        >>> assert result1 == b'_[_\x02_,__[_\x03_,_\x04_,__]__]_'
+        >>> assert result2 == b'_[_INT\x02_,__[_INT\x03_,_INT\x04_,__]__]_'
     """
     hasher = _HashTracer()
     _update_hasher(hasher, data, use_prefix=use_prefix)
@@ -358,9 +408,9 @@ def _convert_to_hashable(data, use_prefix=True):
     Example:
         >>> assert _convert_to_hashable(None) == (b'NULL', b'NONE')
         >>> assert _convert_to_hashable('string') == (b'TXT', b'string')
-        >>> assert _convert_to_hashable(1) == (b'INT', b'\x00\x00\x00\x01')
-        >>> assert _convert_to_hashable(1.0) == (b'FLT', b'\x00\x00\x00\x01/\x00\x00\x00\x01')
-        >>> assert _convert_to_hashable(_intlike[-1](1)) == (b'INT', b'\x00\x00\x00\x01')
+        >>> assert _convert_to_hashable(1) == (b'INT', b'\x01')
+        >>> assert _convert_to_hashable(1.0) == (b'FLT', b'\x01/\x01')
+        >>> assert _convert_to_hashable(_intlike[-1](1)) == (b'INT', b'\x01')
     """
     # HANDLE MOST COMMON TYPES FIRST
     if data is None:
@@ -407,6 +457,8 @@ def _update_hasher(hasher, data, use_prefix=True):
         >>> data = [1, 2, ['a', 2, 'c']]
         >>> _update_hasher(hasher, data)
         >>> print(hasher.hexdigest()[0:8])
+        e2c67675
+
         2ba8d82b
     """
     # Determine if the data should be hashed directly or iterated through
@@ -533,6 +585,8 @@ def hash_data(data, hasher=NoParam, hashlen=NoParam, base=NoParam):
 
     Example:
         >>> print(hash_data([1, 2, (3, '4')], hashlen=8, hasher='sha512'))
+        iugjngof
+
         frqkjbsq
     """
     base = _rectify_base(base)

@@ -26,7 +26,7 @@ TODO:
 from __future__ import absolute_import, division, print_function, unicode_literals
 import sys
 
-__version__ = '0.0.40'
+__version__ = '0.0.42'
 
 GLOBAL_MODULES = [
     'util_arg',
@@ -127,7 +127,7 @@ if _DOELSE:  # pragma: nobranch
     from ubelt.util_time import (Timer, Timerit, timestamp,)
     from ubelt.orderedset import (OrderedSet, oset,)
     from ubelt.progiter import (ProgIter,)
-    
+
     # </AUTOGEN_INIT>
 
 del _DOELSE

@@ -323,11 +323,22 @@ def dict_union(*args):
     Args:
         *args : a sequence of dictionaries
 
+    Returns:
+        OrderedDict if the first argument is an OrderedDict, otherwise dict
+
     Example:
         >>> result = dict_union({'a': 1, 'b': 1}, {'b': 2, 'c': 2})
         >>> assert result == {'a': 1, 'b': 2, 'c': 2}
+        >>> dict_union(odict([('a', 1), ('b', 2)]), odict([('c', 3), ('d', 4)]))
+        OrderedDict([('a', 1), ('b', 2), ('c', 3), ('d', 4)])
+        >>> dict_union()
+        {}
     """
-    return dict(it.chain.from_iterable(d.items() for d in args))
+    if not args:
+        return {}
+    else:
+        dictclass = odict if isinstance(args[0], odict) else dict
+        return dictclass(it.chain.from_iterable(d.items() for d in args))
 
 
 def map_vals(func, dict_):

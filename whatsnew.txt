@@ -1,3 +1,9 @@
+version: 0.0.42
+---------------
+FIX: bug in hash_data where negative integers did not work.
+ENH: hash_data can now accept OrderedDict input
+ENH: dict_union now returns OrderedDicts if the first argument is one
+
 version: 0.0.41
 ---------------
 ADD: OrderedSet / oset

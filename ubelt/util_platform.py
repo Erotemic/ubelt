@@ -134,6 +134,8 @@ def ensure_app_cache_dir(appname, *args):
 def startfile(fpath, verbose=True):  # nocover
     """
     Uses default program defined by the system to open a file.
+    This is done via `os.startfile` on windows, `open` on mac, and `xdg-open`
+    on linux.
 
     Args:
         fpath (str): a file to open using the program associated with the
@@ -151,7 +153,7 @@ def startfile(fpath, verbose=True):  # nocover
         >>> ub.touch(fpath1)
         >>> proc = ub.startfile(fpath1)
     """
-    import ubelt as ub
+    from ubelt import util_cmd
     if verbose:
         print('[ubelt] startfile("{}")'.format(fpath))
     fpath = normpath(fpath)
@@ -160,9 +162,9 @@ def startfile(fpath, verbose=True):  # nocover
     if not WIN32:
         fpath = pipes.quote(fpath)
     if LINUX:
-        info = ub.cmd(('xdg-open', fpath), detatch=True, verbose=verbose)
+        info = util_cmd.cmd(('xdg-open', fpath), detatch=True, verbose=verbose)
     elif DARWIN:
-        info = ub.cmd(('open', fpath), detatch=True, verbose=verbose)
+        info = util_cmd.cmd(('open', fpath), detatch=True, verbose=verbose)
     elif WIN32:
         os.startfile(fpath)
         info = None
@@ -175,11 +177,12 @@ def startfile(fpath, verbose=True):  # nocover
 
 def editfile(fpath, verbose=True):  # nocover
     """
-    Opens a file or python module in your preferred visual editor.
+    Opens a file or code corresponding to a live python object in your
+    preferred visual editor. This function is mainly useful in an interactive
+    IPython session.
 
-    Your preferred visual editor is gvim... unless you specify one using the
-    VISUAL environment variable. This function is extremely useful in an
-    IPython development environment.
+    The visual editor is determined by the `VISUAL` environment variable.  If
+    this is not specified it defaults to gvim.
 
     Args:
         fpath (str): a file path or python module / function
@@ -193,7 +196,7 @@ def editfile(fpath, verbose=True):  # nocover
         >>> ub.editfile(ub.editfile)
     """
     from six import types
-    import ubelt as ub
+    from ubelt import util_cmd
     if not isinstance(fpath, six.string_types):
         if isinstance(fpath, types.ModuleType):
             fpath = fpath.__file__
@@ -210,7 +213,7 @@ def editfile(fpath, verbose=True):  # nocover
 
     if not exists(fpath):
         raise IOError('Cannot start nonexistant file: %r' % fpath)
-    ub.cmd([editor, fpath], fpath, detatch=True)
+    util_cmd.cmd([editor, fpath], fpath, detatch=True)
 
 
 if __name__ == '__main__':
