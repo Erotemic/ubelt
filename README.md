@@ -17,13 +17,20 @@ number of these are too specific or not well documented. The goal of this
 migration is to slowly port over the most re-usable parts of `utool` into a
 stable package.
 
-In addition to utility functions `utool` also contains a custom doctest
-  harness and code introspection and auto-generation features.
-A rewrite of the test harness has been ported to a new module called:
-[`xdoctest`](https://github.com/Erotemic/xdoctest).  A small subset of the
-auto-generation and code introspection will be ported / made visible through
-`ubelt`.
+The doctest harness in `utool` was ported and rewritten in a new module called:
+[`xdoctest`](https://github.com/Erotemic/xdoctest), which integrates with
+`pytest` as a plugin. All of the doctests in `ubelt` are run using `xdoctest`.
 
+A small subset of the static-analysis and code introspection tools in
+`xdoctest` are made visible through `ubelt`.
+
+In addition to utility functions `utool` also contains a feature for
+auto-generating `__init__.py` files. See `ubelt/__init__.py` for an example.
+
+UBelt is cross platform and all top-level functions behave similarly on
+Windows, Mac, and Linux (up to some small unavoidable differences).
+Every function in `ubelt` is written with a doctest, which provides helpful
+documentation and example usage as well as helping achieve 100% test coverage.
 
 ## Installation:
 
@@ -93,7 +100,6 @@ from ubelt.util_platform import (DARWIN, LINUX, POSIX, PY2, PY3, WIN32,
                                  platform_resource_dir, startfile,)
 from ubelt.util_str import (CaptureStdout, indent, codeblock, hzcat,
                             ensure_unicode,)
-from ubelt.util_stress import (find_nth_prime,)
 from ubelt.util_time import (Timer, Timerit, timestamp,)
 from ubelt.progiter import (ProgIter,)
 ```
@@ -101,6 +107,56 @@ from ubelt.progiter import (ProgIter,)
 ## Examples
 
 Here are some examples of some features inside `ubelt`
+
+
+### Timing
+Quickly time a single line.
+```python
+>>> import math
+>>> import ubelt as ub
+>>> timer = ub.Timer('Timer demo!', verbose=1)
+>>> with timer:
+>>>     math.factorial(100000)
+tic('Timer demo!')
+...toc('Timer demo!')=0.0008s
+```
+
+
+### Robust Timing
+Easily do robust timings on existing blocks of code by simply indenting them.
+There is no need to refactor into a string representation or convert to a
+single line.  With `ub.Timerit` there is no need to resort to the `timeit`
+module!
+
+The quick and dirty way just requires one indent.
+```python
+>>> import math
+>>> import ubelt as ub
+>>> for _ in ub.Timerit(num=200, verbose=2):
+>>>     math.factorial(10000)
+Timing for 200 loops
+Timed for: 200 loops, best of 3
+    time per loop: best=2.055 ms, mean=2.145 ± 0.083 ms
+```
+
+
+Use the loop variable as a context manager for more accurate timings or to
+incorporate an setup phase that is not timed.  You can also access properties
+of the `ub.Timerit` class to programmatically use results.
+```python
+>>> import math
+>>> import ubelt as ub
+>>> t1 = ub.Timerit(num=200, verbose=2)
+>>> for timer in t1:
+>>>     setup_vars = 10000
+>>>     with timer:
+>>>         math.factorial(setup_vars)
+>>> print('t1.total_time = %r' % (t1.total_time,))
+Timing for 200 loops
+Timed for: 200 loops, best of 3
+    time per loop: best=2.064 ms, mean=2.115 ± 0.05 ms
+t1.total_time = 0.4427177629695507
+```
 
 
 ### Caching
@@ -119,50 +175,112 @@ Cache intermediate results in a script with minimal boilerplate.
 ```
 
 
-### Timing
-Quickly time a single line.
+### Hashing
+The `ub.hash_data` constructs a hash corresponding to a (mostly) arbitrary
+ordered python object. A common use case for this function is to construct the
+`cfgstr` mentioned in the example for `ub.Cacher`. Instead of returning a hex,
+string, `ub.hash_data` encodes the hash digest using the 26 lowercase letters
+in the roman alphabet. This makes the result easy to use as a filename suffix.
+
 ```python
 >>> import ubelt as ub
->>> timer = ub.Timer('Timer demo!', verbose=1)
->>> with timer:
->>>     prime = ub.find_nth_prime(40)
-tic('Timer demo!')
-...toc('Timer demo!')=0.0008s
+>>> data = [('arg1', 5), ('lr', .01), ('augmenters', ['flip', 'translate'])]
+>>> ub.hash_data(data)[0:8]
+crfrgdbi
 ```
 
 
-### Robust Timing
-Easily do robust timings on existing blocks of code by simply indenting them.
-There is no need to refactor into a string representation or convert to a
-single line.  With `ub.Timerit` there is no need to resort to the `timeit`
-module!
+There exists an undocumented plugin architecture to extend this function to
+arbitrary types. See `ubelt/util_hash.py` for details.
 
-The quick and dirty way just requires one indent.
+
+### Command Line Interaction
+The builtin Python `subprocess.Popen` module is great, but it can be a bit
+clunky at times. The `os.system` command is easy to use, but it doesn't have
+much flexibility. The `ub.cmd` function aims to fix this. It is as simple to
+run as `os.system`, but it returns a dictionary containing the return code,
+standard out, standard error, and the `Popen` object used under the hood.
 ```python
 >>> import ubelt as ub
->>> for _ in ub.Timerit(num=200, verbose=2):
->>>     ub.find_nth_prime(100)
-Timing for 200 loops
-Timing complete, 200 loops
-    time per loop : 0.003288508653640747 seconds
+>>> info = ub.cmd('gcc --version')
+>>> print(ub.repr2(info))
+{
+    'command': 'gcc --version',
+    'err': '',
+    'out': 'gcc (Ubuntu 5.4.0-6ubuntu1~16.04.9) 5.4.0 20160609\nCopyright (C) 2015 Free Software Foundation, Inc.\nThis is free software; see the source for copying conditions.  There is NO\nwarranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n\n',
+    'proc': <subprocess.Popen object at 0x7ff98b310390>,
+    'ret': 0,
+}
+```
+
+Also note the use of `ub.repr2` to nicely format the output dictionary.
+
+Additionally, if you specify `verbout=True`, `ub.cmd` will simultaneously
+capture the standard output and display it in real time.
+```python
+>>> import ubelt as ub
+>>> info = ub.cmd('gcc --version', verbout=True)
+gcc (Ubuntu 5.4.0-6ubuntu1~16.04.9) 5.4.0 20160609
+Copyright (C) 2015 Free Software Foundation, Inc.
+This is free software; see the source for copying conditions.  There is NO
+warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 ```
 
 
-Use the loop variable as a context manager for more accurate timings or to
-incorporate an setup phase that is not timed.  You can also access properties
-of the `ub.Timerit` class to programmatically use results.
+A common use case for `ub.cmd` is parsing version numbers of programs
 ```python
 >>> import ubelt as ub
->>> t1 = ub.Timerit(num=200, verbose=2)
->>> for timer in t1:
->>>     setup_vars = 100
->>>     with timer:
->>>         ub.find_nth_prime(setup_vars)
->>> print('t1.total_time = %r' % (t1.total_time,))
-Timing for 200 loops
-Timing complete, 200 loops
-    time per loop : 0.003165217638015747 seconds
-t1.total_time = 0.6330435276031494
+>>> cmake_version = ub.cmd('cmake --version')['out'].splitlines()[0].split()[-1]
+>>> print('cmake_version = {!r}'.format(cmake_version))
+cmake_version = 3.11.0-rc2
+```
+
+This allows you to easily run a command line executable as part of a python
+process, see what it is doing, and then do something based on its output, just
+as you would if you were interacting with the command line itself.
+
+Lastly, `ub.cmd` removes the need to think about if you need to pass a list of
+args, or a string. Both will work. This utility has been tested on both Windows
+and Linux.
+
+
+### Cross-Platform Resource and Cache Directories
+If you have an application which writes configuration or cache files, the
+standard place to dump those files differs depending if you are on Windows,
+Linux, or Mac. UBelt offers a unified functions for determining what these
+paths are.
+
+The `ub.ensure_app_cache_dir` and `ub.ensure_app_resource_dir` functions 
+find the correct platform-specific location for these files and ensures that
+the directories exist. (Note: replacing "ensure" with "get" will simply return
+the path, but not ensure that it exists)
+
+The resource root directory is `~/AppData/Roaming` on Windows, `~/.config` on Linux and `~/Library/Application Support` on Mac.
+The cache root directory is `~/AppData/Local` on Windows, `~/.config` on Linux and `~/Library/Caches` on Mac.
+
+Example usage on Linux might look like this:
+```python
+>>> import ubelt as ub
+>>> print(ub.compressuser(ub.ensure_app_cache_dir('my_app')))
+~/.cache/my_app
+>>> print(ub.compressuser(ub.ensure_app_resource_dir('my_app')))
+~/.config/my_app
+```
+
+### Symlinks
+
+The `ub.symlink` function will create a symlink similar to `os.symlink`.
+The main differences are that 
+    1) it will not error if the symlink exists and already points to the correct location.
+    2) it works* on Windows (*hard links and junctions are used if real symlinks are not available)
+
+```python
+>>> import ubelt as ub
+>>> dpath = ub.ensure_app_cache_dir('ubelt', 'demo_symlink')
+>>> real_path = join(dpath, 'real_file.txt')
+>>> link_path = join(dpath, 'link_file.txt')
+>>> ub.writeto(real_path, 'foo')
+>>> ub.symlink(real_path, link_path)
 ```
 
 
@@ -252,27 +370,4 @@ that makes heavy use of multiprocessing.
 >>> print(ub.hzcat(['A = ', B, ' * ', C]))
 A = [[1, 2], * [[5, 6],
      [3, 4]]    [7, 8]]
-```
-
-### Command Line interaction 
-
-The `ub.cmd` function provides a simple interface to the command line.  It is
-an alternative to `os.system` and `subprocess` (although it uses `subprocess`
-under the hood). Its key feature is that it prints `stdout` and `stderr` to the
-terminal in real-time, while simultaneously capturing the output.
-
-This allows you to easily run a command line executable as part of a python
-process, see what it is doing, and then do something based on its output, just
-as you would if you were interacting with the command line itself.
-
-Also, `ub.cmd` removes the need to think about if you need to pass a list of
-args, or a string. Both will work. This utility has been tested on both Windows
-and Linux.
-
-```python
->>> info = cmd(('echo', 'simple cmdline interface'), verbose=1)
-simple cmdline interface
->>> assert info['ret'] == 0
->>> assert info['out'].strip() == 'simple cmdline interface'
->>> assert info['err'].strip() == ''
 ```
