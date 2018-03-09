@@ -3,9 +3,10 @@
 """
 CommandLine:
     # Partially regenerate __init__.py
-    python -c "import ubelt"
-    python -c "import ubelt" --print-ubelt-init --dyn
-    python -c "import ubelt" --update-ubelt-init --dyn
+    # python -c "import ubelt"
+    # python -c "import ubelt" --print-ubelt-init --dyn
+    # OLD: Dynamic autogen
+    # python -c "import ubelt" --update-ubelt-init --dyn
 
     # TODO: ensure this new way will work with multilevel modules
     python -c "import ubelt._internal as a; a.autogen_init('ubelt', dry=True)"
@@ -124,7 +125,7 @@ if _DOELSE:  # pragma: nobranch
     from ubelt.util_time import (Timer, Timerit, timestamp,)
     from ubelt.orderedset import (OrderedSet, oset,)
     from ubelt.progiter import (ProgIter,)
-
+    
     # </AUTOGEN_INIT>
 
 del _DOELSE

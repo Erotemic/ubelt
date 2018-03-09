@@ -83,24 +83,26 @@ from ubelt.util_dict import (AutoDict, AutoOrderedDict, ddict, dict_hist,
 from ubelt.util_download import (download, grabdata,)
 from ubelt.util_func import (identity,)
 from ubelt.util_format import (repr2,)
-from ubelt.util_io import (readfrom, writeto, touch, delete,)
+from ubelt.util_io import (delete, readfrom, touch, writeto,)
+from ubelt.util_links import (symlink,)
 from ubelt.util_list import (argsort, boolmask, chunks, compress, flatten,
                              iterable, take, unique, unique_flags,)
 from ubelt.util_hash import (hash_data, hash_file,)
-from ubelt.util_import import (split_modpath, modname_to_modpath,
-                               modpath_to_modname, import_module_from_name,
-                               import_module_from_path,)
+from ubelt.util_import import (import_module_from_name,
+                               import_module_from_path, modname_to_modpath,
+                               modpath_to_modname, split_modpath,)
 from ubelt.util_mixins import (NiceRepr,)
-from ubelt.util_path import (TempDir, augpath, compressuser, truepath,
-                             userhome, ensuredir,)
+from ubelt.util_path import (TempDir, augpath, compressuser, ensuredir,
+                             truepath, userhome,)
 from ubelt.util_platform import (DARWIN, LINUX, POSIX, PY2, PY3, WIN32,
                                  editfile, ensure_app_cache_dir,
                                  ensure_app_resource_dir, get_app_cache_dir,
                                  get_app_resource_dir, platform_cache_dir,
                                  platform_resource_dir, startfile,)
-from ubelt.util_str import (CaptureStdout, indent, codeblock, hzcat,
-                            ensure_unicode,)
+from ubelt.util_str import (CaptureStdout, codeblock, ensure_unicode, hzcat,
+                            indent,)
 from ubelt.util_time import (Timer, Timerit, timestamp,)
+from ubelt.orderedset import (OrderedSet, oset,)
 from ubelt.progiter import (ProgIter,)
 ```
 
@@ -371,7 +373,7 @@ Apply a function to each value in the dictionary (see also `ub.map_keys`).
 While the `collections.defaultdict` is nice, it is sometimes more convenient to
 have an infinitely nested dictionary of dictionaries. 
 
-```
+```python
 >>> import ubelt as ub
 >>> auto = ub.AutoDict()
 >>> print('auto = {!r}'.format(auto))
@@ -395,7 +397,7 @@ Note `ubelt` simply provides an interface to this functionality, the core
 implementation is in `xdoctest`. 
 
 
-```
+```python
 >>> import ubelt as ub
 >>> module = ub.import_module_from_path(ub.truepath('~/code/ubelt/ubelt'))
 >>> print('module = {!r}'.format(module))
@@ -413,7 +415,7 @@ module paths (e.g.
 `~/.local/conda/envs/cenv3/lib/python3.5/site-packages/ubelt/util_import.py`).
 
 
-```
+```python
 >>> import ubelt as ub
 >>> modpath = ub.util_import.__file__
 >>> print(ub.modpath_to_modname(modpath))
