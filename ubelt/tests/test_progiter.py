@@ -317,6 +317,7 @@ def test_disabled():
 
     prog = ProgIter(range(20), enabled=False)
     prog.begin()
+    prog.step()
     assert not prog.started
 
 
