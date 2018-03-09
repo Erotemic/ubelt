@@ -8,7 +8,7 @@ import re
 def test_timer_nonewline():
     from xdoctest.utils import CaptureStdout
     with CaptureStdout() as cap:
-        timer = ub.Timer(newline=False)
+        timer = ub.Timer(newline=False, verbose=1)
         timer.tic()
         timer.toc()
     assert cap.text.replace('u', '').startswith("\ntic('')...toc('')")
@@ -46,9 +46,28 @@ def test_timerit_verbose():
     assert cap.text.count('foo') == 2
 
 
-def test_timestamp_value_error():
-    with pytest.raises(ValueError):
-        ub.timestamp(method='bad-method')
+def test_timer_default_verbosity():
+    from xdoctest.utils import CaptureStdout
+
+    with CaptureStdout() as cap:
+        ub.Timer('').tic().toc()
+    assert cap.text == '', 'should be quiet by default when label is not given'
+
+    with CaptureStdout() as cap:
+        ub.Timer('a label').tic().toc()
+    assert cap.text != '', 'should be verbose by default when label is given'
+
+
+def test_timerit_default_verbosity():
+    from xdoctest.utils import CaptureStdout
+
+    with CaptureStdout() as cap:
+        ub.Timerit(10, '').call(lambda: None)
+    assert cap.text == '', 'should be quiet by default when label is not given'
+
+    with CaptureStdout() as cap:
+        ub.Timerit(10, 'alabel').call(lambda: None)
+    assert cap.text != '', 'should be verbose by default when label is given'
 
 
 def test_timer_error():
@@ -57,7 +76,12 @@ def test_timer_error():
             raise Exception()
     except Exception as ex:
         pass
-    assert timer.ellapsed > 0
+    assert timer.elapsed > 0
+
+
+def timestamp_badmethod():
+    with pytest.raises(ValueError):
+        ub.timestamp(method='not real')
 
 if __name__ == '__main__':
     r"""

@@ -48,7 +48,6 @@ GLOBAL_MODULES = [
     'util_path',
     'util_platform',
     'util_str',
-    'util_stress',
     'util_time',
     'orderedset',
     'progiter',
@@ -87,7 +86,6 @@ if _DOELSE:  # pragma: nobranch
     from ubelt import util_path
     from ubelt import util_platform
     from ubelt import util_str
-    from ubelt import util_stress
     from ubelt import util_time
     from ubelt import orderedset
     from ubelt import progiter
@@ -123,7 +121,6 @@ if _DOELSE:  # pragma: nobranch
                                      platform_resource_dir, startfile,)
     from ubelt.util_str import (CaptureStdout, codeblock, ensure_unicode, hzcat,
                                 indent,)
-    from ubelt.util_stress import (find_nth_prime,)
     from ubelt.util_time import (Timer, Timerit, timestamp,)
     from ubelt.orderedset import (OrderedSet, oset,)
     from ubelt.progiter import (ProgIter,)

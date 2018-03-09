@@ -1,7 +1,10 @@
 version: 0.0.43
 ---------------
-* Slight changes to ub.Timer API. Verbosity now depends on if a label was
-  specified. Timer.tic now returns the timer itself.
+* Removed `util_stress`, it was out of scope. 
+* Spelling: changed the `Timer.ellapsed` attribute to `Timer.elapsed`.
+* Verbosity of `Timer` and `Timerit` now depends on if a label was
+  specified. 
+* `Timer.tic` now returns a reference to the `Timer` instance.
 
 
 version: 0.0.42
