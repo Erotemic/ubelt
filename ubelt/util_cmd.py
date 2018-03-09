@@ -111,7 +111,7 @@ def _proc_iteroutput_thread(proc):
             yield oline, eline
 
 
-def _proc_iteroutput_select(proc):  # nocover
+def _proc_iteroutput_select(proc):
     """
     Iterates over output from a process line by line
 
