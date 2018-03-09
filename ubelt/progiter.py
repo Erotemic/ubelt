@@ -14,11 +14,10 @@ __all__ = [
     'ProgIter',
 ]
 
-if sys.platform.startswith('win32'):  # nocover
-    # Use time.clock in win32
-    default_timer = time.clock
-else:  # nocover
-    default_timer = time.time
+if sys.version_info.major == 2:  # nocover
+    default_timer = time.clock if sys.platform.startswith('win32') else time.time
+else:
+    default_timer = time.perf_counter
 
 CLEAR_BEFORE = '\r'
 AT_END = '\n'
@@ -62,7 +61,7 @@ def _infer_length(iterable):
         return hint
 
 
-class _TQDMCompat(object):  # nocover
+class _TQDMCompat(object):
 
     # TQDM Compatibility API
     @classmethod
@@ -146,7 +145,7 @@ class _TQDMCompat(object):  # nocover
             self.refresh()
 
 
-class _BackwardsCompat(object):  # nocover
+class _BackwardsCompat(object):
     # Backwards Compatibility API
     @property
     def length(self):
@@ -298,11 +297,11 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
     def __exit__(self, type, value, trace):
         if trace is not None:
             return False
-        else:  # nocover
+        else:
             self.end()
 
     def __iter__(self):
-        if not self.enabled:  # nocover
+        if not self.enabled:
             return iter(self.iterable)
         else:
             return self._iterate()

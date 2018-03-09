@@ -369,6 +369,38 @@ def test_tqdm_compatibility():
     for _ in prog:
         pass
 
+    import ubelt as ub
+    with ub.CaptureStdout() as cap:
+        ProgIter.write('foo')
+    assert cap.text.strip() == 'foo'
+
+    with ub.CaptureStdout() as cap:
+        prog = ProgIter(show_times=False)
+        prog.set_description('new desc')
+        prog.begin()
+        prog.refresh()
+        prog.close()
+    assert prog.label == 'new desc'
+    assert 'new desc' in cap.text.strip()
+
+    import ubelt as ub
+    with ub.CaptureStdout() as cap:
+        prog = ub.ProgIter(show_times=False)
+        prog.set_postfix({'foo': 'bar'}, baz='biz', x=object(), y=2)
+        prog.begin()
+    assert prog.length is None
+    assert 'foo=bar' in cap.text.strip()
+    assert 'baz=biz' in cap.text.strip()
+    assert 'y=2' in cap.text.strip()
+    assert 'x=<object' in cap.text.strip()
+
+    import ubelt as ub
+    with ub.CaptureStdout() as cap:
+        prog = ub.ProgIter(show_times=False)
+        prog.set_postfix_str('bar baz', refresh=False)
+    assert 'bar baz' not in cap.text.strip()
+
+
 if __name__ == '__main__':
     r"""
     CommandLine:
