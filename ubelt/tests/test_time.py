@@ -50,6 +50,15 @@ def test_timestamp_value_error():
     with pytest.raises(ValueError):
         ub.timestamp(method='bad-method')
 
+
+def test_timer_error():
+    try:
+        with ub.Timer() as timer:
+            raise Exception()
+    except Exception as ex:
+        pass
+    assert timer.ellapsed > 0
+
 if __name__ == '__main__':
     r"""
     CommandLine:
