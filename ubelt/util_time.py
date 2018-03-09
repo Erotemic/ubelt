@@ -18,18 +18,37 @@ class Timer(object):
     """
     Timer with-statement context object.
 
+    Args:
+        label (str): identifier for printing defaults to ''
+        verbose (int): verbosity flag, defaults to True if label is given
+        newline (bool): if False and verbose, print tic and toc on the same line
+
+    Attributes:
+        ellapsed (float): number of seconds measured by the context manager
+        tstart (float): time of last `tic` reported by `default_timer()`
+
     Example:
+        >>> # Using the context manager
         >>> import ubelt as ub
         >>> timer = ub.Timer('Timer test!', verbose=1)
         >>> with timer:
         >>>     prime = ub.find_nth_prime(40)
         >>> assert timer.ellapsed > 0
-    """
-    DEFAULT_VERBOSE = True
 
+    Example:
+        >>> # Using the tic/toc interface
+        >>> import ubelt as ub
+        >>> # Create and start the timer
+        >>> timer = ub.Timer().tic()
+        >>> ellapsed1 = timer.toc()
+        >>> ellapsed2 = timer.toc()
+        >>> ellapsed3 = timer.toc()
+        >>> assert ellapsed1 <= ellapsed2
+        >>> assert ellapsed2 <= ellapsed3
+    """
     def __init__(self, label='', verbose=None, newline=True):
         if verbose is None:
-            verbose = self.DEFAULT_VERBOSE  # nocover
+            verbose = bool(label)  # nocover
         self.label = label
         self.verbose = verbose
         self.newline = newline
@@ -47,6 +66,7 @@ class Timer(object):
                 self.write('\n')
             self.flush()
         self.tstart = default_timer()
+        return self
 
     def toc(self):
         """ stops the timer """
@@ -63,8 +83,7 @@ class Timer(object):
     def __exit__(self, ex_type, ex_value, trace):
         self.ellapsed = self.toc()
         if trace is not None:
-            # return False on error
-            return False  # nocover
+            return False
 
 
 class Timerit(object):
@@ -77,7 +96,7 @@ class Timerit(object):
         num (int): number of times to run the loop
         label (str): identifier for printing
         bestof (int): takes the max over this number of trials
-        verbose (int): verbosity level
+        verbose (int): verbosity flag, defaults to True if label is given
 
     CommandLine:
         python -m utool.util_time Timerit
@@ -112,11 +131,9 @@ class Timerit(object):
         >>>     # with blocks can be run without indentation
         >>>     with timer: ub.find_nth_prime(n)
     """
-    DEFAULT_VERBOSE = True
-
     def __init__(self, num, label=None, bestof=3, verbose=None):
         if verbose is None:
-            verbose = self.DEFAULT_VERBOSE
+            verbose = bool(label)
         self.num = num
         self.label = label
         self.times = []
@@ -231,8 +248,8 @@ class Timerit(object):
             >>> self.call(ub.find_nth_prime, 50)
             >>> assert self.mean() > 0
         """
-        import ubelt as ub
-        chunks = ub.chunks(self.times, self.bestof)
+        from ubelt.util_list import chunks
+        chunks = chunks(self.times, self.bestof)
         times = list(map(min, chunks))
         mean = sum(times) / len(times)
         return mean
@@ -251,8 +268,8 @@ class Timerit(object):
             >>> self.call(ub.find_nth_prime, 50)
             >>> assert self.std() > 0
         """
-        import ubelt as ub
-        chunks = ub.chunks(self.times, self.bestof)
+        from ubelt.util_list import chunks
+        chunks = chunks(self.times, self.bestof)
         times = list(map(min, chunks))
         mean = sum(times) / len(times)
         std = math.sqrt(sum((t - mean) ** 2 for t in times) / len(times))
