@@ -16,7 +16,8 @@ else:
 
 class Timer(object):
     """
-    Timer with-statement context object.
+    Measures time elapsed between a start and end point. Can be used as a
+    with-statement context manager, or using the tic/toc api.
 
     Args:
         label (str): identifier for printing defaults to ''
@@ -24,36 +25,33 @@ class Timer(object):
         newline (bool): if False and verbose, print tic and toc on the same line
 
     Attributes:
-        ellapsed (float): number of seconds measured by the context manager
+        elapsed (float): number of seconds measured by the context manager
         tstart (float): time of last `tic` reported by `default_timer()`
 
     Example:
-        >>> # Using the context manager
-        >>> import ubelt as ub
-        >>> timer = ub.Timer('Timer test!', verbose=1)
+        >>> # Create and start the timer using the the context manager
+        >>> timer = Timer('Timer test!', verbose=1)
         >>> with timer:
-        >>>     prime = ub.find_nth_prime(40)
-        >>> assert timer.ellapsed > 0
+        >>>     math.factorial(10000)
+        >>> assert timer.elapsed > 0
 
     Example:
-        >>> # Using the tic/toc interface
-        >>> import ubelt as ub
-        >>> # Create and start the timer
-        >>> timer = ub.Timer().tic()
-        >>> ellapsed1 = timer.toc()
-        >>> ellapsed2 = timer.toc()
-        >>> ellapsed3 = timer.toc()
-        >>> assert ellapsed1 <= ellapsed2
-        >>> assert ellapsed2 <= ellapsed3
+        >>> # Create and start the timer using the tic/toc interface
+        >>> timer = Timer().tic()
+        >>> elapsed1 = timer.toc()
+        >>> elapsed2 = timer.toc()
+        >>> elapsed3 = timer.toc()
+        >>> assert elapsed1 <= elapsed2
+        >>> assert elapsed2 <= elapsed3
     """
     def __init__(self, label='', verbose=None, newline=True):
         if verbose is None:
-            verbose = bool(label)  # nocover
+            verbose = bool(label)
         self.label = label
         self.verbose = verbose
         self.newline = newline
         self.tstart = -1
-        self.ellapsed = -1
+        self.elapsed = -1
         self.write = sys.stdout.write
         self.flush = sys.stdout.flush
 
@@ -70,18 +68,18 @@ class Timer(object):
 
     def toc(self):
         """ stops the timer """
-        ellapsed = default_timer() - self.tstart
+        elapsed = default_timer() - self.tstart
         if self.verbose:
-            self.write('...toc(%r)=%.4fs\n' % (self.label, ellapsed))
+            self.write('...toc(%r)=%.4fs\n' % (self.label, elapsed))
             self.flush()
-        return ellapsed
+        return elapsed
 
     def __enter__(self):
         self.tic()
         return self
 
     def __exit__(self, ex_type, ex_value, trace):
-        self.ellapsed = self.toc()
+        self.elapsed = self.toc()
         if trace is not None:
             return False
 
@@ -104,14 +102,13 @@ class Timerit(object):
         python -m utool.util_time Timerit:1
 
     Example:
-        >>> import ubelt as ub
         >>> num = 15
-        >>> t1 = ub.Timerit(num, verbose=2)
+        >>> t1 = Timerit(num, verbose=2)
         >>> for timer in t1:
         >>>     # <write untimed setup code here> this example has no setup
         >>>     with timer:
         >>>         # <write code to time here> for example...
-        >>>         ub.find_nth_prime(100)
+        >>>         math.factorial(10000)
         >>> # <you can now access Timerit attributes>
         >>> print('t1.total_time = %r' % (t1.total_time,))
         >>> assert t1.total_time > 0
@@ -119,17 +116,14 @@ class Timerit(object):
         >>> assert t1.n_loops == num
 
     Example:
-        >>> import ubelt as ub
         >>> num = 10
-        >>> n = 50
-        >>> # If the timer object is unused, time will still be recoreded,
+        >>> # If the timer object is unused, time will still be recorded,
         >>> # but with less precision.
-        >>> for _ in ub.Timerit(num, 'imprecise'):
-        >>>     ub.find_nth_prime(n)
-        >>> # Using the timer object results in the most precise timeings
-        >>> for timer in ub.Timerit(num, 'precise'):
-        >>>     # with blocks can be run without indentation
-        >>>     with timer: ub.find_nth_prime(n)
+        >>> for _ in Timerit(num, 'imprecise'):
+        >>>     math.factorial(10000)
+        >>> # Using the timer object results in the most precise timings
+        >>> for timer in Timerit(num, 'precise'):
+        >>>     with timer: math.factorial(10000)
     """
     def __init__(self, num, label=None, bestof=3, verbose=None):
         if verbose is None:
@@ -147,19 +141,16 @@ class Timerit(object):
         Alternative way to time a simple function call using condensed syntax.
 
         Returns:
-            self: Use `ave_secs`, `min`, or `mean` to obtain a scalar.
+            self (Timerit): Use `ave_secs`, `min`, or `mean` to get a scalar.
 
         Example:
-            >>> import ubelt as ub
-            >>> ave_sec = ub.Timerit(num=10, verbose=0).call(ub.find_nth_prime, 50).ave_secs
+            >>> ave_sec = Timerit(num=10).call(math.factorial, 50).ave_secs
             >>> assert ave_sec > 0
         """
         for timer in self:
             with timer:
                 func(*args, **kwargs)
         return self
-        # the expected execution time of `func(*args, **kwargs)` in seconds
-        # return self.ave_secs
 
     def __iter__(self):
         if self.verbose >= 2:
@@ -184,8 +175,8 @@ class Timerit(object):
                 yield fg_timer
                 bg_time = bg_timer.toc()
                 # Check if the fg_timer object was used, but fallback on bg_timer
-                if fg_timer.ellapsed >= 0:
-                    block_time = fg_timer.ellapsed  # higher precision
+                if fg_timer.elapsed >= 0:
+                    block_time = fg_timer.elapsed  # higher precision
                 else:
                     block_time = bg_time  # low precision
                 # record timings
@@ -228,9 +219,8 @@ class Timerit(object):
         '''
 
         Example:
-            >>> import ubelt as ub
             >>> self = Timerit(num=10, verbose=0)
-            >>> self.call(ub.find_nth_prime, 50)
+            >>> self.call(math.factorial, 50)
             >>> assert self.min() > 0
         """
         return min(self.times)
@@ -243,9 +233,8 @@ class Timerit(object):
             This is typically less informative than simply looking at the min
 
         Example:
-            >>> import ubelt as ub
             >>> self = Timerit(num=10, verbose=0)
-            >>> self.call(ub.find_nth_prime, 50)
+            >>> self.call(math.factorial, 50)
             >>> assert self.mean() > 0
         """
         from ubelt.util_list import chunks
@@ -263,9 +252,8 @@ class Timerit(object):
             not often useful. Typically the minimum value is most informative.
 
         Example:
-            >>> import ubelt as ub
             >>> self = Timerit(num=10, verbose=1)
-            >>> self.call(ub.find_nth_prime, 50)
+            >>> self.call(math.factorial, 50)
             >>> assert self.std() > 0
         """
         from ubelt.util_list import chunks
@@ -281,7 +269,6 @@ class Timerit(object):
             python -m ubelt.util_time Timerit._seconds_str
 
         Example:
-            >>> from ubelt.util_time import *
             >>> self = Timerit(num=100, bestof=10, verbose=0)
             >>> self.call(lambda : sum(range(100)))
             >>> print(self._seconds_str())
@@ -394,7 +381,7 @@ def timestamp(method='iso8601'):
         utc_offset = '-' + str(tz_hour) if tz_hour < 0 else '+' + str(tz_hour)
         stamp = time.strftime('%Y-%m-%dT%H%M%S') + utc_offset
         return stamp
-    else:  # nocover
+    else:
         raise ValueError('only iso8601 is accepted for now')
 
 
