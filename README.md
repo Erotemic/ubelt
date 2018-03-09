@@ -61,7 +61,7 @@ ub.repr2
 ub.download 
 ub.AutoDict
 ub.modname_to_modpath  # (works via static analysis)
-ub.modpath_to_modname  # (works via static analysis 
+ub.modpath_to_modname  # (works via static analysis)
 ub.import_module_from_path  # (Unlike importlib, this does not break pytest)
 ub.import_module_from_name  # (Unlike importlib, this does not break pytest)
 ```
@@ -284,6 +284,32 @@ The main differences are that
 ```
 
 
+### Downloading Files
+
+The function `ub.download` provides a simple interface to download a URL and
+save its data to a file.
+
+```python
+>>> import ubelt as ub
+>>> url = 'http://i.imgur.com/rqwaDag.png'
+>>> fpath = ub.download(url, verbose=0)
+>>> print(ub.compressuser(fpath))
+~/.cache/ubelt/rqwaDag.png
+```
+
+The function `ub.grabdata` works similarly to `ub.download`, but whereas
+`ub.download` will always re-download the file, `ub.grabdata` will check if the
+file exists and only re-download it if it needs to.
+
+```python
+>>> import ubelt as ub
+>>> url = 'http://i.imgur.com/rqwaDag.png'
+>>> fpath = ub.grabdata(url, verbose=0)
+>>> print(ub.compressuser(fpath))
+~/.cache/ubelt/rqwaDag.png
+```
+
+
 ### Grouping
 
 Group items in a sequence into a dictionary by a second id list
@@ -341,6 +367,62 @@ Apply a function to each value in the dictionary (see also `ub.map_keys`).
 ```
 
 
+### AutoDict - Autovivification
+While the `collections.defaultdict` is nice, it is sometimes more convenient to
+have an infinitely nested dictionary of dictionaries. 
+
+```
+>>> import ubelt as ub
+>>> auto = ub.AutoDict()
+>>> print('auto = {!r}'.format(auto))
+auto = {}
+>>> auto[0][10][100] = None
+>>> print('auto = {!r}'.format(auto))
+auto = {0: {10: {100: None}}}
+>>> auto[0][1] = 'hello'
+>>> print('auto = {!r}'.format(auto))
+auto = {0: {1: 'hello', 10: {100: None}}}
+```
+
+
+### String-based imports
+
+Ubelt contains functions to import modules dynamically without using the python
+`import` statement. While `importlib` exists, the `ubelt` implementation is
+simpler to user and does not have the disadvantage of breaking `pytest`.
+
+Note `ubelt` simply provides an interface to this functionality, the core
+implementation is in `xdoctest`. 
+
+
+```
+>>> import ubelt as ub
+>>> module = ub.import_module_from_path(ub.truepath('~/code/ubelt/ubelt'))
+>>> print('module = {!r}'.format(module))
+module = <module 'ubelt' from '/home/joncrall/code/ubelt/ubelt/__init__.py'>
+>>> module = ub.import_module_from_path('ubelt')
+>>> print('module = {!r}'.format(module))
+module = <module 'ubelt' from '/home/joncrall/code/ubelt/ubelt/__init__.py'>
+```
+
+
+Related to this functionality are the functions `ub.modpath_to_modname` and
+`ub.modname_to_modpath`, which *statically* transform (i.e. no code in the target modules
+is imported or executed) between module names (e.g. `ubelt.util_import`) and
+module paths (e.g.
+`~/.local/conda/envs/cenv3/lib/python3.5/site-packages/ubelt/util_import.py`).
+
+
+```
+>>> import ubelt as ub
+>>> modpath = ub.util_import.__file__
+>>> print(ub.modpath_to_modname(modpath))
+ubelt.util_import
+>>> modname = ub.util_import.__name__
+>>> assert ub.truepath(ub.modname_to_modpath(modname)) == modpath
+```
+
+
 ### Loop Progress
 `ProgIter` is a (mostly) drop-in alternative to [`tqdm`](https://pypi.python.org/pypi/tqdm).
 It is recommended to use `tqdm` in most cases. The advantage of `ProgIter` is
@@ -362,6 +444,8 @@ that makes heavy use of multiprocessing.
 
 
 ### Horizontal String Concatenation
+
+Sometimes its just prettier to horizontally concatenate two blocks of text.
 
 ```python
 >>> import ubelt as ub

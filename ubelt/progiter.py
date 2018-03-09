@@ -364,6 +364,8 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
             ...     for _ in range(n):
             ...         prog.step()
         """
+        if not self.enabled:
+            return
         self._iter_idx += inc
         self._update_measurements()
         self._update_estimates()
