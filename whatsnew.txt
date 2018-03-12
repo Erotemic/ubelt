@@ -1,3 +1,7 @@
+version: 0.0.44
+---------------
+* Add `ub.iter_window`
+
 version: 0.0.43
 ---------------
 * Removed `util_stress`, it was out of scope. 
