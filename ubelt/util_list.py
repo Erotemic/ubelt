@@ -359,6 +359,62 @@ def argsort(indexable, key=None, reverse=False):
     return indices
 
 
+def iter_window(iterable, size=2, step=1, wrap=False):
+    """
+    iterates through iterable with a window size
+    generalizeation of itertwo
+
+    Args:
+        iterable (iter): an iterable sequence
+        size (int): window size (default = 2)
+        wrap (bool): wraparound (default = False)
+
+    Returns:
+        iter: returns windows in a sequence
+
+    Example:
+        >>> iterable = [1, 2, 3, 4, 5, 6]
+        >>> size, step, wrap = 3, 1, True
+        >>> window_iter = iter_window(iterable, size, step, wrap)
+        >>> window_list = list(window_iter)
+        >>> print('window_list = %r' % (window_list,))
+        window_list = [(1, 2, 3), (2, 3, 4), (3, 4, 5), (4, 5, 6), (5, 6, 1), (6, 1, 2)]
+
+    Example:
+        >>> iterable = [1, 2, 3, 4, 5, 6]
+        >>> size, step, wrap = 3, 2, True
+        >>> window_iter = iter_window(iterable, size, step, wrap)
+        >>> window_list = list(window_iter)
+        >>> print('window_list = %r' % (window_list,))
+        window_list = [(1, 2, 3), (3, 4, 5), (5, 6, 1)]
+
+    Example:
+        >>> iterable = [1, 2, 3, 4, 5, 6]
+        >>> size, step, wrap = 3, 2, False
+        >>> window_iter = iter_window(iterable, size, step, wrap)
+        >>> window_list = list(window_iter)
+        >>> print('window_list = %r' % (window_list,))
+        window_list = [(1, 2, 3), (3, 4, 5)]
+    """
+    # it.tee may be slow, but works on all iterables
+    iter_list = it.tee(iterable, size)
+    if wrap:
+        # Secondary iterables need to be cycled for wraparound
+        iter_list = [iter_list[0]] + list(map(it.cycle, iter_list[1:]))
+    # Step each iterator the approprate number of times
+    try:
+        for count, iter_ in enumerate(iter_list[1:], start=1):
+            for _ in range(count):
+                six.next(iter_)
+    except StopIteration:
+        return iter(())
+    else:
+        _window_iter = zip(*iter_list)
+        # Account for the step size
+        window_iter = it.islice(_window_iter, 0, None, step)
+        return window_iter
+
+
 # if False:
 #     import operator as op
 #     def argmax(indexable, key=None):
