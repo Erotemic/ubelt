@@ -361,12 +361,13 @@ def argsort(indexable, key=None, reverse=False):
 
 def iter_window(iterable, size=2, step=1, wrap=False):
     """
-    iterates through iterable with a window size
-    generalizeation of itertwo
+    Iterates through iterable with a window size. This is essentially a 1D
+    sliding window.
 
     Args:
         iterable (iter): an iterable sequence
-        size (int): window size (default = 2)
+        size (int): sliding window size (default = 2)
+        step (int): sliding step size (default = 1)
         wrap (bool): wraparound (default = False)
 
     Returns:
@@ -395,6 +396,14 @@ def iter_window(iterable, size=2, step=1, wrap=False):
         >>> window_list = list(window_iter)
         >>> print('window_list = %r' % (window_list,))
         window_list = [(1, 2, 3), (3, 4, 5)]
+
+    Example:
+        >>> iterable = []
+        >>> size, step, wrap = 3, 2, False
+        >>> window_iter = iter_window(iterable, size, step, wrap)
+        >>> window_list = list(window_iter)
+        >>> print('window_list = %r' % (window_list,))
+        window_list = []
     """
     # it.tee may be slow, but works on all iterables
     iter_list = it.tee(iterable, size)
