@@ -86,7 +86,7 @@ from ubelt.util_format import (repr2,)
 from ubelt.util_io import (delete, readfrom, touch, writeto,)
 from ubelt.util_links import (symlink,)
 from ubelt.util_list import (argsort, boolmask, chunks, compress, flatten,
-                             iterable, take, unique, unique_flags,)
+                             iter_window, iterable, take, unique,
 from ubelt.util_hash import (hash_data, hash_file,)
 from ubelt.util_import import (import_module_from_name,
                                import_module_from_path, modname_to_modpath,
