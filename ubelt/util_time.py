@@ -254,7 +254,7 @@ class Timerit(object):
         Example:
             >>> self = Timerit(num=10, verbose=1)
             >>> self.call(math.factorial, 50)
-            >>> assert self.std() > 0
+            >>> assert self.std() >= 0
         """
         from ubelt.util_list import chunks
         chunks = chunks(self.times, self.bestof)
