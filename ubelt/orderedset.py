@@ -242,6 +242,8 @@ class OrderedSet(collections.MutableSet):
         for item in other:
             self.add(item)
 
+    extend = update  # alias of update
+
     def index(self, item):
         """
         Find the index of `item` in the OrderedSet
