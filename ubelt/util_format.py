@@ -446,7 +446,11 @@ def _dict_itemstrs(dict_, **kwargs):
         if compact_brace or not first_line.rstrip().endswith(tuple('([{<')):
             rest = '' if pos == -1 else val_str[pos:]
             val_str = first_line.lstrip() + rest
-            item_str = ub.hzcat([prefix, val_str])
+            # Fix issue with tuple keys (keys that span new lines)
+            if '\n' not in prefix:
+                item_str = ub.hzcat([prefix, val_str])
+            else:
+                item_str = prefix + val_str
         else:
             item_str = prefix + val_str
         return item_str

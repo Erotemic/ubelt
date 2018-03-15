@@ -1,3 +1,4 @@
+import ubelt as ub
 
 
 def test_newlines():
@@ -173,7 +174,6 @@ def test_list_of_numpy():
 
 
 def test_dict_of_numpy():
-    import ubelt as ub
     import numpy as np
     data = ub.odict(zip(
         ['one', 'two', 'three', 'four'],
@@ -204,5 +204,41 @@ def test_dict_of_numpy():
                                0, 0, 0, 0, 0, 0, 0, 0, 0],
                               [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                                0, 0, 0, 0, 0, 0, 0, 0, 0]], dtype=np.int32),
+        }
+        ''')
+
+
+def test_repr2_tuple_keys():
+    data = {
+        ('one', 'two'): 100,
+        ('three', 'four'): 200,
+    }
+    string = ub.repr2(data)
+    print(string)
+    string == ub.codeblock(
+        '''
+        {
+            (
+                'one',
+                'two',
+            ): 100,
+            (
+                'three',
+                'four',
+            ): 200,
+        }
+        ''')
+
+    data = {
+        ('one', 'two'): 100,
+        ('three', 'four'): 200,
+    }
+    string = ub.repr2(data, sk=1)
+    print(string)
+    string == ub.codeblock(
+        '''
+        {
+            ('one', 'two'): 100,
+            ('three', 'four'): 200,
         }
         ''')

@@ -319,8 +319,7 @@ Group items in a sequence into a dictionary by a second id list
 >>> import ubelt as ub
 >>> item_list    = ['ham',     'jam',   'spam',     'eggs',    'cheese', 'bannana']
 >>> groupid_list = ['protein', 'fruit', 'protein',  'protein', 'dairy',  'fruit']
->>> result = ub.group_items(item_list, groupid_list)
->>> print(result)
+>>> ub.group_items(item_list, groupid_list)
 {'dairy': ['cheese'], 'fruit': ['jam', 'bannana'], 'protein': ['ham', 'spam', 'eggs']}
 ```
 
@@ -331,11 +330,23 @@ Find the frequency of items in a sequence
 ```python
 >>> import ubelt as ub
 >>> item_list = [1, 2, 39, 900, 1232, 900, 1232, 2, 2, 2, 900]
->>> hist = ub.dict_hist(item_list)
->>> print(hist)
+>>> ub.dict_hist(item_list)
 {1232: 2, 1: 1, 2: 4, 900: 3, 39: 1}
 ```
 
+
+### Find Duplicates
+
+Find all duplicate items in a list.  More specifically, `ub.find_duplicates`
+searches for items that appear more than `k` times, and returns a mapping from
+each duplicate item to the positions it appeared in.
+
+```
+>>> import ubelt as ub
+>>> items = [0, 0, 1, 2, 3, 3, 0, 12, 2, 9]
+>>> ub.find_duplicates(items, k=2)
+{0: [0, 1, 6], 2: [3, 8], 3: [4, 5]}
+```
 
 ### Dictionary Manipulation
 
@@ -366,6 +377,27 @@ Apply a function to each value in the dictionary (see also `ub.map_keys`).
 >>> newdict = ub.map_vals(len, dict_)
 >>> print(newdict)
 {'a': 3, 'b': 0}
+```
+
+Invert the mapping defined by a dictionary. 
+By default `invert_dict` assumes that all dictionary values are distinct (i.e.
+the mapping is one-to-one / injective). 
+
+```python
+>>> import ubelt as ub
+>>> mapping = {0: 'a', 1: 'b', 2: 'c', 3: 'd'}
+>>> ub.invert_dict(mapping)
+{'a': 0, 'b': 1, 'c': 2, 'd': 3}
+```
+
+However, by specifying `unique_vals=False` the inverted dictionary builds a set
+of keys that were associated with each value.
+
+```python
+>>> import ubelt as ub
+>>> mapping = {'a': 0, 'A': 0, 'b': 1, 'c': 2, 'C': 2, 'd': 3}
+>>> ub.invert_dict(mapping, unique_vals=False)
+{0: {'A', 'a'}, 1: {'b'}, 2: {'C', 'c'}, 3: {'d'}}
 ```
 
 

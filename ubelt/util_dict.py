@@ -219,16 +219,17 @@ def dict_hist(item_list, weight_list=None, ordered=False, labels=None):
 
 def find_duplicates(items, k=2):
     r"""
-    Determine if there are duplicates in a list and at which indices they
-    appear.
+    Find all duplicate items in a list.
+
+    Search for all items that appear more than `k` times and return a mapping
+    from each duplicate item to the positions it appeared in.
 
     Args:
         items (list): a list of hashable items possibly containing duplicates
         k (int): only return items that appear at least `k` times (default=2)
 
     Returns:
-        dict: keys are duplicate items and values are indicies at which they
-            appear
+        dict: maps each duplicate item to the indices at which it appears
 
     CommandLine:
         python -m ubelt.util_dict find_duplicates
@@ -241,6 +242,14 @@ def find_duplicates(items, k=2):
         >>> print('duplicates = %r' % (duplicates,))
         >>> assert duplicates == {0: [0, 1, 6], 2: [3, 8], 3: [4, 5]}
         >>> assert ub.find_duplicates(items, 3) == {0: [0, 1, 6]}
+
+    Example:
+        >>> import ubelt as ub
+        >>> items = [0, 0, 1, 2, 3, 3, 0, 12, 2, 9]
+        >>> # note: k can be 0
+        >>> duplicates = ub.find_duplicates(items, k=0)
+        >>> print(ub.repr2(duplicates, nl=0))
+        {0: [0, 1, 6], 1: [2], 2: [3, 8], 3: [4, 5], 9: [9], 12: [7]}
     """
     # Build mapping from items to the indices at which they appear
     duplicates = ddict(list)
