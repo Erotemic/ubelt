@@ -9,8 +9,24 @@ Good utilities lift all codes.
 
 ## Purpose
 UBelt is a "utility belt" of commonly needed utility and helper functions.
-It is a migration of the most useful parts of `utool`
-  (https://github.com/Erotemic/utool) into a minimal and standalone module.
+
+## Description:
+
+UBelt is cross platform and all top-level functions behave similarly on
+Windows, Mac, and Linux (up to some small unavoidable differences).  Almost
+every function in `ubelt` was written with a doctest. This provides helpful
+documentation and example usage as well as helping achieve 100% test coverage
+(sans Python2, Windows, Stuff that could not be tested automatically, etc).
+
+See the (Available Functions) section for detailed information.
+
+In addition to utility functions, `utool` also contains a feature for
+auto-generating `__init__.py` files. See `ubelt/__init__.py` for an example.
+
+## History:
+
+UBelt is a migration of the most useful parts of `utool`(https://github.com/Erotemic/utool) 
+into a minimal and standalone module.
 
 The `utool` library contains a number of useful utility functions, however a
 number of these are too specific or not well documented. The goal of this
@@ -23,14 +39,6 @@ The doctest harness in `utool` was ported and rewritten in a new module called:
 
 A small subset of the static-analysis and code introspection tools in
 `xdoctest` are made visible through `ubelt`.
-
-In addition to utility functions `utool` also contains a feature for
-auto-generating `__init__.py` files. See `ubelt/__init__.py` for an example.
-
-UBelt is cross platform and all top-level functions behave similarly on
-Windows, Mac, and Linux (up to some small unavoidable differences).
-Every function in `ubelt` is written with a doctest, which provides helpful
-documentation and example usage as well as helping achieve 100% test coverage.
 
 ## Installation:
 
@@ -459,9 +467,9 @@ ubelt.util_import
 
 ### Loop Progress
 `ProgIter` is a (mostly) drop-in alternative to [`tqdm`](https://pypi.python.org/pypi/tqdm).
-It is recommended to use `tqdm` in most cases. The advantage of `ProgIter` is
-that it does not use any python threading, and therefore can be safer with code
-that makes heavy use of multiprocessing.
+It is recommended to use `tqdm` in most cases.
+ *The advantage of `ProgIter` is that it does not use any python threading*, 
+and therefore can be safer with code that makes heavy use of multiprocessing.
 ```python
 >>> import ubelt as ub
 >>> def is_prime(n):
