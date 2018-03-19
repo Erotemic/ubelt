@@ -119,6 +119,9 @@ def symlink(real_path, link_path, overwrite=False, verbose=0):
 
 
 def _readlink(link):
+    if _win32_links:
+        if _win32_links._win32_is_junction(link):
+            return _win32_links._win32_read_junction(link)
     try:
         return os.readlink(link)
     except Exception:  # nocover
