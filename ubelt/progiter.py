@@ -104,9 +104,13 @@ class _TQDMCompat(object):
         tqdm api compatibility. redisplays message
         (can cause a message to print twice)
         """
+        if not self.started:
+            self.begin()
         self.display_message()
 
-        pass
+    @property
+    def pos(self):
+        return 0
 
     @classmethod
     def set_lock(cls, lock):
@@ -245,6 +249,8 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
                 adjust = False
             freq = kwargs.pop('miniters', freq)
 
+            kwargs.pop('position', None)  # API compatability does nothing
+            kwargs.pop('dynamic_ncols', None)  # API compatability does nothing
             kwargs.pop('leave', True)  # we always leave
 
             # Accept the old api keywords
