@@ -7,8 +7,22 @@ from os.path import join, exists, islink
 import ubelt as ub
 import pytest
 import os
-from ubelt import util_platform
 from ubelt import util_links
+
+
+def test_rel_link():
+    dpath = ub.ensure_app_resource_dir('ubelt', 'test_rel_linke')
+    real_fpath = join(ub.ensuredir((dpath, 'dir1')), 'real.txt')
+    link_fpath = join(ub.ensuredir((dpath, 'dir2')), 'link.txt')
+    import os
+    os.chdir(dpath)
+    real_path = os.path.relpath(real_fpath, dpath)
+    link_path = os.path.relpath(link_fpath, dpath)
+    ub.touch(real_path)
+    link = ub.symlink(real_path, link_path)
+
+    resolved = ub.truepath(join(os.path.dirname(link), os.readlink(link)))
+    assert ub.truepath(real_fpath) == resolved
 
 
 def test_delete_symlinks():

@@ -88,6 +88,11 @@ def symlink(real_path, link_path, overwrite=False, verbose=0):
     """
     path = normpath(real_path)
     link = normpath(link_path)
+
+    if not os.path.isabs(path):
+        # if path is not absolute it must be specified relative to link
+        path = os.path.relpath(path, os.path.dirname(link))
+
     if verbose:
         print('Creating symlink: path={} link={}'.format(path, link))
     if islink(link):
@@ -109,6 +114,7 @@ def symlink(real_path, link_path, overwrite=False, verbose=0):
         _win32_links._symlink(path, link, overwrite=overwrite, verbose=verbose)
     else:
         os.symlink(path, link)
+
     return link
 
 
