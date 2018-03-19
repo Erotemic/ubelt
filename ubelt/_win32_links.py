@@ -300,8 +300,11 @@ def _win32_junction(path, link, verbose=0):
         if verbose:
             print('... as hard link')
         # command = 'mklink /H "{}" "{}"'.format(link, path)
-
-        jwfs.link(path, link)  # this seems to be allowed
+        try:
+            jwfs.link(path, link)  # this seems to be allowed
+        except Exception:
+            print('Failed to hardlink link={} to path={}'.format(link, path))
+            raise
         command = None
 
     if command is not None:
