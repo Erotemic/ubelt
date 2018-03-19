@@ -27,7 +27,7 @@ TODO:
 from __future__ import absolute_import, division, print_function, unicode_literals
 import sys
 
-__version__ = '0.0.44'
+__version__ = '0.0.45.dev'
 
 GLOBAL_MODULES = [
     'util_arg',
@@ -96,7 +96,7 @@ if _DOELSE:  # pragma: nobranch
     from ubelt.util_colors import (color_text, highlight_code,)
     from ubelt.util_const import (NoParam,)
     from ubelt.util_cmd import (cmd,)
-    from ubelt.util_decor import (memoize,)
+    from ubelt.util_decor import (memoize, memoize_method,)
     from ubelt.util_dict import (AutoDict, AutoOrderedDict, ddict, dict_hist,
                                  dict_subset, dict_take, dict_union,
                                  find_duplicates, group_items, invert_dict,
