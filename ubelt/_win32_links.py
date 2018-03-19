@@ -283,6 +283,10 @@ def _win32_junction(path, link, verbose=0):
         >>> assert ub.readfrom(join(dpath, 'afile.txt')) == 'foo'
         >>> ub.writeto(fjunc, 'foo')
     """
+    # junctions store absolute paths
+    path = os.path.abspath(path)
+    link = os.path.abspath(link)
+
     from ubelt import util_cmd
     if os.path.isdir(path):
         # try using a junction (soft link)

@@ -11,7 +11,7 @@ from ubelt import util_links
 
 
 def test_rel_link():
-    dpath = ub.ensure_app_resource_dir('ubelt', 'test_rel_linke')
+    dpath = ub.ensure_app_resource_dir('ubelt', 'test_rel_links')
     real_fpath = join(ub.ensuredir((dpath, 'dir1')), 'real.txt')
     link_fpath = join(ub.ensuredir((dpath, 'dir2')), 'link.txt')
     import os
@@ -21,7 +21,9 @@ def test_rel_link():
     ub.touch(real_path)
     link = ub.symlink(real_path, link_path)
 
-    resolved = ub.truepath(join(os.path.dirname(link), os.readlink(link)))
+    # Note: on windows this is hacked.
+    pointed = ub.util_links._readlink(link)
+    resolved = ub.truepath(join(os.path.dirname(link), pointed))
     assert ub.truepath(real_fpath) == resolved
 
 
