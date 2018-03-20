@@ -365,6 +365,7 @@ def test_adjust_freq():
 
 def test_tqdm_compatibility():
     prog = ProgIter(range(20), total=20, miniters=17, show_times=False)
+    assert prog.pos == 0
     assert prog.freq == 17
     for _ in prog:
         pass
