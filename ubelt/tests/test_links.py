@@ -3,7 +3,7 @@ TODO: test _can_symlink=False variants on systems that can symlink.
 """
 from os.path import isdir
 from os.path import isfile
-from os.path import join, exists, islink
+from os.path import join, exists, islink, relpath, dirname
 import ubelt as ub
 import pytest
 import os
@@ -14,17 +14,30 @@ def test_rel_link():
     dpath = ub.ensure_app_resource_dir('ubelt', 'test_rel_links')
     real_fpath = join(ub.ensuredir((dpath, 'dir1')), 'real.txt')
     link_fpath = join(ub.ensuredir((dpath, 'dir2')), 'link.txt')
-    import os
-    os.chdir(dpath)
-    real_path = os.path.relpath(real_fpath, dpath)
-    link_path = os.path.relpath(link_fpath, dpath)
-    ub.touch(real_path)
-    link = ub.symlink(real_path, link_path)
+    ub.touch(real_fpath)
 
-    # Note: on windows this is hacked.
-    pointed = ub.util_links._readlink(link)
-    resolved = ub.truepath(join(os.path.dirname(link), pointed))
-    assert ub.truepath(real_fpath) == resolved
+    orig = os.getcwd()
+    try:
+        os.chdir(dpath)
+        real_path = relpath(real_fpath, dpath)
+        link_path = relpath(link_fpath, dpath)
+        link = ub.symlink(real_path, link_path)
+        # Note: on windows this is hacked.
+        pointed = ub.util_links._readlink(link)
+        resolved = ub.truepath(join(dirname(link), pointed))
+        assert ub.truepath(real_fpath) == resolved
+    except Exception:
+        print('TEST FAILED: test_rel_link')
+        print('real_fpath = {!r}'.format(real_fpath))
+        print('link_fpath = {!r}'.format(link_fpath))
+        print('real_path = {!r}'.format(real_path))
+        print('link_path = {!r}'.format(link_path))
+        print('link = {!r}'.format(link))
+        print('pointed = {!r}'.format(pointed))
+        print('resolved = {!r}'.format(resolved))
+        raise
+    finally:
+        os.chdir(orig)
 
 
 def test_delete_symlinks():
