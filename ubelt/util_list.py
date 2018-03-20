@@ -3,7 +3,9 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import itertools as it
 import six
 import math
+import operator
 from six.moves import zip_longest
+from six import next
 
 
 class chunks(object):
@@ -117,7 +119,7 @@ class chunks(object):
         # Fill empty space in the last chunk with values from the beginning
         bordervalues = it.cycle(iter(sequence))
         for chunk in chunks_with_sentinals:
-            yield [item if item is not sentinal else six.next(bordervalues)
+            yield [item if item is not sentinal else next(bordervalues)
                    for item in chunk]
 
     @staticmethod
@@ -414,7 +416,7 @@ def iter_window(iterable, size=2, step=1, wrap=False):
     try:
         for count, iter_ in enumerate(iter_list[1:], start=1):
             for _ in range(count):
-                six.next(iter_)
+                next(iter_)
     except StopIteration:
         return iter(())
     else:
@@ -422,6 +424,38 @@ def iter_window(iterable, size=2, step=1, wrap=False):
         # Account for the step size
         window_iter = it.islice(_window_iter, 0, None, step)
         return window_iter
+
+
+def allsame(iterable, eq=operator.eq):
+    """
+    Determine if all items in a sequence are the same
+
+    Args:
+        iterable (iter): an iterable sequence
+        eq (func): function to determine equality (default: operator.eq)
+
+    Example:
+        >>> allsame([1, 1, 1, 1])
+        True
+        >>> allsame([])
+        True
+        >>> allsame([0, 1])
+        False
+        >>> iterable = iter([0, 1, 1, 1])
+        >>> next(iterable)
+        >>> allsame(iterable)
+        True
+        >>> allsame(range(10))
+        False
+        >>> allsame(range(10), lambda a, b: True)
+        True
+    """
+    iter_ = iter(iterable)
+    try:
+        first = next(iter_)
+    except StopIteration:
+        return True
+    return all(eq(first, item) for item in iter_)
 
 
 # if False:
