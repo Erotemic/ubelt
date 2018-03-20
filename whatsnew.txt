@@ -1,5 +1,6 @@
 version: 0.0.45
 ---------------
+* Add `allsame`
 * Add `extend` to ordered set API
 * Fix issue with repr2 dictionaries with newlines in keys
 * Fix issue with relative paths and symlink
