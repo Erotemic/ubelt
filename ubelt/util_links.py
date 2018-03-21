@@ -91,7 +91,11 @@ def symlink(real_path, link_path, overwrite=False, verbose=0):
 
     if not os.path.isabs(path):
         # if path is not absolute it must be specified relative to link
-        path = os.path.relpath(path, os.path.dirname(link))
+        if _can_symlink():
+            path = os.path.relpath(path, os.path.dirname(link))
+        else:  # nocover
+            # On windows, we need to use absolute paths
+            path = os.path.abspath(path)
 
     if verbose:
         print('Creating symlink: path={} link={}'.format(path, link))
