@@ -27,6 +27,7 @@ def test_rel_link():
         resolved = ub.truepath(join(dirname(link), pointed))
         assert ub.truepath(real_fpath) == resolved
     except Exception:
+        util_links._dirstats(dpath)
         print('TEST FAILED: test_rel_link')
         print('real_fpath = {!r}'.format(real_fpath))
         print('link_fpath = {!r}'.format(link_fpath))
@@ -43,6 +44,7 @@ def test_rel_link():
             print('...rest of the names are not available')
         raise
     finally:
+        util_links._dirstats(dpath)
         os.chdir(orig)
 
 
