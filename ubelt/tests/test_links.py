@@ -12,27 +12,27 @@ from ubelt import util_links
 
 def test_rel_link():
     dpath = ub.ensure_app_resource_dir('ubelt', 'test_rel_links')
-    real_fpath = join(ub.ensuredir((dpath, 'dir1')), 'real.txt')
-    link_fpath = join(ub.ensuredir((dpath, 'dir2')), 'link.txt')
-    ub.touch(real_fpath)
+    real_dpath = join(ub.ensuredir((dpath, 'dir1')), 'real')
+    link_dpath = join(ub.ensuredir((dpath, 'dir2')), 'link')
+    ub.ensuredir(real_dpath)
 
     orig = os.getcwd()
     try:
         os.chdir(dpath)
-        real_path = relpath(real_fpath, dpath)
-        link_path = relpath(link_fpath, dpath)
+        real_path = relpath(real_dpath, dpath)
+        link_path = relpath(link_dpath, dpath)
         link = ub.symlink(real_path, link_path)
         # Note: on windows this is hacked.
         pointed = ub.util_links._readlink(link)
         resolved = ub.truepath(join(dirname(link), pointed))
-        assert ub.truepath(real_fpath) == resolved
+        assert ub.truepath(real_dpath) == resolved
     except Exception:
         util_links._dirstats(dpath)
         util_links._dirstats(join(dpath, 'dir1'))
         util_links._dirstats(join(dpath, 'dir2'))
         print('TEST FAILED: test_rel_link')
-        print('real_fpath = {!r}'.format(real_fpath))
-        print('link_fpath = {!r}'.format(link_fpath))
+        print('real_dpath = {!r}'.format(real_dpath))
+        print('link_dpath = {!r}'.format(link_dpath))
         print('real_path = {!r}'.format(real_path))
         print('link_path = {!r}'.format(link_path))
         try:
