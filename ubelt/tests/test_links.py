@@ -33,9 +33,12 @@ def test_rel_link():
         print('real_path = {!r}'.format(real_path))
         print('link_path = {!r}'.format(link_path))
         try:
-            print('link = {!r}'.format(link))
-            print('pointed = {!r}'.format(pointed))
-            print('resolved = {!r}'.format(resolved))
+            if 'link' in vars():
+                print('link = {!r}'.format(link))
+            if 'pointed' in vars():
+                print('pointed = {!r}'.format(pointed))
+            if 'resolved' in vars():
+                print('resolved = {!r}'.format(resolved))
         except Exception:
             print('...rest of the names are not available')
         raise
