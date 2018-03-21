@@ -32,9 +32,13 @@ def test_rel_link():
         print('link_fpath = {!r}'.format(link_fpath))
         print('real_path = {!r}'.format(real_path))
         print('link_path = {!r}'.format(link_path))
-        print('link = {!r}'.format(link))
-        print('pointed = {!r}'.format(pointed))
-        print('resolved = {!r}'.format(resolved))
+        try:
+            print('link = {!r}'.format(link))
+            print('pointed = {!r}'.format(pointed))
+            print('resolved = {!r}'.format(resolved))
+        except NameError:
+            print('...rest of the names are not available')
+            pass
         raise
     finally:
         os.chdir(orig)
