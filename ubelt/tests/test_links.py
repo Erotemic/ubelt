@@ -10,8 +10,11 @@ import os
 from ubelt import util_links
 
 
-def test_rel_link():
-    dpath = ub.ensure_app_resource_dir('ubelt', 'test_rel_links')
+def test_rel_dir_link():
+    dpath = ub.ensure_app_resource_dir('ubelt', 'test_rel_dir_link')
+    ub.delete(dpath, verbose=2)
+    ub.ensuredir(dpath, verbose=2)
+
     real_dpath = join(ub.ensuredir((dpath, 'dir1')), 'real')
     link_dpath = join(ub.ensuredir((dpath, 'dir2')), 'link')
     ub.ensuredir(real_dpath)
@@ -33,6 +36,57 @@ def test_rel_link():
         print('TEST FAILED: test_rel_link')
         print('real_dpath = {!r}'.format(real_dpath))
         print('link_dpath = {!r}'.format(link_dpath))
+        print('real_path = {!r}'.format(real_path))
+        print('link_path = {!r}'.format(link_path))
+        try:
+            if 'link' in vars():
+                print('link = {!r}'.format(link))
+            if 'pointed' in vars():
+                print('pointed = {!r}'.format(pointed))
+            if 'resolved' in vars():
+                print('resolved = {!r}'.format(resolved))
+        except Exception:
+            print('...rest of the names are not available')
+        raise
+    finally:
+        util_links._dirstats(dpath)
+        util_links._dirstats(join(dpath, 'dir1'))
+        util_links._dirstats(join(dpath, 'dir2'))
+        os.chdir(orig)
+
+
+def test_rel_file_link():
+    dpath = ub.ensure_app_resource_dir('ubelt', 'test_rel_file_link')
+    ub.delete(dpath, verbose=2)
+    ub.ensuredir(dpath, verbose=2)
+
+    real_fpath = join(ub.ensuredir((dpath, 'dir1')), 'real')
+    link_fpath = join(ub.ensuredir((dpath, 'dir2')), 'link')
+    ub.touch(real_fpath)
+
+    orig = os.getcwd()
+    try:
+        os.chdir(dpath)
+        real_path = relpath(real_fpath, dpath)
+        link_path = relpath(link_fpath, dpath)
+        link = ub.symlink(real_path, link_path)
+        import sys
+        if sys.platform.startswith('win32') and isfile(link):
+            # Note: if windows hard links the file there is no way we can
+            # tell that it was a symlink. Just verify it exists.
+            from ubelt import _win32_links
+            assert _win32_links._win32_is_hardlinked(real_fpath, link_fpath)
+        else:
+            pointed = ub.util_links._readlink(link)
+            resolved = ub.truepath(join(dirname(link), pointed))
+            assert ub.truepath(real_fpath) == resolved
+    except Exception:
+        util_links._dirstats(dpath)
+        util_links._dirstats(join(dpath, 'dir1'))
+        util_links._dirstats(join(dpath, 'dir2'))
+        print('TEST FAILED: test_rel_link')
+        print('real_fpath = {!r}'.format(real_fpath))
+        print('link_fpath = {!r}'.format(link_fpath))
         print('real_path = {!r}'.format(real_path))
         print('link_path = {!r}'.format(link_path))
         try:
