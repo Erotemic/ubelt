@@ -36,9 +36,8 @@ def test_rel_link():
             print('link = {!r}'.format(link))
             print('pointed = {!r}'.format(pointed))
             print('resolved = {!r}'.format(resolved))
-        except NameError:
+        except Exception:
             print('...rest of the names are not available')
-            pass
         raise
     finally:
         os.chdir(orig)
