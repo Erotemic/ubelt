@@ -208,9 +208,13 @@ def _dirstats(dpath=None):  # nocover
             # A file junction? Thats not good.
             # I guess this is a windows 7 thing?
             path = util_colors.color_text(path, 'red')
+        elif ELFDJ == [1, 1, 0, 0, 0]:
+            # Windows? Why? What does this mean!?
+            # A directory link that cant be resolved?
+            path = util_colors.color_text(path, 'red')
         else:
-            print('path = {!r}'.format(path))
             print('dpath = {!r}'.format(dpath))
+            print('path = {!r}'.format(path))
             raise AssertionError(str(ELFDJ) + str(path))
         line = '{E:d} {L:d} {F:d} {D:d} {J:d} - {path}'.format(**locals())
         if os.path.islink(full_path):
