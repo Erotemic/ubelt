@@ -11,7 +11,7 @@ Good utilities lift all codes.
 UBelt is a "utility belt" of commonly needed utility and helper functions. 
 
 
-* Reusable code - Many functions in ubelt are simple to write yourself (e.g.
+* Reusable code - Many functions in `ubelt` are simple to write yourself (e.g.
   `take`, `memoize`, `ensure_unicode`), but even re-writing trivial functions
 takes time better spent on more important tasks. 
 
