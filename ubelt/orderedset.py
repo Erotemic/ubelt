@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
 from six.moves import zip, range
-from six.moves import filterfalse
 import itertools as it
 import collections
 import weakref
@@ -111,9 +110,28 @@ class OrderedSet(collections.MutableSet):
             yield curr.key
             curr = curr.prev
 
+    def _iterslice(self, sl):
+        """
+        Iterate over items at indices specified by a slice
+
+        Example:
+            >>> self = oset([1, 2, 3, 4, 5, 6, 7, 8])
+            >>> items = list(self._iterslice(slice(1, None, 2)))
+            >>> assert items == [2, 4, 6, 8]
+        """
+        indices = iter(range(*sl.indices(len(self))))
+        target = next(indices)
+        for index, item in enumerate(self):
+            if index == target:
+                yield item
+                target = next(indices)
+
     def __getitem__(self, index):
         """
         Access an item within the ordered set.
+
+        Note:
+            Lookup time is O(n)
 
         Example:
             >>> import pytest
@@ -128,18 +146,25 @@ class OrderedSet(collections.MutableSet):
             >>> assert self[-3] == 1
             >>> with pytest.raises(IndexError):
             ...     self[-4]
+            >>> assert self[::2] == [1, 3]
+            >>> assert self[0:2] == [1, 2]
+            >>> assert self[-1:] == [3]
         """
-        if index < 0:
-            iter_ = self.__reversed__
-            index_ = -1 - index
+        if isinstance(index, slice):
+            return self.__class__(self._iterslice(index))
         else:
-            index_ = index
-            iter_ = self.__iter__
-        if index_ >= len(self):
-            raise IndexError('index %r out of range %r' % (index, len(self)))
-        for count, item in zip(range(index_ + 1), iter_()):
-            pass
-        return item
+            if index < 0:
+                iter_ = self.__reversed__
+                index_ = -1 - index
+            else:
+                index_ = index
+                iter_ = self.__iter__
+            if index_ >= len(self):
+                raise IndexError('index %r out of range %r' % (
+                    index, len(self)))
+            for count, item in zip(range(index_ + 1), iter_()):
+                pass
+            return item
 
     def add(self, key):
         """

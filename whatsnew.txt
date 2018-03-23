@@ -3,6 +3,7 @@ version: 0.0.45
 * Can now update ProgIter description on the fly
 * Added methods to OrderedSet to complete the set API
     (e.g. `intersection`, `difference`, etc...)
+* Can now index into an `OrderedSet` using a slice
 * Fixed issue with `OrderedSet.union` where it ignored `self`
 * Fixed issue with `OrderedSet.union` where __eq__ and isdisjoint were wrong
 * Add `appname` arg to grabdata
