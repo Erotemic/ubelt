@@ -377,7 +377,23 @@ def test_tqdm_compatibility():
 
     with ub.CaptureStdout() as cap:
         prog = ProgIter(show_times=False)
-        prog.set_description('new desc')
+        prog.set_description('new desc', refresh=False)
+        prog.begin()
+        prog.refresh()
+        prog.close()
+    assert prog.label == 'new desc'
+    assert 'new desc' in cap.text.strip()
+
+    with ub.CaptureStdout() as cap:
+        prog = ProgIter(show_times=False)
+        prog.set_description('new desc', refresh=True)
+        prog.close()
+    assert prog.label == 'new desc'
+    assert 'new desc' in cap.text.strip()
+
+    with ub.CaptureStdout() as cap:
+        prog = ProgIter(show_times=False)
+        prog.set_description_str('new desc')
         prog.begin()
         prog.refresh()
         prog.close()

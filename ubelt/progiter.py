@@ -74,10 +74,12 @@ class _TQDMCompat(object):
     def set_description(self, desc=None, refresh=True):
         """ tqdm api compatibility. Changes the description of progress """
         self.desc = desc
+        if refresh:
+            self.refresh()
 
     def set_description_str(self, desc=None, refresh=True):
         """ tqdm api compatibility. Changes the description of progress """
-        pass
+        self.set_description(desc, refresh)
 
     def update(self, n=1):
         """ alias of `step` for tqdm compatibility """
@@ -518,10 +520,10 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
         Example:
             >>> self = ProgIter(show_times=True)
             >>> print(self._build_message_template().strip())
-            {iter_idx:4d}/?...{extra} rate={rate:{rate_format}} Hz, total={total}, wall={wall} ...
+            {desc} {iter_idx:4d}/?...{extra} rate={rate:{rate_format}} Hz, total={total}, wall={wall} ...
             >>> self = ProgIter(show_times=False)
             >>> print(self._build_message_template().strip())
-            {iter_idx:4d}/?...{extra}
+            {desc} {iter_idx:4d}/?...{extra}
         """
         tzname = time.tzname[0]
         length_unknown = self.total is None or self.total <= 0
@@ -530,7 +532,7 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
         else:
             n_chrs = int(floor(log10(float(self.total))) + 1)
         msg_body = [
-            (self.desc),
+            ('{desc}'),
             (' {iter_idx:' + str(n_chrs) + 'd}/'),
             ('?' if length_unknown else six.text_type(self.total)),
             ('...'),
@@ -580,6 +582,7 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
             seconds=int(self._total_seconds)))
         # similar to tqdm.format_meter
         msg = self._msg_fmtstr.format(
+            desc=self.desc,
             iter_idx=self._now_idx,
             rate=self._iters_per_second,
             rate_format='4.2f' if self._iters_per_second > .001 else 'g',
