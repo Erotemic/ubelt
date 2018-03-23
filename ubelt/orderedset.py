@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
 from six.moves import zip, range
+from six import next
 import itertools as it
 import collections
 import weakref
@@ -121,7 +122,7 @@ class OrderedSet(collections.MutableSet):
         """
         indices = iter(range(*sl.indices(len(self))))
         target = next(indices)
-        for index, item in enumerate(self):
+        for index, item in enumerate(self):  # pragma: nobranch
             if index == target:
                 yield item
                 target = next(indices)
@@ -149,6 +150,8 @@ class OrderedSet(collections.MutableSet):
             >>> assert self[::2] == [1, 3]
             >>> assert self[0:2] == [1, 2]
             >>> assert self[-1:] == [3]
+            >>> assert self[:] == self
+            >>> assert self[:] is not self
         """
         if isinstance(index, slice):
             return self.__class__(self._iterslice(index))
