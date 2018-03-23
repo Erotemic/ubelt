@@ -110,7 +110,7 @@ from ubelt.util_cache import (Cacher,)
 from ubelt.util_colors import (color_text, highlight_code,)
 from ubelt.util_const import (NoParam,)
 from ubelt.util_cmd import (cmd,)
-from ubelt.util_decor import (memoize,)
+from ubelt.util_decor import (memoize, memoize_method,)
 from ubelt.util_dict import (AutoDict, AutoOrderedDict, ddict, dict_hist,
                              dict_subset, dict_take, dict_union,
                              find_duplicates, group_items, invert_dict,
@@ -120,8 +120,9 @@ from ubelt.util_func import (identity,)
 from ubelt.util_format import (repr2,)
 from ubelt.util_io import (delete, readfrom, touch, writeto,)
 from ubelt.util_links import (symlink,)
-from ubelt.util_list import (argsort, boolmask, chunks, compress, flatten,
-                             iter_window, iterable, take, unique,
+from ubelt.util_list import (allsame, argsort, boolmask, chunks, compress,
+                             flatten, iter_window, iterable, take, unique,
+                             unique_flags,)
 from ubelt.util_hash import (hash_data, hash_file,)
 from ubelt.util_import import (import_module_from_name,
                                import_module_from_path, modname_to_modpath,

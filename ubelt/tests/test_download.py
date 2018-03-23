@@ -97,6 +97,54 @@ def test_grabdata_url_only():
 
 
 @pytest.mark.timeout(5)
+def test_grabdata_with_fpath():
+    """
+    Check where the url is downloaded to when fpath is not specified.
+    """
+    url = 'http://i.imgur.com/rqwaDag.png'
+
+    dpath = ub.ensure_app_cache_dir('ubelt')
+    fname = basename(url)
+    fpath = join(dpath, fname)
+
+    got_fpath = ub.grabdata(url, fpath=fpath, verbose=3)
+    assert got_fpath == fpath
+    assert exists(fpath)
+
+    ub.delete(fpath)
+    assert not exists(fpath)
+
+    ub.grabdata(url, fpath=fpath, verbose=3)
+    assert exists(fpath)
+
+
+def test_grabdata_value_error():
+    """
+    Check where the url is downloaded to when fpath is not specified.
+    """
+    url = 'http://i.imgur.com/rqwaDag.png'
+
+    dpath = ub.ensure_app_cache_dir('ubelt')
+    fname = basename(url)
+    fpath = join(dpath, fname)
+
+    with pytest.raises(ValueError):
+        ub.grabdata(url, fname=fname, fpath=fpath, dpath=dpath)
+
+    with pytest.raises(ValueError):
+        ub.grabdata(url, fname=fname, fpath=fpath)
+
+    with pytest.raises(ValueError):
+        ub.grabdata(url, dpath=dpath, fpath=fpath)
+
+    with pytest.raises(ValueError):
+        ub.grabdata(url, fpath=fpath, appname='foobar')
+
+    with pytest.raises(ValueError):
+        ub.grabdata(url, dpath=dpath, appname='foobar')
+
+
+@pytest.mark.timeout(5)
 def test_download_bad_url():
     """
     Check that we error when the url is bad

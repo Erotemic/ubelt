@@ -44,7 +44,8 @@ def download(url, fpath=None, hash_prefix=None, chunksize=8192, verbose=1):
 
     Args:
         url (str): url to download
-        fpath (str): path to download to. Defaults to basename of url
+        fpath (str): path to download to. Defaults to basename of url and
+            ubelt's application cache.
         chunksize (int): download chunksize
         verbose (bool): verbosity
 
@@ -113,7 +114,7 @@ def download(url, fpath=None, hash_prefix=None, chunksize=8192, verbose=1):
 
 
 def grabdata(url, fpath=None, dpath=None, fname=None, redo=False,
-             verbose=1, **download_kw):
+             verbose=1, appname=None, **download_kw):
     """
     Downloads a file, caches it, and returns its local path.
 
@@ -121,12 +122,14 @@ def grabdata(url, fpath=None, dpath=None, fname=None, redo=False,
         url (str): url to the file to download
         fpath (str): The full path to download the file to. If unspecified, the
             arguments `dpath` and `fname` are used to determine this.
-        dpath (str): where to download the file. Defaults to ubelt's
-            application cache.
+        dpath (str): where to download the file. If unspecified `appname`
+            is used to determine this. Mutually exclusive with fpath.
         fname (str): What to name the downloaded file. Defaults to the url
-            basename.
+            basename. Mutually exclusive with fpath.
         redo (bool): if True forces redownload of the file (default = False)
         verbose (bool):  verbosity flag (default = True)
+        appname (str): set dpath to `ub.get_app_cache_dir(appname)`.
+            Mutually exclusive with dpath and fpath.
         **download_kw: additional kwargs to pass to ub.download
 
     Returns:
@@ -140,14 +143,18 @@ def grabdata(url, fpath=None, dpath=None, fname=None, redo=False,
         >>> print(result)
         mario.png
     """
+    if appname and dpath:
+        raise ValueError('Cannot specify appname with dpath')
+    if fpath and (dpath or fname or appname):
+        raise ValueError('Cannot specify fpath with dpath or fname')
+
     if fpath is None:
         if dpath is None:
-            dpath = util_platform.ensure_app_cache_dir('ubelt')
+            appname = appname or 'ubelt'
+            dpath = util_platform.ensure_app_cache_dir(appname)
         if fname is None:
             fname = basename(url)
         fpath = join(dpath, fname)
-    elif dpath is not None or fname is not None:
-        raise ValueError('Cannot specify dpath or fname with fpath')
 
     if redo or not exists(fpath):
         fpath = download(url, fpath, verbose=verbose, **download_kw)

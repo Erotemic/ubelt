@@ -3,7 +3,8 @@ TODO: test _can_symlink=False variants on systems that can symlink.
 """
 from os.path import isdir
 from os.path import isfile
-from os.path import join, exists, islink, relpath, dirname
+from os.path import islink
+from os.path import join, exists, relpath, dirname
 import ubelt as ub
 import pytest
 import os
@@ -27,8 +28,8 @@ def test_rel_dir_link():
         link = ub.symlink(real_path, link_path)
         # Note: on windows this is hacked.
         pointed = ub.util_links._readlink(link)
-        resolved = ub.truepath(join(dirname(link), pointed))
-        assert ub.truepath(real_dpath) == resolved
+        resolved = ub.truepath(join(dirname(link), pointed), real=True)
+        assert ub.truepath(real_dpath, real=True) == resolved
     except Exception:
         util_links._dirstats(dpath)
         util_links._dirstats(join(dpath, 'dir1'))
@@ -78,8 +79,8 @@ def test_rel_file_link():
             assert _win32_links._win32_is_hardlinked(real_fpath, link_fpath)
         else:
             pointed = ub.util_links._readlink(link)
-            resolved = ub.truepath(join(dirname(link), pointed))
-            assert ub.truepath(real_fpath) == resolved
+            resolved = ub.truepath(join(dirname(link), pointed), real=True)
+            assert ub.truepath(real_fpath, real=True) == resolved
     except Exception:
         util_links._dirstats(dpath)
         util_links._dirstats(join(dpath, 'dir1'))
@@ -321,12 +322,12 @@ def test_broken_link():
     print('can_symlink = {!r}'.format(can_symlink))
     if can_symlink:
         # normal behavior
-        assert os.path.islink(broken_flink)
-        assert not os.path.exists(broken_flink)
+        assert islink(broken_flink)
+        assert not exists(broken_flink)
     else:
         # on windows hard links are essentially the same file.
         # there is no trace that it was actually a link.
-        assert os.path.exists(broken_flink)
+        assert exists(broken_flink)
 
 
 def test_overwrite_symlink():
