@@ -171,12 +171,37 @@ def import_module_from_path(modpath):
     Args:
         modpath (str): path to the module
 
+    Returns:
+        module: the imported module
+
     References:
         https://stackoverflow.com/questions/67631/import-module-given-path
 
     Notes:
         If the module is part of a package, the package will be imported first.
         These modules may cause problems when reloading via IPython magic
+
+    Warning:
+        It is best to use this with paths that will not conflict with
+        previously existing modules.
+
+        If the modpath conflicts with a previously existing module name. And
+        the target module does imports of its own relative to this conflicting
+        path. In this case, the module that was loaded first will win.
+
+        For example if you try to import '/foo/bar/pkg/mod.py' from the folder
+        structure:
+          - foo/
+            +- bar/
+               +- pkg/
+                  +  __init__.py
+                  |- mod.py
+                  |- helper.py
+
+       If there exists another module named `pkg` already in sys.modules
+       and mod.py does something like `from . import helper`, Python will
+       assume helper belongs to the `pkg` module already in sys.modules.
+       This can cause a NameError or worse --- a incorrect helper module.
 
     TODO:
         handle modules inside of zipfiles
