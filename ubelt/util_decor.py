@@ -96,7 +96,6 @@ class memoize_method(object):
         >>> assert incr[0] == 7
     """
     def __init__(self, func):
-        print('func = {!r}'.format(func))
         self._func = func
         self._cache_name = '_cache__' + func.__name__
 
