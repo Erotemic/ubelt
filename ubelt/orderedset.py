@@ -257,7 +257,7 @@ class OrderedSet(collections.MutableSet):
         Each items order is defined by its first appearance.
 
         Example:
-            >>> self = OrderedSet.union([3, 1, 4, 1, 5], [1, 3], [2, 0])
+            >>> self = OrderedSet.union(oset([3, 1, 4, 1, 5]), [1, 3], [2, 0])
             >>> print(self)
             OrderedSet([3, 1, 4, 5, 2, 0])
             >>> self.union([8, 9])
@@ -276,7 +276,7 @@ class OrderedSet(collections.MutableSet):
         by the first set.
 
         Example:
-            >>> self = OrderedSet.intersection([0, 1, 2, 3], [1, 2, 3])
+            >>> self = OrderedSet.intersection(oset([0, 1, 2, 3]), [1, 2, 3])
             >>> print(self)
             OrderedSet([1, 2, 3])
             >>> self.intersection([2, 4, 5], [1, 2, 3, 4])
