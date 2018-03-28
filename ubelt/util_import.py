@@ -22,7 +22,7 @@ def split_modpath(modpath):
         modpath (str): module filepath
 
     Returns:
-        str: directory
+        tuple: (directory, rel_modpath)
 
     Example:
         >>> from xdoctest import static_analysis
@@ -33,7 +33,8 @@ def split_modpath(modpath):
         >>> assert rel_modpath == join('xdoctest', 'static_analysis.py')
     """
     from xdoctest import static_analysis as static
-    return static.split_modpath(modpath)
+    directory, rel_modpath = static.split_modpath(modpath)
+    return directory, rel_modpath
 
 
 def modpath_to_modname(modpath, hide_init=True, hide_main=False):
