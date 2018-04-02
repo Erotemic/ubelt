@@ -13,7 +13,7 @@ def _indent(str_, indent='    '):
     return indent + str_.replace('\n', '\n' + indent)
 
 
-def __excecute_imports(module, modname, imports, verbose=False):
+def _excecute_imports(module, modname, imports, verbose=False):
     """ Module Imports """
     # level: -1 is a the Python2 import strategy
     # level:  0 is a the Python3 absolute import
@@ -28,10 +28,8 @@ def __excecute_imports(module, modname, imports, verbose=False):
             tmp = __import__(modname, globals(), locals(), fromlist=[str(name)], level=level)
 
 
-def __execute_fromimport_star(module, modname, imports, ignore_list=[],
-                              ignore_startswith=[], ignore_endswith=[],
-                              check_not_imported=True, verbose=False,
-                              veryverbose=False):
+def _execute_fromimport_star(module, modname, imports, check_not_imported=False,
+                             verbose=False):
     r"""
     Effectively import * statements
 
@@ -39,11 +37,8 @@ def __execute_fromimport_star(module, modname, imports, ignore_list=[],
     anything.
 
     Ignore:
-        ignore_startswith = []
-        ignore_endswith = []
         check_not_imported = False
-        verbose = True
-        veryverbose = True
+        verbose = 2
     """
     if verbose:
         print('[UTIL_IMPORT] EXECUTE %d FROMIMPORT STAR TUPLES.' % (len(imports),))
@@ -54,8 +49,7 @@ def __execute_fromimport_star(module, modname, imports, ignore_list=[],
                      'zip', 'map', 'range', 'list', 'zip_longest', 'filter',
                      'filterfalse', 'dirname', 'realpath', 'join', 'exists',
                      'normpath', 'splitext', 'expanduser', 'relpath', 'isabs',
-                     'commonprefix', 'basename', 'input', 'reduce'] +
-                    ignore_list)
+                     'commonprefix', 'basename', 'input', 'reduce'])
 
     for name in imports:
         #absname = modname + '.' + name
@@ -71,10 +65,10 @@ def __execute_fromimport_star(module, modname, imports, ignore_list=[],
             is_private = attrname.startswith('_')
             is_conflit = attrname in varset
             is_module  = attrname in sys.modules  # Isn't fool proof (next step is)
-            is_ignore1 = attrname in ignoreset
-            is_ignore2 = any([attrname.startswith(prefix) for prefix in ignore_startswith])
-            is_ignore3 = any([attrname.endswith(suffix) for suffix in ignore_endswith])
-            is_ignore  = any((is_ignore1, is_ignore2, is_ignore3))
+            is_ignore = attrname in ignoreset
+            # is_ignore2 = any([attrname.startswith(prefix) for prefix in ignore_startswith])
+            # is_ignore3 = any([attrname.endswith(suffix) for suffix in ignore_endswith])
+            # is_ignore  = any((is_ignore1, is_ignore2, is_ignore3))
             is_valid = not any((is_ignore, is_private, is_conflit, is_module))
             #is_valid = is_valid and is_defined_by_module2(getattr(child_module, attrname), child_module)
             return (is_forced or is_valid)
@@ -95,12 +89,12 @@ def __execute_fromimport_star(module, modname, imports, ignore_list=[],
                 # Disallow fromimport modules
                 forced = attrname in fromset
                 if not forced and getattr(attrval, '__name__') in sys.modules:
-                    if veryverbose:
+                    if verbose > 1:
                         print('[UTIL_IMPORT] not importing: %r' % attrname)
                     continue
             except AttributeError:
                 pass
-            if veryverbose:
+            if verbose > 1:
                 print('[UTIL_IMPORT] %s is importing: %r' % (modname, attrname))
             valid_fromlist_.append(attrname)
             setattr(module, attrname, attrval)
@@ -158,17 +152,23 @@ def _make_fromimport_str(from_imports, rootmodname='.'):
     return from_str
 
 
-def _find_local_modnames(pkgpath):
+def _find_local_submodule_names(pkgpath):
     # Automatically find the imports if they are not specified
-    import glob
-    modpaths = list(map(basename, glob.glob(join(pkgpath, '*.py'))))
-    imports = [m[:-3] for m in modpaths if not m.startswith('_')]
-    return imports
+    if False:
+        # Old way, doesn't account for subpackages with __init__.py
+        import glob
+        modpaths = list(map(basename, glob.glob(join(pkgpath, '*.py'))))
+        imports = [m[:-3] for m in modpaths if not m.startswith('_')]
+        return imports
+    else:
+        # Better way of doing this
+        from ubelt._internal import static_autogen
+        import_paths = dict(static_autogen._find_local_submodules(pkgpath))
+        imports = list(import_paths.keys())
+        return imports
 
 
-def dynamic_import(modname, imports=None, ignore_froms=[],
-                   dump=False, ignore_startswith=[], ignore_endswith=[],
-                   ignore_list=[], check_not_imported=True, verbose=False):
+def dynamic_import(modname, imports=None, dump=False, verbose=False):
     """
     MAIN ENTRY POINT
 
@@ -184,7 +184,17 @@ def dynamic_import(modname, imports=None, ignore_froms=[],
         >>> # The easiest way to use this in your code is to add these lines
         >>> # to the module __init__ file
         >>> from ubelt._internal import dynamic_import
-        >>> exec(dynamic_import(__name__))
+        >>> execstr = dynamic_import('ubelt')
+        >>> print(execstr)
+        >>> exec(execstr)  # xdoc: +SKIP
+
+        >>> from netharn import util
+        >>> module = util
+        >>> modname = util.__name__
+        >>> print(dynamic_import(modname))
+
+    Ignore:
+        ignore_list = []
 
     """
     if verbose:
@@ -192,22 +202,18 @@ def dynamic_import(modname, imports=None, ignore_froms=[],
     # Get the module that will be imported into
     try:
         module = sys.modules[modname]
-    except:
+    except Exception:
         module = __import__(modname)
 
     if imports is None:
         pkgpath = dirname(module.__file__)
-        imports = _find_local_modnames(pkgpath)
+        imports = _find_local_submodule_names(pkgpath)
 
     # Import the modules
-    __excecute_imports(module, modname, imports, verbose=verbose)
+    _excecute_imports(module, modname, imports, verbose=verbose)
     # If developing do explicit import stars
-    from_imports = __execute_fromimport_star(module, modname, imports,
-                                             ignore_list=ignore_list,
-                                             ignore_startswith=ignore_startswith,
-                                             ignore_endswith=ignore_endswith,
-                                             check_not_imported=check_not_imported,
-                                             verbose=verbose)
+    from_imports = _execute_fromimport_star(module, modname, imports,
+                                            verbose=verbose)
 
     # If requested: print what the __init__ module should look like
     dump_requested = (('--dump-%s-init' % modname) in sys.argv or

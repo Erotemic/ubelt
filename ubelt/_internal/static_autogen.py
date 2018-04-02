@@ -9,7 +9,7 @@ from six.moves import builtins
 
 
 def autogen_init(modpath_or_name, imports=None, attrs=True, use_all=True,
-                 dry=False):
+                 dry=False):  # nocover
     """
     Autogenerates imports for a package __init__.py file.
 
@@ -36,8 +36,16 @@ def autogen_init(modpath_or_name, imports=None, attrs=True, use_all=True,
         To autogenerate a module on demand, its useful to keep a doctr comment
         in the __init__ file like this:
             python -c "import ubelt._internal as a; a.autogen_init('<your_module_path_or_name>')"
+
+    CommandLine:
+        python -m ubelt._internal.static_autogen autogen_init
+
+    Example:
+        >>> init_fpath, new_text = autogen_init('ubelt', imports=['util_arg'],
+        >>>                                     attrs=True, use_all=True,
+        >>>                                     dry=True)
+        >>> assert 'argflag' in new_text
     """
-    # from ubelt import util_import
     from xdoctest import static_analysis as static
     if exists(modpath_or_name):
         modpath = modpath_or_name
@@ -64,15 +72,63 @@ def autogen_init(modpath_or_name, imports=None, attrs=True, use_all=True,
     if not attrs:
         from_imports = []
     initstr = _initstr(modname, imports, from_imports, withheader=False)
+    init_fpath, new_text = _autogen_init_make(modpath, initstr)
     if dry:
+        print('(DRY) would write updated file: %r' % init_fpath)
+        print(new_text)
         print(initstr)
-    else:
-        _autogen_init_write(modpath, initstr)
+        return init_fpath, new_text
+    else:  # nocover
+        print('writing updated file: %r' % init_fpath)
+        print(new_text)
+        with open(init_fpath, 'w') as file_:
+            file_.write(new_text)
+
+
+def _find_local_submodules(pkgpath):
+    """
+    Args:
+        pkgpath (str): path to a package with an __init__.py file
+
+    Example:
+        >>> import ubelt as ub
+        >>> pkgpath = ub.modname_to_modpath('ubelt')
+        >>> import_paths = dict(_find_local_submodules(pkgpath))
+        >>> assert 'util_dict' in import_paths
+    """
+    # Find all the children modules in this package (non recursive)
+    from xdoctest import static_analysis as static
+    pkgname = static.modpath_to_modname(pkgpath)
+    for sub_modpath in static.package_modpaths(pkgpath, with_pkg=True,
+                                               recursive=False):
+        sub_modname = static.modpath_to_modname(sub_modpath)
+        rel_modname = sub_modname[len(pkgname) + 1:]
+        if rel_modname.startswith('_'):
+            # Skip private modules
+            pass
+        elif not rel_modname:
+            pass
+        else:
+            yield rel_modname, sub_modpath
 
 
 def _static_parse_imports(modpath, imports=None, use_all=True):
-    # from ubelt.meta import static_analysis as static
-    # TODO: port some of this functionality over
+    """
+    Args:
+        modpath (str): base path to a package (with an __init__)
+        imports (list): list of submodules to look at in the base package
+
+    CommandLine:
+        python -m ubelt._internal.static_autogen _static_parse_imports
+
+    Example:
+        >>> import ubelt as ub
+        >>> modpath = ub.modname_to_modpath('ubelt')
+        >>> tup = _static_parse_imports(modpath, None, True)
+        >>> modname, imports, from_imports = tup
+        >>> assert 'util_arg' in imports
+        >>> assert 'util_dict' in imports
+    """
     from xdoctest import static_analysis as static
     modname = static.modpath_to_modname(modpath)
     if imports is not None:
@@ -81,20 +137,8 @@ def _static_parse_imports(modpath, imports=None, use_all=True):
             for m in imports
         }
     else:
-        imports = []
-        import_paths = {}
-        for sub_modpath in static.package_modpaths(modpath, with_pkg=True,
-                                                   recursive=False):
-            # print('sub_modpath = {!r}'.format(sub_modpath))
-            sub_modname = static.modpath_to_modname(sub_modpath)
-            rel_modname = sub_modname[len(modname) + 1:]
-            if rel_modname.startswith('_'):
-                continue
-            if not rel_modname:
-                continue
-            import_paths[rel_modname] = sub_modpath
-            imports.append(rel_modname)
-        imports = sorted(imports)
+        import_paths = dict(_find_local_submodules(modpath))
+        imports = sorted(import_paths.keys())
 
     from_imports = []
     for rel_modname in imports:
@@ -102,7 +146,7 @@ def _static_parse_imports(modpath, imports=None, use_all=True):
         with open(sub_modpath, 'r') as file:
             source = file.read()
         valid_callnames = None
-        if use_all:
+        if use_all:  # pragma: nobranch
             try:
                 valid_callnames = static.parse_static_value('__all__', source)
             except NameError:
@@ -117,14 +161,16 @@ def _static_parse_imports(modpath, imports=None, use_all=True):
             for attr in attrnames:
                 if '.' in attr or attr.startswith('_'):
                     continue
-                if attr in invalid_callnames:
+                if attr in invalid_callnames:  # nocover
                     continue
                 valid_callnames.append(attr)
         from_imports.append((rel_modname, sorted(valid_callnames)))
     return modname, imports, from_imports
 
 
-def _autogen_init_write(modpath, initstr):
+def _autogen_init_make(modpath, initstr):
+    """
+    """
     from os.path import join, exists
     #print(new_else)
     # Get path to init file so we can overwrite it
@@ -160,11 +206,8 @@ def _autogen_init_write(modpath, initstr):
     print('startline = {!r}'.format(startline))
     print('endline = {!r}'.format(endline))
 
-    print('writing updated file: %r' % init_fpath)
     new_text = ''.join(new_lines).rstrip() + '\n'
-    print(new_text)
-    with open(init_fpath, 'w') as file_:
-        file_.write(new_text)
+    return init_fpath, new_text
 
 
 def _indent(str_, indent='    '):
@@ -172,7 +215,24 @@ def _indent(str_, indent='    '):
 
 
 def _initstr(modname, imports, from_imports, withheader=True):
-    """ Calls the other string makers """
+    """
+    Calls the other string makers
+
+    CommandLine:
+        python -m ubelt._internal.static_autogen _initstr
+
+    Example:
+        >>> modname = 'foo'
+        >>> imports = ['bar', 'baz']
+        >>> from_imports = [('bar', ['func1', 'func2'])]
+        >>> initstr = _initstr(modname, imports, from_imports)
+        >>> print(initstr)
+        # flake8: noqa
+        from __future__ import absolute_import, division, print_function, unicode_literals
+        from foo import bar
+        from foo import baz
+        from foo.bar import (func1, func2,)
+    """
     header         = _make_module_header() if withheader else ''
     import_str     = _make_imports_str(imports, modname)
     fromimport_str = _make_fromimport_str(from_imports, modname)
@@ -197,7 +257,7 @@ def _make_imports_str(imports, rootmodname='.'):
 
 
 def _make_fromimport_str(from_imports, rootmodname='.'):
-    if rootmodname == '.':
+    if rootmodname == '.':  # nocover
         # dot is already taken care of in fmtstr
         rootmodname = ''
     def _pack_fromimport(tup):
@@ -205,10 +265,10 @@ def _make_fromimport_str(from_imports, rootmodname='.'):
         from_module_str = 'from {rootmodname}.{name} import ('.format(
             rootmodname=rootmodname, name=name)
         newline_prefix = (' ' * len(from_module_str))
-        if len(fromlist) > 0:
+        if len(fromlist) > 0:  # pragma: nobranch
             rawstr = from_module_str + ', '.join(fromlist) + ',)'
         else:
-            rawstr = ''
+            rawstr = ''  # nocover
 
         # not sure why this isn't 76? >= maybe?
         packstr = '\n'.join(textwrap.wrap(rawstr, break_long_words=False,
@@ -217,3 +277,12 @@ def _make_fromimport_str(from_imports, rootmodname='.'):
         return packstr
     from_str = '\n'.join(map(_pack_fromimport, from_imports))
     return from_str
+
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python -m ubelt._internal.static_autogen all
+    """
+    import xdoctest
+    xdoctest.doctest_module(__file__)
