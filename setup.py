@@ -103,20 +103,32 @@ def parse_description():
 
 def parse_requirements(fname='requirements.txt'):
     """
-    Parse the package dependencies listed in a requirements file.
+    Parse the package dependencies listed in a requirements file but strips
+    specific versioning information.
 
     CommandLine:
         python -c "import setup; print(setup.parse_requirements())"
     """
     from os.path import dirname, join, exists
+    import re
     require_fpath = join(dirname(__file__), fname)
     # This breaks on pip install, so check that it exists.
     if exists(require_fpath):
         with open(require_fpath, 'r') as f:
-            lines = [line.strip() for line in f.readlines()]
-            lines = [line for line in lines if not line.startswith('#')]
-            return lines
+            packages = []
+            for line in f.readlines():
+                line = line.strip()
+                if line and not line.startswith('#'):
+                    if line.startswith('-e '):
+                        package = line.split('#egg=')[1]
+                        packages.append(package)
+                    else:
+                        pat = '|'.join(['>', '>=', '=='])
+                        package = re.split(pat, line)[0]
+                        packages.append(package)
+            return packages
     return []
+
 
 version = parse_version('ubelt')  # needs to be a global var for git tags
 
