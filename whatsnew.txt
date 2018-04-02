@@ -1,5 +1,8 @@
 version: 0.0.45
 ---------------
+* simplified dynamic imports
+* memoize_method now handles kwargs
+* Added `inject_method` to util_func.py.
 * Can now update ProgIter description on the fly
 * Added methods to OrderedSet to complete the set API
     (e.g. `intersection`, `difference`, etc...)

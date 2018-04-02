@@ -3,23 +3,15 @@
 """
 CommandLine:
     # Partially regenerate __init__.py
-    # python -c "import ubelt"
-    # python -c "import ubelt" --print-ubelt-init --dyn
-    # OLD: Dynamic autogen
-    # python -c "import ubelt" --update-ubelt-init --dyn
-
-    # TODO: ensure this new way will work with multilevel modules
     python -c "import ubelt._internal as a; a.autogen_init('ubelt', dry=True)"
     python -c "import ubelt._internal as a; a.autogen_init('ubelt', dry=False)"
+
 TODO:
     The following functions and classes are candidates to be ported from utool:
     * reload_class
-    * inject_func_as_method
     * inject_func_as_property
     * parse_cfgstr3
     * accumulate
-    * itertwo
-    * iterwin
     * ParamInfo - move to dtool
     * embed
     * rsync
@@ -102,7 +94,7 @@ if _DOELSE:  # pragma: nobranch
                                  find_duplicates, group_items, invert_dict,
                                  map_keys, map_vals, odict,)
     from ubelt.util_download import (download, grabdata,)
-    from ubelt.util_func import (identity,)
+    from ubelt.util_func import (identity, inject_method,)
     from ubelt.util_format import (repr2,)
     from ubelt.util_io import (delete, readfrom, touch, writeto,)
     from ubelt.util_links import (symlink,)
@@ -126,7 +118,7 @@ if _DOELSE:  # pragma: nobranch
     from ubelt.util_time import (Timer, Timerit, timestamp,)
     from ubelt.orderedset import (OrderedSet, oset,)
     from ubelt.progiter import (ProgIter,)
-    
+
     # </AUTOGEN_INIT>
 
 del _DOELSE
