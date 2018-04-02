@@ -29,7 +29,11 @@ def _make_signature_key(args, kwargs):
         >>> print('key = {!r}'.format(key))
         >>> # Some mutable types cannot be handled by ub.hash_data
         >>> import pytest
-        >>> from collections import abc
+        >>> import six
+        >>> if six.PY2
+        >>>     import collections as abc
+        >>> else:
+        >>>     from collections import abc
         >>> with pytest.raises(TypeError):
         >>>     _make_signature_key((4, [1, 2], {1: 2, 'a': 'b'}), kwargs={})
         >>> class Dummy(abc.MutableSet):
