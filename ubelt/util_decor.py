@@ -1,6 +1,59 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
 import functools
+import sys
+from ubelt import util_hash
+
+
+def _hashable(item):
+    """
+    Returns the item if it is naturally hashable, otherwise it tries to use
+    ub.hash_data to make it hashable. Errors if it cannot.
+    """
+    try:
+        hash(item)
+    except TypeError:
+        return util_hash.hash_data(item)
+    else:
+        return item
+
+
+def _make_signature_key(args, kwargs):
+    """
+    Transforms function args into a key that can be used by the cache
+
+    Example:
+        >>> args = (4, [1, 2])
+        >>> kwargs = {'a': 'b'}
+        >>> key = _make_signature_key(args, kwargs)
+        >>> print('key = {!r}'.format(key))
+        >>> # Some mutable types cannot be handled by ub.hash_data
+        >>> import pytest
+        >>> from collections import abc
+        >>> with pytest.raises(TypeError):
+        >>>     _make_signature_key((4, [1, 2], {1: 2, 'a': 'b'}), kwargs={})
+        >>> class Dummy(abc.MutableSet):
+        >>>     def __contains__(self, item): return None
+        >>>     def __iter__(self): return iter([])
+        >>>     def __len__(self): return 0
+        >>>     def add(self, item, loc): return None
+        >>>     def discard(self, item): return None
+        >>> with pytest.raises(TypeError):
+        >>>     _make_signature_key((Dummy(),), kwargs={})
+    """
+    kwitems = kwargs.items()
+    # TODO: we should check if Python is at least 3.7 and sort by kwargs
+    # keys otherwise. Should we use hash_data for key generation
+    if (sys.version_info.major, sys.version_info.minor) < (3, 7):  # nocover
+        # We can sort because they keys are gaurenteed to be strings
+        kwitems = sorted(kwitems)
+    kwitems = tuple(kwitems)
+
+    try:
+        key = _hashable(args), _hashable(kwitems)
+    except TypeError:
+        raise TypeError('Signature is not hashable: args={} kwargs{}'.format(args, kwargs))
+    return key
 
 
 def memoize(func):
@@ -11,7 +64,7 @@ def memoize(func):
         https://wiki.python.org/moin/PythonDecoratorLibrary#Memoize
 
     Args:
-        func (function):  live python function
+        func (function): live python function
 
     Returns:
         func: memoized wrapper
@@ -45,7 +98,7 @@ def memoize(func):
     cache = {}
     @functools.wraps(func)
     def memoizer(*args, **kwargs):
-        key = str(args) + str(kwargs)
+        key = _make_signature_key(args, kwargs)
         if key not in cache:
             cache[key] = func(*args, **kwargs)
         return cache[key]
@@ -111,15 +164,16 @@ class memoize_method(object):
         self._instance = instance
         return self
 
-    def __call__(self, *args):
+    def __call__(self, *args, **kwargs):
         """
         The wrapped function call
         """
         cache = self._instance.__dict__.setdefault(self._cache_name, {})
-        if args in cache:
-            return cache[args]
+        key = _make_signature_key(args, kwargs)
+        if key in cache:
+            return cache[key]
         else:
-            value = cache[args] = self._func(self._instance, *args)
+            value = cache[key] = self._func(self._instance, *args, **kwargs)
             return value
 
 if __name__ == '__main__':
