@@ -5,6 +5,7 @@ New static version of dynamic_make_init.py
 from __future__ import absolute_import, division, print_function, unicode_literals
 import textwrap
 from os.path import join, exists
+import six
 from six.moves import builtins
 
 
@@ -143,8 +144,16 @@ def _static_parse_imports(modpath, imports=None, use_all=True):
     from_imports = []
     for rel_modname in imports:
         sub_modpath = import_paths[rel_modname]
-        with open(sub_modpath, 'r') as file:
-            source = file.read()
+        try:
+            if six.PY2:
+                with open(sub_modpath, 'r') as file:
+                    source = file.read()
+            else:
+                with open(sub_modpath, 'r', encoding='utf8') as file:
+                    source = file.read()
+        except Exception as ex:  # nocover
+            raise IOError('Error reading {}, caused by {}'.format(
+                sub_modpath, repr(ex)))
         valid_callnames = None
         if use_all:  # pragma: nobranch
             try:

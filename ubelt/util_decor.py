@@ -22,6 +22,9 @@ def _make_signature_key(args, kwargs):
     """
     Transforms function args into a key that can be used by the cache
 
+    CommandLine:
+        python -m ubelt.util_decor _make_signature_key
+
     Example:
         >>> args = (4, [1, 2])
         >>> kwargs = {'a': 'b'}
@@ -30,7 +33,7 @@ def _make_signature_key(args, kwargs):
         >>> # Some mutable types cannot be handled by ub.hash_data
         >>> import pytest
         >>> import six
-        >>> if six.PY2
+        >>> if six.PY2:
         >>>     import collections as abc
         >>> else:
         >>>     from collections import abc
