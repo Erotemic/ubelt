@@ -1,5 +1,5 @@
 pytest >= 3.3.1
-xdoctest >= 0.2.4
+xdoctest >= 0.3.0
 pytest-cov
 coverage >= 4.3.4
 tqdm
