@@ -38,7 +38,7 @@ def split_modpath(modpath):
 
 
 def modpath_to_modname(modpath, hide_init=True, hide_main=False):
-    r"""
+    """
     Determines importable name from file path
 
     Converts the path to a module (__file__) to the importable python name
@@ -51,7 +51,7 @@ def modpath_to_modname(modpath, hide_init=True, hide_main=False):
     Args:
         modpath (str): module filepath
         hide_init (bool): removes the __init__ suffix (default True)
-        hide_init (bool): removes the __main__ suffix (default False)
+        hide_main (bool): removes the __main__ suffix (default False)
 
     Returns:
         str: modname
@@ -66,8 +66,8 @@ def modpath_to_modname(modpath, hide_init=True, hide_main=False):
     return static.modpath_to_modname(modpath, hide_init, hide_main)
 
 
-def modname_to_modpath(modname, hide_init=True, hide_main=True):  # nocover
-    r"""
+def modname_to_modpath(modname, hide_init=True, hide_main=True, sys_path=None):
+    """
     Finds the path to a python module from its name.
 
     Determines the path to a python module without directly import it
@@ -81,6 +81,7 @@ def modname_to_modpath(modname, hide_init=True, hide_main=True):  # nocover
         hide_init (bool): if False, __init__.py will be returned for packages
         hide_main (bool): if False, and hide_init is True, __main__.py will be
             returned for packages, if it exists.
+        sys_path (list): if specified overrides `sys.path` (default None)
 
     Returns:
         str: modpath - path to the module, or None if it doesn't exist
@@ -94,7 +95,7 @@ def modname_to_modpath(modname, hide_init=True, hide_main=True):  # nocover
         >>> modname = 'ubelt.progiter'
         >>> already_exists = modname in sys.modules
         >>> modpath = modname_to_modpath(modname)
-        >>> print('modpath = %r' % (modpath,))
+        >>> print('modpath = {!r}'.format(modpath))
         >>> assert already_exists or modname not in sys.modules
 
     Example:
@@ -102,19 +103,19 @@ def modname_to_modpath(modname, hide_init=True, hide_main=True):  # nocover
         >>> import sys
         >>> modname = 'ubelt.__main__'
         >>> modpath = modname_to_modpath(modname, hide_main=False)
-        >>> print('modpath = %r' % (modpath,))
+        >>> print('modpath = {!r}'.format(modpath))
         >>> assert modpath.endswith('__main__.py')
         >>> modname = 'ubelt'
         >>> modpath = modname_to_modpath(modname, hide_init=False)
-        >>> print('modpath = %r' % (modpath,))
+        >>> print('modpath = {!r}'.format(modpath))
         >>> assert modpath.endswith('__init__.py')
         >>> modname = 'ubelt'
         >>> modpath = modname_to_modpath(modname, hide_init=False, hide_main=False)
-        >>> print('modpath = %r' % (modpath,))
+        >>> print('modpath = {!r}'.format(modpath))
         >>> assert modpath.endswith('__init__.py')
     """
     from xdoctest import static_analysis as static
-    return static.modname_to_modpath(modname, hide_init, hide_main)
+    return static.modname_to_modpath(modname, hide_init, hide_main, sys_path)
 
 
 class PythonPathContext(object):
@@ -133,7 +134,7 @@ class PythonPathContext(object):
 
 
 def import_module_from_name(modname):
-    r"""
+    """
     Imports a module from its string name (__name__)
 
     Args:
