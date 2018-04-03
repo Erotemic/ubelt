@@ -19,7 +19,7 @@ TODO:
 from __future__ import absolute_import, division, print_function, unicode_literals
 import sys
 
-__version__ = '0.1.0'
+__version__ = '0.1.1.dev0'
 
 GLOBAL_MODULES = [
     'util_arg',
@@ -98,9 +98,9 @@ if _DOELSE:  # pragma: nobranch
     from ubelt.util_format import (repr2,)
     from ubelt.util_io import (delete, readfrom, touch, writeto,)
     from ubelt.util_links import (symlink,)
-    from ubelt.util_list import (allsame, argsort, boolmask, chunks, compress,
-                                 flatten, iter_window, iterable, take, unique,
-                                 unique_flags,)
+    from ubelt.util_list import (allsame, argmax, argmin, argsort, boolmask,
+                                 chunks, compress, flatten, iter_window, iterable,
+                                 take, unique, unique_flags,)
     from ubelt.util_hash import (hash_data, hash_file,)
     from ubelt.util_import import (import_module_from_name,
                                    import_module_from_path, modname_to_modpath,
@@ -118,7 +118,7 @@ if _DOELSE:  # pragma: nobranch
     from ubelt.util_time import (Timer, Timerit, timestamp,)
     from ubelt.orderedset import (OrderedSet, oset,)
     from ubelt.progiter import (ProgIter,)
-
+    
     # </AUTOGEN_INIT>
 
 del _DOELSE
