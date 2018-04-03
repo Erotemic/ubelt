@@ -1,3 +1,8 @@
+version: 0.1.1
+---------------
+* added `ub.argmin` and `ub.argmax`
+
+
 version: 0.1.0
 ---------------
 * simplified dynamic imports

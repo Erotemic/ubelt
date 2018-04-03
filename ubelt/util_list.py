@@ -308,59 +308,6 @@ def unique_flags(items):
     return flags
 
 
-def argsort(indexable, key=None, reverse=False):
-    """
-    Returns the indices that would sort a indexable object.
-
-    This is similar to np.argsort, but it is written in pure python and works
-    on both lists and dictionaries.
-
-    Args:
-        indexable (list or dict): indexable to sort by
-        key (None or func): key to customize the ordering of the indexable
-        reverse (bool): if True returns in descending order
-
-    Returns:
-        list: indices: list of indices such that sorts the indexable
-
-    Example:
-        >>> import ubelt as ub
-        >>> # argsort works on dicts by returning keys
-        >>> dict_ = {'a': 3, 'b': 2, 'c': 100}
-        >>> indices = ub.argsort(dict_)
-        >>> assert list(ub.take(dict_, indices)) == sorted(dict_.values())
-        >>> # argsort works on lists by returning indices
-        >>> indexable = [100, 2, 432, 10]
-        >>> indices = ub.argsort(indexable)
-        >>> assert list(ub.take(indexable, indices)) == sorted(indexable)
-        >>> # Can use iterators, but be careful. It exhausts them.
-        >>> indexable = reversed(range(100))
-        >>> indices = ub.argsort(indexable)
-        >>> assert indices[0] == 99
-        >>> # Can use key just like sorted
-        >>> indexable = [[0, 1, 2], [3, 4], [5]]
-        >>> indices = ub.argsort(indexable, key=len)
-        >>> assert indices == [2, 1, 0]
-        >>> # Can use reverse just like sorted
-        >>> indexable = [0, 2, 1]
-        >>> indices = ub.argsort(indexable, reverse=True)
-        >>> assert indices == [1, 2, 0]
-    """
-    # Create an iterator of value/key pairs
-    if isinstance(indexable, dict):
-        vk_iter = ((v, k) for k, v in indexable.items())
-    else:
-        vk_iter = ((v, k) for k, v in enumerate(indexable))
-    # Sort by values and extract the indices
-    if key is None:
-        indices = [k for v, k in sorted(vk_iter, reverse=reverse)]
-    else:
-        # If key is provided, call it using the value as input
-        indices = [k for v, k in sorted(vk_iter, key=lambda vk: key(vk[0]),
-                                        reverse=reverse)]
-    return indices
-
-
 def iter_window(iterable, size=2, step=1, wrap=False):
     """
     Iterates through iterable with a window size. This is essentially a 1D
@@ -456,6 +403,105 @@ def allsame(iterable, eq=operator.eq):
     except StopIteration:
         return True
     return all(eq(first, item) for item in iter_)
+
+
+def argsort(indexable, key=None, reverse=False):
+    """
+    Returns the indices that would sort a indexable object.
+
+    This is similar to np.argsort, but it is written in pure python and works
+    on both lists and dictionaries.
+
+    Args:
+        indexable (list or dict): indexable to sort by
+        key (None or func): key to customize the ordering of the indexable
+        reverse (bool): if True returns in descending order
+
+    Returns:
+        list: indices: list of indices such that sorts the indexable
+
+    Example:
+        >>> import ubelt as ub
+        >>> # argsort works on dicts by returning keys
+        >>> dict_ = {'a': 3, 'b': 2, 'c': 100}
+        >>> indices = ub.argsort(dict_)
+        >>> assert list(ub.take(dict_, indices)) == sorted(dict_.values())
+        >>> # argsort works on lists by returning indices
+        >>> indexable = [100, 2, 432, 10]
+        >>> indices = ub.argsort(indexable)
+        >>> assert list(ub.take(indexable, indices)) == sorted(indexable)
+        >>> # Can use iterators, but be careful. It exhausts them.
+        >>> indexable = reversed(range(100))
+        >>> indices = ub.argsort(indexable)
+        >>> assert indices[0] == 99
+        >>> # Can use key just like sorted
+        >>> indexable = [[0, 1, 2], [3, 4], [5]]
+        >>> indices = ub.argsort(indexable, key=len)
+        >>> assert indices == [2, 1, 0]
+        >>> # Can use reverse just like sorted
+        >>> indexable = [0, 2, 1]
+        >>> indices = ub.argsort(indexable, reverse=True)
+        >>> assert indices == [1, 2, 0]
+    """
+    # Create an iterator of value/key pairs
+    if isinstance(indexable, dict):
+        vk_iter = ((v, k) for k, v in indexable.items())
+    else:
+        vk_iter = ((v, k) for k, v in enumerate(indexable))
+    # Sort by values and extract the indices
+    if key is None:
+        indices = [k for v, k in sorted(vk_iter, reverse=reverse)]
+    else:
+        # If key is provided, call it using the value as input
+        indices = [k for v, k in sorted(vk_iter, key=lambda vk: key(vk[0]),
+                                        reverse=reverse)]
+    return indices
+
+
+def argmax(indexable, key=None):
+    """
+    Returns index / key of the item with the largest value.
+
+    The current implementation is simply a convinience wrapper around
+    `ub.argsort`, a more efficient version will be written in the future.
+
+    Args:
+        indexable (list or dict): indexable to sort by
+        key (None or func): key to customize the ordering of the indexable
+
+    Example:
+        >>> assert argmax({'a': 3, 'b': 2, 'c': 100}) == 'c'
+        >>> assert argmax(['a', 'c', 'b', 'z', 'f']) == 3
+        >>> assert argmax([[0, 1], [2, 3, 4], [5]], key=len) == 1
+        >>> assert argmax({'a': 3, 'b': 2, 3: 100, 4: 4}) == 3
+        >>> #import pytest
+        >>> #with pytest.raises(TypeError):
+        >>> #    argmax({'a': 3, 'b': 2, 3: 100, 4: 'd'})
+    """
+    return argsort(indexable, key=key)[-1]
+
+
+def argmin(indexable, key=None):
+    """
+    Returns index / key of the item with the smallest value.
+
+    The current implementation is simply a convinience wrapper around
+    `ub.argsort`, a more efficient version will be written in the future.
+
+    Args:
+        indexable (list or dict): indexable to sort by
+        key (None or func): key to customize the ordering of the indexable
+
+    Example:
+        >>> assert argmin({'a': 3, 'b': 2, 'c': 100}) == 'b'
+        >>> assert argmin(['a', 'c', 'b', 'z', 'f']) == 0
+        >>> assert argmin([[0, 1], [2, 3, 4], [5]], key=len) == 2
+        >>> assert argmin({'a': 3, 'b': 2, 3: 100, 4: 4}) == 'b'
+        >>> #import pytest
+        >>> #assert pytest.raises(TypeError):
+        >>> #    argmax({'a': 3, 'b': 2, 3: 100, 4: 'd'})
+    """
+    return argsort(indexable, key=key)[0]
 
 
 # if False:
