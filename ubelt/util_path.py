@@ -219,7 +219,7 @@ def truepath(path, real=False):
 
 def ensuredir(dpath, mode=0o1777, verbose=None):
     r"""
-    Ensures that directory will exist. creates new dir with sticky bits by
+    Ensures that directory will exist. Creates new dir with sticky bits by
     default
 
     Args:
@@ -229,6 +229,9 @@ def ensuredir(dpath, mode=0o1777, verbose=None):
 
     Returns:
         str: path: the ensured directory
+
+    Notes:
+        This function is not threadsafe in Python2
 
     Example:
         >>> from ubelt.util_platform import *  # NOQA
@@ -249,10 +252,10 @@ def ensuredir(dpath, mode=0o1777, verbose=None):
     if not exists(dpath):
         if verbose:  # nocover
             print('Ensuring new directory (%r)' % dpath)
-        try:
+        if sys.version_info.major == 2:  # nocover
             os.makedirs(normpath(dpath), mode=mode)
-        except OSError:  # nocover
-            raise
+        else:
+            os.makedirs(normpath(dpath), mode=mode, exist_ok=True)
     else:
         if verbose:  # nocover
             print('Ensuring existing directory (%r)' % dpath)
