@@ -9,7 +9,7 @@ import warnings
 
 class Cacher(object):
     """
-    Cacher that can be quickly integrated into existing scripts.
+    Cacher designed to be quickly integrated into existing scripts.
 
     Args:
         fname (str): A file name. This is the prefix that will be used by the
@@ -346,7 +346,7 @@ class Cacher(object):
 
     def ensure(self, func, *args, **kwargs):
         r"""
-        Wraps around a function. A cfgstr must be stored in base cacher
+        Wraps around a function. A cfgstr must be stored in the base cacher.
 
         Args:
             func (callable): function that will compute data on cache miss
@@ -366,12 +366,48 @@ class Cacher(object):
             >>> assert data1 == 'expensive result'
             >>> assert data1 == data2
             >>> cacher.clear()
+
+        Example:
+            >>> from ubelt.util_cache import *  # NOQA
+            >>> @Cacher(fname, cfgstr).ensure
+            >>> def func():
+            >>>     return 'expensive result'
         """
         data = self.tryload()
         if data is None:
             data = func(*args, **kwargs)
             self.save(data)
         return data
+
+    def __call__(self, func):
+        """
+        Allows Cacher to be used as a decorator for functions with no
+        arguments. This mode of usage has much less control than others, so it
+        is only recommended for the simplest of cases.
+
+        Args:
+            func (Function): function to decorate. Must have no arguments.
+
+        Example:
+            >>> from ubelt.util_cache import *  # NOQA
+            >>> @Cacher('demo_cacher_call', cfgstr='foobar')
+            >>> def func():
+            >>>     return 'expensive result'
+            >>> func.cacher.clear()
+            >>> assert not func.cacher.exists()
+            >>> data = func()
+            >>> assert func.cacher.exists()
+            >>> func.cacher.clear()
+        """
+        # Cant return arguments because cfgstr wont take them into account
+        # def _wrapper(*args, **kwargs):
+        #     data = self.ensure(func, *args, **kwargs)
+        #     return data
+        def _wrapper():
+            data = self.ensure(func)
+            return data
+        _wrapper.cacher = self
+        return _wrapper
 
 
 if __name__ == '__main__':

@@ -27,7 +27,6 @@ GLOBAL_MODULES = [
     'util_colors',
     'util_const',
     'util_cmd',
-    'util_decor',
     'util_dict',
     'util_download',
     'util_func',
@@ -37,6 +36,7 @@ GLOBAL_MODULES = [
     'util_list',
     'util_hash',
     'util_import',
+    'util_memoize',
     'util_mixins',
     'util_path',
     'util_platform',
@@ -65,7 +65,6 @@ if _DOELSE:  # pragma: nobranch
     from ubelt import util_colors
     from ubelt import util_const
     from ubelt import util_cmd
-    from ubelt import util_decor
     from ubelt import util_dict
     from ubelt import util_download
     from ubelt import util_func
@@ -75,6 +74,7 @@ if _DOELSE:  # pragma: nobranch
     from ubelt import util_list
     from ubelt import util_hash
     from ubelt import util_import
+    from ubelt import util_memoize
     from ubelt import util_mixins
     from ubelt import util_path
     from ubelt import util_platform
@@ -88,7 +88,6 @@ if _DOELSE:  # pragma: nobranch
     from ubelt.util_colors import (color_text, highlight_code,)
     from ubelt.util_const import (NoParam,)
     from ubelt.util_cmd import (cmd,)
-    from ubelt.util_decor import (memoize, memoize_method,)
     from ubelt.util_dict import (AutoDict, AutoOrderedDict, ddict, dict_hist,
                                  dict_subset, dict_take, dict_union,
                                  find_duplicates, group_items, invert_dict,
@@ -105,6 +104,7 @@ if _DOELSE:  # pragma: nobranch
     from ubelt.util_import import (import_module_from_name,
                                    import_module_from_path, modname_to_modpath,
                                    modpath_to_modname, split_modpath,)
+    from ubelt.util_memoize import (memoize, memoize_method,)
     from ubelt.util_mixins import (NiceRepr,)
     from ubelt.util_path import (TempDir, augpath, compressuser, ensuredir,
                                  truepath, userhome,)
