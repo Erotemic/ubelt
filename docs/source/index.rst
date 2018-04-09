@@ -14,7 +14,7 @@ UBelt is a "utility belt" of commonly needed utility and helper functions.
    :maxdepth: 8
    :caption: API
 
-   ubelt
+   modules
 
 
 Indices and tables
