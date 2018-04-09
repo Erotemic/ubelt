@@ -1,5 +1,10 @@
 # -*- coding: utf-8 -*-
-# util_const.py
+"""
+This module defines `ub.NoParam`. This is a robust setinal value that can act
+like None when None might be a valid value. The value of `NoParam` is robust to
+reloading, pickling, and copying (i.e. var is ub.NoParam will return True after
+these operations)
+"""
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 
