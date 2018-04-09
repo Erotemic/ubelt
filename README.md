@@ -10,7 +10,7 @@ Good utilities lift all codes.
 ## Purpose
 UBelt is a "utility belt" of commonly needed utility and helper functions. 
 
-Read the docs here: http://ubelt.readthedocs.io/en/dev-0.1.1/ubelt.util_const.html
+Read the docs here: http://ubelt.readthedocs.io/en/dev-0.1.1/
 
 
 * Reusable code - Many functions in `ubelt` are simple to write yourself (e.g.
