@@ -65,12 +65,16 @@ extensions = [
     'sphinx.ext.viewcode',
     'sphinx.ext.napoleon',
     'sphinx.ext.intersphinx',
+    'sphinx.ext.todo',
+    'sphinx.ext.autosummary',
 ]
 
 todo_include_todos = True
 napoleon_google_docstring = True
 napoleon_use_param = False
 napoleon_use_ivar = True
+
+autodoc_inherit_docstrings = False
 
 autodoc_member_order = 'bysource'
 # autodoc_mock_imports = ['torch', 'torchvision', 'visdom']
