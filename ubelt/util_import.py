@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
 import sys
-from os.path import join  # NOQA
 
 
 __all__ = [
@@ -14,7 +13,7 @@ __all__ = [
 
 
 def split_modpath(modpath):
-    """
+    r"""
     Splits the modpath into the dir that must be in PYTHONPATH for the module
     to be imported and the modulepath relative to this directory.
 
@@ -26,6 +25,7 @@ def split_modpath(modpath):
 
     Example:
         >>> from xdoctest import static_analysis
+        >>> from os.path import join
         >>> modpath = static_analysis.__file__
         >>> modpath = modpath.replace('.pyc', '.py')
         >>> dpath, rel_modpath = split_modpath(modpath)

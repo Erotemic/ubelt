@@ -1,21 +1,19 @@
 # -*- coding: utf-8 -*-
 # flake8: noqa
-"""
-CommandLine:
-    # Partially regenerate __init__.py
-    python -c "import ubelt._internal as a; a.autogen_init('ubelt', dry=True)"
-    python -c "import ubelt._internal as a; a.autogen_init('ubelt', dry=False)"
-
-TODO:
-    The following functions and classes are candidates to be ported from utool:
-    * reload_class
-    * inject_func_as_property
-    * parse_cfgstr3
-    * accumulate
-    * ParamInfo - move to dtool
-    * embed
-    * rsync
-"""
+# """
+# CommandLine:
+#     # Partially regenerate __init__.py
+#     python -c "import ubelt._internal as a; a.autogen_init('ubelt')"
+# """
+# Todo:
+#     The following functions and classes are candidates to be ported from utool:
+#     * reload_class
+#     * inject_func_as_property
+#     * parse_cfgstr3
+#     * accumulate
+#     * ParamInfo - move to dtool
+#     * embed
+#     * rsync
 from __future__ import absolute_import, division, print_function, unicode_literals
 import sys
 
@@ -118,7 +116,7 @@ if _DOELSE:  # pragma: nobranch
     from ubelt.util_time import (Timer, Timerit, timestamp,)
     from ubelt.orderedset import (OrderedSet, oset,)
     from ubelt.progiter import (ProgIter,)
-    
+
     # </AUTOGEN_INIT>
 
 del _DOELSE
