@@ -16,12 +16,16 @@ class chunks(object):
 
     Args:
         sequence (list): input to iterate over
+
         chunksize (int): size of each sublist yielded
+
         nchunks (int): number of chunks to create (
             cannot be specified with chunksize)
+
         bordermode (str): determines how to handle the last case if the
             length of the sequence is not divisible by chunksize valid values
             are: {'none', 'cycle', 'replicate'}
+
         total (int): hints about the length of the sequence
 
     TODO:
@@ -145,6 +149,7 @@ def iterable(obj, strok=False):
 
     Args:
         obj (object): a scalar or iterable input
+
         strok (bool): if True allow strings to be interpreted as iterable
 
     Returns:
@@ -159,7 +164,7 @@ def iterable(obj, strok=False):
     """
     try:
         iter(obj)
-    except:
+    except Exception:
         return False
     else:
         return strok or not isinstance(obj, six.string_types)
@@ -171,8 +176,9 @@ def take(items, indices):
     This is similar to np.take, but pure python.
 
     Args:
-        items (list): some indexable object
-        indices (sequence): sequence of indexing objects
+        items (list): an indexable object to select items from
+
+        indices (Sequence): sequence of indexing objects
 
     Returns:
         iter or scalar: subset of the list
@@ -196,8 +202,9 @@ def compress(items, flags):
     This is similar to np.compress and it.compress
 
     Args:
-        items (sequence): a sequence
-        flags (sequence): corresponding sequence of bools
+        items (Sequence): a sequence to select items from
+
+        flags (Sequence): corresponding sequence of bools
 
     Returns:
         list: a subset of masked items
@@ -229,12 +236,15 @@ def flatten(nested_list):
     return it.chain.from_iterable(nested_list)
 
 
-def unique(items):
+def unique(items, key=None):
     """
     Generates unique items in the order they appear.
 
     Args:
-        items (sequence): list of hashable items
+        items (Sequence): list of hashable items
+
+        key (Function, optional): custom normalization function.
+            If specified returns items where `key(item)` is unique.
 
     Yields:
         hashable: a unique item from the input sequence
@@ -247,12 +257,86 @@ def unique(items):
         >>> items = [4, 6, 6, 0, 6, 1, 0, 2, 2, 1]
         >>> unique_items = list(ub.unique(items))
         >>> assert unique_items == [4, 6, 0, 1, 2]
+
+    Example:
+        >>> import ubelt as ub
+        >>> items = ['A', 'a', 'b', 'B', 'C', 'c', 'D', 'e', 'D', 'E']
+        >>> unique_items = list(ub.unique(items, key=str.lower))
+        >>> assert unique_items == ['A', 'b', 'C', 'D', 'e']
+        >>> unique_items = list(ub.unique(items))
+        >>> assert unique_items == ['A', 'a', 'b', 'B', 'C', 'c', 'D', 'e', 'E']
     """
     seen = set()
-    for item in items:
-        if item not in seen:
-            seen.add(item)
-            yield item
+    if key is None:
+        for item in items:
+            if item not in seen:
+                seen.add(item)
+                yield item
+    else:
+        for item in items:
+            norm = key(item)
+            if norm not in seen:
+                seen.add(norm)
+                yield item
+
+
+def argunique(items, key=None):
+    """
+    Returns indices corresponding to the first instance of each unique item.
+
+    Args:
+        items (list): list of items
+
+        key (Function, optional): custom normalization function.
+            If specified returns items where `key(item)` is unique.
+
+    Yields:
+        int : indices of the unique items
+
+    Example:
+        >>> items = [0, 2, 5, 1, 1, 0, 2, 4]
+        >>> indices = list(argunique(items))
+        >>> assert indices == [0, 1, 2, 3, 7]
+        >>> indices = list(argunique(items, key=lambda x: x % 2 == 0))
+        >>> assert indices == [0, 2]
+    """
+    # yield from unique(range(len(items)), key=lambda i: items[i])
+    if key is None:
+        return unique(range(len(items)), key=lambda i: items[i])
+    else:
+        return unique(range(len(items)), key=lambda i: key(items[i]))
+
+
+def unique_flags(items, key=None):
+    """
+    Returns a list of booleans corresponding to the first instance of each
+    unique item.
+
+    Args:
+        items (list): list of items
+
+        key (Function, optional): custom normalization function.
+            If specified returns items where `key(item)` is unique.
+
+    Returns:
+        list of bools : flags the items that are unique
+
+    Example:
+        >>> import ubelt as ub
+        >>> items = [0, 2, 1, 1, 0, 9, 2]
+        >>> flags = unique_flags(items)
+        >>> assert flags == [True, True, True, False, False, True, False]
+        >>> flags = unique_flags(items, key=lambda x: x % 2 == 0)
+        >>> assert flags == [True, False, True, False, False, False, False]
+    """
+    len_ = len(items)
+    if key is None:
+        item_to_index = dict(zip(reversed(items), reversed(range(len_))))
+        indices = item_to_index.values()
+    else:
+        indices = argunique(items, key=key)
+    flags = boolmask(indices, len_)
+    return flags
 
 
 def boolmask(indices, maxval=None):
@@ -262,6 +346,7 @@ def boolmask(indices, maxval=None):
 
     Args:
         indices (list): list of integer indices
+
         maxval (int): length of the returned list. If not specified
             this is inverred from `indices`
 
@@ -285,29 +370,6 @@ def boolmask(indices, maxval=None):
     return mask
 
 
-def unique_flags(items):
-    """
-    Returns a list of booleans corresponding to the first instance of each
-    unique item.
-
-    Args:
-        items (list): list of items
-
-    Returns:
-        flags : list of bools : flags the items that are unique
-
-    Example:
-        >>> import ubelt as ub
-        >>> indices = [0, 5, 1, 1, 0, 2, 4]
-        >>> flags = ub.unique_flags(indices)
-        >>> assert flags == [True, True, True, False, False, True, True]
-    """
-    len_ = len(items)
-    unique_indices = dict(zip(reversed(items), reversed(range(len_))))
-    flags = boolmask(unique_indices.values(), len_)
-    return flags
-
-
 def iter_window(iterable, size=2, step=1, wrap=False):
     """
     Iterates through iterable with a window size. This is essentially a 1D
@@ -315,8 +377,11 @@ def iter_window(iterable, size=2, step=1, wrap=False):
 
     Args:
         iterable (iter): an iterable sequence
+
         size (int): sliding window size (default = 2)
+
         step (int): sliding step size (default = 1)
+
         wrap (bool): wraparound (default = False)
 
     Returns:
@@ -379,7 +444,9 @@ def allsame(iterable, eq=operator.eq):
 
     Args:
         iterable (iter): an iterable sequence
-        eq (func): function to determine equality (default: operator.eq)
+
+        eq (Function, optional): function to determine equality
+            (default: operator.eq)
 
     Example:
         >>> allsame([1, 1, 1, 1])
@@ -414,8 +481,10 @@ def argsort(indexable, key=None, reverse=False):
 
     Args:
         indexable (list or dict): indexable to sort by
-        key (None or func): key to customize the ordering of the indexable
-        reverse (bool): if True returns in descending order
+
+        key (Function, optional): customizes the ordering of the indexable
+
+        reverse (bool, optional): if True returns in descending order
 
     Returns:
         list: indices: list of indices such that sorts the indexable
@@ -467,7 +536,8 @@ def argmax(indexable, key=None):
 
     Args:
         indexable (list or dict): indexable to sort by
-        key (None or func): key to customize the ordering of the indexable
+
+        key (Function, optional): customizes the ordering of the indexable
 
     Example:
         >>> assert argmax({'a': 3, 'b': 2, 'c': 100}) == 'c'
@@ -490,7 +560,8 @@ def argmin(indexable, key=None):
 
     Args:
         indexable (list or dict): indexable to sort by
-        key (None or func): key to customize the ordering of the indexable
+
+        key (Function, optional): customizes the ordering of the indexable
 
     Example:
         >>> assert argmin({'a': 3, 'b': 2, 'c': 100}) == 'b'

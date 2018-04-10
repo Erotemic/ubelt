@@ -3,6 +3,8 @@ version: 0.1.1
 * added `ub.argmin` and `ub.argmax`
 * `ub.Cacher` can now be used as a decorator.
 * renamed `util_decor.py` to `util_memoize.py`
+* added `key` argument to ub.unique and ub.unique_flags
+* added ub.argunique
 
 
 version: 0.1.0
