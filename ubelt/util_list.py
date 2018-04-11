@@ -241,13 +241,13 @@ def unique(items, key=None):
     Generates unique items in the order they appear.
 
     Args:
-        items (Sequence): list of hashable items
+        items (Sequence): list of items
 
         key (Function, optional): custom normalization function.
             If specified returns items where `key(item)` is unique.
 
     Yields:
-        hashable: a unique item from the input sequence
+        object: a unique item from the input sequence
 
     CommandLine:
         python -m utool.util_list --exec-unique_ordered
