@@ -15,7 +15,7 @@ def repr2(val, **kwargs):
     Constructs a "pretty" string representation.
 
     This is an alternative to repr, and `pprint.pformat` that attempts to be
-    more both configurable and generate output that is consistent between
+    both more configurable and generate output that is consistent between
     python versions.
 
     Args:
