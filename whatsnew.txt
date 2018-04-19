@@ -5,6 +5,7 @@ version: 0.1.1
 * renamed `util_decor.py` to `util_memoize.py`
 * added `key` argument to ub.unique and ub.unique_flags
 * added ub.argunique
+* `import_module_from_path` now prefers the path module when there are name conflicts
 
 
 version: 0.1.0
