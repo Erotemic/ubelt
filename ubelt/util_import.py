@@ -225,7 +225,7 @@ def _custom_import_modpath(modpath):
     import xdoctest.static_analysis as static
     dpath, rel_modpath = static.split_modpath(modpath)
     modname = static.modpath_to_modname(modpath)
-    with PythonPathContext(dpath):
+    with PythonPathContext(dpath, index=0):
         module = import_module_from_name(modname)
     return module
 

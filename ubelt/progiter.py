@@ -1,4 +1,26 @@
 # -*- coding: utf-8 -*-
+"""
+A Progress Iterator:
+
+    The API is compatible with TQDM!
+
+    We have our own ways of running too!
+    You can divide the runtime overhead by two as many times as you want.
+
+CommandLine:
+    python -m ubelt.progiter __doc__:0
+
+Example:
+    >>> # SCRIPT
+    >>> import ubelt as ub
+    >>> def is_prime(n):
+    ...     return n >= 2 and not any(n % i == 0 for i in range(2, n))
+    >>> for n in ub.ProgIter(range(1000000), verbose=1):
+    >>>     # do some work
+    >>>     is_prime(n)
+
+
+"""
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 import sys
