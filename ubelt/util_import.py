@@ -120,17 +120,34 @@ def modname_to_modpath(modname, hide_init=True, hide_main=True, sys_path=None):
 
 class PythonPathContext(object):
     """
-    Context for temporarilly adding a dir to the PYTHONPATH.
+    Context for temporarily adding a dir to the PYTHONPATH.
+
+    Args:
+        dpath (str): directory to insert into the PYTHONPATH
+        index (int): position to add to. Typically either -1 or 0.
+
+    Example:
+        >>> with PythonPathContext('foo', -1):
+        >>>     assert sys.path[-1] == 'foo'
+        >>> assert sys.path[-1] != 'foo'
+        >>> with PythonPathContext('bar', 0):
+        >>>     assert sys.path[0] == 'bar'
+        >>> assert sys.path[0] != 'bar'
     """
-    def __init__(self, dpath):
+    def __init__(self, dpath, index=-1):
         self.dpath = dpath
+        self.index = index
 
     def __enter__(self):
-        sys.path.append(self.dpath)
+        if self.index < 0:
+            self.index = len(sys.path) + self.index + 1
+        sys.path.insert(self.index, self.dpath)
 
-    def __exit__(self, a, b, c):
-        assert sys.path[-1] == self.dpath
-        sys.path.pop()
+    def __exit__(self, type, value, trace):
+        if len(sys.path) <= self.index or sys.path[self.index] != self.dpath:
+            raise AssertionError(
+                'sys.path significantly changed while in PythonPathContext')
+        sys.path.pop(self.index)
 
 
 def import_module_from_name(modname):
