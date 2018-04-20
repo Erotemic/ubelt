@@ -204,6 +204,9 @@ class _FormatterExtensions(object):
             formatted = prefix + body + suffix
             return formatted
 
+        # Hack, make sure we also register numpy floats
+        self.register(np.float32)(self.func_registry[float])
+
     def _register_builtin_extensions(self):
         @self.register(float)
         def format_float(data, **kwargs):

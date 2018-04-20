@@ -208,6 +208,12 @@ def test_dict_of_numpy():
         ''')
 
 
+def test_numpy_scalar_precision():
+    import numpy as np
+    text = ub.repr2(np.float32(3.333333), precision=2)
+    assert text == '3.33'
+
+
 def test_repr2_tuple_keys():
     data = {
         ('one', 'two'): 100,
