@@ -7,6 +7,7 @@ version: 0.1.1
 * added ub.argunique
 * `import_module_from_path` now prefers the path module when there are name conflicts
 * Fixed repr2 precision with numpy scalars 
+* added dzip
 
 
 version: 0.1.0
