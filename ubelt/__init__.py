@@ -87,7 +87,7 @@ if _DOELSE:  # pragma: nobranch
     from ubelt.util_const import (NoParam,)
     from ubelt.util_cmd import (cmd,)
     from ubelt.util_dict import (AutoDict, AutoOrderedDict, ddict, dict_hist,
-                                 dict_subset, dict_take, dict_union,
+                                 dict_subset, dict_take, dict_union, dzip,
                                  find_duplicates, group_items, invert_dict,
                                  map_keys, map_vals, odict,)
     from ubelt.util_download import (download, grabdata,)
@@ -95,9 +95,9 @@ if _DOELSE:  # pragma: nobranch
     from ubelt.util_format import (repr2,)
     from ubelt.util_io import (delete, readfrom, touch, writeto,)
     from ubelt.util_links import (symlink,)
-    from ubelt.util_list import (allsame, argmax, argmin, argsort, boolmask,
-                                 chunks, compress, flatten, iter_window, iterable,
-                                 take, unique, unique_flags,)
+    from ubelt.util_list import (allsame, argmax, argmin, argsort, argunique,
+                                 boolmask, chunks, compress, flatten, iter_window,
+                                 iterable, take, unique, unique_flags,)
     from ubelt.util_hash import (hash_data, hash_file,)
     from ubelt.util_import import (import_module_from_name,
                                    import_module_from_path, modname_to_modpath,
@@ -116,7 +116,7 @@ if _DOELSE:  # pragma: nobranch
     from ubelt.util_time import (Timer, Timerit, timestamp,)
     from ubelt.orderedset import (OrderedSet, oset,)
     from ubelt.progiter import (ProgIter,)
-
+    
     # </AUTOGEN_INIT>
 
 del _DOELSE

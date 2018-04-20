@@ -16,6 +16,7 @@ ddict = defaultdict
 __all__ = [
     'AutoDict',
     'AutoOrderedDict',
+    'dzip',
     'ddict',
     'dict_hist',
     'dict_subset',
