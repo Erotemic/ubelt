@@ -399,7 +399,7 @@ def _trychar(char, fallback):  # nocover
     if hasattr(sys.stdout, 'encoding') and sys.stdout.encoding:  # pragma: nobranch
         try:
             char.encode(sys.stdout.encoding)
-        except:  # nocover
+        except Exception:  # nocover
             pass
         else:
             return char
