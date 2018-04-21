@@ -10,12 +10,13 @@ Good utilities lift all codes.
 ## Purpose
 UBelt is a "utility belt" of commonly needed utility and helper functions. 
 
-Read the docs here: http://ubelt.readthedocs.io/en/dev-0.1.1/
+Read the docs here: http://ubelt.readthedocs.io/en/latest/
 
 
 * Reusable code - Many functions in `ubelt` are simple to write yourself (e.g.
   `take`, `memoize`, `ensure_unicode`), but even re-writing trivial functions
-takes time better spent on more important tasks. 
+takes time better spent on more important tasks. Rewriting has its place, but
+not when you can just `pip install ubelt`!
 
 * Easy access - The entire `ubelt` API is exposed at the top level. While the
   functions are defined in submodules, explicit imports make easy to access any
@@ -71,14 +72,17 @@ A small subset of the static-analysis and code introspection tools in
 
 ## Installation:
 
-#### From github:
-```
-pip install git+https://github.com/Erotemic/ubelt.git
-```
+UBelt is Python-only and integrated into the python package index. Just pip
+install it and then import it!
 
 #### From pypi:
 ```
 pip install ubelt
+```
+
+#### From github:
+```
+pip install git+https://github.com/Erotemic/ubelt.git
 ```
 
 ## Available Functions:
