@@ -1,4 +1,5 @@
 import ubelt as ub
+import pytest
 
 
 def test_auto_dict():
@@ -85,3 +86,16 @@ def test_group_items_sorted_mixed_types():
 
     assert '1' in result1
     assert 1 in result1
+
+
+def test_dzip_errors():
+    with pytest.raises(TypeError):
+        ub.dzip([1], 2)
+    with pytest.raises(TypeError):
+        ub.dzip(1, [2])
+    with pytest.raises(ValueError):
+        ub.dzip([1, 2, 3], [])
+    with pytest.raises(ValueError):
+        ub.dzip([], [4, 5, 6])
+    with pytest.raises(ValueError):
+        ub.dzip([1, 2, 3], [4, 5])

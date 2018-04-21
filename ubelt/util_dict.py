@@ -114,16 +114,9 @@ def dzip(items1, items2):
         dict: similar to dict(zip(items1, items2))
 
     Example:
-        >>> import pytest
         >>> assert dzip([1, 2, 3], [4]) == {1: 4, 2: 4, 3: 4}
         >>> assert dzip([1, 2, 3], [4, 4, 4]) == {1: 4, 2: 4, 3: 4}
         >>> assert dzip([], [4]) == {}
-        >>> with pytest.raises(ValueError):
-        >>>     dzip([1, 2, 3], [])
-        >>> with pytest.raises(ValueError):
-        >>>     dzip([], [4, 5, 6])
-        >>> with pytest.raises(ValueError):
-        >>>     dzip([1, 2, 3], [4, 5])
     """
     try:
         len(items1)

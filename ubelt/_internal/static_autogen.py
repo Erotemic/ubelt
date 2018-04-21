@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 """
 New static version of dynamic_make_init.py
+
+TODO: This should be its own standalone package that ubelt depends on.
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import textwrap
@@ -195,7 +197,7 @@ def _autogen_init_make(modpath, initstr):
     explicit = False
     init_indent = ''
     for lineno, line in enumerate(lines):
-        if not explicit and line.strip() in ['"""', "'''"]:
+        if not explicit and line.strip() in ['"""', "'''"]:  # nocover
             startline = lineno + 1
         if not explicit and line.strip().startswith('from __future__'):
             startline = lineno + 1
