@@ -3,9 +3,7 @@
 Notes:
     http://docs.readthedocs.io/en/latest/getting_started.html
 
-    pip install sphinx_rtd_theme
-    pip install sphinx sphinx-autobuild
-    pip install sphinxcontrib-napoleon
+    pip install sphinx sphinx-autobuild sphinx_rtd_theme sphinxcontrib-napoleon
 
     cd ~/code/ubelt
     mkdir docs
