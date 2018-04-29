@@ -27,7 +27,7 @@ install:
 script: 
   #- travis_wait ./run_tests.py
   #- travis_wait python run_tests.py
-  - travis_wait pytest -p no:doctest --cov-config .coveragerc --cov-report html --xdoctest --cov=ubelt ubelt
+  - travis_wait pytest -p no:doctest --cov-config .coveragerc --cov-report html --xdoctest --cov=ubelt --network ubelt
 after_success: 
   #- coveralls || echo "Coveralls upload failed"
   - codecov 
