@@ -370,7 +370,7 @@ def timestamp(method='iso8601'):
     Example:
         >>> stamp = timestamp()
         >>> print('stamp = {!r}'.format(stamp))
-        ...-...-...T...
+        stamp = ...-...-...T...
     """
     if method == 'iso8601':
         # ISO 8601
@@ -378,7 +378,7 @@ def timestamp(method='iso8601'):
         # datetime.datetime.now().isoformat()
         # utcnow
         tz_hour = time.timezone // 3600
-        utc_offset = '-' + str(tz_hour) if tz_hour < 0 else '+' + str(tz_hour)
+        utc_offset = str(tz_hour) if tz_hour < 0 else '+' + str(tz_hour)
         stamp = time.strftime('%Y-%m-%dT%H%M%S') + utc_offset
         return stamp
     else:
