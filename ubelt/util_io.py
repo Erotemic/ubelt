@@ -131,6 +131,8 @@ def touch(fpath, mode=0o666, dir_fd=None, verbose=0, **kwargs):
         verbose (int): verbosity
         **kwargs : extra args passed to `os.utime` (python 3 only).
 
+    Returns:
+        str: path to the file
 
     References:
         https://stackoverflow.com/questions/1158076/implement-touch-using-python
@@ -155,6 +157,7 @@ def touch(fpath, mode=0o666, dir_fd=None, verbose=0, **kwargs):
         with os.fdopen(os.open(fpath, flags=flags, mode=mode, dir_fd=dir_fd)) as f:
             os.utime(f.fileno() if os.utime in os.supports_fd else fpath,
                      dir_fd=None if os.supports_fd else dir_fd, **kwargs)
+    return fpath
 
 
 def delete(path, verbose=False):
@@ -168,7 +171,6 @@ def delete(path, verbose=False):
 
     Doctest:
         >>> import ubelt as ub
-        >>> from os.path import join, exists
         >>> base = ub.ensure_app_cache_dir('ubelt', 'delete_test')
         >>> dpath1 = ub.ensuredir(join(base, 'dir'))
         >>> ub.ensuredir(join(base, 'dir', 'subdir'))
@@ -183,6 +185,15 @@ def delete(path, verbose=False):
         >>> assert not exists(fpath1)
         >>> ub.delete(dpath1)
         >>> assert not any(map(exists, (dpath1, fpath1, fpath2)))
+
+    Doctest:
+        >>> import ubelt as ub
+        >>> dpath = ub.ensure_app_cache_dir('ubelt', 'delete_test2')
+        >>> dpath1 = ub.ensuredir(join(dpath, 'dir'))
+        >>> fpath1 = ub.touch(join(dpath1, 'to_remove.txt'))
+        >>> assert exists(fpath1)
+        >>> ub.delete(dpath)
+        >>> assert not exists(fpath1)
     """
     if not os.path.exists(path):
         # if the file does exists and is not a broken link

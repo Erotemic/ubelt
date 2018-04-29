@@ -2,6 +2,7 @@ version: 0.2.0
 ---------------
 * Fixed timezone issue with negative timezones
 * Moved internal __init__ autogeneration logic to new mkinit repo
+* Network tests no longer run by default and require `--network`
 
 version: 0.1.1
 ---------------
