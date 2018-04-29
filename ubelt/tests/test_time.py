@@ -16,7 +16,7 @@ def test_timer_nonewline():
 
 def test_timestamp():
     stamp = ub.timestamp()
-    assert re.match('\d+-\d+-\d+T\d+\+\d+', stamp)
+    assert re.match(r'\d+-\d+-\d+T\d+[\+\-]\d+', stamp)
 
 
 def test_timerit_verbose():

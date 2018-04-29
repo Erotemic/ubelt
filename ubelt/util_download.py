@@ -59,6 +59,7 @@ def download(url, fpath=None, hash_prefix=None, chunksize=8192, verbose=1):
         http://stackoverflow.com/questions/16694907/how-to-download-large-file-in-python-with-requests-py
 
     Example:
+        >>> # xdoctest: +REQUIRES(--network)
         >>> from ubelt.util_download import *  # NOQA
         >>> url = 'http://i.imgur.com/rqwaDag.png'
         >>> fpath = download(url)
@@ -136,6 +137,7 @@ def grabdata(url, fpath=None, dpath=None, fname=None, redo=False,
         str: fpath - file path string
 
     Example:
+        >>> # xdoctest: +REQUIRES(--network)
         >>> import ubelt as ub
         >>> file_url = 'http://i.imgur.com/rqwaDag.png'
         >>> lena_fpath = ub.grabdata(file_url, fname='mario.png')

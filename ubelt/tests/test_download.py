@@ -7,6 +7,9 @@ from os.path import basename, join, exists
 def test_download_no_fpath():
     url = 'http://i.imgur.com/rqwaDag.png'
 
+    if not ub.argflag('--network'):
+        pytest.skip('not running network tests')
+
     dpath = ub.ensure_app_cache_dir('ubelt')
     fname = basename(url)
     fpath = join(dpath, fname)
@@ -23,6 +26,9 @@ def test_download_no_fpath():
 @pytest.mark.timeout(5)
 def test_download_with_fpath():
     url = 'http://i.imgur.com/rqwaDag.png'
+
+    if not ub.argflag('--network'):
+        pytest.skip('not running network tests')
 
     dpath = ub.ensure_app_cache_dir('ubelt', 'tests')
     fname = basename(url)
@@ -45,6 +51,9 @@ def test_download_chunksize():
     # url = 'https://www.dropbox.com/s/jl506apezj42zjz/ibeis-win32-setup-ymd_hm-2015-08-01_16-28.exe?dl=1'
     url = 'http://i.imgur.com/rqwaDag.png'
 
+    if not ub.argflag('--network'):
+        pytest.skip('not running network tests')
+
     dpath = ub.ensure_app_cache_dir('ubelt')
     fname = basename(url)
     fpath = join(dpath, fname)
@@ -64,6 +73,9 @@ def test_grabdata_cache():
     Check where the url is downloaded to when fpath is not specified.
     """
     url = 'http://i.imgur.com/rqwaDag.png'
+
+    if not ub.argflag('--network'):
+        pytest.skip('not running network tests')
 
     dpath = ub.ensure_app_cache_dir('ubelt')
     fname = basename(url)
@@ -87,6 +99,9 @@ def test_grabdata_url_only():
     """
     url = 'http://i.imgur.com/rqwaDag.png'
 
+    if not ub.argflag('--network'):
+        pytest.skip('not running network tests')
+
     dpath = ub.ensure_app_cache_dir('ubelt')
     fname = basename(url)
     fpath = join(dpath, fname)
@@ -102,6 +117,9 @@ def test_grabdata_with_fpath():
     Check where the url is downloaded to when fpath is not specified.
     """
     url = 'http://i.imgur.com/rqwaDag.png'
+
+    if not ub.argflag('--network'):
+        pytest.skip('not running network tests')
 
     dpath = ub.ensure_app_cache_dir('ubelt')
     fname = basename(url)
@@ -123,6 +141,9 @@ def test_grabdata_value_error():
     Check where the url is downloaded to when fpath is not specified.
     """
     url = 'http://i.imgur.com/rqwaDag.png'
+
+    if not ub.argflag('--network'):
+        pytest.skip('not running network tests')
 
     dpath = ub.ensure_app_cache_dir('ubelt')
     fname = basename(url)
@@ -154,6 +175,9 @@ def test_download_bad_url():
     """
     url = 'http://a-very-incorrect-url'
 
+    if not ub.argflag('--network'):
+        pytest.skip('not running network tests')
+
     dpath = ub.ensure_app_cache_dir('ubelt', 'tests')
     fname = basename(url)
     fpath = join(dpath, fname)
@@ -170,6 +194,9 @@ def test_download_bad_url():
 def test_grabdata_fname_only():
     url = 'http://i.imgur.com/rqwaDag.png'
 
+    if not ub.argflag('--network'):
+        pytest.skip('not running network tests')
+
     dpath = ub.ensure_app_cache_dir('ubelt')
     fname = 'mario.png'
     fpath = join(dpath, fname)
@@ -183,6 +210,9 @@ def test_grabdata_fname_only():
 def test_grabdata_dpath_only():
     url = 'http://i.imgur.com/rqwaDag.png'
 
+    if not ub.argflag('--network'):
+        pytest.skip('not running network tests')
+
     dpath = ub.ensure_app_cache_dir('ubelt', 'test')
     fname = basename(url)
     fpath = join(dpath, fname)
@@ -195,12 +225,16 @@ def test_grabdata_dpath_only():
 @pytest.mark.timeout(5)
 def test_grabdata_fpath_and_dpath():
     url = 'http://i.imgur.com/rqwaDag.png'
+
+    if not ub.argflag('--network'):
+        pytest.skip('not running network tests')
+
     with pytest.raises(ValueError):
         ub.grabdata(url, fpath='foo', dpath='bar')
 
 
 if __name__ == '__main__':
-    r"""
+    """
     CommandLine:
         pytest ubelt/tests/test_download.py
     """
