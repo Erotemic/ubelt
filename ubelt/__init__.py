@@ -18,7 +18,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 __version__ = '0.2.0'
 
-__SUBMODULES__ = [
+__submodules__ = [
     'util_arg',
     'util_cache',
     'util_colors',
@@ -46,7 +46,7 @@ __SUBMODULES__ = [
 __DYNAMIC__ = False
 if __DYNAMIC__:  # nocover
     import mkinit
-    exec(mkinit.dynamic_init(__name__, __SUBMODULES__))
+    exec(mkinit.dynamic_init(__name__, __submodules__))
 else:  # pragma: nobranch
     # <AUTOGEN_INIT>
     from ubelt import util_arg
