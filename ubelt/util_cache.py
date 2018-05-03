@@ -367,11 +367,11 @@ class Cacher(object):
             >>> assert data1 == data2
             >>> cacher.clear()
 
-        Example:
-            >>> from ubelt.util_cache import *  # NOQA
-            >>> @Cacher(fname, cfgstr).ensure
-            >>> def func():
-            >>>     return 'expensive result'
+        # Example:
+        #     >>> from ubelt.util_cache import *  # NOQA
+        #     >>> @Cacher(fname, cfgstr).ensure
+        #     >>> def func():
+        #     >>>     return 'expensive result'
         """
         data = self.tryload()
         if data is None:
