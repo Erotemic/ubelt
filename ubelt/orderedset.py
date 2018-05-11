@@ -29,7 +29,6 @@ class OrderedSet(collections.MutableSet):
         http://stackoverflow.com/questions/1653970/does-python-have-an-ordered-set
 
     Example:
-        >>> from ubelt.orderedset import *
         >>> oset([1, 2, 3])
         OrderedSet([1, 2, 3])
     """
@@ -264,6 +263,8 @@ class OrderedSet(collections.MutableSet):
             OrderedSet([3, 1, 4, 5, 2, 0, 8, 9])
             >>> self | {10}
             OrderedSet([3, 1, 4, 5, 2, 0, 10])
+            >>> OrderedSet.union(oset([1, 2, 3]))
+            OrderedSet([1, 2, 3])
         """
         cls = self.__class__ if isinstance(self, OrderedSet) else OrderedSet
         containers = map(list, it.chain([self], sets))
@@ -281,10 +282,15 @@ class OrderedSet(collections.MutableSet):
             OrderedSet([1, 2, 3])
             >>> self.intersection([2, 4, 5], [1, 2, 3, 4])
             OrderedSet([2])
+            >>> OrderedSet.intersection(oset([1, 2, 3]))
+            OrderedSet([1, 2, 3])
         """
         cls = self.__class__ if isinstance(self, OrderedSet) else OrderedSet
-        common = set.intersection(*map(set, sets))
-        items = (item for item in self if item in common)
+        if sets:
+            common = set.intersection(*map(set, sets))
+            items = (item for item in self if item in common)
+        else:
+            items = self
         return cls(items)
 
     def update(self, other):

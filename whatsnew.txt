@@ -1,3 +1,7 @@
+version: 0.2.1
+---------------
+* OrderedSet.intersection can now handle a single argument
+
 version: 0.2.0
 ---------------
 * Fixed timezone issue with negative timezones
