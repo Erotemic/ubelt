@@ -248,7 +248,7 @@ def _format_object(val, **kwargs):
 
 
 def _format_list(list_, **kwargs):
-    r"""
+    """
     Makes a pretty printable / human-readable string representation of a
     sequence. In most cases this string could be evaled.
 
@@ -256,7 +256,7 @@ def _format_list(list_, **kwargs):
         list_ (list): input list
         **kwargs: nl, newlines, packed, nobr, nobraces, itemsep, trailing_sep,
             strvals indent_, precision, use_numpy, with_dtype, force_dtype,
-            stritems, strkeys, align, explicit, sort, key_order, maxlen
+            stritems, strkeys, explicit, sort, key_order, maxlen
 
     Returns:
         str: retstr
@@ -310,7 +310,7 @@ def _format_list(list_, **kwargs):
 
 
 def _format_dict(dict_, **kwargs):
-    r"""
+    """
     Makes a pretty printable / human-readable string representation of a
     dictionary. In most cases this string could be evaled.
 
@@ -556,7 +556,7 @@ def _rectify_countdown_or_bool(count_or_bool):
 
 
 if __name__ == '__main__':
-    r"""
+    """
     CommandLine:
         python -m ubelt.util_format
     """
