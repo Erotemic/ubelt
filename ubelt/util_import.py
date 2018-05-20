@@ -13,7 +13,7 @@ __all__ = [
 
 
 def split_modpath(modpath):
-    r"""
+    """
     Splits the modpath into the dir that must be in PYTHONPATH for the module
     to be imported and the modulepath relative to this directory.
 
@@ -90,7 +90,6 @@ def modname_to_modpath(modname, hide_init=True, hide_main=True, sys_path=None):
         python -m ubelt.util_import modname_to_modpath
 
     Example:
-        >>> from ubelt.util_import import *  # NOQA
         >>> import sys
         >>> modname = 'ubelt.progiter'
         >>> already_exists = modname in sys.modules
@@ -99,7 +98,6 @@ def modname_to_modpath(modname, hide_init=True, hide_main=True, sys_path=None):
         >>> assert already_exists or modname not in sys.modules
 
     Example:
-        >>> from ubelt.util_import import *  # NOQA
         >>> import sys
         >>> modname = 'ubelt.__main__'
         >>> modpath = modname_to_modpath(modname, hide_main=False)
