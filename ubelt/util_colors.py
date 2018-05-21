@@ -103,5 +103,5 @@ if __name__ == '__main__':
     CommandLine:
         python -m ubelt.util_colors all
     """
-    import ubelt as ub  # NOQ
+    import xdoctest as xdoc
     xdoc.doctest_module()
