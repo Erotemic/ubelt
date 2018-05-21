@@ -1,13 +1,6 @@
 ubelt package
 =============
 
-Subpackages
------------
-
-.. toctree::
-
-    ubelt.meta
-
 Submodules
 ----------
 
