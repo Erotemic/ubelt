@@ -96,11 +96,6 @@ class Timerit(object):
         bestof (int): takes the max over this number of trials
         verbose (int): verbosity flag, defaults to True if label is given
 
-    CommandLine:
-        python -m utool.util_time Timerit
-        python -m utool.util_time Timerit:0
-        python -m utool.util_time Timerit:1
-
     Example:
         >>> num = 15
         >>> t1 = Timerit(num, verbose=2)
@@ -125,7 +120,7 @@ class Timerit(object):
         >>> for timer in Timerit(num, 'precise'):
         >>>     with timer: math.factorial(10000)
     """
-    def __init__(self, num, label=None, bestof=3, verbose=None):
+    def __init__(self, num=1, label=None, bestof=3, verbose=None):
         if verbose is None:
             verbose = bool(label)
         self.num = num
@@ -265,8 +260,7 @@ class Timerit(object):
 
     def _seconds_str(self):
         """
-        CommandLine:
-            python -m ubelt.util_time Timerit._seconds_str
+        Creates a string representation in reasonable units
 
         Example:
             >>> self = Timerit(num=100, bestof=10, verbose=0)
@@ -321,9 +315,20 @@ class Timerit(object):
         pline('    time per loop: %s' % (self._seconds_str(),))
         return '\n'.join(report_lines)
 
+    def print(self, verbose=1):
+        """
+        Prints human readable report to standard output
+
+        Example:
+            >>> Timerit(num=10).call(math.factorial, 50).print()
+            Timed for: 10 loops, best of 3
+                time per loop: best=..., mean=...
+        """
+        self._print_report(verbose=1)
+
     def _print_report(self, verbose=1):
         """
-        Prints human readable report using the print function
+        Prints human readable report to standard output
         """
         print(self._report(verbose=verbose))
 
@@ -364,9 +369,6 @@ def timestamp(method='iso8601'):
     """
     make an iso8601 timestamp
 
-    CommandLine:
-        python -m ubelt.util_time timestamp
-
     Example:
         >>> stamp = timestamp()
         >>> print('stamp = {!r}'.format(stamp))
@@ -387,15 +389,12 @@ def timestamp(method='iso8601'):
 
 def _trychar(char, fallback):  # nocover
     """
-    CommandLine:
-        python -m ubelt.util_time _trychar
-        pytest ubelt/util_time.py::_trychar:0 -s
+    Logic from IPython timeit to handle terminals that cant show mu
 
     Example:
         >>> char = _trychar('µs', 'us')
         >>> print('char = {}'.format(char))
     """
-    # Logic from ipython timeit to handle terminals that cant show mu
     if hasattr(sys.stdout, 'encoding') and sys.stdout.encoding:  # pragma: nobranch
         try:
             char.encode(sys.stdout.encoding)
