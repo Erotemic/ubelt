@@ -1,6 +1,8 @@
 version: 0.2.1
 ---------------
 * OrderedSet.intersection can now handle a single argument
+* Timerit `num` now defaults to 1 
+* Added function `print` to Timerit
 
 version: 0.2.0
 ---------------
