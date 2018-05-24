@@ -100,7 +100,7 @@ class AutoOrderedDict(odict, AutoDict):
     _base = odict
 
 
-def dzip(items1, items2):
+def dzip(items1, items2, cls=dict):
     """
     Zips elementwise pairs between items1 and items2 into a dictionary. Values
     from items2 can be broadcast onto items1.
@@ -109,6 +109,8 @@ def dzip(items1, items2):
         items1 (Sequence): full sequence
         items2 (Sequence): can either be a sequence of one item or a sequence of
             equal length to `items1`
+        cls (Class): dictionary type to use. Defaults to dict, but could
+            be ordered dict instead.
 
     Returns:
         dict: similar to dict(zip(items1, items2))
@@ -138,7 +140,7 @@ def dzip(items1, items2):
     if len(items1) != len(items2):
         raise ValueError('out of alignment len(items1)=%r, len(items2)=%r' % (
             len(items1), len(items2)))
-    return dict(zip(items1, items2))
+    return cls(zip(items1, items2))
 
 
 def group_items(item_list, groupid_list, sorted_=True):

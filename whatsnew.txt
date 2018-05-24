@@ -1,5 +1,6 @@
 version: 0.2.1
 ---------------
+* ub.dzip now accepts a backend dict class as a keyword arg
 * OrderedSet.intersection can now handle a single argument
 * Timerit `num` now defaults to 1 
 * Added function `print` to Timerit
