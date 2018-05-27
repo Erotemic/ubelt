@@ -3,10 +3,10 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import pytest
 import ubelt as ub
 import re
+from xdoctest.utils import CaptureStdout
 
 
 def test_timer_nonewline():
-    from xdoctest.utils import CaptureStdout
     with CaptureStdout() as cap:
         timer = ub.Timer(newline=False, verbose=1)
         timer.tic()
@@ -20,7 +20,6 @@ def test_timestamp():
 
 
 def test_timerit_verbose():
-    from xdoctest.utils import CaptureStdout
     with CaptureStdout() as cap:
         ub.Timerit(3, label='foo', verbose=0).call(lambda: None)
     assert cap.text == ''
@@ -47,8 +46,6 @@ def test_timerit_verbose():
 
 
 def test_timer_default_verbosity():
-    from xdoctest.utils import CaptureStdout
-
     with CaptureStdout() as cap:
         ub.Timer('').tic().toc()
     assert cap.text == '', 'should be quiet by default when label is not given'
@@ -59,8 +56,6 @@ def test_timer_default_verbosity():
 
 
 def test_timerit_default_verbosity():
-    from xdoctest.utils import CaptureStdout
-
     with CaptureStdout() as cap:
         ub.Timerit(10, '').call(lambda: None)
     assert cap.text == '', 'should be quiet by default when label is not given'

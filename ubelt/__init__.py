@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-# flake8: noqa
 """
 CommandLine:
     # Partially regenerate __init__.py
@@ -107,4 +106,28 @@ else:  # pragma: nobranch
     from ubelt.util_time import (Timer, Timerit, timestamp,)
     from ubelt.orderedset import (OrderedSet, oset,)
     from ubelt.progiter import (ProgIter,)
+    __all__ = ['util_arg', 'util_cache', 'util_colors', 'util_const', 'util_cmd',
+               'util_dict', 'util_download', 'util_func', 'util_format', 'util_io',
+               'util_links', 'util_list', 'util_hash', 'util_import',
+               'util_memoize', 'util_mixins', 'util_path', 'util_platform',
+               'util_str', 'util_time', 'orderedset', 'progiter', 'argflag',
+               'argval', 'Cacher', 'color_text', 'highlight_code', 'NoParam',
+               'cmd', 'AutoDict', 'AutoOrderedDict', 'ddict', 'dict_hist',
+               'dict_subset', 'dict_take', 'dict_union', 'dzip', 'find_duplicates',
+               'group_items', 'invert_dict', 'map_keys', 'map_vals', 'odict',
+               'download', 'grabdata', 'identity', 'inject_method', 'repr2',
+               'delete', 'readfrom', 'touch', 'writeto', 'symlink', 'allsame',
+               'argmax', 'argmin', 'argsort', 'argunique', 'boolmask', 'chunks',
+               'compress', 'flatten', 'iter_window', 'iterable', 'take', 'unique',
+               'unique_flags', 'hash_data', 'hash_file', 'import_module_from_name',
+               'import_module_from_path', 'modname_to_modpath',
+               'modpath_to_modname', 'split_modpath', 'memoize', 'memoize_method',
+               'NiceRepr', 'TempDir', 'augpath', 'compressuser', 'ensuredir',
+               'truepath', 'userhome', 'DARWIN', 'LINUX', 'POSIX', 'PY2', 'PY3',
+               'WIN32', 'editfile', 'ensure_app_cache_dir',
+               'ensure_app_resource_dir', 'get_app_cache_dir',
+               'get_app_resource_dir', 'platform_cache_dir',
+               'platform_resource_dir', 'startfile', 'CaptureStdout', 'codeblock',
+               'ensure_unicode', 'hzcat', 'indent', 'Timer', 'Timerit',
+               'timestamp', 'OrderedSet', 'oset', 'ProgIter']
     # </AUTOGEN_INIT>
