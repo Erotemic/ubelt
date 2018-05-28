@@ -10,9 +10,6 @@ import pipes
 import six
 from ubelt import util_path
 
-PY2 = sys.version_info.major == 2
-PY3 = sys.version_info.major == 3
-
 WIN32  = sys.platform.startswith('win32')
 LINUX  = sys.platform.startswith('linux')
 DARWIN = sys.platform.startswith('darwin')

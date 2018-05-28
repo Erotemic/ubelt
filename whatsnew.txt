@@ -1,3 +1,7 @@
+version: 0.3.0
+---------------
+* Removed PY2 and PY3. Use `six` instead.
+
 version: 0.2.1
 ---------------
 * ub.dzip now accepts a backend dict class as a keyword arg

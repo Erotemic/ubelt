@@ -16,7 +16,7 @@ CommandLine:
 #     * argparse_dict
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-__version__ = '0.2.1.dev'
+__version__ = '0.3.0.dev'
 
 __submodules__ = [
     'util_arg',
@@ -96,11 +96,11 @@ else:  # pragma: nobranch
     from ubelt.util_mixins import (NiceRepr,)
     from ubelt.util_path import (TempDir, augpath, compressuser, ensuredir,
                                  truepath, userhome,)
-    from ubelt.util_platform import (DARWIN, LINUX, POSIX, PY2, PY3, WIN32,
-                                     editfile, ensure_app_cache_dir,
-                                     ensure_app_resource_dir, get_app_cache_dir,
-                                     get_app_resource_dir, platform_cache_dir,
-                                     platform_resource_dir, startfile,)
+    from ubelt.util_platform import (DARWIN, LINUX, POSIX, WIN32, editfile,
+                                     ensure_app_cache_dir, ensure_app_resource_dir,
+                                     get_app_cache_dir, get_app_resource_dir,
+                                     platform_cache_dir, platform_resource_dir,
+                                     startfile,)
     from ubelt.util_str import (CaptureStdout, codeblock, ensure_unicode, hzcat,
                                 indent,)
     from ubelt.util_time import (Timer, Timerit, timestamp,)
@@ -123,10 +123,9 @@ else:  # pragma: nobranch
                'import_module_from_path', 'modname_to_modpath',
                'modpath_to_modname', 'split_modpath', 'memoize', 'memoize_method',
                'NiceRepr', 'TempDir', 'augpath', 'compressuser', 'ensuredir',
-               'truepath', 'userhome', 'DARWIN', 'LINUX', 'POSIX', 'PY2', 'PY3',
-               'WIN32', 'editfile', 'ensure_app_cache_dir',
-               'ensure_app_resource_dir', 'get_app_cache_dir',
-               'get_app_resource_dir', 'platform_cache_dir',
+               'truepath', 'userhome', 'DARWIN', 'LINUX', 'POSIX', 'WIN32',
+               'editfile', 'ensure_app_cache_dir', 'ensure_app_resource_dir',
+               'get_app_cache_dir', 'get_app_resource_dir', 'platform_cache_dir',
                'platform_resource_dir', 'startfile', 'CaptureStdout', 'codeblock',
                'ensure_unicode', 'hzcat', 'indent', 'Timer', 'Timerit',
                'timestamp', 'OrderedSet', 'oset', 'ProgIter']
