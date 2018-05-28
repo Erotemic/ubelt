@@ -3,27 +3,27 @@
 Good utilities lift all codes.
 
 Installation:
--------------
+=============
 
 UBelt is written in pure Python and integrated into the python package
 index. Just pip install it and then import it!
 
 From pypi:
-^^^^^^^^^^
+----------
 
 ::
 
     pip install ubelt
 
 From github:
-^^^^^^^^^^^^
+------------
 
 ::
 
     pip install git+https://github.com/Erotemic/ubelt.git
 
 Purpose
--------
+=======
 
 UBelt is a "utility belt" of commonly needed utility and helper
 functions.
@@ -58,7 +58,7 @@ Read the docs here: http://ubelt.readthedocs.io/en/latest/
    a dependency on ``ubelt``.
 
 Description:
-------------
+============
 
 UBelt is cross platform and all top-level functions behave similarly on
 Windows, Mac, and Linux (up to some small unavoidable differences).
@@ -70,7 +70,7 @@ be tested automatically, etc).
 See the (Available Functions) section for detailed information.
 
 History:
---------
+========
 
 UBelt is a migration of the most useful parts of
 ``utool``\ (https://github.com/Erotemic/utool) into a standalone module
@@ -91,7 +91,7 @@ A small subset of the static-analysis and code introspection tools in
 ``xdoctest`` are made visible through ``ubelt``.
 
 Available Functions:
---------------------
+====================
 
 For the following functions, see corresponding doc-strings for more
 details.
@@ -159,12 +159,12 @@ A complete list of available functions can be seen in the
     from ubelt.progiter import (ProgIter,)
 
 Examples
---------
+========
 
 Here are some examples of some features inside ``ubelt``
 
 Timing
-~~~~~~
+------
 
 Quickly time a single line.
 
@@ -179,7 +179,7 @@ Quickly time a single line.
     ...toc('Timer demo!')=0.0008s
 
 Robust Timing
-~~~~~~~~~~~~~
+-------------
 
 Easily do robust timings on existing blocks of code by simply indenting
 them. There is no need to refactor into a string representation or
@@ -218,7 +218,7 @@ properties of the ``ub.Timerit`` class to programmatically use results.
     t1.total_time = 0.4427177629695507
 
 Caching
-~~~~~~~
+-------
 
 Cache intermediate results in a script with minimal boilerplate.
 
@@ -236,7 +236,7 @@ Cache intermediate results in a script with minimal boilerplate.
     >>> myvar1, myvar2 = data
 
 Hashing
-~~~~~~~
+-------
 
 The ``ub.hash_data`` constructs a hash corresponding to a (mostly)
 arbitrary ordered python object. A common use case for this function is
@@ -256,7 +256,7 @@ There exists an undocumented plugin architecture to extend this function
 to arbitrary types. See ``ubelt/util_hash.py`` for details.
 
 Command Line Interaction
-~~~~~~~~~~~~~~~~~~~~~~~~
+------------------------
 
 The builtin Python ``subprocess.Popen`` module is great, but it can be a
 bit clunky at times. The ``os.system`` command is easy to use, but it
@@ -312,7 +312,7 @@ list of args, or a string. Both will work. This utility has been tested
 on both Windows and Linux.
 
 Cross-Platform Resource and Cache Directories
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+---------------------------------------------
 
 If you have an application which writes configuration or cache files,
 the standard place to dump those files differs depending if you are on
@@ -340,7 +340,7 @@ Example usage on Linux might look like this:
     ~/.config/my_app
 
 Symlinks
-~~~~~~~~
+--------
 
 The ``ub.symlink`` function will create a symlink similar to
 ``os.symlink``. The main differences are that 1) it will not error if
@@ -358,7 +358,7 @@ are not available)
     >>> ub.symlink(real_path, link_path)
 
 Downloading Files
-~~~~~~~~~~~~~~~~~
+-----------------
 
 The function ``ub.download`` provides a simple interface to download a
 URL and save its data to a file.
@@ -385,7 +385,7 @@ it needs to.
     ~/.cache/ubelt/rqwaDag.png
 
 Grouping
-~~~~~~~~
+--------
 
 Group items in a sequence into a dictionary by a second id list
 
@@ -398,7 +398,7 @@ Group items in a sequence into a dictionary by a second id list
     {'dairy': ['cheese'], 'fruit': ['jam', 'bannana'], 'protein': ['ham', 'spam', 'eggs']}
 
 Dictionary Histogram
-~~~~~~~~~~~~~~~~~~~~
+--------------------
 
 Find the frequency of items in a sequence
 
@@ -410,7 +410,7 @@ Find the frequency of items in a sequence
     {1232: 2, 1: 1, 2: 4, 900: 3, 39: 1}
 
 Find Duplicates
-~~~~~~~~~~~~~~~
+---------------
 
 Find all duplicate items in a list. More specifically,
 ``ub.find_duplicates`` searches for items that appear more than ``k``
@@ -425,7 +425,7 @@ it appeared in.
     {0: [0, 1, 6], 2: [3, 8], 3: [4, 5]}
 
 Dictionary Manipulation
-~~~~~~~~~~~~~~~~~~~~~~~
+-----------------------
 
 Take a subset of a dictionary.
 
@@ -479,7 +479,7 @@ builds a set of keys that were associated with each value.
     {0: {'A', 'a'}, 1: {'b'}, 2: {'C', 'c'}, 3: {'d'}}
 
 AutoDict - Autovivification
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+---------------------------
 
 While the ``collections.defaultdict`` is nice, it is sometimes more
 convenient to have an infinitely nested dictionary of dictionaries.
@@ -498,7 +498,7 @@ convenient to have an infinitely nested dictionary of dictionaries.
     auto = {0: {1: 'hello', 10: {100: None}}}
 
 String-based imports
-~~~~~~~~~~~~~~~~~~~~
+--------------------
 
 Ubelt contains functions to import modules dynamically without using the
 python ``import`` statement. While ``importlib`` exists, the ``ubelt``
@@ -535,7 +535,7 @@ module paths (e.g.
     >>> assert ub.truepath(ub.modname_to_modpath(modname)) == modpath
 
 Loop Progress
-~~~~~~~~~~~~~
+-------------
 
 ``ProgIter`` is a (mostly) drop-in alternative to
 ```tqdm`` <https://pypi.python.org/pypi/tqdm>`__. It is recommended to
@@ -558,7 +558,7 @@ that makes heavy use of multiprocessing.
      1000/1000... rate=71886.74 Hz, eta=0:00:00, total=0:00:00, wall=14:05 EST 
 
 Horizontal String Concatenation
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-------------------------------
 
 Sometimes its just prettier to horizontally concatenate two blocks of
 text.
