@@ -69,9 +69,8 @@ def parse_description():
     """
     Parse the description in the README file
 
-    pandoc --from=markdown --to=rst --output=README.rst README.md
-
     CommandLine:
+        pandoc --from=markdown --to=rst --output=README.rst README.md
         python -c "import setup; print(setup.parse_description())"
     """
     from os.path import dirname, join, exists
