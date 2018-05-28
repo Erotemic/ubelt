@@ -32,7 +32,6 @@ def timestamp(method='iso8601'):
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ubelt.util_time
         python -m ubelt.util_time all
     """
     import xdoctest as xdoc
