@@ -212,7 +212,7 @@ class Cacher(object):
 
         Args:
             on_error (str): how to handle non-io errors errors. Either raise,
-                which re-raises the exception, or clear which clears the cache
+                which re-raises the exception, or clear which deletes the cache
                 and returns None.
         """
         cfgstr = self._rectify_cfgstr(cfgstr)
