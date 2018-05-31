@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
 import sys
+import os.path
+import zipimport
 
 
 __all__ = [
@@ -186,7 +188,7 @@ def import_module_from_path(modpath):
     Imports a module via its path
 
     Args:
-        modpath (str): path to the module
+        modpath (str): path to the module on disk or within a zipfile.
 
     Returns:
         module: the imported module
@@ -197,6 +199,11 @@ def import_module_from_path(modpath):
     Notes:
         If the module is part of a package, the package will be imported first.
         These modules may cause problems when reloading via IPython magic
+
+        This can import a module from within a zipfile. To do this modpath
+        should specify the path to the zipfile and the path to the module
+        within that zipfile separated by a colon.
+        E.g. `/path/to/archive.zip:mymodule.py`
 
     Warning:
         It is best to use this with paths that will not conflict with
@@ -220,20 +227,41 @@ def import_module_from_path(modpath):
        assume helper belongs to the `pkg` module already in sys.modules.
        This can cause a NameError or worse --- a incorrect helper module.
 
-    TODO:
-        handle modules inside of zipfiles
-
     Example:
         >>> from ubelt import util_import
         >>> modpath = util_import.__file__
         >>> module = import_module_from_path(modpath)
         >>> assert module is util_import
+
+    Example:
+        >>> import zipfile
+        >>> import ubelt as ub
+        >>> from os.path import join
+        >>> dpath = ub.ensure_app_cache_dir('ubelt')
+        >>> modpath = join(dpath, 'foo.py')
+        >>> zippath = join(dpath, 'myzip.zip')
+        >>> open(modpath, 'w').write('testvar = 1')
+        >>> internal = 'folder/bar.py'
+        >>> with zipfile.ZipFile(zippath, 'w') as myzip:
+        >>>     myzip.write(modpath, internal)
+        >>> fpath = zippath + ':' + internal
+        >>> module = import_module_from_path(fpath)
+        >>> assert module.__name__ == 'folder/bar'
+        >>> assert module.testvar == 1
     """
-    # the importlib version doesnt work in pytest
-    module = _custom_import_modpath(modpath)
-    # TODO: use this implementation once pytest fixes importlib
-    # module = _pkgutil_import_modpath(modpath)
-    return module
+    if not os.path.exists(modpath) and ':' in modpath:
+        # Handle the case where modpath is a module inside a zipfile
+        archivepath, internal = modpath.split(':')
+        modname = os.path.splitext(internal)[0]
+        zimp_file = zipimport.zipimporter(archivepath)
+        module = zimp_file.load_module(modname)
+        return module
+    else:
+        # the importlib version doesnt work in pytest
+        module = _custom_import_modpath(modpath)
+        # TODO: use this implementation once pytest fixes importlib
+        # module = _pkgutil_import_modpath(modpath)
+        return module
 
 
 def _custom_import_modpath(modpath):
