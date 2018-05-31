@@ -1,6 +1,7 @@
 version: 0.3.0
 ---------------
 * Removed PY2 and PY3. Use `six` instead.
+* ub.import_module_from_path can now import modules within zipfiles
 
 version: 0.2.1
 ---------------
