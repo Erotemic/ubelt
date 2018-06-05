@@ -105,8 +105,24 @@ def parse_requirements(fname='requirements.txt'):
                         package = line.split('#egg=')[1]
                         packages.append(package)
                     else:
-                        pat = '|'.join(['>', '>=', '=='])
-                        package = re.split(pat, line)[0]
+                        # Remove versioning from the package
+                        pat = '(' + '|'.join(['>=', '==', '>']) + ')'
+                        parts = re.split(pat, line, maxsplit=1)
+                        parts = [p.strip() for p in parts]
+
+                        package = parts[0]
+                        if len(parts) > 1:
+                            op, rest = parts[1:]
+                            if ';' in rest:
+                                # Declaring platform specific dependencies
+                                # http://setuptools.readthedocs.io/en/latest/setuptools.html#declaring-platform-specific-dependencies
+                                version, platform_deps = map(str.strip, rest.split(';'))
+                                package = package + ';' + platform_deps
+                                # if platform_deps == 'platform_system=="Windows"':
+                                #     pass
+                            else:
+                                version = rest  # NOQA
+
                         packages.append(package)
             return packages
     return []
