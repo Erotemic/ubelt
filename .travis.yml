@@ -13,16 +13,9 @@ python:
   - "3.6"
 before_install:
   - pip install pip -U
-  - pip install pytest -U
-  - pip install pytest-cov -U
-  - pip install codecov -U
-  - pip install xdoctest -U
-  - pip install pygments -U
-#  - pip install networkx
-#  - pip install jedi
-#  - pip install delorean
+  - pip install -r requirements.txt -U
+  - pip install -r optional-requirements.txt -U
 install:
-  #- travis_retry python setup.py build develop
   - travis_retry pip install -e .
 script: 
   #- travis_wait ./run_tests.py
