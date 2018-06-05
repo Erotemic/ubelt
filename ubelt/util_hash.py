@@ -124,6 +124,14 @@ def _rectify_hasher(hasher):
     """
     Convert a string-based key into a hasher class
 
+    Notes:
+        In terms of speed on 64bit systems, sha1 is the fastest followed by md5
+        and sha512. The slowest algorithm is sha256.
+
+    TODO:
+        - [ ]: Should we optionally incorporate xxHash algorithms, which
+               are much faster than hashlib algorithms.
+
     Example:
         >>> assert _rectify_hasher(NoParam) is DEFAULT_HASHER
         >>> assert _rectify_hasher('sha1') is hashlib.sha1
@@ -601,7 +609,7 @@ def hash_data(data, hasher=NoParam, hashlen=NoParam, base=NoParam):
 
 def hash_file(fpath, blocksize=65536, stride=1, hasher=NoParam,
               hashlen=NoParam, base=NoParam):
-    r"""
+    """
     Hashes the data in a file on disk.
 
     Args:
