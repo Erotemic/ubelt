@@ -12,7 +12,7 @@ from ubelt import util_links
 
 
 def test_rel_dir_link():
-    dpath = ub.ensure_app_resource_dir('ubelt', 'test_rel_dir_link')
+    dpath = ub.ensure_app_cache_dir('ubelt', 'test_rel_dir_link')
     ub.delete(dpath, verbose=2)
     ub.ensuredir(dpath, verbose=2)
 
@@ -57,7 +57,7 @@ def test_rel_dir_link():
 
 
 def test_rel_file_link():
-    dpath = ub.ensure_app_resource_dir('ubelt', 'test_rel_file_link')
+    dpath = ub.ensure_app_cache_dir('ubelt', 'test_rel_file_link')
     ub.delete(dpath, verbose=2)
     ub.ensuredir(dpath, verbose=2)
 
@@ -113,7 +113,7 @@ def test_delete_symlinks():
         python -m ubelt.tests.test_links test_delete_symlinks
     """
     # TODO: test that we handle broken links
-    dpath = ub.ensure_app_resource_dir('ubelt', 'test_delete_links')
+    dpath = ub.ensure_app_cache_dir('ubelt', 'test_delete_links')
 
     happy_dpath = join(dpath, 'happy_dpath')
     happy_dlink = join(dpath, 'happy_dlink')
@@ -217,7 +217,7 @@ def test_delete_symlinks():
 
 
 def test_modify_directory_symlinks():
-    dpath = ub.ensure_app_resource_dir('ubelt', 'test_modify_symlinks')
+    dpath = ub.ensure_app_cache_dir('ubelt', 'test_modify_symlinks')
     ub.delete(dpath, verbose=2)
     ub.ensuredir(dpath, verbose=2)
 
@@ -277,7 +277,7 @@ def test_modify_file_symlinks():
         python -m ubelt.tests.test_links test_modify_symlinks
     """
     # TODO: test that we handle broken links
-    dpath = ub.ensure_app_resource_dir('ubelt', 'test_modify_symlinks')
+    dpath = ub.ensure_app_cache_dir('ubelt', 'test_modify_symlinks')
     happy_fpath = join(dpath, 'happy_fpath.txt')
     happy_flink = join(dpath, 'happy_flink.txt')
     ub.touch(happy_fpath, verbose=2)
@@ -299,7 +299,7 @@ def test_broken_link():
     CommandLine:
         python -m ubelt.tests.test_links test_broken_link
     """
-    dpath = ub.ensure_app_resource_dir('ubelt', 'test_broken_link')
+    dpath = ub.ensure_app_cache_dir('ubelt', 'test_broken_link')
 
     ub.delete(dpath, verbose=2)
     ub.ensuredir(dpath, verbose=2)
@@ -337,7 +337,7 @@ def test_overwrite_symlink():
     """
 
     # TODO: test that we handle broken links
-    dpath = ub.ensure_app_resource_dir('ubelt', 'test_overwrite_symlink')
+    dpath = ub.ensure_app_cache_dir('ubelt', 'test_overwrite_symlink')
     ub.delete(dpath, verbose=2)
     ub.ensuredir(dpath, verbose=2)
 
