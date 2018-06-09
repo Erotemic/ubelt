@@ -251,7 +251,9 @@ def import_module_from_path(modpath):
     """
     if not os.path.exists(modpath) and ':' in modpath:
         # Handle the case where modpath is a module inside a zipfile
-        archivepath, internal = modpath.split(':')
+        parts = modpath.split(':')
+        archivepath = ':'.join(parts[:-1])  # handles C:\ on windows
+        internal = parts[-1]
         modname = os.path.splitext(internal)[0]
         zimp_file = zipimport.zipimporter(archivepath)
         module = zimp_file.load_module(modname)
