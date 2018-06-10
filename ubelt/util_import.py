@@ -260,7 +260,6 @@ def import_module_from_path(modpath):
         internal = parts[-1]
         modname = os.path.splitext(internal)[0]
         modname = os.path.normpath(modname)
-        print('modname = {!r}'.format(modname))
         zimp_file = zipimport.zipimporter(archivepath)
         module = zimp_file.load_module(modname)
         return module
