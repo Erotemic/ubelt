@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+"""
+In the future we may simply depend on the ordered-set package instead
+"""
 from __future__ import absolute_import, division, print_function, unicode_literals
 from six.moves import zip, range
 from six import next
