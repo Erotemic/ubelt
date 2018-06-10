@@ -117,7 +117,9 @@ def parse_requirements(fname='requirements.txt'):
                                 # Declaring platform specific dependencies
                                 # http://setuptools.readthedocs.io/en/latest/setuptools.html#declaring-platform-specific-dependencies
                                 version, platform_deps = map(str.strip, rest.split(';'))
-                                package = package + ';' + platform_deps
+                                if not sys.version.startswith('3.4'):
+                                    # apparently this breaks in 3.4
+                                    package = package + ';' + platform_deps
                                 # if platform_deps == 'platform_system=="Windows"':
                                 #     pass
                             else:
