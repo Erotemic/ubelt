@@ -377,6 +377,11 @@ def dict_union(*args):
     Returns:
         OrderedDict if the first argument is an OrderedDict, otherwise dict
 
+    SeeAlso:
+        collections.ChainMap - a standard python builtin data structure that
+            provides a view that treats multiple dicts as a single dict.
+            https://docs.python.org/3/library/collections.html#chainmap-objects
+
     Example:
         >>> result = dict_union({'a': 1, 'b': 1}, {'b': 2, 'c': 2})
         >>> assert result == {'a': 1, 'b': 2, 'c': 2}
