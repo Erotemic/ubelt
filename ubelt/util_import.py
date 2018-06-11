@@ -234,25 +234,32 @@ def import_module_from_path(modpath):
         >>> assert module is util_import
 
     Example:
+        >>> # Test importing a module from within a zipfile
         >>> import zipfile
         >>> import ubelt as ub
         >>> from os.path import join
         >>> dpath = ub.ensure_app_cache_dir('ubelt')
-        >>> modpath = join(dpath, 'foo.py')
-        >>> zippath = join(dpath, 'myzip.zip')
-        >>> open(modpath, 'w').write('testvar = 1')
+        >>> # Write to an external module named bar
+        >>> external_modpath = join(dpath, 'bar.py')
+        >>> open(external_modpath, 'w').write('testvar = 1')
         >>> internal = 'folder/bar.py'
+        >>> # Move the external bar module into a zipfile
+        >>> zippath = join(dpath, 'myzip.zip')
         >>> with zipfile.ZipFile(zippath, 'w') as myzip:
-        >>>     myzip.write(modpath, internal)
-        >>> fpath = zippath + ':' + internal
-        >>> module = import_module_from_path(fpath)
-        >>> assert module.__name__ == 'folder/bar'
+        >>>     myzip.write(external_modpath, internal)
+        >>> # Import the bar module from within the zipfile
+        >>> modpath = zippath + ':' + internal
+        >>> module = import_module_from_path(modpath)
+        >>> assert module.__name__ == os.path.normpath('folder/bar')
         >>> assert module.testvar == 1
     """
     if not os.path.exists(modpath) and ':' in modpath:
         # Handle the case where modpath is a module inside a zipfile
-        archivepath, internal = modpath.split(':')
+        parts = modpath.split(':')
+        archivepath = ':'.join(parts[:-1])  # handles C:\ on windows
+        internal = parts[-1]
         modname = os.path.splitext(internal)[0]
+        modname = os.path.normpath(modname)
         zimp_file = zipimport.zipimporter(archivepath)
         module = zimp_file.load_module(modname)
         return module
@@ -291,3 +298,12 @@ def _pkgutil_import_modpath(modpath):  # nocover
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
     return module
+
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python -m ubelt.util_import all
+    """
+    import xdoctest
+    xdoctest.doctest_module(__file__)
