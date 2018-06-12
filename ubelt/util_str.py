@@ -26,8 +26,9 @@ class CaptureStdout(object):
     CommandLine:
         python -m ubelt.util_str CaptureStdout
 
-    Notes:
-        use version in xdoctest?
+    TODO:
+        - [ ] use version in xdoctest.
+        - [ ] rework to handle stdout, stderr or any other stream.
 
     Example:
         >>> from ubelt.util_str import *  # NOQA

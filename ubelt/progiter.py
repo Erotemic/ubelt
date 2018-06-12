@@ -1,6 +1,11 @@
 # -*- coding: utf-8 -*-
+"""
+ProgIter now exists in a standalone pip-installable module. The source code
+lives in its own github repo here: https://github.com/Erotemic/progiter
+"""
+# On machines following Erotemic's directory structure for development
+# the code can be found here: ~/code/progiter/progiter/progiter.py
 from __future__ import absolute_import, division, print_function, unicode_literals
-# ProgIter now exists in a standalone pip-installable module
 from progiter import ProgIter
 
 __all__ = [
