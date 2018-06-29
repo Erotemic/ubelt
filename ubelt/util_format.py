@@ -12,7 +12,7 @@ import collections
 
 def repr2(val, **kwargs):
     """
-    Constructs a "pretty" string representation.
+    Makes a pretty and easy-to-doctest string representation!
 
     This is an alternative to repr, and `pprint.pformat` that attempts to be
     both more configurable and generate output that is consistent between

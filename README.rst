@@ -69,6 +69,30 @@ be tested automatically, etc).
 
 See the (Available Functions) section for detailed information.
 
+
+Current Functionality
+=====================
+Ubelt is a currated collection of utilities. 
+
+UBelt's functionality is a mixture of the following categories:
+
+- Timing
+- Caching
+- Hashing
+- Command Line Interaction
+- Cross-Platform Resource and Cache Directories
+- Symlinks
+- Downloading Files
+- Dictionary Histogram
+- Find Duplicates
+- Dictionary Manipulation
+- AutoDict - Autovivification
+- String-based imports
+- Horizontal String Concatenation
+- Standalone tools.
+    - progiter for loop progress
+    - timerit for robust timing and benchmarking
+
 History:
 ========
 
@@ -163,6 +187,7 @@ Examples
 
 Here are some examples of some features inside ``ubelt``
 
+
 Timing
 ------
 
@@ -177,6 +202,7 @@ Quickly time a single line.
     >>>     math.factorial(100000)
     tic('Timer demo!')
     ...toc('Timer demo!')=0.0008s
+
 
 Robust Timing
 -------------
