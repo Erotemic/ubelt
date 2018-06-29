@@ -7,3 +7,4 @@ pytest >= 3.3.1
 pytest-cov
 coverage >= 4.3.4
 jaraco.windows >= 3.9.1;platform_system=="Windows"
+ordered-set >= 0.3.0
