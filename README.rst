@@ -22,41 +22,6 @@ From github:
 
     pip install git+https://github.com/Erotemic/ubelt.git
 
-Purpose
-=======
-
-UBelt is a "utility belt" of commonly needed utility and helper
-functions.
-
-Read the docs here: http://ubelt.readthedocs.io/en/latest/
-
--  Reusable code - Many functions in ``ubelt`` are simple to write
-   yourself (e.g. ``take``, ``memoize``, ``ensure_unicode``), but even
-   re-writing trivial functions takes time better spent on more
-   important tasks. Rewriting has its place, but not when you can just
-   ``pip install ubelt``!
-
--  Easy access - The entire ``ubelt`` API is exposed at the top level.
-   While the functions are defined in submodules, explicit imports make
-   easy to access any function. There are also a small number of
-   functions (e.g. ``ub.odict``, ``ub.ddict``, ``ub.flatten``, which are
-   aliases for ``collections.OrderedDict``, ``collections.DefaultDict``,
-   and ``itertools.chain.from_iterable``, respectively) that are
-   essentially aliases for functions already in Python's standard
-   library. I found myself using these functions so much that I wanted
-   easier access to them, thus they are included in ``ubelt``.
-
--  Extra batteries - Python's standard library is "batteries included"
-   and provides great APIs for a variety of tasks. UBelt both extends
-   these batteries and provides simplified interfaces to others.
-
--  Copy paste - It is often not desirable to add extra dependencies to
-   code. While I encourage installation and use of this module, I
-   realize that option is not always feasible. Most (but not all)
-   functions were also written in a way where they can be copy and
-   pasted into your packages own utility library without needing to add
-   a dependency on ``ubelt``.
-
 Description:
 ============
 
@@ -93,6 +58,41 @@ UBelt's functionality is a mixture of the following categories:
     - ```progiter`` <https://github.com/Erotemic/progiter>`__ for Loop Progress
     - ```xdoctest`` <https://github.com/Erotemic/xdoctest>`__ for eXtended doctests
     - ```timerit`` <https://github.com/Erotemic/xdoctest>`__ for Robust Timing and Benchmarking
+
+Purpose
+=======
+
+UBelt is a "utility belt" of commonly needed utility and helper
+functions.
+
+Read the docs here: http://ubelt.readthedocs.io/en/latest/
+
+-  Reusable code - Many functions in ``ubelt`` are simple to write
+   yourself (e.g. ``take``, ``memoize``, ``ensure_unicode``), but even
+   re-writing trivial functions takes time better spent on more
+   important tasks. Rewriting has its place, but not when you can just
+   ``pip install ubelt``!
+
+-  Easy access - The entire ``ubelt`` API is exposed at the top level.
+   While the functions are defined in submodules, explicit imports make
+   easy to access any function. There are also a small number of
+   functions (e.g. ``ub.odict``, ``ub.ddict``, ``ub.flatten``, which are
+   aliases for ``collections.OrderedDict``, ``collections.DefaultDict``,
+   and ``itertools.chain.from_iterable``, respectively) that are
+   essentially aliases for functions already in Python's standard
+   library. I found myself using these functions so much that I wanted
+   easier access to them, thus they are included in ``ubelt``.
+
+-  Extra batteries - Python's standard library is "batteries included"
+   and provides great APIs for a variety of tasks. UBelt both extends
+   these batteries and provides simplified interfaces to others.
+
+-  Copy paste - It is often not desirable to add extra dependencies to
+   code. While I encourage installation and use of this module, I
+   realize that option is not always feasible. Most (but not all)
+   functions were also written in a way where they can be copy and
+   pasted into your packages own utility library without needing to add
+   a dependency on ``ubelt``.
 
 History:
 ========
