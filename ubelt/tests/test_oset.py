@@ -4,6 +4,10 @@ import itertools as it
 
 
 def test_operators():
+    """
+    CommandLine:
+        python ~/code/ubelt/ubelt/tests/test_oset.py test_operators
+    """
     rng = random.Random(0)
 
     def random_oset(rng, a=20, b=20):
@@ -21,9 +25,15 @@ def test_operators():
 
     def operator_tests(data1, data2):
         result1 = data1.copy()
+        print('====')
+        print('data1 = {!r}'.format(data1))
+        print('data2 = {!r}'.format(data2))
         result1.intersection_update(data2)
         result2 = (data1 & data2)
         result3 = (data1.intersection(data2))
+        print('result1 = {!r}'.format(result1))
+        print('result2 = {!r}'.format(result2))
+        print('result3 = {!r}'.format(result3))
         check_results(result1, result2, result3, datas=(data1, data2),
                       name='isect')
 
