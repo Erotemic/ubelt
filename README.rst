@@ -90,8 +90,9 @@ UBelt's functionality is a mixture of the following categories:
 - String-based imports
 - Horizontal String Concatenation
 - Standalone tools.
-    - progiter for loop progress
-    - timerit for robust timing and benchmarking
+    - ```progiter`` <https://github.com/Erotemic/progiter>`__ for Loop Progress
+    - ```xdoctest`` <https://github.com/Erotemic/xdoctest>`__ for eXtended doctests
+    - ```timerit`` <https://github.com/Erotemic/xdoctest>`__ for Robust Timing and Benchmarking
 
 History:
 ========
@@ -204,8 +205,8 @@ Quickly time a single line.
     ...toc('Timer demo!')=0.0008s
 
 
-Robust Timing
--------------
+Robust Timing and Benchmarking
+------------------------------
 
 Easily do robust timings on existing blocks of code by simply indenting
 them. There is no need to refactor into a string representation or
