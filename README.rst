@@ -57,7 +57,7 @@ UBelt's functionality is a mixture of the following categories:
 - Standalone tools.
     - ```progiter`` <https://github.com/Erotemic/progiter>`__ for Loop Progress
     - ```xdoctest`` <https://github.com/Erotemic/xdoctest>`__ for eXtended doctests
-    - ```timerit`` <https://github.com/Erotemic/xdoctest>`__ for Robust Timing and Benchmarking
+    - ```timerit`` <https://github.com/Erotemic/timerit>`__ for Robust Timing and Benchmarking
 
 Purpose
 =======
@@ -202,7 +202,7 @@ Quickly time a single line.
     >>> with timer:
     >>>     math.factorial(100000)
     tic('Timer demo!')
-    ...toc('Timer demo!')=0.0008s
+    ...toc('Timer demo!')=0.1453s
 
 
 Robust Timing and Benchmarking
@@ -219,7 +219,7 @@ The quick and dirty way just requires one indent.
 
     >>> import math
     >>> import ubelt as ub
-    >>> for _ in ub.Timerit(num=200, verbose=2):
+    >>> for _ in ub.Timerit(num=200, verbose=3):
     >>>     math.factorial(10000)
     Timing for 200 loops
     Timed for: 200 loops, best of 3
