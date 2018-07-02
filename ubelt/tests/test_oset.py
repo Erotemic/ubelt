@@ -31,9 +31,9 @@ def test_operators():
         result1.intersection_update(data2)
         result2 = (data1 & data2)
         result3 = (data1.intersection(data2))
-        print('result1 = {!r}'.format(result1))
-        print('result2 = {!r}'.format(result2))
-        print('result3 = {!r}'.format(result3))
+        print('result1 = {!r} result1.intersection_update(data2)'.format(result1))
+        print('result2 = {!r} (data1 & data2) '.format(result2))
+        print('result3 = {!r} (data1.intersection(data2))'.format(result3))
         check_results(result1, result2, result3, datas=(data1, data2),
                       name='isect')
 
@@ -134,10 +134,10 @@ def test_equality():
     check(a, d)
 
 
-def test_extend():
-    self = ub.oset()
-    self.extend([3, 1, 2, 3])
-    assert self == [3, 1, 2]
+# def test_extend():
+#     self = ub.oset()
+#     self.extend([3, 1, 2, 3])
+#     assert self == [3, 1, 2]
 
 
 if __name__ == '__main__':
