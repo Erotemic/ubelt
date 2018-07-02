@@ -617,7 +617,7 @@ Here are the repos containing the standalone utilities:
    :target: https://travis-ci.org/Erotemic/ubelt
 .. |Codecov| image:: https://codecov.io/github/Erotemic/ubelt/badge.svg?branch=master&service=github
    :target: https://codecov.io/github/Erotemic/ubelt?branch=master
-.. |Appveyor| image:: https://ci.appveyor.com/api/projects/status/github/Erotemic/ubelt?svg=True
+.. |Appveyor| image:: https://ci.appveyor.com/api/projects/status/github/Erotemic/ubelt?branch=master&svg=True
    :target: https://ci.appveyor.com/project/Erotemic/ubelt/branch/master
 .. |Pypi| image:: https://img.shields.io/pypi/v/ubelt.svg
    :target: https://pypi.python.org/pypi/ubelt
