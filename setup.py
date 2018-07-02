@@ -119,29 +119,27 @@ def parse_requirements(fname='requirements.txt'):
         """
         Parse information from a line in a requirements text file
         """
+        info = {}
         if line.startswith('-e '):
-            package = line.split('#egg=')[1]
+            info['package'] = line.split('#egg=')[1]
         else:
             # Remove versioning from the package
             pat = '(' + '|'.join(['>=', '==', '>']) + ')'
             parts = re.split(pat, line, maxsplit=1)
             parts = [p.strip() for p in parts]
 
-            package = parts[0]
+            info['package'] = parts[0]
             if len(parts) > 1:
                 op, rest = parts[1:]
                 if ';' in rest:
                     # Handle platform specific dependencies
                     # http://setuptools.readthedocs.io/en/latest/setuptools.html#declaring-platform-specific-dependencies
                     version, platform_deps = map(str.strip, rest.split(';'))
-                    if not sys.version.startswith('3.4'):
-                        # apparently this breaks in 3.4
-                        package = package + ';' + platform_deps
-                    # if platform_deps == 'platform_system=="Windows"':
-                    #     pass
+                    info['platform_deps'] = platform_deps
                 else:
                     version = rest  # NOQA
-        return package
+                info['version'] = (op, version)
+        return info
 
     # This breaks on pip install, so check that it exists.
     if exists(require_fpath):
@@ -150,7 +148,13 @@ def parse_requirements(fname='requirements.txt'):
             for line in f.readlines():
                 line = line.strip()
                 if line and not line.startswith('#'):
-                    package = parse_line(line)
+                    info = parse_line(line)
+                    package = info['package']
+                    if not sys.version.startswith('3.4'):
+                        # apparently package_deps are broken in 3.4
+                        platform_deps = info.get('platform_deps')
+                        if platform_deps is not None:
+                            package += ';' + platform_deps
                     packages.append(package)
             return packages
     return []
@@ -159,17 +163,13 @@ def parse_requirements(fname='requirements.txt'):
 version = parse_version('ubelt')  # needs to be a global var for git tags
 
 if __name__ == '__main__':
-    install_requires = parse_requirements('requirements.txt')
-    if sys.platform.startswith('win32'):
-        install_requires += parse_requirements('requirements-win32.txt')
-
     setup(
         name='ubelt',
         version=version,
         author='Jon Crall',
         description='A "utility belt" of commonly needed utility and helper functions',
         long_description=parse_description(),
-        install_requires=install_requires,
+        install_requires=parse_requirements('requirements.txt'),
         extras_require={
             'all': parse_requirements('optional-requirements.txt')
         },
