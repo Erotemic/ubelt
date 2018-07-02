@@ -83,10 +83,30 @@ def parse_description():
     return ''
 
 
+def parse_requirements_alt(fname='requirements.txt'):
+    """
+    pip install requirements-parser
+    fname='requirements.txt'
+    """
+    import requirements
+    from os.path import dirname, join, exists
+    require_fpath = join(dirname(__file__), fname)
+    if exists(require_fpath):
+        # Dont use until this handles platform specific dependencies
+        with open(require_fpath, 'r') as file:
+            requires = list(requirements.parse(file))
+        packages = [r.name for r in requires]
+        return packages
+    return []
+
+
 def parse_requirements(fname='requirements.txt'):
     """
     Parse the package dependencies listed in a requirements file but strips
     specific versioning information.
+
+    TODO:
+        perhaps use https://github.com/davidfischer/requirements-parser instead
 
     CommandLine:
         python -c "import setup; print(setup.parse_requirements())"
@@ -94,6 +114,35 @@ def parse_requirements(fname='requirements.txt'):
     from os.path import dirname, join, exists
     import re
     require_fpath = join(dirname(__file__), fname)
+
+    def parse_line(line):
+        """
+        Parse information from a line in a requirements text file
+        """
+        if line.startswith('-e '):
+            package = line.split('#egg=')[1]
+        else:
+            # Remove versioning from the package
+            pat = '(' + '|'.join(['>=', '==', '>']) + ')'
+            parts = re.split(pat, line, maxsplit=1)
+            parts = [p.strip() for p in parts]
+
+            package = parts[0]
+            if len(parts) > 1:
+                op, rest = parts[1:]
+                if ';' in rest:
+                    # Handle platform specific dependencies
+                    # http://setuptools.readthedocs.io/en/latest/setuptools.html#declaring-platform-specific-dependencies
+                    version, platform_deps = map(str.strip, rest.split(';'))
+                    if not sys.version.startswith('3.4'):
+                        # apparently this breaks in 3.4
+                        package = package + ';' + platform_deps
+                    # if platform_deps == 'platform_system=="Windows"':
+                    #     pass
+                else:
+                    version = rest  # NOQA
+        return package
+
     # This breaks on pip install, so check that it exists.
     if exists(require_fpath):
         with open(require_fpath, 'r') as f:
@@ -101,31 +150,8 @@ def parse_requirements(fname='requirements.txt'):
             for line in f.readlines():
                 line = line.strip()
                 if line and not line.startswith('#'):
-                    if line.startswith('-e '):
-                        package = line.split('#egg=')[1]
-                        packages.append(package)
-                    else:
-                        # Remove versioning from the package
-                        pat = '(' + '|'.join(['>=', '==', '>']) + ')'
-                        parts = re.split(pat, line, maxsplit=1)
-                        parts = [p.strip() for p in parts]
-
-                        package = parts[0]
-                        if len(parts) > 1:
-                            op, rest = parts[1:]
-                            if ';' in rest:
-                                # Declaring platform specific dependencies
-                                # http://setuptools.readthedocs.io/en/latest/setuptools.html#declaring-platform-specific-dependencies
-                                version, platform_deps = map(str.strip, rest.split(';'))
-                                if not sys.version.startswith('3.4'):
-                                    # apparently this breaks in 3.4
-                                    package = package + ';' + platform_deps
-                                # if platform_deps == 'platform_system=="Windows"':
-                                #     pass
-                            else:
-                                version = rest  # NOQA
-
-                        packages.append(package)
+                    package = parse_line(line)
+                    packages.append(package)
             return packages
     return []
 
