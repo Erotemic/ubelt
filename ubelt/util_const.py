@@ -20,7 +20,7 @@ class _NoParamType(object):
     class sparingly.
 
     CommandLine:
-        python -m ubelt.util_const _NoParamType
+        xdoctest ubelt.util_const _NoParamType
 
     References:
         http://stackoverflow.com/questions/41048643/a-second-none
@@ -49,6 +49,9 @@ class _NoParamType(object):
         >>> assert id(util_const.NoParam) == id_
         >>> assert all(id(v) == id_ for v in versions.values())
         >>> assert str(NoParam) == repr(NoParam)
+        >>> assert not any(v for v in versions.values())
+        >>> assert all(not v for v in versions.values())
+        >>> assert all(not bool(v) for v in versions.values())
     """
     def __new__(cls):
         return NoParam
@@ -62,10 +65,12 @@ class _NoParamType(object):
         pass
     def __str__(cls):
         return 'NoParam'
-        # return "<type 'NoParamType'>"
     def __repr__(cls):
         return 'NoParam'
         # return "<type 'NoParamType'>"
+    def __bool__(self):
+        # Ensure NoParam is Falsey
+        return False
 
 
 # Create the only instance of _NoParamType that should ever exist
