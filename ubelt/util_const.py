@@ -71,6 +71,9 @@ class _NoParamType(object):
     def __bool__(self):
         # Ensure NoParam is Falsey
         return False
+    def __nonzero__(self):
+        # Same thing as __bool__ in Python 2.7
+        return False
 
 
 # Create the only instance of _NoParamType that should ever exist
