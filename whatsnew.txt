@@ -1,3 +1,6 @@
+version: 0.4.0
+---------------
+
 version: 0.3.0
 ---------------
 * Removed PY2 and PY3. Use `six` instead.
