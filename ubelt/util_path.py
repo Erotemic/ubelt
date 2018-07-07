@@ -20,7 +20,7 @@ __all__ = [
 ]
 
 
-def augpath(path, suffix='', prefix='', ext=None, base=None):
+def augpath(path, suffix='', prefix='', ext=None, base=None, multidot=False):
     """
     Augments a path with a new basename, extension, prefix and/or suffix.
 
@@ -30,10 +30,13 @@ def augpath(path, suffix='', prefix='', ext=None, base=None):
 
     Args:
         path (str): string representation of a path
-        suffix (str): placed in front of the basename
-        prefix (str): placed between the basename and trailing extension
-        ext (str): if specified, replaces the trailing extension
+        suffix (str): placed between the basename and extension
+        prefix (str): placed in front of the basename
+        ext (str): if specified, replaces the extension
         base (str): if specified, replaces the basename (without extension)
+        multidot (bool): if False, everything after the last dot in the
+            basename is the extension. If True, everything after the first dot
+            in the basename is the extension (Defaults to False).
 
     Returns:
         str: newpath
@@ -62,10 +65,19 @@ def augpath(path, suffix='', prefix='', ext=None, base=None):
         '_foo.bar'
         >>> augpath('foo.bar', base='baz')
         'baz.bar'
+        >>> augpath('foo.tar.gz', ext='.zip', multidot=True)
+        foo.zip
+        >>> augpath('foo.tar.gz', ext='.zip', multidot=False)
+        foo.tar.zip
     """
     # Breakup path
     dpath, fname = split(path)
-    fname_noext, orig_ext = splitext(fname)
+    if multidot:
+        parts = fname.split('.')
+        fname_noext = '.'.join(parts[:1])
+        orig_ext = '.'.join(parts[1:])
+    else:
+        fname_noext, orig_ext = splitext(fname)
     ext = orig_ext if ext is None else ext
     fname_noext = fname_noext if base is None else base
     # Augment and recombine into new path
