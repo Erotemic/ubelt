@@ -180,7 +180,7 @@ def _tee_output(make_proc, stdout=None, stderr=None, backend='auto'):
 
 
 def cmd(command, shell=False, detatch=False, verbose=0, verbout=None,
-        tee='auto'):
+        tee='auto', cwd=None, env=None):
     r"""
     Executes a command in a subprocess.
 
@@ -202,6 +202,8 @@ def cmd(command, shell=False, detatch=False, verbose=0, verbout=None,
             all stdout is lost.
         tee (str): backend for tee output. Can be either: auto, select (POSIX
             only), or thread.
+        cwd (str): path to run command
+        env (str): environment passed to Popen
 
     Returns:
         dict: info - information about command status.
@@ -292,15 +294,14 @@ def cmd(command, shell=False, detatch=False, verbose=0, verbout=None,
     if verbose >= 2:  # nocover
         from ubelt import util_path
         import os
-        cwd = os.getcwd()
+        cwd_ = os.getcwd() if cwd is None else cwd
         if verbose >= 3:
             print('+=== START CMD ===')
-            # print('CWD:' + os.getcwd())
-            print('CWD:' + cwd)
+            print('CWD:' + cwd_)
         compname = platform.node()
         username = getpass.getuser()
-        cwd = util_path.compressuser(cwd)
-        ps1 = '[ubelt.cmd] {}@{}:{}$ '.format(username, compname, cwd)
+        cwd_ = util_path.compressuser(cwd_)
+        ps1 = '[ubelt.cmd] {}@{}:{}$ '.format(username, compname, cwd_)
         print(ps1 + command_text)
         if verbout >= 3 and not detatch:
             print('----')
@@ -311,7 +312,7 @@ def cmd(command, shell=False, detatch=False, verbose=0, verbout=None,
         # delay the creation of the process until we validate all args
         proc = subprocess.Popen(args, stdout=subprocess.PIPE,
                                 stderr=subprocess.PIPE, shell=shell,
-                                universal_newlines=True)
+                                universal_newlines=True, cwd=cwd, env=env)
         return proc
 
     if detatch:
