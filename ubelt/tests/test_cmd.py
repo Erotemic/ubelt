@@ -131,6 +131,28 @@ def test_cmd_interleaved_streams_py():
     assert result['err'] == '!E0\n!E5\n!E10\n!E15\n!E20\n!E25\n'
 
 
+def test_cwd():
+    import sys
+    import ubelt as ub
+    if not sys.platform.startswith('win32'):
+        dpath = ub.ensure_app_resource_dir('ubelt')
+        info = ub.cmd('pwd', cwd=dpath)
+        print(info['out'])
+        assert info['out'] == dpath
+
+
+def test_env():
+    import sys
+    import ubelt as ub
+    import os
+    if not sys.platform.startswith('win32'):
+        env = os.environ.copy()
+        env.update({'UBELT_TEST_ENV': '42'})
+        info = ub.cmd('echo $UBELT_TEST_ENV', env=env, shell=True)
+        print(info['out'])
+        assert info['out'].strip() == env['UBELT_TEST_ENV']
+
+
 if __name__ == '__main__':
     """
         pytest ubelt/tests/test_cmd.py
