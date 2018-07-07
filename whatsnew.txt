@@ -1,5 +1,9 @@
 version: 0.4.0
 ---------------
+* Add CacheStamp
+* ub.hash_file now accepts `types` args
+* ub.augpath now accepts `multidot` args
+* ub.cmd now accepts `cwd` and `env` args
 * FIX: ub.NoParam is now Falsey
 
 version: 0.3.0
