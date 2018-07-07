@@ -586,7 +586,8 @@ def hash_data(data, hasher=NoParam, hashlen=NoParam, base=NoParam, types=True):
         hasher (HASH): hash algorithm from hashlib, defaults to `sha512`.
         hashlen (int): maximum number of symbols in the returned hash. If
             not specified, all are returned.
-        base (list): list of symbols or shorthand key. Defaults to base 26
+        base (list, str): list of symbols or shorthand key. Valid keys are
+            'abc', 'hex', and 'dec'. Defaults to 'abc'.
         types (bool): if True data types are included in the hash, otherwise
             only the raw data is hashed. (Default True).
 
@@ -596,9 +597,6 @@ def hash_data(data, hasher=NoParam, hashlen=NoParam, base=NoParam, types=True):
     Example:
         >>> print(hash_data([1, 2, (3, '4')], hashlen=8, hasher='sha512'))
         iugjngof
-        >>> hash_data('foobar', hasher='sha1', use_prefix'')
-
-        frqkjbsq
     """
     base = _rectify_base(base)
     hashlen = _rectify_hashlen(hashlen)
@@ -624,7 +622,8 @@ def hash_file(fpath, blocksize=65536, stride=1, hasher=NoParam,
         hasher (HASH): hash algorithm from hashlib, defaults to `sha512`.
         hashlen (int): maximum number of symbols in the returned hash. If
             not specified, all are returned.
-        base (list): list of symbols or shorthand key. Defaults to base 26
+        base (list, str): list of symbols or shorthand key. Valid keys are
+            'abc', 'hex', and 'dec'. Defaults to 'abc'.
 
     Notes:
         For better hashes keep stride = 1

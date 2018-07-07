@@ -114,6 +114,8 @@ class Cacher(object):
         return cfgstr
 
     def _condense_cfgstr(self, cfgstr=None):
+        # TODO: In a future version we may allow hasher specification.
+        # In this case we will probably default to sha1 and hashlen 40.
         cfgstr = self._rectify_cfgstr(cfgstr)
         max_len = 32
         hashlen = 32
