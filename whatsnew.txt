@@ -1,5 +1,6 @@
 version: 0.4.0
 ---------------
+* ub.download now accepts `hash_prefix` and `hasher` args. 
 * Add CacheStamp
 * ub.hash_file now accepts `types` args
 * ub.augpath now accepts `multidot` args

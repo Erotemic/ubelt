@@ -5,6 +5,7 @@ Helpers for downloading data
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 from os.path import basename, join, exists
+import six
 import os
 import shutil
 import tempfile
@@ -76,6 +77,9 @@ def download(url, fpath=None, hash_prefix=None, hasher='sha512',
         http://stackoverflow.com/questions/15644964/python-progress-bar-and-downloads
         http://stackoverflow.com/questions/16694907/how-to-download-large-file-in-python-with-requests-py
 
+    CommandLine:
+        python -m xdoctest ubelt.util_download download:1
+
     Example:
         >>> # xdoctest: +REQUIRES(--network)
         >>> from ubelt.util_download import *  # NOQA
@@ -87,9 +91,10 @@ def download(url, fpath=None, hash_prefix=None, hasher='sha512',
     Example:
         >>> # xdoctest: +REQUIRES(--network)
         >>> url = 'http://i.imgur.com/rqwaDag.png'
-        >>> fpath = download(url, hash_prefix='f79ea24571da6ddd2ba12e3d57b515249ecb8a35')
-        Downloading url='http://i.imgur.com/rqwaDag.png' to fpath='/home/joncrall/.cache/ubelt/rqwaDag.png'
-         1233/1233... rate=... Hz, eta=..., total=..., wall=...
+        >>> fpath = download(url, hasher='sha1', hash_prefix='f79ea24571da6ddd2ba12e3d57b515249ecb8a35')
+        Downloading url='http://i.imgur.com/rqwaDag.png' to fpath=...rqwaDag.png
+        ...
+        ...1233/1233... rate=... Hz, eta=..., total=..., wall=...
 
     Example:
         >>> # xdoctest: +REQUIRES(--network)
@@ -116,42 +121,54 @@ def download(url, fpath=None, hash_prefix=None, hasher='sha512',
     else:
         file_size = int(meta.get_all("Content-Length")[0])
 
-    tmp = tempfile.NamedTemporaryFile(delete=False)
-    try:
-        if hash_prefix:
-            if isinstance(hasher, str):
-                if hasher == 'sha1':
-                    hasher = hashlib.sha1()
-                elif hasher == 'sha512':
-                    hasher = hashlib.sha512()
-                else:
-                    raise KeyError(hasher)
-        with Progress(total=file_size, disable=not verbose) as pbar:
-            if hash_prefix:
-                while True:
-                    buffer = urldata.read(chunksize)
-                    if len(buffer) == 0:
-                        break
-                    tmp.write(buffer)
-                    hasher.update(buffer)
-                    pbar.update(len(buffer))
+    if hash_prefix:
+        if isinstance(hasher, six.string_types):
+            if hasher == 'sha1':
+                hasher = hashlib.sha1()
+            elif hasher == 'sha512':
+                hasher = hashlib.sha512()
             else:
-                # Same code as above, just without the hasher update.
-                # (tight loop optimization: remove in-loop conditional)
-                while True:
-                    buffer = urldata.read(chunksize)
-                    if len(buffer) == 0:
-                        break
-                    tmp.write(buffer)
-                    pbar.update(len(buffer))
+                raise KeyError(hasher)
+
+    tmp = tempfile.NamedTemporaryFile(delete=False)
+
+    # possible optimization (have not tested or timed)
+    _tmp_write = tmp.write
+    _urldata_read = urldata.read
+    # _hasher_update = (lambda buffer: buffer.encode('utf8') if six.PY2 else)  # NOQA
+    #                   hasher.update)
+    _hasher_update = hasher.update
+    try:
+        with Progress(total=file_size, disable=not verbose) as pbar:
+            _pbar_update = pbar.update
+
+            def _critical_loop():
+                # Initialize the buffer to a non-empty object
+                buffer = ' '
+                if hash_prefix:
+                    while buffer:
+                        buffer = _urldata_read(chunksize)
+                        _tmp_write(buffer)
+                        _hasher_update(buffer)
+                        _pbar_update(len(buffer))
+                else:
+                    # Same code as above, just without the hasher update.
+                    # (tight loop optimization: remove in-loop conditional)
+                    while buffer:
+                        buffer = _urldata_read(chunksize)
+                        _tmp_write(buffer)
+                        _pbar_update(len(buffer))
+            _critical_loop()
 
         tmp.close()
         if hash_prefix:
-            digest = hasher.hexdigest()
-            if digest[:len(hash_prefix)] != hash_prefix:
+            got = hasher.hexdigest()
+            if got[:len(hash_prefix)] != hash_prefix:
+                print('hash_prefix = {!r}'.format(hash_prefix))
+                print('got = {!r}'.format(got))
                 raise RuntimeError(
                     'invalid hash value (expected "{}", got "{}")'.format(
-                        hash_prefix, digest))
+                        hash_prefix, got))
         shutil.move(tmp.name, fpath)
     finally:
         tmp.close()
