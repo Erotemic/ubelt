@@ -174,7 +174,7 @@ def _rectify_base(base):
     """
     if base is NoParam or base == 'default':
         return DEFAULT_ALPHABET
-    elif base in [26, 'alpha', 'abc']:
+    elif base in [26, 'abc', 'alpha']:
         return _ALPHABET_26
     elif base in [16, 'hex']:
         return _ALPHABET_16
@@ -183,8 +183,8 @@ def _rectify_base(base):
     else:
         if not isinstance(base, (list, tuple)):
             raise TypeError(
-                    'base must be a key, list, or tuple not {}'.format(
-                        type(base)))
+                'Argument `base` must be a key, list, or tuple; not {}'.format(
+                    type(base)))
         return base
 
 
@@ -577,7 +577,7 @@ def _digest_hasher(hasher, hashlen, base):
     return text
 
 
-def hash_data(data, hasher=NoParam, hashlen=NoParam, base=NoParam):
+def hash_data(data, hasher=NoParam, hashlen=NoParam, base=NoParam, types=True):
     r"""
     Get a unique hash depending on the state of the data.
 
@@ -587,6 +587,8 @@ def hash_data(data, hasher=NoParam, hashlen=NoParam, base=NoParam):
         hashlen (int): maximum number of symbols in the returned hash. If
             not specified, all are returned.
         base (list): list of symbols or shorthand key. Defaults to base 26
+        types (bool): if True data types are included in the hash, otherwise
+            only the raw data is hashed. (Default True).
 
     Returns:
         str: text -  hash string
@@ -594,6 +596,7 @@ def hash_data(data, hasher=NoParam, hashlen=NoParam, base=NoParam):
     Example:
         >>> print(hash_data([1, 2, (3, '4')], hashlen=8, hasher='sha512'))
         iugjngof
+        >>> hash_data('foobar', hasher='sha1', use_prefix'')
 
         frqkjbsq
     """
@@ -601,7 +604,7 @@ def hash_data(data, hasher=NoParam, hashlen=NoParam, base=NoParam):
     hashlen = _rectify_hashlen(hashlen)
     hasher = _rectify_hasher(hasher)()
     # Feed the data into the hasher
-    _update_hasher(hasher, data)
+    _update_hasher(hasher, data, use_prefix=types)
     # Get the hashed representation
     text = _digest_hasher(hasher, hashlen, base)
     return text
@@ -637,8 +640,15 @@ def hash_file(fpath, blocksize=65536, stride=1, hasher=NoParam,
         >>> from os.path import join
         >>> fpath = join(ub.ensure_app_cache_dir('ubelt'), 'tmp.txt')
         >>> ub.writeto(fpath, 'foobar')
-        >>> print(ub.hash_file(fpath, hasher='sha512', hashlen=8))
-        vkiodmcj
+        >>> print(ub.hash_file(fpath, hasher='sha1', base='hex'))
+        8843d7f92416211de9ebb963ff4ce28125932878
+
+    Ignore:
+        >>> # DISABLE_DOCTEST
+        >>> ub.cmd('sha1sum ' + fpath)['out'].split(' ')[0]
+        8843d7f92416211de9ebb963ff4ce28125932878
+        >>> print(ub.hash_file(fpath, hasher='sha1', base='hex'))
+        8843d7f92416211de9ebb963ff4ce28125932878
     """
     base = _rectify_base(base)
     hashlen = _rectify_hashlen(hashlen)
