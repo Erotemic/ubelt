@@ -404,6 +404,145 @@ class Cacher(object):
         return _wrapper
 
 
+class CacheStamp(object):
+    """
+    Quickly determine if a file-producing computation has been done.
+
+    Writes a file that marks that a procedure has been done by writing a
+    "stamp" file to disk. Removing the stamp file will force recomputation.
+    However, removing or changing the result of the computation may not trigger
+    recomputation unless specific handling is done or the expected "product"
+    of the computation is a file and registered with the stamper.  If
+    hasher is None, we only check if the product exists, and we ignore
+    its hash, otherwise it checks that the hash of the product is the same.
+
+    Args:
+        fname (str):
+            name of the stamp file
+
+        cfgstr (str):
+            configuration associated with the stamped computation.  A common
+            pattern is to call `ub.hash_data` on a dependency list.
+
+        dpath (str):
+            where to store the cached stamp file
+
+        product (str or list, optional):
+            Path or paths that we expect the computation to produce. If
+            specified the hash of the paths are stored.
+
+        hasher (str):
+            The type of hasher used to compute the file hash of product.
+            If None, then we assume the file has not been corrupted or changed.
+            Defaults to sha1.
+
+    Example:
+        >>> import ubelt as ub
+        >>> from os.path import join
+        >>> # Stamp the computation of expensive-to-compute.txt
+        >>> dpath = ub.ensure_app_cache_dir('ubelt', 'test-cache-stamp')
+        >>> ub.delete(dpath)
+        >>> ub.ensuredir(dpath)
+        >>> product = join(dpath, 'expensive-to-compute.txt')
+        >>> self = CacheStamp('somedata', 'someconfig', dpath, product)
+        >>> self.hasher = None
+        >>> if self.expired():
+        >>>     ub.writeto(product, 'very expensive')
+        >>>     self.renew()
+        >>> assert not self.expired()
+        >>> # corrupting the output will not expire in non-robust mode
+        >>> ub.writeto(product, 'corrupted')
+        >>> assert not self.expired()
+        >>> self.hasher = 'sha1'
+        >>> # but it will expire if we are in robust mode
+        >>> assert self.expired()
+        >>> # deleting the product will cause expiration in any mode
+        >>> self.hasher = None
+        >>> ub.delete(product)
+        >>> assert self.expired()
+    """
+    def __init__(self, fname, dpath, cfgstr=None, product=None, hasher='sha1'):
+        self.cacher = Cacher(fname, cfgstr=cfgstr, dpath=dpath)
+        self.product = product
+        self.hasher = hasher
+
+    def _get_certificate(self, cfgstr=None):
+        """
+        Returns the stamp certificate if it exists
+        """
+        certificate = self.cacher.tryload(cfgstr=cfgstr)
+        return certificate
+
+    def _rectify_products(self, product=None):
+        """ puts products in a normalized format """
+        products = self.product if product is None else product
+        if not isinstance(products, (list, tuple)):
+            products = [products]
+        return products
+
+    def _product_file_hash(self, product=None):
+        """
+        Get the hash of the each product file
+        """
+        import ubelt as ub
+        if self.hasher is None:
+            return None
+        else:
+            products = self._rectify_products(product)
+            product_file_hash = [
+                ub.hash_file(p, hasher=self.hasher, base='hex')
+                for p in products
+            ]
+            return product_file_hash
+
+    def expired(self, cfgstr=None, product=None):
+        """
+        Check to see if a previously existing stamp is still valid and if the
+        expected result of that computation still exists.
+
+        Args:
+            cfgstr (str, optional): override the default cfgstr if specified
+            product (str or list, optional): override the default product if
+                specified
+        """
+        products = self._rectify_products(product)
+        certificate = self._get_certificate(cfgstr=cfgstr)
+        if certificate is None:
+            # We dont have a certificate, so we are expired
+            is_expired = True
+        elif products is None:
+            # We dont have a product to check, so assume not expired
+            is_expired = False
+        elif not all(map(os.path.exists, products)):
+            # We are expired if the expected product does not exist
+            is_expired = True
+        else:
+            # We are expired if the hash of the existing product data
+            # does not match the expected hash in the certificate
+            product_file_hash = self._product_file_hash(products)
+            certificate_hash = certificate.get('product_file_hash', None)
+            is_expired = product_file_hash != certificate_hash
+        return is_expired
+
+    def renew(self, cfgstr=None, product=None):
+        """
+        Recertify that the product has been recomputed by writing a new
+        certificate to disk.
+        """
+        import ubelt as ub
+        products = self._rectify_products(product)
+        certificate = {
+            'timestamp': ub.timestamp(),
+            'product': products,
+        }
+        if products is not None:
+            if not all(map(os.path.exists, products)):
+                raise IOError(
+                    'The stamped product must exist: {}'.format(products))
+            certificate['product_file_hash'] = self._product_file_hash(products)
+        self.cacher.save(certificate, cfgstr=cfgstr)
+
+
 if __name__ == '__main__':
     r"""
     CommandLine:
