@@ -132,13 +132,20 @@ def test_cmd_interleaved_streams_py():
 
 
 def test_cwd():
+    """
+    CommandLine:
+        python ~/code/ubelt/ubelt/tests/test_cmd.py test_cwd
+    """
     import sys
+    import os
     import ubelt as ub
     if not sys.platform.startswith('win32'):
         dpath = ub.ensure_app_resource_dir('ubelt')
-        info = ub.cmd('pwd', cwd=dpath)
-        print(info['out'])
-        assert info['out'] == dpath
+        dpath = os.path.realpath(dpath)
+        info = ub.cmd('pwd', cwd=dpath, shell=True)
+        print('info = {}'.format(ub.repr2(info, nl=1)))
+        print('dpath = {!r}'.format(dpath))
+        assert info['out'].strip() == dpath
 
 
 def test_env():
