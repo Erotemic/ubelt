@@ -73,7 +73,7 @@ else:  # pragma: nobranch
     from ubelt import progiter
 
     from ubelt.util_arg import (argflag, argval,)
-    from ubelt.util_cache import (Cacher,)
+    from ubelt.util_cache import (CacheStamp, Cacher,)
     from ubelt.util_colors import (color_text, highlight_code,)
     from ubelt.util_const import (NoParam,)
     from ubelt.util_cmd import (cmd,)
@@ -108,15 +108,16 @@ else:  # pragma: nobranch
     from ubelt.orderedset import (OrderedSet, oset,)
     from ubelt.progiter import (ProgIter,)
 
-    __all__ = ['AutoDict', 'AutoOrderedDict', 'Cacher', 'CaptureStdout', 'DARWIN',
-               'LINUX', 'NiceRepr', 'NoParam', 'OrderedSet', 'POSIX', 'ProgIter',
-               'TempDir', 'Timer', 'Timerit', 'WIN32', 'allsame', 'argflag',
-               'argmax', 'argmin', 'argsort', 'argunique', 'argval', 'augpath',
-               'boolmask', 'chunks', 'cmd', 'codeblock', 'color_text', 'compress',
-               'compressuser', 'ddict', 'delete', 'dict_hist', 'dict_subset',
-               'dict_take', 'dict_union', 'download', 'dzip', 'editfile',
-               'ensure_app_cache_dir', 'ensure_app_resource_dir', 'ensure_unicode',
-               'ensuredir', 'find_duplicates', 'flatten', 'get_app_cache_dir',
+    __all__ = ['AutoDict', 'AutoOrderedDict', 'CacheStamp', 'Cacher',
+               'CaptureStdout', 'DARWIN', 'LINUX', 'NiceRepr', 'NoParam',
+               'OrderedSet', 'POSIX', 'ProgIter', 'TempDir', 'Timer', 'Timerit',
+               'WIN32', 'allsame', 'argflag', 'argmax', 'argmin', 'argsort',
+               'argunique', 'argval', 'augpath', 'boolmask', 'chunks', 'cmd',
+               'codeblock', 'color_text', 'compress', 'compressuser', 'ddict',
+               'delete', 'dict_hist', 'dict_subset', 'dict_take', 'dict_union',
+               'download', 'dzip', 'editfile', 'ensure_app_cache_dir',
+               'ensure_app_resource_dir', 'ensure_unicode', 'ensuredir',
+               'find_duplicates', 'flatten', 'get_app_cache_dir',
                'get_app_resource_dir', 'grabdata', 'group_items', 'hash_data',
                'hash_file', 'highlight_code', 'hzcat', 'identity',
                'import_module_from_name', 'import_module_from_path', 'indent',
