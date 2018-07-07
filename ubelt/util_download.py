@@ -8,7 +8,9 @@ from os.path import basename, join, exists
 import os
 import shutil
 import tempfile
+import hashlib
 from ubelt import util_platform
+
 
 # try:  # nocover
 # from requests import get as urlopen
@@ -28,26 +30,42 @@ else:
 
 try:  # nocover
     raise ImportError()
-    from tqdm import tqdm as _tqdm
+    from tqdm import tqdm as Progress
 except ImportError:  # nocover
     # fake tqdm if it's not installed
     from ubelt import progiter
-    _tqdm = progiter.ProgIter
+    Progress = progiter.ProgIter
 
 
 __all__ = ['download', 'grabdata']
 
 
-def download(url, fpath=None, hash_prefix=None, chunksize=8192, verbose=1):
+def download(url, fpath=None, hash_prefix=None, hasher='sha512',
+             chunksize=8192, verbose=1):
     """
     downloads a url to a fpath.
 
     Args:
-        url (str): url to download
-        fpath (str): path to download to. Defaults to basename of url and
-            ubelt's application cache.
-        chunksize (int): download chunksize
-        verbose (bool): verbosity
+        url (str):
+            The url to download.
+
+        fpath (str):
+            The path to download to. Defaults to basename of url and ubelt's
+            application cache.
+
+        hash_prefix (None or str):
+            If specified, download will retry / error if the file hash
+            does not match this value. Defaults to None.
+
+        hasher (key or Hasher):
+            If hash_prefix is specified, this indicates the hashing
+            algorithm to apply to the file. Defaults to sha512.
+
+        chunksize (int):
+            Download chunksize. Defaults to 2 ** 13.
+
+        verbose (int):
+            Verbosity level 0 or 1. Defaults to 1.
 
     Notes:
         Original code taken from pytorch in torch/utils/model_zoo.py and
@@ -65,6 +83,23 @@ def download(url, fpath=None, hash_prefix=None, chunksize=8192, verbose=1):
         >>> fpath = download(url)
         >>> print(basename(fpath))
         rqwaDag.png
+
+    Example:
+        >>> # xdoctest: +REQUIRES(--network)
+        >>> url = 'http://i.imgur.com/rqwaDag.png'
+        >>> fpath = download(url, hash_prefix='f79ea24571da6ddd2ba12e3d57b515249ecb8a35')
+        Downloading url='http://i.imgur.com/rqwaDag.png' to fpath='/home/joncrall/.cache/ubelt/rqwaDag.png'
+         1233/1233... rate=... Hz, eta=..., total=..., wall=...
+
+    Example:
+        >>> # xdoctest: +REQUIRES(--network)
+        >>> # test download from girder
+        >>> import pytest
+        >>> import ubelt as ub
+        >>> url = 'https://data.kitware.com/api/v1/item/5b4039308d777f2e6225994c/download'
+        >>> ub.download(url, hasher='sha512', hash_prefix='c98a46cb31205cf')
+        >>> with pytest.raises(RuntimeError):
+        >>>     ub.download(url, hasher='sha512', hash_prefix='BAD_HASH')
     """
     if fpath is None:
         dpath = util_platform.ensure_app_cache_dir('ubelt')
@@ -75,10 +110,6 @@ def download(url, fpath=None, hash_prefix=None, chunksize=8192, verbose=1):
         print('Downloading url=%r to fpath=%r' % (url, fpath))
 
     urldata = urlopen(url)
-    # if _have_requests:
-    # file_size = int(urldata.headers["Content-Length"])
-    # urldata = urldata.raw
-    # else:
     meta = urldata.info()
     if hasattr(meta, 'getheaders'):  # nocover
         file_size = int(meta.getheaders("Content-Length")[0])
@@ -87,24 +118,40 @@ def download(url, fpath=None, hash_prefix=None, chunksize=8192, verbose=1):
 
     tmp = tempfile.NamedTemporaryFile(delete=False)
     try:
-        # if hash_prefix:
-        #     sha256 = hashlib.sha256()
-        with _tqdm(total=file_size, disable=not verbose) as pbar:
-            while True:
-                buffer = urldata.read(chunksize)
-                if len(buffer) == 0:
-                    break
-                tmp.write(buffer)
-                # if hash_prefix:
-                #     sha256.update(buffer)
-                pbar.update(len(buffer))
+        if hash_prefix:
+            if isinstance(hasher, str):
+                if hasher == 'sha1':
+                    hasher = hashlib.sha1()
+                elif hasher == 'sha512':
+                    hasher = hashlib.sha512()
+                else:
+                    raise KeyError(hasher)
+        with Progress(total=file_size, disable=not verbose) as pbar:
+            if hash_prefix:
+                while True:
+                    buffer = urldata.read(chunksize)
+                    if len(buffer) == 0:
+                        break
+                    tmp.write(buffer)
+                    hasher.update(buffer)
+                    pbar.update(len(buffer))
+            else:
+                # Same code as above, just without the hasher update.
+                # (tight loop optimization: remove in-loop conditional)
+                while True:
+                    buffer = urldata.read(chunksize)
+                    if len(buffer) == 0:
+                        break
+                    tmp.write(buffer)
+                    pbar.update(len(buffer))
 
         tmp.close()
-        # if hash_prefix:
-        #     digest = sha256.hexdigest()
-        #     if digest[:len(hash_prefix)] != hash_prefix:
-        #         raise RuntimeError('invalid hash value (expected "{}", got "{}")'
-        #                            .format(hash_prefix, digest))
+        if hash_prefix:
+            digest = hasher.hexdigest()
+            if digest[:len(hash_prefix)] != hash_prefix:
+                raise RuntimeError(
+                    'invalid hash value (expected "{}", got "{}")'.format(
+                        hash_prefix, digest))
         shutil.move(tmp.name, fpath)
     finally:
         tmp.close()
