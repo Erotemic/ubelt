@@ -123,11 +123,14 @@ class OrderedSet(collections.MutableSet):
             >>> assert items == [2, 4, 6, 8]
         """
         indices = iter(range(*sl.indices(len(self))))
-        target = next(indices)
-        for index, item in enumerate(self):  # pragma: nobranch
-            if index == target:
-                yield item
-                target = next(indices)
+        try:
+            target = next(indices)
+            for index, item in enumerate(self):  # pragma: nobranch
+                if index == target:
+                    yield item
+                    target = next(indices)
+        except StopIteration:
+            return
 
     def __getitem__(self, index):
         """
