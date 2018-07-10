@@ -137,7 +137,6 @@ def download(url, fpath=None, hash_prefix=None, hasher='sha512',
     _urldata_read = urldata.read
     # _hasher_update = (lambda buffer: buffer.encode('utf8') if six.PY2 else)  # NOQA
     #                   hasher.update)
-    _hasher_update = hasher.update
     try:
         with Progress(total=file_size, disable=not verbose) as pbar:
             _pbar_update = pbar.update
@@ -146,6 +145,7 @@ def download(url, fpath=None, hash_prefix=None, hasher='sha512',
                 # Initialize the buffer to a non-empty object
                 buffer = ' '
                 if hash_prefix:
+                    _hasher_update = hasher.update
                     while buffer:
                         buffer = _urldata_read(chunksize)
                         _tmp_write(buffer)
