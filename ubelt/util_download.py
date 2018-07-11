@@ -222,6 +222,10 @@ def grabdata(url, fpath=None, dpath=None, fname=None, redo=False,
             fname = basename(url)
         fpath = join(dpath, fname)
 
+    # TODO: include expected hash as an option.
+    # Download when available, keep a parallel hash of the data and check when
+    # a new request comes in.
+
     if redo or not exists(fpath):
         fpath = download(url, fpath, verbose=verbose, **download_kw)
     else:
