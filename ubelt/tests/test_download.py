@@ -68,6 +68,30 @@ def test_download_chunksize():
 
 
 @pytest.mark.timeout(5)
+def test_download_hashalgo():
+    # url = 'https://www.dropbox.com/s/jl506apezj42zjz/ibeis-win32-setup-ymd_hm-2015-08-01_16-28.exe?dl=1'
+    import hashlib
+    url = 'http://i.imgur.com/rqwaDag.png'
+
+    if not ub.argflag('--network'):
+        pytest.skip('not running network tests')
+
+    dpath = ub.ensure_app_cache_dir('ubelt')
+    fname = basename(url)
+    fpath = join(dpath, fname)
+
+    ub.delete(fpath)
+    assert not exists(fpath)
+
+    got_fpath = ub.download(url,
+                            hash_prefix='545e3a51404f664e46aa65a70948e126',
+                            hasher=hashlib.md5())
+
+    assert got_fpath == fpath
+    assert exists(fpath)
+
+
+@pytest.mark.timeout(5)
 def test_grabdata_cache():
     """
     Check where the url is downloaded to when fpath is not specified.
