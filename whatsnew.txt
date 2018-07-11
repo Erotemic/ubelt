@@ -1,5 +1,7 @@
 version: 0.4.0
 ---------------
+* Temporarily include copy-past of pypi ordered-set package while waiting for 0.3.1 release.
+* Removed OrderedSet.extend
 * ub.download now accepts `hash_prefix` and `hasher` args. 
 * Add CacheStamp
 * ub.hash_file now accepts `types` args

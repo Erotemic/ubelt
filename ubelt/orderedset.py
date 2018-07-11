@@ -3,218 +3,219 @@
 In the future we may simply depend on the ordered-set package instead
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
-from six.moves import zip, range
-from six import next
-import itertools as it
 import collections
-import weakref
+import itertools as it
+
+SLICE_ALL = slice(None)
+__version__ = "3.0.0"
 
 
-class _Link(object):
-    __slots__ = ('prev', 'next', 'key', '__weakref__')
-
-
-class OrderedSet(collections.MutableSet):
+def _is_iterable(obj):
     """
-    Set the remembers the order elements were added
+    Are we being asked to look up a list of things, instead of a single thing?
+    We check for the `__iter__` attribute so that this can cover types that
+    don't have to be known by this module, such as NumPy arrays.
 
-     Big-O running times for all methods are the same as for regular sets.
-     The internal self._map dictionary maps keys to links in a doubly linked list.
-     The circular doubly linked list starts and ends with a sentinel element.
-     The sentinel element never gets deleted (this simplifies the algorithm).
-     The prev/next links are weakref proxies (to prevent circular references).
-     Individual links are kept alive by the hard reference in self._map.
-     Those hard references disappear when a key is deleted from an OrderedSet.
+    Strings, however, should be considered as atomic values to look up, not
+    iterables. The same goes for tuples, since they are immutable and therefore
+    valid entries.
 
-    References:
-        http://code.activestate.com/recipes/576696/
-        http://code.activestate.com/recipes/576694/
-        http://stackoverflow.com/questions/1653970/does-python-have-an-ordered-set
+    We don't need to check for the Python 2 `unicode` type, because it doesn't
+    have an `__iter__` attribute anyway.
+    """
+    return (
+        hasattr(obj, "__iter__") and
+        not isinstance(obj, str) and
+        not isinstance(obj, tuple)
+    )
+
+
+class OrderedSet(collections.MutableSet, collections.Sequence):
+    """
+    An OrderedSet is a custom MutableSet that remembers its order, so that
+    every entry has an index that can be looked up.
 
     Example:
-        >>> oset([1, 2, 3])
+        >>> OrderedSet([1, 1, 2, 3, 2])
         OrderedSet([1, 2, 3])
     """
 
     def __init__(self, iterable=None):
-        self._root = root = _Link()  # sentinel node for doubly linked list
-        root.prev = root.next = root
-        self._map = {}  # key --> link
+        self.items = []
+        self.map = {}
         if iterable is not None:
             self |= iterable
-
-    def __repr__(self):
-        if not self:
-            return '%s()' % (self.__class__.__name__,)
-        return '%s(%r)' % (self.__class__.__name__, list(self))
 
     def __len__(self):
         """
         Returns the number of unique elements in the ordered set
 
         Example:
-            >>> assert len(OrderedSet([])) == 0
-            >>> assert len(OrderedSet([1, 2])) == 2
+            >>> len(OrderedSet([]))
+            0
+            >>> len(OrderedSet([1, 2]))
+            2
         """
-        return len(self._map)
+        return len(self.items)
+
+    def __getitem__(self, index):
+        """
+        Get the item at a given index.
+
+        If `index` is a slice, you will get back that slice of items. If it's
+        the slice [:], a copy of this object is returned.
+
+        If `index` is a list or a similar iterable, you'll get the OrderedSet
+        of items corresponding to those indices. This is similar to NumPy's
+        "fancy indexing".
+
+        Example:
+            >>> self = OrderedSet([1, 2, 3])
+            >>> self[1]
+            2
+        """
+        if index == SLICE_ALL:
+            return self.copy()
+        elif hasattr(index, "__index__") or isinstance(index, slice):
+            result = self.items[index]
+            if isinstance(result, list):
+                return self.__class__(result)
+            else:
+                return result
+        elif _is_iterable(index):
+            return self.__class__([self.items[i] for i in index])
+        else:
+            raise TypeError("Don't know how to index an OrderedSet by %r" % index)
+
+    def copy(self):
+        """
+        Return a shallow copy of this object.
+
+        Example:
+            >>> self = OrderedSet([1, 2, 3])
+            >>> other = self.copy()
+            >>> self == other
+            True
+            >>> self is other
+            False
+        """
+        return self.__class__(self)
+
+    def __getstate__(self):
+        if len(self) == 0:
+            # The state can't be an empty list.
+            # We need to return a truthy value, or else __setstate__ won't be run.
+            #
+            # This could have been done more gracefully by always putting the state
+            # in a tuple, but this way is backwards- and forwards- compatible with
+            # previous versions of OrderedSet.
+            return (None,)
+        else:
+            return list(self)
+
+    def __setstate__(self, state):
+        if state == (None,):
+            self.__init__([])
+        else:
+            self.__init__(state)
 
     def __contains__(self, key):
         """
         Test if the item is in this ordered set
 
         Example:
-            >>> assert 1 in OrderedSet([1, 3, 2])
-            >>> assert 5 not in OrderedSet([1, 3, 2])
+            >>> 1 in OrderedSet([1, 3, 2])
+            True
+            >>> 5 in OrderedSet([1, 3, 2])
+            False
         """
-        return key in self._map
-
-    def __eq__(self, other):
-        """
-        Returns true if the containers have the same items regardless of order.
-
-        Example:
-            >>> self = OrderedSet([1, 3, 2])
-            >>> assert self == [1, 3, 2]
-            >>> assert self == [1, 2, 3]
-            >>> assert self != [2, 3]
-            >>> assert self == OrderedSet([3, 2, 1])
-        """
-        if len(self) == len(other):
-            return set(self) == set(other)
-        return False
-
-    def isdisjoint(self, other):
-        # Hack because apparently the inherited disjoint is now working
-        return len(self.intersection(other)) == 0
-
-    def __iter__(self):
-        """
-        Example:
-            >>> list(iter(OrderedSet([1, 2, 3])))
-            [1, 2, 3]
-        """
-        # Traverse the linked list in order.
-        root = self._root
-        curr = root.next
-        while curr is not root:
-            yield curr.key
-            curr = curr.next
-
-    def __reversed__(self):
-        """
-        Example:
-            >>> list(reversed(OrderedSet([1, 2, 3])))
-            [3, 2, 1]
-        """
-        # Traverse the linked list in reverse order.
-        root = self._root
-        curr = root.prev
-        while curr is not root:
-            yield curr.key
-            curr = curr.prev
-
-    def _iterslice(self, sl):
-        """
-        Iterate over items at indices specified by a slice
-
-        Example:
-            >>> self = oset([1, 2, 3, 4, 5, 6, 7, 8])
-            >>> items = list(self._iterslice(slice(1, None, 2)))
-            >>> assert items == [2, 4, 6, 8]
-        """
-        indices = iter(range(*sl.indices(len(self))))
-        try:
-            target = next(indices)
-            for index, item in enumerate(self):  # pragma: nobranch
-                if index == target:
-                    yield item
-                    target = next(indices)
-        except StopIteration:
-            return
-
-    def __getitem__(self, index):
-        """
-        Access an item within the ordered set.
-
-        Note:
-            Lookup time is O(n)
-
-        Example:
-            >>> import pytest
-            >>> self = oset([1, 2, 3])
-            >>> assert self[0] == 1
-            >>> assert self[1] == 2
-            >>> assert self[2] == 3
-            >>> with pytest.raises(IndexError):
-            ...     self[3]
-            >>> assert self[-1] == 3
-            >>> assert self[-2] == 2
-            >>> assert self[-3] == 1
-            >>> with pytest.raises(IndexError):
-            ...     self[-4]
-            >>> assert self[::2] == [1, 3]
-            >>> assert self[0:2] == [1, 2]
-            >>> assert self[-1:] == [3]
-            >>> assert self[:] == self
-            >>> assert self[:] is not self
-        """
-        if isinstance(index, slice):
-            return self.__class__(self._iterslice(index))
-        else:
-            if index < 0:
-                iter_ = self.__reversed__
-                index_ = -1 - index
-            else:
-                index_ = index
-                iter_ = self.__iter__
-            if index_ >= len(self):
-                raise IndexError('index %r out of range %r' % (
-                    index, len(self)))
-            for count, item in zip(range(index_ + 1), iter_()):
-                pass
-            return item
+        return key in self.map
 
     def add(self, key):
         """
-        Adds an element to the ends of the ordered set if it.
-        This has no effect if the element is already present.
+        Add `key` as an item to this OrderedSet, then return its index.
+
+        If `key` is already in the OrderedSet, return the index it already
+        had.
 
         Example:
             >>> self = OrderedSet()
             >>> self.append(3)
+            0
             >>> print(self)
             OrderedSet([3])
         """
-        # Store new key in a new link at the end of the linked list
-        if key not in self._map:
-            self._map[key] = link = _Link()
-            root = self._root
-            last = root.prev
-            link.prev, link.next, link.key = last, root, key
-            last.next = root.prev = weakref.proxy(link)
+        if key not in self.map:
+            self.map[key] = len(self.items)
+            self.items.append(key)
+        return self.map[key]
 
-    def append(self, key):
+    append = add
+
+    def update(self, sequence):
         """
-        Adds an element to the ends of the ordered set if it.
-        This has no effect if the element is already present.
-
-        Notes:
-            This is an alias of `add` for API compatibility with list
+        Update the set with the given iterable sequence, then return the index
+        of the last element inserted.
 
         Example:
-            >>> self = OrderedSet()
-            >>> self.append(3)
-            >>> self.append(2)
-            >>> self.append(5)
+            >>> self = OrderedSet([1, 2, 3])
+            >>> self.update([3, 1, 5, 1, 4])
+            4
             >>> print(self)
-            OrderedSet([3, 2, 5])
+            OrderedSet([1, 2, 3, 5, 4])
         """
-        return self.add(key)
+        item_index = None
+        try:
+            for item in sequence:
+                item_index = self.add(item)
+        except TypeError:
+            raise ValueError(
+                "Argument needs to be an iterable, got %s" % type(sequence)
+            )
+        return item_index
+
+    def index(self, key):
+        """
+        Get the index of a given entry, raising an IndexError if it's not
+        present.
+
+        `key` can be an iterable of entries that is not a string, in which case
+        this returns a list of indices.
+
+        Example:
+            >>> self = OrderedSet([1, 2, 3])
+            >>> self.index(2)
+            1
+        """
+        if _is_iterable(key):
+            return [self.index(subkey) for subkey in key]
+        return self.map[key]
+
+    def pop(self):
+        """
+        Remove and return the last element from the set.
+
+        Raises KeyError if the set is empty.
+
+        Example:
+            >>> self = OrderedSet([1, 2, 3])
+            >>> self.pop()
+            3
+        """
+        if not self.items:
+            raise KeyError("Set is empty")
+
+        elem = self.items[-1]
+        del self.items[-1]
+        del self.map[elem]
+        return elem
 
     def discard(self, key):
         """
-        Remove an element from a set if it is a member.
-        If the element is not a member, do nothing.
+        Remove an element.  Do not raise an exception if absent.
+
+        The MutableSet mixin uses this to implement the .remove() method, which
+        *does* raise an error when asked to remove a non-existent item.
 
         Example:
             >>> self = OrderedSet([1, 2, 3])
@@ -225,36 +226,71 @@ class OrderedSet(collections.MutableSet):
             >>> print(self)
             OrderedSet([1, 3])
         """
-        # Remove an existing item using self._map to find the link which is
-        # then removed by updating the links in the predecessor and successors.
-        if key in self._map:
-            link = self._map.pop(key)
-            link.prev.next = link.next
-            link.next.prev = link.prev
+        if key in self:
+            i = self.map[key]
+            del self.items[i]
+            del self.map[key]
+            for k, v in self.map.items():
+                if v >= i:
+                    self.map[k] = v - 1
 
-    def pop(self, last=True):
+    def clear(self):
         """
-        Remove and return a the first or last element in the ordered set.
-        Raises KeyError if the set is empty.
+        Remove all items from this OrderedSet.
+        """
+        del self.items[:]
+        self.map.clear()
 
-        Args:
-            last (bool): if True return the last element otherwise the first
-                (defaults to True).
+    def __iter__(self):
+        """
+        Example:
+            >>> list(iter(OrderedSet([1, 2, 3])))
+            [1, 2, 3]
+        """
+        return iter(self.items)
+
+    def __reversed__(self):
+        """
+        Example:
+            >>> list(reversed(OrderedSet([1, 2, 3])))
+            [3, 2, 1]
+        """
+        return reversed(self.items)
+
+    def __repr__(self):
+        if not self:
+            return "%s()" % (self.__class__.__name__,)
+        return "%s(%r)" % (self.__class__.__name__, list(self))
+
+    def __eq__(self, other):
+        """
+        Returns true if the containers have the same items. If `other` is a
+        Sequence, then order is checked, otherwise it is ignored.
 
         Example:
-            >>> import pytest
-            >>> self = oset([2, 3, 1])
-            >>> assert self.pop(last=True) == 1
-            >>> assert self.pop(last=False) == 2
-            >>> assert self.pop() == 3
-            >>> with pytest.raises(KeyError):
-            ...     self.pop()
+            >>> self = OrderedSet([1, 3, 2])
+            >>> self == [1, 3, 2]
+            True
+            >>> self == [1, 2, 3]
+            False
+            >>> self == [2, 3]
+            False
+            >>> self == OrderedSet([3, 2, 1])
+            False
         """
-        if not self:
-            raise KeyError('set is empty')
-        key = next(reversed(self)) if last else next(iter(self))
-        self.discard(key)
-        return key
+        # In Python 2 deque is not a Sequence, so treat it as one for
+        # consistent behavior with Python 3.
+        if isinstance(other, (collections.Sequence, collections.deque)):
+            # Check that this OrderedSet contains the same elements, in the
+            # same order, as the other object.
+            return list(self) == list(other)
+        try:
+            other_as_set = set(other)
+        except TypeError:
+            # If `other` can't be converted into a set, it's not equal.
+            return False
+        else:
+            return set(self) == other_as_set
 
     def union(self, *sets):
         """
@@ -262,14 +298,14 @@ class OrderedSet(collections.MutableSet):
         Each items order is defined by its first appearance.
 
         Example:
-            >>> self = OrderedSet.union(oset([3, 1, 4, 1, 5]), [1, 3], [2, 0])
+            >>> self = OrderedSet.union(OrderedSet([3, 1, 4, 1, 5]), [1, 3], [2, 0])
             >>> print(self)
             OrderedSet([3, 1, 4, 5, 2, 0])
             >>> self.union([8, 9])
             OrderedSet([3, 1, 4, 5, 2, 0, 8, 9])
             >>> self | {10}
             OrderedSet([3, 1, 4, 5, 2, 0, 10])
-            >>> OrderedSet.union(oset([1, 2, 3]))
+            >>> OrderedSet.union(OrderedSet([1, 2, 3]))
             OrderedSet([1, 2, 3])
         """
         cls = self.__class__ if isinstance(self, OrderedSet) else OrderedSet
@@ -277,18 +313,22 @@ class OrderedSet(collections.MutableSet):
         items = it.chain.from_iterable(containers)
         return cls(items)
 
+    def __and__(self, other):
+        # the parent implementation of this is backwards
+        return self.intersection(other)
+
     def intersection(self, *sets):
         """
         Returns elements in common between all sets. Order is defined only
         by the first set.
 
         Example:
-            >>> self = OrderedSet.intersection(oset([0, 1, 2, 3]), [1, 2, 3])
+            >>> self = OrderedSet.intersection(OrderedSet([0, 1, 2, 3]), [1, 2, 3])
             >>> print(self)
             OrderedSet([1, 2, 3])
             >>> self.intersection([2, 4, 5], [1, 2, 3, 4])
             OrderedSet([2])
-            >>> OrderedSet.intersection(oset([1, 2, 3]))
+            >>> OrderedSet.intersection(OrderedSet([1, 2, 3]))
             OrderedSet([1, 2, 3])
         """
         cls = self.__class__ if isinstance(self, OrderedSet) else OrderedSet
@@ -298,51 +338,6 @@ class OrderedSet(collections.MutableSet):
         else:
             items = self
         return cls(items)
-
-    def update(self, other):
-        """
-        Update a set with the union of itself and others.
-        Preserves ordering of `other`.
-
-        Example:
-            >>> self = OrderedSet([1, 2, 3])
-            >>> self.update([3, 1, 5, 1, 4])
-            >>> print(self)
-            OrderedSet([1, 2, 3, 5, 4])
-        """
-        for item in other:
-            self.add(item)
-
-    extend = update  # alias of update
-
-    def index(self, item):
-        """
-        Find the index of `item` in the OrderedSet
-
-        Example:
-            >>> import pytest
-            >>> self = oset([1, 2, 3])
-            >>> assert self.index(1) == 0
-            >>> assert self.index(2) == 1
-            >>> assert self.index(3) == 2
-            >>> with pytest.raises(IndexError):
-            ...     self[4]
-        """
-        for count, other in enumerate(self):
-            if item == other:
-                return count
-        raise ValueError('%r is not in OrderedSet' % (item,))
-
-    def copy(self):
-        """
-        Return a shallow copy of the ordered set.
-
-        Example:
-            >>> self = OrderedSet([1, 2, 3])
-            >>> other = self.copy()
-            >>> assert self == other and self is not other
-        """
-        return self.__class__(self)
 
     def difference(self, *sets):
         """
