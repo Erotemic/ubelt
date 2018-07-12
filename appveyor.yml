@@ -24,7 +24,6 @@ install:
   - "%PYTHON%\\python.exe -m pip install wheel"
   - "%PYTHON%\\python.exe -m pip install -r requirements.txt -U"
   - "%PYTHON%\\python.exe -m pip install -r optional-requirements.txt -U"
-  - "%PYTHON%\\python.exe -m pip install -r requirements-win32.txt -U"
   - "%PYTHON%\\python.exe -m pip install -e ."
 
 build: off
