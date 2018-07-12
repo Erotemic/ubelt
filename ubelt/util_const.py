@@ -44,8 +44,12 @@ class _NoParamType(object):
         >>> #print(ub.align(ub.repr4(ub.map_vals(id, versions)), ':'))
         >>> print(versions)
         >>> assert all(id(v) == id_ for v in versions.values())
-        >>> import imp
-        >>> imp.reload(util_const)
+        >>> import six
+        >>> if six.PY2:
+        >>>     from imp import reload
+        >>> else:
+        >>>     from importlib import reload
+        >>> reload(util_const)
         >>> assert id(util_const.NoParam) == id_
         >>> assert all(id(v) == id_ for v in versions.values())
         >>> assert str(NoParam) == repr(NoParam)
