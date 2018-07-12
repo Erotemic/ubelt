@@ -55,10 +55,10 @@ UBelt's functionality is a mixture of the following categories:
 - String-based imports
 - Horizontal String Concatenation
 - Standalone modules.
-    - ` ``progiter`` <https://github.com/Erotemic/progiter>`__ for Loop Progress
-    - ` ``timerit`` <https://github.com/Erotemic/timerit>`__ for Robust Timing and Benchmarking
-    - ` ``ordered-set`` <https://github.com/LuminosoInsight/ordered-set>`__ for ordered set collections
-    - ` ``xdoctest`` <https://github.com/Erotemic/xdoctest>`__ for eXtended doctests
+    - `progiter <https://github.com/Erotemic/progiter>`__ for Loop Progress
+    - `timerit <https://github.com/Erotemic/timerit>`__ for Robust Timing and Benchmarking
+    - `ordered-set <https://github.com/LuminosoInsight/ordered-set>`__ for ordered set collections
+    - `xdoctest <https://github.com/Erotemic/xdoctest>`__ for eXtended doctests
 
 Purpose
 =======
