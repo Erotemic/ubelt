@@ -310,6 +310,7 @@ def find_path(name, path=None, exact=False, recursive=False):
         >>> list(find_path('bin'))
         >>> list(find_path('*cc*'))
         >>> list(find_path('cmake*'))
+        >>> list(find_path('noexist', multi=True))
 
     Example:
         >>> import ubelt as ub
