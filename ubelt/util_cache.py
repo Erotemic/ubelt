@@ -1,10 +1,13 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
 import os
-import hashlib
 from os.path import join, normpath, basename, exists
 from six.moves import cPickle as pickle
 import warnings
+from ubelt import util_hash
+from ubelt import util_time
+from ubelt import util_path
+from ubelt import util_platform
 
 
 class Cacher(object):
@@ -31,8 +34,7 @@ class Cacher(object):
         ext (str): extension (default = '.pkl')
 
         meta (object): cfgstr metadata that is also saved with the cfgstr.
-            This data is not used in the hash, but if useful to send in if the
-            cfgstr itself contains hashes.
+            This can be useful to indicate how the cfgstr was constructed.
 
         verbose (int): level of verbosity. Can be 1, 2 or 3. (default=1)
 
@@ -41,6 +43,9 @@ class Cacher(object):
 
         log (func): overloads the print function. Useful for sending output to
             loggers (e.g. logging.info, tqdm.tqdm.write, ...)
+
+        hasher (str): type of hashing algorithm to use if cfgstr needs to be
+            condensed to less than 49 characters.
 
         protocol (int): protocol version used by pickle.  If python 2
             compatibility is not required, then it is better to use protocol 4.
@@ -83,13 +88,12 @@ class Cacher(object):
 
     def __init__(self, fname, cfgstr=None, dpath=None, appname='ubelt',
                  ext='.pkl', meta=None, verbose=None, enabled=True, log=None,
-                 protocol=2):
-        import ubelt as ub
+                 hasher='sha1', protocol=2):
         if verbose is None:
             verbose = self.VERBOSE
         if dpath is None:  # pragma: no branch
-            dpath = ub.ensure_app_cache_dir(appname)
-        ub.ensuredir(dpath)
+            dpath = util_platform.ensure_app_cache_dir(appname)
+        util_path.ensuredir(dpath)
         self.dpath = dpath
         self.fname = fname
         self.cfgstr = cfgstr
@@ -98,6 +102,7 @@ class Cacher(object):
         self.meta = meta
         self.enabled = enabled
         self.protocol = protocol
+        self.hasher = hasher
         self.log = print if log is None else log
 
         if len(self.ext) > 0 and self.ext[0] != '.':
@@ -114,16 +119,13 @@ class Cacher(object):
         return cfgstr
 
     def _condense_cfgstr(self, cfgstr=None):
-        # TODO: In a future version we may allow hasher specification.
-        # In this case we will probably default to sha1 and hashlen 40.
         cfgstr = self._rectify_cfgstr(cfgstr)
-        max_len = 32
-        hashlen = 32
+        # The 49 char maxlen is just long enough for an 8 char name, an 1 char
+        # underscore, and a 40 char sha1 hash.
+        max_len = 49
         if len(cfgstr) > max_len:
-            hasher = hashlib.sha256()
-            hasher.update(cfgstr.encode('utf8'))
-            hashed_cfgstr = hasher.hexdigest()[:hashlen]
-            condensed = hashed_cfgstr
+            condensed = util_hash.hash_data(cfgstr, hasher=self.hasher, base='hex')
+            condensed = condensed[0:max_len]
         else:
             condensed = cfgstr
         return condensed
@@ -318,7 +320,6 @@ class Cacher(object):
             >>> cacher2.save('data')
             >>> assert not exists(cacher2.get_fpath()), 'should be disabled'
         """
-        import ubelt as ub
         if not self.enabled:
             return
         if self.verbose > 0:
@@ -328,15 +329,15 @@ class Cacher(object):
         condensed = self._condense_cfgstr(cfgstr)
 
         # Make sure the cache directory exists
-        ub.ensuredir(self.dpath)
+        util_path.ensuredir(self.dpath)
 
         data_fpath = self.get_fpath(cfgstr=cfgstr)
         meta_fpath = data_fpath + '.meta'
 
         # Also save metadata file to reconstruct hashing
         with open(meta_fpath, 'a') as file_:
-            # TODO: maybe append this in json format?
-            file_.write('\n\nsaving {}\n'.format(ub.timestamp()))
+            # TODO: maybe append this in json or YML format?
+            file_.write('\n\nsaving {}\n'.format(util_time.timestamp()))
             file_.write(self.fname + '\n')
             file_.write(condensed + '\n')
             file_.write(cfgstr + '\n')
@@ -446,7 +447,8 @@ class CacheStamp(object):
         >>> ub.delete(dpath)
         >>> ub.ensuredir(dpath)
         >>> product = join(dpath, 'expensive-to-compute.txt')
-        >>> self = CacheStamp('somedata', 'someconfig', dpath, product)
+        >>> self = CacheStamp('somedata', cfgstr='someconfig', dpath=dpath,
+        >>>                   product=product, hasher=None)
         >>> self.hasher = None
         >>> if self.expired():
         >>>     ub.writeto(product, 'very expensive')
@@ -478,6 +480,8 @@ class CacheStamp(object):
     def _rectify_products(self, product=None):
         """ puts products in a normalized format """
         products = self.product if product is None else product
+        if products is None:
+            return None
         if not isinstance(products, (list, tuple)):
             products = [products]
         return products
@@ -486,13 +490,12 @@ class CacheStamp(object):
         """
         Get the hash of the each product file
         """
-        import ubelt as ub
         if self.hasher is None:
             return None
         else:
             products = self._rectify_products(product)
             product_file_hash = [
-                ub.hash_file(p, hasher=self.hasher, base='hex')
+                util_hash.hash_file(p, hasher=self.hasher, base='hex')
                 for p in products
             ]
             return product_file_hash
@@ -531,10 +534,9 @@ class CacheStamp(object):
         Recertify that the product has been recomputed by writing a new
         certificate to disk.
         """
-        import ubelt as ub
         products = self._rectify_products(product)
         certificate = {
-            'timestamp': ub.timestamp(),
+            'timestamp': util_time.timestamp(),
             'product': products,
         }
         if products is not None:
@@ -543,6 +545,7 @@ class CacheStamp(object):
                     'The stamped product must exist: {}'.format(products))
             certificate['product_file_hash'] = self._product_file_hash(products)
         self.cacher.save(certificate, cfgstr=cfgstr)
+        return certificate
 
 
 if __name__ == '__main__':

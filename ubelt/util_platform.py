@@ -4,10 +4,13 @@ from os.path import exists
 from os.path import expanduser
 from os.path import join
 from os.path import normpath
+from os.path import isdir
 import os
 import sys
 import pipes
 import six
+import glob
+import itertools as it
 from ubelt import util_path
 
 WIN32  = sys.platform.startswith('win32')
@@ -79,6 +82,10 @@ def ensure_app_resource_dir(appname, *args):
     """
     Calls `get_app_resource_dir` but ensures the directory exists.
 
+    Args:
+        appname (str): the name of the application
+        *args: any other subdirectories may be specified
+
     SeeAlso:
         get_app_resource_dir
 
@@ -114,6 +121,10 @@ def get_app_cache_dir(appname, *args):
 def ensure_app_cache_dir(appname, *args):
     """
     Calls `get_app_cache_dir` but ensures the directory exists.
+
+    Args:
+        appname (str): the name of the application
+        *args: any other subdirectories may be specified
 
     SeeAlso:
         get_app_cache_dir
@@ -211,6 +222,114 @@ def editfile(fpath, verbose=True):  # nocover
     if not exists(fpath):
         raise IOError('Cannot start nonexistant file: %r' % fpath)
     util_cmd.cmd([editor, fpath], fpath, detatch=True)
+
+
+def find_exe(name, multi=False, path=None):
+    """
+    Locate a command.
+
+    Search your local filesystem for an executable and return the first
+    matching file with executable permission.
+
+    Args:
+        name (str): globstr of matching filename
+
+        multi (bool): if True return all matches instead of just the first.
+            Defaults to False.
+
+        path (str): overrides the system PATH variable.
+
+    Returns:
+        str or List[str] or None: returns matching executable(s).
+
+    SeeAlso:
+        shutil.which - which is available in Python 3.3+.
+
+    Notes:
+        This is essentially the `which` UNIX command
+
+    References:
+        https://stackoverflow.com/questions/377017/test-if-executable-exists-in-python/377028#377028
+        https://docs.python.org/dev/library/shutil.html#shutil.which
+
+    Example:
+        >>> find_exe('ls')
+        >>> find_exe('ping')
+        >>> find_exe('which')
+        >>> assert find_exe('which') == find_exe(find_exe('which'))
+        >>> find_exe('cmake', multi=True)
+
+    Benchmark:
+        >>> # xdoctest: +IGNORE_WANT
+        >>> import ubelt as ub
+        >>> import shutil
+        >>> for timer in ub.Timerit(100, bestof=10, label='ub.find_exe'):
+        >>>     ub.find_exe('which')
+        >>> for timer in ub.Timerit(100, bestof=10, label='shutil.which'):
+        >>>     shutil.which('which')
+        Timed best=56.48 µs, mean=57.39 ± 1.2 µs for ub.find_exe
+        Timed best=65.48 µs, mean=66.98 ± 1.3 µs for shutil.which
+    """
+    candidates = find_path(name, path=path, exact=True)
+    mode = os.X_OK | os.F_OK
+    results = (fpath for fpath in candidates
+               if os.access(fpath, mode) and not isdir(fpath))
+    if not multi:
+        for fpath in results:
+            return fpath
+    else:
+        return list(results)
+
+
+def find_path(name, path=None, exact=False, recursive=False):
+    """
+    Search for a file or directory on your local filesystem by name
+    (file must be in a directory specified in a PATH environment variable)
+
+    Args:
+        fname (str): file name to match.
+            if exact is False this may be a glob pattern
+
+        path (str or Iterable[str]): list of directories to search either
+            specified as an os.pathsep separated string or a list of
+            directories.  Defaults to environment PATH.
+
+        exact (bool): if True, only returns exact matches. Default False.
+            if True recursive is ignored. To regain recursive behavior
+            it is possible to set `path=(d for d, _, _ in os.walk('.'))`,
+            where '.' might be replaced by the root directory of interest.
+
+        recursive (bool): passed to glob. Default False.
+            If recursive is true, the pattern '**' will match any files and
+            zero or more directories and subdirectories. Ignored if
+            `exact=True`.
+
+    Example:
+        >>> list(find_path('ping', exact=True))
+        >>> list(find_path('bin'))
+        >>> list(find_path('bin'))
+        >>> list(find_path('*cc*'))
+        >>> list(find_path('cmake*'))
+
+    Example:
+        >>> import ubelt as ub
+        >>> from os.path import dirname
+        >>> path = dirname(dirname(ub.util_platform.__file__))
+        >>> res = sorted(find_path('**/ubelt/util_*.py', path=path, recursive=True))
+        >>> assert len(res) >= 10
+        >>> res = sorted(find_path('ubelt/util_platform.py', path=path, exact=True))
+        >>> print(res)
+        >>> assert len(res) == 1
+    """
+    path = os.environ.get('PATH', os.defpath) if path is None else path
+    dpaths = path.split(os.pathsep) if isinstance(path, six.string_types) else path
+    candidates = (join(dpath, name) for dpath in dpaths)
+    if exact:
+        candidates = filter(exists, candidates)
+    else:
+        candidates = it.chain.from_iterable(
+            glob.glob(pattern, recursive=recursive) for pattern in candidates)
+    return candidates
 
 
 if __name__ == '__main__':

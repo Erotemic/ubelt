@@ -99,29 +99,29 @@ else:  # pragma: nobranch
                                  truepath, userhome,)
     from ubelt.util_platform import (DARWIN, LINUX, POSIX, WIN32, editfile,
                                      ensure_app_cache_dir, ensure_app_resource_dir,
-                                     get_app_cache_dir, get_app_resource_dir,
-                                     platform_cache_dir, platform_resource_dir,
-                                     startfile,)
+                                     find_exe, find_path, get_app_cache_dir,
+                                     get_app_resource_dir, platform_cache_dir,
+                                     platform_resource_dir, startfile,)
     from ubelt.util_str import (CaptureStdout, codeblock, ensure_unicode, hzcat,
                                 indent,)
     from ubelt.util_time import (Timer, Timerit, timestamp,)
-    from ubelt.orderedset import (OrderedSet, oset,)
+    from ubelt.orderedset import (OrderedSet, SLICE_ALL, oset,)
     from ubelt.progiter import (ProgIter,)
 
     __all__ = ['AutoDict', 'AutoOrderedDict', 'CacheStamp', 'Cacher',
                'CaptureStdout', 'DARWIN', 'LINUX', 'NiceRepr', 'NoParam',
-               'OrderedSet', 'POSIX', 'ProgIter', 'TempDir', 'Timer', 'Timerit',
-               'WIN32', 'allsame', 'argflag', 'argmax', 'argmin', 'argsort',
-               'argunique', 'argval', 'augpath', 'boolmask', 'chunks', 'cmd',
-               'codeblock', 'color_text', 'compress', 'compressuser', 'ddict',
-               'delete', 'dict_hist', 'dict_subset', 'dict_take', 'dict_union',
-               'download', 'dzip', 'editfile', 'ensure_app_cache_dir',
-               'ensure_app_resource_dir', 'ensure_unicode', 'ensuredir',
-               'find_duplicates', 'flatten', 'get_app_cache_dir',
-               'get_app_resource_dir', 'grabdata', 'group_items', 'hash_data',
-               'hash_file', 'highlight_code', 'hzcat', 'identity',
-               'import_module_from_name', 'import_module_from_path', 'indent',
-               'inject_method', 'invert_dict', 'iter_window', 'iterable',
+               'OrderedSet', 'POSIX', 'ProgIter', 'SLICE_ALL', 'TempDir', 'Timer',
+               'Timerit', 'WIN32', 'allsame', 'argflag', 'argmax', 'argmin',
+               'argsort', 'argunique', 'argval', 'augpath', 'boolmask', 'chunks',
+               'cmd', 'codeblock', 'color_text', 'compress', 'compressuser',
+               'ddict', 'delete', 'dict_hist', 'dict_subset', 'dict_take',
+               'dict_union', 'download', 'dzip', 'editfile',
+               'ensure_app_cache_dir', 'ensure_app_resource_dir', 'ensure_unicode',
+               'ensuredir', 'find_duplicates', 'find_exe', 'find_path', 'flatten',
+               'get_app_cache_dir', 'get_app_resource_dir', 'grabdata',
+               'group_items', 'hash_data', 'hash_file', 'highlight_code', 'hzcat',
+               'identity', 'import_module_from_name', 'import_module_from_path',
+               'indent', 'inject_method', 'invert_dict', 'iter_window', 'iterable',
                'map_keys', 'map_vals', 'memoize', 'memoize_method',
                'modname_to_modpath', 'modpath_to_modname', 'odict', 'orderedset',
                'oset', 'platform_cache_dir', 'platform_resource_dir', 'progiter',
