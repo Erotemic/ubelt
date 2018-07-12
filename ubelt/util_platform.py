@@ -255,9 +255,18 @@ def find_exe(name, multi=False, path=None):
     Example:
         >>> find_exe('ls')
         >>> find_exe('ping')
-        >>> find_exe('which')
         >>> assert find_exe('which') == find_exe(find_exe('which'))
+        >>> find_exe('which', multi=True)
+        >>> find_exe('ping', multi=True)
         >>> find_exe('cmake', multi=True)
+        >>> find_exe('nvcc', multi=True)
+        >>> find_exe('noexist', multi=True)
+
+    Example:
+        >>> assert not find_exe('noexist', multi=False)
+        >>> assert find_exe('ping', multi=False)
+        >>> assert not find_exe('noexist', multi=True)
+        >>> assert find_exe('ping', multi=True)
 
     Benchmark:
         >>> # xdoctest: +IGNORE_WANT
@@ -310,7 +319,6 @@ def find_path(name, path=None, exact=False, recursive=False):
         >>> list(find_path('bin'))
         >>> list(find_path('*cc*'))
         >>> list(find_path('cmake*'))
-        >>> list(find_path('noexist', multi=True))
 
     Example:
         >>> import ubelt as ub
