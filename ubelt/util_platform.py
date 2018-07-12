@@ -290,7 +290,7 @@ def find_exe(name, multi=False, path=None):
         return list(results)
 
 
-def find_path(name, path=None, exact=False, recursive=False):
+def find_path(name, path=None, exact=False):
     """
     Search for a file or directory on your local filesystem by name
     (file must be in a directory specified in a PATH environment variable)
@@ -304,14 +304,10 @@ def find_path(name, path=None, exact=False, recursive=False):
             directories.  Defaults to environment PATH.
 
         exact (bool): if True, only returns exact matches. Default False.
-            if True recursive is ignored. To regain recursive behavior
-            it is possible to set `path=(d for d, _, _ in os.walk('.'))`,
-            where '.' might be replaced by the root directory of interest.
 
-        recursive (bool): passed to glob. Default False.
-            If recursive is true, the pattern '**' will match any files and
-            zero or more directories and subdirectories. Ignored if
-            `exact=True`.
+    Notes:
+        For recursive behavior set `path=(d for d, _, _ in os.walk('.'))`,
+        where '.' might be replaced by the root directory of interest.
 
     Example:
         >>> list(find_path('ping', exact=True))
@@ -324,7 +320,7 @@ def find_path(name, path=None, exact=False, recursive=False):
         >>> import ubelt as ub
         >>> from os.path import dirname
         >>> path = dirname(dirname(ub.util_platform.__file__))
-        >>> res = sorted(find_path('**/ubelt/util_*.py', path=path, recursive=True))
+        >>> res = sorted(find_path('ubelt/util_*.py', path=path))
         >>> assert len(res) >= 10
         >>> res = sorted(find_path('ubelt/util_platform.py', path=path, exact=True))
         >>> print(res)
@@ -337,7 +333,7 @@ def find_path(name, path=None, exact=False, recursive=False):
         candidates = filter(exists, candidates)
     else:
         candidates = it.chain.from_iterable(
-            glob.glob(pattern, recursive=recursive) for pattern in candidates)
+            glob.glob(pattern) for pattern in candidates)
     return candidates
 
 
