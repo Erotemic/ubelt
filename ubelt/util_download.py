@@ -179,22 +179,39 @@ def download(url, fpath=None, hash_prefix=None, hasher='sha512',
 
 
 def grabdata(url, fpath=None, dpath=None, fname=None, redo=False,
-             verbose=1, appname=None, **download_kw):
+             verbose=1, appname=None, hash_prefix=None, hasher='sha512',
+             **download_kw):
     """
     Downloads a file, caches it, and returns its local path.
 
     Args:
         url (str): url to the file to download
+
         fpath (str): The full path to download the file to. If unspecified, the
             arguments `dpath` and `fname` are used to determine this.
+
         dpath (str): where to download the file. If unspecified `appname`
             is used to determine this. Mutually exclusive with fpath.
+
         fname (str): What to name the downloaded file. Defaults to the url
             basename. Mutually exclusive with fpath.
+
         redo (bool): if True forces redownload of the file (default = False)
+
         verbose (bool):  verbosity flag (default = True)
+
         appname (str): set dpath to `ub.get_app_cache_dir(appname)`.
             Mutually exclusive with dpath and fpath.
+
+        hash_prefix (None or str):
+            If specified, grabdata verifies that this matches the hash of the
+            file, and then saves the hash in a adjacent file to certify that
+            the download was successful. Defaults to None.
+
+        hasher (key or Hasher):
+            If hash_prefix is specified, this indicates the hashing
+            algorithm to apply to the file. Defaults to sha512.
+
         **download_kw: additional kwargs to pass to ub.download
 
     Returns:
@@ -203,11 +220,46 @@ def grabdata(url, fpath=None, dpath=None, fname=None, redo=False,
     Example:
         >>> # xdoctest: +REQUIRES(--network)
         >>> import ubelt as ub
-        >>> file_url = 'http://i.imgur.com/rqwaDag.png'
-        >>> lena_fpath = ub.grabdata(file_url, fname='mario.png')
-        >>> result = basename(lena_fpath)
+        >>> url = 'http://i.imgur.com/rqwaDag.png'
+        >>> fpath = ub.grabdata(url, fname='mario.png')
+        >>> result = basename(fpath)
         >>> print(result)
         mario.png
+
+    Example:
+        >>> # xdoctest: +REQUIRES(--network)
+        >>> import ubelt as ub
+        >>> fname = 'foo.bar'
+        >>> url = 'http://i.imgur.com/rqwaDag.png'
+        >>> prefix1 = '944389a39dfb8fa9'
+        >>> fpath = ub.grabdata(url, fname=fname, hash_prefix=prefix1)
+        >>> stamp_fpath = fpath + '.hash'
+        >>> assert open(stamp_fpath, 'r').read() == prefix1
+        >>> # Check that the download doesn't happen again
+        >>> fpath = ub.grabdata(url, fname=fname, hash_prefix=prefix1)
+        >>> # todo: check file timestamps have not changed
+        >>> #
+        >>> # Check redo works with hash
+        >>> fpath = ub.grabdata(url, fname=fname, hash_prefix=prefix1, redo=True)
+        >>> # todo: check file timestamps have changed
+        >>> #
+        >>> # Check that a redownload occurs when the stamp is changed
+        >>> open(stamp_fpath, 'w').write('corrupt-stamp')
+        >>> fpath = ub.grabdata(url, fname=fname, hash_prefix=prefix1)
+        >>> assert open(stamp_fpath, 'r').read() == prefix1
+        >>> #
+        >>> # Check that a redownload occurs when the stamp is removed
+        >>> ub.delete(stamp_fpath)
+        >>> open(fpath, 'w').write('corrupt-data')
+        >>> assert not ub.hash_file(fpath, base='hex').startswith(prefix1)
+        >>> fpath = ub.grabdata(url, fname=fname, hash_prefix=prefix1)
+        >>> assert ub.hash_file(fpath, base='hex').startswith(prefix1)
+        >>> #
+        >>> # Check that requesting new data causes redownload
+        >>> url2 = 'https://data.kitware.com/api/v1/item/5b4039308d777f2e6225994c/download'
+        >>> prefix2 = 'c98a46cb31205cf'
+        >>> fpath = ub.grabdata(url2, fname=fname, hash_prefix=prefix2)
+        >>> assert open(stamp_fpath, 'r').read() == prefix2
     """
     if appname and dpath:
         raise ValueError('Cannot specify appname with dpath')
@@ -222,12 +274,31 @@ def grabdata(url, fpath=None, dpath=None, fname=None, redo=False,
             fname = basename(url)
         fpath = join(dpath, fname)
 
-    # TODO: include expected hash as an option.
-    # Download when available, keep a parallel hash of the data and check when
-    # a new request comes in.
+    needs_download = redo
 
-    if redo or not exists(fpath):
-        fpath = download(url, fpath, verbose=verbose, **download_kw)
+    if not exists(fpath):
+        needs_download = True
+
+    if hash_prefix:
+        stamp_fpath = fpath + '.hash'
+        if not needs_download:
+            # Force a re-download if the hash file does not exist or it does
+            # not match the expected hash
+            if not exists(stamp_fpath):
+                needs_download = True
+            else:
+                hashstr = open(stamp_fpath, 'r').read()
+                if not hashstr.startswith(hash_prefix):
+                    needs_download = True
+
+    if needs_download:
+        fpath = download(url, fpath, verbose=verbose, hash_prefix=hash_prefix,
+                         hasher=hasher, **download_kw)
+
+        if hash_prefix:
+            # If the file successfully downloaded then the hashes match.
+            # write out the expected prefix so we can check it later
+            open(stamp_fpath, 'w').write(hash_prefix)
     else:
         if verbose >= 2:
             print('Already have file %s' % fpath)
