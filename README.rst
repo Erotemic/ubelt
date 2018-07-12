@@ -148,7 +148,7 @@ A complete list of available functions can be seen in the
 .. code:: python
 
     from ubelt.util_arg import (argflag, argval,)
-    from ubelt.util_cache import (Cacher,)
+    from ubelt.util_cache import (CacheStamp, Cacher,)
     from ubelt.util_colors import (color_text, highlight_code,)
     from ubelt.util_const import (NoParam,)
     from ubelt.util_cmd import (cmd,)
@@ -172,9 +172,9 @@ A complete list of available functions can be seen in the
     from ubelt.util_mixins import (NiceRepr,)
     from ubelt.util_path import (TempDir, augpath, compressuser, ensuredir,
                                  truepath, userhome,)
-    from ubelt.util_platform import (DARWIN, LINUX, POSIX, PY2, PY3, WIN32,
-                                     editfile, ensure_app_cache_dir,
-                                     ensure_app_resource_dir, get_app_cache_dir,
+    from ubelt.util_platform import (DARWIN, LINUX, POSIX, WIN32, editfile,
+                                     ensure_app_cache_dir, ensure_app_resource_dir,
+                                     find_exe, find_path, get_app_cache_dir,
                                      get_app_resource_dir, platform_cache_dir,
                                      platform_resource_dir, startfile,)
     from ubelt.util_str import (CaptureStdout, codeblock, ensure_unicode, hzcat,
@@ -182,6 +182,7 @@ A complete list of available functions can be seen in the
     from ubelt.util_time import (Timer, Timerit, timestamp,)
     from ubelt.orderedset import (OrderedSet, oset,)
     from ubelt.progiter import (ProgIter,)
+
 
 Examples
 ========
@@ -411,6 +412,12 @@ it needs to.
     >>> print(ub.compressuser(fpath))
     ~/.cache/ubelt/rqwaDag.png
 
+
+New in version 0.4.0: both functions now accepts the ``hash_prefix`` keyword
+argument, which if specified will check that the hash of the file matches the
+provided value. The ``hasher`` keyword argument can be used to change which
+hashing algorithm is used (it defaults to ``"sha512"``).
+
 Grouping
 --------
 
@@ -612,6 +619,8 @@ Here are the repos containing the standalone utilities:
 
 -  ProgIter - https://github.com/Erotemic/progiter
 -  Timerit - https://github.com/Erotemic/timerit
+-  OrderedSet - https://github.com/LuminosoInsight/ordered-set
+  
 
 .. |Travis| image:: https://img.shields.io/travis/Erotemic/ubelt/master.svg?label=Travis%20CI
    :target: https://travis-ci.org/Erotemic/ubelt
