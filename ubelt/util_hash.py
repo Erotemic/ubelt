@@ -718,20 +718,20 @@ def hash_file(fpath, blocksize=65536, stride=1, hasher=NoParam,
         >>>     got = ub.hash_file(fpath, hasher='sha1')
         >>>     print('want = {!r}'.format(want))
         >>>     print('got = {!r}'.format(got))
-        >>>     assert want == got
+        >>>     assert want.endswith(got)
         >>> # Do the same for sha512 sum and md5sum
         >>> if ub.find_exe('sha512sum'):
         >>>     want = ub.cmd(['sha512sum', fpath], verbout=1, verbose=2)['out'].split(' ')[0]
         >>>     got = ub.hash_file(fpath, hasher='sha512')
         >>>     print('want = {!r}'.format(want))
         >>>     print('got = {!r}'.format(got))
-        >>>     assert want == got
+        >>>     assert want.endswith(got)
         >>> if ub.find_exe('md5sum'):
         >>>     want = ub.cmd(['md5sum', fpath], verbout=1, verbose=2)['out'].split(' ')[0]
         >>>     got = ub.hash_file(fpath, hasher='md5')
         >>>     print('want = {!r}'.format(want))
         >>>     print('got = {!r}'.format(got))
-        >>>     assert want == got
+        >>>     assert want.endswith(got)
     """
     base = _rectify_base(base)
     hashlen = _rectify_hashlen(hashlen)
