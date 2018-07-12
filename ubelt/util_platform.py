@@ -330,6 +330,9 @@ def find_path(name, path=None, exact=False):
     dpaths = path.split(os.pathsep) if isinstance(path, six.string_types) else path
     candidates = (join(dpath, name) for dpath in dpaths)
     if exact:
+        if sys.platform.startswith('win32'):
+            pathext = [''] + os.environ.get("PATHEXT", "").split(os.pathsep)
+            candidates = (p + ext for p in candidates for ext in pathext)
         candidates = filter(exists, candidates)
     else:
         candidates = it.chain.from_iterable(
