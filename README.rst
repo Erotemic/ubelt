@@ -54,10 +54,11 @@ UBelt's functionality is a mixture of the following categories:
 - AutoDict - Autovivification
 - String-based imports
 - Horizontal String Concatenation
-- Standalone tools.
-    - ```progiter`` <https://github.com/Erotemic/progiter>`__ for Loop Progress
-    - ```xdoctest`` <https://github.com/Erotemic/xdoctest>`__ for eXtended doctests
-    - ```timerit`` <https://github.com/Erotemic/timerit>`__ for Robust Timing and Benchmarking
+- Standalone modules.
+    - ` ``progiter`` <https://github.com/Erotemic/progiter>`__ for Loop Progress
+    - ` ``timerit`` <https://github.com/Erotemic/timerit>`__ for Robust Timing and Benchmarking
+    - ` ``ordered-set`` <https://github.com/LuminosoInsight/ordered-set>`__ for ordered set collections
+    - ` ``xdoctest`` <https://github.com/Erotemic/xdoctest>`__ for eXtended doctests
 
 Purpose
 =======
@@ -615,7 +616,7 @@ have all the extra batteries at your disposal, but they will eventually
 just be added as simple dependencies and the source code will be removed
 from ``ubelt``.
 
-Here are the repos containing the standalone utilities:
+Here are the repos containing the standalone class utilities:
 
 -  ProgIter - https://github.com/Erotemic/progiter
 -  Timerit - https://github.com/Erotemic/timerit
