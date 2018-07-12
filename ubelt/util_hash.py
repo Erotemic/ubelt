@@ -708,29 +708,30 @@ def hash_file(fpath, blocksize=65536, stride=1, hasher=NoParam,
         >>> print(ub.hash_file(fpath, hasher='sha1', base='hex'))
         8843d7f92416211de9ebb963ff4ce28125932878
 
-    Ignore:
-        >>> # DISABLE_DOCTEST
-        >>> ub.cmd('sha1sum ' + fpath)['out'].split(' ')[0]
-        8843d7f92416211de9ebb963ff4ce28125932878
-        >>> print(ub.hash_file(fpath, hasher='sha1', base='hex'))
-        8843d7f92416211de9ebb963ff4ce28125932878
-
     Example:
         >>> import ubelt as ub
         >>> from os.path import join
         >>> fpath = ub.touch(join(ub.ensure_app_cache_dir('ubelt'), 'empty_file'))
+        >>> # Test that the output is the same as sha1sum
         >>> if ub.find_exe('sha1sum'):
-        >>>     # Test that the output is the same as sha1sum
-        >>>     want = ub.cmd(['sha1sum', fpath])['out'].split(' ')[0]
-        >>>     assert want == ub.hash_file(fpath, hasher='sha1')
+        >>>     want = ub.cmd(['sha1sum', fpath], verbout=1, verbose=2)['out'].split(' ')[0]
+        >>>     got = ub.hash_file(fpath, hasher='sha1')
+        >>>     print('want = {!r}'.format(want))
+        >>>     print('got = {!r}'.format(got))
+        >>>     assert want == got
+        >>> # Do the same for sha512 sum and md5sum
         >>> if ub.find_exe('sha512sum'):
-        >>>     # Test that the output is the same as sha1sum
-        >>>     want = ub.cmd(['sha512sum', fpath])['out'].split(' ')[0]
-        >>>     assert want == ub.hash_file(fpath, hasher='sha512')
+        >>>     want = ub.cmd(['sha512sum', fpath], verbout=1, verbose=2)['out'].split(' ')[0]
+        >>>     got = ub.hash_file(fpath, hasher='sha512')
+        >>>     print('want = {!r}'.format(want))
+        >>>     print('got = {!r}'.format(got))
+        >>>     assert want == got
         >>> if ub.find_exe('md5sum'):
-        >>>     # Test that the output is the same as sha1sum
-        >>>     want = ub.cmd(['md5sum', fpath])['out'].split(' ')[0]
-        >>>     assert want == ub.hash_file(fpath, hasher='md5')
+        >>>     want = ub.cmd(['md5sum', fpath], verbout=1, verbose=2)['out'].split(' ')[0]
+        >>>     got = ub.hash_file(fpath, hasher='md5')
+        >>>     print('want = {!r}'.format(want))
+        >>>     print('got = {!r}'.format(got))
+        >>>     assert want == got
     """
     base = _rectify_base(base)
     hashlen = _rectify_hashlen(hashlen)
