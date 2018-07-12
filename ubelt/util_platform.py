@@ -276,8 +276,8 @@ def find_exe(name, multi=False, path=None):
         >>>     ub.find_exe('which')
         >>> for timer in ub.Timerit(100, bestof=10, label='shutil.which'):
         >>>     shutil.which('which')
-        Timed best=56.48 µs, mean=57.39 ± 1.2 µs for ub.find_exe
-        Timed best=65.48 µs, mean=66.98 ± 1.3 µs for shutil.which
+        Timed best=58.71 µs, mean=59.64 ± 0.96 µs for ub.find_exe
+        Timed best=72.75 µs, mean=73.07 ± 0.22 µs for shutil.which
     """
     candidates = find_path(name, path=path, exact=True)
     mode = os.X_OK | os.F_OK
