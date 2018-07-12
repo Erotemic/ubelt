@@ -2,7 +2,41 @@
 """
 Wrappers around hashlib functions to generate hash signatures for common data.
 
-The hashes should be determenistic across platforms.
+The hashes are determenistic across python versions and operating systems.
+This is verified by CI testing on Windows, Linux, Python with 2.7, 3.4, and
+greater, and on 32 and 64 bit versions.
+
+
+Use Case:
+    Problem: You have data that you want to hash.
+    Assumptions: The data is in standard python scalars or ordered sequences:
+        e.g. tuple, list, odict, oset, int, str, etc...
+    Solution: ub.hash_data
+
+Example:
+    >>> import ubelt as ub
+    >>> data = ub.odict(sorted({
+    >>>     'param1': True,
+    >>>     'param2': 0,
+    >>>     'param3': [None],
+    >>>     'param4': ('str', 4.2),
+    >>> }.items()))
+    >>> # hash_data can hash any ordered builtin object
+    >>> ub.hash_data(data)
+    2ff39d0ecbf6ecc740ca7d...
+
+
+Use Case:
+    Problem: You have a file you want to hash, but your system doesn't have
+        a sha1sum executable.
+    Solution: ub.hash_file
+
+Example:
+    >>> import ubelt as ub
+    >>> from os.path import join
+    >>> fpath = ub.touch(join(ub.ensure_app_cache_dir('ubelt'), 'empty_file'))
+    >>> ub.hash_file(fpath, hasher='sha1')
+    da39a3ee5e6b4b0d3255bfef95601890afd80709
 
 NOTE:
     The exact hashes generated for data object and files may change in the
@@ -20,7 +54,7 @@ from ubelt.util_const import NoParam
 
 __all__ = ['hash_data', 'hash_file']
 
-HASH_VERSION = 1  # incremented when we make a change that modifies hashes
+HASH_VERSION = 2  # incremented when we make a change that modifies hashes
 
 _ALPHABET_10 = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
 
@@ -40,7 +74,9 @@ else:
 
 # Default to 512 because it is often faster than 256 on 64bit systems:
 # Reference: https://crypto.stackexchange.com/questions/26336/faster
-DEFAULT_ALPHABET = _ALPHABET_26
+
+# DEFAULT_ALPHABET = _ALPHABET_26
+DEFAULT_ALPHABET = _ALPHABET_16
 DEFAULT_HASHER = hashlib.sha512  # note: using sha1 is a bit faster
 DEFAULT_HASHLEN = None
 
@@ -164,7 +200,7 @@ def _rectify_base(base):
     transforms base shorthand into the full list representation
 
     Example:
-        >>> assert _rectify_base(NoParam) is _ALPHABET_26
+        >>> assert _rectify_base(NoParam) is DEFAULT_ALPHABET
         >>> assert _rectify_base('hex') is _ALPHABET_16
         >>> assert _rectify_base('abc') is _ALPHABET_26
         >>> assert _rectify_base(10) is _ALPHABET_10
@@ -292,9 +328,9 @@ class HashableExtensions(object):
                 >>> data_f32 = np.zeros((3, 3, 3), dtype=np.float64)
                 >>> data_i64 = np.zeros((3, 3, 3), dtype=np.int64)
                 >>> data_i32 = np.zeros((3, 3, 3), dtype=np.int32)
-                >>> hash_f64 = _hashable_sequence(data_f32, use_prefix=True)
-                >>> hash_i64 = _hashable_sequence(data_i64, use_prefix=True)
-                >>> hash_i32 = _hashable_sequence(data_i64, use_prefix=True)
+                >>> hash_f64 = _hashable_sequence(data_f32, types=True)
+                >>> hash_i64 = _hashable_sequence(data_i64, types=True)
+                >>> hash_i32 = _hashable_sequence(data_i64, types=True)
                 >>> assert hash_i64 != hash_f64
                 >>> assert hash_i64 != hash_i32
             """
@@ -324,7 +360,7 @@ class HashableExtensions(object):
             """
             Example:
                 >>> rng = np.random.RandomState(0)
-                >>> _hashable_sequence(rng, use_prefix=True)
+                >>> _hashable_sequence(rng, types=True)
             """
             hashable = b''.join(_hashable_sequence(data.get_state()))
             prefix = b'RNG'
@@ -337,11 +373,11 @@ class HashableExtensions(object):
 
         Example:
             >>> data = uuid.UUID('7e9d206b-dc02-4240-8bdb-fffe858121d0')
-            >>> print(hash_data(data)[0:8])
+            >>> print(hash_data(data, base='abc', hasher='sha512', types=True)[0:8])
             cryarepd
             >>> data = OrderedDict([('a', 1), ('b', 2), ('c', [1, 2, 3]),
             >>>                     (4, OrderedDict())])
-            >>> print(hash_data(data)[0:8])
+            >>> print(hash_data(data, base='abc', hasher='sha512', types=True)[0:8])
             qjspicvv
 
             gpxtclct
@@ -380,30 +416,30 @@ class _HashTracer(object):
         self.sequence.append(bytes)
 
 
-def _hashable_sequence(data, use_prefix=True):
+def _hashable_sequence(data, types=True):
     r"""
     Extracts the sequence of bytes that would be hashed by hash_data
 
     Example:
         >>> data = [2, (3, 4)]
-        >>> result1 = (b''.join(_hashable_sequence(data, use_prefix=False)))
-        >>> result2 = (b''.join(_hashable_sequence(data, use_prefix=True)))
+        >>> result1 = (b''.join(_hashable_sequence(data, types=False)))
+        >>> result2 = (b''.join(_hashable_sequence(data, types=True)))
         >>> assert result1 == b'_[_\x02_,__[_\x03_,_\x04_,__]__]_'
         >>> assert result2 == b'_[_INT\x02_,__[_INT\x03_,_INT\x04_,__]__]_'
     """
     hasher = _HashTracer()
-    _update_hasher(hasher, data, use_prefix=use_prefix)
+    _update_hasher(hasher, data, types=types)
     return hasher.sequence
 
 
-def _convert_to_hashable(data, use_prefix=True):
+def _convert_to_hashable(data, types=True):
     r"""
     Converts `data` into a hashable byte representation if an appropriate
     hashing function is known.
 
     Args:
         data (object): ordered data with structure
-        use_prefix (bool): include type prefixes in the hash
+        types (bool): include type prefixes in the hash
 
     Returns:
         tuple(bytes, bytes): prefix, hashable:
@@ -444,13 +480,13 @@ def _convert_to_hashable(data, use_prefix=True):
         # Then dynamically look up any other type
         hash_func = _HASHABLE_EXTENSIONS.lookup(data)
         prefix, hashable = hash_func(data)
-    if use_prefix:
+    if types:
         return prefix, hashable
     else:
         return b'', hashable
 
 
-def _update_hasher(hasher, data, use_prefix=True):
+def _update_hasher(hasher, data, types=True):
     """
     Converts `data` into a byte representation and calls update on the hasher
     `hashlib.HASH` algorithm.
@@ -458,7 +494,7 @@ def _update_hasher(hasher, data, use_prefix=True):
     Args:
         hasher (HASH): instance of a hashlib algorithm
         data (object): ordered data with structure
-        use_prefix (bool): include type prefixes in the hash
+        types (bool): include type prefixes in the hash
 
     Example:
         >>> hasher = hashlib.sha512()
@@ -489,20 +525,20 @@ def _update_hasher(hasher, data, use_prefix=True):
         # (this works if all data in the sequence is a non-iterable)
         try:
             for item in iter_:
-                prefix, hashable = _convert_to_hashable(item, use_prefix)
+                prefix, hashable = _convert_to_hashable(item, types)
                 binary_data = prefix + hashable + SEP
                 hasher.update(binary_data)
         except TypeError:
             # need to use recursive calls
             # Update based on current item
-            _update_hasher(hasher, item, use_prefix)
+            _update_hasher(hasher, item, types)
             for item in iter_:
                 # Ensure the items have a spacer between them
-                _update_hasher(hasher, item, use_prefix)
+                _update_hasher(hasher, item, types)
                 hasher.update(SEP)
         hasher.update(ITER_SUFFIX)
     else:
-        prefix, hashable = _convert_to_hashable(data, use_prefix)
+        prefix, hashable = _convert_to_hashable(data, types)
         binary_data = prefix + hashable
         hasher.update(binary_data)
 
@@ -577,32 +613,57 @@ def _digest_hasher(hasher, hashlen, base):
     return text
 
 
-def hash_data(data, hasher=NoParam, hashlen=NoParam, base=NoParam, types=True):
-    r"""
+def hash_data(data, hasher=NoParam, base=NoParam, types=False,
+              hashlen=NoParam):
+    """
     Get a unique hash depending on the state of the data.
 
     Args:
-        data (object): any sort of loosely organized data
-        hasher (HASH): hash algorithm from hashlib, defaults to `sha512`.
-        hashlen (int): maximum number of symbols in the returned hash. If
-            not specified, all are returned.
-        base (list, str): list of symbols or shorthand key. Valid keys are
-            'abc', 'hex', and 'dec'. Defaults to 'abc'.
-        types (bool): if True data types are included in the hash, otherwise
-            only the raw data is hashed. (Default True).
+        data (object):
+            Any sort of loosely organized data
+
+        hasher (str or HASHER):
+            Hash algorithm from hashlib, defaults to `sha512`.
+
+        base (str or List[str]):
+            Shorthand key or a list of symbols.  Valid keys are: 'abc', 'hex',
+            and 'dec'. Defaults to 'hex'.
+
+        types (bool):
+            If True data types are included in the hash, otherwise only the raw
+            data is hashed. Defaults to False.
+
+        hashlen (int):
+            Maximum number of symbols in the returned hash. If not specified,
+            all are returned.  DEPRICATED. Use slice syntax instead.
+
+    Notes:
+        alphabet26 is a pretty nice base, I recommend it.
+        However we default to hex because it is more standardly used.
+        This means the output of hashdata with base=sha1 will be the same as
+        the output of `sha1sum`
+        khex is standard, and we should avoid surprises.
+
+
 
     Returns:
         str: text -  hash string
 
+    CommandLine:
+        python -m ubelt.util_hash hash_data
+
     Example:
-        >>> print(hash_data([1, 2, (3, '4')], hashlen=8, hasher='sha512'))
-        iugjngof
+        >>> import ubelt as ub
+        >>> print(ub.hash_data([1, 2, (3, '4')], base='abc',  hasher='sha1'))
+        yqrkdjdaxhokhtlaektxgwbnnvdjulxryu
+        >>> print(ub.hash_data([1, 2, (3, '4')], base='abc',  hasher='sha512')[:32])
+        hsrgqvfiuxvvhcdnypivhhthmrolkzej
     """
     base = _rectify_base(base)
     hashlen = _rectify_hashlen(hashlen)
     hasher = _rectify_hasher(hasher)()
     # Feed the data into the hasher
-    _update_hasher(hasher, data, use_prefix=types)
+    _update_hasher(hasher, data, types=types)
     # Get the hashed representation
     text = _digest_hasher(hasher, hashlen, base)
     return text
@@ -615,15 +676,20 @@ def hash_file(fpath, blocksize=65536, stride=1, hasher=NoParam,
 
     Args:
         fpath (str):  file path string
+
         blocksize (int): 2 ** 16. Affects speed of reading file
+
         stride (int): strides > 1 skip data to hash, useful for faster
                       hashing, but less accurate, also makes hash dependant on
                       blocksize.
+
         hasher (HASH): hash algorithm from hashlib, defaults to `sha512`.
+
         hashlen (int): maximum number of symbols in the returned hash. If
             not specified, all are returned.
+
         base (list, str): list of symbols or shorthand key. Valid keys are
-            'abc', 'hex', and 'dec'. Defaults to 'abc'.
+            'abc', 'hex', and 'dec'. Defaults to 'hex'.
 
     Notes:
         For better hashes keep stride = 1
@@ -648,6 +714,23 @@ def hash_file(fpath, blocksize=65536, stride=1, hasher=NoParam,
         8843d7f92416211de9ebb963ff4ce28125932878
         >>> print(ub.hash_file(fpath, hasher='sha1', base='hex'))
         8843d7f92416211de9ebb963ff4ce28125932878
+
+    Example:
+        >>> import ubelt as ub
+        >>> from os.path import join
+        >>> fpath = ub.touch(join(ub.ensure_app_cache_dir('ubelt'), 'empty_file'))
+        >>> if ub.find_exe('sha1sum'):
+        >>>     # Test that the output is the same as sha1sum
+        >>>     want = ub.cmd(['sha1sum', fpath])['out'].split(' ')[0]
+        >>>     assert want == ub.hash_file(fpath, hasher='sha1')
+        >>> if ub.find_exe('sha512sum'):
+        >>>     # Test that the output is the same as sha1sum
+        >>>     want = ub.cmd(['sha512sum', fpath])['out'].split(' ')[0]
+        >>>     assert want == ub.hash_file(fpath, hasher='sha512')
+        >>> if ub.find_exe('md5sum'):
+        >>>     # Test that the output is the same as sha1sum
+        >>>     want = ub.cmd(['md5sum', fpath])['out'].split(' ')[0]
+        >>>     assert want == ub.hash_file(fpath, hasher='md5')
     """
     base = _rectify_base(base)
     hashlen = _rectify_hashlen(hashlen)

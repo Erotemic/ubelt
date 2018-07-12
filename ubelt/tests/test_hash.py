@@ -75,12 +75,13 @@ def _benchmark():
     """
 
 
-def test_hash_data():
+def test_hash_data_with_types():
     counter = [0]
     failed = []
     def check_hash(want, input_):
         count = counter[0] = counter[0] + 1
-        got = ub.hash_data(input_)
+        got = ub.hash_data(input_, hasher='sha512', base='abc', types=True)
+        got = got[0:32]
         # assert got.startswith(want), 'want={}, got={}'.format(want, got)
         print('check_hash({!r}, {!r})'.format(got, input_))
         if want is not None and not got.startswith(want):
@@ -92,10 +93,38 @@ def test_hash_data():
     check_hash('hjvebphzylxgtxncyphclsjglvmstsbq', tuple(['1']))
     check_hash('ftzqivzayzivmobwymodjnnzzxzrvvjz', b'12')
     check_hash('jiwjkgkffldfoysfqblsemzkailyridf', [b'1', b'2'])
+    check_hash('foevisahdffoxfasicvyklrmuuwqnfcc', [b'1', b'2', b'3'])
     check_hash('foevisahdffoxfasicvyklrmuuwqnfcc', ['1', '2', '3'])
     check_hash('rkcnfxkjwkrfejhbpcpopmyubhbvonkt', ['1', np.array([1, 2, 3], dtype=np.int64), '3'])
     check_hash('lxssoxdkstvccsyqaybaokehclyctgmn', '123')
     check_hash('fpvptydigvgjimbzadztgpvjpqrevwcq', zip([1, 2, 3], [4, 5, 6]))
+
+    print(ub.repr2(failed, nl=1))
+    assert len(failed) == 0
+
+
+def test_hash_data_without_types():
+    counter = [0]
+    failed = []
+    def check_hash(want, input_):
+        count = counter[0] = counter[0] + 1
+        got = ub.hash_data(input_, hasher='sha1', base='hex', types=False)
+        # assert got.startswith(want), 'want={}, got={}'.format(want, got)
+        print('check_hash({!r}, {!r})'.format(got, input_))
+        if want is not None and not got.startswith(want):
+            item = (got, input_, count, want)
+            failed.append(item)
+
+    check_hash('356a192b7913b04c54574d18c28d46e6395428ab', '1')
+    check_hash('d3bcc889aced30afd8e66ae45b310239d79be3df', ['1'])
+    check_hash('d3bcc889aced30afd8e66ae45b310239d79be3df', ('1',))
+    check_hash('7b52009b64fd0a2a49e6d8a939753077792b0554', b'12')
+    check_hash('6bcab1cebcb44fc5c69faacc0ed661b19eff9fef', [b'1', b'2'])
+    check_hash('d6d265a904bc7df97bd54a8c2ff4546e211c3cd8', [b'1', b'2', b'3'])
+    check_hash('d6d265a904bc7df97bd54a8c2ff4546e211c3cd8', ['1', '2', '3'])
+    check_hash('eff59c7c787bd223a680c9d625f54756be4fdf5b', ['1', np.array([1, 2, 3], dtype=np.int64), '3'])
+    check_hash('40bd001563085fc35165329ea1ff5c5ecbdbbeef', '123')
+    check_hash('1ba3c4e7f5af2a5f38d624047f422553ead2b5ae', zip([1, 2, 3], [4, 5, 6]))
 
     print(ub.repr2(failed, nl=1))
     assert len(failed) == 0
@@ -175,7 +204,7 @@ def test_numpy_float():
 def test_numpy_random_state():
     data = np.random.RandomState(0)
     # assert ub.hash_data(data).startswith('ujsidscotcycsqwnkxgbsxkcedplzvytmfmr')
-    assert ub.hash_data(data).startswith('snkngbxghabesvowzalqtvdvjtvslmxve')
+    assert ub.hash_data(data, types=True, base='abc').startswith('snkngbxghabesvowzalqtvdvjtvslmxve')
     # _hashable_sequence(data)
 
 
@@ -183,25 +212,27 @@ def test_uuid():
     data = uuid.UUID('12345678-1234-1234-1234-123456789abc')
     sequence = b''.join(hash_sequence(data))
     assert sequence == b'UUID\x124Vx\x124\x124\x124\x124Vx\x9a\xbc'
-    assert ub.hash_data(data).startswith('nkklelnjzqbi')
-    assert ub.hash_data(data.bytes) != ub.hash_data(data), (
+    assert ub.hash_data(data, types=True, base='abc').startswith('nkklelnjzqbi')
+    assert ub.hash_data(data.bytes, types=True) != ub.hash_data(data, types=True), (
         'the fact that it is a UUID should reflect in the hash')
+    assert ub.hash_data(data.bytes, types=False) == ub.hash_data(data, types=False), (
+        'the hash should be equal when ignoring types')
 
 
 def test_hash_data_custom_base():
     data = 1
     # A larger base means the string can be shorter
-    hashid_26 = ub.hash_data(data, base='default')
+    hashid_26 = ub.hash_data(data, base='abc', hasher='sha512', types=True)
     assert len(hashid_26) == 109
     # assert hashid_26.startswith('lejivmqndqzp')
     assert hashid_26.startswith('rfsmlqsjsuzllgp')
-    hashid_16 = ub.hash_data(data, base='hex')
+    hashid_16 = ub.hash_data(data, base='hex', hasher='sha512', types=True)
     # assert hashid_16.startswith('8bf2a1f4dbea6e59e5c2ec4077498c44')
     assert hashid_16.startswith('d7c9cea9373eb7ba20444ec65e0186b')
 
     assert len(hashid_16) == 128
     # Binary should have len 512 because the default hasher is sha512
-    hashid_2 = ub.hash_data(data, base=['0', '1'])
+    hashid_2 = ub.hash_data(data, base=['0', '1'], hasher='sha512', types=True)
     assert len(hashid_2) == 512
     assert hashid_2.startswith('110101111100100111001110101010010')
 
@@ -250,8 +281,8 @@ def test_convert_base_simple():
 
 
 def test_no_prefix():
-    full = b''.join(_hashable_sequence(1, use_prefix=True))
-    part = b''.join(_hashable_sequence(1, use_prefix=False))
+    full = b''.join(_hashable_sequence(1, types=True))
+    part = b''.join(_hashable_sequence(1, types=False))
     # assert full == b'INT\x00\x00\x00\x01'
     # assert part == b'\x00\x00\x00\x01'
     assert full == b'INT\x01'
