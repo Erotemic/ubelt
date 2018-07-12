@@ -2,6 +2,17 @@ version: 0.4.0
 ---------------
 * Using ordered-set pypi package for the OrderedSet implementation 
 * Removed ub.OrderedSet.extend
+* New functionality:
+    * ub.find_exe - a python implementation of which 
+    * ub.find_path - finds matching files in your PATH variables
+
+* BREAKING CHANGES:
+    Chaning default behavior of util_hash.
+    Default of ub.Cacher maxlen changed to 40 for sha1 considerations
+    Default of ub.hash_data `base` changed from `abc` to `hex`
+    Default of ub.hash_data `types` changed from True to False.
+    Moved argument position of hashlen to the end.
+
 * ub.download now accepts `hash_prefix` and `hasher` args. 
 * Add CacheStamp
 * ub.hash_file now accepts `types` args
