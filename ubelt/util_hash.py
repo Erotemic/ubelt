@@ -271,10 +271,14 @@ class HashableExtensions(object):
             TypeError : if data has no registered hash methods
 
         Example:
+            >>> import ubelt as ub
+            >>> if not ub.modname_to_modpath('numpy'):
+            ...     raise pytest.skip()
             >>> self = HashableExtensions()
             >>> self._register_numpy_extensions()
             >>> self._register_builtin_class_extensions()
 
+            >>> import numpy as np
             >>> data = np.array([1, 2, 3])
             >>> self.lookup(data[0])
 
@@ -312,6 +316,7 @@ class HashableExtensions(object):
         Numpy extensions are builtin
         """
         # system checks
+        import numpy as np
         numpy_floating_types = (np.float16, np.float32, np.float64)
         if hasattr(np, 'float128'):  # nocover
             numpy_floating_types = numpy_floating_types + (np.float128,)
@@ -325,6 +330,10 @@ class HashableExtensions(object):
         def hash_numpy_array(data):
             """
             Example:
+                >>> import ubelt as ub
+                >>> if not ub.modname_to_modpath('numpy'):
+                ...     raise pytest.skip()
+                >>> import numpy as np
                 >>> data_f32 = np.zeros((3, 3, 3), dtype=np.float64)
                 >>> data_i64 = np.zeros((3, 3, 3), dtype=np.int64)
                 >>> data_i32 = np.zeros((3, 3, 3), dtype=np.int32)
@@ -359,6 +368,10 @@ class HashableExtensions(object):
         def _hash_numpy_random_state(data):
             """
             Example:
+                >>> import ubelt as ub
+                >>> if not ub.modname_to_modpath('numpy'):
+                ...     raise pytest.skip()
+                >>> import numpy as np
                 >>> rng = np.random.RandomState(0)
                 >>> _hashable_sequence(rng, types=True)
             """
@@ -400,8 +413,8 @@ class HashableExtensions(object):
 _HASHABLE_EXTENSIONS = HashableExtensions()
 _HASHABLE_EXTENSIONS._register_builtin_class_extensions()
 try:
-    import numpy as np
     _HASHABLE_EXTENSIONS._register_numpy_extensions()
+    pass
 except ImportError:  # nocover
     pass
 

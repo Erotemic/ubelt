@@ -1,8 +1,5 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
-import getpass
-import platform
-# import os
 import sys
 import pipes
 import shlex
@@ -10,9 +7,8 @@ import subprocess
 from threading import Thread
 from six.moves import zip_longest
 from six.moves import queue
-from ubelt.util_platform import POSIX, WIN32
 
-if POSIX:
+if 'posix' in sys.builtin_module_names:
     import select
 else:  # nocover
     select = NotImplemented
@@ -277,7 +273,7 @@ def cmd(command, shell=False, detatch=False, verbose=0, verbout=None,
         command_text = command
         command_tup = None
 
-    if shell or WIN32:
+    if shell or sys.platform.startswith('win32'):
         # When shell=True, args is sent to the shell (e.g. bin/sh) as text
         args = command_text
     else:
@@ -294,6 +290,8 @@ def cmd(command, shell=False, detatch=False, verbose=0, verbout=None,
     if verbose >= 2:  # nocover
         from ubelt import util_path
         import os
+        import platform
+        import getpass
         cwd_ = os.getcwd() if cwd is None else cwd
         if verbose >= 3:
             print('+=== START CMD ===')

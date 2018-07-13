@@ -100,6 +100,10 @@ class _FormatterExtensions(object):
 
     def __init__(self):
         self.func_registry = {}
+        # self._lazy_registrations = [
+        #     self._register_numpy_extensions,
+        #     self._register_builtin_extensions,
+        # ]
 
     def register(self, type):
         """
@@ -115,6 +119,13 @@ class _FormatterExtensions(object):
         Returns an appropriate function to format `data` if one has been
         registered.
         """
+        # while self._lazy_registrations:
+        #     reg = self._lazy_registrations.pop()
+        #     try:
+        #         reg()
+        #     except ImportError:
+        #         pass
+
         for type, func in _FORMATTER_EXTENSIONS.func_registry.items():
             if isinstance(data, type):
                 return func
@@ -127,10 +138,11 @@ class _FormatterExtensions(object):
         Example:
             >>> import sys
             >>> import pytest
-            >>> if 'numpy' not in sys.modules:
+            >>> import ubelt as ub
+            >>> if not ub.modname_to_modpath('numpy'):
             ...     raise pytest.skip()
             >>> # xdoctest: +IGNORE_WHITESPACE
-            >>> import ubelt as ub
+            >>> import numpy as np
             >>> data = np.array([[.2, 42, 5], [21.2, 3, .4]])
             >>> print(ub.repr2(data))
             np.array([[ 0.2, 42. ,  5. ],
@@ -150,6 +162,7 @@ class _FormatterExtensions(object):
             >>> print(ub.repr2(data, strvals=False))
             np.ma.empty((0, 10), dtype=np.float64)
         """
+        import numpy as np
         @self.register(np.ndarray)
         def format_ndarray(data, **kwargs):
             strvals = kwargs.get('strvals', False)
@@ -226,9 +239,11 @@ class _FormatterExtensions(object):
 _FORMATTER_EXTENSIONS = _FormatterExtensions()
 _FORMATTER_EXTENSIONS._register_builtin_extensions()
 try:
-    import numpy as np
+    # TODO: can we use lazy loading to prevent trying to import numpy until
+    # some attribute of _FORMATTER_EXTENSIONS is used?
     _FORMATTER_EXTENSIONS._register_numpy_extensions()
     # TODO: register pandas by default if available
+    pass
 except ImportError:  # nocover
     pass
 
