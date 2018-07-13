@@ -261,6 +261,9 @@ class HashableExtensions(object):
             func: closure to be used as the decorator
 
         Example:
+            >>> # xdoctest: +SKIP
+            >>> # Skip this doctest because we dont want tests to modify
+            >>> # the global state.
             >>> import ubelt as ub
             >>> import pytest
             >>> class MyType(object):
@@ -278,6 +281,7 @@ class HashableExtensions(object):
             >>> # TODO: allow hash_data to take an new instance of
             >>> # HashableExtensions, so we dont have to modify the global
             >>> # ubelt state when we run tests.
+            >>> my_instance = MyType(1)
             >>> ub.hash_data(my_instance)
         """
         # ensure iterable
@@ -689,10 +693,7 @@ def hash_data(data, hasher=NoParam, base=NoParam, types=False,
         alphabet26 is a pretty nice base, I recommend it.
         However we default to hex because it is more standardly used.
         This means the output of hashdata with base=sha1 will be the same as
-        the output of `sha1sum`
-        khex is standard, and we should avoid surprises.
-
-
+        the output of `sha1sum`.
 
     Returns:
         str: text -  hash string
