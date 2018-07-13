@@ -624,7 +624,7 @@ Here are the repos containing the standalone class utilities:
   
 
 .. |Travis| image:: https://img.shields.io/travis/Erotemic/ubelt/master.svg?label=Travis%20CI
-   :target: https://travis-ci.org/Erotemic/ubelt
+   :target: https://travis-ci.org/Erotemic/ubelt?branch=master
 .. |Codecov| image:: https://codecov.io/github/Erotemic/ubelt/badge.svg?branch=master&service=github
    :target: https://codecov.io/github/Erotemic/ubelt?branch=master
 .. |Appveyor| image:: https://ci.appveyor.com/api/projects/status/github/Erotemic/ubelt?branch=master&svg=True
