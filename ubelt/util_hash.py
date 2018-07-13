@@ -245,15 +245,50 @@ class HashableExtensions(object):
         self.iterable_checks = []
 
     def register(self, hash_types):
+        """
+        Registers a function to generate a hash for data of the appropriate
+        types. This can be used to register custom classes. Internally this is
+        used to define how to hash non-builtin objects like ndarrays and uuids.
+
+        The registered function should return a tuple of bytes. First a small
+        prefix hinting at the data type, and second the raw bytes that can be
+        hashed.
+
+        Args:
+            hash_types (class or tuple of classes):
+
+        Returns:
+            func: closure to be used as the decorator
+
+        Example:
+            >>> import ubelt as ub
+            >>> import pytest
+            >>> class MyType(object):
+            ...     def __init__(self, id):
+            ...         self.id = id
+            >>> data = MyType(1)
+            >>> # Custom types wont work with ub.hash_data by default
+            >>> with pytest.raises(TypeError):
+            ...     ub.hash_data(data)
+            >>> # You can register your functions with ubelt's internal
+            >>> # hashable_extension registery.
+            >>> @ub.util_hash._HASHABLE_EXTENSIONS.register(MyType)
+            >>> def hash_my_type(data):
+            ...     return b'mytype', six.b(ub.hash_data(data.id))
+            >>> # TODO: allow hash_data to take an new instance of
+            >>> # HashableExtensions, so we dont have to modify the global
+            >>> # ubelt state when we run tests.
+            >>> ub.hash_data(my_instance)
+        """
         # ensure iterable
         if not isinstance(hash_types, (list, tuple)):
             hash_types = [hash_types]
-        def _wrap(hash_func):
+        def _decor_closure(hash_func):
             for hash_type in hash_types:
                 key = (hash_type.__module__, hash_type.__name__)
                 self.keyed_extensions[key] = (hash_type, hash_func)
             return hash_func
-        return _wrap
+        return _decor_closure
 
     def add_iterable_check(self, func):
         """
@@ -271,10 +306,14 @@ class HashableExtensions(object):
             TypeError : if data has no registered hash methods
 
         Example:
+            >>> import ubelt as ub
+            >>> if not ub.modname_to_modpath('numpy'):
+            ...     raise pytest.skip()
             >>> self = HashableExtensions()
             >>> self._register_numpy_extensions()
             >>> self._register_builtin_class_extensions()
 
+            >>> import numpy as np
             >>> data = np.array([1, 2, 3])
             >>> self.lookup(data[0])
 
@@ -312,6 +351,7 @@ class HashableExtensions(object):
         Numpy extensions are builtin
         """
         # system checks
+        import numpy as np
         numpy_floating_types = (np.float16, np.float32, np.float64)
         if hasattr(np, 'float128'):  # nocover
             numpy_floating_types = numpy_floating_types + (np.float128,)
@@ -325,6 +365,10 @@ class HashableExtensions(object):
         def hash_numpy_array(data):
             """
             Example:
+                >>> import ubelt as ub
+                >>> if not ub.modname_to_modpath('numpy'):
+                ...     raise pytest.skip()
+                >>> import numpy as np
                 >>> data_f32 = np.zeros((3, 3, 3), dtype=np.float64)
                 >>> data_i64 = np.zeros((3, 3, 3), dtype=np.int64)
                 >>> data_i32 = np.zeros((3, 3, 3), dtype=np.int32)
@@ -359,6 +403,10 @@ class HashableExtensions(object):
         def _hash_numpy_random_state(data):
             """
             Example:
+                >>> import ubelt as ub
+                >>> if not ub.modname_to_modpath('numpy'):
+                ...     raise pytest.skip()
+                >>> import numpy as np
                 >>> rng = np.random.RandomState(0)
                 >>> _hashable_sequence(rng, types=True)
             """
@@ -400,8 +448,8 @@ class HashableExtensions(object):
 _HASHABLE_EXTENSIONS = HashableExtensions()
 _HASHABLE_EXTENSIONS._register_builtin_class_extensions()
 try:
-    import numpy as np
     _HASHABLE_EXTENSIONS._register_numpy_extensions()
+    pass
 except ImportError:  # nocover
     pass
 

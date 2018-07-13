@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
 import six
-import collections
 import operator as op
 import itertools as it
 from collections import OrderedDict
@@ -325,7 +324,7 @@ def dict_subset(dict_, keys, default=util_const.NoParam):
         {'K': 3, 'dcvs_clip_max': 0.2}
     """
     items = dict_take(dict_, keys, default)
-    subdict_ = collections.OrderedDict(list(zip(keys, items)))
+    subdict_ = OrderedDict(list(zip(keys, items)))
     return subdict_
 
 

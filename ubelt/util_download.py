@@ -18,24 +18,24 @@ from ubelt import util_platform
 # _have_requests = True
 # except ImportError:  # nocover
 # _have_requests = False
-import sys
-if sys.version_info[0] == 2:  # nocover
-    from urlparse import urlparse  # NOQA
-    from urllib2 import urlopen  # NOQA
-    from urllib2 import URLError  # NOQA
-else:
-    from urllib.request import urlopen  # NOQA
-    from urllib.parse import urlparse  # NOQA
-    from urllib.error import URLError  # NOQA
+# import sys
+# if six.PY2:  # nocover
+#     # from urlparse import urlparse  # NOQA
+#     from urllib2 import urlopen  # NOQA
+#     # from urllib2 import URLError  # NOQA
+# else:
+#     from urllib.request import urlopen  # NOQA
+#     # from urllib.parse import urlparse  # NOQA
+#     # from urllib.error import URLError  # NOQA
 
 
-try:  # nocover
-    raise ImportError()
-    from tqdm import tqdm as Progress
-except ImportError:  # nocover
-    # fake tqdm if it's not installed
-    from ubelt import progiter
-    Progress = progiter.ProgIter
+# try:  # nocover
+#     raise ImportError()
+#     from tqdm import tqdm as Progress
+# except ImportError:  # nocover
+# fake tqdm if it's not installed
+from ubelt import progiter
+Progress = progiter.ProgIter
 
 
 __all__ = ['download', 'grabdata']
@@ -106,6 +106,10 @@ def download(url, fpath=None, hash_prefix=None, hasher='sha512',
         >>> with pytest.raises(RuntimeError):
         >>>     ub.download(url, hasher='sha512', hash_prefix='BAD_HASH')
     """
+    if six.PY2:  # nocover
+        from urllib2 import urlopen  # NOQA
+    else:
+        from urllib.request import urlopen  # NOQA
     if fpath is None:
         dpath = util_platform.ensure_app_cache_dir('ubelt')
         fname = basename(url)
