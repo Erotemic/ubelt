@@ -190,6 +190,13 @@ def compressuser(path, home='~'):
     return path
 
 
+def expandpath(path):
+    """ Wrapper around expanduser and expandvars """
+    path = expanduser(path)
+    path = expandvars(path)
+    return path
+
+
 def truepath(path, real=False):
     """
     Normalizes a string representation of a path and does shell-like expansion.
