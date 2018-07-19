@@ -209,7 +209,12 @@ def test_download_bad_url():
     ub.delete(fpath)
     assert not exists(fpath)
 
-    from ubelt.util_download import URLError
+    # from ubelt.util_download import URLError
+    import six
+    if six.PY2:  # nocover
+        from urllib2 import URLError  # NOQA
+    else:
+        from urllib.error import URLError  # NOQA
     with pytest.raises(URLError):
         ub.download(url, fpath=fpath, verbose=1)
 

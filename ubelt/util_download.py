@@ -68,6 +68,10 @@ def download(url, fpath=None, hash_prefix=None, hasher='sha512',
         verbose (int):
             Verbosity level 0 or 1. Defaults to 1.
 
+    Raises:
+        URLError - if there is problem downloading the url
+        RuntimeError - if the hash does not match the hash_prefix
+
     Notes:
         Original code taken from pytorch in torch/utils/model_zoo.py and
         slightly modified.
