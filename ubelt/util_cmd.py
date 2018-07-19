@@ -296,7 +296,7 @@ def cmd(command, shell=False, detatch=False, verbose=0, tee=None, cwd=None,
             # command_tup = shlex.split(command_text, posix=not WIN32)
         args = command_tup
 
-    if verbout is not None:
+    if verbout is not None:  # nocover
         import warnings
         warnings.warn(
             'verbout is depricated and will be removed in a future release. '

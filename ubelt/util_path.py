@@ -16,7 +16,7 @@ import shutil
 
 __all__ = [
     'TempDir', 'augpath', 'compressuser', 'truepath', 'userhome',
-    'ensuredir',
+    'ensuredir', 'expandpath',
 ]
 
 
@@ -191,7 +191,20 @@ def compressuser(path, home='~'):
 
 
 def expandpath(path):
-    """ Wrapper around expanduser and expandvars """
+    """
+    Wrapper around expanduser and expandvars.
+
+    Less agressive than truepath. Only expands environs and tilde. Does not
+    change relative paths to absolute paths.
+
+    Args:
+        path (str): string representation of a path
+
+    Example:
+        >>> import ubelt as ub
+        >>> assert ub.expandpath('~/foo') == join(ub.userhome(), 'foo')
+        >>> assert ub.expandpath('foo') == 'foo'
+    """
     path = expanduser(path)
     path = expandvars(path)
     return path
