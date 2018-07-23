@@ -8,12 +8,12 @@ CommandLine:
 #     The following functions and classes are candidates to be ported from utool:
 #     * reload_class
 #     * inject_func_as_property
-#     * parse_cfgstr3
 #     * accumulate
-#     * ParamInfo - move to dtool
-#     * embed
 #     * rsync
-#     * argparse_dict
+#     * ParamInfo - move to dtool
+#     * parse_cfgstr3 - not relevant here
+#     * embed - move to xdevelop
+#     * argparse_dict - move to xinspect
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 __version__ = '0.5.0'

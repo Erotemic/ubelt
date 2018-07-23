@@ -2,11 +2,6 @@
 
 Good utilities lift all codes.
 
-Possible catch phrases / logo ideas:
-
-    * Snakeskin belt for the logo?
-    * Rename or alias xdoctest to xdoc: ``import xdoc``
-
 
 Installation:
 =============
