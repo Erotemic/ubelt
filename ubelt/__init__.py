@@ -16,7 +16,7 @@ CommandLine:
 #     * argparse_dict
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-__version__ = '0.5.0.dev'
+__version__ = '0.5.0'
 
 __submodules__ = [
     'util_arg',
