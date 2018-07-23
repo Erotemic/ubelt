@@ -98,10 +98,11 @@ def symlink(real_path, link_path, overwrite=False, verbose=0):
             path = os.path.abspath(path)
 
     if verbose:
-        print('Creating symlink: path={} link={}'.format(path, link))
+        # print('Creating symlink: path={} link={}'.format(path, link))
+        print('Symlink: {path} -> {link}'.format(path=path, link=link))
     if islink(link):
         if verbose:
-            print('symlink already exists')
+            print('... already exists')
         if _readlink(link) == path:
             if verbose > 1:
                 print('... and points to the right place')

@@ -3,7 +3,6 @@ from __future__ import print_function, division, absolute_import, unicode_litera
 import sys
 import codecs
 import unicodedata
-import textwrap
 from six.moves import cStringIO
 import six
 
@@ -98,7 +97,7 @@ def indent(text, prefix='    '):
 
 
 def codeblock(block_str):
-    r"""
+    """
     Wraps multiline string blocks and returns unindented code.
     Useful for templated code defined in indented parts of code.
 
@@ -133,6 +132,7 @@ def codeblock(block_str):
         >>> print('With codeblock')
         >>> print(codeblock_version)
     """
+    import textwrap
     return textwrap.dedent(block_str).strip('\n')
 
 

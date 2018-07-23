@@ -1,8 +1,5 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
-import getpass
-import platform
-# import os
 import sys
 import pipes
 import shlex
@@ -10,7 +7,8 @@ import subprocess
 from threading import Thread
 from six.moves import zip_longest
 from six.moves import queue
-from ubelt.util_platform import POSIX, WIN32
+
+POSIX = 'posix' in sys.builtin_module_names
 
 if POSIX:
     import select
@@ -179,9 +177,9 @@ def _tee_output(make_proc, stdout=None, stderr=None, backend='auto'):
     return proc, logged_out, logged_err
 
 
-def cmd(command, shell=False, detatch=False, verbose=0, verbout=None,
-        tee='auto', cwd=None, env=None):
-    r"""
+def cmd(command, shell=False, detatch=False, verbose=0, tee=None, cwd=None,
+        env=None, tee_backend='auto', verbout=None):
+    """
     Executes a command in a subprocess.
 
     The advantage of this wrapper around subprocess is that
@@ -194,16 +192,25 @@ def cmd(command, shell=False, detatch=False, verbose=0, verbout=None,
 
     Args:
         command (str): bash-like command string or tuple of executable and args
+
         shell (bool): if True, process is run in shell
+
         detatch (bool): if True, process is detached and run in background.
+
         verbose (int): verbosity mode. Can be 0, 1, 2, or 3.
-        verbout (int): if True, `command` writes to stdout in realtime.
-            defaults to True iff verbose > 0. Note when detatch is True
-            all stdout is lost.
-        tee (str): backend for tee output. Can be either: auto, select (POSIX
-            only), or thread.
+
+        tee (bool): if True, simultaniously writes to stdout while capturing
+            output from the command. If not specified, defaults to True
+            if verbose > 0.  If detech is True, then this argument is ignored.
+
         cwd (str): path to run command
+
         env (str): environment passed to Popen
+
+        tee_backend (str): backend for tee output.
+            Valid choices are: "auto", "select" (POSIX only), and "thread".
+
+        verbout (bool): DEPRICATED. Use `tee` instead.
 
     Returns:
         dict: info - information about command status.
@@ -245,7 +252,7 @@ def cmd(command, shell=False, detatch=False, verbose=0, verbout=None,
     Doctest:
         >>> # Note this command is formatted to work on win32 and unix
         >>> info = cmd('echo str&&echo shell', verbose=0, shell=True)
-        >>> assert info['out'].strip() == 'str\nshell'
+        >>> assert info['out'].strip() == 'str' + chr(10) + 'shell'
 
     Doctest:
         >>> info = cmd(('echo', 'tuple shell'), verbose=0, shell=True)
@@ -277,7 +284,7 @@ def cmd(command, shell=False, detatch=False, verbose=0, verbout=None,
         command_text = command
         command_tup = None
 
-    if shell or WIN32:
+    if shell or sys.platform.startswith('win32'):
         # When shell=True, args is sent to the shell (e.g. bin/sh) as text
         args = command_text
     else:
@@ -289,23 +296,28 @@ def cmd(command, shell=False, detatch=False, verbose=0, verbout=None,
             # command_tup = shlex.split(command_text, posix=not WIN32)
         args = command_tup
 
-    if verbout is None:
-        verbout = verbose >= 1
-    if verbose >= 2:  # nocover
-        from ubelt import util_path
+    if verbout is not None:  # nocover
+        import warnings
+        warnings.warn(
+            'verbout is depricated and will be removed in a future release. '
+            'use tee instead', DeprecationWarning)
+        tee = verbout
+
+    if tee is None:
+        tee = verbose > 0
+    if verbose > 1:  # nocover
         import os
-        cwd_ = os.getcwd() if cwd is None else cwd
-        if verbose >= 3:
+        import platform
+        import getpass
+        from ubelt import util_path
+        if verbose > 2:
             print('+=== START CMD ===')
-            print('CWD:' + cwd_)
+        cwd_ = os.getcwd() if cwd is None else cwd
         compname = platform.node()
         username = getpass.getuser()
         cwd_ = util_path.compressuser(cwd_)
         ps1 = '[ubelt.cmd] {}@{}:{}$ '.format(username, compname, cwd_)
         print(ps1 + command_text)
-        if verbout >= 3 and not detatch:
-            print('----')
-            print('Stdout:')
 
     # Create a new process to execute the command
     def make_proc():
@@ -317,14 +329,14 @@ def cmd(command, shell=False, detatch=False, verbose=0, verbout=None,
 
     if detatch:
         info = {'proc': make_proc(), 'command': command_text}
-        if verbose >= 2:  # nocover
+        if verbose > 0:  # nocover
             print('...detatching')
     else:
-        if verbout:
-            # we need to tee output nad start threads if verbout is False?
+        if tee:
+            # we need to tee output and start threads if tee is False?
             stdout, stderr = sys.stdout, sys.stderr
             proc, logged_out, logged_err = _tee_output(make_proc, stdout, stderr,
-                                                       backend=tee)
+                                                       backend=tee_backend)
 
             try:
                 out = ''.join(logged_out)
@@ -348,7 +360,7 @@ def cmd(command, shell=False, detatch=False, verbose=0, verbout=None,
             'proc': proc,
             'command': command_text
         }
-        if verbose >= 3:  # nocover
+        if verbose > 2:  # nocover
             print('L___ END CMD ___')  # TODO: use nicer unicode chars
     return info
 

@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
+import re
 import sys
 import os.path
 import zipimport
@@ -202,7 +203,7 @@ def import_module_from_path(modpath):
 
         This can import a module from within a zipfile. To do this modpath
         should specify the path to the zipfile and the path to the module
-        within that zipfile separated by a colon.
+        within that zipfile separated by a colon or pathsep.
         E.g. `/path/to/archive.zip:mymodule.py`
 
     Warning:
@@ -249,20 +250,36 @@ def import_module_from_path(modpath):
         >>>     myzip.write(external_modpath, internal)
         >>> # Import the bar module from within the zipfile
         >>> modpath = zippath + ':' + internal
+        >>> modpath = zippath + os.path.sep + internal
         >>> module = import_module_from_path(modpath)
         >>> assert module.__name__ == os.path.normpath('folder/bar')
         >>> assert module.testvar == 1
+
+    Doctest:
+        >>> from ubelt import util_import
+        >>> import pytest
+        >>> with pytest.raises(IOError):
+        >>>     import_module_from_path('does-not-exist')
+        >>> with pytest.raises(IOError):
+        >>>     import_module_from_path('does-not-exist.zip/')
     """
-    if not os.path.exists(modpath) and ':' in modpath:
-        # Handle the case where modpath is a module inside a zipfile
-        parts = modpath.split(':')
-        archivepath = ':'.join(parts[:-1])  # handles C:\ on windows
-        internal = parts[-1]
-        modname = os.path.splitext(internal)[0]
-        modname = os.path.normpath(modname)
-        zimp_file = zipimport.zipimporter(archivepath)
-        module = zimp_file.load_module(modname)
-        return module
+    if not os.path.exists(modpath):
+        # We allow (if not prefer or force) the colon to be a path.sep in order
+        # to agree with the mod.__name__ attribute that will be produced
+
+        # zip followed by colon or slash
+        pat = '(.zip[' + re.escape(os.path.sep) + '/:])'
+        parts = re.split(pat, modpath, flags=re.IGNORECASE)
+        if len(parts) > 2:
+            archivepath = ''.join(parts[:-1])[:-1]
+            internal = parts[-1]
+            modname = os.path.splitext(internal)[0]
+            modname = os.path.normpath(modname)
+            if os.path.exists(archivepath):
+                zimp_file = zipimport.zipimporter(archivepath)
+                module = zimp_file.load_module(modname)
+                return module
+        raise IOError('modpath={} does not exist'.format(modpath))
     else:
         # the importlib version doesnt work in pytest
         module = _custom_import_modpath(modpath)

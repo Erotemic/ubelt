@@ -16,7 +16,7 @@ CommandLine:
 #     * argparse_dict
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-__version__ = '0.4.0'
+__version__ = '0.5.0.dev'
 
 __submodules__ = [
     'util_arg',
@@ -96,7 +96,7 @@ else:  # pragma: nobranch
     from ubelt.util_memoize import (memoize, memoize_method,)
     from ubelt.util_mixins import (NiceRepr,)
     from ubelt.util_path import (TempDir, augpath, compressuser, ensuredir,
-                                 truepath, userhome,)
+                                 expandpath, truepath, userhome,)
     from ubelt.util_platform import (DARWIN, LINUX, POSIX, WIN32, editfile,
                                      ensure_app_cache_dir, ensure_app_resource_dir,
                                      find_exe, find_path, get_app_cache_dir,
@@ -117,7 +117,7 @@ else:  # pragma: nobranch
                'delete', 'dict_hist', 'dict_subset', 'dict_take', 'dict_union',
                'download', 'dzip', 'editfile', 'ensure_app_cache_dir',
                'ensure_app_resource_dir', 'ensure_unicode', 'ensuredir',
-               'find_duplicates', 'find_exe', 'find_path', 'flatten',
+               'expandpath', 'find_duplicates', 'find_exe', 'find_path', 'flatten',
                'get_app_cache_dir', 'get_app_resource_dir', 'grabdata',
                'group_items', 'hash_data', 'hash_file', 'highlight_code', 'hzcat',
                'identity', 'import_module_from_name', 'import_module_from_path',

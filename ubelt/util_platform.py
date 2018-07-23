@@ -1,17 +1,12 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
-from os.path import exists
-from os.path import expanduser
-from os.path import join
-from os.path import normpath
-from os.path import isdir
 import os
 import sys
 import pipes
 import six
 import glob
 import itertools as it
-from ubelt import util_path
+from os.path import exists, join, isdir, expanduser, normpath
 
 WIN32  = sys.platform.startswith('win32')
 LINUX  = sys.platform.startswith('linux')
@@ -94,6 +89,7 @@ def ensure_app_resource_dir(appname, *args):
         >>> dpath = ub.ensure_app_resource_dir('ubelt')
         >>> assert exists(dpath)
     """
+    from ubelt import util_path
     dpath = get_app_resource_dir(appname, *args)
     util_path.ensuredir(dpath)
     return dpath
@@ -134,6 +130,7 @@ def ensure_app_cache_dir(appname, *args):
         >>> dpath = ub.ensure_app_cache_dir('ubelt')
         >>> assert exists(dpath)
     """
+    from ubelt import util_path
     dpath = get_app_cache_dir(appname, *args)
     util_path.ensuredir(dpath)
     return dpath

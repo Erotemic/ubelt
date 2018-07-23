@@ -1,3 +1,14 @@
+version: 0.5.0
+---------------
+* Certain imports are not lazy to optimize startup time
+* BREAKING CHANGE:
+   * change ub.cmd `tee` parameter to `tee_backend`
+   * change ub.cmd `verbout` parameter to `tee`
+* import_module_from_path can now handle zipimports where the zipfile is
+  followed by a slash rather than a colon
+* added ub.expandpath 
+
+
 version: 0.4.0
 ---------------
 * Using ordered-set pypi package for the OrderedSet implementation 

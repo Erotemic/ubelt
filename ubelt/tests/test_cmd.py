@@ -24,11 +24,11 @@ def test_cmd_stderr():
 
 def test_cmd_tee_auto():
     """
-    pytest ubelt/tests/test_cmd.py -k tee
+    pytest ubelt/tests/test_cmd.py -k tee_backend
     pytest ubelt/tests/test_cmd.py
     """
     command = 'python -c "for i in range(100): print(str(i))"'
-    result = ub.cmd(command, verbose=2, tee='auto')
+    result = ub.cmd(command, verbose=2, tee_backend='auto')
     assert result['out'] == '\n'.join(list(map(str, range(100)))) + '\n'
 
 
@@ -48,7 +48,7 @@ def test_cmd_tee_thread():
     print('existing_threads = {!r}'.format(existing_threads))
 
     command = 'python -c "for i in range(100): print(str(i))"'
-    result = ub.cmd(command, verbose=2, tee='thread')
+    result = ub.cmd(command, verbose=2, tee_backend='thread')
     assert result['out'] == '\n'.join(list(map(str, range(100)))) + '\n'
 
     after_threads = list(threading.enumerate())
@@ -60,7 +60,7 @@ def test_cmd_tee_thread():
 @pytest.mark.skipif(sys.platform == 'win32', reason='not available on win32')
 def test_cmd_tee_select():
     command = 'python -c "for i in range(100): print(str(i))"'
-    result = ub.cmd(command, verbose=2, tee='select')
+    result = ub.cmd(command, verbose=2, tee_backend='select')
     assert result['out'] == '\n'.join(list(map(str, range(100)))) + '\n'
 
 
@@ -71,7 +71,7 @@ def test_cmd_tee_badmethod():
     """
     command = 'python -c "for i in range(100): print(str(i))"'
     with pytest.raises(ValueError):
-        ub.cmd(command, verbose=2, tee='bad tee backend')
+        ub.cmd(command, verbose=2, tee_backend='bad tee backend')
 
 
 def test_cmd_multiline_stdout():
