@@ -266,7 +266,9 @@ def import_module_from_path(modpath):
     if not os.path.exists(modpath):
         # We allow (if not prefer or force) the colon to be a path.sep in order
         # to agree with the mod.__name__ attribute that will be produced
-        pat = '(.zip[' + os.path.sep + '/:])'  # zip followed by colon or slash
+
+        # zip followed by colon or slash
+        pat = '(.zip[' + re.escape(os.path.sep) + '/:])'
         parts = re.split(pat, modpath, flags=re.IGNORECASE)
         if len(parts) > 2:
             archivepath = ''.join(parts[:-1])[:-1]

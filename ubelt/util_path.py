@@ -202,7 +202,7 @@ def expandpath(path):
 
     Example:
         >>> import ubelt as ub
-        >>> assert ub.expandpath('~/foo') == join(ub.userhome(), 'foo')
+        >>> assert normpath(ub.expandpath('~/foo')) == join(ub.userhome(), 'foo')
         >>> assert ub.expandpath('foo') == 'foo'
     """
     path = expanduser(path)
