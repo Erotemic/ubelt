@@ -1,3 +1,8 @@
+version: 0.5.2
+---------------
+* Symlink now reports location of old target when the new target does not match
+
+
 version: 0.5.0
 ---------------
 * Certain imports are not lazy to optimize startup time

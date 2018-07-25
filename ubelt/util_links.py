@@ -98,20 +98,20 @@ def symlink(real_path, link_path, overwrite=False, verbose=0):
             path = os.path.abspath(path)
 
     if verbose:
-        # print('Creating symlink: path={} link={}'.format(path, link))
         print('Symlink: {path} -> {link}'.format(path=path, link=link))
     if islink(link):
         if verbose:
             print('... already exists')
-        if _readlink(link) == path:
+        pointed = _readlink(link)
+        if pointed == path:
             if verbose > 1:
                 print('... and points to the right place')
             return link
         if verbose > 1:
             if not exists(link):
-                print('... but it is broken and points somewhere else')
+                print('... but it is broken and points somewhere else: {}'.format(pointed))
             else:
-                print('... but it points somewhere else')
+                print('... but it points somewhere else: {}'.format(pointed))
         if overwrite:
             util_io.delete(link, verbose > 1)
 
