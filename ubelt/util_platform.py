@@ -20,7 +20,7 @@ def platform_resource_dir():
     This should be used for persistent configuration files.
 
     Returns:
-        str : path to the resource dir used by the current operating system
+        PathLike : path to the resource dir used by the current operating system
     """
     if WIN32:  # nocover
         dpath_ = '~/AppData/Roaming'
@@ -40,7 +40,7 @@ def platform_cache_dir():
     This should be used for temporary deletable data.
 
     Returns:
-        str : path to the cache dir used by the current operating system
+        PathLike : path to the cache dir used by the current operating system
     """
     if WIN32:  # nocover
         dpath_ = '~/AppData/Local'
@@ -64,7 +64,7 @@ def get_app_resource_dir(appname, *args):
         *args: any other subdirectories may be specified
 
     Returns:
-        str: dpath: writable resource directory for this application
+        PathLike: dpath: writable resource directory for this application
 
     SeeAlso:
         ensure_app_resource_dir
@@ -105,7 +105,7 @@ def get_app_cache_dir(appname, *args):
         *args: any other subdirectories may be specified
 
     Returns:
-        str: dpath: writable cache directory for this application
+        PathLike: dpath: writable cache directory for this application
 
     SeeAlso:
         ensure_app_cache_dir
@@ -143,7 +143,7 @@ def startfile(fpath, verbose=True):  # nocover
     on linux.
 
     Args:
-        fpath (str): a file to open using the program associated with the
+        fpath (PathLike): a file to open using the program associated with the
             files extension type.
         verbose (int): verbosity
 
@@ -190,7 +190,7 @@ def editfile(fpath, verbose=True):  # nocover
     this is not specified it defaults to gvim.
 
     Args:
-        fpath (str): a file path or python module / function
+        fpath (PathLike): a file path or python module / function
         verbose (int): verbosity
 
     DisableExample:
@@ -234,10 +234,10 @@ def find_exe(name, multi=False, path=None):
         multi (bool): if True return all matches instead of just the first.
             Defaults to False.
 
-        path (str): overrides the system PATH variable.
+        path (str or Iterable[PathLike]): overrides the system PATH variable.
 
     Returns:
-        str or List[str] or None: returns matching executable(s).
+        PathLike or List[PathLike] or None: returns matching executable(s).
 
     SeeAlso:
         shutil.which - which is available in Python 3.3+.
@@ -293,10 +293,10 @@ def find_path(name, path=None, exact=False):
     (file must be in a directory specified in a PATH environment variable)
 
     Args:
-        fname (str): file name to match.
+        fname (PathLike or str): file name to match.
             if exact is False this may be a glob pattern
 
-        path (str or Iterable[str]): list of directories to search either
+        path (str or Iterable[PathLike]): list of directories to search either
             specified as an os.pathsep separated string or a list of
             directories.  Defaults to environment PATH.
 
@@ -328,7 +328,7 @@ def find_path(name, path=None, exact=False):
     candidates = (join(dpath, name) for dpath in dpaths)
     if exact:
         if WIN32:  # nocover
-            pathext = [''] + os.environ.get("PATHEXT", "").split(os.pathsep)
+            pathext = [''] + os.environ.get('PATHEXT', '').split(os.pathsep)
             candidates = (p + ext for p in candidates for ext in pathext)
         candidates = filter(exists, candidates)
     else:

@@ -24,7 +24,7 @@ class Cacher(object):
             detailed cfgstrs to a reasonable readable level. Use meta to store
             make original details persist.
 
-        dpath (str): Specifies where to save the cache. If unspecified,
+        dpath (PathLike): Specifies where to save the cache. If unspecified,
             Cacher defaults to an application resource dir as given by appname.
 
         appname (str): application name (default = 'ubelt')
@@ -427,10 +427,10 @@ class CacheStamp(object):
             configuration associated with the stamped computation.  A common
             pattern is to call `ub.hash_data` on a dependency list.
 
-        dpath (str):
+        dpath (PathLike):
             where to store the cached stamp file
 
-        product (str or list, optional):
+        product (PathLike or Sequence[PathLike], optional):
             Path or paths that we expect the computation to produce. If
             specified the hash of the paths are stored.
 
@@ -507,8 +507,8 @@ class CacheStamp(object):
 
         Args:
             cfgstr (str, optional): override the default cfgstr if specified
-            product (str or list, optional): override the default product if
-                specified
+            product (PathLike or Sequence[PathLike], optional): override the
+                default product if specified
         """
         products = self._rectify_products(product)
         certificate = self._get_certificate(cfgstr=cfgstr)

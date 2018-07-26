@@ -203,7 +203,7 @@ def cmd(command, shell=False, detatch=False, verbose=0, tee=None, cwd=None,
             output from the command. If not specified, defaults to True
             if verbose > 0.  If detech is True, then this argument is ignored.
 
-        cwd (str): path to run command
+        cwd (PathLike): path to run command
 
         env (str): environment passed to Popen
 

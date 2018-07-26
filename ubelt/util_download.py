@@ -50,7 +50,7 @@ def download(url, fpath=None, hash_prefix=None, hasher='sha512',
         url (str):
             The url to download.
 
-        fpath (str):
+        fpath (PathLike):
             The path to download to. Defaults to basename of url and ubelt's
             application cache.
 
@@ -58,7 +58,7 @@ def download(url, fpath=None, hash_prefix=None, hasher='sha512',
             If specified, download will retry / error if the file hash
             does not match this value. Defaults to None.
 
-        hasher (key or Hasher):
+        hasher (str or Hasher):
             If hash_prefix is specified, this indicates the hashing
             algorithm to apply to the file. Defaults to sha512.
 
@@ -67,6 +67,9 @@ def download(url, fpath=None, hash_prefix=None, hasher='sha512',
 
         verbose (int):
             Verbosity level 0 or 1. Defaults to 1.
+
+    Returns:
+        PathLike: fpath - file path string
 
     Raises:
         URLError - if there is problem downloading the url
@@ -195,10 +198,11 @@ def grabdata(url, fpath=None, dpath=None, fname=None, redo=False,
     Args:
         url (str): url to the file to download
 
-        fpath (str): The full path to download the file to. If unspecified, the
-            arguments `dpath` and `fname` are used to determine this.
+        fpath (PathLike): The full path to download the file to. If
+            unspecified, the arguments `dpath` and `fname` are used to
+            determine this.
 
-        dpath (str): where to download the file. If unspecified `appname`
+        dpath (PathLike): where to download the file. If unspecified `appname`
             is used to determine this. Mutually exclusive with fpath.
 
         fname (str): What to name the downloaded file. Defaults to the url
@@ -216,14 +220,14 @@ def grabdata(url, fpath=None, dpath=None, fname=None, redo=False,
             file, and then saves the hash in a adjacent file to certify that
             the download was successful. Defaults to None.
 
-        hasher (key or Hasher):
+        hasher (str or Hasher):
             If hash_prefix is specified, this indicates the hashing
             algorithm to apply to the file. Defaults to sha512.
 
         **download_kw: additional kwargs to pass to ub.download
 
     Returns:
-        str: fpath - file path string
+        PathLike: fpath - file path string
 
     Example:
         >>> # xdoctest: +REQUIRES(--network)

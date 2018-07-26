@@ -724,7 +724,7 @@ def hash_file(fpath, blocksize=65536, stride=1, hasher=NoParam,
     Hashes the data in a file on disk.
 
     Args:
-        fpath (str):  file path string
+        fpath (PathLike):  file path string
 
         blocksize (int): 2 ** 16. Affects speed of reading file
 

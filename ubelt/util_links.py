@@ -28,8 +28,8 @@ def symlink(real_path, link_path, overwrite=False, verbose=0):
     cases. For more details see notes in `ubelt._win32_links`.
 
     Args:
-        path (str): path to real file or directory
-        link_path (str): path to desired location for symlink
+        path (PathLike): path to real file or directory
+        link_path (PathLike): path to desired location for symlink
         overwrite (bool): overwrite existing symlinks.
             This will not overwrite real files on systems with proper symlinks.
             However, on older versions of windows junctions are
@@ -38,7 +38,7 @@ def symlink(real_path, link_path, overwrite=False, verbose=0):
         verbose (int):  verbosity level (default=0)
 
     Returns:
-        str: link path
+        PathLike: link path
 
     CommandLine:
         python -m ubelt.util_links symlink:0

@@ -2,11 +2,12 @@
 """
 Functions for reading and writing files on disk.
 
-`writeto` and `readfrom` wrap `open().write()` and `open().read()` and primarilly
+`writeto` and `readfrom` wrap `open().write()` and `open().read()` and primarily
 serve to indicate that the type of data being written and read is unicode text.
 
 `delete` wraps `os.unlink` and `shutil.rmtree` and does not throw an error if
-the file or directory does not exist.
+the file or directory does not exist. It also contains workarounds for win32
+issues with `shutil`.
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import shutil
@@ -26,7 +27,7 @@ def writeto(fpath, to_write, aslines=False, verbose=None):
     Writes (utf8) text to a file.
 
     Args:
-        fpath (str): file path
+        fpath (PathLike): file path
         to_write (str): text to write (must be unicode text)
         aslines (bool): if True to_write is assumed to be a list of lines
         verbose (bool): verbosity flag
@@ -87,11 +88,11 @@ else:
 
 
 def readfrom(fpath, aslines=False, errors='replace', verbose=None):
-    r"""
+    """
     Reads (utf8) text from a file.
 
     Args:
-        fpath (str): file path
+        fpath (PathLike): file path
         aslines (bool): if True returns list of lines
         verbose (bool): verbosity flag
 
@@ -99,7 +100,7 @@ def readfrom(fpath, aslines=False, errors='replace', verbose=None):
         str: text from fpath (this is unicode)
     """
     if verbose:
-        print('[util_io] * Reading text file: %r ' % (fpath,))
+        print('Reading text file: %r ' % (fpath,))
     if not exists(fpath):
         raise IOError('File %r does not exist' % (fpath,))
     with open(fpath, 'rb') as file:
@@ -118,13 +119,13 @@ def readfrom(fpath, aslines=False, errors='replace', verbose=None):
 
 
 def touch(fpath, mode=0o666, dir_fd=None, verbose=0, **kwargs):
-    r"""
+    """
     change file timestamps
 
     Works like the touch unix utility
 
     Args:
-        fpath (str): name of the file
+        fpath (PathLike): name of the file
         mode (int): file permissions (python3 and unix only)
         dir_fd (file): optional directory file descriptor. If specified, fpath
             is interpreted as relative to this descriptor (python 3 only).
@@ -132,7 +133,7 @@ def touch(fpath, mode=0o666, dir_fd=None, verbose=0, **kwargs):
         **kwargs : extra args passed to `os.utime` (python 3 only).
 
     Returns:
-        str: path to the file
+        PathLike: path to the file
 
     References:
         https://stackoverflow.com/questions/1158076/implement-touch-using-python
@@ -163,11 +164,16 @@ def touch(fpath, mode=0o666, dir_fd=None, verbose=0, **kwargs):
 def delete(path, verbose=False):
     """
     Removes a file or recursively removes a directory.
-    If a path does not exist, then this is a noop
+    If a path does not exist, then this is does nothing.
 
     Args:
-        path (str): file or directory to remove
+        path (PathLike): file or directory to remove
         verbose (bool): if True prints what is being done
+
+    SeeAlso:
+        send2trash - A cross-platform Python package for sending files
+            to the trash instead of irreversibly deleting them.
+            https://github.com/hsoft/send2trash
 
     Doctest:
         >>> import ubelt as ub
@@ -224,19 +230,19 @@ def delete(path, verbose=False):
                 print('Deleting file="{}"'.format(path))
             os.unlink(path)
         elif os.path.isdir(path):
+            if verbose:  # nocover
+                print('Deleting directory="{}"'.format(path))
             if sys.platform.startswith('win32'):  # nocover
                 # Workaround bug that prevents shutil from working if
-                # the directory cointains junctions
+                # the directory contains junctions
                 from ubelt import _win32_links
                 _win32_links._win32_rmtree(path, verbose=verbose)
             else:
-                if verbose:  # nocover
-                    print('Deleting directory="{}"'.format(path))
                 shutil.rmtree(path)
 
 
 if __name__ == '__main__':
-    r"""
+    """
     CommandLine:
         python -m ubelt.util_io
     """
