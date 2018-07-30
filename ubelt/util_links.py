@@ -114,6 +114,11 @@ def symlink(real_path, link_path, overwrite=False, verbose=0):
                 print('... but it points somewhere else: {}'.format(pointed))
         if overwrite:
             util_io.delete(link, verbose > 1)
+    elif exists(link):
+        if verbose:
+            print('... already exists, but its a file. This will error.')
+            raise FileNotFoundError(
+                'cannot overwrite a physical path: "{}"'.format(path))
 
     if _win32_links:  # nocover
         _win32_links._symlink(path, link, overwrite=overwrite, verbose=verbose)
