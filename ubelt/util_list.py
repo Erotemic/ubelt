@@ -539,6 +539,9 @@ def argmax(indexable, key=None):
 
         key (Function, optional): customizes the ordering of the indexable
 
+    CommandLine:
+        python -m ubelt.util_list argmax
+
     Example:
         >>> assert argmax({'a': 3, 'b': 2, 'c': 100}) == 'c'
         >>> assert argmax(['a', 'c', 'b', 'z', 'f']) == 3
@@ -548,7 +551,16 @@ def argmax(indexable, key=None):
         >>> #with pytest.raises(TypeError):
         >>> #    argmax({'a': 3, 'b': 2, 3: 100, 4: 'd'})
     """
-    return argsort(indexable, key=key)[-1]
+    if key is None and isinstance(indexable, dict):
+        return max(indexable.items(), key=operator.itemgetter(1))[0]
+    elif hasattr(indexable, 'index'):
+        if key is None:
+            return indexable.index(max(indexable))
+        else:
+            return indexable.index(max(indexable, key=key))
+    else:
+        # less efficient, but catch all solution
+        return argsort(indexable, key=key)[-1]
 
 
 def argmin(indexable, key=None):

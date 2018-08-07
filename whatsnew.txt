@@ -6,6 +6,7 @@ version: 0.5.2
   match.
 * ub.grabdata will compute the hash of an existing file on disk if the .hash
   stamp is missing to try and avoid redownloading the file.
+* Improved efficiency of ub.argmax
 
 
 version: 0.5.0
