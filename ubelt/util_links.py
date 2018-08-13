@@ -113,7 +113,7 @@ def symlink(real_path, link_path, overwrite=False, verbose=0):
             else:
                 print('... but it points somewhere else: {}'.format(pointed))
         if overwrite:
-            util_io.delete(link, verbose > 1)
+            util_io.delete(link, verbose=verbose > 1)
     elif exists(link):
         if verbose:
             print('... already exists, but its a file. This will error.')
