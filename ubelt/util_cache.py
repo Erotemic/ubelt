@@ -18,7 +18,7 @@ class Cacher(object):
         fname (str): A file name. This is the prefix that will be used by the
             cache. It will alwasys be used as-is.
 
-        cfgstr (str): indicates the state. Either this string or a hash of this
+        cfgstr (str): Indicates the state. Either this string or a hash of this
             string will be used to identify the cache. A cfgstr should always
             be reasonably readable, thus it is good practice to hash extremely
             detailed cfgstrs to a reasonable readable level. Use meta to store
@@ -27,27 +27,27 @@ class Cacher(object):
         dpath (PathLike): Specifies where to save the cache. If unspecified,
             Cacher defaults to an application resource dir as given by appname.
 
-        appname (str): application name (default = 'ubelt')
+        appname (str): Application name (default = 'ubelt')
             Specifies a folder in the application resource directory where to
             cache the data if dpath is not specified.
 
-        ext (str): extension (default = '.pkl')
+        ext (str): File extension (default = '.pkl')
 
-        meta (object): cfgstr metadata that is also saved with the cfgstr.
+        meta (object): Metadata that is also saved with the cfgstr.
             This can be useful to indicate how the cfgstr was constructed.
 
-        verbose (int): level of verbosity. Can be 1, 2 or 3. (default=1)
+        verbose (int): Level of verbosity. Can be 1, 2 or 3. (default=1)
 
-        enabled (bool): if set to False, then the load and save methods will
+        enabled (bool): If set to False, then the load and save methods will
             do nothing.  (default = True)
 
-        log (func): overloads the print function. Useful for sending output to
+        log (func): Overloads the print function. Useful for sending output to
             loggers (e.g. logging.info, tqdm.tqdm.write, ...)
 
-        hasher (str): type of hashing algorithm to use if cfgstr needs to be
+        hasher (str): Type of hashing algorithm to use if cfgstr needs to be
             condensed to less than 49 characters.
 
-        protocol (int): protocol version used by pickle.  If python 2
+        protocol (int): Protocol version used by pickle.  If python 2
             compatibility is not required, then it is better to use protocol 4.
             (default=2)
 
@@ -215,7 +215,7 @@ class Cacher(object):
         Like load, but returns None if the load fails due to a cache miss.
 
         Args:
-            on_error (str): how to handle non-io errors errors. Either raise,
+            on_error (str): How to handle non-io errors errors. Either raise,
                 which re-raises the exception, or clear which deletes the cache
                 and returns None.
         """
@@ -421,14 +421,14 @@ class CacheStamp(object):
 
     Args:
         fname (str):
-            name of the stamp file
+            Name of the stamp file
 
         cfgstr (str):
-            configuration associated with the stamped computation.  A common
+            Configuration associated with the stamped computation.  A common
             pattern is to call `ub.hash_data` on a dependency list.
 
         dpath (PathLike):
-            where to store the cached stamp file
+            Where to store the cached stamp file
 
         product (PathLike or Sequence[PathLike], optional):
             Path or paths that we expect the computation to produce. If
@@ -438,6 +438,9 @@ class CacheStamp(object):
             The type of hasher used to compute the file hash of product.
             If None, then we assume the file has not been corrupted or changed.
             Defaults to sha1.
+
+        verbose (bool):
+            Passed to internal ub.Cacher object
 
     Example:
         >>> import ubelt as ub
@@ -465,8 +468,10 @@ class CacheStamp(object):
         >>> ub.delete(product)
         >>> assert self.expired()
     """
-    def __init__(self, fname, dpath, cfgstr=None, product=None, hasher='sha1'):
-        self.cacher = Cacher(fname, cfgstr=cfgstr, dpath=dpath)
+    def __init__(self, fname, dpath, cfgstr=None, product=None, hasher='sha1',
+                 verbose=None):
+        self.cacher = Cacher(fname, cfgstr=cfgstr, dpath=dpath,
+                             verbose=verbose)
         self.product = product
         self.hasher = hasher
 
