@@ -357,9 +357,6 @@ def test_overwrite_symlink():
         ub.symlink(happy_fpath, happy_flink, verbose=verbose)
 
         # Creating a duplicate link
-        # import six
-        # import sys
-        # if not six.PY2 and sys.platform.startswith('win32'):
         util_links._dirstats(dpath)
         ub.symlink(happy_fpath, happy_flink, verbose=verbose)
 

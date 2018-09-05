@@ -115,15 +115,21 @@ def symlink(real_path, link_path, overwrite=False, verbose=0):
         if overwrite:
             util_io.delete(link, verbose=verbose > 1)
     elif exists(link):
-        if verbose:
-            print('... already exists, but its a file. This will error.')
+        if _win32_links is None:
+            if verbose:
+                print('... already exists, but its a file. This will error.')
             raise FileNotFoundError(
                 'cannot overwrite a physical path: "{}"'.format(path))
+        else:  # nocover
+            if verbose:
+                print('... already exists, and is either a file or hard link. '
+                      'Assuming it is a hard link. '
+                      'On non-win32 systems this would error.')
 
-    if _win32_links:  # nocover
-        _win32_links._symlink(path, link, overwrite=overwrite, verbose=verbose)
-    else:
+    if _win32_links is None:
         os.symlink(path, link)
+    else:  # nocover
+        _win32_links._symlink(path, link, overwrite=overwrite, verbose=verbose)
 
     return link
 
@@ -153,7 +159,7 @@ def _can_symlink(verbose=0):  # nocover
         >>> # Script
         >>> print(_can_symlink(verbose=1))
     """
-    if _win32_links:
+    if _win32_links is not None:
         return _win32_links._win32_can_symlink(verbose)
     else:
         return True
@@ -225,7 +231,7 @@ def _dirstats(dpath=None):  # nocover
         line = '{E:d} {L:d} {F:d} {D:d} {J:d} - {path}'.format(**locals())
         if os.path.islink(full_path):
             line += ' -> ' + os.readlink(full_path)
-        elif _win32_links:
+        elif _win32_links is not None:
             if _win32_links._win32_is_junction(full_path):
                 line += ' => ' + _win32_links._win32_read_junction(full_path)
         print(line)
