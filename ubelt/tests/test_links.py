@@ -330,6 +330,34 @@ def test_broken_link():
         assert exists(broken_flink)
 
 
+def test_cant_overwrite_file_with_symlink():
+    if ub.WIN32:
+        # Can't distinguish this case on windows
+        pytest.skip()
+
+    dpath = ub.ensure_app_cache_dir('ubelt', 'test_cant_overwrite_file_with_symlink')
+    ub.delete(dpath, verbose=2)
+    ub.ensuredir(dpath, verbose=2)
+
+    happy_fpath = join(dpath, 'happy_fpath.txt')
+    happy_flink = join(dpath, 'happy_flink.txt')
+
+    for verbose in [2, 1, 0]:
+        print('=======')
+        print('verbose = {!r}'.format(verbose))
+        ub.delete(dpath, verbose=verbose)
+        ub.ensuredir(dpath, verbose=verbose)
+        ub.touch(happy_fpath, verbose=verbose)
+        ub.touch(happy_flink)  # create a file where a link should be
+
+        util_links._dirstats(dpath)
+        with pytest.raises(FileNotFoundError):  # file exists error
+            ub.symlink(happy_fpath, happy_flink, overwrite=False, verbose=verbose)
+
+        with pytest.raises(FileNotFoundError):  # file exists error
+            ub.symlink(happy_fpath, happy_flink, overwrite=True, verbose=verbose)
+
+
 def test_overwrite_symlink():
     """
     CommandLine:
