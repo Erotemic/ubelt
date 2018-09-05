@@ -99,3 +99,56 @@ def test_dzip_errors():
         ub.dzip([], [4, 5, 6])
     with pytest.raises(ValueError):
         ub.dzip([1, 2, 3], [4, 5])
+
+
+def test_group_items_callable():
+    pairs = [
+        ('ham', 'protein'),
+        ('jam', 'fruit'),
+        ('spam', 'protein'),
+        ('eggs', 'protein'),
+        ('cheese', 'dairy'),
+        ('banana', 'fruit'),
+    ]
+    items, groupids = zip(*pairs)
+    lut = dict(zip(items, groupids))
+
+    result1 = ub.group_items(items, groupids)
+    result2 = ub.group_items(items, lut.__getitem__)
+
+    result1 = ub.map_vals(set, result1)
+    result2 = ub.map_vals(set, result2)
+    assert result1 == result2
+
+
+# def _benchmark_groupid_sorted():
+#     import random
+#     import ubelt as ub
+
+#     ydata = ub.ddict(list)
+#     xdata = []
+
+#     ti = ub.Timerit(100, bestof=10, verbose=True)
+
+#     num = 10
+#     for gamma in [0.01, .1, .5]:
+#         for num in [10, 100, 1000, 10000, 100000]:
+#             items = [random.random() for _ in range(num)]
+#             groupids = [random.randint(0, int(num ** gamma)) for _ in range(num)]
+
+#             xdata.append(num)
+
+#             for timer in ti.reset(label='sort_g{}'.format(gamma)):
+#                 with timer:
+#                     ub.group_items(items, groupids, sorted_=True)
+#             ydata[ti.label].append(ti.min())
+
+#             for timer in ti.reset(label='nosort_g{}'.format(gamma)):
+#                 with timer:
+#                     ub.group_items(items, groupids, sorted_=False)
+#             ydata[ti.label].append(ti.min())
+
+#     ydata = ub.odict(sorted(ydata.items(), key=lambda t: t[1][-1])[::-1])
+#     import netharn as nh
+#     nh.util.autompl()
+#     nh.util.multi_plot(xdata, ydata)

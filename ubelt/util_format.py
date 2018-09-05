@@ -130,6 +130,16 @@ class _FormatterExtensions(object):
             if isinstance(data, type):
                 return func
 
+    # def _register_pandas_extensions(self):
+    #     # import numpy as np
+    #     # @self.register(pd.DataFrame)
+    #     def format_pandas(data, **kwargs):
+    #         precision = kwargs.get('precision', None)
+    #         float_format = (None if precision is None
+    #                         else '%.{}f'.format(precision))
+    #         formatted = data.to_string(float_format=float_format)
+    #         return formatted
+
     def _register_numpy_extensions(self):
         """
         CommandLine:

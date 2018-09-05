@@ -9,6 +9,7 @@ from os.path import islink
 from os.path import join
 from os.path import normpath
 from os.path import os
+import six
 import sys
 import warnings
 from ubelt import util_io
@@ -19,6 +20,9 @@ if sys.platform.startswith('win32'):
 else:
     _win32_links = None
 
+if six.PY2:
+    FileExistsError = IOError
+
 
 def symlink(real_path, link_path, overwrite=False, verbose=0):
     """
@@ -28,8 +32,8 @@ def symlink(real_path, link_path, overwrite=False, verbose=0):
     cases. For more details see notes in `ubelt._win32_links`.
 
     Args:
-        path (str): path to real file or directory
-        link_path (str): path to desired location for symlink
+        path (PathLike): path to real file or directory
+        link_path (PathLike): path to desired location for symlink
         overwrite (bool): overwrite existing symlinks.
             This will not overwrite real files on systems with proper symlinks.
             However, on older versions of windows junctions are
@@ -38,7 +42,7 @@ def symlink(real_path, link_path, overwrite=False, verbose=0):
         verbose (int):  verbosity level (default=0)
 
     Returns:
-        str: link path
+        PathLike: link path
 
     CommandLine:
         python -m ubelt.util_links symlink:0
@@ -98,27 +102,38 @@ def symlink(real_path, link_path, overwrite=False, verbose=0):
             path = os.path.abspath(path)
 
     if verbose:
-        # print('Creating symlink: path={} link={}'.format(path, link))
         print('Symlink: {path} -> {link}'.format(path=path, link=link))
     if islink(link):
         if verbose:
             print('... already exists')
-        if _readlink(link) == path:
+        pointed = _readlink(link)
+        if pointed == path:
             if verbose > 1:
                 print('... and points to the right place')
             return link
         if verbose > 1:
             if not exists(link):
-                print('... but it is broken and points somewhere else')
+                print('... but it is broken and points somewhere else: {}'.format(pointed))
             else:
-                print('... but it points somewhere else')
+                print('... but it points somewhere else: {}'.format(pointed))
         if overwrite:
-            util_io.delete(link, verbose > 1)
+            util_io.delete(link, verbose=verbose > 1)
+    elif exists(link):
+        if _win32_links is None:
+            if verbose:
+                print('... already exists, but its a file. This will error.')
+            raise FileExistsError(
+                'cannot overwrite a physical path: "{}"'.format(path))
+        else:  # nocover
+            if verbose:
+                print('... already exists, and is either a file or hard link. '
+                      'Assuming it is a hard link. '
+                      'On non-win32 systems this would error.')
 
-    if _win32_links:  # nocover
-        _win32_links._symlink(path, link, overwrite=overwrite, verbose=verbose)
-    else:
+    if _win32_links is None:
         os.symlink(path, link)
+    else:  # nocover
+        _win32_links._symlink(path, link, overwrite=overwrite, verbose=verbose)
 
     return link
 
@@ -148,7 +163,7 @@ def _can_symlink(verbose=0):  # nocover
         >>> # Script
         >>> print(_can_symlink(verbose=1))
     """
-    if _win32_links:
+    if _win32_links is not None:
         return _win32_links._win32_can_symlink(verbose)
     else:
         return True
@@ -220,7 +235,7 @@ def _dirstats(dpath=None):  # nocover
         line = '{E:d} {L:d} {F:d} {D:d} {J:d} - {path}'.format(**locals())
         if os.path.islink(full_path):
             line += ' -> ' + os.readlink(full_path)
-        elif _win32_links:
+        elif _win32_links is not None:
             if _win32_links._win32_is_junction(full_path):
                 line += ' => ' + _win32_links._win32_read_junction(full_path)
         print(line)

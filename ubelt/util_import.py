@@ -21,7 +21,7 @@ def split_modpath(modpath):
     to be imported and the modulepath relative to this directory.
 
     Args:
-        modpath (str): module filepath
+        modpath (PathLike): module filepath
 
     Returns:
         tuple: (directory, rel_modpath)
@@ -87,7 +87,7 @@ def modname_to_modpath(modname, hide_init=True, hide_main=True, sys_path=None):
         sys_path (list): if specified overrides `sys.path` (default None)
 
     Returns:
-        str: modpath - path to the module, or None if it doesn't exist
+        PathLike: modpath - path to the module, or None if it doesn't exist
 
     CommandLine:
         python -m ubelt.util_import modname_to_modpath
@@ -124,7 +124,7 @@ class PythonPathContext(object):
     Context for temporarily adding a dir to the PYTHONPATH.
 
     Args:
-        dpath (str): directory to insert into the PYTHONPATH
+        dpath (PathLike): directory to insert into the PYTHONPATH
         index (int): position to add to. Typically either -1 or 0.
 
     Example:
@@ -189,7 +189,7 @@ def import_module_from_path(modpath):
     Imports a module via its path
 
     Args:
-        modpath (str): path to the module on disk or within a zipfile.
+        modpath (PathLike): path to the module on disk or within a zipfile.
 
     Returns:
         module: the imported module

@@ -539,16 +539,26 @@ def argmax(indexable, key=None):
 
         key (Function, optional): customizes the ordering of the indexable
 
+    CommandLine:
+        python -m ubelt.util_list argmax
+
     Example:
         >>> assert argmax({'a': 3, 'b': 2, 'c': 100}) == 'c'
         >>> assert argmax(['a', 'c', 'b', 'z', 'f']) == 3
         >>> assert argmax([[0, 1], [2, 3, 4], [5]], key=len) == 1
         >>> assert argmax({'a': 3, 'b': 2, 3: 100, 4: 4}) == 3
-        >>> #import pytest
-        >>> #with pytest.raises(TypeError):
-        >>> #    argmax({'a': 3, 'b': 2, 3: 100, 4: 'd'})
+        >>> assert argmax(iter(['a', 'c', 'b', 'z', 'f'])) == 3
     """
-    return argsort(indexable, key=key)[-1]
+    if key is None and isinstance(indexable, dict):
+        return max(indexable.items(), key=operator.itemgetter(1))[0]
+    elif hasattr(indexable, 'index'):
+        if key is None:
+            return indexable.index(max(indexable))
+        else:
+            return indexable.index(max(indexable, key=key))
+    else:
+        # less efficient, but catch all solution
+        return argsort(indexable, key=key)[-1]
 
 
 def argmin(indexable, key=None):
@@ -568,34 +578,18 @@ def argmin(indexable, key=None):
         >>> assert argmin(['a', 'c', 'b', 'z', 'f']) == 0
         >>> assert argmin([[0, 1], [2, 3, 4], [5]], key=len) == 2
         >>> assert argmin({'a': 3, 'b': 2, 3: 100, 4: 4}) == 'b'
-        >>> #import pytest
-        >>> #assert pytest.raises(TypeError):
-        >>> #    argmax({'a': 3, 'b': 2, 3: 100, 4: 'd'})
+        >>> assert argmin(iter(['a', 'c', 'A', 'z', 'f'])) == 2
     """
-    return argsort(indexable, key=key)[0]
-
-
-# if False:
-#     import operator as op
-#     def argmax(indexable, key=None):
-#         """
-#         Returns index / key of the item with the largest value.
-#
-#         Args:
-#             indexable (dict or list):
-#             key (None or func): key to customize the ordering of the indexable
-#
-#         References:
-#             http://stackoverflow.com/questions/16945518/python-argmin-argmax
-#         """
-#         if isinstance(indexable, dict):
-#             return max(input_.items(), key=op.itemgetter(1))[0]
-#         elif hasattr(indexable, 'index'):
-#             return indexable.index(max(indexable, key=key))
-#         elif key is None:
-#             return max(enumerate(indexable), key=op.itemgetter(1))[0]
-#         else:
-#             return max(enumerate(indexable), key=key=lambda kv: key(kv[1]))[0]
+    if key is None and isinstance(indexable, dict):
+        return min(indexable.items(), key=operator.itemgetter(1))[0]
+    elif hasattr(indexable, 'index'):
+        if key is None:
+            return indexable.index(min(indexable))
+        else:
+            return indexable.index(min(indexable, key=key))
+    else:
+        # less efficient, but catch all solution
+        return argsort(indexable, key=key)[0]
 
 
 if __name__ == '__main__':

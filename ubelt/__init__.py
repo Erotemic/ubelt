@@ -16,7 +16,7 @@ CommandLine:
 #     * argparse_dict - move to xinspect
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-__version__ = '0.5.1'
+__version__ = '0.5.2'
 
 __submodules__ = [
     'util_arg',

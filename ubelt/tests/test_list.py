@@ -1,6 +1,7 @@
 import pytest
 import ubelt as ub
 
+
 def test_chunk_errors():
     with pytest.raises(ValueError):
         ub.chunks(range(9))
@@ -25,6 +26,7 @@ def test_chunk_total_nchunks():
 def test_chunk_len():
     gen = ub.chunks([1] * 6, chunksize=3)
     assert len(gen) == 2
+
 
 if __name__ == '__main__':
     r"""

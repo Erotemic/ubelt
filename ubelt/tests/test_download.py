@@ -262,6 +262,51 @@ def test_grabdata_fpath_and_dpath():
         ub.grabdata(url, fpath='foo', dpath='bar')
 
 
+@pytest.mark.timeout(5)
+def test_grabdata_hash_typo():
+    """
+    CommandLine:
+        xdoctest ~/code/ubelt/ubelt/tests/test_download.py test_grabdata_hash_typo --network
+
+    """
+    # url = 'https://www.dropbox.com/s/jl506apezj42zjz/ibeis-win32-setup-ymd_hm-2015-08-01_16-28.exe?dl=1'
+    import hashlib
+    url = 'http://i.imgur.com/rqwaDag.png'
+
+    if not ub.argflag('--network'):
+        pytest.skip('not running network tests')
+
+    dpath = ub.ensure_app_cache_dir('ubelt')
+    fname = basename(url)
+    fpath = join(dpath, fname)
+
+    ub.delete(fpath)
+    ub.delete(fpath + '.hash')
+    assert not exists(fpath)
+
+    print('[STEP1] Downloading file, but we have a typo in the hash')
+    with pytest.raises(RuntimeError):
+        got_fpath = ub.grabdata(
+            url, hash_prefix='545e3a51404f-typo-4e46aa65a70948e126',
+            hasher=hashlib.md5())
+    assert exists(fpath)
+
+    print('[STEP2] Fixing the typo recomputes the hash, but does not redownload the file')
+    got_fpath = ub.grabdata(url,
+                            hash_prefix='545e3a51404f664e46aa65a70948e126',
+                            hasher=hashlib.md5())
+    assert got_fpath == fpath
+    assert exists(fpath)
+
+    # If we delete the .hash file we will simply recompute
+    ub.delete(fpath + '.hash')
+    print('[STEP3] Deleting the hash file recomputes the hash')
+    got_fpath = ub.grabdata(url, fpath=fpath,
+                            hash_prefix='545e3a51404f664e46aa65a70948e126',
+                            hasher=hashlib.md5())
+    assert exists(fpath + '.hash')
+
+
 if __name__ == '__main__':
     """
     CommandLine:

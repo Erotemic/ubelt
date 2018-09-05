@@ -13,9 +13,10 @@ Notes:
 
     # need to edit the conf.py
 
+    cd ~/code/ubelt/docs
     make html
-
     sphinx-apidoc -f -o ~/code/ubelt/docs/source ~/code/ubelt/ubelt --separate
+    make html
 """
 #
 # Configuration file for the Sphinx documentation builder.

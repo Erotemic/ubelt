@@ -29,7 +29,7 @@ def augpath(path, suffix='', prefix='', ext=None, base=None, multidot=False):
     replaced with a new one.
 
     Args:
-        path (str): string representation of a path
+        path (PathLike): string representation of a path
         suffix (str): placed between the basename and extension
         prefix (str): placed in front of the basename
         ext (str): if specified, replaces the extension
@@ -39,7 +39,7 @@ def augpath(path, suffix='', prefix='', ext=None, base=None, multidot=False):
             in the basename is the extension (Defaults to False).
 
     Returns:
-        str: newpath
+        PathLike: newpath
 
     CommandLine:
         python -m ubelt.util_path augpath
@@ -116,7 +116,7 @@ def userhome(username=None):
         username (str): name of a user on the system
 
     Returns:
-        str: userhome_dpath: path to the home directory
+        PathLike: userhome_dpath: path to the home directory
 
     Example:
         >>> import getpass
@@ -165,12 +165,12 @@ def compressuser(path, home='~'):
     Inverse of `os.path.expanduser`
 
     Args:
-        path (str): path in system file structure
+        path (PathLike): path in system file structure
         home (str): symbol used to replace the home path. Defaults to '~', but
             you might want to use '$HOME' or '%USERPROFILE%' instead.
 
     Returns:
-        str: path: shortened path replacing the home directory with a tilde
+        PathLike: path: shortened path replacing the home directory with a tilde
 
     Example:
         >>> path = expanduser('~')
@@ -198,7 +198,7 @@ def expandpath(path):
     change relative paths to absolute paths.
 
     Args:
-        path (str): string representation of a path
+        path (PathLike): string representation of a path
 
     Example:
         >>> import ubelt as ub
@@ -215,11 +215,11 @@ def truepath(path, real=False):
     Normalizes a string representation of a path and does shell-like expansion.
 
     Args:
-        path (str): string representation of a path
+        path (PathLike): string representation of a path
         real (bool): if True, all symbolic links are followed. (default: False)
 
     Returns:
-        str : normalized path
+        PathLike : normalized path
 
     Note:
         This function is simlar to the composition of expanduser, expandvars,
@@ -255,12 +255,12 @@ def ensuredir(dpath, mode=0o1777, verbose=None):
     default
 
     Args:
-        dpath (str): dir to ensure. Can also be a tuple to send to join
+        dpath (PathLike): dir to ensure. Can also be a tuple to send to join
         mode (int): octal mode of directory (default 0o1777)
         verbose (int): verbosity (default 0)
 
     Returns:
-        str: path: the ensured directory
+        PathLike: path: the ensured directory
 
     Notes:
         This function is not threadsafe in Python2
