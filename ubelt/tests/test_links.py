@@ -8,7 +8,12 @@ from os.path import join, exists, relpath, dirname
 import ubelt as ub
 import pytest
 import os
+import six
 from ubelt import util_links
+
+
+if six.PY2:
+    FileExistsError = IOError
 
 
 def test_rel_dir_link():
@@ -351,10 +356,10 @@ def test_cant_overwrite_file_with_symlink():
         ub.touch(happy_flink)  # create a file where a link should be
 
         util_links._dirstats(dpath)
-        with pytest.raises(FileNotFoundError):  # file exists error
+        with pytest.raises(FileExistsError):  # file exists error
             ub.symlink(happy_fpath, happy_flink, overwrite=False, verbose=verbose)
 
-        with pytest.raises(FileNotFoundError):  # file exists error
+        with pytest.raises(FileExistsError):  # file exists error
             ub.symlink(happy_fpath, happy_flink, overwrite=True, verbose=verbose)
 
 

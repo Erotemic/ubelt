@@ -9,6 +9,7 @@ from os.path import islink
 from os.path import join
 from os.path import normpath
 from os.path import os
+import six
 import sys
 import warnings
 from ubelt import util_io
@@ -18,6 +19,9 @@ if sys.platform.startswith('win32'):
     from ubelt import _win32_links
 else:
     _win32_links = None
+
+if six.PY2:
+    FileExistsError = IOError
 
 
 def symlink(real_path, link_path, overwrite=False, verbose=0):
@@ -118,7 +122,7 @@ def symlink(real_path, link_path, overwrite=False, verbose=0):
         if _win32_links is None:
             if verbose:
                 print('... already exists, but its a file. This will error.')
-            raise FileNotFoundError(
+            raise FileExistsError(
                 'cannot overwrite a physical path: "{}"'.format(path))
         else:  # nocover
             if verbose:
