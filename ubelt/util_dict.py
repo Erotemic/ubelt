@@ -142,20 +142,15 @@ def dzip(items1, items2, cls=dict):
     return cls(zip(items1, items2))
 
 
-def group_items(item_list, groupid_list, sorted_=True):
+def group_items(items, groupids, sorted_=False):
     r"""
     Groups a list of items by group id.
 
     Args:
-        item_list (list): a list of items to group
-        groupid_list (list): a corresponding list of item groupids
-        sorted_ (bool): if True preserves the ordering of items within groups
-            (default = True)
-
-    Todo:
-        - [ ] change names from item_list->values and groupid_list->keys
-        - [ ] allow keys to be an iterable or a function so this can work
-              similar to itertools.groupby
+        items (Iterable): a list of items to group
+        groupids (Iterable or Func): a corresponding list of item groupids or
+            a function mapping an item to a groupid.
+        sorted_ (bool): DEPRICATED, setting to True is strictly slower
 
     Returns:
         dict: groupid_to_items: maps a groupid to a list of items
@@ -165,16 +160,25 @@ def group_items(item_list, groupid_list, sorted_=True):
 
     Example:
         >>> import ubelt as ub
-        >>> item_list    = ['ham',     'jam',   'spam',     'eggs',    'cheese', 'banana']
-        >>> groupid_list = ['protein', 'fruit', 'protein',  'protein', 'dairy',  'fruit']
-        >>> groupid_to_items = ub.group_items(item_list, groupid_list)
+        >>> items    = ['ham',     'jam',   'spam',     'eggs',    'cheese', 'banana']
+        >>> groupids = ['protein', 'fruit', 'protein',  'protein', 'dairy',  'fruit']
+        >>> groupid_to_items = ub.group_items(items, groupids)
         >>> print(ub.repr2(groupid_to_items, nl=0))
         {'dairy': ['cheese'], 'fruit': ['jam', 'banana'], 'protein': ['ham', 'spam', 'eggs']}
     """
-    pair_list_ = zip(groupid_list, item_list)
+    if callable(groupids):
+        keyfunc = groupids
+        pair_list_ = ((keyfunc(item), item) for item in items)
+    else:
+        pair_list_ = zip(groupids, items)
+
     if sorted_:
         # Sort by groupid for cache efficiency
         # TODO: test if this actually gives a savings
+        # RESULT: it does not, this should simply be removed
+        import warnings
+        warnings.warn('The sorted_ param is depricated and will be removed',
+                      DeprecationWarning)
         pair_list_ = list(pair_list_)
         try:
             pair_list = sorted(pair_list_, key=op.itemgetter(0))
@@ -187,8 +191,8 @@ def group_items(item_list, groupid_list, sorted_=True):
     # Initialize a dict of lists
     groupid_to_items = ddict(list)
     # Insert each item into the correct group
-    for groupid, item in pair_list:
-        groupid_to_items[groupid].append(item)
+    for key, item in pair_list:
+        groupid_to_items[key].append(item)
     return groupid_to_items
 
 
