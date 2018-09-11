@@ -273,7 +273,7 @@ def find_duplicates(items, k=2, key=None):
     Args:
         items (Iterable): hashable items possibly containing duplicates
         k (int): only return items that appear at least `k` times (default=2)
-        key (Function, optional): Returns indices where `key(items[i])`
+        key (Callable, optional): Returns indices where `key(items[i])`
             maps to a particular value at least k times.
 
     Returns:

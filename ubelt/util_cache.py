@@ -383,7 +383,7 @@ class Cacher(object):
         is only recommended for the simplest of cases.
 
         Args:
-            func (Function): function to decorate. Must have no arguments.
+            func (Callable): function to decorate. Must have no arguments.
 
         Example:
             >>> from ubelt.util_cache import *  # NOQA

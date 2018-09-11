@@ -249,7 +249,7 @@ def unique(items, key=None):
     Args:
         items (Iterable): list of items
 
-        key (Function, optional): custom normalization function.
+        key (Callable, optional): custom normalization function.
             If specified returns items where `key(item)` is unique.
 
     Yields:
@@ -293,7 +293,7 @@ def argunique(items, key=None):
     Args:
         items (Sequence): indexable collection of items
 
-        key (Function, optional): custom normalization function.
+        key (Callable, optional): custom normalization function.
             If specified returns items where `key(item)` is unique.
 
     Yields:
@@ -321,7 +321,7 @@ def unique_flags(items, key=None):
     Args:
         items (Sequence): indexable collection of items
 
-        key (Function, optional): custom normalization function.
+        key (Callable, optional): custom normalization function.
             If specified returns items where `key(item)` is unique.
 
     Returns:
@@ -451,7 +451,7 @@ def allsame(iterable, eq=operator.eq):
     Args:
         iterable (Iterable): items to determine if they are all the same
 
-        eq (Function, optional): function to determine equality
+        eq (Callable, optional): function to determine equality
             (default: operator.eq)
 
     Example:
@@ -488,7 +488,7 @@ def argsort(indexable, key=None, reverse=False):
     Args:
         indexable (Iterable or Mapping): indexable to sort by
 
-        key (Function, optional): customizes the ordering of the indexable
+        key (Callable, optional): customizes the ordering of the indexable
 
         reverse (bool, optional): if True returns in descending order
 
@@ -543,7 +543,7 @@ def argmax(indexable, key=None):
     Args:
         indexable (Iterable or Mapping): indexable to sort by
 
-        key (Function, optional): customizes the ordering of the indexable
+        key (Callable, optional): customizes the ordering of the indexable
 
     CommandLine:
         python -m ubelt.util_list argmax
@@ -577,7 +577,7 @@ def argmin(indexable, key=None):
     Args:
         indexable (Iterable or Mapping): indexable to sort by
 
-        key (Function, optional): customizes the ordering of the indexable
+        key (Callable, optional): customizes the ordering of the indexable
 
     Example:
         >>> assert argmin({'a': 3, 'b': 2, 'c': 100}) == 'b'
