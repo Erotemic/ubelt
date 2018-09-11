@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from __future__ import unicode_literals
 from os.path import exists
 from os.path import join
 from os.path import os
