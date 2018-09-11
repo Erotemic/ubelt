@@ -519,7 +519,7 @@ def argsort(indexable, key=None, reverse=False):
         >>> assert indices == [1, 2, 0]
     """
     # Create an iterator of value/key pairs
-    if isinstance(indexable, collections.abc.Mapping):
+    if isinstance(indexable, collections.Mapping):
         vk_iter = ((v, k) for k, v in indexable.items())
     else:
         vk_iter = ((v, k) for k, v in enumerate(indexable))
@@ -555,7 +555,7 @@ def argmax(indexable, key=None):
         >>> assert argmax({'a': 3, 'b': 2, 3: 100, 4: 4}) == 3
         >>> assert argmax(iter(['a', 'c', 'b', 'z', 'f'])) == 3
     """
-    if key is None and isinstance(indexable, collections.abc.Mapping):
+    if key is None and isinstance(indexable, collections.Mapping):
         return max(indexable.items(), key=operator.itemgetter(1))[0]
     elif hasattr(indexable, 'index'):
         if key is None:
@@ -586,7 +586,7 @@ def argmin(indexable, key=None):
         >>> assert argmin({'a': 3, 'b': 2, 3: 100, 4: 4}) == 'b'
         >>> assert argmin(iter(['a', 'c', 'A', 'z', 'f'])) == 2
     """
-    if key is None and isinstance(indexable, collections.abc.Mapping):
+    if key is None and isinstance(indexable, collections.Mapping):
         return min(indexable.items(), key=operator.itemgetter(1))[0]
     elif hasattr(indexable, 'index'):
         if key is None:
