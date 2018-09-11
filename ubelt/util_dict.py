@@ -108,7 +108,7 @@ def dzip(items1, items2, cls=dict):
         items1 (Iterable): full sequence
         items2 (Iterable): can either be a sequence of one item or a sequence
             of equal length to `items1`
-        cls (Class): dictionary type to use. Defaults to dict, but could
+        cls (Type[dict]): dictionary type to use. Defaults to dict, but could
             be ordered dict instead.
 
     Returns:
@@ -148,8 +148,8 @@ def group_items(items, groupids, sorted_=False):
 
     Args:
         items (Iterable): a list of items to group
-        groupids (Iterable or Func): a corresponding list of item groupids or
-            a function mapping an item to a groupid.
+        groupids (Iterable or Callable): a corresponding list of item groupids
+            or a function mapping an item to a groupid.
         sorted_ (bool): DEPRICATED, setting to True is strictly slower
 
     Returns:

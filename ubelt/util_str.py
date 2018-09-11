@@ -26,7 +26,7 @@ class CaptureStdout(object):
         python -m ubelt.util_str CaptureStdout
 
     TODO:
-        - [ ] use version in xdoctest.
+        - [ ] use version of this class coded in xdoctest.
         - [ ] rework to handle stdout, stderr or any other stream.
 
     Example:

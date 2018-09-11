@@ -11,6 +11,9 @@ def timestamp(method='iso8601'):
     """
     make an iso8601 timestamp
 
+    Args:
+        method (str): type of timestamp
+
     Example:
         >>> stamp = timestamp()
         >>> print('stamp = {!r}'.format(stamp))

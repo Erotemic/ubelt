@@ -24,7 +24,7 @@ def split_modpath(modpath):
         modpath (PathLike): module filepath
 
     Returns:
-        tuple: (directory, rel_modpath)
+        Tuple[PathLike, str]: (directory, rel_modpath)
 
     Example:
         >>> from xdoctest import static_analysis

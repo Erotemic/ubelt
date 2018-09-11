@@ -71,7 +71,7 @@ def memoize(func):
         https://wiki.python.org/moin/PythonDecoratorLibrary#Memoize
 
     Args:
-        func (function): live python function
+        func (Callable): live python function
 
     Returns:
         func: memoized wrapper

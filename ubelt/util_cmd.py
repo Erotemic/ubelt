@@ -78,7 +78,7 @@ def _proc_iteroutput_thread(proc):
         but I cannot gaurentee that there isn't an issue on our end.
 
     Yields:
-        tuple[(str, str)]: oline, eline: stdout and stderr line
+        Tuple[str, str]: oline, eline: stdout and stderr line
 
     References:
         https://stackoverflow.com/questions/375427/non-blocking-read-subproc
@@ -117,7 +117,7 @@ def _proc_iteroutput_select(proc):
     solution based on threads.
 
     Yields:
-        tuple[(str, str)]: oline, eline: stdout and stderr line
+        Tuple[str, str]: oline, eline: stdout and stderr line
     """
     # Read output while the external program is running
     while proc.poll() is None:
