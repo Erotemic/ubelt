@@ -3,6 +3,7 @@ version: 0.5.3
 * Added `key` to ub.find_duplicates
 * Renamed first argument of ub.chunks from sequence to items
 * Improved type hints in google-style docstrings 
+* ub.cmd verbose >= 3 now uses nicer unicode characters if possible
 
 
 version: 0.5.2

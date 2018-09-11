@@ -14,8 +14,8 @@ def argval(key, default=util_const.NoParam, argv=None):
     Args:
         key (str or tuple): string or tuple of strings. Each key should be
             prefixed with two hyphens (i.e. `--`)
-        default (object): value to return if not specified
-        argv (list): overrides `sys.argv` if specified
+        default (Optional[object]): value to return if not specified
+        argv (Optional[list]): overrides `sys.argv` if specified
 
     Returns:
         str: value : the value specified after the key. It they key is
@@ -55,7 +55,7 @@ def argflag(key, argv=None):
     Args:
         key (str or tuple): string or tuple of strings. Each key should be
             prefixed with two hyphens (i.e. `--`)
-        argv (list): overrides `sys.argv` if specified
+        argv (Optional[list]): overrides `sys.argv` if specified
 
     Returns:
         bool: flag : True if the key (or any of the keys) was specified
@@ -76,7 +76,7 @@ def argflag(key, argv=None):
 
 
 if __name__ == '__main__':
-    r"""
+    """
     CommandLine:
         python -m ubelt.util_arg
     """
