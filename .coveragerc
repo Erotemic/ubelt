@@ -17,7 +17,7 @@ exclude_lines =
     ^ *pass *$
     if _debug:
     if __name__ == .__main__.:
-    print(.*)
+    # print(.*)
     .*if six.PY2:
 
 omit =

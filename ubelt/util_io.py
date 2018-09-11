@@ -36,7 +36,6 @@ def writeto(fpath, to_write, aslines=False, verbose=None):
         python -m ubelt.util_io writeto --verbose
 
     Example:
-        >>> from ubelt.util_io import *  # NOQA
         >>> import ubelt as ub
         >>> dpath = ub.ensure_app_cache_dir('ubelt')
         >>> fpath = dpath + '/' + 'testwrite.txt'
@@ -50,7 +49,6 @@ def writeto(fpath, to_write, aslines=False, verbose=None):
         >>> assert read_ == to_write
 
     Example:
-        >>> from ubelt.util_io import *  # NOQA
         >>> import ubelt as ub
         >>> dpath = ub.ensure_app_cache_dir('ubelt')
         >>> fpath = dpath + '/' + 'testwrite2.txt'
@@ -139,7 +137,6 @@ def touch(fpath, mode=0o666, dir_fd=None, verbose=0, **kwargs):
         https://stackoverflow.com/questions/1158076/implement-touch-using-python
 
     Example:
-        >>> from ubelt.util_io import *  # NOQA
         >>> import ubelt as ub
         >>> dpath = ub.ensure_app_cache_dir('ubelt')
         >>> fpath = join(dpath, 'touch_file')

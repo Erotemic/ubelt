@@ -307,7 +307,7 @@ def grabdata(url, fpath=None, dpath=None, fname=None, redo=False,
             with open(stamp_fpath, 'r') as file:
                 hashstr = file.read()
             if not hashstr.startswith(hash_prefix):
-                if verbose:
+                if verbose:  # pragma: nobranch
                     print('invalid hash value (expected "{}", got "{}")'.format(
                         hash_prefix, hashstr))
                 needs_download = True
@@ -322,7 +322,7 @@ def grabdata(url, fpath=None, dpath=None, fname=None, redo=False,
                 with open(stamp_fpath, 'w') as file:
                     file.write(hash_prefix)
             else:
-                if verbose:
+                if verbose:  # pragma: nobranch
                     print('invalid hash value (expected "{}", got "{}")'.format(
                         hash_prefix, hashstr))
                 needs_download = True

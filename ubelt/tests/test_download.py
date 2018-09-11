@@ -262,7 +262,7 @@ def test_grabdata_fpath_and_dpath():
         ub.grabdata(url, fpath='foo', dpath='bar')
 
 
-@pytest.mark.timeout(5)
+# @pytest.mark.timeout(5)
 def test_grabdata_hash_typo():
     """
     CommandLine:
@@ -280,31 +280,32 @@ def test_grabdata_hash_typo():
     fname = basename(url)
     fpath = join(dpath, fname)
 
-    ub.delete(fpath)
-    ub.delete(fpath + '.hash')
-    assert not exists(fpath)
+    for verbose in [0]:
+        ub.delete(fpath)
+        ub.delete(fpath + '.hash')
+        assert not exists(fpath)
 
-    print('[STEP1] Downloading file, but we have a typo in the hash')
-    with pytest.raises(RuntimeError):
-        got_fpath = ub.grabdata(
-            url, hash_prefix='545e3a51404f-typo-4e46aa65a70948e126',
-            hasher=hashlib.md5())
-    assert exists(fpath)
+        print('[STEP1] Downloading file, but we have a typo in the hash')
+        with pytest.raises(RuntimeError):
+            got_fpath = ub.grabdata(
+                url, hash_prefix='545e3a51404f-typo-4e46aa65a70948e126',
+                hasher=hashlib.md5(), verbose=verbose)
+        assert exists(fpath)
 
-    print('[STEP2] Fixing the typo recomputes the hash, but does not redownload the file')
-    got_fpath = ub.grabdata(url,
-                            hash_prefix='545e3a51404f664e46aa65a70948e126',
-                            hasher=hashlib.md5())
-    assert got_fpath == fpath
-    assert exists(fpath)
+        print('[STEP2] Fixing the typo recomputes the hash, but does not redownload the file')
+        got_fpath = ub.grabdata(url,
+                                hash_prefix='545e3a51404f664e46aa65a70948e126',
+                                hasher=hashlib.md5(), verbose=verbose)
+        assert got_fpath == fpath
+        assert exists(fpath)
 
-    # If we delete the .hash file we will simply recompute
-    ub.delete(fpath + '.hash')
-    print('[STEP3] Deleting the hash file recomputes the hash')
-    got_fpath = ub.grabdata(url, fpath=fpath,
-                            hash_prefix='545e3a51404f664e46aa65a70948e126',
-                            hasher=hashlib.md5())
-    assert exists(fpath + '.hash')
+        # If we delete the .hash file we will simply recompute
+        ub.delete(fpath + '.hash')
+        print('[STEP3] Deleting the hash file recomputes the hash')
+        got_fpath = ub.grabdata(url, fpath=fpath,
+                                hash_prefix='545e3a51404f664e46aa65a70948e126',
+                                hasher=hashlib.md5(), verbose=verbose)
+        assert exists(fpath + '.hash')
 
 
 if __name__ == '__main__':
