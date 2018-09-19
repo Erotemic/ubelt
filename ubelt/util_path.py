@@ -11,12 +11,13 @@ from os.path import realpath
 from os.path import split
 from os.path import splitext
 import os
+import six
 import sys
 import shutil
 
 __all__ = [
     'TempDir', 'augpath', 'compressuser', 'truepath', 'userhome',
-    'ensuredir', 'expandpath',
+    'ensuredir', 'expandpath', 'pathlike',
 ]
 
 
@@ -188,6 +189,23 @@ def compressuser(path, home='~'):
         elif path[len(userhome_dpath)] == os.path.sep:
             path = home + path[len(userhome_dpath):]
     return path
+
+
+def pathlike(path):
+    """
+    Return a PathLike object
+
+    Args:
+        path (str|PathLike): path-like object to rectify
+
+    Returns:
+        PathLike: path
+    """
+    if six.PY2:
+        return expandpath(path)
+    else:
+        import pathlib
+        return pathlib.Path(expandpath(path))
 
 
 def expandpath(path):

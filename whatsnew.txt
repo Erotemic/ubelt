@@ -1,5 +1,6 @@
 version: 0.5.3
 --------------
+* Added `pathlike` to ub.util_path. Expands an input path and returns either a six.text_type in Python2 or a pathlib.Path in Python3.
 * Added `key` to ub.find_duplicates
 * Renamed first argument of ub.chunks from sequence to items
 * Improved type hints in google-style docstrings 
