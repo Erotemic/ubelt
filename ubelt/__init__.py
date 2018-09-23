@@ -96,7 +96,7 @@ else:  # pragma: nobranch
     from ubelt.util_memoize import (memoize, memoize_method,)
     from ubelt.util_mixins import (NiceRepr,)
     from ubelt.util_path import (TempDir, augpath, compressuser, ensuredir,
-                                 expandpath, pathlike, truepath, userhome,)
+                                 expandpath, truepath, userhome,)
     from ubelt.util_platform import (DARWIN, LINUX, POSIX, WIN32, editfile,
                                      ensure_app_cache_dir, ensure_app_resource_dir,
                                      find_exe, find_path, get_app_cache_dir,
@@ -124,7 +124,7 @@ else:  # pragma: nobranch
                'indent', 'inject_method', 'invert_dict', 'iter_window', 'iterable',
                'map_keys', 'map_vals', 'memoize', 'memoize_method',
                'modname_to_modpath', 'modpath_to_modname', 'odict', 'orderedset',
-               'oset', 'pathlike', 'platform_cache_dir', 'platform_resource_dir',
+               'oset', 'platform_cache_dir', 'platform_resource_dir',
                'progiter', 'readfrom', 'repr2', 'split_modpath', 'startfile',
                'symlink', 'take', 'timestamp', 'touch', 'truepath', 'unique',
                'unique_flags', 'userhome', 'util_arg', 'util_cache', 'util_cmd',
