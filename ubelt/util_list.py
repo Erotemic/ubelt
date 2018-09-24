@@ -25,7 +25,7 @@ class chunks(object):
         chunksize (int): size of each sublist yielded
 
         nchunks (int): number of chunks to create (
-            cannot be specified with chunksize)
+            cannot be specified if chunksize is specified)
 
         bordermode (str): determines how to handle the last case if the
             length of the input is not divisible by chunksize valid values
@@ -56,6 +56,8 @@ class chunks(object):
         >>> import ubelt as ub
         >>> assert len(list(ub.chunks(range(2), nchunks=2))) == 2
         >>> assert len(list(ub.chunks(range(3), nchunks=2))) == 2
+        >>> # Note: ub.chunks will not do the 2,1,1 split
+        >>> assert len(list(ub.chunks(range(4), nchunks=3))) == 2
         >>> assert len(list(ub.chunks([], 2, None, 'none'))) == 0
         >>> assert len(list(ub.chunks([], 2, None, 'cycle'))) == 0
         >>> assert len(list(ub.chunks([], 2, None, 'replicate'))) == 0
