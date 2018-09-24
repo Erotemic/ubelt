@@ -1,5 +1,6 @@
 version: 0.5.3
 --------------
+* Fixed GH#41
 * Added `key` to ub.find_duplicates
 * Renamed first argument of ub.chunks from sequence to items
 * Improved type hints in google-style docstrings 
