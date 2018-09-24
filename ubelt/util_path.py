@@ -185,7 +185,6 @@ def compressuser(path, home='~'):
         >>> path = expanduser('~')
         >>> assert path != '~'
         >>> assert compressuser(path) == '~'
-        >>> assert compressuser() == '~'
         >>> assert compressuser(path + '1') == path + '1'
         >>> assert compressuser(path + '/1') == join('~', '1')
         >>> assert compressuser(path + '/1', '$HOME') == join('$HOME', '1')
