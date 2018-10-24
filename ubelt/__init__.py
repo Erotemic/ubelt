@@ -12,8 +12,6 @@ CommandLine:
 #     * rsync
 #     * ParamInfo - move to dtool
 #     * parse_cfgstr3 - not relevant here
-#     * embed - move to xdevelop
-#     * argparse_dict - move to xinspect
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 __version__ = '0.5.3'
