@@ -48,46 +48,6 @@ def test_auto_dict_ordered():
     assert list(auto[0].values())[0:3] == [3, 2, 1], 'maintain order'
 
 
-def test_group_items_sorted():
-    pairs = [
-        ('ham', 'protein'),
-        ('jam', 'fruit'),
-        ('spam', 'protein'),
-        ('eggs', 'protein'),
-        ('cheese', 'dairy'),
-        ('banana', 'fruit'),
-    ]
-    item_list, groupid_list = zip(*pairs)
-    result1 = ub.group_items(item_list, groupid_list, sorted_=False)
-    result2 = ub.group_items(item_list, groupid_list, sorted_=True)
-    result1 = ub.map_vals(set, result1)
-    result2 = ub.map_vals(set, result2)
-    assert result1 == result2
-
-
-def test_group_items_sorted_mixed_types():
-    import random
-    groupid_list = [
-        1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3,
-        '1', '2', '3', '1', '2', '3', '1', '2', '3', '1', '2', '3',
-    ]
-    item_list = list(range(len(groupid_list)))
-
-    # Randomize the order
-    random.Random(947043).shuffle(groupid_list)
-    random.Random(947043).shuffle(item_list)
-
-    result1 = ub.group_items(item_list, groupid_list, sorted_=True)
-    result2 = ub.group_items(item_list, groupid_list, sorted_=False)
-
-    result1 = ub.map_vals(set, result1)
-    result2 = ub.map_vals(set, result2)
-    assert result1 == result2
-
-    assert '1' in result1
-    assert 1 in result1
-
-
 def test_dzip_errors():
     with pytest.raises(TypeError):
         ub.dzip([1], 2)

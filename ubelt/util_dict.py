@@ -142,7 +142,7 @@ def dzip(items1, items2, cls=dict):
     return cls(zip(items1, items2))
 
 
-def group_items(items, groupids, sorted_=False):
+def group_items(items, groupids):
     r"""
     Groups a list of items by group id.
 
@@ -150,7 +150,6 @@ def group_items(items, groupids, sorted_=False):
         items (Iterable): a list of items to group
         groupids (Iterable or Callable): a corresponding list of item groupids
             or a function mapping an item to a groupid.
-        sorted_ (bool): DEPRICATED, setting to True is strictly slower
 
     Returns:
         dict: groupid_to_items: maps a groupid to a list of items
@@ -168,25 +167,9 @@ def group_items(items, groupids, sorted_=False):
     """
     if callable(groupids):
         keyfunc = groupids
-        pair_list_ = ((keyfunc(item), item) for item in items)
+        pair_list = ((keyfunc(item), item) for item in items)
     else:
-        pair_list_ = zip(groupids, items)
-
-    if sorted_:
-        # Sort by groupid for cache efficiency
-        # TODO: test if this actually gives a savings
-        # RESULT: it does not, this should simply be removed
-        import warnings
-        warnings.warn('The sorted_ param is depricated and will be removed',
-                      DeprecationWarning)
-        pair_list_ = list(pair_list_)
-        try:
-            pair_list = sorted(pair_list_, key=op.itemgetter(0))
-        except TypeError:
-            # Python 3 does not allow sorting mixed types
-            pair_list = sorted(pair_list_, key=lambda tup: str(tup[0]))
-    else:
-        pair_list = pair_list_
+        pair_list = zip(groupids, items)
 
     # Initialize a dict of lists
     groupid_to_items = ddict(list)
