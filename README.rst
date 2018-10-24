@@ -8,7 +8,7 @@ Good utilities lift all codes.
     <img src="https://i.imgur.com/4dMXuWq.png" height="100px">
 
 
-Be sure to checkout the new Jupyter notebook: https://github.com/Erotemic/ubelt/blob/dev/0.5.3/docs/noteooks/Ubelt%20Demo.ipynb
+Be sure to checkout the new Jupyter notebook: https://github.com/Erotemic/ubelt/blob/master/docs/notebooks/Ubelt%20Demo.ipynb
 
 
 Installation:
