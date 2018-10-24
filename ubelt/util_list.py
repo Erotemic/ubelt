@@ -542,8 +542,8 @@ def argmax(indexable, key=None):
     """
     Returns index / key of the item with the largest value.
 
-    The current implementation is simply a convinience wrapper around
-    `ub.argsort`, a more efficient version will be written in the future.
+    This is similar to np.argmax, but it is written in pure python and works on
+    both lists and dictionaries.
 
     Args:
         indexable (Iterable or Mapping): indexable to sort by
@@ -576,8 +576,8 @@ def argmin(indexable, key=None):
     """
     Returns index / key of the item with the smallest value.
 
-    The current implementation is simply a convinience wrapper around
-    `ub.argsort`, a more efficient version will be written in the future.
+    This is similar to np.argmin, but it is written in pure python and works on
+    both lists and dictionaries.
 
     Args:
         indexable (Iterable or Mapping): indexable to sort by

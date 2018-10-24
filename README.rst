@@ -2,6 +2,8 @@
 
 Good utilities lift all codes.
 
+.. image:: https://i.imgur.com/4dMXuWq.png
+
 
 Installation:
 =============
@@ -173,7 +175,7 @@ A complete list of available functions can be seen in the
     from ubelt.util_memoize import (memoize, memoize_method,)
     from ubelt.util_mixins import (NiceRepr,)
     from ubelt.util_path import (TempDir, augpath, compressuser, ensuredir,
-                                 truepath, userhome,)
+                                 expandpath, truepath, userhome,)
     from ubelt.util_platform import (DARWIN, LINUX, POSIX, WIN32, editfile,
                                      ensure_app_cache_dir, ensure_app_resource_dir,
                                      find_exe, find_path, get_app_cache_dir,
@@ -247,6 +249,32 @@ properties of the ``ub.Timerit`` class to programmatically use results.
         time per loop: best=2.064 ms, mean=2.115 ± 0.05 ms
     t1.total_time = 0.4427177629695507
 
+
+Loop Progress
+-------------
+
+``ProgIter`` is a (mostly) drop-in alternative to
+```tqdm`` <https://pypi.python.org/pypi/tqdm>`__. 
+*The advantage of ``ProgIter`` is that it does not use any python threading*,
+and therefore can be safer with code that makes heavy use of multiprocessing.
+
+Note: ProgIter is now a standalone module: ``pip intstall progiter``)
+
+.. code:: python
+
+    >>> import ubelt as ub
+    >>> def is_prime(n):
+    ...     return n >= 2 and not any(n % i == 0 for i in range(2, n))
+    >>> for n in ub.ProgIter(range(1000), verbose=2):
+    >>>     # do some work
+    >>>     is_prime(n)
+        0/1000... rate=0.00 Hz, eta=?, total=0:00:00, wall=14:05 EST 
+        1/1000... rate=82241.25 Hz, eta=0:00:00, total=0:00:00, wall=14:05 EST 
+      257/1000... rate=177204.69 Hz, eta=0:00:00, total=0:00:00, wall=14:05 EST 
+      642/1000... rate=94099.22 Hz, eta=0:00:00, total=0:00:00, wall=14:05 EST 
+     1000/1000... rate=71886.74 Hz, eta=0:00:00, total=0:00:00, wall=14:05 EST 
+
+
 Caching
 -------
 
@@ -280,7 +308,7 @@ the result easy to use as a filename suffix.
     >>> import ubelt as ub
     >>> data = [('arg1', 5), ('lr', .01), ('augmenters', ['flip', 'translate'])]
     >>> ub.hash_data(data)[0:8]
-    crfrgdbi
+    5f5fda5e
 
 There exists an undocumented plugin architecture to extend this function
 to arbitrary types. See ``ubelt/util_hash.py`` for details.
@@ -410,7 +438,7 @@ it needs to.
 
     >>> import ubelt as ub
     >>> url = 'http://i.imgur.com/rqwaDag.png'
-    >>> fpath = ub.grabdata(url, verbose=0)
+    >>> fpath = ub.grabdata(url, verbose=0, hash_prefix='944389a39')
     >>> print(ub.compressuser(fpath))
     ~/.cache/ubelt/rqwaDag.png
 
@@ -453,7 +481,7 @@ Find all duplicate items in a list. More specifically,
 times, and returns a mapping from each duplicate item to the positions
 it appeared in.
 
-::
+.. code:: python
 
     >>> import ubelt as ub
     >>> items = [0, 0, 1, 2, 3, 3, 0, 12, 2, 9]
@@ -550,7 +578,7 @@ core implementation is in ``xdoctest``.
     >>> module = ub.import_module_from_path(ub.truepath('~/code/ubelt/ubelt'))
     >>> print('module = {!r}'.format(module))
     module = <module 'ubelt' from '/home/joncrall/code/ubelt/ubelt/__init__.py'>
-    >>> module = ub.import_module_from_path('ubelt')
+    >>> module = ub.import_module_from_name('ubelt')
     >>> print('module = {!r}'.format(module))
     module = <module 'ubelt' from '/home/joncrall/code/ubelt/ubelt/__init__.py'>
 
@@ -569,29 +597,6 @@ module paths (e.g.
     ubelt.util_import
     >>> modname = ub.util_import.__name__
     >>> assert ub.truepath(ub.modname_to_modpath(modname)) == modpath
-
-Loop Progress
--------------
-
-``ProgIter`` is a (mostly) drop-in alternative to
-```tqdm`` <https://pypi.python.org/pypi/tqdm>`__. It is recommended to
-use ``tqdm`` in most cases. *The advantage of ``ProgIter`` is that it
-does not use any python threading*, and therefore can be safer with code
-that makes heavy use of multiprocessing.
-
-.. code:: python
-
-    >>> import ubelt as ub
-    >>> def is_prime(n):
-    ...     return n >= 2 and not any(n % i == 0 for i in range(2, n))
-    >>> for n in ub.ProgIter(range(1000), verbose=2):
-    >>>     # do some work
-    >>>     is_prime(n)
-        0/1000... rate=0.00 Hz, eta=?, total=0:00:00, wall=14:05 EST 
-        1/1000... rate=82241.25 Hz, eta=0:00:00, total=0:00:00, wall=14:05 EST 
-      257/1000... rate=177204.69 Hz, eta=0:00:00, total=0:00:00, wall=14:05 EST 
-      642/1000... rate=94099.22 Hz, eta=0:00:00, total=0:00:00, wall=14:05 EST 
-     1000/1000... rate=71886.74 Hz, eta=0:00:00, total=0:00:00, wall=14:05 EST 
 
 Horizontal String Concatenation
 -------------------------------
