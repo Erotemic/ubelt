@@ -340,7 +340,7 @@ def _format_dict(dict_, **kwargs):
     dictionary. In most cases this string could be evaled.
 
     Args:
-        dict_ (dict_):  a dictionary
+        dict_ (dict):  a dictionary
         **kwargs: si, stritems, strkeys, strvals, sk, sv, nl, newlines, nobr,
                   nobraces, cbr, compact_brace, trailing_sep,
                   explicit, itemsep, precision, kvsep, sort

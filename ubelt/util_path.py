@@ -14,6 +14,12 @@ import os
 import sys
 import shutil
 
+# if six.PY2:
+#     pathlib = None
+# else:
+#     import pathlib
+
+
 __all__ = [
     'TempDir', 'augpath', 'compressuser', 'truepath', 'userhome',
     'ensuredir', 'expandpath',
@@ -172,6 +178,9 @@ def compressuser(path, home='~'):
     Returns:
         PathLike: path: shortened path replacing the home directory with a tilde
 
+    CommandLine:
+        xdoctest -m ubelt.util_path compressuser
+
     Example:
         >>> path = expanduser('~')
         >>> assert path != '~'
@@ -188,6 +197,39 @@ def compressuser(path, home='~'):
         elif path[len(userhome_dpath)] == os.path.sep:
             path = home + path[len(userhome_dpath):]
     return path
+
+
+# NOT SURE IF I LIKE THIS IDEA
+# def pathlike(path):
+#     """
+#     Return a PathLike object
+
+#     Args:
+#         path (str|PathLike): path-like object to rectify
+
+#     Returns:
+#         PathLike: path
+
+#     Note:
+#         Prior to Python 3.(7|8)?, the logic that handled sys.path did not
+#         accept `pathlib.Path`.
+
+#         This issue https://bugs.python.org/issue32642 notes this problem, and a
+#         patch has been proposed. As of `2018-09-23` it is in review.
+
+#         Also look into:
+#         https://snarky.ca/why-pathlib-path-doesn-t-inherit-from-str/
+
+#     Example:
+#         >>> import ubelt as ub
+#         >>> path = ub.pathlike('~/foo')
+#         >>> assert normpath() == join(ub.userhome(), 'foo')
+#         >>> assert ub.pathlike('foo') == 'foo'
+#     """
+#     if six.PY2:
+#         return expandpath(path)
+#     else:
+#         return PathLike(expandpath(path))
 
 
 def expandpath(path):

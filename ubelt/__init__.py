@@ -16,7 +16,7 @@ CommandLine:
 #     * argparse_dict - move to xinspect
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-__version__ = '0.5.2'
+__version__ = '0.5.3'
 
 __submodules__ = [
     'util_arg',
@@ -124,12 +124,12 @@ else:  # pragma: nobranch
                'indent', 'inject_method', 'invert_dict', 'iter_window', 'iterable',
                'map_keys', 'map_vals', 'memoize', 'memoize_method',
                'modname_to_modpath', 'modpath_to_modname', 'odict', 'orderedset',
-               'oset', 'platform_cache_dir', 'platform_resource_dir', 'progiter',
-               'readfrom', 'repr2', 'split_modpath', 'startfile', 'symlink',
-               'take', 'timestamp', 'touch', 'truepath', 'unique', 'unique_flags',
-               'userhome', 'util_arg', 'util_cache', 'util_cmd', 'util_colors',
-               'util_const', 'util_dict', 'util_download', 'util_format',
-               'util_func', 'util_hash', 'util_import', 'util_io', 'util_links',
-               'util_list', 'util_memoize', 'util_mixins', 'util_path',
-               'util_platform', 'util_str', 'util_time', 'writeto']
+               'oset', 'platform_cache_dir', 'platform_resource_dir',
+               'progiter', 'readfrom', 'repr2', 'split_modpath', 'startfile',
+               'symlink', 'take', 'timestamp', 'touch', 'truepath', 'unique',
+               'unique_flags', 'userhome', 'util_arg', 'util_cache', 'util_cmd',
+               'util_colors', 'util_const', 'util_dict', 'util_download',
+               'util_format', 'util_func', 'util_hash', 'util_import', 'util_io',
+               'util_links', 'util_list', 'util_memoize', 'util_mixins',
+               'util_path', 'util_platform', 'util_str', 'util_time', 'writeto']
     # </AUTOGEN_INIT>

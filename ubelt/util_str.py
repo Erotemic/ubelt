@@ -26,7 +26,7 @@ class CaptureStdout(object):
         python -m ubelt.util_str CaptureStdout
 
     TODO:
-        - [ ] use version in xdoctest.
+        - [ ] use version of this class coded in xdoctest.
         - [ ] rework to handle stdout, stderr or any other stream.
 
     Example:
@@ -170,6 +170,9 @@ def hzcat(args, sep=''):
         A｜=｜[[θ, á],   ｜*｜[[5, 6],
          ｜ ｜ [á, á, á]]｜ ｜ [7, θ]]
     """
+    if '\n' in sep or '\r' in sep:
+        raise ValueError('sep cannot contain newline characters')
+
     # TODO: ensure unicode data works correctly for python2
     args = [unicodedata.normalize('NFC', ensure_unicode(val)) for val in args]
     arglines = [a.split('\n') for a in args]

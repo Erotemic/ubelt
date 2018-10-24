@@ -105,10 +105,10 @@ def dzip(items1, items2, cls=dict):
     from items2 can be broadcast onto items1.
 
     Args:
-        items1 (Sequence): full sequence
-        items2 (Sequence): can either be a sequence of one item or a sequence of
-            equal length to `items1`
-        cls (Class): dictionary type to use. Defaults to dict, but could
+        items1 (Iterable): full sequence
+        items2 (Iterable): can either be a sequence of one item or a sequence
+            of equal length to `items1`
+        cls (Type[dict]): dictionary type to use. Defaults to dict, but could
             be ordered dict instead.
 
     Returns:
@@ -148,8 +148,8 @@ def group_items(items, groupids, sorted_=False):
 
     Args:
         items (Iterable): a list of items to group
-        groupids (Iterable or Func): a corresponding list of item groupids or
-            a function mapping an item to a groupid.
+        groupids (Iterable or Callable): a corresponding list of item groupids
+            or a function mapping an item to a groupid.
         sorted_ (bool): DEPRICATED, setting to True is strictly slower
 
     Returns:
@@ -198,15 +198,16 @@ def group_items(items, groupids, sorted_=False):
 
 def dict_hist(item_list, weight_list=None, ordered=False, labels=None):
     r"""
-    Builds a histogram of items
+    Builds a histogram of items, counting the number of time each item appears
+    in the input.
 
     Args:
-        item_list (list): list with hashable items
-            (usually containing duplicates)
-        weight_list (list): list of weights for each items
+        item_list (Iterable): hashable items (usually containing duplicates)
+        weight_list (Iterable): corresponding weights for each item
         ordered (bool): if True the result is ordered by frequency
-        labels (list): expected labels (default None)
-            if specified the frequency of each label is initialized to
+        labels (Iterable, optional): expected labels (default None)
+            Allows this function to pre-initialize the histogram.
+            If specified the frequency of each label is initialized to
             zero and item_list can only contain items specified in labels.
 
     Returns:
@@ -262,16 +263,18 @@ def dict_hist(item_list, weight_list=None, ordered=False, labels=None):
     return hist_
 
 
-def find_duplicates(items, k=2):
+def find_duplicates(items, k=2, key=None):
     r"""
     Find all duplicate items in a list.
 
     Search for all items that appear more than `k` times and return a mapping
-    from each duplicate item to the positions it appeared in.
+    from each (k)-duplicate item to the positions it appeared in.
 
     Args:
-        items (list): a list of hashable items possibly containing duplicates
+        items (Iterable): hashable items possibly containing duplicates
         k (int): only return items that appear at least `k` times (default=2)
+        key (Callable, optional): Returns indices where `key(items[i])`
+            maps to a particular value at least k times.
 
     Returns:
         dict: maps each duplicate item to the indices at which it appears
@@ -295,12 +298,25 @@ def find_duplicates(items, k=2):
         >>> duplicates = ub.find_duplicates(items, k=0)
         >>> print(ub.repr2(duplicates, nl=0))
         {0: [0, 1, 6], 1: [2], 2: [3, 8], 3: [4, 5], 9: [9], 12: [7]}
+
+    Example:
+        >>> import ubelt as ub
+        >>> items = [10, 11, 12, 13, 14, 15, 16]
+        >>> duplicates = ub.find_duplicates(items, key=lambda x: x // 2)
+        >>> print(ub.repr2(duplicates, nl=0))
+        {5: [0, 1], 6: [2, 3], 7: [4, 5]}
     """
     # Build mapping from items to the indices at which they appear
+    # if key is not None:
+    #     items = map(key, items)
     duplicates = ddict(list)
-    for count, item in enumerate(items):
-        duplicates[item].append(count)
-    # remove singleton items
+    if key is None:
+        for count, item in enumerate(items):
+            duplicates[item].append(count)
+    else:
+        for count, item in enumerate(items):
+            duplicates[key(item)].append(count)
+    # remove items seen fewer than k times.
     for key in list(duplicates.keys()):
         if len(duplicates[key]) < k:
             del duplicates[key]
@@ -313,11 +329,12 @@ def dict_subset(dict_, keys, default=util_const.NoParam):
     Get a subset of a dictionary
 
     Args:
-        dict_ (dict): superset dictionary
-        keys (list): keys to take from `dict_`
+        dict_ (Mapping): superset dictionary
+        keys (Iterable): keys to take from `dict_`
+        default (object, optional): if specified uses default if keys are missing
 
     Returns:
-        dict: subset dictionary
+        OrderedDict: subset dictionary
 
     Example:
         >>> import ubelt as ub
@@ -337,9 +354,9 @@ def dict_take(dict_, keys, default=util_const.NoParam):
     Generates values from a dictionary
 
     Args:
-        dict_ (dict):
-        keys (list):
-        default (Optional): if specified uses default if keys are missing
+        dict_ (Mapping):
+        keys (Iterable):
+        default (object, optional): if specified uses default if keys are missing
 
     CommandLine:
         python -m ubelt.util_dict dict_take_gen

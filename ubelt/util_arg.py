@@ -14,14 +14,14 @@ def argval(key, default=util_const.NoParam, argv=None):
     Args:
         key (str or tuple): string or tuple of strings. Each key should be
             prefixed with two hyphens (i.e. `--`)
-        default (object): value to return if not specified
-        argv (list): overrides `sys.argv` if specified
+        default (Optional[object]): value to return if not specified
+        argv (Optional[list]): overrides `sys.argv` if specified
 
     Returns:
         str: value : the value specified after the key. It they key is
             specified multiple times, then the first value is returned.
 
-    Doctest:
+    Example:
         >>> import ubelt as ub
         >>> argv = ['--ans', '42', '--quest=the grail', '--ans=6', '--bad']
         >>> assert ub.argval('--spam', argv=argv) == ub.NoParam
@@ -29,6 +29,12 @@ def argval(key, default=util_const.NoParam, argv=None):
         >>> assert ub.argval('--ans', argv=argv) == '42'
         >>> assert ub.argval('--bad', argv=argv) == ub.NoParam
         >>> assert ub.argval(('--bad', '--bar'), argv=argv) == ub.NoParam
+
+    Example:
+        >>> # Test fix for GH Issue #41
+        >>> import ubelt as ub
+        >>> argv = ['--path=/path/with/k=3']
+        >>> ub.argval('--path', argv=argv) == '/path/with/k=3'
     """
     if argv is None:  # nocover
         argv = sys.argv
@@ -42,7 +48,7 @@ def argval(key, default=util_const.NoParam, argv=None):
                     value = argv[argx + 1]
                     return value
             elif item.startswith(key_ + '='):
-                value = ''.join(item.split('=')[1:])
+                value = '='.join(item.split('=')[1:])
                 return value
     value = default
     return value
@@ -55,12 +61,12 @@ def argflag(key, argv=None):
     Args:
         key (str or tuple): string or tuple of strings. Each key should be
             prefixed with two hyphens (i.e. `--`)
-        argv (list): overrides `sys.argv` if specified
+        argv (Optional[list]): overrides `sys.argv` if specified
 
     Returns:
         bool: flag : True if the key (or any of the keys) was specified
 
-    Doctest:
+    Example:
         >>> import ubelt as ub
         >>> argv = ['--spam', '--eggs', 'foo']
         >>> assert ub.argflag('--eggs', argv=argv) is True
@@ -76,7 +82,7 @@ def argflag(key, argv=None):
 
 
 if __name__ == '__main__':
-    r"""
+    """
     CommandLine:
         python -m ubelt.util_arg
     """

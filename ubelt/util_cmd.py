@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
 import sys
+import six
 import pipes
 import shlex
 import subprocess
+import warnings
 from threading import Thread
 from six.moves import zip_longest
 from six.moves import queue
@@ -78,7 +80,7 @@ def _proc_iteroutput_thread(proc):
         but I cannot gaurentee that there isn't an issue on our end.
 
     Yields:
-        tuple[(str, str)]: oline, eline: stdout and stderr line
+        Tuple[str, str]: oline, eline: stdout and stderr line
 
     References:
         https://stackoverflow.com/questions/375427/non-blocking-read-subproc
@@ -117,7 +119,7 @@ def _proc_iteroutput_select(proc):
     solution based on threads.
 
     Yields:
-        tuple[(str, str)]: oline, eline: stdout and stderr line
+        Tuple[str, str]: oline, eline: stdout and stderr line
     """
     # Read output while the external program is running
     while proc.poll() is None:
@@ -191,23 +193,26 @@ def cmd(command, shell=False, detatch=False, verbose=0, tee=None, cwd=None,
     run in the background (eventually we may return a Future object instead).
 
     Args:
-        command (str): bash-like command string or tuple of executable and args
+        command (str or Sequence): bash-like command string or tuple of
+            executable and args
 
-        shell (bool): if True, process is run in shell
+        shell (bool): if True, process is run in shell, defaults to False.
 
-        detatch (bool): if True, process is detached and run in background.
+        detatch (bool): if True, process is detached and run in background,
+            defaults to False.
 
-        verbose (int): verbosity mode. Can be 0, 1, 2, or 3.
+        verbose (int): verbosity mode. Can be 0, 1, 2, or 3. Defaults to 0.
 
-        tee (bool): if True, simultaniously writes to stdout while capturing
-            output from the command. If not specified, defaults to True
-            if verbose > 0.  If detech is True, then this argument is ignored.
+        tee (bool, optional): if True, simultaniously writes to stdout while
+            capturing output from the command. If not specified, defaults to
+            True if verbose > 0.  If detech is True, then this argument is
+            ignored.
 
-        cwd (PathLike): path to run command
+        cwd (PathLike, optional): path to run command
 
-        env (str): environment passed to Popen
+        env (str, optional): environment passed to Popen
 
-        tee_backend (str): backend for tee output.
+        tee_backend (str, optional): backend for tee output.
             Valid choices are: "auto", "select" (POSIX only), and "thread".
 
         verbout (bool): DEPRICATED. Use `tee` instead.
@@ -277,12 +282,12 @@ def cmd(command, shell=False, detatch=False, verbose=0, tee=None, cwd=None,
         >>> info2['proc'].wait()
     """
     # Determine if command is specified as text or a tuple
-    if isinstance(command, (list, tuple)):
-        command_tup = command
-        command_text = ' '.join(list(map(pipes.quote, command_tup)))
-    else:
+    if isinstance(command, six.string_types):
         command_text = command
         command_tup = None
+    else:
+        command_tup = command
+        command_text = ' '.join(list(map(pipes.quote, command_tup)))
 
     if shell or sys.platform.startswith('win32'):
         # When shell=True, args is sent to the shell (e.g. bin/sh) as text
@@ -297,7 +302,6 @@ def cmd(command, shell=False, detatch=False, verbose=0, tee=None, cwd=None,
         args = command_tup
 
     if verbout is not None:  # nocover
-        import warnings
         warnings.warn(
             'verbout is depricated and will be removed in a future release. '
             'use tee instead', DeprecationWarning)
@@ -305,13 +309,16 @@ def cmd(command, shell=False, detatch=False, verbose=0, tee=None, cwd=None,
 
     if tee is None:
         tee = verbose > 0
-    if verbose > 1:  # nocover
+    if verbose > 1:
         import os
         import platform
         import getpass
         from ubelt import util_path
         if verbose > 2:
-            print('+=== START CMD ===')
+            try:
+                print('┌─── START CMD ───')
+            except Exception:  # nocover
+                print('+=== START CMD ===')
         cwd_ = os.getcwd() if cwd is None else cwd
         compname = platform.node()
         username = getpass.getuser()
@@ -360,8 +367,12 @@ def cmd(command, shell=False, detatch=False, verbose=0, tee=None, cwd=None,
             'proc': proc,
             'command': command_text
         }
-        if verbose > 2:  # nocover
-            print('L___ END CMD ___')  # TODO: use nicer unicode chars
+        if verbose > 2:
+            # https://en.wikipedia.org/wiki/Box-drawing_character
+            try:
+                print('└─── END CMD ───')
+            except Exception:  # nocover
+                print('L___ END CMD ___')
     return info
 
 

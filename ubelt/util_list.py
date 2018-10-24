@@ -6,27 +6,32 @@ import math
 import operator
 from six.moves import zip_longest
 from six import next
+if six.PY2:  # NOQA
+    import collections as collections_abc
+else:
+    from collections import abc as collections_abc
 
 
 class chunks(object):
     """
-    Generates successive n-sized chunks from `sequence`.
+    Generates successive n-sized chunks from `items`.
+
     If the last chunk has less than n elements, `bordermode` is used to
     determine fill values.
 
     Args:
-        sequence (list): input to iterate over
+        items (Iterable): input to iterate over
 
         chunksize (int): size of each sublist yielded
 
         nchunks (int): number of chunks to create (
-            cannot be specified with chunksize)
+            cannot be specified if chunksize is specified)
 
         bordermode (str): determines how to handle the last case if the
-            length of the sequence is not divisible by chunksize valid values
+            length of the input is not divisible by chunksize valid values
             are: {'none', 'cycle', 'replicate'}
 
-        total (int): hints about the length of the sequence
+        total (int): hints about the length of the input
 
     TODO:
         should this handle the case when sequence is a string?
@@ -39,18 +44,20 @@ class chunks(object):
 
     Example:
         >>> import ubelt as ub
-        >>> sequence = [1, 2, 3, 4, 5, 6, 7]
-        >>> genresult = ub.chunks(sequence, chunksize=3, bordermode='none')
+        >>> items = [1, 2, 3, 4, 5, 6, 7]
+        >>> genresult = ub.chunks(items, chunksize=3, bordermode='none')
         >>> assert list(genresult) == [[1, 2, 3], [4, 5, 6], [7]]
-        >>> genresult = ub.chunks(sequence, chunksize=3, bordermode='cycle')
+        >>> genresult = ub.chunks(items, chunksize=3, bordermode='cycle')
         >>> assert list(genresult) == [[1, 2, 3], [4, 5, 6], [7, 1, 2]]
-        >>> genresult = ub.chunks(sequence, chunksize=3, bordermode='replicate')
+        >>> genresult = ub.chunks(items, chunksize=3, bordermode='replicate')
         >>> assert list(genresult) == [[1, 2, 3], [4, 5, 6], [7, 7, 7]]
 
     Doctest:
         >>> import ubelt as ub
         >>> assert len(list(ub.chunks(range(2), nchunks=2))) == 2
         >>> assert len(list(ub.chunks(range(3), nchunks=2))) == 2
+        >>> # Note: ub.chunks will not do the 2,1,1 split
+        >>> assert len(list(ub.chunks(range(4), nchunks=3))) == 2
         >>> assert len(list(ub.chunks([], 2, None, 'none'))) == 0
         >>> assert len(list(ub.chunks([], 2, None, 'cycle'))) == 0
         >>> assert len(list(ub.chunks([], 2, None, 'replicate'))) == 0
@@ -69,67 +76,67 @@ class chunks(object):
         >>> assert pytest.raises(TypeError, len, chunks((_ for _ in range(2)), 2))
 
     """
-    def __init__(self, sequence, chunksize=None, nchunks=None,
-                 total=None, bordermode='none'):
+    def __init__(self, items, chunksize=None, nchunks=None, total=None,
+                 bordermode='none'):
         if nchunks is not None and chunksize is not None:  # nocover
             raise ValueError('Cannot specify both chunksize and nchunks')
         if nchunks is None and chunksize is None:  # nocover
             raise ValueError('Must specify either chunksize or nchunks')
         if nchunks is not None:
             if total is None:
-                total = len(sequence)
+                total = len(items)
             chunksize = int(math.ceil(total / nchunks))
 
         self.bordermode = bordermode
-        self.sequence = sequence
+        self.items = items
         self.chunksize = chunksize
         self.total = total
 
     def __len__(self):
         if self.total is None:
-            self.total = len(self.sequence)
+            self.total = len(self.items)
         nchunks = int(math.ceil(self.total / self.chunksize))
         return nchunks
 
     def __iter__(self):
         bordermode = self.bordermode
-        sequence = self.sequence
+        items = self.items
         chunksize = self.chunksize
         if bordermode is None or bordermode == 'none':
-            return self.noborder(sequence, chunksize)
+            return self.noborder(items, chunksize)
         elif bordermode == 'cycle':
-            return self.cycle(sequence, chunksize)
+            return self.cycle(items, chunksize)
         elif bordermode == 'replicate':
-            return self.replicate(sequence, chunksize)
+            return self.replicate(items, chunksize)
         else:
             raise ValueError('unknown bordermode=%r' % (bordermode,))
 
     @staticmethod
-    def noborder(sequence, chunksize):
+    def noborder(items, chunksize):
         # feed the same iter to zip_longest multiple times, this causes it to
         # consume successive values of the same sequence
         sentinal = object()
-        copied_iters = [iter(sequence)] * chunksize
+        copied_iters = [iter(items)] * chunksize
         chunks_with_sentinals = zip_longest(*copied_iters, fillvalue=sentinal)
         # Dont fill empty space in the last chunk, just return it as is
         for chunk in chunks_with_sentinals:
             yield [item for item in chunk if item is not sentinal]
 
     @staticmethod
-    def cycle(sequence, chunksize):
+    def cycle(items, chunksize):
         sentinal = object()
-        copied_iters = [iter(sequence)] * chunksize
+        copied_iters = [iter(items)] * chunksize
         chunks_with_sentinals = zip_longest(*copied_iters, fillvalue=sentinal)
         # Fill empty space in the last chunk with values from the beginning
-        bordervalues = it.cycle(iter(sequence))
+        bordervalues = it.cycle(iter(items))
         for chunk in chunks_with_sentinals:
             yield [item if item is not sentinal else next(bordervalues)
                    for item in chunk]
 
     @staticmethod
-    def replicate(sequence, chunksize):
+    def replicate(items, chunksize):
         sentinal = object()
-        copied_iters = [iter(sequence)] * chunksize
+        copied_iters = [iter(items)] * chunksize
         # Fill empty space in the last chunk by replicating the last value
         chunks_with_sentinals = zip_longest(*copied_iters, fillvalue=sentinal)
         for chunk in chunks_with_sentinals:
@@ -176,12 +183,12 @@ def take(items, indices):
     This is similar to np.take, but pure python.
 
     Args:
-        items (list): an indexable object to select items from
+        items (Sequence): an indexable object to select items from
 
-        indices (Sequence): sequence of indexing objects
+        indices (Iterable): sequence of indexing objects
 
     Returns:
-        iter or scalar: subset of the list
+        Iterable or scalar: subset of the list
 
     SeeAlso:
         ub.dict_subset
@@ -202,12 +209,12 @@ def compress(items, flags):
     This is similar to np.compress and it.compress
 
     Args:
-        items (Sequence): a sequence to select items from
+        items (Iterable): a sequence to select items from
 
-        flags (Sequence): corresponding sequence of bools
+        flags (Iterable): corresponding sequence of bools
 
     Returns:
-        list: a subset of masked items
+        Iterable: a subset of masked items
 
     Example:
         >>> import ubelt as ub
@@ -221,11 +228,15 @@ def compress(items, flags):
 
 def flatten(nested_list):
     """
+    Transforms a nested iterable into a flat iterable.
+
+    This is simply an alias for `itertools.chain.from_iterable`
+
     Args:
-        nested_list (list): list of lists
+        nested_list (Iterable[Iterable]): list of lists
 
     Returns:
-        list: flat list
+        Iterable: flattened items
 
     Example:
         >>> import ubelt as ub
@@ -241,9 +252,9 @@ def unique(items, key=None):
     Generates unique items in the order they appear.
 
     Args:
-        items (Sequence): list of items
+        items (Iterable): list of items
 
-        key (Function, optional): custom normalization function.
+        key (Callable, optional): custom normalization function.
             If specified returns items where `key(item)` is unique.
 
     Yields:
@@ -285,9 +296,9 @@ def argunique(items, key=None):
     Returns indices corresponding to the first instance of each unique item.
 
     Args:
-        items (list): list of items
+        items (Sequence): indexable collection of items
 
-        key (Function, optional): custom normalization function.
+        key (Callable, optional): custom normalization function.
             If specified returns items where `key(item)` is unique.
 
     Yields:
@@ -313,9 +324,9 @@ def unique_flags(items, key=None):
     unique item.
 
     Args:
-        items (list): list of items
+        items (Sequence): indexable collection of items
 
-        key (Function, optional): custom normalization function.
+        key (Callable, optional): custom normalization function.
             If specified returns items where `key(item)` is unique.
 
     Returns:
@@ -376,7 +387,7 @@ def iter_window(iterable, size=2, step=1, wrap=False):
     sliding window.
 
     Args:
-        iterable (iter): an iterable sequence
+        iterable (Iterable): an iterable sequence
 
         size (int): sliding window size (default = 2)
 
@@ -443,9 +454,9 @@ def allsame(iterable, eq=operator.eq):
     Determine if all items in a sequence are the same
 
     Args:
-        iterable (iter): an iterable sequence
+        iterable (Iterable): items to determine if they are all the same
 
-        eq (Function, optional): function to determine equality
+        eq (Callable, optional): function to determine equality
             (default: operator.eq)
 
     Example:
@@ -480,9 +491,9 @@ def argsort(indexable, key=None, reverse=False):
     on both lists and dictionaries.
 
     Args:
-        indexable (list or dict): indexable to sort by
+        indexable (Iterable or Mapping): indexable to sort by
 
-        key (Function, optional): customizes the ordering of the indexable
+        key (Callable, optional): customizes the ordering of the indexable
 
         reverse (bool, optional): if True returns in descending order
 
@@ -513,7 +524,7 @@ def argsort(indexable, key=None, reverse=False):
         >>> assert indices == [1, 2, 0]
     """
     # Create an iterator of value/key pairs
-    if isinstance(indexable, dict):
+    if isinstance(indexable, collections_abc.Mapping):
         vk_iter = ((v, k) for k, v in indexable.items())
     else:
         vk_iter = ((v, k) for k, v in enumerate(indexable))
@@ -531,13 +542,13 @@ def argmax(indexable, key=None):
     """
     Returns index / key of the item with the largest value.
 
-    The current implementation is simply a convinience wrapper around
-    `ub.argsort`, a more efficient version will be written in the future.
+    This is similar to np.argmax, but it is written in pure python and works on
+    both lists and dictionaries.
 
     Args:
-        indexable (list or dict): indexable to sort by
+        indexable (Iterable or Mapping): indexable to sort by
 
-        key (Function, optional): customizes the ordering of the indexable
+        key (Callable, optional): customizes the ordering of the indexable
 
     CommandLine:
         python -m ubelt.util_list argmax
@@ -549,7 +560,7 @@ def argmax(indexable, key=None):
         >>> assert argmax({'a': 3, 'b': 2, 3: 100, 4: 4}) == 3
         >>> assert argmax(iter(['a', 'c', 'b', 'z', 'f'])) == 3
     """
-    if key is None and isinstance(indexable, dict):
+    if key is None and isinstance(indexable, collections_abc.Mapping):
         return max(indexable.items(), key=operator.itemgetter(1))[0]
     elif hasattr(indexable, 'index'):
         if key is None:
@@ -565,13 +576,13 @@ def argmin(indexable, key=None):
     """
     Returns index / key of the item with the smallest value.
 
-    The current implementation is simply a convinience wrapper around
-    `ub.argsort`, a more efficient version will be written in the future.
+    This is similar to np.argmin, but it is written in pure python and works on
+    both lists and dictionaries.
 
     Args:
-        indexable (list or dict): indexable to sort by
+        indexable (Iterable or Mapping): indexable to sort by
 
-        key (Function, optional): customizes the ordering of the indexable
+        key (Callable, optional): customizes the ordering of the indexable
 
     Example:
         >>> assert argmin({'a': 3, 'b': 2, 'c': 100}) == 'b'
@@ -580,7 +591,7 @@ def argmin(indexable, key=None):
         >>> assert argmin({'a': 3, 'b': 2, 3: 100, 4: 4}) == 'b'
         >>> assert argmin(iter(['a', 'c', 'A', 'z', 'f'])) == 2
     """
-    if key is None and isinstance(indexable, dict):
+    if key is None and isinstance(indexable, collections_abc.Mapping):
         return min(indexable.items(), key=operator.itemgetter(1))[0]
     elif hasattr(indexable, 'index'):
         if key is None:

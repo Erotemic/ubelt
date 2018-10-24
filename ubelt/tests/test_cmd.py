@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import pytest
 import sys
 import ubelt as ub
@@ -8,6 +9,22 @@ def test_cmd_stdout():
         result = ub.cmd('echo hello stdout', verbose=True)
     assert result['out'].strip() == 'hello stdout'
     assert cap.text.strip() == 'hello stdout'
+
+
+def test_cmd_veryverbose():
+    with ub.CaptureStdout() as cap:
+        result = ub.cmd('echo hello stdout', verbose=3)
+    assert result['out'].strip() == 'hello stdout'
+    print(cap.text)
+    # assert cap.text.strip() == 'hello stdout'
+
+
+def test_tee_false():
+    with ub.CaptureStdout() as cap:
+        result = ub.cmd('echo hello stdout', verbose=3, tee=False)
+    assert result['out'].strip() == 'hello stdout'
+    assert 'hello world' not in cap.text
+    print(cap.text)
 
 
 def test_cmd_stdout_quiet():
@@ -162,7 +179,9 @@ def test_env():
 
 if __name__ == '__main__':
     """
-        pytest ubelt/tests/test_cmd.py
+        pytest ubelt/tests/test_cmd.py -s
+
+        python ~/code/ubelt/ubelt/tests/test_cmd.py test_cmd_veryverbose
     """
 
     import xdoctest

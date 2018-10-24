@@ -1,5 +1,14 @@
+version: 0.5.3
+--------------
+* Fixed GH#41
+* Added `key` to ub.find_duplicates
+* Renamed first argument of ub.chunks from sequence to items
+* Improved type hints in google-style docstrings 
+* ub.cmd verbose >= 3 now uses nicer unicode characters if possible
+
+
 version: 0.5.2
----------------
+--------------
 * ub.group_items argument names have changed, and it can now take a callable as the second argument. The sorted_ argument is now depricated.
 * Symlink now reports location of old target when the new target does not match
 * Docstrings now uses PathLike as the type for arguments and attributes that should be considered paths (note strings are still accepted).
@@ -8,6 +17,7 @@ version: 0.5.2
 * ub.grabdata will compute the hash of an existing file on disk if the .hash
   stamp is missing to try and avoid redownloading the file.
 * Improved efficiency of ub.argmax
+* Added verbose flag to CacheStamp
 
 
 version: 0.5.0

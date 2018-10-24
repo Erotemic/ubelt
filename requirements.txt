@@ -1,7 +1,7 @@
 six >= 1.10.0
 Pygments >= 2.2.0
-progiter >= 0.0.1
-timerit >= 0.0.1
+progiter >= 0.0.3
+timerit >= 0.1.0
 xdoctest >= 0.3.0
 pytest >= 3.3.1
 pytest-cov
