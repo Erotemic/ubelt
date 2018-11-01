@@ -268,9 +268,9 @@ def grabdata(url, fpath=None, dpath=None, fname=None, redo=False,
         >>> # Check that a redownload occurs when the stamp is removed
         >>> ub.delete(stamp_fpath)
         >>> open(fpath, 'w').write('corrupt-data')
-        >>> assert not ub.hash_file(fpath, base='hex').startswith(prefix1)
+        >>> assert not ub.hash_file(fpath, base='hex', hasher='sha512').startswith(prefix1)
         >>> fpath = ub.grabdata(url, fname=fname, hash_prefix=prefix1)
-        >>> assert ub.hash_file(fpath, base='hex').startswith(prefix1)
+        >>> assert ub.hash_file(fpath, base='hex', hasher='sha512').startswith(prefix1)
         >>> #
         >>> # Check that requesting new data causes redownload
         >>> url2 = 'https://data.kitware.com/api/v1/item/5b4039308d777f2e6225994c/download'
