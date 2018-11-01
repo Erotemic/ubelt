@@ -1,4 +1,5 @@
 six >= 1.10.0
+xxhash >= 1.0.1
 Pygments >= 2.2.0
 progiter >= 0.0.3
 timerit >= 0.1.0

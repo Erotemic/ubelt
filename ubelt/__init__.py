@@ -86,7 +86,7 @@ else:  # pragma: nobranch
     from ubelt.util_links import (symlink,)
     from ubelt.util_list import (allsame, argmax, argmin, argsort, argunique,
                                  boolmask, chunks, compress, flatten, iter_window,
-                                 iterable, take, unique, unique_flags,)
+                                 iterable, peek, take, unique, unique_flags,)
     from ubelt.util_hash import (hash_data, hash_file,)
     from ubelt.util_import import (import_module_from_name,
                                    import_module_from_path, modname_to_modpath,
@@ -122,7 +122,7 @@ else:  # pragma: nobranch
                'indent', 'inject_method', 'invert_dict', 'iter_window', 'iterable',
                'map_keys', 'map_vals', 'memoize', 'memoize_method',
                'modname_to_modpath', 'modpath_to_modname', 'odict', 'orderedset',
-               'oset', 'platform_cache_dir', 'platform_resource_dir',
+               'oset', 'peek', 'platform_cache_dir', 'platform_resource_dir',
                'progiter', 'readfrom', 'repr2', 'split_modpath', 'startfile',
                'symlink', 'take', 'timestamp', 'touch', 'truepath', 'unique',
                'unique_flags', 'userhome', 'util_arg', 'util_cache', 'util_cmd',

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
+r"""
 Wrappers around hashlib functions to generate hash signatures for common data.
 
 The hashes are determenistic across python versions and operating systems.
@@ -13,6 +13,67 @@ Use Case:
         e.g. tuple, list, odict, oset, int, str, etc...
     Solution: ub.hash_data
 
+CommandLine:
+    xdoctest -m ubelt.util_hash __doc__:0 --show --convert=True --bench
+    xdoctest -m ubelt.util_hash __doc__:0 --show --convert=False --bench
+
+Example:
+    >>> # xdoc +REQUIRES(--bench)
+    >>> import ubelt as ub
+    >>> #ITEM = 'JUST A STRING' * 100
+    >>> ITEM = [0, 1, 'a', 'b', ['JUST A STRING'] * 4]
+    >>> HASHERS = ['sha1', 'sha512', 'xxh32', 'xxh64']
+    >>> scales = list(range(5, 13))
+    >>> results = ub.AutoDict()
+    >>> # Use json is faster or at least as fast it most cases
+    >>> # xxhash is also significantly faster than sha512
+    >>> convert = ub.argval('--convert', default='True').lower() == 'True'
+    >>> print('convert = {!r}'.format(convert))
+    >>> ti = ub.Timerit(9, bestof=3, verbose=1, unit='ms')
+    >>> for s in ub.ProgIter(scales, desc='benchmark', verbose=3):
+    >>>     N = 2 ** s
+    >>>     print(' --- s={s}, N={N} --- '.format(s=s, N=N))
+    >>>     data = [ITEM] * N
+    >>>     for hasher in HASHERS:
+    >>>         for timer in ti.reset(hasher):
+    >>>             ub.hash_data(data, hasher=hasher, convert=convert)
+    >>>         results[hasher].update({N: ti.mean()})
+    >>>     col = {h: results[h][N] for h in HASHERS}
+    >>>     sortx = ub.argsort(col)
+    >>>     ranking = ub.dict_subset(col, sortx)
+    >>>     print('walltime: ' + ub.repr2(ranking, precision=9, nl=0))
+    >>>     best = next(iter(ranking))
+    >>>     #pairs = list(ub.iter_window( 2))
+    >>>     pairs = [(k, best) for k in ranking]
+    >>>     ratios = [ranking[k1] / ranking[k2] for k1, k2 in pairs]
+    >>>     nicekeys = ['{}/{}'.format(k1, k2) for k1, k2 in pairs]
+    >>>     relratios = ub.odict(zip(nicekeys, ratios))
+    >>>     print('speedup: ' + ub.repr2(relratios, precision=4, nl=0))
+    >>> # xdoc +REQUIRES(--show)
+    >>> import pandas as pd
+    >>> df = pd.DataFrame.from_dict(results)
+    >>> df.columns.name = 'hasher'
+    >>> df.index.name = 'N'
+    >>> ratios = df.copy().drop(columns=df.columns)
+    >>> for k1, k2 in [('sha512', 'xxh32'), ('sha1', 'xxh32'), ('xxh64', 'xxh32')]:
+    >>>     ratios['{}/{}'.format(k1, k2)] = df[k1] / df[k2]
+    >>> print()
+    >>> print('Seconds per iteration')
+    >>> print(df.to_string(float_format='%.9f'))
+    >>> print()
+    >>> print('Ratios of seconds')
+    >>> print(ratios.to_string(float_format='%.2f'))
+    >>> print()
+    >>> print('Average Ratio (over all N)')
+    >>> print('convert = {!r}'.format(convert))
+    >>> print(ratios.mean().sort_values())
+    >>> import kwil as kwel
+    >>> kwel.autompl()
+    >>> xdata = sorted(ub.peek(results.values()).keys())
+    >>> ydata = ub.map_vals(lambda d: [d[x] for x in xdata], results)
+    >>> kwel.multi_plot(xdata, ydata, xlabel='N', ylabel='seconds', title='convert = {}'.format(convert))
+    >>> kwel.show_if_requested()
+
 Example:
     >>> import ubelt as ub
     >>> data = ub.odict(sorted({
@@ -22,7 +83,7 @@ Example:
     >>>     'param4': ('str', 4.2),
     >>> }.items()))
     >>> # hash_data can hash any ordered builtin object
-    >>> ub.hash_data(data)
+    >>> ub.hash_data(data, convert=False, hasher='sha512')
     2ff39d0ecbf6ecc740ca7d...
 
 
@@ -43,6 +104,7 @@ NOTE:
     future. When this happens the `HASH_VERSION` attribute will be incremented.
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
+import json
 import hashlib
 import six
 import uuid
@@ -77,7 +139,16 @@ else:
 
 # DEFAULT_ALPHABET = _ALPHABET_26
 DEFAULT_ALPHABET = _ALPHABET_16
-DEFAULT_HASHER = hashlib.sha512  # note: using sha1 is a bit faster
+
+try:
+    import xxhash
+    # DEFAULT_HASHER = xxhash.xxh32
+    DEFAULT_HASHER = xxhash.xxh64
+except ImportError:  # nocover
+    print('Missing xxhash')
+    DEFAULT_HASHER = hashlib.sha512  # note: using sha1 is a bit faster
+    raise
+
 DEFAULT_HASHLEN = None
 
 
@@ -180,6 +251,11 @@ def _rectify_hasher(hasher):
         >>> assert pytest.raises(KeyError, _rectify_hasher, '42')
         >>> #assert pytest.raises(TypeError, _rectify_hasher, object)
     """
+    if hasher in {'xxh32', 'xx32', 'xxhash'}:
+        return xxhash.xxh32
+    if hasher in {'xxh64', 'xx64'}:
+        return xxhash.xxh64
+
     if hasher is NoParam or hasher == 'default':
         hasher = DEFAULT_HASHER
     elif isinstance(hasher, six.string_types):
@@ -340,7 +416,7 @@ class HashableExtensions(object):
             >>> self.lookup(data)
         """
         # Maybe try using functools.singledispatch instead?
-        # First try fast O(1) lookup
+        # First try O(1) lookup
         query_hash_type = data.__class__
         key = (query_hash_type.__module__, query_hash_type.__name__)
         try:
@@ -666,7 +742,7 @@ def _digest_hasher(hasher, hashlen, base):
 
 
 def hash_data(data, hasher=NoParam, base=NoParam, types=False,
-              hashlen=NoParam):
+              hashlen=NoParam, convert=False):
     """
     Get a unique hash depending on the state of the data.
 
@@ -689,6 +765,11 @@ def hash_data(data, hasher=NoParam, base=NoParam, types=False,
             Maximum number of symbols in the returned hash. If not specified,
             all are returned.  DEPRICATED. Use slice syntax instead.
 
+        convert (bool, optional, default=True):
+            if True, try and convert the data to json an the json is hashed
+            instead. This can improve runtime in some instances, however the
+            hash may differ from the case where convert=False.
+
     Notes:
         alphabet26 is a pretty nice base, I recommend it.
         However we default to hex because it is more standardly used.
@@ -703,11 +784,19 @@ def hash_data(data, hasher=NoParam, base=NoParam, types=False,
 
     Example:
         >>> import ubelt as ub
-        >>> print(ub.hash_data([1, 2, (3, '4')], base='abc',  hasher='sha1'))
-        yqrkdjdaxhokhtlaektxgwbnnvdjulxryu
+        >>> print(ub.hash_data([1, 2, (3, '4')], convert=False))
+        d1f625264d616d44
         >>> print(ub.hash_data([1, 2, (3, '4')], base='abc',  hasher='sha512')[:32])
         hsrgqvfiuxvvhcdnypivhhthmrolkzej
     """
+    if convert and isinstance(data, six.string_types):  # nocover
+        try:
+            data = json.dumps(data)
+        except TypeError as ex:
+            # import warnings
+            # warnings.warn('Unable to encode input as json due to: {!r}'.format(ex))
+            pass
+
     base = _rectify_base(base)
     hashlen = _rectify_hashlen(hashlen)
     hasher = _rectify_hasher(hasher)()

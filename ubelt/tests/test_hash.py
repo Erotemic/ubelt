@@ -204,7 +204,7 @@ def test_numpy_float():
 def test_numpy_random_state():
     data = np.random.RandomState(0)
     # assert ub.hash_data(data).startswith('ujsidscotcycsqwnkxgbsxkcedplzvytmfmr')
-    assert ub.hash_data(data, types=True, base='abc').startswith('snkngbxghabesvowzalqtvdvjtvslmxve')
+    assert ub.hash_data(data, hasher='sha512', types=True, base='abc').startswith('snkngbxghabesvowzalqtvdvjtvslmxve')
     # _hashable_sequence(data)
 
 
@@ -212,7 +212,7 @@ def test_uuid():
     data = uuid.UUID('12345678-1234-1234-1234-123456789abc')
     sequence = b''.join(hash_sequence(data))
     assert sequence == b'UUID\x124Vx\x124\x124\x124\x124Vx\x9a\xbc'
-    assert ub.hash_data(data, types=True, base='abc').startswith('nkklelnjzqbi')
+    assert ub.hash_data(data, types=True, base='abc', hasher='sha512').startswith('nkklelnjzqbi')
     assert ub.hash_data(data.bytes, types=True) != ub.hash_data(data, types=True), (
         'the fact that it is a UUID should reflect in the hash')
     assert ub.hash_data(data.bytes, types=False) == ub.hash_data(data, types=False), (
