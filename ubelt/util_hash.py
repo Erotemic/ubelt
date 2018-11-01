@@ -50,6 +50,8 @@ Example:
     >>>     relratios = ub.odict(zip(nicekeys, ratios))
     >>>     print('speedup: ' + ub.repr2(relratios, precision=4, nl=0))
     >>> # xdoc +REQUIRES(--show)
+    >>> import pytest
+    >>> pytest.skip()
     >>> import pandas as pd
     >>> df = pd.DataFrame.from_dict(results)
     >>> df.columns.name = 'hasher'
