@@ -1,3 +1,9 @@
+version: 0.6.0
+--------------
+* Make xxhash the default hashing option.
+* ub.peek - 4-letter syntactic sugar for lambda x: next(iter(x))
+
+
 version: 0.5.3
 --------------
 * Fixed GH#41
