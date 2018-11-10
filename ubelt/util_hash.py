@@ -91,7 +91,7 @@ Example:
 
 Use Case:
     Problem: You have a file you want to hash, but your system doesn't have
-        a sha1sum executable.
+        a sha1sum executable (or you dont want to use POpen).
     Solution: ub.hash_file
 
 Example:
@@ -136,20 +136,32 @@ else:
     _stringlike = (str, bytes)  # NOQA
     _intlike = (int,)
 
-# Default to 512 because it is often faster than 256 on 64bit systems:
-# Reference: https://crypto.stackexchange.com/questions/26336/faster
 
 # DEFAULT_ALPHABET = _ALPHABET_26
 DEFAULT_ALPHABET = _ALPHABET_16
 
 try:
     import xxhash
-    # DEFAULT_HASHER = xxhash.xxh32
-    DEFAULT_HASHER = xxhash.xxh64
 except ImportError:  # nocover
-    print('Missing xxhash')
-    DEFAULT_HASHER = hashlib.sha512  # note: using sha1 is a bit faster
-    raise
+    xxhash = None
+
+# Sensible choices for default hashers are sha1, sha512, and xxh64.
+
+# xxhash.xxh64 is very fast, but non-crypto-grade and not in the standard lib
+# Reference: http://cyan4973.github.io/xxHash/
+# Reference: https://github.com/Cyan4973/xxHash
+
+# We dont default to sha1 because it has a known collision and other issues
+# Reference: https://stackoverflow.com/questions/28159071/more-modern-sha
+# Reference: https://security.googleblog.com/2017/02/announcing-first-sha1-collision.html
+
+# Default to 512 because it is often faster than 256 on 64bit systems:
+# Reference: https://crypto.stackexchange.com/questions/26336/faster
+
+# DEFAULT_HASHER = xxhash.xxh32
+# DEFAULT_HASHER = xxhash.xxh64  # xxh64 is the fastest, but non-standard
+# DEFAULT_HASHER = hashlib.sha1  # fast algo, but has a known collision
+DEFAULT_HASHER = hashlib.sha512  # most robust algo, but slower than others
 
 DEFAULT_HASHLEN = None
 
@@ -235,11 +247,8 @@ def _rectify_hasher(hasher):
 
     Notes:
         In terms of speed on 64bit systems, sha1 is the fastest followed by md5
-        and sha512. The slowest algorithm is sha256.
-
-    TODO:
-        - [ ]: Should we optionally incorporate xxHash algorithms, which
-               are much faster than hashlib algorithms.
+        and sha512. The slowest algorithm is sha256. If xxhash is installed
+        the fastest algorithm is xxh64.
 
     Example:
         >>> assert _rectify_hasher(NoParam) is DEFAULT_HASHER
@@ -252,11 +261,14 @@ def _rectify_hasher(hasher):
         >>> import pytest
         >>> assert pytest.raises(KeyError, _rectify_hasher, '42')
         >>> #assert pytest.raises(TypeError, _rectify_hasher, object)
+        >>> if xxhash:
+        >>>     assert _rectify_hasher('xxh64') is xxhash.xxh64
     """
-    if hasher in {'xxh32', 'xx32', 'xxhash'}:
-        return xxhash.xxh32
-    if hasher in {'xxh64', 'xx64'}:
-        return xxhash.xxh64
+    if xxhash is not None:  # pragma: nobranch
+        if hasher in {'xxh32', 'xx32', 'xxhash'}:
+            return xxhash.xxh32
+        if hasher in {'xxh64', 'xx64'}:
+            return xxhash.xxh64
 
     if hasher is NoParam or hasher == 'default':
         hasher = DEFAULT_HASHER
@@ -787,7 +799,7 @@ def hash_data(data, hasher=NoParam, base=NoParam, types=False,
     Example:
         >>> import ubelt as ub
         >>> print(ub.hash_data([1, 2, (3, '4')], convert=False))
-        d1f625264d616d44
+        60b758587f599663931057e6ebdf185a...
         >>> print(ub.hash_data([1, 2, (3, '4')], base='abc',  hasher='sha512')[:32])
         hsrgqvfiuxvvhcdnypivhhthmrolkzej
     """

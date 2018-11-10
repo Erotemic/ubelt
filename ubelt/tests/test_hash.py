@@ -301,6 +301,15 @@ def _test_int_bytes():
     assert ub.util_hash._int_to_bytes(-2 ** 256) == b'\xff\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
 
 
+def _test_xxhash():
+    try:
+        import xxhash  # NOQA
+    except ImportError:
+        pass
+    else:
+        assert ub.hash_data('foo', hasher='xxh64') == '33bf00a859c4ba3f'
+
+
 if __name__ == '__main__':
     r"""
     CommandLine:
