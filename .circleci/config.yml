@@ -33,6 +33,7 @@ jobs:
             python3 -m venv venv
             . venv/bin/activate
             pip install -r requirements.txt
+            pip install -r optional-requirements.txt
 
       - save_cache:
           paths:
@@ -48,7 +49,9 @@ jobs:
           name: run tests
           command: |
             . venv/bin/activate
-            python manage.py test
+            #python manage.py test
+            python run_tests.py
+            #pytest -p no:doctest --cov-config .coveragerc --cov-report html --xdoctest --cov=ubelt --network ubelt
 
       - store_artifacts:
           path: test-reports
