@@ -85,6 +85,7 @@ class Cacher(object):
         >>> assert cacher.exists(), 'should now exist'
     """
     VERBOSE = 1  # default verbosity
+    FORCE_DISABLE = False  # global scope override
 
     def __init__(self, fname, cfgstr=None, dpath=None, appname='ubelt',
                  ext='.pkl', meta=None, verbose=None, enabled=True, log=None,
@@ -100,7 +101,7 @@ class Cacher(object):
         self.verbose = verbose
         self.ext = ext
         self.meta = meta
-        self.enabled = enabled
+        self.enabled = enabled and not self.FORCE_DISABLE
         self.protocol = protocol
         self.hasher = hasher
         self.log = print if log is None else log
@@ -110,9 +111,10 @@ class Cacher(object):
 
     def _rectify_cfgstr(self, cfgstr=None):
         cfgstr = self.cfgstr if cfgstr is None else cfgstr
-        if cfgstr is None:
-            warnings.warn('No cfgstr given in Cacher constructor or call',
-                          UserWarning)
+        if cfgstr is None and self.enabled:
+            warnings.warn(
+                'No cfgstr given in Cacher constructor or call for {}'.format(
+                    self.fname), UserWarning)
             cfgstr = ''
         assert self.fname is not None, 'no fname specified in Cacher'
         assert self.dpath is not None, 'no dpath specified in Cacher'
@@ -245,6 +247,12 @@ class Cacher(object):
 
     def load(self, cfgstr=None):
         """
+        Loads the data
+
+        Raises:
+            IOError - if the data is unable to be loaded. This could be due to
+                a cache miss or because the cache is disabled.
+
         Example:
             >>> from ubelt.util_cache import *  # NOQA
             >>> # Setting the cacher as enabled=False turns it off
