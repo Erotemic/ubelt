@@ -1,6 +1,7 @@
 version: 0.6.0
 --------------
-* Make xxhash the default hashing option.
+* Added class variable FORCE_DISABLE to ub.Cacher
+* Added the xxhash algorithm as an option to ub.hash_data
 * ub.peek - 4-letter syntactic sugar for lambda x: next(iter(x))
 
 
