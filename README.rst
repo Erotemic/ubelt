@@ -1,4 +1,4 @@
-|Travis| |Codecov| |Appveyor| |Pypi|
+|Travis| |Codecov| |Appveyor| |Pypi| |CircleCI|
 
 Good utilities lift all codes.
 
@@ -643,3 +643,5 @@ Here are the repos containing the standalone class utilities:
    :target: https://ci.appveyor.com/project/Erotemic/ubelt/branch/master
 .. |Pypi| image:: https://img.shields.io/pypi/v/ubelt.svg
    :target: https://pypi.python.org/pypi/ubelt
+.. |CircleCI| image:: https://circleci.com/gh/Erotemic/ubelt.svg?style=svg
+    :target: https://circleci.com/gh/Erotemic/ubelt
