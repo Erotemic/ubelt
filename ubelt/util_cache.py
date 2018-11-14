@@ -16,7 +16,7 @@ class Cacher(object):
 
     Args:
         fname (str): A file name. This is the prefix that will be used by the
-            cache. It will alwasys be used as-is.
+            cache. It will always be used as-is.
 
         cfgstr (str): Indicates the state. Either this string or a hash of this
             string will be used to identify the cache. A cfgstr should always
@@ -29,12 +29,12 @@ class Cacher(object):
 
         appname (str): Application name (default = 'ubelt')
             Specifies a folder in the application resource directory where to
-            cache the data if dpath is not specified.
+            cache the data if `dpath` is not specified.
 
         ext (str): File extension (default = '.pkl')
 
-        meta (object): Metadata that is also saved with the cfgstr.
-            This can be useful to indicate how the cfgstr was constructed.
+        meta (object): Metadata that is also saved with the `cfgstr`.
+            This can be useful to indicate how the `cfgstr` was constructed.
 
         verbose (int): Level of verbosity. Can be 1, 2 or 3. (default=1)
 
@@ -44,7 +44,7 @@ class Cacher(object):
         log (func): Overloads the print function. Useful for sending output to
             loggers (e.g. logging.info, tqdm.tqdm.write, ...)
 
-        hasher (str): Type of hashing algorithm to use if cfgstr needs to be
+        hasher (str): Type of hashing algorithm to use if `cfgstr` needs to be
             condensed to less than 49 characters.
 
         protocol (int): Protocol version used by pickle.  If python 2
@@ -433,7 +433,7 @@ class CacheStamp(object):
 
         cfgstr (str):
             Configuration associated with the stamped computation.  A common
-            pattern is to call `ub.hash_data` on a dependency list.
+            pattern is to call `ubelt.hash_data` on a dependency list.
 
         dpath (PathLike):
             Where to store the cached stamp file

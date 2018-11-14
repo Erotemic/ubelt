@@ -236,7 +236,7 @@ def expandpath(path):
     """
     Wrapper around expanduser and expandvars.
 
-    Less agressive than truepath. Only expands environs and tilde. Does not
+    Less aggressive than truepath. Only expands environs and tilde. Does not
     change relative paths to absolute paths.
 
     Args:
@@ -264,7 +264,7 @@ def truepath(path, real=False):
         PathLike : normalized path
 
     Note:
-        This function is simlar to the composition of expanduser, expandvars,
+        This function is similar to the composition of expanduser, expandvars,
         normpath, and (realpath if `real` else abspath). However, on windows
         backslashes are then replaced with forward slashes to offer a
         consistent unix-like experience across platforms.
@@ -305,7 +305,7 @@ def ensuredir(dpath, mode=0o1777, verbose=None):
         PathLike: path: the ensured directory
 
     Notes:
-        This function is not threadsafe in Python2
+        This function is not thread-safe in Python2
 
     Example:
         >>> from ubelt.util_platform import *  # NOQA

@@ -39,7 +39,7 @@ class NiceRepr(object):
     def __nice__(self):
         if hasattr(self, '__len__'):
             # It is a common pattern for objects to use __len__ in __nice__
-            # As a convience we define a default __nice__ for these objects
+            # As a convenience we define a default __nice__ for these objects
             return str(len(self))
         else:
             # In all other cases force the subclass to overload __nice__

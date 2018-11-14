@@ -74,10 +74,10 @@ def _proc_iteroutput_thread(proc):
     Iterates over output from a process line by line
 
     Note:
-        WARNING. current implementation might have bugs with other threads.
+        WARNING. Current implementation might have bugs with other threads.
         This behavior was seen when using earlier versions of tqdm. I'm not
-        sure if this was our bug or tqdm's. Newever versions of tqdm fix this,
-        but I cannot gaurentee that there isn't an issue on our end.
+        sure if this was our bug or tqdm's. Newer versions of tqdm fix this,
+        but I cannot guarantee that there isn't an issue on our end.
 
     Yields:
         Tuple[str, str]: oline, eline: stdout and stderr line
@@ -93,7 +93,7 @@ def _proc_iteroutput_thread(proc):
     stdout_live = True
     stderr_live = True
 
-    # read from the output asychronously until
+    # read from the output asynchronously until
     while stdout_live or stderr_live:
         if stdout_live:  # pragma: nobranch
             try:
@@ -142,7 +142,7 @@ def _proc_iteroutput_select(proc):
 
 def _tee_output(make_proc, stdout=None, stderr=None, backend='auto'):
     """
-    Simultaniously reports and captures stdout and stderr from a process
+    Simultaneously reports and captures stdout and stderr from a process
 
     subprocess must be created using (stdout=subprocess.PIPE,
     stderr=subprocess.PIPE)
@@ -179,8 +179,8 @@ def _tee_output(make_proc, stdout=None, stderr=None, backend='auto'):
     return proc, logged_out, logged_err
 
 
-def cmd(command, shell=False, detatch=False, verbose=0, tee=None, cwd=None,
-        env=None, tee_backend='auto', verbout=None):
+def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
+        env=None, tee_backend='auto', verbout=None, **kwargs):
     """
     Executes a command in a subprocess.
 
@@ -189,7 +189,7 @@ def cmd(command, shell=False, detatch=False, verbose=0, tee=None, cwd=None,
     (2) the text written to stdout and stderr is returned for parsing,
     (3) cross platform behavior that lets you specify the command as a string
     or tuple regardless of whether or not shell=True.
-    (4) ability to detatch, return the process object and allow the process to
+    (4) ability to detach, return the process object and allow the process to
     run in the background (eventually we may return a Future object instead).
 
     Args:
@@ -198,12 +198,12 @@ def cmd(command, shell=False, detatch=False, verbose=0, tee=None, cwd=None,
 
         shell (bool): if True, process is run in shell, defaults to False.
 
-        detatch (bool): if True, process is detached and run in background,
+        detach (bool): if True, process is detached and run in background,
             defaults to False.
 
         verbose (int): verbosity mode. Can be 0, 1, 2, or 3. Defaults to 0.
 
-        tee (bool, optional): if True, simultaniously writes to stdout while
+        tee (bool, optional): if True, simultaneously writes to stdout while
             capturing output from the command. If not specified, defaults to
             True if verbose > 0.  If detech is True, then this argument is
             ignored.
@@ -215,16 +215,16 @@ def cmd(command, shell=False, detatch=False, verbose=0, tee=None, cwd=None,
         tee_backend (str, optional): backend for tee output.
             Valid choices are: "auto", "select" (POSIX only), and "thread".
 
-        verbout (bool): DEPRICATED. Use `tee` instead.
+        **kwargs: only used to support deprecated arguments
 
     Returns:
         dict: info - information about command status.
-            if detatch is False `info` contains captured standard out,
+            if detach is False `info` contains captured standard out,
             standard error, and the return code
-            if detatch is False `info` contains a reference to the process.
+            if detach is False `info` contains a reference to the process.
 
     Notes:
-        Inputs can either be text or tuple based. On unix we ensure conversion
+        Inputs can either be text or tuple based. On UNIX we ensure conversion
         to text if shell=True, and to tuple if shell=False. On windows, the
         input is always text based.  See [3] for a potential cross-platform
         shlex solution for windows.
@@ -270,8 +270,8 @@ def cmd(command, shell=False, detatch=False, verbose=0, tee=None, cwd=None,
         >>> fpath2 = join(ub.get_app_cache_dir('ubelt'), 'cmdout2.txt')
         >>> ub.delete(fpath1)
         >>> ub.delete(fpath2)
-        >>> info1 = ub.cmd(('touch', fpath1), detatch=True)
-        >>> info2 = ub.cmd('echo writing2 > ' + fpath2, shell=True, detatch=True)
+        >>> info1 = ub.cmd(('touch', fpath1), detach=True)
+        >>> info2 = ub.cmd('echo writing2 > ' + fpath2, shell=True, detach=True)
         >>> while not exists(fpath1):
         ...     pass
         >>> while not exists(fpath2):
@@ -281,6 +281,22 @@ def cmd(command, shell=False, detatch=False, verbose=0, tee=None, cwd=None,
         >>> info1['proc'].wait()
         >>> info2['proc'].wait()
     """
+    if kwargs:  # nocover
+        if 'verbout' in kwargs:
+            warnings.warn(
+                '`verbout` is deprecated and will be removed. '
+                'Use `tee` instead', DeprecationWarning)
+            tee = kwargs.pop('verbout')
+
+        if 'detatch' in kwargs:
+            warnings.warn(
+                '`detatch` is deprecated (misspelled) and will be removed. '
+                'Use `detach` instead', DeprecationWarning)
+            detach = kwargs.pop('detatch')
+
+        if kwargs:
+            raise ValueError('Unknown kwargs: {}'.format(list(kwargs.keys)))
+
     # Determine if command is specified as text or a tuple
     if isinstance(command, six.string_types):
         command_text = command
@@ -300,12 +316,6 @@ def cmd(command, shell=False, detatch=False, verbose=0, tee=None, cwd=None,
             command_tup = shlex.split(command_text)
             # command_tup = shlex.split(command_text, posix=not WIN32)
         args = command_tup
-
-    if verbout is not None:  # nocover
-        warnings.warn(
-            'verbout is depricated and will be removed in a future release. '
-            'use tee instead', DeprecationWarning)
-        tee = verbout
 
     if tee is None:
         tee = verbose > 0
@@ -334,10 +344,10 @@ def cmd(command, shell=False, detatch=False, verbose=0, tee=None, cwd=None,
                                 universal_newlines=True, cwd=cwd, env=env)
         return proc
 
-    if detatch:
+    if detach:
         info = {'proc': make_proc(), 'command': command_text}
         if verbose > 0:  # nocover
-            print('...detatching')
+            print('...detaching')
     else:
         if tee:
             # we need to tee output and start threads if tee is False?

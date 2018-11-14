@@ -140,11 +140,11 @@ def hzcat(args, sep=''):
     """
     Horizontally concatenates strings preserving indentation
 
-    Concats a list of objects ensuring that the next item in the list
-    is all the way to the right of any previous items.
+    Concatenates a list of objects ensuring that the next item in the list is
+    all the way to the right of any previous items.
 
     Args:
-        args (list): strings to concat
+        args (List[str]): strings to concatenate
         sep (str): separator (defaults to '')
 
     CommandLine:
@@ -171,7 +171,7 @@ def hzcat(args, sep=''):
          ｜ ｜ [á, á, á]]｜ ｜ [7, θ]]
     """
     if '\n' in sep or '\r' in sep:
-        raise ValueError('sep cannot contain newline characters')
+        raise ValueError('`sep` cannot contain newline characters')
 
     # TODO: ensure unicode data works correctly for python2
     args = [unicodedata.normalize('NFC', ensure_unicode(val)) for val in args]
@@ -187,7 +187,7 @@ def hzcat(args, sep=''):
         # Concatenate the new string
         for lx, line in enumerate(lines):
             all_lines[lx] += line
-        # Find the new maximum horiztonal width
+        # Find the new maximum horizontal width
         width = max(width, max(map(len, all_lines)))
         if sx < n_args - 1:
             # Horizontal padding on all but last iter
@@ -206,7 +206,7 @@ def ensure_unicode(text):
     Casts bytes into utf8 (mostly for python2 compatibility)
 
     References:
-        http://stackoverflow.com/questions/12561063/python-extract-data-from-file
+        http://stackoverflow.com/questions/12561063/extract-data-from-file
 
     Example:
         >>> from ubelt.util_str import *

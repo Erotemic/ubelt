@@ -2,7 +2,7 @@
 r"""
 Wrappers around hashlib functions to generate hash signatures for common data.
 
-The hashes are determenistic across python versions and operating systems.
+The hashes are deterministic across python versions and operating systems.
 This is verified by CI testing on Windows, Linux, Python with 2.7, 3.4, and
 greater, and on 32 and 64 bit versions.
 
@@ -28,7 +28,7 @@ Example:
 
 Use Case:
     Problem: You have a file you want to hash, but your system doesn't have
-        a sha1sum executable (or you dont want to use POpen).
+        a sha1sum executable (or you dont want to use Popen).
     Solution: ub.hash_file
 
 Example:
@@ -714,7 +714,7 @@ def hash_data(data, hasher=NoParam, base=NoParam, types=False,
 
         hashlen (int):
             Maximum number of symbols in the returned hash. If not specified,
-            all are returned.  DEPRICATED. Use slice syntax instead.
+            all are returned.  DEPRECATED. Use slice syntax instead.
 
         convert (bool, optional, default=True):
             if True, try and convert the data to json an the json is hashed
@@ -723,7 +723,7 @@ def hash_data(data, hasher=NoParam, base=NoParam, types=False,
 
     Notes:
         alphabet26 is a pretty nice base, I recommend it.
-        However we default to hex because it is more standardly used.
+        However we default to hex because it is standard.
         This means the output of hashdata with base=sha1 will be the same as
         the output of `sha1sum`.
 
