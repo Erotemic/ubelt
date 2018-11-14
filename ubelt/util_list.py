@@ -330,7 +330,7 @@ def unique_flags(items, key=None):
             If specified returns items where `key(item)` is unique.
 
     Returns:
-        list of bools : flags the items that are unique
+        List[bool] : flags the items that are unique
 
     Example:
         >>> import ubelt as ub
@@ -359,7 +359,10 @@ def boolmask(indices, maxval=None):
         indices (list): list of integer indices
 
         maxval (int): length of the returned list. If not specified
-            this is inverred from `indices`
+            this is inferred from `indices`
+
+    Note:
+        In the future the arg `maxval` may change its name to `shape`
 
     Returns:
         list: mask: list of booleans. mask[idx] is True if idx in indices
@@ -435,7 +438,7 @@ def iter_window(iterable, size=2, step=1, wrap=False):
     if wrap:
         # Secondary iterables need to be cycled for wraparound
         iter_list = [iter_list[0]] + list(map(it.cycle, iter_list[1:]))
-    # Step each iterator the approprate number of times
+    # Step each iterator the appropriate number of times
     try:
         for count, iter_ in enumerate(iter_list[1:], start=1):
             for _ in range(count):
@@ -487,8 +490,8 @@ def argsort(indexable, key=None, reverse=False):
     """
     Returns the indices that would sort a indexable object.
 
-    This is similar to np.argsort, but it is written in pure python and works
-    on both lists and dictionaries.
+    This is similar to `numpy.argsort`, but it is written in pure python and
+    works on both lists and dictionaries.
 
     Args:
         indexable (Iterable or Mapping): indexable to sort by
@@ -542,8 +545,8 @@ def argmax(indexable, key=None):
     """
     Returns index / key of the item with the largest value.
 
-    This is similar to np.argmax, but it is written in pure python and works on
-    both lists and dictionaries.
+    This is similar to `numpy.argmax`, but it is written in pure python and
+    works on both lists and dictionaries.
 
     Args:
         indexable (Iterable or Mapping): indexable to sort by
@@ -576,8 +579,8 @@ def argmin(indexable, key=None):
     """
     Returns index / key of the item with the smallest value.
 
-    This is similar to np.argmin, but it is written in pure python and works on
-    both lists and dictionaries.
+    This is similar to `numpy.argmin`, but it is written in pure python and
+    works on both lists and dictionaries.
 
     Args:
         indexable (Iterable or Mapping): indexable to sort by

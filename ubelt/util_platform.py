@@ -167,9 +167,9 @@ def startfile(fpath, verbose=True):  # nocover
     if not WIN32:
         fpath = pipes.quote(fpath)
     if LINUX:
-        info = util_cmd.cmd(('xdg-open', fpath), detatch=True, verbose=verbose)
+        info = util_cmd.cmd(('xdg-open', fpath), detach=True, verbose=verbose)
     elif DARWIN:
-        info = util_cmd.cmd(('open', fpath), detatch=True, verbose=verbose)
+        info = util_cmd.cmd(('open', fpath), detach=True, verbose=verbose)
     elif WIN32:
         os.startfile(fpath)
         info = None
@@ -218,7 +218,7 @@ def editfile(fpath, verbose=True):  # nocover
 
     if not exists(fpath):
         raise IOError('Cannot start nonexistant file: %r' % fpath)
-    util_cmd.cmd([editor, fpath], fpath, detatch=True)
+    util_cmd.cmd([editor, fpath], fpath, detach=True)
 
 
 def find_exe(name, multi=False, path=None):
@@ -294,7 +294,7 @@ def find_path(name, path=None, exact=False):
 
     Args:
         fname (PathLike or str): file name to match.
-            if exact is False this may be a glob pattern
+            If exact is False this may be a glob pattern
 
         path (str or Iterable[PathLike]): list of directories to search either
             specified as an os.pathsep separated string or a list of

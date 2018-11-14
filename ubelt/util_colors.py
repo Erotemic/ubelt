@@ -5,7 +5,7 @@ import sys
 
 def highlight_code(text, lexer_name='python', **kwargs):
     """
-    Highlights a block of text using ansii tags based on language syntax.
+    Highlights a block of text using ANSI tags based on language syntax.
 
     Args:
         text (str): plain text to highlight

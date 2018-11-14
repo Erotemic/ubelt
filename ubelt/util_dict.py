@@ -372,7 +372,7 @@ def dict_take(dict_, keys, default=util_const.NoParam):
 def dict_union(*args):
     """
     Combines the disjoint keys in multiple dictionaries. For intersecting keys,
-    dictionaries towards the end of the sequence are given precidence.
+    dictionaries towards the end of the sequence are given precedence.
 
     Args:
         *args : a sequence of dictionaries

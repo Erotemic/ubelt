@@ -1,3 +1,9 @@
+version: 0.6.1
+--------------
+* Fixed misspelling in docs 
+* Fixed misspelled detach kwarg in ub.cmd (the old `detatch` argument is now depricated and will be removed)
+
+
 version: 0.6.0
 --------------
 * Added class variable FORCE_DISABLE to ub.Cacher

@@ -346,10 +346,10 @@ def _format_dict(dict_, **kwargs):
                   explicit, itemsep, precision, kvsep, sort
 
     Kwargs:
-        sort (None): if True, sorts ALL collectsions and subcollections,
+        sort (None): if True, sorts ALL collections and subcollections,
             note, collections with undefined orders (e.g. dicts, sets) are
             sorted by default. (default = None)
-        nl (int): prefered alias for newline. can be a countdown variable
+        nl (int): preferred alias for newline. can be a countdown variable
             (default = None)
         explicit (int): can be a countdown variable. if True, uses
             dict(a=b) syntax instead of {'a': b}
@@ -394,7 +394,7 @@ def _format_dict(dict_, **kwargs):
 def _join_itemstrs(itemstrs, itemsep, newlines, nobraces, trailing_sep,
                    compact_brace, lbr, rbr):
     """
-    Joins stringified items with separators newlines and container-braces.
+    Joins string-ified items with separators newlines and container-braces.
     """
     import ubelt as ub
 
@@ -539,9 +539,9 @@ def _peek_isinstance(items, types):
 
 def _rectify_countdown_or_bool(count_or_bool):
     """
-    used by recrusive functions to specify which level to turn a bool on in
-    counting down yeilds True, True, ..., False
-    conting up yeilds False, False, False, ... True
+    used by recursive functions to specify which level to turn a bool on in
+    counting down yields True, True, ..., False
+    counting up yields False, False, False, ... True
 
     Args:
         count_or_bool (bool or int): if positive will count down, if negative

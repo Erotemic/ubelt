@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-This module defines `ub.NoParam`. This is a robust setinal value that can act
+This module defines `ub.NoParam`. This is a robust sentinel value that can act
 like None when None might be a valid value. The value of `NoParam` is robust to
 reloading, pickling, and copying (i.e. var is ub.NoParam will return True after
 these operations)
@@ -12,11 +12,11 @@ __all__ = ['NoParam']
 
 class _NoParamType(object):
     r"""
-    Class used to define `NoParam`, a setinal that acts like None when None
+    Class used to define `NoParam`, a sentinel that acts like None when None
     might be a valid value. The value of `NoParam` is robust to reloading,
     pickling, and copying.
 
-    Howver, try to never assign this value to a persistant variable.  Use this
+    However, try to never assign this value to a persistent variable.  Use this
     class sparingly.
 
     CommandLine:
@@ -90,5 +90,5 @@ try:
 except NameError:  # pragma: no cover
     # When the module is first loaded, globals() will not contain NoParam. A
     # NameError will be thrown, causing the first instance of NoParam to be
-    # instanciated.
+    # instantiated.
     NoParam = object.__new__(_NoParamType)  # pragma: no cover
