@@ -76,8 +76,8 @@ else:  # pragma: nobranch
     from ubelt.util_const import (NoParam,)
     from ubelt.util_cmd import (cmd,)
     from ubelt.util_dict import (AutoDict, AutoOrderedDict, ddict, dict_hist,
-                                 dict_subset, dict_take, dict_union, dzip,
-                                 find_duplicates, group_items, invert_dict,
+                                 dict_isect, dict_subset, dict_take, dict_union,
+                                 dzip, find_duplicates, group_items, invert_dict,
                                  map_keys, map_vals, odict,)
     from ubelt.util_download import (download, grabdata,)
     from ubelt.util_func import (identity, inject_method,)
@@ -112,22 +112,23 @@ else:  # pragma: nobranch
                'WIN32', 'allsame', 'argflag', 'argmax', 'argmin', 'argsort',
                'argunique', 'argval', 'augpath', 'boolmask', 'chunks', 'cmd',
                'codeblock', 'color_text', 'compress', 'compressuser', 'ddict',
-               'delete', 'dict_hist', 'dict_subset', 'dict_take', 'dict_union',
-               'download', 'dzip', 'editfile', 'ensure_app_cache_dir',
-               'ensure_app_resource_dir', 'ensure_unicode', 'ensuredir',
-               'expandpath', 'find_duplicates', 'find_exe', 'find_path', 'flatten',
-               'get_app_cache_dir', 'get_app_resource_dir', 'grabdata',
-               'group_items', 'hash_data', 'hash_file', 'highlight_code', 'hzcat',
-               'identity', 'import_module_from_name', 'import_module_from_path',
-               'indent', 'inject_method', 'invert_dict', 'iter_window', 'iterable',
-               'map_keys', 'map_vals', 'memoize', 'memoize_method',
-               'modname_to_modpath', 'modpath_to_modname', 'odict', 'orderedset',
-               'oset', 'peek', 'platform_cache_dir', 'platform_resource_dir',
-               'progiter', 'readfrom', 'repr2', 'split_modpath', 'startfile',
-               'symlink', 'take', 'timestamp', 'touch', 'truepath', 'unique',
-               'unique_flags', 'userhome', 'util_arg', 'util_cache', 'util_cmd',
-               'util_colors', 'util_const', 'util_dict', 'util_download',
-               'util_format', 'util_func', 'util_hash', 'util_import', 'util_io',
-               'util_links', 'util_list', 'util_memoize', 'util_mixins',
-               'util_path', 'util_platform', 'util_str', 'util_time', 'writeto']
+               'delete', 'dict_hist', 'dict_isect', 'dict_subset', 'dict_take',
+               'dict_union', 'download', 'dzip', 'editfile',
+               'ensure_app_cache_dir', 'ensure_app_resource_dir', 'ensure_unicode',
+               'ensuredir', 'expandpath', 'find_duplicates', 'find_exe',
+               'find_path', 'flatten', 'get_app_cache_dir', 'get_app_resource_dir',
+               'grabdata', 'group_items', 'hash_data', 'hash_file',
+               'highlight_code', 'hzcat', 'identity', 'import_module_from_name',
+               'import_module_from_path', 'indent', 'inject_method', 'invert_dict',
+               'iter_window', 'iterable', 'map_keys', 'map_vals', 'memoize',
+               'memoize_method', 'modname_to_modpath', 'modpath_to_modname',
+               'odict', 'orderedset', 'oset', 'peek', 'platform_cache_dir',
+               'platform_resource_dir', 'progiter', 'readfrom', 'repr2',
+               'split_modpath', 'startfile', 'symlink', 'take', 'timestamp',
+               'touch', 'truepath', 'unique', 'unique_flags', 'userhome',
+               'util_arg', 'util_cache', 'util_cmd', 'util_colors', 'util_const',
+               'util_dict', 'util_download', 'util_format', 'util_func',
+               'util_hash', 'util_import', 'util_io', 'util_links', 'util_list',
+               'util_memoize', 'util_mixins', 'util_path', 'util_platform',
+               'util_str', 'util_time', 'writeto']
     # </AUTOGEN_INIT>

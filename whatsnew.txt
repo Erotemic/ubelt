@@ -1,5 +1,6 @@
 version: 0.6.1
 --------------
+* Added `dict_isect` to util_dict.
 * Fixed misspelling in docs 
 * Fixed misspelled detach kwarg in ub.cmd (the old `detatch` argument is now depricated and will be removed)
 
