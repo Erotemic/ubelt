@@ -9,6 +9,7 @@ from six.moves import zip
 from ubelt import util_const
 
 
+# Expose for convenience
 odict = OrderedDict
 ddict = defaultdict
 
@@ -21,6 +22,7 @@ __all__ = [
     'dict_subset',
     'dict_take',
     'dict_union',
+    'dict_isect',
     'find_duplicates',
     'group_items',
     'invert_dict',
@@ -34,7 +36,7 @@ class AutoDict(dict):
     """
     An infinitely nested default dict of dicts.
 
-    Implementation of perl's autovivification feature.
+    Implementation of Perl's autovivification feature.
 
     SeeAlso:
         ub.AutoOrderedDict - the ordered version
@@ -80,15 +82,15 @@ class AutoDict(dict):
             for key, value in self.items())
 
 
-class AutoOrderedDict(odict, AutoDict):
+class AutoOrderedDict(OrderedDict, AutoDict):
     """
-    An an infinitely nested default dict of dicts that maintains the ordering
+    An infinitely nested default dict of dicts that maintains the ordering
     of items.
 
     SeeAlso:
         ub.AutoDict - the unordered version
 
-    Example0:
+    Example:
         >>> import ubelt as ub
         >>> auto = ub.AutoOrderedDict()
         >>> auto[0][3] = 3
@@ -96,7 +98,7 @@ class AutoOrderedDict(odict, AutoDict):
         >>> auto[0][1] = 1
         >>> assert list(auto[0].values()) == [3, 2, 1]
     """
-    _base = odict
+    _base = OrderedDict
 
 
 def dzip(items1, items2, cls=dict):
@@ -172,7 +174,7 @@ def group_items(items, groupids):
         pair_list = zip(groupids, items)
 
     # Initialize a dict of lists
-    groupid_to_items = ddict(list)
+    groupid_to_items = defaultdict(list)
     # Insert each item into the correct group
     for key, item in pair_list:
         groupid_to_items[key].append(item)
@@ -180,7 +182,7 @@ def group_items(items, groupids):
 
 
 def dict_hist(item_list, weight_list=None, ordered=False, labels=None):
-    r"""
+    """
     Builds a histogram of items, counting the number of time each item appears
     in the input.
 
@@ -227,7 +229,7 @@ def dict_hist(item_list, weight_list=None, ordered=False, labels=None):
         {1: 1, 2: 4, 39: 1, 900: 1, 1232: 0}
     """
     if labels is None:
-        hist_ = ddict(lambda: 0)
+        hist_ = defaultdict(lambda: 0)
     else:
         hist_ = {k: 0 for k in labels}
     if weight_list is None:
@@ -247,7 +249,7 @@ def dict_hist(item_list, weight_list=None, ordered=False, labels=None):
 
 
 def find_duplicates(items, k=2, key=None):
-    r"""
+    """
     Find all duplicate items in a list.
 
     Search for all items that appear more than `k` times and return a mapping
@@ -292,7 +294,7 @@ def find_duplicates(items, k=2, key=None):
     # Build mapping from items to the indices at which they appear
     # if key is not None:
     #     items = map(key, items)
-    duplicates = ddict(list)
+    duplicates = defaultdict(list)
     if key is None:
         for count, item in enumerate(items):
             duplicates[item].append(count)
@@ -308,7 +310,7 @@ def find_duplicates(items, k=2, key=None):
 
 
 def dict_subset(dict_, keys, default=util_const.NoParam):
-    r"""
+    """
     Get a subset of a dictionary
 
     Args:
@@ -318,6 +320,9 @@ def dict_subset(dict_, keys, default=util_const.NoParam):
 
     Returns:
         OrderedDict: subset dictionary
+
+    SeeAlso:
+        dict_isect - similar functionality, but will only take existing keys
 
     Example:
         >>> import ubelt as ub
@@ -378,7 +383,8 @@ def dict_union(*args):
         *args : a sequence of dictionaries
 
     Returns:
-        OrderedDict if the first argument is an OrderedDict, otherwise dict
+        Dict | OrderedDict :
+            OrderedDict if the first argument is an OrderedDict, otherwise dict
 
     SeeAlso:
         collections.ChainMap - a standard python builtin data structure that
@@ -396,8 +402,44 @@ def dict_union(*args):
     if not args:
         return {}
     else:
-        dictclass = odict if isinstance(args[0], odict) else dict
+        dictclass = OrderedDict if isinstance(args[0], OrderedDict) else dict
         return dictclass(it.chain.from_iterable(d.items() for d in args))
+
+
+def dict_isect(*args):
+    """
+    Constructs a dictionary that contains keys common between all inputs.
+    The returned values will only belong to the first dictionary.
+
+    Args:
+        *args : a sequence of dictionaries (or sets of keys)
+
+    Returns:
+        Dict | OrderedDict :
+            OrderedDict if the first argument is an OrderedDict, otherwise dict
+
+    Notes:
+        This function can be used as an alternative to `dict_subset` where any
+        key not in the dictionary is ignored. See the following example:
+
+        >>> dict_isect({'a': 1, 'b': 2, 'c': 3}, ['a', 'c', 'd'])
+        {'a': 1, 'c': 3}
+
+    Example:
+        >>> dict_isect({'a': 1, 'b': 1}, {'b': 2, 'c': 2})
+        {'b': 1}
+        >>> dict_isect(odict([('a', 1), ('b', 2)]), odict([('c', 3)]))
+        OrderedDict()
+        >>> dict_isect()
+        {}
+    """
+    if not args:
+        return {}
+    else:
+        dictclass = OrderedDict if isinstance(args[0], OrderedDict) else dict
+        common_keys = set.intersection(*map(set, args))
+        first_dict = args[0]
+        return dictclass((k, first_dict[k]) for k in common_keys)
 
 
 def map_vals(func, dict_):
@@ -431,7 +473,7 @@ def map_vals(func, dict_):
     if not hasattr(func, '__call__'):
         func = func.__getitem__
     keyval_list = [(key, func(val)) for key, val in six.iteritems(dict_)]
-    dictclass = odict if isinstance(dict_, odict) else dict
+    dictclass = OrderedDict if isinstance(dict_, OrderedDict) else dict
     newdict = dictclass(keyval_list)
     # newdict = type(dict_)(keyval_list)
     return newdict
@@ -471,7 +513,7 @@ def map_keys(func, dict_):
         func = func.__getitem__
     keyval_list = [(func(key), val) for key, val in six.iteritems(dict_)]
     # newdict = type(dict_)(keyval_list)
-    dictclass = odict if isinstance(dict_, odict) else dict
+    dictclass = OrderedDict if isinstance(dict_, OrderedDict) else dict
     newdict = dictclass(keyval_list)
     assert len(newdict) == len(dict_), (
         'multiple input keys were mapped to the same output key')
@@ -488,7 +530,7 @@ def invert_dict(dict_, unique_vals=True):
             The default is True.
 
     Returns:
-        dict: inverted_dict
+        dict: inverted
 
     Notes:
         The must values be hashable.
@@ -504,33 +546,33 @@ def invert_dict(dict_, unique_vals=True):
     Example:
         >>> import ubelt as ub
         >>> dict_ = {'a': 1, 'b': 2}
-        >>> inverted_dict = ub.invert_dict(dict_)
-        >>> assert inverted_dict == {1: 'a', 2: 'b'}
+        >>> inverted = ub.invert_dict(dict_)
+        >>> assert inverted == {1: 'a', 2: 'b'}
 
     Example:
         >>> import ubelt as ub
         >>> dict_ = ub.odict([(2, 'a'), (1, 'b'), (0, 'c'), (None, 'd')])
-        >>> inverted_dict = ub.invert_dict(dict_)
-        >>> assert list(inverted_dict.keys())[0] == 'a'
+        >>> inverted = ub.invert_dict(dict_)
+        >>> assert list(inverted.keys())[0] == 'a'
 
     Example:
         >>> import ubelt as ub
         >>> dict_ = {'a': 1, 'b': 0, 'c': 0, 'd': 0, 'f': 2}
-        >>> inverted_dict = ub.invert_dict(dict_, unique_vals=False)
-        >>> assert inverted_dict == {0: {'b', 'c', 'd'}, 1: {'a'}, 2: {'f'}}
+        >>> inverted = ub.invert_dict(dict_, unique_vals=False)
+        >>> assert inverted == {0: {'b', 'c', 'd'}, 1: {'a'}, 2: {'f'}}
     """
     if unique_vals:
-        if isinstance(dict_, odict):
-            inverted_dict = odict((val, key) for key, val in dict_.items())
+        if isinstance(dict_, OrderedDict):
+            inverted = OrderedDict((val, key) for key, val in dict_.items())
         else:
-            inverted_dict = {val: key for key, val in dict_.items()}
+            inverted = {val: key for key, val in dict_.items()}
     else:
         # Handle non-unique keys using groups
-        inverted_dict = ddict(set)
+        inverted = defaultdict(set)
         for key, value in dict_.items():
-            inverted_dict[value].add(key)
-        inverted_dict = dict(inverted_dict)
-    return inverted_dict
+            inverted[value].add(key)
+        inverted = dict(inverted)
+    return inverted
 
 
 if __name__ == '__main__':
