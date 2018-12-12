@@ -18,11 +18,68 @@ def repr2(val, **kwargs):
     both more configurable and generate output that is consistent between
     python versions.
 
+    Notes:
+        This function has many keyword arguments that can be used to customize
+        the final representation. For convinience some of the more frequently
+        used kwargs have short aliases. See `Args` for more details.
+
     Args:
         val (object): an arbitrary python object
-        **kwargs: si, stritems, strkeys, strvals, sk, sv, nl, newlines, nobr,
-                  nobraces, cbr, compact_brace, trailsep, trailing_sep,
-                  explicit, itemsep, precision, kvsep, sort
+        **kwargs: see `the Kwargs` section
+
+    Kwargs:
+        si, stritems, (bool):
+            dict/list items use str instead of repr
+
+        strkeys, sk (bool):
+            dict keys use str instead of repr
+
+        strvals, sv (bool):
+            dict values use str instead of repr
+
+        nl, newlines (int | bool):
+            number of top level nestings to place a newline after. If true all
+            items are followed by newlines regardless of nesting level.
+            Defaults to 1 for lists and True for dicts.
+
+        nobr, nobraces (bool, default=False):
+            if True, text will not contain outer braces for containers
+
+        cbr, compact_brace (bool, default=False):
+            if True, braces are compactified (i.e. they will not have newlines
+            placed directly after them, think java / K&R / 1TBS)
+
+        trailsep, trailing_sep (bool):
+            if True, a separator is placed after the last item in a sequence.
+            By default this is True if there are any `nl > 0`.
+
+        explicit (bool, default=False):
+            changes dict representation from `{k1: v1, ...}` to
+            `dict(k1=v1, ...)`.
+
+        precision (int, default=None):
+            if specified floats are formatted with this precision
+
+        kvsep (str, default=': '):
+            separator between keys and values
+
+        itemsep (str, default=' '):
+            separator between items
+
+        sort (bool):
+            if True, attempts to sort all unordered collections in the returned
+            text. NOTE: currently if True this will sort lists, this may not be
+            a correct thing to do, as such the behavior of this arg is subject
+            to change.
+
+        suppress_small (bool):
+            passed to `numpy.array2string` for ndarrays
+
+        max_line_width (int):
+            passed to `numpy.array2string` for ndarrays
+
+        with_dtype (bool):
+            only relevant to ndarrays. if True includes the dtype.
 
     Returns:
         str: output string
