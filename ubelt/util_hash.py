@@ -476,6 +476,19 @@ class HashableExtensions(object):
             prefix = b'ODICT'
             return prefix, hashable
 
+        # UNSURE IF THIS IS DESIRABLE
+        # @ub.util_hash._HASHABLE_EXTENSIONS.register(dict)
+        # def _hash_dict(data):
+        #     # Note: dictionary keys must be sortable
+        #     try:
+        #         ordered_ = sorted(data.items())
+        #     except TypeError as ex:
+        #         raise TypeError('Cannot hash dicts non-sortable keys: ' +
+        #                         str(ex))
+        #     hashable = b''.join(ub.util_hash._hashable_sequence(ordered_))
+        #     prefix = b'DICT'
+        #     return prefix, hashable
+
 _HASHABLE_EXTENSIONS = HashableExtensions()
 _HASHABLE_EXTENSIONS._register_builtin_class_extensions()
 try:
