@@ -21,6 +21,10 @@ def argval(key, default=util_const.NoParam, argv=None):
         str: value : the value specified after the key. It they key is
             specified multiple times, then the first value is returned.
 
+    TODO:
+        - [ ] Can we handle the case where the value is a list of long paths?
+        - [ ] Should we default the first or last specified instance of the flag.
+
     Example:
         >>> import ubelt as ub
         >>> argv = ['--ans', '42', '--quest=the grail', '--ans=6', '--bad']
