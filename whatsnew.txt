@@ -1,11 +1,7 @@
-version: 0.6.2
+version: 0.6.1
 --------------
 * Add custom extensions to repr2
 * Make result `ub.memoize_method` appear more like a bound method.
-
-
-version: 0.6.1
---------------
 * Added `dict_isect` to util_dict.
 * Fixed misspelling in docs 
 * Fixed misspelled detach kwarg in ub.cmd (the old `detatch` argument is now depricated and will be removed)
