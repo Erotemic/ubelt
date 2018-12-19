@@ -2,6 +2,7 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 import functools
 import sys
+import six
 from ubelt import util_hash
 
 
@@ -158,6 +159,11 @@ class memoize_method(object):
     def __init__(self, func):
         self._func = func
         self._cache_name = '_cache__' + func.__name__
+        # Mimic attributes of a bound method
+        if six.PY2:
+            self.im_func = func
+        else:
+            self.__func__ = func
 
     def __get__(self, instance, cls=None):
         """

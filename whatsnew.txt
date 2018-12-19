@@ -1,3 +1,9 @@
+version: 0.6.2
+--------------
+* Add custom extensions to repr2
+* Make result `ub.memoize_method` appear more like a bound method.
+
+
 version: 0.6.1
 --------------
 * Added `dict_isect` to util_dict.
