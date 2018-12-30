@@ -1,8 +1,10 @@
 version: 0.6.1
 --------------
+* Add custom extensions to repr2
+* Make result `ub.memoize_method` appear more like a bound method.
 * Added `dict_isect` to util_dict.
 * Fixed misspelling in docs 
-* Fixed misspelled detach kwarg in ub.cmd (the old `detatch` argument is now depricated and will be removed)
+* Fixed misspelled detach kwarg in ub.cmd (the old `detatch` argument is now deprecated and will be removed)
 
 
 version: 0.6.0
@@ -23,13 +25,13 @@ version: 0.5.3
 
 version: 0.5.2
 --------------
-* ub.group_items argument names have changed, and it can now take a callable as the second argument. The sorted_ argument is now depricated.
+* ub.group_items argument names have changed, and it can now take a callable as the second argument. The sorted_ argument is now deprecated.
 * Symlink now reports location of old target when the new target does not match
 * Docstrings now uses PathLike as the type for arguments and attributes that should be considered paths (note strings are still accepted).
 * ub.download will now keep a potentially corrupted file if the hash does not
   match.
 * ub.grabdata will compute the hash of an existing file on disk if the .hash
-  stamp is missing to try and avoid redownloading the file.
+  stamp is missing to try and avoid re-downloading the file.
 * Improved efficiency of ub.argmax
 * Added verbose flag to CacheStamp
 
@@ -82,7 +84,7 @@ version: 0.2.1
 version: 0.2.0
 ---------------
 * Fixed timezone issue with negative timezones
-* Moved internal __init__ autogeneration logic to new mkinit repo
+* Moved internal __init__ auto-generation logic to new mkinit repo
 * Network tests no longer run by default and require `--network`
 
 version: 0.1.1

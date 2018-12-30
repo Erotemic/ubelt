@@ -10,7 +10,7 @@ import collections
 # ]
 
 
-def repr2(val, **kwargs):
+def repr2(data, **kwargs):
     """
     Makes a pretty and easy-to-doctest string representation!
 
@@ -24,7 +24,7 @@ def repr2(val, **kwargs):
         used kwargs have short aliases. See `Args` for more details.
 
     Args:
-        val (object): an arbitrary python object
+        data (object): an arbitrary python object
         **kwargs: see `the Kwargs` section
 
     Kwargs:
@@ -127,17 +127,23 @@ def repr2(val, **kwargs):
         >>> print('---')
         >>> print(result)
     """
-    if isinstance(val, dict):
-        return _format_dict(val, **kwargs)
-    elif isinstance(val, (list, tuple, set, frozenset)):
-        return _format_list(val, **kwargs)
-    # check any registered functions for special formatters
-    func = _FORMATTER_EXTENSIONS.lookup(val)
-    for type, func in _FORMATTER_EXTENSIONS.func_registry.items():
-        if isinstance(val, type):
-            return func(val, **kwargs)
+    custom_extensions = kwargs.get('extensions', None)
+    if custom_extensions:
+        func = custom_extensions.lookup(data)
+        if func is not None:
+            return func(data, **kwargs)
+
+    if isinstance(data, dict):
+        return _format_dict(data, **kwargs)
+    elif isinstance(data, (list, tuple, set, frozenset)):
+        return _format_list(data, **kwargs)
+
+    # check any globally registered functions for special formatters
+    func = _FORMATTER_EXTENSIONS.lookup(data)
+    if func is not None:
+        return func(data, **kwargs)
     # base case
-    return _format_object(val, **kwargs)
+    return _format_object(data, **kwargs)
 
 
 class _FormatterExtensions(object):
@@ -182,8 +188,7 @@ class _FormatterExtensions(object):
         #         reg()
         #     except ImportError:
         #         pass
-
-        for type, func in _FORMATTER_EXTENSIONS.func_registry.items():
+        for type, func in self.func_registry.items():
             if isinstance(data, type):
                 return func
 
@@ -232,12 +237,12 @@ class _FormatterExtensions(object):
         import numpy as np
         @self.register(np.ndarray)
         def format_ndarray(data, **kwargs):
-            strvals = kwargs.get('strvals', False)
+            strvals = kwargs.get('sv', kwargs.get('strvals', False))
             itemsep = kwargs.get('itemsep', ' ')
             precision = kwargs.get('precision', None)
             suppress_small = kwargs.get('supress_small', None)
             max_line_width = kwargs.get('max_line_width', None)
-            with_dtype = kwargs.get('with_dtype', not strvals)
+            with_dtype = kwargs.get('with_dtype', kwargs.get('dtype', not strvals))
             newlines = kwargs.pop('nl', kwargs.pop('newlines', 1))
 
             # if with_dtype and strvals:
