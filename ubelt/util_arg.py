@@ -1,4 +1,10 @@
 # -*- coding: utf-8 -*-
+"""
+IDEA:
+    - [ ] keep registry of registered keys and then autogenerate an argparse or
+          click interface.
+
+"""
 from __future__ import absolute_import, division, print_function, unicode_literals
 import six
 import sys
