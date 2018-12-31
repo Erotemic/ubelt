@@ -175,13 +175,13 @@ def _rectify_root_info(_root_info):
     return _root_info
 
 
-def _rectify_leaf_info(_root_info):
-    if _root_info is None:
-        _root_info = {
-            'max_depth': 0,
-            'min_depth': 0,
+def _rectify_leaf_info(_leaf_info):
+    if _leaf_info is None:
+        _leaf_info = {
+            'max_height': 0,
+            'min_height': 0,
         }
-    return _root_info
+    return _leaf_info
 
 
 class FormatterExtensions(object):
@@ -537,7 +537,7 @@ def _join_itemstrs(itemstrs, itemsep, newlines, _leaf_info, nobraces,
 
     if newlines < 0:
         # negative newlines means start counting from the leafs
-        use_newline = (-newlines) < _leaf_info['max_depth']
+        use_newline = (-newlines) < _leaf_info['max_height']
 
     if use_newline:
         sep = ',\n'
@@ -629,9 +629,9 @@ def _dict_itemstrs(dict_, **kwargs):
     items = list(six.iteritems(dict_))
     _tups = [make_item_str(key, val) for (key, val) in items]
     itemstrs = [t[0] for t in _tups]
-    max_depth = max([t[1]['max_depth'] for t in _tups]) if _tups else 0
+    max_height = max([t[1]['max_height'] for t in _tups]) if _tups else 0
     _leaf_info = {
-        'max_depth': max_depth + 1,
+        'max_height': max_height + 1,
     }
 
     sort = kwargs.get('sort', None)
@@ -654,9 +654,9 @@ def _list_itemstrs(list_, **kwargs):
     kwargs['_return_info'] = True
     _tups = [repr2(item, **kwargs) for item in items]
     itemstrs = [t[0] for t in _tups]
-    max_depth = max([t[1]['max_depth'] for t in _tups]) if _tups else 0
+    max_height = max([t[1]['max_height'] for t in _tups]) if _tups else 0
     _leaf_info = {
-        'max_depth': max_depth + 1,
+        'max_height': max_height + 1,
     }
 
     sort = kwargs.get('sort', None)
