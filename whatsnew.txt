@@ -1,5 +1,6 @@
 version: 0.6.1
 --------------
+* repr2 now keeps track of nesting depth from the bottom, no api changes yet though
 * Add custom extensions to repr2
 * Make result `ub.memoize_method` appear more like a bound method.
 * Added `dict_isect` to util_dict.

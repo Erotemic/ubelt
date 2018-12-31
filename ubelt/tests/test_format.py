@@ -248,3 +248,11 @@ def test_repr2_tuple_keys():
             ('three', 'four'): 200,
         }
         ''')
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        pytest ~/code/ubelt/ubelt/tests/test_format.py  --verbose -s
+    """
+    import xdoctest
+    xdoctest.doctest_module(__file__)

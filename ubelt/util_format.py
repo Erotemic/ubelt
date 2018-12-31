@@ -1,12 +1,9 @@
 import re
 import six
-import math
 import collections
 
 # __all__ = [
 #     'repr2',
-#     '_format_list',
-#     '_format_dict',
 # ]
 
 
@@ -82,7 +79,7 @@ def repr2(data, **kwargs):
             only relevant to ndarrays. if True includes the dtype.
 
     Returns:
-        str: output string
+        str: outstr: output string
 
     CommandLine:
         python -m ubelt.util_format repr2:0
@@ -126,24 +123,40 @@ def repr2(data, **kwargs):
         >>> result = repr2(dict_, nl=6, precision=2, cbr=1)
         >>> print('---')
         >>> print(result)
+        >>> result = repr2(dict_, nl=-1, precision=2)
+        >>> print('---')
+        >>> print(result)
     """
+    _return_depth = kwargs.get('_return_depth', False)
     custom_extensions = kwargs.get('extensions', None)
+
+    outstr = None
+
+    depth = 0
+
     if custom_extensions:
         func = custom_extensions.lookup(data)
         if func is not None:
-            return func(data, **kwargs)
+            outstr = func(data, **kwargs)
 
-    if isinstance(data, dict):
-        return _format_dict(data, **kwargs)
-    elif isinstance(data, (list, tuple, set, frozenset)):
-        return _format_list(data, **kwargs)
+    if outstr is None:
+        if isinstance(data, dict):
+            outstr, depth = _format_dict(data, **kwargs)
+        elif isinstance(data, (list, tuple, set, frozenset)):
+            outstr, depth = _format_list(data, **kwargs)
 
-    # check any globally registered functions for special formatters
-    func = _FORMATTER_EXTENSIONS.lookup(data)
-    if func is not None:
-        return func(data, **kwargs)
-    # base case
-    return _format_object(data, **kwargs)
+    if outstr is None:
+        # check any globally registered functions for special formatters
+        func = _FORMATTER_EXTENSIONS.lookup(data)
+        if func is not None:
+            outstr = func(data, **kwargs)
+        else:
+            outstr = _format_object(data, **kwargs)
+
+    if _return_depth:
+        return outstr, depth
+    else:
+        return outstr
 
 
 class _FormatterExtensions(object):
@@ -346,16 +359,16 @@ def _format_list(list_, **kwargs):
             stritems, strkeys, explicit, sort, key_order, maxlen
 
     Returns:
-        str: retstr
+        Tuple[str, int] : retstr, depth
 
     Example:
-        >>> print(_format_list([]))
+        >>> print(_format_list([])[0])
         []
-        >>> print(_format_list([], nobr=True))
+        >>> print(_format_list([], nobr=True)[0])
         []
-        >>> print(_format_list([1], nl=0))
+        >>> print(_format_list([1], nl=0)[0])
         [1]
-        >>> print(_format_list([1], nobr=True))
+        >>> print(_format_list([1], nobr=True)[0])
         1,
     """
     newlines = kwargs.pop('nl', kwargs.pop('newlines', 1))
@@ -367,7 +380,7 @@ def _format_list(list_, **kwargs):
     # Doesn't actually put in trailing comma if on same line
     compact_brace = kwargs.get('cbr', kwargs.get('compact_brace', False))
 
-    itemstrs = _list_itemstrs(list_, **kwargs)
+    itemstrs, depth = _list_itemstrs(list_, **kwargs)
     if len(itemstrs) == 0:
         nobraces = False  # force braces to prevent empty output
 
@@ -391,9 +404,9 @@ def _format_list(list_, **kwargs):
     if len(itemstrs) == 0:
         newlines = False
 
-    retstr = _join_itemstrs(itemstrs, itemsep, newlines, nobraces,
+    retstr = _join_itemstrs(itemstrs, itemsep, newlines, depth, nobraces,
                             trailing_sep, compact_brace, lbr, rbr)
-    return retstr
+    return retstr, depth
 
 
 def _format_dict(dict_, **kwargs):
@@ -406,6 +419,9 @@ def _format_dict(dict_, **kwargs):
         **kwargs: si, stritems, strkeys, strvals, sk, sv, nl, newlines, nobr,
                   nobraces, cbr, compact_brace, trailing_sep,
                   explicit, itemsep, precision, kvsep, sort
+
+    Returns:
+        Tuple[str, int] : retstr, depth
 
     Kwargs:
         sort (None): if True, sorts ALL collections and subcollections,
@@ -437,9 +453,11 @@ def _format_dict(dict_, **kwargs):
     itemsep = kwargs.get('itemsep', ' ')
 
     if len(dict_) == 0:
-        return 'dict()' if explicit else '{}'
+        retstr = 'dict()' if explicit else '{}'
+        depth = 0
+        return retstr, depth
 
-    itemstrs = _dict_itemstrs(dict_, **kwargs)
+    itemstrs, depth = _dict_itemstrs(dict_, **kwargs)
 
     if nobraces:
         lbr, rbr = '', ''
@@ -448,51 +466,70 @@ def _format_dict(dict_, **kwargs):
     else:
         lbr, rbr = '{', '}'
 
-    retstr = _join_itemstrs(itemstrs, itemsep, newlines, nobraces,
+    retstr = _join_itemstrs(itemstrs, itemsep, newlines, depth, nobraces,
                             trailing_sep, compact_brace, lbr, rbr)
+    return retstr, depth
+
+
+def _newline_join_itemstrs(itemstrs, itemsep, nobraces, trailing_sep,
+                           compact_brace, lbr, rbr):
+    import ubelt as ub
+    sep = ',\n'
+    if nobraces:
+        body_str = sep.join(itemstrs)
+        if trailing_sep and len(itemstrs) > 0:
+            body_str += ','
+        retstr = body_str
+    else:
+        if compact_brace:
+            # Why must we modify the indentation below and not here?
+            # prefix = ''
+            # rest = [ub.indent(s, prefix) for s in itemstrs[1:]]
+            # indented = itemstrs[0:1] + rest
+            indented = itemstrs
+        else:
+            prefix = ' ' * 4
+            indented = [ub.indent(s, prefix) for s in itemstrs]
+
+        body_str = sep.join(indented)
+        if trailing_sep and len(itemstrs) > 0:
+            body_str += ','
+        if compact_brace:
+            # Why can we modify the indentation here but not above?
+            braced_body_str = (lbr + body_str.replace('\n', '\n ') + rbr)
+        else:
+            braced_body_str = (lbr + '\n' + body_str + '\n' + rbr)
+        retstr = braced_body_str
     return retstr
 
 
-def _join_itemstrs(itemstrs, itemsep, newlines, nobraces, trailing_sep,
+def _sameline_join_itemstrs(itemstrs, itemsep, nobraces, trailing_sep,
+                            compact_brace, lbr, rbr):
+    sep = ',' + itemsep
+    body_str = sep.join(itemstrs)
+    if trailing_sep and len(itemstrs) > 0:
+        body_str += ','
+    retstr  = (lbr + body_str +  rbr)
+    return retstr
+
+
+def _join_itemstrs(itemstrs, itemsep, newlines, depth, nobraces, trailing_sep,
                    compact_brace, lbr, rbr):
     """
     Joins string-ified items with separators newlines and container-braces.
     """
-    import ubelt as ub
+    # positive newlines means start counting from the root
+    use_newline = newlines > 0
+    if newlines < 0:
+        # negative newlines means start counting from the leafs
+        use_newline = (-newlines) < depth
 
-    if newlines > 0:
-        sep = ',\n'
-        if nobraces:
-            body_str = sep.join(itemstrs)
-            if trailing_sep and len(itemstrs) > 0:
-                body_str += ','
-            retstr = body_str
-        else:
-            if compact_brace:
-                # Why must we modify the indentation below and not here?
-                # prefix = ''
-                # rest = [ub.indent(s, prefix) for s in itemstrs[1:]]
-                # indented = itemstrs[0:1] + rest
-                indented = itemstrs
-            else:
-                prefix = ' ' * 4
-                indented = [ub.indent(s, prefix) for s in itemstrs]
-
-            body_str = sep.join(indented)
-            if trailing_sep and len(itemstrs) > 0:
-                body_str += ','
-            if compact_brace:
-                # Why can we modify the indentation here but not above?
-                braced_body_str = (lbr + body_str.replace('\n', '\n ') + rbr)
-            else:
-                braced_body_str = (lbr + '\n' + body_str + '\n' + rbr)
-            retstr = braced_body_str
+    if use_newline:
+        retstr = _newline_join_itemstrs(itemstrs, itemsep, nobraces,
+                                        trailing_sep, compact_brace, lbr, rbr)
     else:
-        sep = ',' + itemsep
-        body_str = sep.join(itemstrs)
-        if trailing_sep and len(itemstrs) > 0:
-            body_str += ','
-        retstr  = (lbr + body_str +  rbr)
+        retstr = _sameline_join_itemstrs(itemstrs, itemsep, nobraces,
+                                         trailing_sep, compact_brace, lbr, rbr)
     return retstr
 
 
@@ -504,7 +541,7 @@ def _dict_itemstrs(dict_, **kwargs):
         >>> from ubelt.util_format import *
         >>> dict_ =  {'b': .1, 'l': 'st', 'g': 1.0, 's': 10, 'm': 0.9, 'w': .5}
         >>> kwargs = {'strkeys': True}
-        >>> itemstrs = _dict_itemstrs(dict_, **kwargs)
+        >>> itemstrs, _ = _dict_itemstrs(dict_, **kwargs)
         >>> char_order = [p[0] for p in itemstrs]
         >>> assert char_order == ['b', 'g', 'l', 'm', 's', 'w']
     """
@@ -520,10 +557,11 @@ def _dict_itemstrs(dict_, **kwargs):
         if explicit or kwargs.get('strkeys', False):
             key_str = six.text_type(key)
         else:
-            key_str = repr2(key, precision=precision)
+            key_str = repr2(key, precision=precision, newlines=0)
 
         prefix = key_str + kvsep
-        val_str = repr2(val, **kwargs)
+        kwargs['_return_depth'] = True
+        val_str, depth = repr2(val, **kwargs)
 
         # If the first line does not end with an open nest char
         # (e.g. for ndarrays), otherwise we need to worry about
@@ -543,10 +581,15 @@ def _dict_itemstrs(dict_, **kwargs):
                 item_str = prefix + val_str
         else:
             item_str = prefix + val_str
-        return item_str
+        return item_str, depth
 
     items = list(six.iteritems(dict_))
-    itemstrs = [make_item_str(key, val) for (key, val) in items]
+    _tups = [make_item_str(key, val) for (key, val) in items]
+    itemstrs = [item_str for item_str, depth in _tups]
+    depths = [depth for item_str, depth in _tups]
+    # min_depth = min(depths) if depths else 0
+    max_depth = max(depths) if depths else 0
+    depth = max_depth + 1
 
     sort = kwargs.get('sort', None)
     if sort is None:
@@ -557,7 +600,7 @@ def _dict_itemstrs(dict_, **kwargs):
         sort = False
     if sort:
         itemstrs = _sort_itemstrs(items, itemstrs)
-    return itemstrs
+    return itemstrs, depth
 
 
 def _list_itemstrs(list_, **kwargs):
@@ -565,7 +608,13 @@ def _list_itemstrs(list_, **kwargs):
     Create a string representation for each item in a list.
     """
     items = list(list_)
-    itemstrs = [repr2(item, **kwargs) for item in items]
+    kwargs['_return_depth'] = True
+    _tups = [repr2(item, **kwargs) for item in items]
+    itemstrs = [item_str for item_str, depth in _tups]
+    depths = [depth for item_str, depth in _tups]
+    # min_depth = min(depths) if depths else 0
+    max_depth = max(depths) if depths else 0
+    depth = max_depth + 1
 
     sort = kwargs.get('sort', None)
     if sort is None:
@@ -573,7 +622,7 @@ def _list_itemstrs(list_, **kwargs):
         sort = isinstance(list_, (set, frozenset))
     if sort:
         itemstrs = _sort_itemstrs(items, itemstrs)
-    return itemstrs
+    return itemstrs, depth
 
 
 def _sort_itemstrs(items, itemstrs):
@@ -591,7 +640,7 @@ def _sort_itemstrs(items, itemstrs):
         sortx = ub.argsort(items)
     except TypeError:
         sortx = ub.argsort(itemstrs)
-    itemstrs = list(ub.take(itemstrs, sortx))
+    itemstrs = [itemstrs[x] for x in sortx]
     return itemstrs
 
 
@@ -635,8 +684,12 @@ def _rectify_countdown_or_bool(count_or_bool):
     elif isinstance(count_or_bool, int):
         if count_or_bool == 0:
             return 0
-        sign_ =  math.copysign(1, count_or_bool)
-        count_or_bool_ = int(count_or_bool - sign_)
+        elif count_or_bool > 0:
+            count_or_bool_ = count_or_bool - 1
+        else:
+            # ? perhaps change behavior? dont countdown negatives
+            # count_or_bool_ = count_or_bool + 1
+            count_or_bool_ = count_or_bool
     else:
         count_or_bool_ = False
     return count_or_bool_
@@ -645,7 +698,7 @@ def _rectify_countdown_or_bool(count_or_bool):
 if __name__ == '__main__':
     """
     CommandLine:
-        python -m ubelt.util_format
+        python -m ubelt.util_format all
     """
     import xdoctest as xdoc
     xdoc.doctest_module()
