@@ -199,7 +199,7 @@ class FormatterExtensions(object):
         >>>     pass
         >>> data = {'a': [1, 2.2222, MyObject()], 'b': MyObject()}
         >>> # Create a custom set of extensions
-        >>> extensions = ub.util_format.FormatterExtensions()
+        >>> extensions = ub.FormatterExtensions()
         >>> # Register a function to format your specific type
         >>> @extensions.register(MyObject)
         >>> def format_myobject(data, **kwargs):
