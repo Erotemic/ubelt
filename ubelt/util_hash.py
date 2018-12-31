@@ -200,6 +200,7 @@ def _rectify_hasher(hasher):
         >>> #assert pytest.raises(TypeError, _rectify_hasher, object)
         >>> if xxhash:
         >>>     assert _rectify_hasher('xxh64') is xxhash.xxh64
+        >>>     assert _rectify_hasher('xxh32') is xxhash.xxh32
     """
     if xxhash is not None:  # pragma: nobranch
         if hasher in {'xxh32', 'xx32', 'xxhash'}:
