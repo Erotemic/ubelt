@@ -73,7 +73,7 @@ class CaptureStdout(object):
 
 
 def indent(text, prefix='    '):
-    r"""
+    """
     Indents a block of text
 
     Args:
@@ -88,10 +88,11 @@ def indent(text, prefix='    '):
 
     Example:
         >>> from ubelt.util_str import *  # NOQA
-        >>> text = 'Lorem ipsum\ndolor sit amet'
+        >>> NL = chr(10)  # newline character
+        >>> text = 'Lorem ipsum' + NL + 'dolor sit amet'
         >>> prefix = '    '
         >>> result = indent(text, prefix)
-        >>> assert all(t.startswith(prefix) for t in result.split('\n'))
+        >>> assert all(t.startswith(prefix) for t in result.split(NL))
     """
     return prefix + text.replace('\n', '\n' + prefix)
 

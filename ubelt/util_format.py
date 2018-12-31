@@ -1,12 +1,10 @@
 import re
 import six
-import math
 import collections
 
 # __all__ = [
 #     'repr2',
-#     '_format_list',
-#     '_format_dict',
+#     'FormatterExtensions',
 # ]
 
 
@@ -82,7 +80,12 @@ def repr2(data, **kwargs):
             only relevant to ndarrays. if True includes the dtype.
 
     Returns:
-        str: output string
+        str: outstr: output string
+
+    Notes:
+        There are also internal kwargs, which should not be used:
+            _return_info (bool):  return information about child context
+            _root_info (depth): information about parent context
 
     CommandLine:
         python -m ubelt.util_format repr2:0
@@ -126,29 +129,98 @@ def repr2(data, **kwargs):
         >>> result = repr2(dict_, nl=6, precision=2, cbr=1)
         >>> print('---')
         >>> print(result)
+        >>> result = repr2(dict_, nl=-1, precision=2)
+        >>> print('---')
+        >>> print(result)
     """
     custom_extensions = kwargs.get('extensions', None)
+
+    _return_info = kwargs.get('_return_info', False)
+    kwargs['_root_info'] = _rectify_root_info(kwargs.get('_root_info', None))
+
+    outstr = None
+    _leaf_info = None
+
     if custom_extensions:
         func = custom_extensions.lookup(data)
         if func is not None:
-            return func(data, **kwargs)
+            outstr = func(data, **kwargs)
 
-    if isinstance(data, dict):
-        return _format_dict(data, **kwargs)
-    elif isinstance(data, (list, tuple, set, frozenset)):
-        return _format_list(data, **kwargs)
+    if outstr is None:
+        if isinstance(data, dict):
+            outstr, _leaf_info = _format_dict(data, **kwargs)
+        elif isinstance(data, (list, tuple, set, frozenset)):
+            outstr, _leaf_info = _format_list(data, **kwargs)
 
-    # check any globally registered functions for special formatters
-    func = _FORMATTER_EXTENSIONS.lookup(data)
-    if func is not None:
-        return func(data, **kwargs)
-    # base case
-    return _format_object(data, **kwargs)
+    if outstr is None:
+        # check any globally registered functions for special formatters
+        func = _FORMATTER_EXTENSIONS.lookup(data)
+        if func is not None:
+            outstr = func(data, **kwargs)
+        else:
+            outstr = _format_object(data, **kwargs)
+
+    if _return_info:
+        _leaf_info = _rectify_leaf_info(_leaf_info)
+        return outstr, _leaf_info
+    else:
+        return outstr
 
 
-class _FormatterExtensions(object):
+def _rectify_root_info(_root_info):
+    if _root_info is None:
+        _root_info = {
+            'depth': 0,
+        }
+    return _root_info
+
+
+def _rectify_leaf_info(_leaf_info):
+    if _leaf_info is None:
+        _leaf_info = {
+            'max_height': 0,
+            'min_height': 0,
+        }
+    return _leaf_info
+
+
+class FormatterExtensions(object):
     """
-    Singleton helper class for managing non-builtin (e.g. numpy) format types
+    Helper class for managing non-builtin (e.g. numpy) format types.
+
+    This module (`ubelt.util_format`) maintains a global set of basic
+    extensions, but it is also possible to create a locally scoped set of
+    extensions and explicilty pass it to repr2. The following example
+    demonstrates this.
+
+    Example:
+        >>> import ubelt as ub
+        >>> class MyObject(object):
+        >>>     pass
+        >>> data = {'a': [1, 2.2222, MyObject()], 'b': MyObject()}
+        >>> # Create a custom set of extensions
+        >>> extensions = ub.FormatterExtensions()
+        >>> # Register a function to format your specific type
+        >>> @extensions.register(MyObject)
+        >>> def format_myobject(data, **kwargs):
+        >>>     return 'I can do anything here'
+        >>> # Repr2 will now respect the passed custom extensions
+        >>> # Note that the global extensions will still be respected
+        >>> # unless they are overloaded.
+        >>> print(ub.repr2(data, nl=-1, precision=1, extensions=extensions))
+        {
+            'a': [1, 2.2, I can do anything here],
+            'b': I can do anything here
+        }
+        >>> # Overload the formatter for float
+        >>> @extensions.register(float)
+        >>> def format_myobject(data, **kwargs):
+        >>>     return str((data + 10) // 2)
+        >>> print(ub.repr2(data, nl=-1, precision=1, extensions=extensions))
+        {
+            'a': [1, 6.0, I can do anything here],
+            'b': I can do anything here
+        }
     """
     # set_types = [set, frozenset]
     # list_types = [list, tuple]
@@ -182,12 +254,6 @@ class _FormatterExtensions(object):
         Returns an appropriate function to format `data` if one has been
         registered.
         """
-        # while self._lazy_registrations:
-        #     reg = self._lazy_registrations.pop()
-        #     try:
-        #         reg()
-        #     except ImportError:
-        #         pass
         for type, func in self.func_registry.items():
             if isinstance(data, type):
                 return func
@@ -205,7 +271,7 @@ class _FormatterExtensions(object):
     def _register_numpy_extensions(self):
         """
         CommandLine:
-            python -m ubelt.util_format _FormatterExtensions._register_numpy_extensions
+            python -m ubelt.util_format FormatterExtensions._register_numpy_extensions
 
         Example:
             >>> import sys
@@ -308,7 +374,7 @@ class _FormatterExtensions(object):
             else:
                 return _format_object(data, **kwargs)
 
-_FORMATTER_EXTENSIONS = _FormatterExtensions()
+_FORMATTER_EXTENSIONS = FormatterExtensions()
 _FORMATTER_EXTENSIONS._register_builtin_extensions()
 try:
     # TODO: can we use lazy loading to prevent trying to import numpy until
@@ -346,18 +412,21 @@ def _format_list(list_, **kwargs):
             stritems, strkeys, explicit, sort, key_order, maxlen
 
     Returns:
-        str: retstr
+        Tuple[str, Dict] : retstr, _leaf_info
 
     Example:
-        >>> print(_format_list([]))
+        >>> print(_format_list([])[0])
         []
-        >>> print(_format_list([], nobr=True))
+        >>> print(_format_list([], nobr=True)[0])
         []
-        >>> print(_format_list([1], nl=0))
+        >>> print(_format_list([1], nl=0)[0])
         [1]
-        >>> print(_format_list([1], nobr=True))
+        >>> print(_format_list([1], nobr=True)[0])
         1,
     """
+    kwargs['_root_info'] = _rectify_root_info(kwargs.get('_root_info', None))
+    kwargs['_root_info']['depth'] += 1
+
     newlines = kwargs.pop('nl', kwargs.pop('newlines', 1))
     kwargs['nl'] = _rectify_countdown_or_bool(newlines)
 
@@ -367,7 +436,7 @@ def _format_list(list_, **kwargs):
     # Doesn't actually put in trailing comma if on same line
     compact_brace = kwargs.get('cbr', kwargs.get('compact_brace', False))
 
-    itemstrs = _list_itemstrs(list_, **kwargs)
+    itemstrs, _leaf_info = _list_itemstrs(list_, **kwargs)
     if len(itemstrs) == 0:
         nobraces = False  # force braces to prevent empty output
 
@@ -391,9 +460,9 @@ def _format_list(list_, **kwargs):
     if len(itemstrs) == 0:
         newlines = False
 
-    retstr = _join_itemstrs(itemstrs, itemsep, newlines, nobraces,
+    retstr = _join_itemstrs(itemstrs, itemsep, newlines, _leaf_info, nobraces,
                             trailing_sep, compact_brace, lbr, rbr)
-    return retstr
+    return retstr, _leaf_info
 
 
 def _format_dict(dict_, **kwargs):
@@ -407,6 +476,9 @@ def _format_dict(dict_, **kwargs):
                   nobraces, cbr, compact_brace, trailing_sep,
                   explicit, itemsep, precision, kvsep, sort
 
+    Returns:
+        Tuple[str, Dict] : retstr, _leaf_info
+
     Kwargs:
         sort (None): if True, sorts ALL collections and subcollections,
             note, collections with undefined orders (e.g. dicts, sets) are
@@ -417,6 +489,9 @@ def _format_dict(dict_, **kwargs):
             dict(a=b) syntax instead of {'a': b}
         nobr (bool): removes outer braces (default = False)
     """
+    kwargs['_root_info'] = _rectify_root_info(kwargs.get('_root_info', None))
+    kwargs['_root_info']['depth'] += 1
+
     stritems = kwargs.pop('si', kwargs.pop('stritems', False))
     if stritems:
         kwargs['strkeys'] = True
@@ -437,30 +512,34 @@ def _format_dict(dict_, **kwargs):
     itemsep = kwargs.get('itemsep', ' ')
 
     if len(dict_) == 0:
-        return 'dict()' if explicit else '{}'
-
-    itemstrs = _dict_itemstrs(dict_, **kwargs)
-
-    if nobraces:
-        lbr, rbr = '', ''
-    elif explicit:
-        lbr, rbr = 'dict(', ')'
+        retstr = 'dict()' if explicit else '{}'
+        _leaf_info = None
     else:
-        lbr, rbr = '{', '}'
+        itemstrs, _leaf_info = _dict_itemstrs(dict_, **kwargs)
+        if nobraces:
+            lbr, rbr = '', ''
+        elif explicit:
+            lbr, rbr = 'dict(', ')'
+        else:
+            lbr, rbr = '{', '}'
+        retstr = _join_itemstrs(itemstrs, itemsep, newlines, _leaf_info, nobraces,
+                                trailing_sep, compact_brace, lbr, rbr)
+    return retstr, _leaf_info
 
-    retstr = _join_itemstrs(itemstrs, itemsep, newlines, nobraces,
-                            trailing_sep, compact_brace, lbr, rbr)
-    return retstr
 
-
-def _join_itemstrs(itemstrs, itemsep, newlines, nobraces, trailing_sep,
-                   compact_brace, lbr, rbr):
+def _join_itemstrs(itemstrs, itemsep, newlines, _leaf_info, nobraces,
+                   trailing_sep, compact_brace, lbr, rbr):
     """
     Joins string-ified items with separators newlines and container-braces.
     """
-    import ubelt as ub
+    # positive newlines means start counting from the root
+    use_newline = newlines > 0
 
-    if newlines > 0:
+    if newlines < 0:
+        # negative newlines means start counting from the leafs
+        use_newline = (-newlines) < _leaf_info['max_height']
+
+    if use_newline:
         sep = ',\n'
         if nobraces:
             body_str = sep.join(itemstrs)
@@ -475,6 +554,7 @@ def _join_itemstrs(itemstrs, itemsep, newlines, nobraces, trailing_sep,
                 # indented = itemstrs[0:1] + rest
                 indented = itemstrs
             else:
+                import ubelt as ub
                 prefix = ' ' * 4
                 indented = [ub.indent(s, prefix) for s in itemstrs]
 
@@ -504,7 +584,7 @@ def _dict_itemstrs(dict_, **kwargs):
         >>> from ubelt.util_format import *
         >>> dict_ =  {'b': .1, 'l': 'st', 'g': 1.0, 's': 10, 'm': 0.9, 'w': .5}
         >>> kwargs = {'strkeys': True}
-        >>> itemstrs = _dict_itemstrs(dict_, **kwargs)
+        >>> itemstrs, _ = _dict_itemstrs(dict_, **kwargs)
         >>> char_order = [p[0] for p in itemstrs]
         >>> assert char_order == ['b', 'g', 'l', 'm', 's', 'w']
     """
@@ -520,10 +600,11 @@ def _dict_itemstrs(dict_, **kwargs):
         if explicit or kwargs.get('strkeys', False):
             key_str = six.text_type(key)
         else:
-            key_str = repr2(key, precision=precision)
+            key_str = repr2(key, precision=precision, newlines=0)
 
         prefix = key_str + kvsep
-        val_str = repr2(val, **kwargs)
+        kwargs['_return_info'] = True
+        val_str, _leaf_info = repr2(val, **kwargs)
 
         # If the first line does not end with an open nest char
         # (e.g. for ndarrays), otherwise we need to worry about
@@ -536,17 +617,22 @@ def _dict_itemstrs(dict_, **kwargs):
         if compact_brace or not first_line.rstrip().endswith(tuple('([{<')):
             rest = '' if pos == -1 else val_str[pos:]
             val_str = first_line.lstrip() + rest
-            # Fix issue with tuple keys (keys that span new lines)
-            if '\n' not in prefix:
-                item_str = ub.hzcat([prefix, val_str])
-            else:
+            if '\n' in prefix:
+                # Fix issue with keys that span new lines
                 item_str = prefix + val_str
+            else:
+                item_str = ub.hzcat([prefix, val_str])
         else:
             item_str = prefix + val_str
-        return item_str
+        return item_str, _leaf_info
 
     items = list(six.iteritems(dict_))
-    itemstrs = [make_item_str(key, val) for (key, val) in items]
+    _tups = [make_item_str(key, val) for (key, val) in items]
+    itemstrs = [t[0] for t in _tups]
+    max_height = max([t[1]['max_height'] for t in _tups]) if _tups else 0
+    _leaf_info = {
+        'max_height': max_height + 1,
+    }
 
     sort = kwargs.get('sort', None)
     if sort is None:
@@ -557,7 +643,7 @@ def _dict_itemstrs(dict_, **kwargs):
         sort = False
     if sort:
         itemstrs = _sort_itemstrs(items, itemstrs)
-    return itemstrs
+    return itemstrs, _leaf_info
 
 
 def _list_itemstrs(list_, **kwargs):
@@ -565,7 +651,13 @@ def _list_itemstrs(list_, **kwargs):
     Create a string representation for each item in a list.
     """
     items = list(list_)
-    itemstrs = [repr2(item, **kwargs) for item in items]
+    kwargs['_return_info'] = True
+    _tups = [repr2(item, **kwargs) for item in items]
+    itemstrs = [t[0] for t in _tups]
+    max_height = max([t[1]['max_height'] for t in _tups]) if _tups else 0
+    _leaf_info = {
+        'max_height': max_height + 1,
+    }
 
     sort = kwargs.get('sort', None)
     if sort is None:
@@ -573,7 +665,7 @@ def _list_itemstrs(list_, **kwargs):
         sort = isinstance(list_, (set, frozenset))
     if sort:
         itemstrs = _sort_itemstrs(items, itemstrs)
-    return itemstrs
+    return itemstrs, _leaf_info
 
 
 def _sort_itemstrs(items, itemstrs):
@@ -591,7 +683,7 @@ def _sort_itemstrs(items, itemstrs):
         sortx = ub.argsort(items)
     except TypeError:
         sortx = ub.argsort(itemstrs)
-    itemstrs = list(ub.take(itemstrs, sortx))
+    itemstrs = [itemstrs[x] for x in sortx]
     return itemstrs
 
 
@@ -606,8 +698,8 @@ def _rectify_countdown_or_bool(count_or_bool):
     counting up yields False, False, False, ... True
 
     Args:
-        count_or_bool (bool or int): if positive will count down, if negative
-            will count up, if bool will remain same
+        count_or_bool (bool or int): if positive and an integer, it will count
+            down, otherwise it will remain the same.
 
     Returns:
         int or bool: count_or_bool_
@@ -628,15 +720,18 @@ def _rectify_countdown_or_bool(count_or_bool):
         >>> a8 = (_rectify_countdown_or_bool(None))
         >>> result = [a1, a2, a3, a4, a5, a6, a7, a8]
         >>> print(result)
-        [1, 0, 0, 0, -1, True, False, False]
+        [1, 0, 0, -1, -2, True, False, False]
     """
     if count_or_bool is True or count_or_bool is False:
         count_or_bool_ = count_or_bool
     elif isinstance(count_or_bool, int):
         if count_or_bool == 0:
             return 0
-        sign_ =  math.copysign(1, count_or_bool)
-        count_or_bool_ = int(count_or_bool - sign_)
+        elif count_or_bool > 0:
+            count_or_bool_ = count_or_bool - 1
+        else:
+            # We dont countup negatives anymore
+            count_or_bool_ = count_or_bool
     else:
         count_or_bool_ = False
     return count_or_bool_
@@ -644,8 +739,12 @@ def _rectify_countdown_or_bool(count_or_bool):
 
 if __name__ == '__main__':
     """
+    TODO:
+        - [ ] Decide if the countdown newlines is a good idea or if a static
+              newlines is better while explicitly keeping track of root depth.
+
     CommandLine:
-        python -m ubelt.util_format
+        python -m ubelt.util_format all
     """
     import xdoctest as xdoc
     xdoc.doctest_module()

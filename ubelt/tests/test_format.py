@@ -32,6 +32,48 @@ def test_newlines():
         ''')
 
 
+def test_negative_newlines():
+    import ubelt as ub
+    dict_ = {
+        'k1': [[1, 2, 3], [4, 5, 6]],
+        'k2': [[[1, 2, [1, 2, 3]], [1, 2, 3], 3], [4, 5, 6]],
+        'k3': [1, 2, 3],
+        'k4': [[[1, 2, 3], 2, 3], [4, 5, 6]],
+    }
+    text = ub.repr2(dict_, nl=-1)
+    print(text)
+    assert text == ub.codeblock(
+        '''
+        {
+            'k1': [
+                [1, 2, 3],
+                [4, 5, 6]
+            ],
+            'k2': [
+                [
+                    [
+                        1,
+                        2,
+                        [1, 2, 3]
+                    ],
+                    [1, 2, 3],
+                    3
+                ],
+                [4, 5, 6]
+            ],
+            'k3': [1, 2, 3],
+            'k4': [
+                [
+                    [1, 2, 3],
+                    2,
+                    3
+                ],
+                [4, 5, 6]
+            ]
+        }
+        ''')
+
+
 def test_compact_brace():
     import ubelt as ub
     def _nest(d, w):
@@ -110,10 +152,10 @@ def test_list_of_numpy():
         np.zeros((3, 20), dtype=np.int32),
         np.zeros((3, 30), dtype=np.int32),
     ]
-    string = ub.repr2(data, nl=2)
-    print(string)
-    assert repr(data) == repr(eval(string)), 'should produce eval-able code'
-    assert string == ub.codeblock(
+    text = ub.repr2(data, nl=2)
+    print(text)
+    assert repr(data) == repr(eval(text)), 'should produce eval-able code'
+    assert text == ub.codeblock(
         '''
         [
             np.array([[0, 0, 0],
@@ -133,9 +175,9 @@ def test_list_of_numpy():
                        0, 0, 0, 0, 0, 0, 0, 0, 0]], dtype=np.int32),
         ]
         ''')
-    string = ub.repr2(data, max_line_width=10000, nl=2)
-    print(string)
-    assert string == ub.codeblock(
+    text = ub.repr2(data, max_line_width=10000, nl=2)
+    print(text)
+    assert text == ub.codeblock(
         '''
         [
             np.array([[0, 0, 0],
@@ -152,9 +194,9 @@ def test_list_of_numpy():
                       [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]], dtype=np.int32),
         ]
         ''')
-    string = ub.repr2(data, nl=1)
-    print(string)
-    assert string == ub.codeblock(
+    text = ub.repr2(data, nl=1)
+    print(text)
+    assert text == ub.codeblock(
         '''
         [
             np.array([[0, 0, 0],[0, 0, 0],[0, 0, 0]], dtype=np.int32),
@@ -164,9 +206,9 @@ def test_list_of_numpy():
         ]
         '''
     )
-    string = ub.repr2(data, nl=0)
-    print(string)
-    assert string == ub.codeblock(
+    text = ub.repr2(data, nl=0)
+    print(text)
+    assert text == ub.codeblock(
         '''
         [np.array([[0, 0, 0],[0, 0, 0],[0, 0, 0]], dtype=np.int32), np.array([[0, 0, 0, 0, 0, 0, 0, 0, 0, 0],[0, 0, 0, 0, 0, 0, 0, 0, 0, 0],[0, 0, 0, 0, 0, 0, 0, 0, 0, 0]], dtype=np.int32), np.array([[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]], dtype=np.int32), np.array([[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,0, 0, 0, 0, 0, 0, 0, 0, 0],[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,0, 0, 0, 0, 0, 0, 0, 0, 0],[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,0, 0, 0, 0, 0, 0, 0, 0, 0]], dtype=np.int32)]
         '''
@@ -184,9 +226,9 @@ def test_dict_of_numpy():
             np.zeros((3, 30), dtype=np.int32),
         ]))
 
-    string = ub.repr2(data, nl=2)
-    print(string)
-    assert string == ub.codeblock(
+    text = ub.repr2(data, nl=2)
+    print(text)
+    assert text == ub.codeblock(
         '''
         {
             'one': np.array([[0, 0, 0],
@@ -219,19 +261,13 @@ def test_repr2_tuple_keys():
         ('one', 'two'): 100,
         ('three', 'four'): 200,
     }
-    string = ub.repr2(data)
-    print(string)
-    string == ub.codeblock(
+    text = ub.repr2(data)
+    print(text)
+    assert text == ub.codeblock(
         '''
         {
-            (
-                'one',
-                'two',
-            ): 100,
-            (
-                'three',
-                'four',
-            ): 200,
+            ('one', 'two'): 100,
+            ('three', 'four'): 200,
         }
         ''')
 
@@ -239,12 +275,74 @@ def test_repr2_tuple_keys():
         ('one', 'two'): 100,
         ('three', 'four'): 200,
     }
-    string = ub.repr2(data, sk=1)
-    print(string)
-    string == ub.codeblock(
+    text = ub.repr2(data, sk=1)
+    print(text)
+    assert text == ub.codeblock(
         '''
         {
             ('one', 'two'): 100,
             ('three', 'four'): 200,
         }
         ''')
+
+
+def test_newline_keys():
+    import ubelt as ub
+    class NLRepr(object):
+        def __repr__(self):
+            return ub.codeblock(
+                '''
+                <This repr has newlines, and the first line is long:
+                   * line1
+                   * line2>
+                ''')
+    key = NLRepr()
+    dict_ =  {key: {key: [1, 2, 3, key]}}
+    text = ub.repr2(dict_)
+    print(text)
+    want = ub.codeblock(
+        '''
+        {
+            <This repr has newlines, and the first line is long:
+               * line1
+               * line2>: {
+                <This repr has newlines, and the first line is long:
+                   * line1
+                   * line2>: [
+                    1,
+                    2,
+                    3,
+                    <This repr has newlines, and the first line is long:
+                       * line1
+                       * line2>,
+                ],
+            },
+        }
+        ''')
+    assert text == want
+
+    text = ub.repr2(dict_, cbr=True)
+    want = ub.codeblock(
+        '''
+        {<This repr has newlines, and the first line is long:
+            * line1
+            * line2>: {<This repr has newlines, and the first line is long:
+             * line1
+             * line2>: [1,
+           2,
+           3,
+           <This repr has newlines, and the first line is long:
+              * line1
+              * line2>,],},}
+        ''')
+    print(text)
+    assert text == want
+
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        pytest ~/code/ubelt/ubelt/tests/test_format.py  --verbose -s
+    """
+    import xdoctest
+    xdoctest.doctest_module(__file__)
