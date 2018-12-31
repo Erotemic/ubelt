@@ -184,8 +184,9 @@ def download(url, fpath=None, hash_prefix=None, hasher='sha512',
                 print('hash_prefix = {!r}'.format(hash_prefix))
                 print('got = {!r}'.format(got))
                 raise RuntimeError(
-                    'invalid hash value (expected "{}", got "{}")'.format(
-                        hash_prefix, got))
+                    'invalid hash value for fpath={!r} '
+                    '(expected "{}", got "{}")'.format(
+                        fpath, hash_prefix, got))
     finally:
         tmp.close()
         # If for some reason the move failed, delete the temporary file
