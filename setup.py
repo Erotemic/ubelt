@@ -40,6 +40,10 @@ Pypi:
 """
 from setuptools import setup
 import sys
+from os.path import dirname
+
+
+repodir = dirname(__file__)
 
 
 def parse_version(package):
