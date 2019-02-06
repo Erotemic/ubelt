@@ -1,3 +1,8 @@
+Version: 0.6.2
+--------------
+* `ub.download` can now accept `fpath` as either a file path or a `io.BytesIO` object 
+
+
 Version: 0.6.1
 --------------
 * `ub.repr2` now accepts negative values for `newlines`, which means use
