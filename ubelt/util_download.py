@@ -50,9 +50,11 @@ def download(url, fpath=None, hash_prefix=None, hasher='sha512',
         url (str):
             The url to download.
 
-        fpath (PathLike):
+        fpath (PathLike | io.BytesIOtringIO):
             The path to download to. Defaults to basename of url and ubelt's
-            application cache.
+            application cache. If this is a io.BytesIO object then information
+            is directly written to this object (note this prevents the use of
+            temporary files).
 
         hash_prefix (None or str):
             If specified, download will retry / error if the file hash
@@ -97,6 +99,17 @@ def download(url, fpath=None, hash_prefix=None, hasher='sha512',
 
     Example:
         >>> # xdoctest: +REQUIRES(--network)
+        >>> import ubelt as ub
+        >>> import io
+        >>> url = 'http://i.imgur.com/rqwaDag.png'
+        >>> file = io.BytesIO()
+        >>> fpath = download(url, file)
+        >>> file.seek(0)
+        >>> data = file.read()
+        >>> assert ub.hash_data(data, hasher='sha1').startswith('f79ea24571')
+
+    Example:
+        >>> # xdoctest: +REQUIRES(--network)
         >>> url = 'http://i.imgur.com/rqwaDag.png'
         >>> fpath = download(url, hasher='sha1', hash_prefix='f79ea24571da6ddd2ba12e3d57b515249ecb8a35')
         Downloading url='http://i.imgur.com/rqwaDag.png' to fpath=...rqwaDag.png
@@ -122,8 +135,13 @@ def download(url, fpath=None, hash_prefix=None, hasher='sha512',
         fname = basename(url)
         fpath = join(dpath, fname)
 
+    _dst_is_io_object = hasattr(fpath, 'write')
+
     if verbose:
-        print('Downloading url=%r to fpath=%r' % (url, fpath))
+        if _dst_is_io_object:
+            print('Downloading url=%r to IO object' % (url,))
+        else:
+            print('Downloading url=%r to fpath=%r' % (url, fpath))
 
     urldata = urlopen(url)
     meta = urldata.info()
@@ -141,13 +159,14 @@ def download(url, fpath=None, hash_prefix=None, hasher='sha512',
             else:
                 raise KeyError(hasher)
 
-    tmp = tempfile.NamedTemporaryFile(delete=False)
+    if _dst_is_io_object:
+        _file_write = fpath.write
+    else:
+        tmp = tempfile.NamedTemporaryFile(delete=False)
+        _file_write = tmp.write
 
     # possible optimization (have not tested or timed)
-    _tmp_write = tmp.write
     _urldata_read = urldata.read
-    # _hasher_update = (lambda buffer: buffer.encode('utf8') if six.PY2 else)  # NOQA
-    #                   hasher.update)
     try:
         with Progress(total=file_size, disable=not verbose) as pbar:
             _pbar_update = pbar.update
@@ -159,7 +178,7 @@ def download(url, fpath=None, hash_prefix=None, hasher='sha512',
                     _hasher_update = hasher.update
                     while buffer:
                         buffer = _urldata_read(chunksize)
-                        _tmp_write(buffer)
+                        _file_write(buffer)
                         _hasher_update(buffer)
                         _pbar_update(len(buffer))
                 else:
@@ -167,31 +186,38 @@ def download(url, fpath=None, hash_prefix=None, hasher='sha512',
                     # (tight loop optimization: remove in-loop conditional)
                     while buffer:
                         buffer = _urldata_read(chunksize)
-                        _tmp_write(buffer)
+                        _file_write(buffer)
                         _pbar_update(len(buffer))
             _critical_loop()
 
-        tmp.close()
+        if not _dst_is_io_object:
+            tmp.close()
 
-        # We keep a potentially corrupted file if the hash doesn't match.
-        # It could be the case that the user simply specified the wrong
-        # hash_prefix.
-        shutil.move(tmp.name, fpath)
+            # We keep a potentially corrupted file if the hash doesn't match.
+            # It could be the case that the user simply specified the wrong
+            # hash_prefix.
+            shutil.move(tmp.name, fpath)
 
         if hash_prefix:
             got = hasher.hexdigest()
             if got[:len(hash_prefix)] != hash_prefix:
                 print('hash_prefix = {!r}'.format(hash_prefix))
                 print('got = {!r}'.format(got))
-                raise RuntimeError(
-                    'invalid hash value for fpath={!r} '
-                    '(expected "{}", got "{}")'.format(
-                        fpath, hash_prefix, got))
+                if _dst_is_io_object:
+                    raise RuntimeError(
+                        'invalid hash value '
+                        '(expected "{}", got "{}")'.format(hash_prefix, got))
+                else:
+                    raise RuntimeError(
+                        'invalid hash value for fpath={!r} '
+                        '(expected "{}", got "{}")'.format(
+                            fpath, hash_prefix, got))
     finally:
-        tmp.close()
-        # If for some reason the move failed, delete the temporary file
-        if exists(tmp.name):  # nocover
-            os.remove(tmp.name)
+        if not _dst_is_io_object:  # nocover
+            tmp.close()
+            # If for some reason the move failed, delete the temporary file
+            if exists(tmp.name):
+                os.remove(tmp.name)
     return fpath
 
 
@@ -301,34 +327,8 @@ def grabdata(url, fpath=None, dpath=None, fname=None, redo=False,
         needs_download = True
 
     if hash_prefix:
-        stamp_fpath = fpath + '.hash'
-        # Force a re-download if the hash file does not exist or it does
-        # not match the expected hash
-        if exists(stamp_fpath):
-            with open(stamp_fpath, 'r') as file:
-                hashstr = file.read()
-            if not hashstr.startswith(hash_prefix):
-                if verbose:  # pragma: nobranch
-                    print('invalid hash value (expected "{}", got "{}")'.format(
-                        hash_prefix, hashstr))
-                needs_download = True
-        elif exists(fpath):
-            # If the file exists, but the hash doesnt exist, simply compute the
-            # hash of the existing file instead of redownloading it.
-            # Redownload if this fails.
-            from ubelt import util_hash
-            hashstr = util_hash.hash_file(fpath, hasher=hasher)
-            if hashstr.startswith(hash_prefix):
-                # Write the missing stamp file if it matches
-                with open(stamp_fpath, 'w') as file:
-                    file.write(hash_prefix)
-            else:
-                if verbose:  # pragma: nobranch
-                    print('invalid hash value (expected "{}", got "{}")'.format(
-                        hash_prefix, hashstr))
-                needs_download = True
-        else:
-            needs_download = True
+        stamp_fpath, needs_download = _check_hash_stamp(
+            fpath, hash_prefix, hasher, verbose, needs_download)
 
     if needs_download:
         fpath = download(url, fpath, verbose=verbose,
@@ -344,6 +344,39 @@ def grabdata(url, fpath=None, dpath=None, fname=None, redo=False,
         if verbose >= 2:
             print('Already have file %s' % fpath)
     return fpath
+
+
+def _check_hash_stamp(fpath, hash_prefix, hasher, verbose, needs_download=False):
+    stamp_fpath = fpath + '.hash'
+    # Force a re-download if the hash file does not exist or it does
+    # not match the expected hash
+    if exists(stamp_fpath):
+        with open(stamp_fpath, 'r') as file:
+            hashstr = file.read()
+        if not hashstr.startswith(hash_prefix):
+            if verbose:  # pragma: nobranch
+                print('invalid hash value (expected "{}", got "{}")'.format(
+                    hash_prefix, hashstr))
+            needs_download = True
+    elif exists(fpath):
+        # If the file exists, but the hash doesnt exist, simply compute the
+        # hash of the existing file instead of redownloading it.
+        # Redownload if this fails.
+        from ubelt import util_hash
+        hashstr = util_hash.hash_file(fpath, hasher=hasher)
+        if hashstr.startswith(hash_prefix):
+            # Write the missing stamp file if it matches
+            with open(stamp_fpath, 'w') as file:
+                file.write(hash_prefix)
+        else:
+            if verbose:  # pragma: nobranch
+                print('invalid hash value (expected "{}", got "{}")'.format(
+                    hash_prefix, hashstr))
+            needs_download = True
+    else:
+        needs_download = True
+
+    return stamp_fpath, needs_download
 
 
 if __name__ == '__main__':
