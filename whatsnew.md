@@ -1,6 +1,7 @@
 Version: 0.6.2
 --------------
 * `ub.download` can now accept `fpath` as either a file path or a `io.BytesIO` object 
+* `ub.FormatterExtensions.register` can now accept a type or tuple of types.
 
 
 Version: 0.6.1
