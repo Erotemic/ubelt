@@ -1,6 +1,17 @@
 |Travis| |Codecov| |Appveyor| |Pypi| |CircleCI|
 
-Good utilities lift all codes.
+Ubelt is a small library of robust, tested, documented, and simple functions
+that extend the Python standard library.  You've probably written and
+re-written some of the functions in ubelt before (or wrote out the logic
+inline). Next time, try `pip install ubelt` instead. 
+
+* Motto: Good utilities lift all codes. 
+
+* Goal: provide simple functions that acomplish common tasks not yet addressed by the python standard library.
+
+* Constraints: Must be low-impact pure python; it should be easy to install and use.
+
+* Method: All functions are written with docstrings and doctests to ensure that a baseline level of documentation and testing always exists (even if functions are copy/pasted into other libraries)
 
 
 .. raw:: html
@@ -10,26 +21,6 @@ Good utilities lift all codes.
 
 Be sure to checkout the new Jupyter notebook: https://github.com/Erotemic/ubelt/blob/master/docs/notebooks/Ubelt%20Demo.ipynb
 
-
-Installation:
-=============
-
-UBelt is written in pure Python and integrated into the python package
-index. Just pip install it and then import it!
-
-From pypi:
-----------
-
-::
-
-    pip install ubelt
-
-From github:
-------------
-
-::
-
-    pip install git+https://github.com/Erotemic/ubelt.git
 
 Description:
 ============
@@ -53,8 +44,8 @@ UBelt's functionality is a mixture of the following categories:
 - Timing
 - Caching
 - Hashing
-- Command Line Interaction
-- Cross-Platform Resource and Cache Directories
+- Command Line / Shell Interaction
+- Cross-Platform Cache, Config, and Data Directories
 - Symlinks
 - Downloading Files
 - Dictionary Histogram
@@ -68,6 +59,28 @@ UBelt's functionality is a mixture of the following categories:
     - `timerit <https://github.com/Erotemic/timerit>`__ for Robust Timing and Benchmarking
     - `ordered-set <https://github.com/LuminosoInsight/ordered-set>`__ for ordered set collections
     - `xdoctest <https://github.com/Erotemic/xdoctest>`__ for static analysis tools
+
+
+Installation:
+=============
+
+UBelt is written in pure Python and integrated into the python package
+index. Just pip install it and then import it!
+
+From pypi:
+----------
+
+::
+
+    pip install ubelt
+
+From github:
+------------
+
+::
+
+    pip install git+https://github.com/Erotemic/ubelt.git
+
 
 Purpose
 =======
@@ -163,17 +176,17 @@ A complete list of available functions can be seen in the
     from ubelt.util_const import (NoParam,)
     from ubelt.util_cmd import (cmd,)
     from ubelt.util_dict import (AutoDict, AutoOrderedDict, ddict, dict_hist,
-                                 dict_subset, dict_take, dict_union, dzip,
-                                 find_duplicates, group_items, invert_dict,
+                                 dict_isect, dict_subset, dict_take, dict_union,
+                                 dzip, find_duplicates, group_items, invert_dict,
                                  map_keys, map_vals, odict,)
     from ubelt.util_download import (download, grabdata,)
     from ubelt.util_func import (identity, inject_method,)
-    from ubelt.util_format import (repr2,)
+    from ubelt.util_format import (FormatterExtensions, repr2,)
     from ubelt.util_io import (delete, readfrom, touch, writeto,)
     from ubelt.util_links import (symlink,)
     from ubelt.util_list import (allsame, argmax, argmin, argsort, argunique,
                                  boolmask, chunks, compress, flatten, iter_window,
-                                 iterable, take, unique, unique_flags,)
+                                 iterable, peek, take, unique, unique_flags,)
     from ubelt.util_hash import (hash_data, hash_file,)
     from ubelt.util_import import (import_module_from_name,
                                    import_module_from_path, modname_to_modpath,
@@ -183,9 +196,12 @@ A complete list of available functions can be seen in the
     from ubelt.util_path import (TempDir, augpath, compressuser, ensuredir,
                                  expandpath, truepath, userhome,)
     from ubelt.util_platform import (DARWIN, LINUX, POSIX, WIN32, editfile,
-                                     ensure_app_cache_dir, ensure_app_resource_dir,
+                                     ensure_app_cache_dir, ensure_app_config_dir,
+                                     ensure_app_data_dir, ensure_app_resource_dir,
                                      find_exe, find_path, get_app_cache_dir,
+                                     get_app_config_dir, get_app_data_dir,
                                      get_app_resource_dir, platform_cache_dir,
+                                     platform_config_dir, platform_data_dir,
                                      platform_resource_dir, startfile,)
     from ubelt.util_str import (CaptureStdout, codeblock, ensure_unicode, hzcat,
                                 indent,)
