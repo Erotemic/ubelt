@@ -3,15 +3,15 @@
 Ubelt is a small library of robust, tested, documented, and simple functions
 that extend the Python standard library.  You've probably written and
 re-written some of the functions in ubelt before (or wrote out the logic
-inline). Next time, try `pip install ubelt` instead. 
-
-* Motto: Good utilities lift all codes. 
+inline). Next time, try ``pip install ubelt`` instead. 
 
 * Goal: provide simple functions that acomplish common tasks not yet addressed by the python standard library.
 
 * Constraints: Must be low-impact pure python; it should be easy to install and use.
 
 * Method: All functions are written with docstrings and doctests to ensure that a baseline level of documentation and testing always exists (even if functions are copy/pasted into other libraries)
+
+* Motto: Good utilities lift all codes. 
 
 
 .. raw:: html
