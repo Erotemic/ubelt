@@ -658,7 +658,7 @@ work with is off it followed by a probation period).
 PRs are welcome. If you have a utility function that you think is useful then
 write a PR. I'm likely to respond promptly.
 
-Also check out my other projects:
+Also check out my other projects (many of which are powered by ubelt):
 
 -  ProgIter https://github.com/Erotemic/netharn
 -  mkinit https://github.com/Erotemic/mkinit
