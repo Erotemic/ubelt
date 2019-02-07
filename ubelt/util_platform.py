@@ -1,4 +1,18 @@
 # -*- coding: utf-8 -*-
+"""
+The goal of this module is to provide an idomatic cross-platform pattern of
+accessing platform dependant file systems.
+
+Standard application directory structure: cache, config, and other XDG
+standards [1].
+
+
+
+
+References:
+    ..[1] https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html
+
+"""
 from __future__ import absolute_import, division, print_function, unicode_literals
 import os
 import sys
@@ -14,20 +28,39 @@ DARWIN = sys.platform.startswith('darwin')
 POSIX = 'posix' in sys.builtin_module_names
 
 
-def platform_resource_dir():
+def platform_data_dir():
+    """
+    Returns path for user-specific data files
+
+    Returns:
+        PathLike : path to the data dir used by the current operating system
+    """
+    if LINUX:  # nocover
+        dpath_ = os.environ.get('XDG_DATA_HOME', '~/.local/share')
+    elif DARWIN:  # nocover
+        raise NotImplementedError('todo')
+    elif WIN32:  # nocover
+        raise NotImplementedError('todo')
+    else:  # nocover
+        raise NotImplementedError('Unknown Platform  %r' % (sys.platform,))
+    dpath = normpath(expanduser(dpath_))
+    return dpath
+
+
+def platform_config_dir():
     """
     Returns a directory which should be writable for any application
     This should be used for persistent configuration files.
 
     Returns:
-        PathLike : path to the resource dir used by the current operating system
+        PathLike : path to the cahce dir used by the current operating system
     """
-    if WIN32:  # nocover
-        dpath_ = '~/AppData/Roaming'
-    elif LINUX:  # nocover
-        dpath_ = '~/.config'
+    if LINUX:  # nocover
+        dpath_ = os.environ.get('XDG_CONFIG_HOME', '~/.config')
     elif DARWIN:  # nocover
         dpath_  = '~/Library/Application Support'
+    elif WIN32:  # nocover
+        dpath_ = '~/AppData/Roaming'
     else:  # nocover
         raise NotImplementedError('Unknown Platform  %r' % (sys.platform,))
     dpath = normpath(expanduser(dpath_))
@@ -42,19 +75,21 @@ def platform_cache_dir():
     Returns:
         PathLike : path to the cache dir used by the current operating system
     """
-    if WIN32:  # nocover
-        dpath_ = '~/AppData/Local'
-    elif LINUX:  # nocover
-        dpath_ = '~/.cache'
+    if LINUX:  # nocover
+        dpath_ = os.environ.get('XDG_CACHE_HOME', '~/.cache')
     elif DARWIN:  # nocover
         dpath_  = '~/Library/Caches'
+    elif WIN32:  # nocover
+        dpath_ = '~/AppData/Local'
     else:  # nocover
         raise NotImplementedError('Unknown Platform  %r' % (sys.platform,))
     dpath = normpath(expanduser(dpath_))
     return dpath
 
+# ---
 
-def get_app_resource_dir(appname, *args):
+
+def get_app_config_dir(appname, *args):
     r"""
     Returns a writable directory for an application
     This should be used for persistent configuration files.
@@ -64,33 +99,33 @@ def get_app_resource_dir(appname, *args):
         *args: any other subdirectories may be specified
 
     Returns:
-        PathLike: dpath: writable resource directory for this application
+        PathLike: dpath: writable config directory for this application
 
     SeeAlso:
-        ensure_app_resource_dir
+        ensure_app_config_dir
     """
-    dpath = join(platform_resource_dir(), appname, *args)
+    dpath = join(platform_config_dir(), appname, *args)
     return dpath
 
 
-def ensure_app_resource_dir(appname, *args):
+def ensure_app_config_dir(appname, *args):
     """
-    Calls `get_app_resource_dir` but ensures the directory exists.
+    Calls `get_app_config_dir` but ensures the directory exists.
 
     Args:
         appname (str): the name of the application
         *args: any other subdirectories may be specified
 
     SeeAlso:
-        get_app_resource_dir
+        get_app_config_dir
 
     Example:
         >>> import ubelt as ub
-        >>> dpath = ub.ensure_app_resource_dir('ubelt')
+        >>> dpath = ub.ensure_app_config_dir('ubelt')
         >>> assert exists(dpath)
     """
     from ubelt import util_path
-    dpath = get_app_resource_dir(appname, *args)
+    dpath = get_app_config_dir(appname, *args)
     util_path.ensuredir(dpath)
     return dpath
 
@@ -178,47 +213,6 @@ def startfile(fpath, verbose=True):  # nocover
     if info is not None:
         if not info['proc']:
             raise Exception('startfile failed')
-
-
-def editfile(fpath, verbose=True):  # nocover
-    """
-    Opens a file or code corresponding to a live python object in your
-    preferred visual editor. This function is mainly useful in an interactive
-    IPython session.
-
-    The visual editor is determined by the `VISUAL` environment variable.  If
-    this is not specified it defaults to gvim.
-
-    Args:
-        fpath (PathLike): a file path or python module / function
-        verbose (int): verbosity
-
-    DisableExample:
-        >>> # This test interacts with a GUI frontend, not sure how to test.
-        >>> import ubelt as ub
-        >>> ub.editfile(ub.util_platform.__file__)
-        >>> ub.editfile(ub)
-        >>> ub.editfile(ub.editfile)
-    """
-    from six import types
-    from ubelt import util_cmd
-    if not isinstance(fpath, six.string_types):
-        if isinstance(fpath, types.ModuleType):
-            fpath = fpath.__file__
-        else:
-            fpath =  sys.modules[fpath.__module__].__file__
-        fpath_py = fpath.replace('.pyc', '.py')
-        if exists(fpath_py):
-            fpath = fpath_py
-
-    if verbose:
-        print('[ubelt] editfile("{}")'.format(fpath))
-
-    editor = os.environ.get('VISUAL', 'gvim')
-
-    if not exists(fpath):
-        raise IOError('Cannot start nonexistant file: %r' % fpath)
-    util_cmd.cmd([editor, fpath], fpath, detach=True)
 
 
 def find_exe(name, multi=False, path=None):
@@ -335,6 +329,106 @@ def find_path(name, path=None, exact=False):
         candidates = it.chain.from_iterable(
             glob.glob(pattern) for pattern in candidates)
     return candidates
+
+
+# DEPRICATED:
+
+
+def editfile(fpath, verbose=True):  # nocover
+    """
+    DEPRICATED: This has been ported to xdev, please use that version.
+
+    Opens a file or code corresponding to a live python object in your
+    preferred visual editor. This function is mainly useful in an interactive
+    IPython session.
+
+    The visual editor is determined by the `VISUAL` environment variable.  If
+    this is not specified it defaults to gvim.
+
+    Args:
+        fpath (PathLike): a file path or python module / function
+        verbose (int): verbosity
+
+    DisableExample:
+        >>> # This test interacts with a GUI frontend, not sure how to test.
+        >>> import ubelt as ub
+        >>> ub.editfile(ub.util_platform.__file__)
+        >>> ub.editfile(ub)
+        >>> ub.editfile(ub.editfile)
+    """
+    from six import types
+    from ubelt import util_cmd
+    import warnings
+    warnings.warn('Please use xdev.editfile instead', DeprecationWarning)
+    if not isinstance(fpath, six.string_types):
+        if isinstance(fpath, types.ModuleType):
+            fpath = fpath.__file__
+        else:
+            fpath =  sys.modules[fpath.__module__].__file__
+        fpath_py = fpath.replace('.pyc', '.py')
+        if exists(fpath_py):
+            fpath = fpath_py
+
+    if verbose:
+        print('[ubelt] editfile("{}")'.format(fpath))
+
+    editor = os.environ.get('VISUAL', 'gvim')
+
+    if not exists(fpath):
+        raise IOError('Cannot start nonexistant file: %r' % fpath)
+    util_cmd.cmd([editor, fpath], fpath, detach=True)
+
+
+def platform_resource_dir():
+    """
+    Alias for platform_cache_dir
+
+    DEPRICATED
+
+    Returns a directory which should be writable for any application
+    This should be used for persistent configuration files.
+
+    Returns:
+        PathLike : path to the resource dir used by the current operating system
+    """
+    return platform_cache_dir()
+
+
+def get_app_resource_dir(appname, *args):
+    r"""
+    Returns a writable directory for an application
+    This should be used for persistent configuration files.
+
+    Args:
+        appname (str): the name of the application
+        *args: any other subdirectories may be specified
+
+    Returns:
+        PathLike: dpath: writable resource directory for this application
+
+    SeeAlso:
+        ensure_app_resource_dir
+    """
+    return get_app_cache_dir(appname, *args)
+
+
+def ensure_app_resource_dir(appname, *args):
+    """
+    Calls `get_app_resource_dir` but ensures the directory exists.
+
+    Args:
+        appname (str): the name of the application
+        *args: any other subdirectories may be specified
+
+    SeeAlso:
+        get_app_resource_dir
+
+    Example:
+        >>> import ubelt as ub
+        >>> dpath = ub.ensure_app_resource_dir('ubelt')
+        >>> assert exists(dpath)
+    """
+    return ensure_app_cache_dir(appname, *args)
 
 
 if __name__ == '__main__':

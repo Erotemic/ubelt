@@ -2,6 +2,8 @@ Version: 0.6.2
 --------------
 * `ub.download` can now accept `fpath` as either a file path or a `io.BytesIO` object 
 * `ub.FormatterExtensions.register` can now accept a type or tuple of types.
+* `ub.platform_cache_dir` and `ub.platform_config_dir` now respect XDG environs on Linux systems.
+* `ub.platform_resource_dir` is deprecated in favor of `ub.platform_config_dir`.
 
 
 Version: 0.6.1
