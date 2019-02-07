@@ -39,6 +39,7 @@ def inject_method(self, func, name=None):
         >>> inject_method(self, baz, 'bar')
         >>> assert self.bar() == 'baz'
     """
+    # TODO: if func is a bound method we should probably unbind it
     new_method = func.__get__(self, self.__class__)
     if name is None:
         name = func.__name__
