@@ -212,13 +212,13 @@ class FormatterExtensions(object):
             'a': [1, 2.2, I can do anything here],
             'b': I can do anything here
         }
-        >>> # Overload the formatter for float
-        >>> @extensions.register(float)
+        >>> # Overload the formatter for float and int
+        >>> @extensions.register((float, int))
         >>> def format_myobject(data, **kwargs):
         >>>     return str((data + 10) // 2)
         >>> print(ub.repr2(data, nl=-1, precision=1, extensions=extensions))
         {
-            'a': [1, 6.0, I can do anything here],
+            'a': [5, 6.0, I can do anything here],
             'b': I can do anything here
         }
     """

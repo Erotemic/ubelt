@@ -6,11 +6,29 @@ accessing platform dependant file systems.
 Standard application directory structure: cache, config, and other XDG
 standards [1].
 
+Notes:
+    Table mapping the type of directory to the system default environment variable.
+    Inspired by [2,3,4].
+
+           | Linux            | Win32          |   Darwin
+    data   | $XDG_DATA_HOME   | %APPDATA%      | ~/Library/Application Support
+    config | $XDG_CONFIG_HOME | %APPDATA%      | ~/Library/Application Support
+    cache  | $XDG_CACHE_HOME  | %LOCALAPPDATA% | ~/Library/Caches
 
 
+    If an environment variable is not specified the defaults are:
+        APPDATA      = ~/AppData/Roaming
+        LOCALAPPDATA = ~/AppData/Local
+
+        XDG_DATA_HOME   = ~/.local/share
+        XDG_CACHE_HOME  = ~/.cache
+        XDG_CONFIG_HOME = ~/.config
 
 References:
     ..[1] https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html
+    ..[2] https://stackoverflow.com/questions/43853548/xdg-windows
+    ..[3] https://stackoverflow.com/questions/11113974/cross-plat-path
+    ..[4] https://github.com/harawata/appdirs#supported-directories
 
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
@@ -38,11 +56,11 @@ def platform_data_dir():
     if LINUX:  # nocover
         dpath_ = os.environ.get('XDG_DATA_HOME', '~/.local/share')
     elif DARWIN:  # nocover
-        raise NotImplementedError('todo')
+        dpath_  = '~/Library/Application Support'
     elif WIN32:  # nocover
-        raise NotImplementedError('todo')
+        dpath_ = os.environ.get('APPDATA', '~/AppData/Roaming')
     else:  # nocover
-        raise NotImplementedError('Unknown Platform  %r' % (sys.platform,))
+        raise '~/AppData/Local'
     dpath = normpath(expanduser(dpath_))
     return dpath
 
@@ -60,7 +78,7 @@ def platform_config_dir():
     elif DARWIN:  # nocover
         dpath_  = '~/Library/Application Support'
     elif WIN32:  # nocover
-        dpath_ = '~/AppData/Roaming'
+        dpath_ = os.environ.get('APPDATA', '~/AppData/Roaming')
     else:  # nocover
         raise NotImplementedError('Unknown Platform  %r' % (sys.platform,))
     dpath = normpath(expanduser(dpath_))
@@ -80,13 +98,54 @@ def platform_cache_dir():
     elif DARWIN:  # nocover
         dpath_  = '~/Library/Caches'
     elif WIN32:  # nocover
-        dpath_ = '~/AppData/Local'
+        dpath_ = os.environ.get('LOCALAPPDATA', '~/AppData/Local')
     else:  # nocover
         raise NotImplementedError('Unknown Platform  %r' % (sys.platform,))
     dpath = normpath(expanduser(dpath_))
     return dpath
 
 # ---
+
+
+def get_app_data_dir(appname, *args):
+    r"""
+    Returns a writable directory for an application.
+    This should be used for temporary deletable data.
+
+    Args:
+        appname (str): the name of the application
+        *args: any other subdirectories may be specified
+
+    Returns:
+        PathLike: dpath: writable data directory for this application
+
+    SeeAlso:
+        ensure_app_data_dir
+    """
+    dpath = join(platform_data_dir(), appname, *args)
+    return dpath
+
+
+def ensure_app_data_dir(appname, *args):
+    """
+    Calls `get_app_data_dir` but ensures the directory exists.
+
+    Args:
+        appname (str): the name of the application
+        *args: any other subdirectories may be specified
+
+    SeeAlso:
+        get_app_data_dir
+
+    Example:
+        >>> import ubelt as ub
+        >>> dpath = ub.ensure_app_data_dir('ubelt')
+        >>> assert exists(dpath)
+    """
+    from ubelt import util_path
+    dpath = get_app_data_dir(appname, *args)
+    util_path.ensuredir(dpath)
+    return dpath
 
 
 def get_app_config_dir(appname, *args):
@@ -379,11 +438,11 @@ def editfile(fpath, verbose=True):  # nocover
     util_cmd.cmd([editor, fpath], fpath, detach=True)
 
 
-def platform_resource_dir():
+def platform_resource_dir():  # nocover
     """
     Alias for platform_cache_dir
 
-    DEPRICATED
+    DEPRICATED in favor of platform_config_dir / platform_data_dir
 
     Returns a directory which should be writable for any application
     This should be used for persistent configuration files.
@@ -394,10 +453,12 @@ def platform_resource_dir():
     return platform_cache_dir()
 
 
-def get_app_resource_dir(appname, *args):
+def get_app_resource_dir(appname, *args):  # nocover
     r"""
     Returns a writable directory for an application
     This should be used for persistent configuration files.
+
+    DEPRICATED in favor of get_app_config_dir / get_app_data_dir
 
     Args:
         appname (str): the name of the application
@@ -412,9 +473,11 @@ def get_app_resource_dir(appname, *args):
     return get_app_cache_dir(appname, *args)
 
 
-def ensure_app_resource_dir(appname, *args):
+def ensure_app_resource_dir(appname, *args):  # nocover
     """
     Calls `get_app_resource_dir` but ensures the directory exists.
+
+    DEPRICATED in favor of ensure_app_config_dir / ensure_app_data_dir
 
     Args:
         appname (str): the name of the application
@@ -422,11 +485,6 @@ def ensure_app_resource_dir(appname, *args):
 
     SeeAlso:
         get_app_resource_dir
-
-    Example:
-        >>> import ubelt as ub
-        >>> dpath = ub.ensure_app_resource_dir('ubelt')
-        >>> assert exists(dpath)
     """
     return ensure_app_cache_dir(appname, *args)
 

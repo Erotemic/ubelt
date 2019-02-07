@@ -14,7 +14,7 @@ CommandLine:
 #     * parse_cfgstr3 - not relevant here
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-__version__ = '0.6.1'
+__version__ = '0.6.2.dev0'
 
 __submodules__ = [
     'util_arg',
@@ -97,8 +97,9 @@ else:  # pragma: nobranch
                                  expandpath, truepath, userhome,)
     from ubelt.util_platform import (DARWIN, LINUX, POSIX, WIN32, editfile,
                                      ensure_app_cache_dir, ensure_app_config_dir,
-                                     ensure_app_resource_dir, find_exe, find_path,
-                                     get_app_cache_dir, get_app_config_dir,
+                                     ensure_app_data_dir, ensure_app_resource_dir,
+                                     find_exe, find_path, get_app_cache_dir,
+                                     get_app_config_dir, get_app_data_dir,
                                      get_app_resource_dir, platform_cache_dir,
                                      platform_config_dir, platform_data_dir,
                                      platform_resource_dir, startfile,)
@@ -117,21 +118,22 @@ else:  # pragma: nobranch
                'compressuser', 'ddict', 'delete', 'dict_hist', 'dict_isect',
                'dict_subset', 'dict_take', 'dict_union', 'download', 'dzip',
                'editfile', 'ensure_app_cache_dir', 'ensure_app_config_dir',
-               'ensure_app_resource_dir', 'ensure_unicode', 'ensuredir',
-               'expandpath', 'find_duplicates', 'find_exe', 'find_path', 'flatten',
-               'get_app_cache_dir', 'get_app_config_dir', 'get_app_resource_dir',
-               'grabdata', 'group_items', 'hash_data', 'hash_file',
-               'highlight_code', 'hzcat', 'identity', 'import_module_from_name',
-               'import_module_from_path', 'indent', 'inject_method', 'invert_dict',
-               'iter_window', 'iterable', 'map_keys', 'map_vals', 'memoize',
-               'memoize_method', 'modname_to_modpath', 'modpath_to_modname',
-               'odict', 'orderedset', 'oset', 'peek', 'platform_cache_dir',
-               'platform_config_dir', 'platform_data_dir', 'platform_resource_dir',
-               'progiter', 'readfrom', 'repr2', 'split_modpath', 'startfile',
-               'symlink', 'take', 'timestamp', 'touch', 'truepath', 'unique',
-               'unique_flags', 'userhome', 'util_arg', 'util_cache', 'util_cmd',
-               'util_colors', 'util_const', 'util_dict', 'util_download',
-               'util_format', 'util_func', 'util_hash', 'util_import', 'util_io',
-               'util_links', 'util_list', 'util_memoize', 'util_mixins',
-               'util_path', 'util_platform', 'util_str', 'util_time', 'writeto']
+               'ensure_app_data_dir', 'ensure_app_resource_dir', 'ensure_unicode',
+               'ensuredir', 'expandpath', 'find_duplicates', 'find_exe',
+               'find_path', 'flatten', 'get_app_cache_dir', 'get_app_config_dir',
+               'get_app_data_dir', 'get_app_resource_dir', 'grabdata',
+               'group_items', 'hash_data', 'hash_file', 'highlight_code', 'hzcat',
+               'identity', 'import_module_from_name', 'import_module_from_path',
+               'indent', 'inject_method', 'invert_dict', 'iter_window', 'iterable',
+               'map_keys', 'map_vals', 'memoize', 'memoize_method',
+               'modname_to_modpath', 'modpath_to_modname', 'odict', 'orderedset',
+               'oset', 'peek', 'platform_cache_dir', 'platform_config_dir',
+               'platform_data_dir', 'platform_resource_dir', 'progiter',
+               'readfrom', 'repr2', 'split_modpath', 'startfile', 'symlink',
+               'take', 'timestamp', 'touch', 'truepath', 'unique', 'unique_flags',
+               'userhome', 'util_arg', 'util_cache', 'util_cmd', 'util_colors',
+               'util_const', 'util_dict', 'util_download', 'util_format',
+               'util_func', 'util_hash', 'util_import', 'util_io', 'util_links',
+               'util_list', 'util_memoize', 'util_mixins', 'util_path',
+               'util_platform', 'util_str', 'util_time', 'writeto']
     # </AUTOGEN_INIT>
