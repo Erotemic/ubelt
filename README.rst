@@ -1,5 +1,10 @@
 |Travis| |Codecov| |Appveyor| |Pypi| |CircleCI|
 
+
+.. raw:: html
+
+    <img src="https://i.imgur.com/4dMXuWq.png" height="100px">
+
 Ubelt is a small library of robust, tested, documented, and simple functions
 that extend the Python standard library.  You've probably written and
 re-written some of the functions in ubelt before (or wrote out the logic
@@ -12,14 +17,6 @@ inline). Next time, try ``pip install ubelt`` instead.
 * Method: All functions are written with docstrings and doctests to ensure that a baseline level of documentation and testing always exists (even if functions are copy/pasted into other libraries)
 
 * Motto: Good utilities lift all codes. 
-
-
-.. raw:: html
-
-    <img src="https://i.imgur.com/4dMXuWq.png" height="100px">
-
-
-Be sure to checkout the new Jupyter notebook: https://github.com/Erotemic/ubelt/blob/master/docs/notebooks/Ubelt%20Demo.ipynb
 
 
 Description:
@@ -140,6 +137,8 @@ A small subset of the static-analysis and code introspection tools in
 
 Available Functions:
 ====================
+
+Be sure to checkout the new Jupyter notebook: https://github.com/Erotemic/ubelt/blob/master/docs/notebooks/Ubelt%20Demo.ipynb
 
 For the following functions, see corresponding doc-strings for more
 details.
