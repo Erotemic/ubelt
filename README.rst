@@ -648,6 +648,27 @@ Here are the repos containing the standalone class utilities:
 -  ProgIter - https://github.com/Erotemic/progiter
 -  Timerit - https://github.com/Erotemic/timerit
 -  OrderedSet - https://github.com/LuminosoInsight/ordered-set
+
+
+Notes.
+-----------------
+Ubelt will support Python2 for the forseeable future (at least until everyone I
+work with is off it followed by a probation period).
+
+PRs are welcome. If you have a utility function that you think is useful then
+write a PR. I'm likely to respond promptly.
+
+Also check out my other projects:
+
+-  ProgIter https://github.com/Erotemic/netharn
+-  mkinit https://github.com/Erotemic/mkinit
+-  ibeis https://github.com/Erotemic/ibeis
+-  graphid https://github.com/Erotemic/graphid
+-  xdoctest https://github.com/Erotemic/xdoctest
+-  xinspect https://github.com/Erotemic/xinspect
+-  xdev https://github.com/Erotemic/xdev
+-  vimtk https://github.com/Erotemic/vimtk
+-  futures_actors https://github.com/Erotemic/futures_actors
   
 
 .. |Travis| image:: https://img.shields.io/travis/Erotemic/ubelt/master.svg?label=Travis%20CI
