@@ -14,7 +14,7 @@ CommandLine:
 #     * parse_cfgstr3 - not relevant here
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-__version__ = '0.6.2.dev0'
+__version__ = '0.6.2'
 
 __submodules__ = [
     'util_arg',
