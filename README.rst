@@ -1,4 +1,4 @@
-|Travis| |Codecov| |Appveyor| |Pypi| |CircleCI|
+|CircleCI| |Travis| |Appveyor| |Codecov| |Pypi| |Downloads| 
 
 
 .. raw:: html
@@ -678,6 +678,8 @@ Also check out my other projects (many of which are powered by ubelt):
 .. |Appveyor| image:: https://ci.appveyor.com/api/projects/status/github/Erotemic/ubelt?branch=master&svg=True
    :target: https://ci.appveyor.com/project/Erotemic/ubelt/branch/master
 .. |Pypi| image:: https://img.shields.io/pypi/v/ubelt.svg
+   :target: https://pypi.python.org/pypi/ubelt
+.. |Downloads| image:: https://img.shields.io/pypi/dm/ubelt.svg
    :target: https://pypi.python.org/pypi/ubelt
 .. |CircleCI| image:: https://circleci.com/gh/Erotemic/ubelt.svg?style=svg
     :target: https://circleci.com/gh/Erotemic/ubelt
