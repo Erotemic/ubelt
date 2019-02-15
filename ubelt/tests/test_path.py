@@ -17,6 +17,9 @@ def test_pathlib():
         # compressuser
         assert ub.compressuser(base) == '~/.cache/ubelt'
 
+        assert ub.augpath(base, prefix='foo') == '/home/joncrall/.cache/fooubelt'
+
+        ub.expandpath(base)
 
     except Exception:
         import pytest
