@@ -45,7 +45,7 @@ def augpath(path, suffix='', prefix='', ext=None, base=None, multidot=False):
             in the basename is the extension (Defaults to False).
 
     Returns:
-        PathLike: newpath
+        PathLike: augmented path
 
     CommandLine:
         python -m ubelt.util_path augpath
@@ -241,6 +241,9 @@ def expandpath(path):
 
     Args:
         path (PathLike): string representation of a path
+
+    Returns:
+        PathLike : expanded path
 
     Example:
         >>> import ubelt as ub
