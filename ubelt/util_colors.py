@@ -97,11 +97,3 @@ def color_text(text, color):
         import warnings
         warnings.warn('pygments is not installed')
         return text
-
-if __name__ == '__main__':
-    r"""
-    CommandLine:
-        python -m ubelt.util_colors all
-    """
-    import xdoctest as xdoc
-    xdoc.doctest_module()

@@ -10,12 +10,3 @@ __all__ = ['OrderedSet', 'oset']
 
 OrderedSet = ordered_set.OrderedSet
 oset = OrderedSet
-
-
-if __name__ == '__main__':
-    r"""
-    CommandLine:
-        python -m ubelt.orderedset all
-    """
-    import xdoctest
-    xdoctest.doctest_module(__file__)

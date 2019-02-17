@@ -188,11 +188,3 @@ class memoize_method(object):
         else:
             value = cache[key] = self._func(self._instance, *args, **kwargs)
             return value
-
-if __name__ == '__main__':
-    r"""
-    CommandLine:
-        python -m ubelt.util_decor all
-    """
-    import xdoctest
-    xdoctest.doctest_module(__file__)

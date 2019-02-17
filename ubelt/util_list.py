@@ -634,12 +634,3 @@ def peek(iterable):
         0
     """
     return next(iter(iterable))
-
-
-if __name__ == '__main__':
-    """
-    CommandLine:
-        python -m ubelt.util_list all
-    """
-    import xdoctest as xdoc
-    xdoc.doctest_module()

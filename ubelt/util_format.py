@@ -1,4 +1,3 @@
-import re
 import six
 import collections
 
@@ -230,6 +229,7 @@ class FormatterExtensions(object):
 
     def __init__(self):
         self.func_registry = {}
+        self.lazy_init = []
         # self._lazy_registrations = [
         #     self._register_numpy_extensions,
         #     self._register_builtin_extensions,
@@ -253,6 +253,9 @@ class FormatterExtensions(object):
         Returns an appropriate function to format `data` if one has been
         registered.
         """
+        for func in self.lazy_init:
+            func()
+
         for type, func in self.func_registry.items():
             if isinstance(data, type):
                 return func
@@ -302,6 +305,7 @@ class FormatterExtensions(object):
         import numpy as np
         @self.register(np.ndarray)
         def format_ndarray(data, **kwargs):
+            import re
             strvals = kwargs.get('sv', kwargs.get('strvals', False))
             itemsep = kwargs.get('itemsep', ' ')
             precision = kwargs.get('precision', None)
@@ -375,14 +379,18 @@ class FormatterExtensions(object):
 
 _FORMATTER_EXTENSIONS = FormatterExtensions()
 _FORMATTER_EXTENSIONS._register_builtin_extensions()
-try:
-    # TODO: can we use lazy loading to prevent trying to import numpy until
-    # some attribute of _FORMATTER_EXTENSIONS is used?
-    _FORMATTER_EXTENSIONS._register_numpy_extensions()
-    # TODO: register pandas by default if available
-    pass
-except ImportError:  # nocover
-    pass
+
+
+@_FORMATTER_EXTENSIONS.lazy_init.append
+def _lazy_init():
+    try:
+        # TODO: can we use lazy loading to prevent trying to import numpy until
+        # some attribute of _FORMATTER_EXTENSIONS is used?
+        _FORMATTER_EXTENSIONS._register_numpy_extensions()
+        # TODO: register pandas by default if available
+        pass
+    except ImportError:  # nocover
+        pass
 
 
 def _format_object(val, **kwargs):
@@ -734,16 +742,3 @@ def _rectify_countdown_or_bool(count_or_bool):
     else:
         count_or_bool_ = False
     return count_or_bool_
-
-
-if __name__ == '__main__':
-    """
-    TODO:
-        - [ ] Decide if the countdown newlines is a good idea or if a static
-              newlines is better while explicitly keeping track of root depth.
-
-    CommandLine:
-        python -m ubelt.util_format all
-    """
-    import xdoctest as xdoc
-    xdoc.doctest_module()

@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
-import re
 import sys
 import os.path
-import zipimport
 
 
 __all__ = [
@@ -263,7 +261,9 @@ def import_module_from_path(modpath):
         >>> with pytest.raises(IOError):
         >>>     import_module_from_path('does-not-exist.zip/')
     """
+    import zipimport
     if not os.path.exists(modpath):
+        import re
         # We allow (if not prefer or force) the colon to be a path.sep in order
         # to agree with the mod.__name__ attribute that will be produced
 
@@ -315,12 +315,3 @@ def _pkgutil_import_modpath(modpath):  # nocover
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
     return module
-
-
-if __name__ == '__main__':
-    """
-    CommandLine:
-        python -m ubelt.util_import all
-    """
-    import xdoctest
-    xdoctest.doctest_module(__file__)

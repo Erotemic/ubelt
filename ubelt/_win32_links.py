@@ -556,12 +556,3 @@ def _win32_dir(path, star=''):
             yield type_or_size, name, pointed
         else:
             yield type_or_size, name, None
-
-
-if __name__ == '__main__':
-    r"""
-    CommandLine:
-        python -m ubelt._win32_links all
-    """
-    import xdoctest
-    xdoctest.doctest_module(__file__)

@@ -239,11 +239,3 @@ def _dirstats(dpath=None):  # nocover
             if _win32_links._win32_is_junction(full_path):
                 line += ' => ' + _win32_links._win32_read_junction(full_path)
         print(line)
-
-if __name__ == '__main__':
-    r"""
-    CommandLine:
-        python -m ubelt.util_links
-    """
-    import xdoctest
-    xdoctest.doctest_module(__file__)

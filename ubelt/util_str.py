@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function, division, absolute_import, unicode_literals
-import unicodedata
-import textwrap
 import six
 
 __all__ = [
@@ -73,6 +71,7 @@ def codeblock(block_str):
         >>> print('With codeblock')
         >>> print(codeblock_version)
     """
+    import textwrap  # this is a slow import, do it lazy
     return textwrap.dedent(block_str).strip('\n')
 
 
@@ -102,6 +101,7 @@ def hzcat(args, sep=''):
     Example2:
         >>> from ubelt.util_str import *
         >>> import ubelt as ub
+        >>> import unicodedata
         >>> aa = unicodedata.normalize('NFD', 'á')  # a unicode char with len2
         >>> B = ub.repr2([['θ', aa], [aa, aa, aa]], nl=1, si=True, cbr=True, trailsep=False)
         >>> C = ub.repr2([[5, 6], [7, 'θ']], nl=1, si=True, cbr=True, trailsep=False)
@@ -110,6 +110,7 @@ def hzcat(args, sep=''):
         A｜=｜[[θ, á],   ｜*｜[[5, 6],
          ｜ ｜ [á, á, á]]｜ ｜ [7, θ]]
     """
+    import unicodedata
     if '\n' in sep or '\r' in sep:
         raise ValueError('`sep` cannot contain newline characters')
 
@@ -169,13 +170,3 @@ def ensure_unicode(text):
     #         # Can safely remove the utf8 marker
     #         text = text[len(codecs.BOM_UTF8):]
     #     return text.decode('utf-8')
-
-
-if __name__ == '__main__':
-    r"""
-    CommandLine:
-        python -m ubelt.util_str
-        python -m ubelt.util_str all
-    """
-    import xdoctest as xdoc
-    xdoc.doctest_module()
