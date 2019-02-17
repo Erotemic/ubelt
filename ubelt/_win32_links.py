@@ -26,7 +26,6 @@ import sys
 
 if sys.platform.startswith('win32'):
     import jaraco.windows.filesystem as jwfs
-    # import jaraco.windows.filesystem
 
 
 __win32_can_symlink__ = None
@@ -50,8 +49,7 @@ def _win32_can_symlink(verbose=0, force=0, testing=0):
 
     from ubelt import util_platform
     tempdir = util_platform.ensure_app_cache_dir('ubelt', '_win32_can_symlink')
-    # import shutil
-    # shutil.rmtree(tempdir)
+
     util_io.delete(tempdir)
     util_path.ensuredir(tempdir)
 

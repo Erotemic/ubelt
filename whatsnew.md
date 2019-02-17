@@ -1,6 +1,7 @@
 Version: 0.6.3
 --------------
 * new tests
+* add `util_stream`
 
 
 Version: 0.6.2

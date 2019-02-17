@@ -32,6 +32,7 @@ __submodules__ = [
     'util_path',
     'util_platform',
     'util_str',
+    'util_stream',
     'util_time',
     'orderedset',
     'progiter',
@@ -57,6 +58,7 @@ from ubelt import util_mixins
 from ubelt import util_path
 from ubelt import util_platform
 from ubelt import util_str
+from ubelt import util_stream
 from ubelt import util_time
 from ubelt import orderedset
 from ubelt import progiter
@@ -94,21 +96,21 @@ from ubelt.util_platform import (DARWIN, LINUX, POSIX, WIN32, editfile,
                                  get_app_resource_dir, platform_cache_dir,
                                  platform_config_dir, platform_data_dir,
                                  platform_resource_dir, startfile,)
-from ubelt.util_str import (CaptureStdout, codeblock, ensure_unicode, hzcat,
-                            indent,)
+from ubelt.util_str import (codeblock, ensure_unicode, hzcat, indent,)
+from ubelt.util_stream import (CaptureStdout, CaptureStream, TeeStringIO,)
 from ubelt.util_time import (Timer, Timerit, timestamp,)
 from ubelt.orderedset import (OrderedSet, oset,)
 from ubelt.progiter import (ProgIter,)
 
 __all__ = ['AutoDict', 'AutoOrderedDict', 'CacheStamp', 'Cacher',
-           'CaptureStdout', 'DARWIN', 'FormatterExtensions', 'LINUX',
-           'NiceRepr', 'NoParam', 'OrderedSet', 'POSIX', 'ProgIter', 'TempDir',
-           'Timer', 'Timerit', 'WIN32', 'allsame', 'argflag', 'argmax',
-           'argmin', 'argsort', 'argunique', 'argval', 'augpath', 'boolmask',
-           'chunks', 'cmd', 'codeblock', 'color_text', 'compress',
-           'compressuser', 'ddict', 'delete', 'dict_hist', 'dict_isect',
-           'dict_subset', 'dict_take', 'dict_union', 'download', 'dzip',
-           'editfile', 'ensure_app_cache_dir', 'ensure_app_config_dir',
+           'CaptureStdout', 'CaptureStream', 'DARWIN', 'FormatterExtensions',
+           'LINUX', 'NiceRepr', 'NoParam', 'OrderedSet', 'POSIX', 'ProgIter',
+           'TeeStringIO', 'TempDir', 'Timer', 'Timerit', 'WIN32', 'allsame',
+           'argflag', 'argmax', 'argmin', 'argsort', 'argunique', 'argval',
+           'augpath', 'boolmask', 'chunks', 'cmd', 'codeblock', 'color_text',
+           'compress', 'compressuser', 'ddict', 'delete', 'dict_hist',
+           'dict_isect', 'dict_subset', 'dict_take', 'dict_union', 'download',
+           'dzip', 'editfile', 'ensure_app_cache_dir', 'ensure_app_config_dir',
            'ensure_app_data_dir', 'ensure_app_resource_dir', 'ensure_unicode',
            'ensuredir', 'expandpath', 'find_duplicates', 'find_exe',
            'find_path', 'flatten', 'get_app_cache_dir', 'get_app_config_dir',
@@ -126,5 +128,5 @@ __all__ = ['AutoDict', 'AutoOrderedDict', 'CacheStamp', 'Cacher',
            'util_const', 'util_dict', 'util_download', 'util_format',
            'util_func', 'util_hash', 'util_import', 'util_io', 'util_links',
            'util_list', 'util_memoize', 'util_mixins', 'util_path',
-           'util_platform', 'util_str', 'util_time', 'writeto']
+           'util_platform', 'util_str', 'util_stream', 'util_time', 'writeto']
 # </AUTOGEN_INIT>
