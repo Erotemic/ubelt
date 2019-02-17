@@ -90,3 +90,7 @@ ENV/
 .ropeproject
 
 .pytest_cache
+
+profile_output.*
+_skbuild
+pip-wheel-metadata/
