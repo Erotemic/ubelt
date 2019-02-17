@@ -573,13 +573,3 @@ def invert_dict(dict_, unique_vals=True):
             inverted[value].add(key)
         inverted = dict(inverted)
     return inverted
-
-
-if __name__ == '__main__':
-    r"""
-    CommandLine:
-        python -m ubelt.util_dict
-        python -m ubelt.util_dict all
-    """
-    import xdoctest as xdoc
-    xdoc.doctest_module()

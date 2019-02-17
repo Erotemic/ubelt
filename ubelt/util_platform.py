@@ -34,9 +34,7 @@ References:
 from __future__ import absolute_import, division, print_function, unicode_literals
 import os
 import sys
-import pipes
 import six
-import glob
 import itertools as it
 from os.path import exists, join, isdir, expanduser, normpath
 
@@ -259,6 +257,7 @@ def startfile(fpath, verbose=True):  # nocover
     if not exists(fpath):
         raise Exception('Cannot start nonexistant file: %r' % fpath)
     if not WIN32:
+        import pipes
         fpath = pipes.quote(fpath)
     if LINUX:
         info = util_cmd.cmd(('xdg-open', fpath), detach=True, verbose=verbose)
@@ -385,6 +384,7 @@ def find_path(name, path=None, exact=False):
             candidates = (p + ext for p in candidates for ext in pathext)
         candidates = filter(exists, candidates)
     else:
+        import glob
         candidates = it.chain.from_iterable(
             glob.glob(pattern) for pattern in candidates)
     return candidates
@@ -487,14 +487,3 @@ def ensure_app_resource_dir(appname, *args):  # nocover
         get_app_resource_dir
     """
     return ensure_app_cache_dir(appname, *args)
-
-
-if __name__ == '__main__':
-    r"""
-    CommandLine:
-        python -m ubelt.util_platform
-        python -m ubelt.util_platform all
-        pytest ubelt/util_platform.py
-    """
-    import xdoctest as xdoc
-    xdoc.doctest_module()

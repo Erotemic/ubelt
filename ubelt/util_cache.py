@@ -2,12 +2,10 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 import os
 from os.path import join, normpath, basename, exists
-from six.moves import cPickle as pickle
 import warnings
 from ubelt import util_hash
 from ubelt import util_time
 from ubelt import util_path
-from ubelt import util_platform
 
 
 class Cacher(object):
@@ -93,6 +91,7 @@ class Cacher(object):
         if verbose is None:
             verbose = self.VERBOSE
         if dpath is None:  # pragma: no branch
+            from ubelt import util_platform
             dpath = util_platform.ensure_app_cache_dir(appname)
         util_path.ensuredir(dpath)
         self.dpath = dpath
@@ -262,6 +261,7 @@ class Cacher(object):
             >>> cacher.enabled = False
             >>> assert cacher.tryload() is None
         """
+        from six.moves import cPickle as pickle
         cfgstr = self._rectify_cfgstr(cfgstr)
 
         dpath = self.dpath
@@ -328,6 +328,7 @@ class Cacher(object):
             >>> cacher2.save('data')
             >>> assert not exists(cacher2.get_fpath()), 'should be disabled'
         """
+        from six.moves import cPickle as pickle
         if not self.enabled:
             return
         if self.verbose > 0:
@@ -559,13 +560,3 @@ class CacheStamp(object):
             certificate['product_file_hash'] = self._product_file_hash(products)
         self.cacher.save(certificate, cfgstr=cfgstr)
         return certificate
-
-
-if __name__ == '__main__':
-    r"""
-    CommandLine:
-        python -m ubelt.util_cache
-        python -m ubelt.util_cache all
-    """
-    import xdoctest as xdoc
-    xdoc.doctest_module()

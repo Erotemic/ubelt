@@ -30,12 +30,3 @@ def timestamp(method='iso8601'):
         return stamp
     else:
         raise ValueError('only iso8601 is accepted for now')
-
-
-if __name__ == '__main__':
-    """
-    CommandLine:
-        python -m ubelt.util_time all
-    """
-    import xdoctest as xdoc
-    xdoc.doctest_module(__file__)

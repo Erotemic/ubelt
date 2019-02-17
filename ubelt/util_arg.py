@@ -89,12 +89,3 @@ def argflag(key, argv=None):
     keys = [key] if isinstance(key, six.string_types) else key
     flag = any(k in argv for k in keys)
     return flag
-
-
-if __name__ == '__main__':
-    """
-    CommandLine:
-        python -m ubelt.util_arg
-    """
-    import xdoctest as xdoc
-    xdoc.doctest_module()

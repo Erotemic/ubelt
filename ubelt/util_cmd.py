@@ -2,13 +2,7 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 import sys
 import six
-import pipes
-import shlex
-import subprocess
 import warnings
-from threading import Thread
-from six.moves import zip_longest
-from six.moves import queue
 
 POSIX = 'posix' in sys.builtin_module_names
 
@@ -49,6 +43,8 @@ def _proc_async_iter_stream(proc, stream, buffersize=1):
     """
     Reads output from a process in a separate thread
     """
+    from six.moves import queue
+    from threading import Thread
     def enqueue_output(proc, stream, stream_queue):
         while proc.poll() is None:
             line = stream.readline()
@@ -85,6 +81,7 @@ def _proc_iteroutput_thread(proc):
     References:
         https://stackoverflow.com/questions/375427/non-blocking-read-subproc
     """
+    from six.moves import queue
 
     # Create threads that read stdout / stderr and queue up the output
     stdout_queue = _proc_async_iter_stream(proc, proc.stdout)
@@ -121,6 +118,7 @@ def _proc_iteroutput_select(proc):
     Yields:
         Tuple[str, str]: oline, eline: stdout and stderr line
     """
+    from six.moves import zip_longest
     # Read output while the external program is running
     while proc.poll() is None:
         reads = [proc.stdout.fileno(), proc.stderr.fileno()]
@@ -302,6 +300,7 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
         command_text = command
         command_tup = None
     else:
+        import pipes
         command_tup = command
         command_text = ' '.join(list(map(pipes.quote, command_tup)))
 
@@ -313,6 +312,7 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
         if command_tup is None:
             # parse this out of the string
             # NOTE: perhaps use the solution from [3] here?
+            import shlex
             command_tup = shlex.split(command_text)
             # command_tup = shlex.split(command_text, posix=not WIN32)
         args = command_tup
@@ -339,6 +339,7 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
     # Create a new process to execute the command
     def make_proc():
         # delay the creation of the process until we validate all args
+        import subprocess
         proc = subprocess.Popen(args, stdout=subprocess.PIPE,
                                 stderr=subprocess.PIPE, shell=shell,
                                 universal_newlines=True, cwd=cwd, env=env)
@@ -384,12 +385,3 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
             except Exception:  # nocover
                 print('L___ END CMD ___')
     return info
-
-
-if __name__ == '__main__':
-    r"""
-    CommandLine:
-        python -m ubelt.util_cmd
-    """
-    import xdoctest
-    xdoctest.doctest_module(__file__)

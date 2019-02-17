@@ -10,7 +10,6 @@ the file or directory does not exist. It also contains workarounds for win32
 issues with `shutil`.
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
-import shutil
 import six
 import sys
 import os
@@ -235,13 +234,5 @@ def delete(path, verbose=False):
                 from ubelt import _win32_links
                 _win32_links._win32_rmtree(path, verbose=verbose)
             else:
+                import shutil
                 shutil.rmtree(path)
-
-
-if __name__ == '__main__':
-    """
-    CommandLine:
-        python -m ubelt.util_io
-    """
-    import xdoctest as xdoc
-    xdoc.doctest_module()

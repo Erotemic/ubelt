@@ -12,12 +12,6 @@ from os.path import split
 from os.path import splitext
 import os
 import sys
-import shutil
-
-# if six.PY2:
-#     pathlib = None
-# else:
-#     import pathlib
 
 
 __all__ = [
@@ -90,27 +84,6 @@ def augpath(path, suffix='', prefix='', ext=None, base=None, multidot=False):
     new_fname = ''.join((prefix, fname_noext, suffix, ext))
     newpath = join(dpath, new_fname)
     return newpath
-
-
-# def username():
-#     """
-#     Returns the current user's name
-
-#     Returns:
-#         str: name: current users name
-
-#     Example:
-#         >>> from ubelt.util_platform import *
-#         >>> assert userhome() == expanduser('~')
-#     """
-#     # if 'USER' in os.environ:
-#     #     name = os.environ['USER']
-#     # else:
-#     import pwd
-#     name = pwd.getpwuid(os.getuid()).pw_name
-#     import getpass
-#     getpass.getuser()
-#     return name
 
 
 def userhome(username=None):
@@ -197,39 +170,6 @@ def compressuser(path, home='~'):
         elif path[len(userhome_dpath)] == os.path.sep:
             path = home + path[len(userhome_dpath):]
     return path
-
-
-# NOT SURE IF I LIKE THIS IDEA
-# def pathlike(path):
-#     """
-#     Return a PathLike object
-
-#     Args:
-#         path (str|PathLike): path-like object to rectify
-
-#     Returns:
-#         PathLike: path
-
-#     Note:
-#         Prior to Python 3.(7|8)?, the logic that handled sys.path did not
-#         accept `pathlib.Path`.
-
-#         This issue https://bugs.python.org/issue32642 notes this problem, and a
-#         patch has been proposed. As of `2018-09-23` it is in review.
-
-#         Also look into:
-#         https://snarky.ca/why-pathlib-path-doesn-t-inherit-from-str/
-
-#     Example:
-#         >>> import ubelt as ub
-#         >>> path = ub.pathlike('~/foo')
-#         >>> assert normpath() == join(ub.userhome(), 'foo')
-#         >>> assert ub.pathlike('foo') == 'foo'
-#     """
-#     if six.PY2:
-#         return expandpath(path)
-#     else:
-#         return PathLike(expandpath(path))
 
 
 def expandpath(path):
@@ -370,6 +310,7 @@ class TempDir(object):
 
     def cleanup(self):
         if self.dpath:
+            import shutil
             shutil.rmtree(self.dpath)
             self.dpath = None
 
@@ -382,13 +323,3 @@ class TempDir(object):
 
     def __exit__(self, type_, value, trace):
         self.cleanup()
-
-
-if __name__ == '__main__':
-    r"""
-    CommandLine:
-        python -m ubelt.util_path
-        python -m ubelt.util_path all
-    """
-    import xdoctest as xdoc
-    xdoc.doctest_module()

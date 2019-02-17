@@ -7,35 +7,6 @@ from __future__ import (absolute_import, division, print_function,
 from os.path import basename, join, exists
 import six
 import os
-import shutil
-import tempfile
-import hashlib
-from ubelt import util_platform
-
-
-# try:  # nocover
-# from requests import get as urlopen
-# _have_requests = True
-# except ImportError:  # nocover
-# _have_requests = False
-# import sys
-# if six.PY2:  # nocover
-#     # from urlparse import urlparse  # NOQA
-#     from urllib2 import urlopen  # NOQA
-#     # from urllib2 import URLError  # NOQA
-# else:
-#     from urllib.request import urlopen  # NOQA
-#     # from urllib.parse import urlparse  # NOQA
-#     # from urllib.error import URLError  # NOQA
-
-
-# try:  # nocover
-#     raise ImportError()
-#     from tqdm import tqdm as Progress
-# except ImportError:  # nocover
-# fake tqdm if it's not installed
-from ubelt import progiter
-Progress = progiter.ProgIter
 
 
 __all__ = ['download', 'grabdata']
@@ -126,6 +97,12 @@ def download(url, fpath=None, hash_prefix=None, hasher='sha512',
         >>> with pytest.raises(RuntimeError):
         >>>     ub.download(url, hasher='sha512', hash_prefix='BAD_HASH')
     """
+    from progiter import ProgIter as Progress
+    from ubelt import util_platform
+    import shutil
+    import tempfile
+    import hashlib
+
     if six.PY2:  # nocover
         from urllib2 import urlopen  # NOQA
     else:
@@ -305,6 +282,7 @@ def grabdata(url, fpath=None, dpath=None, fname=None, redo=False,
         >>> fpath = ub.grabdata(url2, fname=fname, hash_prefix=prefix2)
         >>> assert open(stamp_fpath, 'r').read() == prefix2
     """
+    from ubelt import util_platform
     if appname and dpath:
         raise ValueError('Cannot specify appname with dpath')
     if fpath and (dpath or fname or appname):
@@ -377,12 +355,3 @@ def _check_hash_stamp(fpath, hash_prefix, hasher, verbose, needs_download=False)
         needs_download = True
 
     return stamp_fpath, needs_download
-
-
-if __name__ == '__main__':
-    r"""
-    CommandLine:
-        python -m ubelt.util_download all
-    """
-    import xdoctest
-    xdoctest.doctest_module(__file__)
