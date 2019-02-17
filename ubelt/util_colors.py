@@ -75,7 +75,6 @@ def color_text(text, color):
         python -m ubelt.util_colors color_text
 
     Example:
-        >>> from ubelt.util_colors import *  # NOQA
         >>> text = 'raw text'
         >>> assert color_text(text, 'red') == '\x1b[31;01mraw text\x1b[39;49;00m'
         >>> assert color_text(text, None) == 'raw text'
