@@ -2,11 +2,6 @@ import re
 import six
 import collections
 
-# __all__ = [
-#     'repr2',
-#     'FormatterExtensions',
-# ]
-
 
 def repr2(data, **kwargs):
     """
