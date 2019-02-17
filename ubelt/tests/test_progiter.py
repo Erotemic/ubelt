@@ -87,7 +87,8 @@ def test_progiter():
         print(file.read())
 
     total = 200
-    N = 5000
+    # N = 5000
+    N = 500
     N0 = N - total
     print('N = %r' % (N,))
     print('N0 = %r' % (N0,))
