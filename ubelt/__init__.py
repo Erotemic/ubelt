@@ -6,8 +6,6 @@ CommandLine:
 """
 # Todo:
 #     The following functions and classes are candidates to be ported from utool:
-#     * reload_class
-#     * inject_func_as_property
 #     * accumulate
 #     * rsync
 from __future__ import absolute_import, division, print_function, unicode_literals
