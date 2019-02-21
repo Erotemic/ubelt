@@ -122,10 +122,13 @@ def download(url, fpath=None, hash_prefix=None, hasher='sha512',
 
     urldata = urlopen(url)
     meta = urldata.info()
-    if hasattr(meta, 'getheaders'):  # nocover
-        file_size = int(meta.getheaders("Content-Length")[0])
-    else:
-        file_size = int(meta.get_all("Content-Length")[0])
+    try:
+        if hasattr(meta, 'getheaders'):  # nocover
+            file_size = int(meta.getheaders("Content-Length")[0])
+        else:
+            file_size = int(meta.get_all("Content-Length")[0])
+    except Exception:
+        file_size = None
 
     if hash_prefix:
         if isinstance(hasher, six.string_types):

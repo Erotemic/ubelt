@@ -2,6 +2,7 @@ Version: 0.6.3
 --------------
 * new tests
 * add `util_stream`
+* Fixed issue in `ub.download` with bad content header urls
 
 
 Version: 0.6.2
