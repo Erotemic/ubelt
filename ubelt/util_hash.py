@@ -43,7 +43,10 @@ NOTE:
     future. When this happens the `HASH_VERSION` attribute will be incremented.
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
+import json
+import hashlib
 import six
+import uuid
 import math
 from collections import OrderedDict
 from six.moves import zip
@@ -74,56 +77,36 @@ else:
 # DEFAULT_ALPHABET = _ALPHABET_26
 DEFAULT_ALPHABET = _ALPHABET_16
 
-xxhash = None
-HASH = None
-DEFAULT_HASHER = None
+try:
+    import xxhash
+except ImportError:  # nocover
+    xxhash = None
+
+# Sensible choices for default hashers are sha1, sha512, and xxh64.
+
+# xxhash.xxh64 is very fast, but non-crypto-grade and not in the standard lib
+# Reference: http://cyan4973.github.io/xxHash/
+# Reference: https://github.com/Cyan4973/xxHash
+
+# We dont default to sha1 because it has a known collision and other issues
+# Reference: https://stackoverflow.com/questions/28159071/more-modern-sha
+# Reference: https://security.googleblog.com/2017/02/announcing-first-sha1-collision.html
+
+# Default to 512 because it is often faster than 256 on 64bit systems:
+# Reference: https://crypto.stackexchange.com/questions/26336/faster
+
+# DEFAULT_HASHER = xxhash.xxh32
+# DEFAULT_HASHER = xxhash.xxh64  # xxh64 is the fastest, but non-standard
+# DEFAULT_HASHER = hashlib.sha1  # fast algo, but has a known collision
+DEFAULT_HASHER = hashlib.sha512  # most robust algo, but slower than others
+
 DEFAULT_HASHLEN = None
 
 
-def _lazy_init():
-    global DEFAULT_HASHLEN
-    global DEFAULT_HASHER
-    global HASH
-    global xxhash
-    import hashlib
-    try:
-        import xxhash as xx
-        xxhash = xx
-    except ImportError:  # nocover
-        xxhash = None
-
-    # Sensible choices for default hashers are sha1, sha512, and xxh64.
-
-    # xxhash.xxh64 is very fast, but non-crypto-grade and not in the standard lib
-    # Reference: http://cyan4973.github.io/xxHash/
-    # Reference: https://github.com/Cyan4973/xxHash
-
-    # We dont default to sha1 because it has a known collision and other issues
-    # Reference: https://stackoverflow.com/questions/28159071/more-modern-sha
-    # Reference: https://security.googleblog.com/2017/02/announcing-first-sha1-collision.html
-
-    # Default to 512 because it is often faster than 256 on 64bit systems:
-    # Reference: https://crypto.stackexchange.com/questions/26336/faster
-
-    # DEFAULT_HASHER = xxhash.xxh32
-    # DEFAULT_HASHER = xxhash.xxh64  # xxh64 is the fastest, but non-standard
-    # DEFAULT_HASHER = hashlib.sha1  # fast algo, but has a known collision
-    DEFAULT_HASHER = hashlib.sha512  # most robust algo, but slower than others
-    DEFAULT_HASHLEN = None
-
-    if six.PY2:
-        HASH = type(hashlib.sha1())  # python2 doesn't expose the hash type
-    else:
-        HASH = hashlib._hashlib.HASH
-
-    _HASHABLE_EXTENSIONS._register_builtin_class_extensions()
-    try:
-        _HASHABLE_EXTENSIONS._register_numpy_extensions()
-    except ImportError:
-        pass
-
 if six.PY2:
     import codecs
+    HASH = type(hashlib.sha1())  # python2 doesn't expose the hash type
+
     def _py2_to_bytes(int_, length, byteorder='big', signed=True):
         """
         Args:
@@ -160,6 +143,7 @@ if six.PY2:
             int_ = comp
         return int_
 else:
+    HASH = hashlib._hashlib.HASH
     codecs = None
     def _int_to_bytes(int_):
         r"""
@@ -204,7 +188,6 @@ def _rectify_hasher(hasher):
         the fastest algorithm is xxh64.
 
     Example:
-        >>> import hashlib
         >>> assert _rectify_hasher(NoParam) is DEFAULT_HASHER
         >>> assert _rectify_hasher('sha1') is hashlib.sha1
         >>> assert _rectify_hasher('sha256') is hashlib.sha256
@@ -219,7 +202,6 @@ def _rectify_hasher(hasher):
         >>>     assert _rectify_hasher('xxh64') is xxhash.xxh64
         >>>     assert _rectify_hasher('xxh32') is xxhash.xxh32
     """
-    import hashlib
     if xxhash is not None:  # pragma: nobranch
         if hasher in {'xxh32', 'xx32', 'xxhash'}:
             return xxhash.xxh32
@@ -289,7 +271,6 @@ class HashableExtensions(object):
     def __init__(self):
         self.keyed_extensions = {}
         self.iterable_checks = []
-        self.lazy_queue = []
 
     def register(self, hash_types):
         """
@@ -383,13 +364,9 @@ class HashableExtensions(object):
             >>> func = self.lookup(data)
             >>> assert func(data)[1] == 1
 
-            >>> import uuid
             >>> data = uuid.uuid4()
             >>> self.lookup(data)
         """
-        if self.lazy_queue:
-            for x in self.lazy_queue:
-                x()
         # Maybe try using functools.singledispatch instead?
         # First try O(1) lookup
         query_hash_type = data.__class__
@@ -475,7 +452,6 @@ class HashableExtensions(object):
         python stdlib.
 
         Example:
-            >>> import uuid
             >>> data = uuid.UUID('7e9d206b-dc02-4240-8bdb-fffe858121d0')
             >>> print(hash_data(data, base='abc', hasher='sha512', types=True)[0:8])
             cryarepd
@@ -486,7 +462,6 @@ class HashableExtensions(object):
 
             gpxtclct
         """
-        import uuid
         @self.register(uuid.UUID)
         def _hash_uuid(data):
             hashable = data.bytes
@@ -515,9 +490,13 @@ class HashableExtensions(object):
         #     prefix = b'DICT'
         #     return prefix, hashable
 
-
 _HASHABLE_EXTENSIONS = HashableExtensions()
-_HASHABLE_EXTENSIONS.lazy_queue.append(_lazy_init)
+_HASHABLE_EXTENSIONS._register_builtin_class_extensions()
+try:
+    _HASHABLE_EXTENSIONS._register_numpy_extensions()
+    pass
+except ImportError:  # nocover
+    pass
 
 
 class _HashTracer(object):
@@ -611,7 +590,6 @@ def _update_hasher(hasher, data, types=True):
         types (bool): include type prefixes in the hash
 
     Example:
-        >>> import hashlib
         >>> hasher = hashlib.sha512()
         >>> data = [1, 2, ['a', 2, 'c']]
         >>> _update_hasher(hasher, data)
@@ -778,7 +756,6 @@ def hash_data(data, hasher=NoParam, base=NoParam, types=False,
     """
     if convert and isinstance(data, six.string_types):  # nocover
         try:
-            import json
             data = json.dumps(data)
         except TypeError as ex:
             # import warnings
@@ -878,3 +855,11 @@ def hash_file(fpath, blocksize=65536, stride=1, hasher=NoParam,
     # Get the hashed representation
     text = _digest_hasher(hasher, hashlen, base)
     return text
+
+if __name__ == '__main__':
+    r"""
+    CommandLine:
+        python -m ubelt.util_hash all
+    """
+    import xdoctest
+    xdoctest.doctest_module(__file__)
