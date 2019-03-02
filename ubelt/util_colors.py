@@ -76,8 +76,16 @@ def color_text(text, color):
 
     Example:
         >>> text = 'raw text'
-        >>> assert color_text(text, 'red') == '\x1b[31;01mraw text\x1b[39;49;00m'
-        >>> assert color_text(text, None) == 'raw text'
+        >>> import pytest
+        >>> import ubelt as ub
+        >>> if ub.modname_to_modpath('pygments'):
+        >>>     # Colors text only if pygments is installed
+        >>>     assert color_text(text, 'red') == '\x1b[31;01mraw text\x1b[39;49;00m'
+        >>>     assert color_text(text, None) == 'raw text'
+        >>> else:
+        >>>     # Otherwise text passes through unchanged
+        >>>     assert color_text(text, 'red') == 'raw text'
+        >>>     assert color_text(text, None) == 'raw text'
     """
     if color is None:
         return text

@@ -143,7 +143,12 @@ def test_empty():
 
 
 def test_list_of_numpy():
-    import numpy as np
+    try:
+        import numpy as np
+    except ImportError:
+        import pytest
+        pytest.skip('numpy is optional')
+
     import ubelt as ub
 
     data = [
@@ -216,7 +221,11 @@ def test_list_of_numpy():
 
 
 def test_dict_of_numpy():
-    import numpy as np
+    try:
+        import numpy as np
+    except ImportError:
+        import pytest
+        pytest.skip('numpy is optional')
     data = ub.odict(zip(
         ['one', 'two', 'three', 'four'],
         [
@@ -251,7 +260,11 @@ def test_dict_of_numpy():
 
 
 def test_numpy_scalar_precision():
-    import numpy as np
+    try:
+        import numpy as np
+    except ImportError:
+        import pytest
+        pytest.skip('numpy is optional')
     text = ub.repr2(np.float32(3.333333), precision=2)
     assert text == '3.33'
 
