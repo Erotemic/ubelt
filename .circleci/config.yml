@@ -1,24 +1,32 @@
 # Python CircleCI 2.0 configuration file
-#
 # Check https://circleci.com/docs/2.0/language-python/ for more details
 #
+# References:
+#     # how to setup multiple python versions
+#     https://stackoverflow.com/questions/948354/default-behavior-of-git-push-without-a-branch-specified
+#     https://github.com/adambrenecki/virtualfish/blob/aa3d6271bcb86ad27b6d24f96b5bd386d176f588/.circleci/config.yml
+#
+#     # Multiple files for a checksum
+#     https://discuss.circleci.com/t/cant-checksum-multiple-files-with-slashes-in-the-file-path/20667/2
 version: 2
-
 workflows:
   version: 2
   test:
     jobs:
-      - test-3.6-full
-      - test-3.5-full
-      - test-2.7-full
+      - test-full-3.6
+      - test-full-3.5
+      - test-full-2.7
+      - test-minimal-3.6
+      - test-minimal-3.5
+      - test-minimal-2.7
 
 jobs:
-  # define the "test-3.6-full" job and register it as a template
-  test-3.6-full: &test-full-template  
+  # define the "test-full-3.6" job and register it as a template
+  test-full-3.6: &test-full-template  
     docker:
       # Specify the base docker image
       - image: circleci/python:3.6.1
-    working_directory: ~/repo
+    working_directory: ~/repo-test-full-3.6
 
     steps:
       - checkout
@@ -38,7 +46,7 @@ jobs:
       - run:
           name: install dependencies
           command: |
-            python -m venv venv
+            python -m venv venv || virtualenv -v venv  # first command is python3 || second is python2
             . venv/bin/activate
             # The "full" tests install all requirements
             pip install -r requirements.txt
@@ -60,16 +68,60 @@ jobs:
           path: test-reports
           destination: test-reports
 
-# Define tests fo the other python verisons using the "test3.6-full" template
-# and indicating what needs to be modified.
-test-3.5-full:
+  # DEFINE minimal dependency install and tests
+  # define the "test-minimal-3.6" job and register it as a template
+  test-minimal-3.6: &test-minimal-template  
+    <<: *test-template
+    working_directory: ~/repo-test-minimal-3.6
+    steps:
+      - checkout
+      # <FAST DEPENDENCIES>
+      - restore_cache:
+          keys:
+          - v1-dependencies-{{ checksum "requirements/runtime.txt" }}-{{ checksum "requirements/tests.txt" }}
+          - v1-dependencies-
+
+      - run:
+          name: install dependencies
+          command: |
+            python -m venv venv || virtualenv venv  # first command is python3 || second is python2
+            . venv/bin/activate
+            # The "full" tests install all requirements
+            pip install -r requirements/runtime.txt
+            pip install -r requirements/tests.txt
+
+      - save_cache:
+          paths:
+            - ./venv
+          key: v1-dependencies-{{ checksum "requirements/runtime.txt" }}-{{ checksum "requirements/tests.txt" }}
+      # </FAST DEPENDENCIES>
+
+  # Define tests fo the other python verisons using the "test3.6" template
+  # and indicating what needs to be modified.
+  test-full-3.5:
     <<: *test-full-template
     docker:
       # All we need to do is change the base docker image so python is the
       # version we want we can reuse everything else from the template
       - image: circleci/python:3.5
+    working_directory: ~/repo-test-full-3.5
 
-test-2.7-full:
+  test-full-2.7:
     <<: *test-full-template
     docker:
       - image: circleci/python:2.7
+    working_directory: ~/repo-test-full-2.7
+
+  test-minimal-3.5:
+    <<: *test-minimal-template
+    docker:
+      # All we need to do is change the base docker image so python is the
+      # version we want we can reuse everything else from the template
+      - image: circleci/python:3.5
+    working_directory: ~/repo-test-minimal-3.5
+
+  test-minimal-2.7:
+    <<: *test-minimal-template
+    docker:
+      - image: circleci/python:2.7
+    working_directory: ~/repo-test-minimal-2.7
