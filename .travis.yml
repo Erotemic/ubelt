@@ -13,10 +13,9 @@ python:
   #- "3.7"
 before_install:
   - pip install pip -U
-  - pip install -r requirements/setup.txt -U
+  - pip install -r requirements/tests.txt -U
   - pip install -r requirements/runtime.txt -U
   - pip install -r requirements/optional.txt -U
-  - pip install -r optional-requirements.txt -U
 install:
   - travis_retry pip install -e .
 script: 
