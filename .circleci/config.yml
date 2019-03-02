@@ -3,24 +3,32 @@
 # Check https://circleci.com/docs/2.0/language-python/ for more details
 #
 version: 2
-jobs:
-  build:
-    docker:
-      # specify the version you desire here
-      # use `-browsers` prefix for selenium tests, e.g. `3.6.1-browsers`
-      - image: circleci/python:3.6.1
-      
-      # Specify service dependencies here if necessary
-      # CircleCI maintains a library of pre-built images
-      # documented at https://circleci.com/docs/2.0/circleci-images/
-      # - image: circleci/postgres:9.4
 
+workflows:
+  version: 2
+  test:
+    jobs:
+      - test-3.6-full
+      - test-3.5-full
+      - test-2.7-full
+
+jobs:
+  # define the "test-3.6-full" job and register it as a template
+  test-3.6-full: &test-full-template  
+    docker:
+      # Specify the base docker image
+      - image: circleci/python:3.6.1
     working_directory: ~/repo
 
     steps:
       - checkout
 
-      # Download and cache dependencies
+      # <FAST DEPENDENCIES>
+      # We will install the dependencies and then cache them for very fast CI tests
+      # To do this we first try to restore the cache, if that doesn't work we simply
+      # execute the pip command to install the deps. Lastly we cache the state.
+      # This is very analogous to ub.Cacher where cfgstr is the checksum of the
+      # requirements.
       - restore_cache:
           keys:
           - v1-dependencies-{{ checksum "requirements.txt" }}
@@ -30,20 +38,18 @@ jobs:
       - run:
           name: install dependencies
           command: |
-            python3 -m venv venv
+            python -m venv venv
             . venv/bin/activate
+            # The "full" tests install all requirements
             pip install -r requirements.txt
 
       - save_cache:
           paths:
             - ./venv
           key: v1-dependencies-{{ checksum "requirements.txt" }}
+      # </FAST DEPENDENCIES>
         
       # run tests!
-      # this example uses Django's built-in test-runner
-      # other common Python testing frameworks include pytest and nose
-      # https://pytest.org
-      # https://nose.readthedocs.io
       - run:
           name: run tests
           command: |
@@ -53,4 +59,17 @@ jobs:
       - store_artifacts:
           path: test-reports
           destination: test-reports
-          
+
+# Define tests fo the other python verisons using the "test3.6-full" template
+# and indicating what needs to be modified.
+test-3.5-full:
+    <<: *test-full-template
+    docker:
+      # All we need to do is change the base docker image so python is the
+      # version we want we can reuse everything else from the template
+      - image: circleci/python:3.5
+
+test-2.7-full:
+    <<: *test-full-template
+    docker:
+      - image: circleci/python:2.7
