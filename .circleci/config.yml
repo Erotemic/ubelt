@@ -21,6 +21,8 @@ workflows:
       - test-minimal-2.7
 
 jobs:
+
+
   # define the "test-full-3.6" job and register it as a template
   test-full-3.6: &test-full-template  
     docker:
@@ -68,10 +70,12 @@ jobs:
           path: test-reports
           destination: test-reports
 
+
   # DEFINE minimal dependency install and tests
   # define the "test-minimal-3.6" job and register it as a template
   test-minimal-3.6: &test-minimal-template  
-    <<: *test-template
+    docker:
+      - image: circleci/python:3.6.1
     working_directory: ~/repo-test-minimal-3.6
     steps:
       - checkout
@@ -95,6 +99,18 @@ jobs:
             - ./venv
           key: v1-dependencies-{{ checksum "requirements/runtime.txt" }}-{{ checksum "requirements/tests.txt" }}
       # </FAST DEPENDENCIES>
+      
+      # run tests!
+      - run:
+          name: run tests
+          command: |
+            . venv/bin/activate
+            python run_tests.py
+
+      - store_artifacts:
+          path: test-reports
+          destination: test-reports
+
 
   # Define tests fo the other python verisons using the "test3.6" template
   # and indicating what needs to be modified.
@@ -106,11 +122,13 @@ jobs:
       - image: circleci/python:3.5
     working_directory: ~/repo-test-full-3.5
 
+
   test-full-2.7:
     <<: *test-full-template
     docker:
       - image: circleci/python:2.7
     working_directory: ~/repo-test-full-2.7
+
 
   test-minimal-3.5:
     <<: *test-minimal-template
@@ -119,6 +137,7 @@ jobs:
       # version we want we can reuse everything else from the template
       - image: circleci/python:3.5
     working_directory: ~/repo-test-minimal-3.5
+
 
   test-minimal-2.7:
     <<: *test-minimal-template
