@@ -127,7 +127,10 @@ def download(url, fpath=None, hash_prefix=None, hasher='sha512',
             file_size = int(meta.getheaders("Content-Length")[0])
         else:
             file_size = int(meta.get_all("Content-Length")[0])
-    except Exception:
+    except Exception:  # nocover
+        # sometimes the url does not contain content length metadata
+        # TODO: find a public URL that exemplifies this or figure out how to
+        # mock it locally.
         file_size = None
 
     if hash_prefix:
