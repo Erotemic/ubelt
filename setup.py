@@ -37,6 +37,11 @@ Pypi:
      # Check the url to make sure everything worked
      https://pypi.python.org/pypi?:action=display&name=ubelt
 
+
+Update Requirments:
+    # Requirements are broken down by type in the `requirements` folder, and
+    # `requirments.txt` lists them all. Thus we autogenerate via:
+    cd ~/code/ubelt && cat requirements/*.txt > requirements.txt
 """
 from setuptools import setup
 import sys
@@ -184,11 +189,14 @@ if __name__ == '__main__':
         name='ubelt',
         version=version,
         author='Jon Crall',
-        description='A "utility belt" of commonly needed utility and helper functions',
+        description=('A Python utility belt containing simple tools, '
+                     'a stdlib like feel, and extra batteries.'),
         long_description=parse_description(),
-        install_requires=parse_requirements('requirements.txt'),
+        install_requires=parse_requirements('requirements/runtime.txt'),
         extras_require={
-            'all': parse_requirements('optional-requirements.txt')
+            'all': parse_requirements('requirements.txt'),
+            'tests': parse_requirements('requirements/tests.txt'),
+            'optional': parse_requirements('requirements/optional.txt'),
         },
         author_email='erotemic@gmail.com',
         url='https://github.com/Erotemic/ubelt',
