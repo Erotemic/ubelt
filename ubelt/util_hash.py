@@ -339,8 +339,9 @@ class HashableExtensions(object):
 
         Example:
             >>> import ubelt as ub
+            >>> import pytest
             >>> if not ub.modname_to_modpath('numpy'):
-            ...     raise pytest.skip()
+            ...     raise pytest.skip('numpy is optional')
             >>> self = HashableExtensions()
             >>> self._register_numpy_extensions()
             >>> self._register_builtin_class_extensions()
@@ -353,7 +354,6 @@ class HashableExtensions(object):
             >>>     def __init__(f):
             >>>         f.attr = 1
             >>> data = Foo()
-            >>> import pytest
             >>> assert pytest.raises(TypeError, self.lookup, data)
 
             >>> # If ub.hash_data doesnt support your object,

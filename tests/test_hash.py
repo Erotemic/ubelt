@@ -1,14 +1,20 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
 import ubelt as ub
-import numpy as np
 import itertools as it
 import uuid
+import pytest
 from os.path import join
 from ubelt.util_hash import _convert_hexstr_base, _ALPHABET_16
 from ubelt.util_hash import _hashable_sequence
 from ubelt.util_hash import _rectify_hasher
 hash_sequence = _hashable_sequence
+
+
+try:
+    import numpy as np
+except ImportError:
+    np = None
 
 
 def _benchmark():
@@ -76,6 +82,8 @@ def _benchmark():
 
 
 def test_hash_data_with_types():
+    if np is None:
+        pytest.skip('requires numpy')
     counter = [0]
     failed = []
     def check_hash(want, input_):
@@ -104,6 +112,8 @@ def test_hash_data_with_types():
 
 
 def test_hash_data_without_types():
+    if np is None:
+        pytest.skip('requires numpy')
     counter = [0]
     failed = []
     def check_hash(want, input_):
@@ -134,6 +144,8 @@ def test_numpy_object_array():
     """
     _HASHABLE_EXTENSIONS = ub.util_hash._HASHABLE_EXTENSIONS
     """
+    if np is None:
+        pytest.skip('requires numpy')
     # An object array should have the same repr as a list of a tuple of data
     data = np.array([1, 2, 3], dtype=object)
     objhash = ub.hash_data(data)
@@ -149,6 +161,8 @@ def test_numpy_object_array():
 
 
 def test_ndarray_int_object_convert():
+    if np is None:
+        pytest.skip('requires numpy')
     data_list = [[1, 2, 3], [4, 5, 6]]
 
     data = np.array(data_list, dtype=np.int64)
@@ -164,6 +178,8 @@ def test_ndarray_int_object_convert():
 
 
 def test_ndarray_zeros():
+    if np is None:
+        pytest.skip('requires numpy')
     data = np.zeros((3, 3), dtype=np.int64)
     hashid = ub.hash_data(data)
     assert hashid != ub.hash_data(data.ravel()), (
@@ -181,6 +197,8 @@ def test_nesting():
 
 
 def test_numpy_int():
+    if np is None:
+        pytest.skip('requires numpy')
     assert hash_sequence(np.int8(3)) == hash_sequence(3)
     assert hash_sequence(np.int16(3)) == hash_sequence(3)
     assert hash_sequence(np.int32(3)) == hash_sequence(3)
@@ -192,6 +210,8 @@ def test_numpy_int():
 
 
 def test_numpy_float():
+    if np is None:
+        pytest.skip('requires numpy')
     assert hash_sequence(np.float16(3.0)) == hash_sequence(3.0)
     assert hash_sequence(np.float32(3.0)) == hash_sequence(3.0)
     assert hash_sequence(np.float64(3.0)) == hash_sequence(3.0)
@@ -202,6 +222,8 @@ def test_numpy_float():
 
 
 def test_numpy_random_state():
+    if np is None:
+        pytest.skip('requires numpy')
     data = np.random.RandomState(0)
     # assert ub.hash_data(data).startswith('ujsidscotcycsqwnkxgbsxkcedplzvytmfmr')
     assert ub.hash_data(data, hasher='sha512', types=True, base='abc').startswith('snkngbxghabesvowzalqtvdvjtvslmxve')
