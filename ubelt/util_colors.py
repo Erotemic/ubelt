@@ -50,7 +50,7 @@ def highlight_code(text, lexer_name='python', **kwargs):
 
     except ImportError:  # nocover
         import warnings
-        warnings.warn('pygments is not installed')
+        warnings.warn('pygments is not installed, code will not be highlighted')
         new_text = text
     return new_text
 
@@ -94,5 +94,5 @@ def color_text(text, color):
         return ansi_text
     except ImportError:  # nocover
         import warnings
-        warnings.warn('pygments is not installed')
+        warnings.warn('pygments is not installed, text will not be colored')
         return text

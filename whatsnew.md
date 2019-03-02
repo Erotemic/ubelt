@@ -1,3 +1,10 @@
+Version: 0.7.0
+--------------
+* Reworked requirements to minimize dependencies. 
+* The `xxhash` and `pygments` dependencies are now optional.
+* The testing dependencies are now optional.
+
+
 Version: 0.6.3
 --------------
 * new tests
