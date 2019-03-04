@@ -744,9 +744,6 @@ def hash_data(data, hasher=NoParam, base=NoParam, types=False,
     Returns:
         str: text -  hash string
 
-    CommandLine:
-        python -m ubelt.util_hash hash_data
-
     Example:
         >>> import ubelt as ub
         >>> print(ub.hash_data([1, 2, (3, '4')], convert=False))
@@ -855,11 +852,3 @@ def hash_file(fpath, blocksize=65536, stride=1, hasher=NoParam,
     # Get the hashed representation
     text = _digest_hasher(hasher, hashlen, base)
     return text
-
-if __name__ == '__main__':
-    r"""
-    CommandLine:
-        python -m ubelt.util_hash all
-    """
-    import xdoctest
-    xdoctest.doctest_module(__file__)
