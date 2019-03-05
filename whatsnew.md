@@ -3,6 +3,7 @@ Version: 0.7.0
 * Reworked requirements to minimize dependencies. 
 * The `xxhash` and `pygments` dependencies are now optional.
 * The testing dependencies are now optional.
+* Add `memoize_property`
 
 
 Version: 0.6.3
