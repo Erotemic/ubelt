@@ -41,7 +41,7 @@ Pypi:
 Update Requirments:
     # Requirements are broken down by type in the `requirements` folder, and
     # `requirments.txt` lists them all. Thus we autogenerate via:
-    cd ~/code/ubelt && cat requirements/*.txt > requirements.txt
+    cat requirements/*.txt > requirements.txt
 """
 from setuptools import setup
 import sys
