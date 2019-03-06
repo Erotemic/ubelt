@@ -440,8 +440,9 @@ def _format_list(list_, **kwargs):
     nobraces = kwargs.pop('nobr', kwargs.pop('nobraces', False))
 
     itemsep = kwargs.get('itemsep', ' ')
-    # Doesn't actually put in trailing comma if on same line
+
     compact_brace = kwargs.get('cbr', kwargs.get('compact_brace', False))
+    # kwargs['cbr'] = _rectify_countdown_or_bool(compact_brace)
 
     itemstrs, _leaf_info = _list_itemstrs(list_, **kwargs)
     if len(itemstrs) == 0:
@@ -458,6 +459,7 @@ def _format_list(list_, **kwargs):
     else:
         lbr, rbr  = '[', ']'
 
+    # Doesn't actually put in trailing comma if on same line
     trailing_sep = kwargs.get('trailsep', kwargs.get('trailing_sep', newlines > 0 and len(itemstrs)))
 
     # The trailing separator is always needed for single item tuples
@@ -512,8 +514,10 @@ def _format_dict(dict_, **kwargs):
 
     nobraces = kwargs.pop('nobr', kwargs.pop('nobraces', False))
 
-    # Doesn't actually put in trailing comma if on same line
     compact_brace = kwargs.get('cbr', kwargs.get('compact_brace', False))
+    # kwargs['cbr'] = _rectify_countdown_or_bool(compact_brace)
+
+    # Doesn't actually put in trailing comma if on same line
     trailing_sep = kwargs.get('trailsep', kwargs.get('trailing_sep', newlines > 0))
     explicit = kwargs.get('explicit', False)
     itemsep = kwargs.get('itemsep', ' ')
@@ -542,8 +546,10 @@ def _join_itemstrs(itemstrs, itemsep, newlines, _leaf_info, nobraces,
     # positive newlines means start counting from the root
     use_newline = newlines > 0
 
+    # negative countdown values mean start counting from the leafs
+    if compact_brace < 0:
+        compact_brace = (-compact_brace) >= _leaf_info['max_height']
     if newlines < 0:
-        # negative newlines means start counting from the leafs
         use_newline = (-newlines) < _leaf_info['max_height']
 
     if use_newline:
