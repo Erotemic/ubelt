@@ -77,6 +77,10 @@ def test_cmd_tee_thread():
 @pytest.mark.skipif(sys.platform == 'win32', reason='not available on win32')
 def test_cmd_tee_select():
     command = 'python -c "for i in range(100): print(str(i))"'
+    result = ub.cmd(command, verbose=1, tee_backend='select')
+    assert result['out'] == '\n'.join(list(map(str, range(100)))) + '\n'
+
+    command = 'python -c "for i in range(100): print(str(i))"'
     result = ub.cmd(command, verbose=0, tee_backend='select')
     assert result['out'] == '\n'.join(list(map(str, range(100)))) + '\n'
 
