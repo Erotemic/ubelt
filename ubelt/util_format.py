@@ -547,8 +547,8 @@ def _join_itemstrs(itemstrs, itemsep, newlines, _leaf_info, nobraces,
     use_newline = newlines > 0
 
     # negative countdown values mean start counting from the leafs
-    if compact_brace < 0:
-        compact_brace = (-compact_brace) >= _leaf_info['max_height']
+    # if compact_brace < 0:
+    #     compact_brace = (-compact_brace) >= _leaf_info['max_height']
     if newlines < 0:
         use_newline = (-newlines) < _leaf_info['max_height']
 
