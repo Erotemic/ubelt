@@ -382,6 +382,9 @@ def test_modpath_to_modname():
         b0 = ub.touch(join(bad1, 'b0.py'))
         b1 = ub.touch(join(bad2, 'b1.py'))
 
+        import os
+        ub.modpath_to_modname(root, relativeto=os.path.dirname(dpath))  # TODO: assert correct output
+
         with PythonPathContext(dpath):
 
             assert ub.modpath_to_modname(root) == '_tmproot927'
@@ -441,6 +444,12 @@ def test_modpath_to_modname():
             assert '_tmproot927.sub1.mod1' not in sys.modules
             assert '_tmproot927.sub1.sub2' not in sys.modules
             assert '_tmproot927.sub1.mod2.mod2' not in sys.modules
+
+
+def test_splitmodpath():
+    with pytest.raises(ValueError):
+        ub.split_modpath('does/not/exists/module.py')
+    ub.split_modpath('does/not/exists/module.py', check=False)
 
 
 if __name__ == '__main__':
