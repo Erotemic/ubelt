@@ -240,7 +240,7 @@ def import_module_from_name(modname):
         # ago.
         import importlib
         module = importlib.import_module(modname)
-    else:
+    else:  # nocover
         # The __import__ statment is weird
         if '.' in modname:
             fromlist = modname.split('.')[-1]
