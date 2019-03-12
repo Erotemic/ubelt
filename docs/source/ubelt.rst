@@ -27,6 +27,7 @@ Submodules
    ubelt.util_path
    ubelt.util_platform
    ubelt.util_str
+   ubelt.util_stream
    ubelt.util_time
 
 Module contents
