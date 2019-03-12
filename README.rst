@@ -1,4 +1,4 @@
-|CircleCI| |Travis| |Appveyor| |Codecov| |Pypi| |Downloads| 
+|CircleCI| |Travis| |Appveyor| |Codecov| |Pypi| |Downloads| |ReadTheDocs|
 
 
 .. raw:: html
@@ -683,3 +683,5 @@ Also check out my other projects (many of which are powered by ubelt):
    :target: https://pypi.python.org/pypi/ubelt
 .. |CircleCI| image:: https://circleci.com/gh/Erotemic/ubelt.svg?style=svg
     :target: https://circleci.com/gh/Erotemic/ubelt
+.. |ReadTheDocs| image:: https://readthedocs.org/projects/ubelt/badge/?version=latest
+    :target: http://ubelt.readthedocs.io/en/latest/
