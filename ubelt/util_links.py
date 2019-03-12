@@ -6,14 +6,19 @@ corner cases depending on your version. Recent versions of Windows tend to
 work, but there certain system settings that cause issues. Obviously, any POSIX
 system work without difficulty.
 
+CommandLine:
+    xdoctest -m ubelt.util_links __doc__:0
+
 Example:
     >>> import ubelt as ub
-    >>> import os
-    >>> dpath = ub.ensure_app_cache_dir('ubelt', 'demo/symlink')
+    >>> from os.path import normpath, join
+    >>> dpath = ub.ensure_app_cache_dir('ubelt', normpath('demo/symlink'))
     >>> real_path = join(dpath, 'real_file.txt')
     >>> link_path = join(dpath, 'link_file.txt')
-    >>> result = ub.symlink(real_path, link_path)
-    >>> print(result.split(os.path.sep)[-1])
+    >>> ub.touch(real_path)
+    >>> result = ub.symlink(real_path, link_path, overwrite=True, verbose=3)
+    >>> parts = result.split(os.path.sep)
+    >>> print(parts[-1])
     link_file.txt
 """
 from os.path import exists
