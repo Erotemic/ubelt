@@ -7,7 +7,14 @@
 
 UBelt documentation
 ===================
-UBelt is a "utility belt" of commonly needed utility and helper functions. 
+
+.. The __init__ files contains the top-level documentation overview
+.. automodule:: ubelt.__init__
+   :show-inheritance:
+
+.. commented out
+.. :members:
+.. :undoc-members:
 
 
 .. toctree::
