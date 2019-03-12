@@ -1,6 +1,39 @@
 # -*- coding: utf-8 -*-
 """
 This module exposes decorators for in-memory caching of functional results.
+
+Example:
+    >>> import ubelt as ub
+    >>> # Memoize a function, the args are hashed
+    >>> @ub.memoize
+    >>> def func(a, b):
+    >>>     return a + b
+    >>> #
+    >>> class MyClass:
+    >>>     # Memoize a class method, the args are hashed
+    >>>     @ub.memoize_method
+    >>>     def my_method(self, a, b):
+    >>>         return a + b
+    >>>     #
+    >>>     # Memoize a property: there can be no args,
+    >>>     @ub.memoize_property
+    >>>     @property
+    >>>     def my_property1(self):
+    >>>         return 4
+    >>>     #
+    >>>     # The property decorator is optional
+    >>>     def my_property2(self):
+    >>>         return 5
+    >>> #
+    >>> func(1, 2)
+    >>> func(1, 2)
+    >>> self = MyClass()
+    >>> self.my_method(1, 2)
+    >>> self.my_method(1, 2)
+    >>> self.my_property1
+    >>> self.my_property1
+    >>> self.my_property2
+    >>> self.my_property2
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import functools
@@ -27,7 +60,7 @@ def _make_signature_key(args, kwargs):
     Transforms function args into a key that can be used by the cache
 
     CommandLine:
-        python -m ubelt.util_decor _make_signature_key
+        xdoctest -m ubelt.util_memoize _make_signature_key
 
     Example:
         >>> args = (4, [1, 2])
@@ -81,7 +114,7 @@ def memoize(func):
         func: memoized wrapper
 
     CommandLine:
-        python -m ubelt.util_decor memoize
+        xdoctest -m ubelt.util_memoize memoize
 
     Example:
         >>> import ubelt as ub
@@ -199,8 +232,11 @@ def memoize_property(fget):
     getter on the first access. The result is stored and on subsequent accesses
     is returned, preventing the need to call the getter any more.
 
+    This decorator can either be used by itself or by decorating another
+    property. In either case the method will always become a property.
+
     Notes:
-        implementation taken directly from [1].
+        implementation is a modified version of [1].
 
     References:
         ..[1] https://github.com/estebistec/python-memoized-property
@@ -216,6 +252,12 @@ def memoize_property(fget):
         ...         "name's docstring"
         ...         self.load_name_count += 1
         ...         return "the name"
+        ...     @memoize_property
+        ...     @property
+        ...     def another_name(self):
+        ...         "name's docstring"
+        ...         self.load_name_count += 1
+        ...         return "the name"
         >>> c = C()
         >>> c.load_name_count
         0
@@ -227,7 +269,12 @@ def memoize_property(fget):
         'the name'
         >>> c.load_name_count
         1
+        >>> c.another_name
     """
+    # Unwrap any existing property decorator
+    while hasattr(fget, 'fget'):
+        fget = fget.fget
+
     attr_name = '_' + fget.__name__
 
     @functools.wraps(fget)
