@@ -1,4 +1,80 @@
 # -*- coding: utf-8 -*-
+"""
+This module exposes `Cacher` and `CacheStamp` classes, which provide a simple
+API for on-disk caching.
+
+The `Cacher` class is the simplest and most direct method of caching. In fact,
+it only requires four lines of boilderplate, which is the fewest number of
+lines which this author (Jon Crall) has ever been able to achieve while still
+being general and robust. These four lines achieve the following necessary and
+sufficient steps for general robust on-disk caching.
+
+    * Defining the cache dependenies
+    * Checking if the cache exists
+    * Loading the cache on a hit
+    * Executing the process and saving the result on a miss.
+
+The following example illustrates these four points.
+
+Example:
+    >>> import ubelt as ub
+    >>> # Defines a cache name and dependencies, note the use of `ub.hash_data`.
+    >>> cacher = ub.Cacher('name', cfgstr=ub.hash_data('dependencies'))     # boilerplate:1
+    >>> # Calling tryload will return your data on a hit and None on a miss
+    >>> data = cacher.tryload()                                             # boilerplate:2
+    >>> # Check if you need to recompute your data
+    >>> if data is None:                                                    # boilerplate:3
+    >>>     # Recompute your data (this is not boilerplate)
+    >>>     data = 'mydata'
+    >>>     # Cache the computation result (pickle is used by default)
+    >>>     cacher.save(data)                                               # boilerplate:4
+
+Surprisingly this uses just as many boilerplate lines as a decorator style
+cacher, but it is much more extensible. It is possible to use `ub.Cacher` in
+more sophisticated ways (e.g. metadata), but the simple in-line use is often
+easier and cleaner. The following example illustrates this:
+
+Example:
+    >>> import ubelt as ub
+    >>> @ub.Cacher('name', cfgstr=ub.hash_data('dependencies'))  # boilerplate:1
+    >>> def func():                                              # boilerplate:2
+    >>>     data = 'mydata'
+    >>>     return data                                          # boilerplate:3
+    >>> data = func()                                            # boilerplate:4
+
+    >>> cacher = ub.Cacher('name', cfgstr=ub.hash_data('dependencies'))  # boilerplate:1
+    >>> data = cacher.tryload()                                          # boilerplate:2
+    >>> if data is None:                                                 # boilerplate:3
+    >>>     data = 'mydata'
+    >>>     cacher.save(data)                                            # boilerplate:4
+
+While the above two are equivalent, the second version provides simpler
+tracebacks, explicit procedures, and makes it easier to use breakpoint
+debugging (because there is no closure scope).
+
+
+While `Cacher` is used to store simple results of in-line code in a pickle
+format, the `CacheStamp` object is used to cache processes that produces an
+on-disk side effects other than the main return value. For instance, consider
+the following example:
+
+Example:
+    >>> def compute_many_files(dpath):
+    ...     for i in range(0):
+    ...         fpath = '{}/file{}.txt'.format(dpath, i)
+    ...         open(fpath).write('foo' + str(i))
+    >>> #
+    >>> import ubelt as ub
+    >>> dpath = ub.ensure_app_cache_dir('ubelt/demo/cache')
+    >>> # You must specify a directory, unlike in Cacher where it is optional
+    >>> self = ub.CacheStamp('name', dpath=dpath, cfgstr='dependencies')
+    >>> if self.expired():
+    >>>     compute_many_files(dpath)
+    >>>     # Instead of caching the whole processes, we just write a file
+    >>>     # that signals the process has been done.
+    >>>     self.renew()
+    >>> assert not self.expired()
+"""
 from __future__ import absolute_import, division, print_function, unicode_literals
 import os
 from os.path import join, normpath, basename, exists

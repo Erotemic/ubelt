@@ -4,6 +4,24 @@ This module defines `ub.NoParam`. This is a robust sentinel value that can act
 like None when None might be a valid value. The value of `NoParam` is robust to
 reloading, pickling, and copying (i.e. var is ub.NoParam will return True after
 these operations)
+
+Example:
+    >>> import ubelt as ub
+    >>> def func(a=ub.NoParam):
+    >>>     if a is ub.NoParam:
+    >>>         print('no param specified')
+    >>>     else:
+    >>>         print('a = {}'.format(a))
+    >>> func()
+    no param specified
+    >>> func(a=None)
+    a = None
+    >>> func(a=1)
+    a = 1
+    >>> # note: typically it is bad practice to use NoParam as an actual
+    >>> # (non-default) parameter. It goes against the sprit of the idea.
+    >>> func(a=ub.NoParam)
+    no param specified
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 

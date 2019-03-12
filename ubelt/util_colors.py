@@ -1,4 +1,15 @@
 # -*- coding: utf-8 -*-
+"""
+This module expoes simple functions to color your text and highlight your code
+using `ANSI <https://en.wikipedia.org/wiki/ANSI_escape_code#Colors>`_ escape
+sequences.  This works using the  `Pygments <http://pygments.org/>`_  library,
+which is an optional requirement. Therefore, these functions only work properly
+if Pygments is installed, otherwise these functions will return the unmodified
+text and a warning will be printed.
+
+Requirements:
+    pip install pygments
+"""
 from __future__ import print_function, division, absolute_import, unicode_literals
 import sys
 

@@ -1,12 +1,20 @@
 # -*- coding: utf-8 -*-
 """
-Helpers for functional programming
+Helpers for functional programming. Currently this module contains an identify
+function that simply returns its own inputs and a function to "inject" another
+function into a class instance as a method. This is useful for monkey patching.
 """
 
 
 def identity(arg):
     """
     The identity function. Simply returns its inputs.
+
+    Args:
+        arg (object): some value
+
+    Returns:
+        object: arg: the same value
 
     Example:
         >>> assert identity(42) == 42
@@ -17,6 +25,10 @@ def identity(arg):
 def inject_method(self, func, name=None):
     """
     Injects a function into an object instance as a bound method
+
+    The main use case of this function is for monkey patching. While monkey
+    patching is sometimes necessary it should generally be avoided. Thus, we
+    simply remind the developer that there might be a better way.
 
     Args:
         self (object): instance to inject a function into

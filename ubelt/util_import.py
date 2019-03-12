@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 """
+Expose functions to simplify importing from module names and paths.
+
 Partial Autogenerate:
     import netharn as nh
     closer = nh.export.closer.Closer()

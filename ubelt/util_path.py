@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+"""
+Functions for working with filesystem paths.
+"""
 from __future__ import absolute_import, division, print_function, unicode_literals
 from os.path import abspath
 from os.path import dirname

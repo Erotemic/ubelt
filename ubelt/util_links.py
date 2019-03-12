@@ -1,8 +1,19 @@
 """
-Logic for dealing with symlinks.
+Cross-platform logic for dealing with symlinks. Basic functionality should work
+on all operating systems including everyone's favorite pathological OS (note
+that there is an additional helper file for this case), but there are some
+corner cases depending on your version. Recent versions of Windows tend to
+work, but there certain system settings that cause issues. Obviously, any POSIX
+system work without difficulty.
 
-Notice that there is an aditional helper file for everyone's favorite
-pathological OS.
+Example:
+    >>> import ubelt as ub
+    >>> dpath = ub.ensure_app_cache_dir('ubelt', 'demo/symlink')
+    >>> real_path = join(dpath, 'real_file.txt')
+    >>> link_path = join(dpath, 'link_file.txt')
+    >>> result = ub.symlink(real_path, link_path)
+    >>> print(result.split('/')[-1])
+    link_file.txt
 """
 from os.path import exists
 from os.path import islink

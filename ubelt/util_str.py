@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+"""
+Functions for working with text strings.
+"""
 from __future__ import print_function, division, absolute_import, unicode_literals
 import six
 

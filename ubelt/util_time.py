@@ -1,4 +1,8 @@
 # -*- coding: utf-8 -*-
+"""
+Timerit now exists in a standalone pip-installable module. The source code
+lives in its own github repo here: https://github.com/Erotemic/timerit
+"""
 from __future__ import absolute_import, division, print_function, unicode_literals
 import time
 # Timerit and Timer now exist in standalone modules
