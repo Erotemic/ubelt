@@ -1,5 +1,9 @@
 #!/bin/bash
 __heredoc__="""
+Script to publish a new version of ubelt on PyPI
+
+TODO:
+    - [ ] Do a digital signature of release
 
 Requirements:
      twine
@@ -20,8 +24,6 @@ Usage:
     ./publish
 
     git checkout -b dev/<next>
-
-
 """
 
 # First tag the source-code

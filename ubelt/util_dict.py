@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+"""
+Functions for working with dictionaries.
+"""
 from __future__ import absolute_import, division, print_function, unicode_literals
 import six
 import operator as op

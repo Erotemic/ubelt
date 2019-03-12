@@ -1,4 +1,26 @@
 # -*- coding: utf-8 -*-
+r"""
+This module exposes the `ubelt.cmd` command, which provides a simple means for
+interacting with the commandline. While this does use `subprocess.Popen` under
+the hood, the key draw of `ubelt.cmd` is that you can capture stdout/stderr in
+your program while simultaneously printing it to the terminal in real time.
+
+Example:
+    >>> import ubelt as ub
+    >>> # Running with verbose=1 will write to stdout in real time
+    >>> info = ub.cmd('echo "write your command naturally"', verbose=1)
+    write your command naturally
+    >>> # Unless `detatch=True`, `cmd` always returns an info dict.
+    >>> print('info = ' + ub.repr2(info))
+    info = {
+        'command': 'echo "write your command naturally"',
+        'cwd': None,
+        'err': '',
+        'out': 'write your command naturally\n',
+        'proc': <subprocess.Popen object at ...>,
+        'ret': 0,
+    }
+"""
 from __future__ import absolute_import, division, print_function, unicode_literals
 import sys
 import six

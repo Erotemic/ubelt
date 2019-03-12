@@ -1,4 +1,12 @@
 # -*- coding: utf-8 -*-
+"""
+This module defines the `NiceRepr` mixin class, which defines a `__repr__` and
+`__str__` method that only depend on a custom `__nice__` method, which you must
+define. This means you only have to overload one function instead of two.
+Furthermore, if the object defines a `__len__` method, then the `__nice__`
+method defaults to something sensible, otherwise it is treated as abstract and
+raises `NotImplementedError`.
+"""
 from __future__ import absolute_import, division, print_function, unicode_literals
 import warnings
 
