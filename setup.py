@@ -74,7 +74,7 @@ def parse_version(package):
     elif len(_found) == 0:
         raise Exception('Cannot find package init file')
 
-    with open(init_fpath) as file_:
+    with open(init_fpath, 'r') as file_:
         sourcecode = file_.read()
     pt = ast.parse(sourcecode)
     class VersionVisitor(ast.NodeVisitor):

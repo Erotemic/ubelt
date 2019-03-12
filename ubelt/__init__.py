@@ -1,14 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-UBelt is a “utility belt” of commonly needed utility and helper functions.
-
-Ubelt is a small library of robust, tested, documented, and simple functions
-that extend the Python standard library.  You've probably written and
-re-written some of the functions in ubelt before (or wrote out the logic
-inline). Next time, try ``pip install ubelt`` instead.
-
-
-It is a currated collection of utilities with functionality that falls into a
+UBelt is a "utility belt" of commonly needed utility and helper functions.  It
+is a currated collection of utilities with functionality that falls into a
 mixture of the following categories:
 
 - Timing
@@ -31,23 +24,20 @@ mixture of the following categories:
 
 For more detailed high level documentation see the README on github: `https://github.com/Erotemic/ubelt <https://github.com/Erotemic/ubelt>`_.
 
-
 The ubelt API is organized by submodules containing related functionality.
 Each submodule contains top level overview documentation, and each function
 contains a docstring with at least one example. Please see specific submodule
 documentation for more details.
 
-
 AutogenInit:
-    mkinit ubelt -w
+    mkinit ubelt -w  # todo: get sphinx to ignore this
 """
 # Todo:
 #     The following functions and classes are candidates to be ported from utool:
-#     * accumulate
 #     * rsync
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-__version__ = '0.7.0.dev0'
+__version__ = '0.7.0'
 
 __submodules__ = [
     'util_arg',
