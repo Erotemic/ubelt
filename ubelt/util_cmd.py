@@ -376,6 +376,7 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
             'err': err,
             'ret': ret,
             'proc': proc,
+            'cwd': cwd,
             'command': command_text
         }
         if verbose > 2:
