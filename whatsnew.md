@@ -1,5 +1,6 @@
 Version: 0.7.0
 --------------
+* `ub.cmd` now reports `cwd` on exception
 * Reworked requirements to minimize dependencies. 
 * The `xxhash` and `pygments` dependencies are now optional.
 * The testing dependencies are now optional.
