@@ -1,4 +1,4 @@
-"""
+r"""
 Cross-platform logic for dealing with symlinks. Basic functionality should work
 on all operating systems including everyone's favorite pathological OS (note
 that there is an additional helper file for this case), but there are some
@@ -12,7 +12,7 @@ Example:
     >>> real_path = join(dpath, 'real_file.txt')
     >>> link_path = join(dpath, 'link_file.txt')
     >>> result = ub.symlink(real_path, link_path)
-    >>> print(result.split('/')[-1])
+    >>> print(result.replace(r'\', '/').split('/')[-1])
     link_file.txt
 """
 from os.path import exists
