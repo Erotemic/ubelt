@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
+r"""
 Expose functions to simplify importing from module names and paths.
 
 Partial Autogenerate:
@@ -22,7 +22,6 @@ Partial Autogenerate:
 
     fpath = ub.expandpath('~/code/ubelt/ubelt/_autogen_util_import.py')
     open(fpath, 'w').write(text + '\n')
-
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 from os.path import (abspath, exists, expanduser, isdir, join, split, dirname,
