@@ -190,7 +190,7 @@ A complete list of available functions can be seen in the
     from ubelt.util_import import (import_module_from_name,
                                    import_module_from_path, modname_to_modpath,
                                    modpath_to_modname, split_modpath,)
-    from ubelt.util_memoize import (memoize, memoize_method,)
+    from ubelt.util_memoize import (memoize, memoize_method, memoize_property,)
     from ubelt.util_mixins import (NiceRepr,)
     from ubelt.util_path import (TempDir, augpath, compressuser, ensuredir,
                                  expandpath, truepath, userhome,)
@@ -202,8 +202,8 @@ A complete list of available functions can be seen in the
                                      get_app_resource_dir, platform_cache_dir,
                                      platform_config_dir, platform_data_dir,
                                      platform_resource_dir, startfile,)
-    from ubelt.util_str import (CaptureStdout, codeblock, ensure_unicode, hzcat,
-                                indent,)
+    from ubelt.util_str import (codeblock, ensure_unicode, hzcat, indent,)
+    from ubelt.util_stream import (CaptureStdout, CaptureStream, TeeStringIO,)
     from ubelt.util_time import (Timer, Timerit, timestamp,)
     from ubelt.orderedset import (OrderedSet, oset,)
     from ubelt.progiter import (ProgIter,)
