@@ -31,6 +31,8 @@ be tested automatically, etc).
 
 See the (Available Functions) section for detailed information.
 
+Read the docs here: http://ubelt.readthedocs.io/en/latest/
+
 
 Current Functionality
 =====================
@@ -84,8 +86,6 @@ Purpose
 
 UBelt is a "utility belt" of commonly needed utility and helper
 functions.
-
-Read the docs here: http://ubelt.readthedocs.io/en/latest/
 
 -  Reusable code - Many functions in ``ubelt`` are simple to write
    yourself (e.g. ``take``, ``memoize``, ``ensure_unicode``), but even
