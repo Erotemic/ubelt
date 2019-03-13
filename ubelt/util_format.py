@@ -1,4 +1,8 @@
 # -*- coding: utf-8 -*-
+"""
+Defines the function `repr2`, which allows for a bit more customization than
+`repr` or `pprint`. See the docstring for more details.
+"""
 from __future__ import absolute_import, division, print_function, unicode_literals
 import six
 import collections

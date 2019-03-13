@@ -8,11 +8,12 @@ system work without difficulty.
 
 Example:
     >>> import ubelt as ub
+    >>> import os
     >>> dpath = ub.ensure_app_cache_dir('ubelt', 'demo/symlink')
     >>> real_path = join(dpath, 'real_file.txt')
     >>> link_path = join(dpath, 'link_file.txt')
     >>> result = ub.symlink(real_path, link_path)
-    >>> print(result.replace(r'\', '/').split('/')[-1])
+    >>> print(result.split(os.path.sep)[-1])
     link_file.txt
 """
 from os.path import exists
