@@ -22,7 +22,7 @@ mixture of the following categories:
     - `timerit <https://github.com/Erotemic/timerit>`__ for Robust Timing and Benchmarking
     - `ordered-set <https://github.com/LuminosoInsight/ordered-set>`__ for ordered set collections
 
-For more detailed high level documentation see the README on github: `https://github.com/Erotemic/ubelt <https://github.com/Erotemic/ubelt>`_.
+For more detailed high level documentation see the README on github: `https://github.com/Erotemic/ubelt <https://github.com/Erotemic/ubelt>`_. For demos see the `Jupyter notebook <https://github.com/Erotemic/ubelt/blob/master/docs/notebooks/Ubelt%20Demo.ipynb>`_.
 
 The ubelt API is organized by submodules containing related functionality.
 Each submodule contains top level overview documentation, and each function

@@ -412,6 +412,38 @@ def dict_union(*args):
         return dictclass(it.chain.from_iterable(d.items() for d in args))
 
 
+def dict_diff(*args):
+    """
+    Constructs a dictionary that contains any of the keys in the first arg,
+    which are not in any of the following args.
+
+    Args:
+        *args : a sequence of dictionaries (or sets of keys)
+
+    Returns:
+        Dict | OrderedDict :
+            OrderedDict if the first argument is an OrderedDict, otherwise dict
+
+    Ignore:
+        python -c "import ubelt; print(len(ubelt.__all__))"
+
+    Example:
+        >>> dict_diff({'a': 1, 'b': 1}, {'a'})
+        {'b': 1}
+        >>> dict_diff(odict([('a', 1), ('b', 2)]), odict([('c', 3)]))
+        OrderedDict([('a', 1), ('b', 2)])
+        >>> dict_diff()
+        {}
+    """
+    if not args:
+        return {}
+    else:
+        dictclass = OrderedDict if isinstance(args[0], OrderedDict) else dict
+        keys = set.difference(*map(set, args))
+        first_dict = args[0]
+        return dictclass((k, first_dict[k]) for k in keys)
+
+
 def dict_isect(*args):
     """
     Constructs a dictionary that contains keys common between all inputs.
