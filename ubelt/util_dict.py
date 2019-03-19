@@ -243,12 +243,14 @@ def dict_hist(item_list, weight_list=None, ordered=False, labels=None):
     if ordered:
         # Order by value
         getval = op.itemgetter(1)
-        key_order = (key for (key, value) in sorted(hist_.items(), key=getval))
-        hist_ = dict_subset(hist_, key_order)
+        hist = OrderedDict([
+            (key, value)
+            for (key, value) in sorted(hist_.items(), key=getval)
+        ])
     else:
         # Cast to a normal dictionary
-        hist_ = dict(hist_)
-    return hist_
+        hist = dict(hist_)
+    return hist
 
 
 def find_duplicates(items, k=2, key=None):
@@ -335,6 +337,7 @@ def dict_subset(dict_, keys, default=util_const.NoParam):
         >>> print(ub.repr2(subdict_, nl=0))
         {'K': 3, 'dcvs_clip_max': 0.2}
     """
+    keys = list(keys)
     items = dict_take(dict_, keys, default)
     subdict_ = OrderedDict(list(zip(keys, items)))
     return subdict_
@@ -345,8 +348,8 @@ def dict_take(dict_, keys, default=util_const.NoParam):
     Generates values from a dictionary
 
     Args:
-        dict_ (Mapping):
-        keys (Iterable):
+        dict_ (Mapping): a dictionary to take from
+        keys (Iterable): the keys to take
         default (object, optional): if specified uses default if keys are missing
 
     CommandLine:

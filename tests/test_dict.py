@@ -81,6 +81,34 @@ def test_group_items_callable():
     assert result1 == result2
 
 
+def test_dict_hist_ordered():
+    import random
+    import string
+    import ubelt as ub
+    rng = random.Random(0)
+    items = [rng.choice(string.ascii_letters) for _ in range(100)]
+    # Ensure that the ordered=True bug is fixed
+    a = sorted(ub.dict_hist(items, ordered=True).items())
+    b = sorted(ub.dict_hist(items, ordered=False).items())
+    assert a == b
+
+
+def test_dict_subset_iterable():
+    # There was a bug in 0.7.0 where iterable keys would be exhausted too soon
+    keys_list = list(range(10))
+    dict_ = {k: k for k in keys_list}
+    got = ub.dict_subset(dict_, iter(keys_list))
+    assert dict(got) == dict_
+
+
+def test_dict_take():
+    # There was a bug in 0.7.0 where iterable keys would be exhausted too soon
+    keys_list = list(range(10))
+    dict_ = {k: k for k in keys_list}
+    got = list(ub.dict_take(dict_, keys_list))
+    assert got == keys_list
+
+
 # def _benchmark_groupid_sorted():
 #     import random
 #     import ubelt as ub
