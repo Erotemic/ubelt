@@ -32,7 +32,7 @@ import warnings
 from ubelt import util_io
 from ubelt import util_platform
 
-if sys.platform.startswith('win32'):
+if sys.platform.startswith('win32'):  # nocover
     from ubelt import _win32_links
 else:
     _win32_links = None
