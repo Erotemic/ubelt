@@ -1,3 +1,8 @@
+Version: 0.7.1
+--------------
+* Fixed bug in `ub.dict_hist` when `ordered=True`. (half of the keys would be lost). Also effected `dict_take`.
+
+
 Version: 0.7.0
 --------------
 * `ub.cmd` now reports `cwd` on exception
