@@ -482,7 +482,8 @@ def dict_isect(*args):
 
 def map_vals(func, dict_):
     """
-    applies a function to each of the keys in a dictionary
+    Transform a dictionary by applying a function to each value, while keeping
+    the keys the same.
 
     Args:
         func (callable): a function or indexable object
@@ -492,7 +493,7 @@ def map_vals(func, dict_):
         newdict: transformed dictionary
 
     CommandLine:
-        python -m ubelt.util_dict map_vals
+        xdoctest -m ubelt.util_dict map_vals
 
     Example:
         >>> import ubelt as ub
@@ -519,7 +520,8 @@ def map_vals(func, dict_):
 
 def map_keys(func, dict_):
     r"""
-    applies a function to each of the keys in a dictionary
+    Transform a dictionary by applying a function to each key, while keeping
+    the values the same.
 
     Args:
         func (callable): a function or indexable object
@@ -529,7 +531,7 @@ def map_keys(func, dict_):
         newdict: transformed dictionary
 
     CommandLine:
-        python -m ubelt.util_dict map_keys
+        xdoctest -m ubelt.util_dict map_keys
 
     Example:
         >>> import ubelt as ub
