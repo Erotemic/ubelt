@@ -6,18 +6,31 @@ function into a class instance as a method. This is useful for monkey patching.
 """
 
 
-def identity(arg):
+def identity(arg=None, *args, **kwargs):
     """
-    The identity function. Simply returns its inputs.
+    The identity function. Simply returns the value of its first input.
+
+    All other inputs are ignored. Defaults to None if called without args.
 
     Args:
-        arg (object): some value
+        arg (object, default=None): some value
+        *args: ignored
+        **kwargs: ignored
 
     Returns:
         object: arg: the same value
 
+    CommandLine:
+        xdoctest -m ubelt.util_func identity
+
     Example:
-        >>> assert identity(42) == 42
+        >>> import ubelt as ub
+        >>> ub.identity(42)
+        42
+        >>> ub.identity(42, 42)
+        42
+        >>> ub.identity()
+        None
     """
     return arg
 
