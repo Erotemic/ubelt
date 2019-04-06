@@ -64,11 +64,24 @@ def repr2(data, **kwargs):
         itemsep (str, default=' '):
             separator between items
 
-        sort (bool):
-            if True, attempts to sort all unordered collections in the returned
-            text. NOTE: currently if True this will sort lists, this may not be
-            a correct thing to do, as such the behavior of this arg is subject
-            to change.
+        sort (bool | callable, default=None):
+            if None, then sort unordered collections, but keep the ordering of
+            ordered collections. This option attempts to be determenistic in
+            most cases.
+
+            New in 0.8.0: if `sort` is callable, it will be used as a
+            key-function to sort all collections.
+
+            if False, then nothing will be sorted, and the representation of
+            unordered collections will be arbitrary and possibly
+            non-determenistic.
+
+            if True, attempts to sort all collections in the returned text.
+            Currently if True this WILL sort lists.
+            Currently if True this WILL NOT sort OrderedDicts.
+            NOTE:
+                The previous behavior may not be intuitive, as such the
+                behavior of this arg is subject to change.
 
         suppress_small (bool):
             passed to `numpy.array2string` for ndarrays
@@ -491,9 +504,6 @@ def _format_dict(dict_, **kwargs):
                   nobraces, cbr, compact_brace, trailing_sep,
                   explicit, itemsep, precision, kvsep, sort
 
-    Returns:
-        Tuple[str, Dict] : retstr, _leaf_info
-
     Kwargs:
         sort (None): if True, sorts ALL collections and subcollections,
             note, collections with undefined orders (e.g. dicts, sets) are
@@ -503,6 +513,9 @@ def _format_dict(dict_, **kwargs):
         explicit (int): can be a countdown variable. if True, uses
             dict(a=b) syntax instead of {'a': b}
         nobr (bool): removes outer braces (default = False)
+
+    Returns:
+        Tuple[str, Dict] : retstr, _leaf_info
     """
     kwargs['_root_info'] = _rectify_root_info(kwargs.get('_root_info', None))
     kwargs['_root_info']['depth'] += 1
@@ -599,6 +612,15 @@ def _dict_itemstrs(dict_, **kwargs):
     """
     Create a string representation for each item in a dict.
 
+    Args:
+        dict_ (dict): the dict
+        **kwargs: explicit, precision, kvsep, strkeys, _return_info, cbr,
+            compact_brace, sort
+
+    Ignore:
+        import xinspect
+        ', '.join(xinspect.get_kwargs(_dict_itemstrs, max_depth=0).keys())
+
     Example:
         >>> from ubelt.util_format import *
         >>> dict_ =  {'b': .1, 'l': 'st', 'g': 1.0, 's': 10, 'm': 0.9, 'w': .5}
@@ -655,19 +677,29 @@ def _dict_itemstrs(dict_, **kwargs):
 
     sort = kwargs.get('sort', None)
     if sort is None:
-        # Force ordering on unordered dicts
+        # if sort is None, force orderings on unordered collections like dicts,
+        # but keep ordering of ordered collections like OrderedDicts.
         sort = True
     if isinstance(dict_, collections.OrderedDict):
         # never sort ordered dicts; they are perfect just the way they are!
         sort = False
     if sort:
-        itemstrs = _sort_itemstrs(items, itemstrs)
+        key = sort if callable(sort) else None
+        itemstrs = _sort_itemstrs(items, itemstrs, key)
     return itemstrs, _leaf_info
 
 
 def _list_itemstrs(list_, **kwargs):
     """
     Create a string representation for each item in a list.
+
+    Args:
+        list_ (Sequence):
+        **kwargs: _return_info, sort
+
+    Ignore:
+        import xinspect
+        ', '.join(xinspect.get_kwargs(_list_itemstrs, max_depth=0).keys())
     """
     items = list(list_)
     kwargs['_return_info'] = True
@@ -680,14 +712,16 @@ def _list_itemstrs(list_, **kwargs):
 
     sort = kwargs.get('sort', None)
     if sort is None:
-        # Force orderings on sets.
+        # if sort is None, force orderings on unordered collections like sets,
+        # but keep ordering of ordered collections like lists.
         sort = isinstance(list_, (set, frozenset))
     if sort:
-        itemstrs = _sort_itemstrs(items, itemstrs)
+        key = sort if callable(sort) else None
+        itemstrs = _sort_itemstrs(items, itemstrs, key)
     return itemstrs, _leaf_info
 
 
-def _sort_itemstrs(items, itemstrs):
+def _sort_itemstrs(items, itemstrs, key=None):
     """
     Equivalent to `sorted(items)` except if `items` are unorderable, then
     string values are used to define an ordering.
@@ -699,9 +733,9 @@ def _sort_itemstrs(items, itemstrs):
         # Set ordering is not unique. Sort by strings values instead.
         if _peek_isinstance(items, (set, frozenset)):
             raise TypeError
-        sortx = ub.argsort(items)
+        sortx = ub.argsort(items, key=key)
     except TypeError:
-        sortx = ub.argsort(itemstrs)
+        sortx = ub.argsort(itemstrs, key=key)
     itemstrs = [itemstrs[x] for x in sortx]
     return itemstrs
 
