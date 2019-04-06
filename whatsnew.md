@@ -1,3 +1,8 @@
+Version: 0.8.0
+--------------
+* The `sort` kwarg of `ub.repr2` can now accept a function, which will act as a key to the `sorted` function.
+
+
 Version: 0.7.1
 --------------
 * Fixed bug in `ub.dict_hist` when `ordered=True`. (half of the keys would be lost). Also effected `dict_take`.
