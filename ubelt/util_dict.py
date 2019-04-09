@@ -428,19 +428,26 @@ def dict_diff(*args):
         python -c "import ubelt; print(len(ubelt.__all__))"
 
     Example:
-        >>> dict_diff({'a': 1, 'b': 1}, {'a'})
+        >>> dict_diff({'a': 1, 'b': 1}, {'a'}, {'c'})
         {'b': 1}
         >>> dict_diff(odict([('a', 1), ('b', 2)]), odict([('c', 3)]))
         OrderedDict([('a', 1), ('b', 2)])
         >>> dict_diff()
         {}
+        >>> dict_diff({'a': 1, 'b': 2}, {'c'})
     """
     if not args:
         return {}
     else:
-        dictclass = OrderedDict if isinstance(args[0], OrderedDict) else dict
-        keys = set.difference(*map(set, args))
         first_dict = args[0]
+        if isinstance(first_dict, OrderedDict):
+            from ubelt import OrderedSet
+            dictclass = OrderedDict
+            keys = OrderedSet(first_dict)
+        else:
+            dictclass = dict
+            keys = set(first_dict)
+        keys.difference_update(*map(set, args[1:]))
         return dictclass((k, first_dict[k]) for k in keys)
 
 
