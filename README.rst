@@ -673,17 +673,17 @@ Also check out my other projects (many of which are powered by ubelt):
 -  futures_actors https://github.com/Erotemic/futures_actors
   
 
+.. |CircleCI| image:: https://circleci.com/gh/Erotemic/ubelt.svg?style=svg
+    :target: https://circleci.com/gh/Erotemic/ubelt
 .. |Travis| image:: https://img.shields.io/travis/Erotemic/ubelt/master.svg?label=Travis%20CI
    :target: https://travis-ci.org/Erotemic/ubelt?branch=master
-.. |Codecov| image:: https://codecov.io/github/Erotemic/ubelt/badge.svg?branch=master&service=github
-   :target: https://codecov.io/github/Erotemic/ubelt?branch=master
 .. |Appveyor| image:: https://ci.appveyor.com/api/projects/status/github/Erotemic/ubelt?branch=master&svg=True
    :target: https://ci.appveyor.com/project/Erotemic/ubelt/branch/master
+.. |Codecov| image:: https://codecov.io/github/Erotemic/ubelt/badge.svg?branch=master&service=github
+   :target: https://codecov.io/github/Erotemic/ubelt?branch=master
 .. |Pypi| image:: https://img.shields.io/pypi/v/ubelt.svg
    :target: https://pypi.python.org/pypi/ubelt
 .. |Downloads| image:: https://img.shields.io/pypi/dm/ubelt.svg
-   :target: https://pypi.python.org/pypi/ubelt
-.. |CircleCI| image:: https://circleci.com/gh/Erotemic/ubelt.svg?style=svg
-    :target: https://circleci.com/gh/Erotemic/ubelt
+   :target: https://pypistats.org/packages/ubelt
 .. |ReadTheDocs| image:: https://readthedocs.org/projects/ubelt/badge/?version=latest
     :target: http://ubelt.readthedocs.io/en/latest/

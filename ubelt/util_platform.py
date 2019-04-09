@@ -38,9 +38,12 @@ import six
 import itertools as it
 from os.path import exists, join, isdir, expanduser, normpath
 
-WIN32  = sys.platform.startswith('win32')
+
+# References:
+# https://stackoverflow.com/questions/446209/possible-values-from-sys-platform
+WIN32  = sys.platform == 'win32'
 LINUX  = sys.platform.startswith('linux')
-DARWIN = sys.platform.startswith('darwin')
+DARWIN = sys.platform == 'darwin'
 POSIX = 'posix' in sys.builtin_module_names
 
 
@@ -58,7 +61,7 @@ def platform_data_dir():
     elif WIN32:  # nocover
         dpath_ = os.environ.get('APPDATA', '~/AppData/Roaming')
     else:  # nocover
-        raise '~/AppData/Local'
+        raise NotImplementedError('Unknown Platform  %r' % (sys.platform,))
     dpath = normpath(expanduser(dpath_))
     return dpath
 
@@ -352,7 +355,14 @@ def find_path(name, path=None, exact=False):
             specified as an os.pathsep separated string or a list of
             directories.  Defaults to environment PATH.
 
-        exact (bool): if True, only returns exact matches. Default False.
+        exact (bool, default=False): if True, only returns exact matches.
+
+    Yields:
+        PathLike: candidate: a path that matches `name`
+
+    Notes:
+        Running with `name=''` (i.e. `ub.find_path('')`) will simply yield all
+        directories in your PATH.
 
     Notes:
         For recursive behavior set `path=(d for d, _, _ in os.walk('.'))`,
@@ -375,11 +385,17 @@ def find_path(name, path=None, exact=False):
         >>> print(res)
         >>> assert len(res) == 1
     """
-    path = os.environ.get('PATH', os.defpath) if path is None else path
-    dpaths = path.split(os.pathsep) if isinstance(path, six.string_types) else path
+    if path is None:
+        path = os.environ.get('PATH', os.defpath)
+    if isinstance(path, six.string_types):
+        dpaths = path.split(os.pathsep)
+    else:
+        dpaths = path
     candidates = (join(dpath, name) for dpath in dpaths)
     if exact:
         if WIN32:  # nocover
+            # on WIN32 allow `name` to omit the extension suffix by trying
+            # to match with all possible "valid" suffixes specified by PATHEXT
             pathext = [''] + os.environ.get('PATHEXT', '').split(os.pathsep)
             candidates = (p + ext for p in candidates for ext in pathext)
         candidates = filter(exists, candidates)
@@ -387,7 +403,9 @@ def find_path(name, path=None, exact=False):
         import glob
         candidates = it.chain.from_iterable(
             glob.glob(pattern) for pattern in candidates)
-    return candidates
+
+    for candidate in candidates:
+        yield candidate
 
 
 # DEPRICATED:
