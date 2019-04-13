@@ -92,6 +92,10 @@ def repr2(data, **kwargs):
         with_dtype (bool):
             only relevant to ndarrays. if True includes the dtype.
 
+        extensions (FormatterExtensions):
+            a custom `FormatterExtensions` instance that can overwrite or
+            define how different types of objects are formatted.
+
     Returns:
         str: outstr: output string
 
