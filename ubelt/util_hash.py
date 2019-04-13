@@ -266,7 +266,11 @@ def _rectify_hashlen(hashlen):
 
 class HashableExtensions(object):
     """
-    Singleton helper class for managing non-builtin (e.g. numpy) hash types
+    Helper class for managing non-primitive (e.g. numpy) hash types
+
+    Note:
+        We are introducing experimental functionality where custom instances of
+        this class can be created and passed as arguments to hash_data.
     """
     def __init__(self):
         self.keyed_extensions = {}
@@ -289,6 +293,26 @@ class HashableExtensions(object):
             func: closure to be used as the decorator
 
         Example:
+            >>> import ubelt as ub
+            >>> import pytest
+            >>> import six
+            >>> class MyType(object):
+            ...     def __init__(self, id):
+            ...         self.id = id
+            >>> data = MyType(1)
+            >>> # Custom types wont work with ub.hash_data by default
+            >>> with pytest.raises(TypeError):
+            ...     ub.hash_data(data)
+            >>> # To handle custom types, you can create custom extensions
+            >>> # and pass them to hash_data explicitly.
+            >>> extensions = ub.util_hash.HashableExtensions()
+            >>> @extensions.register(MyType)
+            >>> def hash_my_type(data):
+            ...     return b'mytype', six.b(ub.hash_data(data.id))
+            >>> my_instance = MyType(1)
+            >>> ub.hash_data(my_instance, extensions=extensions)
+
+        Example:
             >>> # xdoctest: +SKIP
             >>> # Skip this doctest because we dont want tests to modify
             >>> # the global state.
@@ -302,13 +326,10 @@ class HashableExtensions(object):
             >>> with pytest.raises(TypeError):
             ...     ub.hash_data(data)
             >>> # You can register your functions with ubelt's internal
-            >>> # hashable_extension registery.
+            >>> # hashable_extension registry.
             >>> @ub.util_hash._HASHABLE_EXTENSIONS.register(MyType)
             >>> def hash_my_type(data):
             ...     return b'mytype', six.b(ub.hash_data(data.id))
-            >>> # TODO: allow hash_data to take an new instance of
-            >>> # HashableExtensions, so we dont have to modify the global
-            >>> # ubelt state when we run tests.
             >>> my_instance = MyType(1)
             >>> ub.hash_data(my_instance)
         """
@@ -374,13 +395,16 @@ class HashableExtensions(object):
         try:
             hash_type, hash_func = self.keyed_extensions[key]
         except KeyError:
-            raise TypeError('No registered hash func for hashable type=%r' % (
+            raise TypeError(
+                'No registered hash func for hashable type={!r}'.format(
                     query_hash_type))
         return hash_func
 
     def _register_numpy_extensions(self):
         """
-        Numpy extensions are builtin
+        Registers custom functions to hash numpy data structures.
+
+        By default ubelt enables numpy extensions
         """
         # system checks
         import numpy as np
@@ -394,7 +418,7 @@ class HashableExtensions(object):
             return isinstance(data, np.ndarray) and data.dtype.kind == 'O'
 
         @self.register(np.ndarray)
-        def hash_numpy_array(data):
+        def _convert_numpy_array(data):
             """
             Example:
                 >>> import ubelt as ub
@@ -416,23 +440,25 @@ class HashableExtensions(object):
             else:
                 # tobytes() views the array in 1D (via ravel())
                 # encode the shape as well
-                header = b''.join(_hashable_sequence((len(data.shape), data.shape)))
-                dtype = b''.join(_hashable_sequence(data.dtype.descr))
+                header = b''.join(_hashable_sequence(
+                    (len(data.shape), data.shape), extensions=self))
+                dtype = b''.join(_hashable_sequence(data.dtype.descr,
+                                                    extensions=self))
                 hashable = header + dtype + data.tobytes()
             prefix = b'NDARR'
             return prefix, hashable
 
         @self.register((np.int64, np.int32, np.int16, np.int8) +
                        (np.uint64, np.uint32, np.uint16, np.uint8))
-        def _hash_numpy_int(data):
-            return _convert_to_hashable(int(data))
+        def _convert_numpy_int(data):
+            return _convert_to_hashable(int(data), extensions=self)
 
         @self.register(numpy_floating_types)
-        def _hash_numpy_float(data):
-            return _convert_to_hashable(float(data))
+        def _convert_numpy_float(data):
+            return _convert_to_hashable(float(data), extensions=self)
 
         @self.register(np.random.RandomState)
-        def _hash_numpy_random_state(data):
+        def _convert_numpy_random_state(data):
             """
             Example:
                 >>> import ubelt as ub
@@ -442,7 +468,8 @@ class HashableExtensions(object):
                 >>> rng = np.random.RandomState(0)
                 >>> _hashable_sequence(rng, types=True)
             """
-            hashable = b''.join(_hashable_sequence(data.get_state()))
+            hashable = b''.join(_hashable_sequence(data.get_state(),
+                                                   extensions=self))
             prefix = b'RNG'
             return prefix, hashable
 
@@ -459,36 +486,51 @@ class HashableExtensions(object):
             >>>                     (4, OrderedDict())])
             >>> print(hash_data(data, base='abc', hasher='sha512', types=True)[0:8])
             qjspicvv
-
-            gpxtclct
         """
         @self.register(uuid.UUID)
-        def _hash_uuid(data):
+        def _convert_uuid(data):
             hashable = data.bytes
             prefix = b'UUID'
             return prefix, hashable
 
         @self.register(OrderedDict)
-        def _hash_ordered_dict(data):
+        def _convert_ordered_dict(data):
             """
             Note, we should not be hashing dicts because they are unordered
             """
-            hashable = b''.join(_hashable_sequence(list(data.items())))
+            hashable = b''.join(_hashable_sequence(list(data.items()),
+                                                   extensions=self))
             prefix = b'ODICT'
             return prefix, hashable
 
+    def _register_agressive_extensions(self):  # nocover
+        """
+        Extensions that might be desired, but we do not enable them by default
+        """
         # UNSURE IF THIS IS DESIRABLE
-        # @ub.util_hash._HASHABLE_EXTENSIONS.register(dict)
-        # def _hash_dict(data):
-        #     # Note: dictionary keys must be sortable
-        #     try:
-        #         ordered_ = sorted(data.items())
-        #     except TypeError as ex:
-        #         raise TypeError('Cannot hash dicts non-sortable keys: ' +
-        #                         str(ex))
-        #     hashable = b''.join(ub.util_hash._hashable_sequence(ordered_))
-        #     prefix = b'DICT'
-        #     return prefix, hashable
+        @self.register(dict)
+        def _convert_dict(data):
+            # Note: dictionary keys must be sortable
+            try:
+                ordered_ = sorted(data.items())
+            except TypeError as ex:
+                raise TypeError('Cannot hash dict with non-sortable keys: ' +
+                                str(ex))
+            hashable = b''.join(_hashable_sequence(ordered_, extensions=self))
+            prefix = b'DICT'
+            return prefix, hashable
+
+    def _register_torch_extensions(self):  # nocover
+        """
+        Experimental. Define a default hash function for torch tensors, but do
+        not use it by default. Currently, the user must call this explicitly.
+        """
+        import torch
+        @self.register(torch.Tensor)
+        def _convert_torch_tensor(data):
+            data_ = data.data.cpu().numpy()
+            prefix = b'TORCH_TENSOR'
+            return prefix, _convert_to_hashable(data_, extensions=self)[1]
 
 _HASHABLE_EXTENSIONS = HashableExtensions()
 _HASHABLE_EXTENSIONS._register_builtin_class_extensions()
@@ -509,7 +551,7 @@ class _HashTracer(object):
         self.sequence.append(bytes)
 
 
-def _hashable_sequence(data, types=True):
+def _hashable_sequence(data, types=True, extensions=None):
     r"""
     Extracts the sequence of bytes that would be hashed by hash_data
 
@@ -521,11 +563,11 @@ def _hashable_sequence(data, types=True):
         >>> assert result2 == b'_[_INT\x02_,__[_INT\x03_,_INT\x04_,__]__]_'
     """
     hasher = _HashTracer()
-    _update_hasher(hasher, data, types=types)
+    _update_hasher(hasher, data, types=types, extensions=extensions)
     return hasher.sequence
 
 
-def _convert_to_hashable(data, types=True):
+def _convert_to_hashable(data, types=True, extensions=None):
     r"""
     Converts `data` into a hashable byte representation if an appropriate
     hashing function is known.
@@ -548,6 +590,9 @@ def _convert_to_hashable(data, types=True):
         >>> assert _convert_to_hashable(1) == (b'INT', b'\x01')
         >>> assert _convert_to_hashable(1.0) == (b'FLT', b'\x01/\x01')
         >>> assert _convert_to_hashable(_intlike[-1](1)) == (b'INT', b'\x01')
+        >>> import uuid
+        >>> data = uuid.UUID('7e9d206b-dc02-4240-8bdb-fffe858121d0')
+        >>> assert _convert_to_hashable(data) == (b'UUID', b'~\x9d k\xdc\x02B@\x8b\xdb\xff\xfe\x85\x81!\xd0')
     """
     # HANDLE MOST COMMON TYPES FIRST
     if data is None:
@@ -570,8 +615,10 @@ def _convert_to_hashable(data, types=True):
         hashable = _int_to_bytes(a) + b'/' +  _int_to_bytes(b)
         prefix = b'FLT'
     else:
+        if extensions is None:
+            extensions = _HASHABLE_EXTENSIONS
         # Then dynamically look up any other type
-        hash_func = _HASHABLE_EXTENSIONS.lookup(data)
+        hash_func = extensions.lookup(data)
         prefix, hashable = hash_func(data)
     if types:
         return prefix, hashable
@@ -579,7 +626,7 @@ def _convert_to_hashable(data, types=True):
         return b'', hashable
 
 
-def _update_hasher(hasher, data, types=True):
+def _update_hasher(hasher, data, types=True, extensions=None):
     """
     Converts `data` into a byte representation and calls update on the hasher
     `hashlib.HASH` algorithm.
@@ -598,16 +645,19 @@ def _update_hasher(hasher, data, types=True):
 
         2ba8d82b
     """
+    if extensions is None:
+        extensions = _HASHABLE_EXTENSIONS
+
     # Determine if the data should be hashed directly or iterated through
     if isinstance(data, (tuple, list, zip)):
         needs_iteration = True
     else:
         needs_iteration = any(check(data) for check in
-                              _HASHABLE_EXTENSIONS.iterable_checks)
+                              extensions.iterable_checks)
 
     if needs_iteration:
         # Denote that we are hashing over an iterable
-        # Multiple structure bytes makes it harder accidently make conflicts
+        # Multiple structure bytes makes it harder accidentally make conflicts
         SEP = b'_,_'
         ITER_PREFIX = b'_[_'
         ITER_SUFFIX = b'_]_'
@@ -618,7 +668,8 @@ def _update_hasher(hasher, data, types=True):
         # (this works if all data in the sequence is a non-iterable)
         try:
             for item in iter_:
-                prefix, hashable = _convert_to_hashable(item, types)
+                prefix, hashable = _convert_to_hashable(item, types,
+                                                        extensions=extensions)
                 binary_data = prefix + hashable + SEP
                 hasher.update(binary_data)
         except TypeError:
@@ -631,7 +682,8 @@ def _update_hasher(hasher, data, types=True):
                 hasher.update(SEP)
         hasher.update(ITER_SUFFIX)
     else:
-        prefix, hashable = _convert_to_hashable(data, types)
+        prefix, hashable = _convert_to_hashable(data, types,
+                                                extensions=extensions)
         binary_data = prefix + hashable
         hasher.update(binary_data)
 
@@ -707,7 +759,7 @@ def _digest_hasher(hasher, hashlen, base):
 
 
 def hash_data(data, hasher=NoParam, base=NoParam, types=False,
-              hashlen=NoParam, convert=False):
+              hashlen=NoParam, convert=False, extensions=None):
     """
     Get a unique hash depending on the state of the data.
 
@@ -715,12 +767,12 @@ def hash_data(data, hasher=NoParam, base=NoParam, types=False,
         data (object):
             Any sort of loosely organized data
 
-        hasher (str or HASHER):
-            Hash algorithm from hashlib, defaults to `sha512`.
+        hasher (str | HASH, default='sha512'):
+            string code or a hash algorithm from hashlib.
 
-        base (str or List[str]):
-            Shorthand key or a list of symbols.  Valid keys are: 'abc', 'hex',
-            and 'dec'. Defaults to 'hex'.
+        base (List[str] | str, default='hex'):
+            list of symbols or shorthand key.
+            Valid keys are 'abc', 'hex', and 'dec'.
 
         types (bool):
             If True data types are included in the hash, otherwise only the raw
@@ -734,6 +786,10 @@ def hash_data(data, hasher=NoParam, base=NoParam, types=False,
             if True, try and convert the data to json an the json is hashed
             instead. This can improve runtime in some instances, however the
             hash may differ from the case where convert=False.
+
+        extensions (HashableExtensions):
+            a custom `HashableExtensions` instance that can overwrite or
+            define how different types of objects are hashed.
 
     Notes:
         alphabet26 is a pretty nice base, I recommend it.
@@ -763,7 +819,7 @@ def hash_data(data, hasher=NoParam, base=NoParam, types=False,
     hashlen = _rectify_hashlen(hashlen)
     hasher = _rectify_hasher(hasher)()
     # Feed the data into the hasher
-    _update_hasher(hasher, data, types=types)
+    _update_hasher(hasher, data, types=types, extensions=extensions)
     # Get the hashed representation
     text = _digest_hasher(hasher, hashlen, base)
     return text
@@ -774,22 +830,30 @@ def hash_file(fpath, blocksize=65536, stride=1, hasher=NoParam,
     """
     Hashes the data in a file on disk.
 
+    The results of this function agree with the standard UNIX commands (e.g.
+    sha1sum, sha512sum, md5sum, etc...)
+
     Args:
-        fpath (PathLike):  file path string
+        fpath (PathLike):
+            location of the file to be hashed.
 
-        blocksize (int): 2 ** 16. Affects speed of reading file
+        blocksize (int, default=2 ** 16):
+            Affects speed of reading file
 
-        stride (int): strides > 1 skip data to hash, useful for faster
-                      hashing, but less accurate, also makes hash dependant on
-                      blocksize.
+        stride (int, default=1):
+            strides > 1 skip data to hash, useful for faster hashing, but less
+            accurate, also makes hash dependant on blocksize.
 
-        hasher (HASH): hash algorithm from hashlib, defaults to `sha512`.
+        hasher (str | HASH, default='sha512'):
+            string code or a hash algorithm from hashlib.
 
-        hashlen (int): maximum number of symbols in the returned hash. If
-            not specified, all are returned.
+        hashlen (int):
+            maximum number of symbols in the returned hash. If not specified,
+            all are returned.
 
-        base (list, str): list of symbols or shorthand key. Valid keys are
-            'abc', 'hex', and 'dec'. Defaults to 'hex'.
+        base (List[str] | str, default='hex'):
+            list of symbols or shorthand key.
+            Valid keys are 'abc', 'hex', and 'dec'.
 
     Notes:
         For better hashes keep stride = 1

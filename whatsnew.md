@@ -1,6 +1,7 @@
 Version: 0.8.0
 --------------
 * The `sort` kwarg of `ub.repr2` can now accept a function, which will act as a key to the `sorted` function.
+* `ub.hash_data` now accepts the `extensions` argument so hashes for custom objects can be defined.
 * Add `ub.dict_diff`
 * Add some benchmarks
 * Fix GH #53
