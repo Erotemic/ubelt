@@ -13,10 +13,10 @@ __all__ = ['Timer', 'Timerit', 'timestamp']
 
 def timestamp(method='iso8601'):
     """
-    make an iso8601 timestamp
+    make an iso8601 timestamp suitable for use in filenames
 
     Args:
-        method (str): type of timestamp
+        method (str, default='iso8601'): type of timestamp
 
     Example:
         >>> stamp = timestamp()

@@ -101,19 +101,19 @@ class Cacher(object):
         dpath (PathLike): Specifies where to save the cache. If unspecified,
             Cacher defaults to an application resource dir as given by appname.
 
-        appname (str): Application name (default = 'ubelt')
+        appname (str, default='ubelt'): Application name
             Specifies a folder in the application resource directory where to
             cache the data if `dpath` is not specified.
 
-        ext (str): File extension (default = '.pkl')
+        ext (str, default='.pkl'): File extension for the cache format
 
         meta (object): Metadata that is also saved with the `cfgstr`.
             This can be useful to indicate how the `cfgstr` was constructed.
 
-        verbose (int): Level of verbosity. Can be 1, 2 or 3. (default=1)
+        verbose (int, default=1): Level of verbosity. Can be 1, 2 or 3.
 
-        enabled (bool): If set to False, then the load and save methods will
-            do nothing.  (default = True)
+        enabled (bool, default=True): If set to False, then the load and save
+            methods will do nothing.
 
         log (func): Overloads the print function. Useful for sending output to
             loggers (e.g. logging.info, tqdm.tqdm.write, ...)
@@ -121,9 +121,9 @@ class Cacher(object):
         hasher (str): Type of hashing algorithm to use if `cfgstr` needs to be
             condensed to less than 49 characters.
 
-        protocol (int): Protocol version used by pickle.  If python 2
-            compatibility is not required, then it is better to use protocol 4.
-            (default=2)
+        protocol (int, default=2): Protocol version used by pickle.
+            If python 2 compatibility is not required, then it is better to use
+            protocol 4.
 
     CommandLine:
         python -m ubelt.util_cache Cacher
@@ -215,8 +215,7 @@ class Cacher(object):
         Then cfgstr will be hashed.
 
         Args:
-            cfgstr (str, optional):
-                if specified, overrides the cfgstr member variable
+            cfgstr (str, optional): overrides the instance-level cfgstr
 
         Example:
             >>> from ubelt.util_cache import Cacher
@@ -238,6 +237,9 @@ class Cacher(object):
     def exists(self, cfgstr=None):
         """
         Check to see if the cache exists
+
+        Args:
+            cfgstr (str, optional): overrides the instance-level cfgstr
         """
         return exists(self.get_fpath())
 
@@ -275,6 +277,9 @@ class Cacher(object):
     def clear(self, cfgstr=None):
         """
         Removes the saved cache and metadata from disk
+
+        Args:
+            cfgstr (str, optional): overrides the instance-level cfgstr
         """
         data_fpath = self.get_fpath(cfgstr)
         if self.verbose > 0:
@@ -297,8 +302,7 @@ class Cacher(object):
         Like load, but returns None if the load fails due to a cache miss.
 
         Args:
-            cfgstr (str, optional):
-                if specified, overrides the cfgstr member variable
+            cfgstr (str, optional): overrides the instance-level cfgstr
 
             on_error (str, default='raise'):
                 How to handle non-io errors errors. Either 'raise', which
@@ -334,7 +338,7 @@ class Cacher(object):
         Load the data cached and raise an error if something goes wrong.
 
         Args:
-            cfgstr (str): if specified, overrides the instance-level cfgstr
+            cfgstr (str, optional): overrides the instance-level cfgstr
 
         Raises:
             IOError - if the data is unable to be loaded. This could be due to
@@ -403,6 +407,10 @@ class Cacher(object):
         Metadata containing information about the cache will also be appended
         to an adjacent file with the `.meta` suffix.
 
+        Args:
+            data (object): arbitrary pickleable object to be cached
+            cfgstr (str, optional): overrides the instance-level cfgstr
+
         Example:
             >>> from ubelt.util_cache import *  # NOQA
             >>> # Normal functioning
@@ -445,7 +453,7 @@ class Cacher(object):
             pickle.dump(data, file_, protocol=self.protocol)
 
     def ensure(self, func, *args, **kwargs):
-        r"""
+        """
         Wraps around a function. A cfgstr must be stored in the base cacher.
 
         Args:
@@ -608,7 +616,8 @@ class CacheStamp(object):
         expected result of that computation still exists.
 
         Args:
-            cfgstr (str, optional): override the default cfgstr if specified
+            cfgstr (str, optional): overrides the instance-level cfgstr
+
             product (PathLike or Sequence[PathLike], optional): override the
                 default product if specified
         """
