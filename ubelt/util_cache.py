@@ -210,8 +210,13 @@ class Cacher(object):
     def get_fpath(self, cfgstr=None):
         """
         Reports the filepath that the cacher will use.
+
         It will attempt to use '{fname}_{cfgstr}{ext}' unless that is too long.
         Then cfgstr will be hashed.
+
+        Args:
+            cfgstr (str, optional):
+                if specified, overrides the cfgstr member variable
 
         Example:
             >>> from ubelt.util_cache import Cacher
@@ -292,9 +297,13 @@ class Cacher(object):
         Like load, but returns None if the load fails due to a cache miss.
 
         Args:
-            on_error (str): How to handle non-io errors errors. Either raise,
-                which re-raises the exception, or clear which deletes the cache
-                and returns None.
+            cfgstr (str, optional):
+                if specified, overrides the cfgstr member variable
+
+            on_error (str, default='raise'):
+                How to handle non-io errors errors. Either 'raise', which
+                re-raises the exception, or 'clear' which deletes the cache and
+                returns None.
         """
         cfgstr = self._rectify_cfgstr(cfgstr)
         if self.enabled:
@@ -322,7 +331,10 @@ class Cacher(object):
 
     def load(self, cfgstr=None):
         """
-        Loads the data
+        Load the data cached and raise an error if something goes wrong.
+
+        Args:
+            cfgstr (str): if specified, overrides the instance-level cfgstr
 
         Raises:
             IOError - if the data is unable to be loaded. This could be due to
