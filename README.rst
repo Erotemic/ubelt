@@ -663,14 +663,15 @@ write a PR. I'm likely to respond promptly.
 Also check out my other projects (many of which are powered by ubelt):
 
 -  ProgIter https://github.com/Erotemic/netharn
+-  Timerit - https://github.com/Erotemic/timerit
 -  mkinit https://github.com/Erotemic/mkinit
--  ibeis https://github.com/Erotemic/ibeis
--  graphid https://github.com/Erotemic/graphid
 -  xdoctest https://github.com/Erotemic/xdoctest
 -  xinspect https://github.com/Erotemic/xinspect
 -  xdev https://github.com/Erotemic/xdev
 -  vimtk https://github.com/Erotemic/vimtk
 -  futures_actors https://github.com/Erotemic/futures_actors
+-  ibeis https://github.com/Erotemic/ibeis
+-  graphid https://github.com/Erotemic/graphid
   
 
 .. |CircleCI| image:: https://circleci.com/gh/Erotemic/ubelt.svg?style=svg
