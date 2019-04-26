@@ -434,7 +434,7 @@ def editfile(fpath, verbose=True):  # nocover
         >>> ub.editfile(ub.editfile)
     """
     from six import types
-    from ubelt import util_cmd
+    import ubelt as ub
     import warnings
     warnings.warn('Please use xdev.editfile instead', DeprecationWarning)
     if not isinstance(fpath, six.string_types):
@@ -450,10 +450,21 @@ def editfile(fpath, verbose=True):  # nocover
         print('[ubelt] editfile("{}")'.format(fpath))
 
     editor = os.environ.get('VISUAL', 'gvim')
+    if not ub.find_exe(editor):
+        warnings.warn('Cannot find visual editor={}'.format(editor), UserWarning)
+        # Try and fallback on commonly installed editor
+        alt_candidates = [
+            'gedit',
+            'TextEdit'
+            'Notepad',
+        ]
+        for cand in alt_candidates:
+            if ub.find_exe(cand):
+                editor = cand
 
     if not exists(fpath):
         raise IOError('Cannot start nonexistant file: %r' % fpath)
-    util_cmd.cmd([editor, fpath], fpath, detach=True)
+    ub.cmd([editor, fpath], fpath, detach=True)
 
 
 def platform_resource_dir():  # nocover
