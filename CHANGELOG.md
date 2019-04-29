@@ -2,18 +2,17 @@
 
 We are currently working on porting this changelog to the specifications in
 [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
-This project adheres to [Semantic
-Versioning](https://semver.org/spec/v2.0.0.html).
+This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
-## [0.7.1] - 2019-03-19
+## [Version 0.7.1] - 2019-03-19
 
 ### Fixed
 
 * Fixed bug in `ub.dict_hist` when `ordered=True`. (half of the keys would be lost). Also effected `dict_take`.
 
 
-## [0.7.0] - 2019-03-12
+## [Version 0.7.0] - 2019-03-12
 
 ### Added
 * Add `memoize_property`
@@ -25,7 +24,7 @@ Versioning](https://semver.org/spec/v2.0.0.html).
 * The testing dependencies are now optional.
 
 
-## [0.6.3] - ???
+## [Version 0.6.3] - ???
 
 ### Added
 * new tests
@@ -35,7 +34,7 @@ Versioning](https://semver.org/spec/v2.0.0.html).
 * Fixed issue in `ub.download` with bad content header urls
 
 
-## [0.6.2] - 2019-02-14
+## [Version 0.6.2] - 2019-02-14
 
 ### Added
 * `ub.platform_cache_dir` and `ub.platform_config_dir` now respect XDG environs on Linux systems.
@@ -48,11 +47,10 @@ Versioning](https://semver.org/spec/v2.0.0.html).
 * `ub.platform_resource_dir` is deprecated in favor of `ub.platform_config_dir`.
 
 
-## [0.6.1] - 2019-01-08
+## [Version 0.6.1] - 2019-01-08
 
 ### Changed
-* `ub.repr2` now accepts negative values for `newlines`, which means use
-  newlines until the current height is only `-newline`.
+* `ub.repr2` now accepts negative values for `newlines`, which means use newlines until the current height is only `-newline`.
 * `ub.repr2` now keeps track of nesting depth from the bottom
 * Make result `ub.memoize_method` appear more like a bound method.
 
@@ -67,7 +65,7 @@ Versioning](https://semver.org/spec/v2.0.0.html).
 * Fixed misspelled detach kwarg in `ub.cmd` (the old `detatch` argument is now deprecated and will be removed)
 
 
-## [0.6.0] - 2018-11-10
+## [Version 0.6.0] - 2018-11-10
 
 ### Added
 * Add class variable `FORCE_DISABLE` to `ub.Cacher`
@@ -75,7 +73,7 @@ Versioning](https://semver.org/spec/v2.0.0.html).
 * Add `ub.peek` - 4-letter syntactic sugar for `lambda x: next(iter(x))`
 
 
-## [0.5.3] - 2018-10-24
+## [Version 0.5.3] - 2018-10-24
 
 ### Added 
 * Add `key` to `ub.find_duplicates`
@@ -89,7 +87,7 @@ Versioning](https://semver.org/spec/v2.0.0.html).
 * Fixed GH#41
 
 
-## [0.5.2] - 2018-09-04
+## [Version 0.5.2] - 2018-09-04
 
 ### Added
 * Add verbose flag to `ub.CacheStamp`
@@ -103,7 +101,7 @@ Versioning](https://semver.org/spec/v2.0.0.html).
 * Improved efficiency of `ub.argmax`
 
 
-## [0.5.0] - 2018-07-23
+## [Version 0.5.0] - 2018-07-23
 
 ### Added
 * added `ub.expandpath` 
@@ -119,7 +117,7 @@ Versioning](https://semver.org/spec/v2.0.0.html).
 * `verbout` from `ub.cmd`
 
 
-## [0.4.0] - 2018-07-12
+## [Version 0.4.0] - 2018-07-12
 
 ### Added
 * `ub.find_exe` - a python implementation of which 
@@ -132,11 +130,11 @@ Versioning](https://semver.org/spec/v2.0.0.html).
 * `ub.hash_file` now accepts `types` args
 * `ub.augpath` now accepts `multidot` args
 * `ub.cmd` now accepts `cwd` and `env` args
-* Changing default behavior of util_hash. (BREAKING CHANGE)
-    - Default of `ub.Cacher` maxlen changed to 40 for sha1 considerations 
+* Changing default behavior of `util_hash`. (BREAKING CHANGE)
+    - Default of `ub.Cacher` `maxlen` changed to 40 for sha1 considerations 
     - Default of `ub.hash_data` `base` changed from `abc` to `hex` 
     - Default of `ub.hash_data` `types` changed from True to False.
-    - Moved argument position of hashlen to the end. 
+    - Moved argument position of `hashlen` to the end. 
 
 ### Removed
 * Remove `ub.OrderedSet`.extend
@@ -145,7 +143,7 @@ Versioning](https://semver.org/spec/v2.0.0.html).
 * `ub.NoParam` is now Falsey
 
 
-## [0.3.0] - 2019-07-12
+## [Version 0.3.0] - 2019-07-12
 
 ### Changed
 * `ub.import_module_from_path` can now import modules within zip-files
@@ -154,7 +152,7 @@ Versioning](https://semver.org/spec/v2.0.0.html).
 * `ub.PY2` and `ub.PY3`. Use `six` instead.
 
 
-## [0.2.1] - 2018-05-27
+## [Version 0.2.1] - 2018-05-27
 
 ### Modified
 * `ub.dzip` now accepts a backend dict class as a keyword argument
@@ -163,14 +161,14 @@ Versioning](https://semver.org/spec/v2.0.0.html).
 * Add function `print` to Timerit
 
 
-## [0.2.0] - 2018-05-05
+## [Version 0.2.0] - 2018-05-05
 
 * Fix timezone issue with negative time-zones
 * Move internal `__init__` auto-generation logic to new `mkinit` repo
 * Network tests no longer run by default and require `--network`
 
 
-## [0.1.1] - 2018-04-20
+## [Version 0.1.1] - 2018-04-20
 
 * Add `ub.argmin` and `ub.argmax`
 * `ub.Cacher` can now be used as a decorator.
@@ -182,7 +180,7 @@ Versioning](https://semver.org/spec/v2.0.0.html).
 * Add `ub.dzip`
 
 
-## [0.1.0] - 2018-04-02
+## [Version 0.1.0] - 2018-04-02
 
 ### Added
 * Add `inject_method` to `util_func.py`.
@@ -205,24 +203,24 @@ Versioning](https://semver.org/spec/v2.0.0.html).
 * Fix issue with relative paths and symlink
 
 
-## [0.0.44] - 2018-03-12
+## [Version 0.0.44] - 2018-03-12
 
 ### Added
 * `ub.iter_window`
 
 
-## [0.0.43] - 2018-03-09
+## [Version 0.0.43] - 2018-03-09
 
 ### Modified
-    * Spelling: changed the `Timer.ellapsed` attribute to `Timer.elapsed`.
-    * Verbosity of `Timer` and `Timerit` now depends on if a label was specified. 
-    * `Timer.tic` now returns a reference to the `Timer` instance.
+* Spelling: changed the `Timer.ellapsed` attribute to `Timer.elapsed`.
+* Verbosity of `Timer` and `Timerit` now depends on if a label was specified. 
+* `Timer.tic` now returns a reference to the `Timer` instance.
 
 ### Removed
-    * Remove `util_stress`, it was out of scope. 
+* Remove `util_stress`, it was out of scope. 
 
 
-## [0.0.42] - 2018-02-26
+## [Version 0.0.42] - 2018-02-26
 
 ## Modified
 * `hash_data` can now accept `OrderedDict` input
@@ -232,31 +230,30 @@ Versioning](https://semver.org/spec/v2.0.0.html).
 * bug in `hash_data` where negative integers did not work.
 
 
-## [0.0.41] - ???
+## [Version 0.0.41] - ???
 
 ### Added
 * `OrderedSet` / `oset`
-* Add `symlink` function that works on UNIX and Windows*.  (*if use has symlink permissions, it works just like UNIX without caveats.
-  Otherwise `ub.symlink` falls back to using junctions and hard links, which should still work mostly the same, except `os.path.islink` and `os.readlink` will not work among other minor issues).
+* Add `symlink` function that works on UNIX and Windows*.  (*if use has symlink permissions, it works just like UNIX without caveats.  Otherwise `ub.symlink` falls back to using junctions and hard links, which should still work mostly the same, except `os.path.islink` and `os.readlink` will not work among other minor issues).
 
 ### Modified
 * Add base to `augpath`
 * `ub.delete` now treats nested junctions as symlinks, unlike `shutil.rmtree`.
 
 
-## [0.0.40] - 2018-02-04
+## [Version 0.0.40] - 2018-02-04
 
 ### Modified
 * Add `numpy` support to `ub.repr2`
 
 
-## [0.0.39] - 2018-01-18
+## [Version 0.0.39] - 2018-01-18
 
 ### Modified
 * Changed `ub.Timerit`.call API to return a reference to the Timerit object instead of of the average seconds. Note this change is backwards incompatible.
 
 
-## [0.0.38] - ???
+## [Version 0.0.38] - ???
 
 ### Added
 
@@ -269,7 +266,7 @@ Versioning](https://semver.org/spec/v2.0.0.html).
 * New argument `total` to `ub.chunks` lets you specify how long an iterable is if `len` is not available (for generators)
 
 
-## [0.0.37] - ???
+## [Version 0.0.37] - ???
 
 ### Added
 
@@ -294,7 +291,7 @@ Versioning](https://semver.org/spec/v2.0.0.html).
 * Remove most of the `static_analysis` module. Use code in xdoctest for now. Note: some of this functionality may return as general utilities in the future, but the existing constructs were only needed for doctests, which are now done via xdoctest.
 
 
-## [0.0.34] - 2017-11-11
+## [Version 0.0.34] - 2017-11-11
 
 ### Added
 
@@ -306,7 +303,7 @@ Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Changed
 
-- `__init__` imports are now statically generated, this fixes the random third party attributes (e.g. `expanduser`, `Thread`) that were exposed in the `__init__` file.
+- The`__init__` imports are now statically generated, this fixes the random third party attributes (e.g. `expanduser`, `Thread`) that were exposed in the `__init__` file.
 - `ProgIter` now uses scientific notation when it is small
 - `ub.AutoOrderedDict` now inherits from `ub.AutoDict`
 - tests are now running using `pytest` and `xdoctest`
@@ -322,27 +319,27 @@ Versioning](https://semver.org/spec/v2.0.0.html).
 - some Unicode formatting does not work correctly on windows
 
 
-## [0.0.33] - 2017-09-13
+## [Version 0.0.33] - 2017-09-13
 
 ### Added
 - `ub.repr2` and `ub.hzcat`
 - `ub.color_text`
 
 
-## [0.0.31] - 2017-09-04
+## [Version 0.0.31] - 2017-09-04
 
 ### Added
 - Add `ub.argflag` and `ub.argval`
 
 
-## [0.0.28] - 2017-07-05
+## [Version 0.0.28] - 2017-07-05
 
 ### Added
 - `ub.AutoDict` and `ub.AutoOrderedDict`.
 - Many undocumented changed
 - Starting a changelog
 
-## [0.0.1] - 2017-02-01
+## [Version 0.0.1] - 2017-02-01
 
 ### Added
 - First release of ubelt

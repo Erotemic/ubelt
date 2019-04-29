@@ -160,7 +160,7 @@ def _proc_iteroutput_select(proc):
         yield oline, eline
 
 
-def _tee_output(make_proc, stdout=None, stderr=None, backend='auto'):
+def _tee_output(proc, stdout=None, stderr=None, backend='auto'):
     """
     Simultaneously reports and captures stdout and stderr from a process
 
@@ -184,7 +184,6 @@ def _tee_output(make_proc, stdout=None, stderr=None, backend='auto'):
     else:
         raise ValueError('backend must be select, thread, or auto')
 
-    proc = make_proc()
     for oline, eline in _proc_iteroutput(proc):
         if oline:
             if stdout:  # pragma: nobranch
@@ -200,7 +199,7 @@ def _tee_output(make_proc, stdout=None, stderr=None, backend='auto'):
 
 
 def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
-        env=None, tee_backend='auto', verbout=None, **kwargs):
+        env=None, tee_backend='auto', **kwargs):
     """
     Executes a command in a subprocess.
 
@@ -234,6 +233,8 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
 
         tee_backend (str, optional): backend for tee output.
             Valid choices are: "auto", "select" (POSIX only), and "thread".
+
+        # TODO: stdout, stderr - experimental - custom file to pipe stdout/stderr to
 
         **kwargs: only used to support deprecated arguments
 
@@ -373,9 +374,12 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
             print('...detaching')
     else:
         if tee:
-            # we need to tee output and start threads if tee is False?
-            stdout, stderr = sys.stdout, sys.stderr
-            proc, logged_out, logged_err = _tee_output(make_proc, stdout, stderr,
+            # We logging stdout and stderr, while simulaniously piping it to
+            # another stream.
+            stdout = sys.stdout
+            stderr = sys.stderr
+            proc = make_proc()
+            proc, logged_out, logged_err = _tee_output(proc, stdout, stderr,
                                                        backend=tee_backend)
 
             try:
