@@ -5,6 +5,12 @@ We are currently working on porting this changelog to the specifications in
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## Unreleased
+
+### Fixed
+* the `index` argument in `import_module_from_path` is now correctly used.
+
+
 ## [Version 0.7.1] - 2019-03-19
 
 ### Fixed
