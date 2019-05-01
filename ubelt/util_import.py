@@ -109,6 +109,10 @@ def import_module_from_path(modpath, index=-1):
 
     Args:
         modpath (PathLike): path to the module on disk or within a zipfile.
+        index (int): location at which we modify PYTHONPATH if necessary.
+            If your module name does not conflict, the safest value is -1,
+            However, if there is a conflict, then use an index of 0.
+            The default may change to 0 in the future.
 
     Returns:
         module: the imported module
@@ -205,7 +209,7 @@ def import_module_from_path(modpath, index=-1):
         raise IOError('modpath={} does not exist'.format(modpath))
     else:
         # the importlib version doesnt work in pytest
-        module = _custom_import_modpath(modpath)
+        module = _custom_import_modpath(modpath, index=index)
         # TODO: use this implementation once pytest fixes importlib
         # module = _pkgutil_import_modpath(modpath)
         return module
