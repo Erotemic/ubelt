@@ -217,6 +217,9 @@ class Cacher(object):
         Args:
             cfgstr (str, optional): overrides the instance-level cfgstr
 
+        Returns:
+            PathLike
+
         Example:
             >>> from ubelt.util_cache import Cacher
             >>> import pytest

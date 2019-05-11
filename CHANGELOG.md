@@ -9,6 +9,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### Added
 * Add `ub.dict_diff`
+* Add `ub.paragraph`, which helps with writing log messages
 * Add some benchmarks
 
 ### Fixed
