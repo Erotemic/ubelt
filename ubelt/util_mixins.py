@@ -6,6 +6,40 @@ define. This means you only have to overload one function instead of two.
 Furthermore, if the object defines a `__len__` method, then the `__nice__`
 method defaults to something sensible, otherwise it is treated as abstract and
 raises `NotImplementedError`.
+
+To use simply have your object inherit from `NiceRepr` (multi-inheritance
+should be ok).
+
+CommandLine:
+    xdoctest -m ubelt.util_mixins __doc__
+
+Example:
+    >>> # Objects that define __nice__ have a default __str__ and __repr__
+    >>> import ubelt as ub
+    >>> class Student(ub.NiceRepr):
+    ...    def __init__(self, name):
+    ...        self.name = name
+    ...    def __nice__(self):
+    ...        return self.name
+    >>> s1 = Student('Alice')
+    >>> s2 = Student('Bob')
+    >>> print('s1 = {}'.format(s1))
+    >>> print('s2 = {}'.format(s2))
+    s1 = <Student(Alice)>
+    s2 = <Student(Bob)>
+
+Example:
+    >>> # Objects that define __len__ have a default __nice__
+    >>> import ubelt as ub
+    >>> class Group(ub.NiceRepr):
+    ...    def __init__(self, data):
+    ...        self.data = data
+    ...    def __len__(self):
+    ...        return len(self.data)
+    >>> g = Group([1, 2, 3])
+    >>> print('g = {}'.format(g))
+    g = <Group(3)>
+
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import warnings

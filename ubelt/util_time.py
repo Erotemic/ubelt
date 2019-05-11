@@ -2,6 +2,27 @@
 """
 Timerit now exists in a standalone pip-installable module. The source code
 lives in its own github repo here: https://github.com/Erotemic/timerit
+
+Example:
+    >>> # xdoctest: +IGNORE_WANT
+    >>> import math
+    >>> import ubelt as ub
+    >>> timer = ub.Timer('Timer demo!', verbose=1)
+    >>> with timer:
+    >>>     math.factorial(100000)
+    tic('Timer demo!')
+    ...toc('Timer demo!')=0.1453s
+
+Example:
+    >>> # xdoctest: +IGNORE_WANT
+    >>> import math
+    >>> import ubelt as ub
+    >>> for _ in ub.Timerit(num=200, verbose=3):
+    >>>     math.factorial(10000)
+    Timing for 200 loops
+    Timed for: 200 loops, best of 3
+        time per loop: best=2.055 ms, mean=2.145 ± 0.083 ms
+
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import time

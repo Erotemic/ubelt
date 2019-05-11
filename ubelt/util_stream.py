@@ -1,6 +1,13 @@
 # -*- coding: utf-8 -*-
 """
 Functions for capturing and redirecting IO streams.
+
+The `CaptureStdout` captures all text sent to stdout and optionally prevents it
+from actually reaching stdout.
+
+The `TeeStringIO` does the same thing but for arbitrary streams. It is how the
+former is implemented.
+
 """
 from __future__ import print_function, division, absolute_import, unicode_literals
 import sys

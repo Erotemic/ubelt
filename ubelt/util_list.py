@@ -1,6 +1,22 @@
 # -*- coding: utf-8 -*-
 """
 Utility functions for manipulating iterables, lists, and sequences.
+
+The `chunks` function splits a list into smaller parts. There are different strategies for how to do this.
+
+The `flatten` function take a list of lists and removees the inner lists. This
+only removes one level of nesting.
+
+The `iterable` function checks if an object is iterable or not. Similar to the
+`callable` builtin function.
+
+The `argmax`, `argmin`, and `argsort` work similarly to the analogous `numpy`
+functions, except they operate on dictionaries and other Python builtin types.
+
+The `take` and `compress` are generators, and also similar to their lesser known, but very useful numpy equivalents.
+
+There are also other numpy inspired functions: `unique`, `argunique`,
+`unique_flags`, and `boolmask`.
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import itertools as it
