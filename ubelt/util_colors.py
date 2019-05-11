@@ -117,7 +117,11 @@ def color_text(text, color):
             import colorama
             colorama.init()
 
-        ansi_text = pygments.console.colorize(color, text)
+        try:
+            ansi_text = pygments.console.colorize(color, text)
+        except Exception as ex:
+            import warnings
+            warnings.warn('some other issue with text color: {!r}'.format(ex))
         return ansi_text
     except ImportError:  # nocover
         import warnings
