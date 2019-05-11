@@ -61,13 +61,14 @@ def download(url, fpath=None, hash_prefix=None, hasher='sha512',
         RuntimeError - if the hash does not match the hash_prefix
 
     Notes:
-        Original code taken from pytorch in torch/utils/model_zoo.py and
-        slightly modified.
+        Based largely on code in pytorch [4]_ with modifications influenced by
+        other resources [1]_ [2]_ [3]_.
 
     References:
-        http://blog.moleculea.com/2012/10/04/urlretrieve-progres-indicator/
-        http://stackoverflow.com/questions/15644964/python-progress-bar-and-downloads
-        http://stackoverflow.com/questions/16694907/how-to-download-large-file-in-python-with-requests-py
+        .. [1] http://blog.moleculea.com/2012/10/04/urlretrieve-progres-indicator/
+        .. [2] http://stackoverflow.com/questions/15644964/python-progress-bar-and-downloads
+        .. [3] http://stackoverflow.com/questions/16694907/how-to-download-large-file-in-python-with-requests-py
+        .. [4] https://github.com/pytorch/pytorch/blob/2787f1d8edbd4aadd4a8680d204341a1d7112e2d/torch/hub.py#L347
 
     CommandLine:
         python -m xdoctest ubelt.util_download download:1
