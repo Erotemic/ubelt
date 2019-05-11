@@ -4,15 +4,15 @@ This module exposes `Cacher` and `CacheStamp` classes, which provide a simple
 API for on-disk caching.
 
 The `Cacher` class is the simplest and most direct method of caching. In fact,
-it only requires four lines of boilderplate, which is the fewest number of
-lines which this author (Jon Crall) has ever been able to achieve while still
-being general and robust. These four lines achieve the following necessary and
-sufficient steps for general robust on-disk caching.
+it only requires four lines of boilderplate, which is the smallest general and
+robust way that I (Jon Crall) have ever achieved.  These four lines implement
+the following necessary and sufficient steps for general robust on-disk
+caching.
 
-    * Defining the cache dependenies
-    * Checking if the cache exists
-    * Loading the cache on a hit
-    * Executing the process and saving the result on a miss.
+    1. Defining the cache dependenies
+    2. Checking if the cache missed
+    3. Loading the cache on a hit
+    4. Executing the process and saving the result on a miss.
 
 The following example illustrates these four points.
 
@@ -24,7 +24,7 @@ Example:
     >>> data = cacher.tryload()                                             # boilerplate:2
     >>> # Check if you need to recompute your data
     >>> if data is None:                                                    # boilerplate:3
-    >>>     # Recompute your data (this is not boilerplate)
+    >>>     # Your code to recompute data goes here (this is not boilerplate).
     >>>     data = 'mydata'
     >>>     # Cache the computation result (pickle is used by default)
     >>>     cacher.save(data)                                               # boilerplate:4

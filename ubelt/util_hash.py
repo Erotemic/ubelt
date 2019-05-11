@@ -6,19 +6,19 @@ The hashes are deterministic across python versions and operating systems.
 This is verified by CI testing on Windows, Linux, Python with 2.7, 3.4, and
 greater, and on 32 and 64 bit versions.
 
+Use Case #1: You have data that you want to hash. If we assume the data is in
+standard python scalars or ordered sequences: e.g.  tuple, list, odict, oset,
+int, str, etc..., then the solution is `hash_data`.
+
+Use Case #2: You have a file you want to hash, but your system doesn't have a
+sha1sum executable (or you dont want to use Popen). The solution is `hash_file`
+
 The `ub.hash_data` function recursively hashes most builtin python data
 structures.
 
-The `ub.hash_file` function hashes data on disk.
+The `ub.hash_file` function hashes data on disk.  Both of the aformentioned
+functions have options for different hashers and alphabets.
 
-Both of the aformentioned functions have options for different hashers and
-alphabets.
-
-Use Case:
-    Problem: You have data that you want to hash.
-    Assumptions: The data is in standard python scalars or ordered sequences:
-        e.g. tuple, list, odict, oset, int, str, etc...
-    Solution: ub.hash_data
 
 Example:
     >>> import ubelt as ub
@@ -31,12 +31,6 @@ Example:
     >>> # hash_data can hash any ordered builtin object
     >>> ub.hash_data(data, convert=False, hasher='sha512')
     2ff39d0ecbf6ecc740ca7d...
-
-
-Use Case:
-    Problem: You have a file you want to hash, but your system doesn't have
-        a sha1sum executable (or you dont want to use Popen).
-    Solution: ub.hash_file
 
 Example:
     >>> import ubelt as ub
@@ -798,14 +792,13 @@ def hash_data(data, hasher=NoParam, base=NoParam, types=False,
             a custom `HashableExtensions` instance that can overwrite or
             define how different types of objects are hashed.
 
-    Notes:
-        alphabet26 is a pretty nice base, I recommend it.
-        However we default to hex because it is standard.
-        This means the output of hashdata with base=sha1 will be the same as
-        the output of `sha1sum`.
-
     Returns:
-        str: text -  hash string
+        str: text representing the hashed data
+
+    Notes:
+        The alphabet26 base is a pretty nice base, I recommend it.
+        However we default to ``base='hex'`` because it is standard.
+        You can try the alphabet26 base by setting ``base='abc'``.
 
     Example:
         >>> import ubelt as ub
