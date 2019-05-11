@@ -8,6 +8,7 @@ import six
 __all__ = [
     'indent',
     'codeblock',
+    'paragraph',
     'hzcat',
     'ensure_unicode',
 ]
@@ -40,6 +41,8 @@ def indent(text, prefix='    '):
 
 def codeblock(block_str):
     """
+    Create a block of text that preserves all newlines and relative indentation
+
     Wraps multiline string blocks and returns unindented code.
     Useful for templated code defined in indented parts of code.
 
@@ -76,6 +79,42 @@ def codeblock(block_str):
     """
     import textwrap  # this is a slow import, do it lazy
     return textwrap.dedent(block_str).strip('\n')
+
+
+def paragraph(block_str):
+    """
+    Wraps multi-line strings and restructures the text to remove all newlines,
+    heading, trailing, and double spaces.
+
+    Useful for writing log messages
+
+    Args:
+        block_str (str): typically in the form of a multiline string
+
+    Returns:
+        str: the reduced text block
+
+    CommandLine:
+        xdoctest -m ubelt.util_str paragraph
+
+    Example:
+        >>> from ubelt.util_str import *  # NOQA
+        >>> block_str = (
+        >>>     '''
+        >>>     Lorem ipsum dolor sit amet, consectetur adipiscing
+        >>>     elit, sed do eiusmod tempor incididunt ut labore et
+        >>>     dolore magna aliqua.
+        >>>     ''')
+        >>> out = paragraph(block_str)
+        >>> assert '\n' in block_str
+        >>> assert '\n' not in out
+        >>> print('block_str = {!r}'.format(block_str))
+        >>> print('out = {!r}'.format(out))
+    """
+    import re
+    out = block_str
+    out = re.sub(r'\s\s*', ' ', out).strip()
+    return out
 
 
 def hzcat(args, sep=''):
