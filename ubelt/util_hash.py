@@ -6,6 +6,13 @@ The hashes are deterministic across python versions and operating systems.
 This is verified by CI testing on Windows, Linux, Python with 2.7, 3.4, and
 greater, and on 32 and 64 bit versions.
 
+The `ub.hash_data` function recursively hashes most builtin python data
+structures.
+
+The `ub.hash_file` function hashes data on disk.
+
+Both of the aformentioned functions have options for different hashers and
+alphabets.
 
 Use Case:
     Problem: You have data that you want to hash.

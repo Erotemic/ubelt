@@ -1,6 +1,14 @@
 # -*- coding: utf-8 -*-
 """
-Simple ways to interact with the commandline without defining a full blown CLI
+Simple ways to interact with the commandline without defining a full blown
+CLI.These are usually used for developer hacks. Any real interface should
+probably be defined using `argparse` or `click`. Be sure to ignore unknown
+arguments if you use them in conjuction with these functions.
+
+The `argflag` function checks if a boolean `--flag` style CLI argument exists
+on the command line.
+
+The `argval` function returns the value of a `--key=value` style CLI argument.
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import six

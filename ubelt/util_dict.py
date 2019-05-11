@@ -1,6 +1,26 @@
 # -*- coding: utf-8 -*-
 """
 Functions for working with dictionaries.
+
+The `dict_hist` function counts the number of discrete occurrences of hashable
+items. Similarly `find_duplicates` looks for indices of items that occur more
+than `k=1` times.
+
+The `map_keys` and `map_vals` functions are useful for transforming the keys
+and values of a dictionary with less syntax than a dict comprehension.
+
+The `dict_union`, `dict_isect`, and `dict_subset` functions are similar to the set equivalents.
+
+The `dict_take` function works similarly to `ubelt.take` and `np.take`, except it allows for a default value to be specified.
+
+The `dzip` function zips two iterables and packs them into a dictionary where the first iterable is used to generate keys and the second generates values.
+
+The `group_items` function takes two lists and returns a dict mapping values in the second list to all items in corresponding locations in the first list.
+
+The `invert_dict` function swaps keys and values. See the function docs for details on dealing with unique and non-unique values.
+
+The `ddict` and `odict` functions are alias for the commonly used`collections.defaultdict` and `collections.OrderedDict` classes.
+
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import six

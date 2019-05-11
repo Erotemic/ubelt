@@ -1,6 +1,24 @@
 # -*- coding: utf-8 -*-
 """
 Functions for working with filesystem paths.
+
+The `ensuredir` function operates like `mkdir -p` in unix.
+
+The `expandpath` function expands the tilde to $HOME and environment variables
+to their values.
+
+The `augpath` function creates variants of an existing path without having to
+spend multiple lines of code spliting it up and stitching it back together.
+
+The `compressuser` function replaces your home directory with a tilde.
+
+The `userhome` function reports the home directory of the current user of the
+operating system.
+
+Even though ubelt is not at a `1.0.0` release, the above functions can be
+relied upon as stable, backwards compatible, and maintained.  Other functions
+defined in this file may be depricated or modified or unmaintained in the
+future.
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 from os.path import abspath

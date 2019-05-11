@@ -7,6 +7,14 @@ which is an optional requirement. Therefore, these functions only work properly
 if Pygments is installed, otherwise these functions will return the unmodified
 text and a warning will be printed.
 
+The `highlight_code` function uses pygments to highlight syntax of a programing
+language.
+
+The `color_text` function colors text with a solid color.
+
+Note the functions in this module require the optional `pygments` library to
+work correctly. These functions will warn if `pygments` is not installed.
+
 Requirements:
     pip install pygments
 """

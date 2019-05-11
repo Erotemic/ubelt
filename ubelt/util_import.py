@@ -2,6 +2,17 @@
 r"""
 Expose functions to simplify importing from module names and paths.
 
+The `ub.import_module_from_path` function does its best to load a python file
+into th current set of global modules.
+
+The `ub.import_module_from_name` works similarly.
+
+The `ub.modname_to_modpath` and `ub.modname_to_modpath` work statically and
+convert between module names and file paths on disk.
+
+The `ub.split_modpath` function separates modules into a root and base path
+depending on where the first `__init__.py` file is.
+
 Partial Autogenerate:
     import netharn as nh
     closer = nh.export.closer.Closer()

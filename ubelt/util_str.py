@@ -1,6 +1,17 @@
 # -*- coding: utf-8 -*-
 """
-Functions for working with text strings.
+Functions for working with text and strings.
+
+The `ensure_unicode` function does its best to coerce python 2/3 bytes and text
+into a consistent unicode text representation.
+
+The `codeblock` and `paragraph` wrap multiline strings to help write text
+blocks without hindering the surrounding code indentation.
+
+The `hzcat` function horizontally concatenates multiline text.
+
+The `indent` prefixes all lines in a text block with a given prefix. By default
+that prefix is 4 spaces.
 """
 from __future__ import print_function, division, absolute_import, unicode_literals
 import six
@@ -82,7 +93,7 @@ def codeblock(block_str):
 
 
 def paragraph(block_str):
-    """
+    r"""
     Wraps multi-line strings and restructures the text to remove all newlines,
     heading, trailing, and double spaces.
 
@@ -106,8 +117,8 @@ def paragraph(block_str):
         >>>     dolore magna aliqua.
         >>>     ''')
         >>> out = paragraph(block_str)
-        >>> assert '\n' in block_str
-        >>> assert '\n' not in out
+        >>> assert chr(10) in block_str
+        >>> assert chr(10) not in out
         >>> print('block_str = {!r}'.format(block_str))
         >>> print('out = {!r}'.format(out))
     """

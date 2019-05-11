@@ -2,6 +2,9 @@
 """
 This module exposes decorators for in-memory caching of functional results.
 
+Either `memoize`, `memoize_method`, and `memoize_property` should be used
+depending on what type of function is being wrapped. The following example demonstrates this.
+
 Example:
     >>> import ubelt as ub
     >>> # Memoize a function, the args are hashed
