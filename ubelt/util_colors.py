@@ -99,7 +99,11 @@ def color_text(text, color):
         >>> import ubelt as ub
         >>> if ub.modname_to_modpath('pygments'):
         >>>     # Colors text only if pygments is installed
-        >>>     assert color_text(text, 'red') == '\x1b[31;01mraw text\x1b[39;49;00m'
+        >>>     ansi_text = ub.ensure_unicode(color_text(text, 'red'))
+        >>>     prefix = ub.ensure_unicode('\x1b[31')
+        >>>     print('prefix = {!r}'.format(prefix))
+        >>>     print('ansi_text = {!r}'.format(ansi_text))
+        >>>     assert ansi_text.startswith(prefix)
         >>>     assert color_text(text, None) == 'raw text'
         >>> else:
         >>>     # Otherwise text passes through unchanged
@@ -119,9 +123,14 @@ def color_text(text, color):
 
         try:
             ansi_text = pygments.console.colorize(color, text)
+        except KeyError as ex:
+            import warnings
+            warnings.warn('unable to fine color: {!r}'.format(color))
+            return text
         except Exception as ex:
             import warnings
             warnings.warn('some other issue with text color: {!r}'.format(ex))
+            return text
         return ansi_text
     except ImportError:  # nocover
         import warnings
