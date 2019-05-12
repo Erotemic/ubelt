@@ -3,7 +3,7 @@
 
 .. raw:: html
 
-    <img src="https://i.imgur.com/4dMXuWq.png" height="100px">
+    <img src="https://i.imgur.com/AcWVroL.png" height="100px">
 
 Ubelt is a small library of robust, tested, documented, and simple functions
 that extend the Python standard library.  You've probably written and
