@@ -29,6 +29,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ### Fixed
 
 * Fixed bug in `ub.dict_hist` when `ordered=True`. (half of the keys would be lost). Also effected `dict_take`.
+* `platform_data_dir` now correctly raises an exception when the operating system is unknown. 
 
 
 ## [Version 0.7.0] - 2019-03-12
