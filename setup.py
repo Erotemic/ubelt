@@ -192,6 +192,7 @@ if __name__ == '__main__':
         description=('A Python utility belt containing simple tools, '
                      'a stdlib like feel, and extra batteries.'),
         long_description=parse_description(),
+        long_description_content_type='text/x-rst',
         install_requires=parse_requirements('requirements/runtime.txt'),
         extras_require={
             'all': parse_requirements('requirements.txt'),
