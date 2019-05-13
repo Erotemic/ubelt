@@ -2,7 +2,9 @@
 
 
 .. image:: https://i.imgur.com/AcWVroL.png
+   :scale: 10 %
    :height: 100px
+   :align: left
 
 
 ..   .. raw:: html
