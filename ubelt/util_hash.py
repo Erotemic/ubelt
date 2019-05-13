@@ -479,6 +479,10 @@ class HashableExtensions(object):
         Register hashing extensions for a selection of classes included in
         python stdlib.
 
+        This registers extensions for the following types:
+            * uuid.UUID
+            * collections.OrderedDict
+
         Example:
             >>> data = uuid.UUID('7e9d206b-dc02-4240-8bdb-fffe858121d0')
             >>> print(hash_data(data, base='abc', hasher='sha512', types=True)[0:8])
@@ -507,6 +511,9 @@ class HashableExtensions(object):
     def _register_agressive_extensions(self):  # nocover
         """
         Extensions that might be desired, but we do not enable them by default
+
+        This registers extensions for the following types:
+            * dict
         """
         # UNSURE IF THIS IS DESIRABLE
         @self.register(dict)
@@ -676,10 +683,10 @@ def _update_hasher(hasher, data, types=True, extensions=None):
         except TypeError:
             # need to use recursive calls
             # Update based on current item
-            _update_hasher(hasher, item, types)
+            _update_hasher(hasher, item, types, extensions=extensions)
             for item in iter_:
                 # Ensure the items have a spacer between them
-                _update_hasher(hasher, item, types)
+                _update_hasher(hasher, item, types, extensions=extensions)
                 hasher.update(SEP)
         hasher.update(ITER_SUFFIX)
     else:
@@ -807,7 +814,7 @@ def hash_data(data, hasher=NoParam, base=NoParam, types=False,
         >>> print(ub.hash_data([1, 2, (3, '4')], base='abc',  hasher='sha512')[:32])
         hsrgqvfiuxvvhcdnypivhhthmrolkzej
     """
-    if convert and isinstance(data, six.string_types):  # nocover
+    if convert and not isinstance(data, six.string_types):  # nocover
         try:
             data = json.dumps(data)
         except TypeError as ex:

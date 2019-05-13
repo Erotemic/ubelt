@@ -5,6 +5,13 @@ We are currently working on porting this changelog to the specifications in
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [Version 0.8.1] - Unreleased
+
+### Fixed
+* Custom extensions for `ub.hash_data` are fixed. Previously they were not passed down more than a single level.
+* The `convert` option for `ub.hash_data` was previously not hooked up.
+
+
 ## [Version 0.8.0] - 2019-05-12
 
 ### Added
