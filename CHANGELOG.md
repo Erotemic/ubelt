@@ -5,12 +5,19 @@ We are currently working on porting this changelog to the specifications in
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
-## [Version 0.8.0] - Unreleased
+## [Version 0.8.0] - 2019-05-12
 
 ### Added
-* Add `ub.dict_diff`
+* Add `ub.dict_diff`, which removes keys from a dictionary similar to `set` difference.
 * Add `ub.paragraph`, which helps with writing log messages
 * Add some benchmarks
+* Add lots more documentation.
+
+
+### Changed
+* `ub.identity` now accepts `*args` and `**kwargs` and defaults the first argument to `None`, but still only returns the first argument.
+* The `sort` kwarg of `ub.repr2` can now accept a callable, which will act as a key to the `sorted` function
+* `ub.hash_data` now accepts the `extensions` kwarg, which allows the user to define how particular types are hashed. 
 
 ### Fixed
 * Fix GH #53
