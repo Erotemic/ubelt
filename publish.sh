@@ -48,14 +48,16 @@ if [[ "$ANS" == "yes" ]]; then
     git tag $VERSION -m "tarball tag $VERSION"
     git push --tags origin master
 
-    # Build wheel or source distribution
-    python setup.py bdist_wheel --universal
-
     # Use twine to upload. This will prompt for username and password
     # If you get an error:
     #   403 Client Error: Invalid or non-existent authentication information.
     # simply try typing your password slower.
-    pip install twine
+    pip install twine -U
+
+    # Build wheel or source distribution
+    python setup.py bdist_wheel --universal
+
+    twine check dist/ubelt-$VERSION-*
 
     if [[ "$USER" == "joncrall" ]]; then
         GITHUB_USERNAME=erotemic
