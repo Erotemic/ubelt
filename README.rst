@@ -1,8 +1,8 @@
 |CircleCI| |Travis| |Appveyor| |Codecov| |Pypi| |Downloads| |ReadTheDocs|
 
 
-.. image:: https://i.imgur.com/AcWVroL.png
-   :scale: 10 %
+.. The large version wont work because github strips rst image rescaling. https://i.imgur.com/AcWVroL.png
+.. image:: https://i.imgur.com/XM7QYgu.png
    :height: 100px
    :align: left
 
