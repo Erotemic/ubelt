@@ -72,11 +72,33 @@ def color_text(text, color):
         >>> assert color_text(text, 'red') == '\x1b[31;01mraw text\x1b[39;49;00m'
         >>> assert color_text(text, None) == 'raw text'
     """
+    # Depricated color codes for Pygments 2.2, changed in 2.4
+    backup_color_mapping = {
+        'darkred'   : 'red',
+        'darkgreen' : 'green',
+        'brown'     : 'yellow',
+        'darkblue'  : 'blue',
+        'purple'    : 'magenta',
+        'teal'      : 'cyan',
+        'lightgray' : 'gray',
+        'darkgray'  : 'brightblack',
+        'red'       : 'brightred',
+        'green'     : 'brightgreen',
+        'yellow'    : 'brightyellow',
+        'blue'      : 'brightblue',
+        'fuchsia'   : 'brightmagenta',
+        'turquoise' : 'brightcyan',
+    }
+
     if color is None:
         return text
     try:
         import pygments
         import pygments.console
+        if color not in pygments.console.codes:
+            color_ = backup_color_mapping.get(color, None)
+            assert color_ is not None, 'Color %r could not be found in the latest version of pygments' % (color, )
+            color = color_
         ansi_text = pygments.console.colorize(color, text)
         return ansi_text
     except ImportError:  # nocover
