@@ -79,9 +79,6 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import os
 from os.path import join, normpath, basename, exists
 import warnings
-from ubelt import util_hash
-from ubelt import util_time
-from ubelt import util_path
 
 
 class Cacher(object):
@@ -168,8 +165,7 @@ class Cacher(object):
             verbose = self.VERBOSE
         if dpath is None:  # pragma: no branch
             from ubelt import util_platform
-            dpath = util_platform.ensure_app_cache_dir(appname)
-        util_path.ensuredir(dpath)
+            dpath = util_platform.get_app_cache_dir(appname)
         self.dpath = dpath
         self.fname = fname
         self.cfgstr = cfgstr
@@ -201,6 +197,7 @@ class Cacher(object):
         # underscore, and a 40 char sha1 hash.
         max_len = 49
         if len(cfgstr) > max_len:
+            from ubelt import util_hash
             condensed = util_hash.hash_data(cfgstr, hasher=self.hasher, base='hex')
             condensed = condensed[0:max_len]
         else:
@@ -428,6 +425,8 @@ class Cacher(object):
             >>> assert not exists(cacher2.get_fpath()), 'should be disabled'
         """
         from six.moves import cPickle as pickle
+        from ubelt import util_path
+        from ubelt import util_time
         if not self.enabled:
             return
         if self.verbose > 0:
@@ -606,6 +605,7 @@ class CacheStamp(object):
         if self.hasher is None:
             return None
         else:
+            from ubelt import util_hash
             products = self._rectify_products(product)
             product_file_hash = [
                 util_hash.hash_file(p, hasher=self.hasher, base='hex')
@@ -632,7 +632,7 @@ class CacheStamp(object):
         elif products is None:
             # We dont have a product to check, so assume not expired
             is_expired = False
-        elif not all(map(os.path.exists, products)):
+        elif not all(map(exists, products)):
             # We are expired if the expected product does not exist
             is_expired = True
         else:
@@ -648,13 +648,14 @@ class CacheStamp(object):
         Recertify that the product has been recomputed by writing a new
         certificate to disk.
         """
+        from ubelt import util_time
         products = self._rectify_products(product)
         certificate = {
             'timestamp': util_time.timestamp(),
             'product': products,
         }
         if products is not None:
-            if not all(map(os.path.exists, products)):
+            if not all(map(exists, products)):
                 raise IOError(
                     'The stamped product must exist: {}'.format(products))
             certificate['product_file_hash'] = self._product_file_hash(products)

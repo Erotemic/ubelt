@@ -10,6 +10,10 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ### Fixed
 * Custom extensions for `ub.hash_data` are fixed. Previously they were not passed down more than a single level.
 * The `convert` option for `ub.hash_data` was previously not hooked up.
+* Correctly expose `dict_diff`
+
+### Changed
+* `ub.Cacher` no longer ensures that the `dpath` exists on construction. This check is delayed until `save` is called.
 
 
 ## [Version 0.8.0] - 2019-05-12
