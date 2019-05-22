@@ -178,10 +178,10 @@ A complete list of available functions can be seen in the
     from ubelt.util_colors import (color_text, highlight_code,)
     from ubelt.util_const import (NoParam,)
     from ubelt.util_cmd import (cmd,)
-    from ubelt.util_dict import (AutoDict, AutoOrderedDict, ddict, dict_hist,
-                                 dict_isect, dict_subset, dict_take, dict_union,
-                                 dzip, find_duplicates, group_items, invert_dict,
-                                 map_keys, map_vals, odict,)
+    from ubelt.util_dict import (AutoDict, AutoOrderedDict, ddict, dict_diff,
+                                 dict_hist, dict_isect, dict_subset, dict_take,
+                                 dict_union, dzip, find_duplicates, group_items,
+                                 invert_dict, map_keys, map_vals, odict,)
     from ubelt.util_download import (download, grabdata,)
     from ubelt.util_func import (identity, inject_method,)
     from ubelt.util_format import (FormatterExtensions, repr2,)
@@ -206,7 +206,8 @@ A complete list of available functions can be seen in the
                                      get_app_resource_dir, platform_cache_dir,
                                      platform_config_dir, platform_data_dir,
                                      platform_resource_dir, startfile,)
-    from ubelt.util_str import (codeblock, ensure_unicode, hzcat, indent,)
+    from ubelt.util_str import (codeblock, ensure_unicode, hzcat, indent,
+                                paragraph,)
     from ubelt.util_stream import (CaptureStdout, CaptureStream, TeeStringIO,)
     from ubelt.util_time import (Timer, Timerit, timestamp,)
     from ubelt.orderedset import (OrderedSet, oset,)

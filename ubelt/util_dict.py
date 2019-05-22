@@ -46,6 +46,7 @@ __all__ = [
     'dict_take',
     'dict_union',
     'dict_isect',
+    'dict_diff',
     'find_duplicates',
     'group_items',
     'invert_dict',
