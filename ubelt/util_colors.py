@@ -74,20 +74,23 @@ def color_text(text, color):
     """
     # Depricated color codes for Pygments 2.2, changed in 2.4
     backup_color_mapping = {
-        'darkred'   : 'red',
-        'darkgreen' : 'green',
-        'brown'     : 'yellow',
-        'darkblue'  : 'blue',
-        'purple'    : 'magenta',
-        'teal'      : 'cyan',
-        'lightgray' : 'gray',
-        'darkgray'  : 'brightblack',
-        'red'       : 'brightred',
-        'green'     : 'brightgreen',
-        'yellow'    : 'brightyellow',
-        'blue'      : 'brightblue',
-        'fuchsia'   : 'brightmagenta',
-        'turquoise' : 'brightcyan',
+        'darkred'    : 'red',
+        'darkgreen'  : 'green',
+        'brown'      : 'yellow',
+        'darkblue'   : 'blue',
+        'purple'     : 'magenta',
+        'teal'       : 'cyan',
+        'lightgray'  : 'gray',
+        'darkgray'   : 'brightblack',
+        'red'        : 'brightred',
+        'green'      : 'brightgreen',
+        'yellow'     : 'brightyellow',
+        'blue'       : 'brightblue',
+        'fuchsia'    : 'brightmagenta',
+        'turquoise'  : 'brightcyan',
+        'darkyellow' : 'yellow',
+        'darkteal'   : 'brightcyan',
+        'fuscia'     : 'brightmagenta',
     }
 
     if color is None:
