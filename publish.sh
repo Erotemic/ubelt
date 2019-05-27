@@ -25,6 +25,9 @@ Usage:
 
     git checkout -b dev/<next>
 """
+if [[ "$USER" == "joncrall" ]]; then
+    GITHUB_USERNAME=erotemic
+fi
 
 # First tag the source-code
 VERSION=$(python -c "import setup; print(setup.version)")
@@ -48,20 +51,27 @@ if [[ "$ANS" == "yes" ]]; then
     git tag $VERSION -m "tarball tag $VERSION"
     git push --tags origin master
 
-    # Build wheel or source distribution
-    python setup.py bdist_wheel --universal
-
     # Use twine to upload. This will prompt for username and password
     # If you get an error:
     #   403 Client Error: Invalid or non-existent authentication information.
     # simply try typing your password slower.
-    pip install twine
+    pip install twine -U
 
-    if [[ "$USER" == "joncrall" ]]; then
-        GITHUB_USERNAME=erotemic
-        echo "GITHUB_USERNAME = $GITHUB_USERNAME"
-    fi
-    twine upload --username $GITHUB_USERNAME --skip-existing dist/*
+    # Build wheel or source distribution
+    python setup.py bdist_wheel --universal
+    WHEEL_PATH=dist/ubelt-$VERSION-py2.py3-none-any.whl
+
+    # Sign with your GPG key
+    gpg --detach-sign -a $WHEEL_PATH
+    twine check $WHEEL_PATH $WHEEL_PATH.asc
+
+    # Set TWINE_PASSWORD environ to skip password step
+    twine upload \
+        --username $GITHUB_USERNAME --password=$TWINE_PASSWORD \
+        $WHEEL_PATH $WHEEL_PATH.asc
+
+    printf "======\nABOUT TO EXEC:\n$CMD\n======"
+
 else  
     echo "Dry run"
 fi

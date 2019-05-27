@@ -2,7 +2,7 @@
 
 
 .. The large version wont work because github strips rst image rescaling. https://i.imgur.com/AcWVroL.png
-.. image:: https://i.imgur.com/XM7QYgu.png
+.. image:: https://i.imgur.com/HRpXZBj.png
    :height: 100px
    :align: left
 

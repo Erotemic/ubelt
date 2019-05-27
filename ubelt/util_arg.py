@@ -74,9 +74,9 @@ def argflag(key, argv=None):
     Determines if a key is specified on the command line
 
     Args:
-        key (str or tuple): string or tuple of strings. Each key should be
+        key (str or Tuple[str]): string or tuple of strings. Each key should be
             prefixed with two hyphens (i.e. `--`)
-        argv (Optional[list]): overrides `sys.argv` if specified
+        argv (List[str], optional): overrides `sys.argv` if specified
 
     Returns:
         bool: flag : True if the key (or any of the keys) was specified
