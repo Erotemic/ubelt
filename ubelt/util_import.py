@@ -459,14 +459,14 @@ def normalize_modpath(modpath, hide_init=True, hide_main=False):
         xdoctest -m xdoctest.static_analysis normalize_modpath
 
     Example:
-        >>> import xdoctest.static_analysis as static
-        >>> modpath = static.__file__
-        >>> assert static.normalize_modpath(modpath) == modpath.replace('.pyc', '.py')
+        >>> from ubelt import util_import as module
+        >>> modpath = module.__file__
+        >>> assert module.normalize_modpath(modpath) == modpath.replace('.pyc', '.py')
         >>> dpath = dirname(modpath)
-        >>> res0 = static.normalize_modpath(dpath, hide_init=0, hide_main=0)
-        >>> res1 = static.normalize_modpath(dpath, hide_init=0, hide_main=1)
-        >>> res2 = static.normalize_modpath(dpath, hide_init=1, hide_main=0)
-        >>> res3 = static.normalize_modpath(dpath, hide_init=1, hide_main=1)
+        >>> res0 = module.normalize_modpath(dpath, hide_init=0, hide_main=0)
+        >>> res1 = module.normalize_modpath(dpath, hide_init=0, hide_main=1)
+        >>> res2 = module.normalize_modpath(dpath, hide_init=1, hide_main=0)
+        >>> res3 = module.normalize_modpath(dpath, hide_init=1, hide_main=1)
         >>> assert res0.endswith('__init__.py')
         >>> assert res1.endswith('__init__.py')
         >>> assert not res2.endswith('.py')
