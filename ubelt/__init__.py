@@ -95,10 +95,10 @@ from ubelt.util_cache import (CacheStamp, Cacher,)
 from ubelt.util_colors import (color_text, highlight_code,)
 from ubelt.util_const import (NoParam,)
 from ubelt.util_cmd import (cmd,)
-from ubelt.util_dict import (AutoDict, AutoOrderedDict, ddict, dict_hist,
-                             dict_isect, dict_subset, dict_take, dict_union,
-                             dzip, find_duplicates, group_items, invert_dict,
-                             map_keys, map_vals, odict,)
+from ubelt.util_dict import (AutoDict, AutoOrderedDict, ddict, dict_diff,
+                             dict_hist, dict_isect, dict_subset, dict_take,
+                             dict_union, dzip, find_duplicates, group_items,
+                             invert_dict, map_keys, map_vals, odict,)
 from ubelt.util_download import (download, grabdata,)
 from ubelt.util_func import (identity, inject_method,)
 from ubelt.util_format import (FormatterExtensions, repr2,)
@@ -136,16 +136,17 @@ __all__ = ['AutoDict', 'AutoOrderedDict', 'CacheStamp', 'Cacher',
            'TeeStringIO', 'TempDir', 'Timer', 'Timerit', 'WIN32', 'allsame',
            'argflag', 'argmax', 'argmin', 'argsort', 'argunique', 'argval',
            'augpath', 'boolmask', 'chunks', 'cmd', 'codeblock', 'color_text',
-           'compress', 'compressuser', 'ddict', 'delete', 'dict_hist',
-           'dict_isect', 'dict_subset', 'dict_take', 'dict_union', 'download',
-           'dzip', 'editfile', 'ensure_app_cache_dir', 'ensure_app_config_dir',
-           'ensure_app_data_dir', 'ensure_app_resource_dir', 'ensure_unicode',
-           'ensuredir', 'expandpath', 'find_duplicates', 'find_exe',
-           'find_path', 'flatten', 'get_app_cache_dir', 'get_app_config_dir',
-           'get_app_data_dir', 'get_app_resource_dir', 'grabdata',
-           'group_items', 'hash_data', 'hash_file', 'highlight_code', 'hzcat',
-           'identity', 'import_module_from_name', 'import_module_from_path',
-           'indent', 'inject_method', 'invert_dict', 'iter_window', 'iterable',
+           'compress', 'compressuser', 'ddict', 'delete', 'dict_diff',
+           'dict_hist', 'dict_isect', 'dict_subset', 'dict_take', 'dict_union',
+           'download', 'dzip', 'editfile', 'ensure_app_cache_dir',
+           'ensure_app_config_dir', 'ensure_app_data_dir',
+           'ensure_app_resource_dir', 'ensure_unicode', 'ensuredir',
+           'expandpath', 'find_duplicates', 'find_exe', 'find_path', 'flatten',
+           'get_app_cache_dir', 'get_app_config_dir', 'get_app_data_dir',
+           'get_app_resource_dir', 'grabdata', 'group_items', 'hash_data',
+           'hash_file', 'highlight_code', 'hzcat', 'identity',
+           'import_module_from_name', 'import_module_from_path', 'indent',
+           'inject_method', 'invert_dict', 'iter_window', 'iterable',
            'map_keys', 'map_vals', 'memoize', 'memoize_method',
            'memoize_property', 'modname_to_modpath', 'modpath_to_modname',
            'odict', 'orderedset', 'oset', 'paragraph', 'peek',

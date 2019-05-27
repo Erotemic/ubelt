@@ -69,9 +69,6 @@ if [[ "$ANS" == "yes" ]]; then
     twine upload \
         --username $GITHUB_USERNAME --password=$TWINE_PASSWORD \
         $WHEEL_PATH $WHEEL_PATH.asc
-
-    printf "======\nABOUT TO EXEC:\n$CMD\n======"
-
 else  
     echo "Dry run"
 fi
