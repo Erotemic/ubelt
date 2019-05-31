@@ -541,13 +541,16 @@ class CacheStamp(object):
             Path or paths that we expect the computation to produce. If
             specified the hash of the paths are stored.
 
-        hasher (str):
+        hasher (str, default='sha1'):
             The type of hasher used to compute the file hash of product.
             If None, then we assume the file has not been corrupted or changed.
             Defaults to sha1.
 
-        verbose (bool):
+        verbose (bool, default=None):
             Passed to internal ub.Cacher object
+
+        enabled (bool, default=True):
+            if False, expired always returns True
 
     Example:
         >>> import ubelt as ub
@@ -576,9 +579,9 @@ class CacheStamp(object):
         >>> assert self.expired()
     """
     def __init__(self, fname, dpath, cfgstr=None, product=None, hasher='sha1',
-                 verbose=None):
+                 verbose=None, enabled=True):
         self.cacher = Cacher(fname, cfgstr=cfgstr, dpath=dpath,
-                             verbose=verbose)
+                             verbose=verbose, enabled=enabled)
         self.product = product
         self.hasher = hasher
 
@@ -623,7 +626,12 @@ class CacheStamp(object):
 
             product (PathLike or Sequence[PathLike], optional): override the
                 default product if specified
+
+        Returns:
+            bool: True if the stamp is invalid or does not exist.
         """
+        if not self.cacher.enabled:
+            return True
         products = self._rectify_products(product)
         certificate = self._get_certificate(cfgstr=cfgstr)
         if certificate is None:
@@ -647,6 +655,9 @@ class CacheStamp(object):
         """
         Recertify that the product has been recomputed by writing a new
         certificate to disk.
+
+        Returns:
+            dict: certificate information
         """
         from ubelt import util_time
         products = self._rectify_products(product)

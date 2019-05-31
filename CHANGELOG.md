@@ -14,6 +14,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### Changed
 * `ub.Cacher` no longer ensures that the `dpath` exists on construction. This check is delayed until `save` is called.
+* `ub.CacheStamp` now accepts the `enabled` keyword. 
 
 
 ## [Version 0.8.0] - 2019-05-12
