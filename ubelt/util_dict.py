@@ -26,6 +26,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import six
 import operator as op
 import itertools as it
+import re
 from collections import OrderedDict
 from collections import defaultdict
 from six.moves import zip
@@ -43,6 +44,7 @@ __all__ = [
     'ddict',
     'dict_hist',
     'dict_subset',
+    'dict_re_match',
     'dict_take',
     'dict_union',
     'dict_isect',
@@ -361,6 +363,39 @@ def dict_subset(dict_, keys, default=util_const.NoParam):
     keys = list(keys)
     items = dict_take(dict_, keys, default)
     subdict_ = OrderedDict(list(zip(keys, items)))
+    return subdict_
+
+
+def dict_re_match(dict_, regexpr):
+    """
+    Get a subset of a dictionary using regex
+
+    Args:
+        dict_ (Mapping): superset dictionary
+        regexpr (String): regular expression for matching keys to take from `dict_`
+
+    Returns:
+        OrderedDict: subset dictionary
+
+
+    Example:
+        >>> import ubelt as ub
+        >>> dict_ = {'A_b': 3, 'C_b': 0.2, 'A_3': 0.1}
+        >>> regexpr = 'A_'
+        >>> subdict_ = ub.dict_re_match(dict_, regexpr)
+        >>> print(ub.repr2(subdict_, nl=0))
+        {'A_b': 3, 'A_3': 0.1}
+
+    Example:
+        >>> import ubelt as ub
+        >>> dict_ = {'12-f': 'C', '2-c': 'U', 'a-5': 3}
+        >>> regexpr = '\d+'
+        >>> subdict_ = ub.dict_re_match(dict_, regexpr)
+        >>> print(ub.repr2(subdict_, nl=0))
+        {'12-f': 'C', '2-c': 'U'}
+    """
+    keys = [k for k in dict_.keys() if re.match(regexpr, k)]
+    subdict_ = dict_subset(dict_, keys)
     return subdict_
 
 
