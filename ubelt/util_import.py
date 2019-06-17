@@ -78,26 +78,30 @@ class PythonPathContext(object):
 
     def __exit__(self, type, value, trace):
         msg_parts = [
-            'sys.path significantly changed while in PythonPathContext.'
+            'ERROR: sys.path significantly changed while in PythonPathContext.',
         ]
         if len(sys.path) <= self.index:  # nocover
             msg_parts.append(
                 'len(sys.path) = {!r} but index is {!r}'.format(
                     len(sys.path), self.index))
-            raise AssertionError('\n'.join(msg_parts))
+            raise RuntimeError('\n'.join(msg_parts))
 
         if sys.path[self.index] != self.dpath:  # nocover
-            msg_parts.append(
-                'Expected {!r} at index {!r} but got {!r}'.format(
-                    self.dpath, self.index, sys.path[self.index]
-                ))
+            msg_parts.append((
+                'Expected dpath={!r} at index={!r} in sys.path, '
+                'but got dpath={!r}'
+            ).format(
+                self.dpath, self.index, sys.path[self.index]
+            ))
             try:
                 real_index = sys.path.index(self.dpath)
-                msg_parts.append('Expected dpath was at index {}'.format(real_index))
-                msg_parts.append('This could indicate conflicting module namespaces')
+                msg_parts.append((
+                    'Expected dpath was at index {}. '
+                    'This could indicate conflicting module namespaces.'
+                ).format(real_index))
             except IndexError:
                 msg_parts.append('Expected dpath was not in sys.path')
-            raise AssertionError('\n'.join(msg_parts))
+            raise RuntimeError('\n'.join(msg_parts))
         sys.path.pop(self.index)
 
 
@@ -107,10 +111,16 @@ def _custom_import_modpath(modpath, index=-1):
     try:
         with PythonPathContext(dpath, index=index):
             module = import_module_from_name(modname)
-    except Exception:  # nocover
-        print('Failed to import modname={} with modpath={}'.format(
-            modname, modpath))
-        raise
+    except Exception as ex:  # nocover
+        msg_parts = [
+            'ERROR: Failed to import modname={} with modpath={}'.format(
+                modname, modpath)
+        ]
+        msg_parts.append('Caused by: {}'.format(str(ex)))
+        raise RuntimeError('\n'.join(msg_parts))
+        # print('ERROR: Failed to import modname={} with modpath={}'.format(
+        #     modname, modpath))
+        # raise
     return module
 
 
