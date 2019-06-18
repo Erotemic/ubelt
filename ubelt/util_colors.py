@@ -28,7 +28,7 @@ def highlight_code(text, lexer_name='python', **kwargs):
 
     Args:
         text (str): plain text to highlight
-        lexer_name (str): name of language
+        lexer_name (str): name of language. eg: python, docker, c++
         **kwargs: passed to pygments.lexers.get_lexer_by_name
 
     Returns:
@@ -37,6 +37,7 @@ def highlight_code(text, lexer_name='python', **kwargs):
 
     CommandLine:
         python -c "import pygments.formatters; print(list(pygments.formatters.get_all_formatters()))"
+        python -c "import pygments.lexers, ubelt; print(ubelt.repr2(pygments.lexers.__all__, nl=2))"
 
     Example:
         >>> import ubelt as ub
