@@ -65,6 +65,9 @@ def augpath(path, suffix='', prefix='', ext=None, base=None, multidot=False):
     CommandLine:
         python -m ubelt.util_path augpath
 
+    TODO:
+        - [ ] Should there be an option to change the dpath/dirname?
+
     Example:
         >>> import ubelt as ub
         >>> path = 'foo.bar'
