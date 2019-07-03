@@ -176,7 +176,8 @@ def iterable(obj, strok=False):
     Args:
         obj (object): a scalar or iterable input
 
-        strok (bool): if True allow strings to be interpreted as iterable
+        strok (bool, default=False):
+            if True allow strings to be interpreted as iterable
 
     Returns:
         bool: True if the input is iterable
