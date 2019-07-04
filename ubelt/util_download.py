@@ -70,6 +70,9 @@ def download(url, fpath=None, hash_prefix=None, hasher='sha512',
         .. [3] http://stackoverflow.com/questions/16694907/how-to-download-large-file-in-python-with-requests-py
         .. [4] https://github.com/pytorch/pytorch/blob/2787f1d8edbd4aadd4a8680d204341a1d7112e2d/torch/hub.py#L347
 
+    TODO:
+        - [ ] fine-grained control of progress
+
     CommandLine:
         python -m xdoctest ubelt.util_download download:1
 
