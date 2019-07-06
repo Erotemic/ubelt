@@ -12,27 +12,6 @@ convert between module names and file paths on disk.
 
 The `ub.split_modpath` function separates modules into a root and base path
 depending on where the first `__init__.py` file is.
-
-Partial Autogenerate:
-    import netharn as nh
-    closer = nh.export.closer.Closer()
-    from xdoctest import static_analysis as static
-    from xdoctest import utils
-
-    closer.add_dynamic(static.split_modpath)
-    closer.add_dynamic(static.modpath_to_modname)
-    closer.add_dynamic(static.modname_to_modpath)
-    closer.add_dynamic(utils.import_module_from_name)
-    closer.add_dynamic(utils.import_module_from_path)
-
-    closer.expand(['xdoctest'])
-    text = closer.current_sourcecode()
-    print(text)
-
-    text = text.replace('    from xdoctest.static_analysis import split_modpath, modpath_to_modname\n', '')
-
-    fpath = ub.expandpath('~/code/ubelt/ubelt/_autogen_util_import.py')
-    open(fpath, 'w').write(text + '\n')
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 from os.path import (abspath, exists, expanduser, isdir, join, split, dirname,
@@ -103,25 +82,6 @@ class PythonPathContext(object):
                 msg_parts.append('Expected dpath was not in sys.path')
             raise RuntimeError('\n'.join(msg_parts))
         sys.path.pop(self.index)
-
-
-def _custom_import_modpath(modpath, index=-1):
-    dpath, rel_modpath = split_modpath(modpath)
-    modname = modpath_to_modname(modpath)
-    try:
-        with PythonPathContext(dpath, index=index):
-            module = import_module_from_name(modname)
-    except Exception as ex:  # nocover
-        msg_parts = [
-            'ERROR: Failed to import modname={} with modpath={}'.format(
-                modname, modpath)
-        ]
-        msg_parts.append('Caused by: {}'.format(str(ex)))
-        raise RuntimeError('\n'.join(msg_parts))
-        # print('ERROR: Failed to import modname={} with modpath={}'.format(
-        #     modname, modpath))
-        # raise
-    return module
 
 
 def import_module_from_path(modpath, index=-1):
@@ -232,7 +192,7 @@ def import_module_from_path(modpath, index=-1):
         # the importlib version doesnt work in pytest
         module = _custom_import_modpath(modpath, index=index)
         # TODO: use this implementation once pytest fixes importlib
-        # module = _pkgutil_import_modpath(modpath)
+        # module = _importlib_import_modpath(modpath)
         return module
 
 
@@ -333,9 +293,6 @@ def _syspath_modname_to_modpath(modname, sys_path=None, exclude=None):
     Notes:
         This is much slower than the pkgutil mechanisms.
 
-    CommandLine:
-        python -m xdoctest.static_analysis _syspath_modname_to_modpath
-
     Example:
         >>> print(_syspath_modname_to_modpath('xdoctest.static_analysis'))
         ...static_analysis.py
@@ -409,6 +366,70 @@ def _syspath_modname_to_modpath(modname, sys_path=None, exclude=None):
                     return modpath
 
 
+def _custom_import_modpath(modpath, index=-1):
+    dpath, rel_modpath = split_modpath(modpath)
+    modname = modpath_to_modname(modpath)
+    try:
+        with PythonPathContext(dpath, index=index):
+            module = import_module_from_name(modname)
+    except Exception as ex:  # nocover
+        msg_parts = [
+            'ERROR: Failed to import modname={} with modpath={}'.format(
+                modname, modpath)
+        ]
+        msg_parts.append('Caused by: {}'.format(str(ex)))
+        raise RuntimeError('\n'.join(msg_parts))
+        # print('ERROR: Failed to import modname={} with modpath={}'.format(
+        #     modname, modpath))
+        # raise
+    return module
+
+
+def _importlib_import_modpath(modpath):  # nocover
+    """
+    Alternative to import_module_from_path using importlib mechainsms
+    """
+    dpath, rel_modpath = split_modpath(modpath)
+    modname = modpath_to_modname(modpath)
+    if six.PY2:  # nocover
+        import imp
+        module = imp.load_source(modname, modpath)
+    elif sys.version_info[0:2] <= (3, 4):  # nocover
+        assert sys.version_info[0:2] <= (3, 2), '3.0 to 3.2 is not supported'
+        from importlib.machinery import SourceFileLoader
+        module = SourceFileLoader(modname, modpath).load_module()
+    else:
+        import importlib.util
+        spec = importlib.util.spec_from_file_location(modname, modpath)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+    return module
+
+
+def _pkgutil_modname_to_modpath(modname):  # nocover
+    """
+    faster version of `_syspath_modname_to_modpath` using builtin python
+    mechanisms, but unfortunately it doesn't play nice with pytest.
+
+    Example:
+        >>> # xdoctest: +SKIP
+        >>> modname = 'xdoctest.static_analysis'
+        >>> _pkgutil_modname_to_modpath(modname)
+        ...static_analysis.py
+        >>> _pkgutil_modname_to_modpath('_ctypes')
+        ..._ctypes...
+
+    Ignore:
+        >>> _pkgutil_modname_to_modpath('cv2')
+    """
+    import pkgutil
+    loader = pkgutil.find_loader(modname)
+    if loader is None:
+        raise Exception('No module named {} in the PYTHONPATH'.format(modname))
+    modpath = loader.get_filename().replace('.pyc', '.py')
+    return modpath
+
+
 def modname_to_modpath(modname, hide_init=True, hide_main=False, sys_path=None):
     """
     Finds the path to a python module from its name.
@@ -424,14 +445,10 @@ def modname_to_modpath(modname, hide_init=True, hide_main=False, sys_path=None):
         hide_init (bool): if False, __init__.py will be returned for packages
         hide_main (bool): if False, and hide_init is True, __main__.py will be
             returned for packages, if it exists.
-        sys_path (list): if specified overrides `sys.path` (default None)
+        sys_path (list, default=None): if specified overrides `sys.path`
 
     Returns:
         str: modpath - path to the module, or None if it doesn't exist
-
-    CommandLine:
-        python -m xdoctest.static_analysis modname_to_modpath:0
-        pytest  /home/joncrall/code/xdoctest/xdoctest/static_analysis.py::modname_to_modpath:0
 
     Example:
         >>> modname = 'xdoctest.__main__'
@@ -456,27 +473,28 @@ def normalize_modpath(modpath, hide_init=True, hide_main=False):
     """
     Normalizes __init__ and __main__ paths.
 
+    Args:
+        modpath (PathLike): path to a module
+        hide_init (bool, default=True): if True, always return package modules
+           as __init__.py files otherwise always return the dpath.
+        hide_main (bool, default=False): if True, always strip away main files
+            otherwise ignore __main__.py.
+
+    Returns:
+        PathLike: a normalized path to the module
+
     Notes:
         Adds __init__ if reasonable, but only removes __main__ by default
 
-    Args:
-        hide_init (bool): if True, always return package modules
-           as __init__.py files otherwise always return the dpath.
-        hide_init (bool): if True, always strip away main files otherwise
-           ignore __main__.py.
-
-    CommandLine:
-        xdoctest -m xdoctest.static_analysis normalize_modpath
-
     Example:
-        >>> from ubelt import util_import as module
+        >>> from xdoctest import static_analysis as module
         >>> modpath = module.__file__
-        >>> assert module.normalize_modpath(modpath) == modpath.replace('.pyc', '.py')
+        >>> assert normalize_modpath(modpath) == modpath.replace('.pyc', '.py')
         >>> dpath = dirname(modpath)
-        >>> res0 = module.normalize_modpath(dpath, hide_init=0, hide_main=0)
-        >>> res1 = module.normalize_modpath(dpath, hide_init=0, hide_main=1)
-        >>> res2 = module.normalize_modpath(dpath, hide_init=1, hide_main=0)
-        >>> res3 = module.normalize_modpath(dpath, hide_init=1, hide_main=1)
+        >>> res0 = normalize_modpath(dpath, hide_init=0, hide_main=0)
+        >>> res1 = normalize_modpath(dpath, hide_init=0, hide_main=1)
+        >>> res2 = normalize_modpath(dpath, hide_init=1, hide_main=0)
+        >>> res3 = normalize_modpath(dpath, hide_init=1, hide_main=1)
         >>> assert res0.endswith('__init__.py')
         >>> assert res1.endswith('__init__.py')
         >>> assert not res2.endswith('.py')
@@ -518,21 +536,18 @@ def modpath_to_modname(modpath, hide_init=True, hide_main=False, check=True,
 
     Args:
         modpath (str): module filepath
-        hide_init (bool): removes the __init__ suffix (default True)
-        hide_main (bool): removes the __main__ suffix (default False)
-        check (bool): if False, does not raise an error if modpath is a dir
-            and does not contain an __init__ file.
-        relativeto (str, optional): if specified, all checks are ignored and
-            this is considered the path to the root module.
+        hide_init (bool, default=True): removes the __init__ suffix
+        hide_main (bool, default=False): removes the __main__ suffix
+        check (bool, default=True): if False, does not raise an error if
+            modpath is a dir and does not contain an __init__ file.
+        relativeto (str, default=None): if specified, all checks are ignored
+            and this is considered the path to the root module.
 
     Returns:
         str: modname
 
     Raises:
         ValueError: if check is True and the path does not exist
-
-    CommandLine:
-        xdoctest -m xdoctest.static_analysis modpath_to_modname
 
     Example:
         >>> from xdoctest import static_analysis
@@ -550,6 +565,11 @@ def modpath_to_modname(modpath, hide_init=True, hide_main=False, check=True,
         >>> modpath = modname_to_modpath('_ctypes')
         >>> modname = modpath_to_modname(modpath)
         >>> assert modname == '_ctypes'
+
+    Example:
+        >>> modpath = '/foo/libfoobar.linux-x86_64-3.6.so'
+        >>> modname = modpath_to_modname(modpath, check=False)
+        >>> assert modname == 'libfoobar'
     """
     if check and relativeto is None:
         if not exists(modpath):
@@ -566,7 +586,7 @@ def modpath_to_modname(modpath, hide_init=True, hide_main=False, check=True,
 
     modname = splitext(rel_modpath)[0]
     if '.' in modname:
-        modname, abi_tag = modname.split('.')
+        modname, abi_tag = modname.split('.', 1)
     modname = modname.replace('/', '.')
     modname = modname.replace('\\', '.')
     return modname
@@ -619,3 +639,30 @@ def split_modpath(modpath, check=True):
     relmod_parts = _relmod_parts[::-1]
     rel_modpath = os.path.sep.join(relmod_parts)
     return dpath, rel_modpath
+
+
+def is_modname_importable(modname, sys_path=None, exclude=None):
+    """
+    Determines if a modname is importable based on your current sys.path
+
+    Args:
+        modname (str): name of module to check
+        sys_path (list, default=None): if specified overrides `sys.path`
+        exclude (list): list of directory paths. if specified prevents these
+            directories from being searched.
+
+    Returns:
+        bool: True if the module can be imported
+
+    Example:
+        >>> is_modname_importable('xdoctest')
+        True
+        >>> is_modname_importable('not_a_real_module')
+        False
+        >>> is_modname_importable('xdoctest', sys_path=[])
+        False
+    """
+    modpath = _syspath_modname_to_modpath(modname, sys_path=sys_path,
+                                          exclude=exclude)
+    flag = bool(modpath is not None)
+    return flag
