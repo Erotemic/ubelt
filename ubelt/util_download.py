@@ -27,7 +27,12 @@ __all__ = ['download', 'grabdata']
 def download(url, fpath=None, hash_prefix=None, hasher='sha512',
              chunksize=8192, verbose=1):
     """
-    downloads a url to a fpath.
+    Downloads a url to a file on disk.
+
+    If unspecified the location and name of the file is chosen automatically.
+    A hash_prefix can be specified to verify the integrity of the downloaded
+    data. This function will download the data every time its called. For
+    cached downloading see `grabdata`.
 
     Args:
         url (str):
@@ -39,22 +44,22 @@ def download(url, fpath=None, hash_prefix=None, hasher='sha512',
             is directly written to this object (note this prevents the use of
             temporary files).
 
-        hash_prefix (None or str):
+        hash_prefix (None | str):
             If specified, download will retry / error if the file hash
             does not match this value. Defaults to None.
 
-        hasher (str or Hasher):
+        hasher (str | Hasher):
             If hash_prefix is specified, this indicates the hashing
             algorithm to apply to the file. Defaults to sha512.
 
-        chunksize (int):
-            Download chunksize. Defaults to 2 ** 13.
+        chunksize (int, default=2 ** 13):
+            Download chunksize.
 
-        verbose (int):
-            Verbosity level 0 or 1. Defaults to 1.
+        verbose (int, default=1):
+            Verbosity level 0 or 1.
 
     Returns:
-        PathLike: fpath - file path string
+        PathLike: fpath - path to the downloaded file.
 
     Raises:
         URLError - if there is problem downloading the url
@@ -72,9 +77,6 @@ def download(url, fpath=None, hash_prefix=None, hasher='sha512',
 
     TODO:
         - [ ] fine-grained control of progress
-
-    CommandLine:
-        python -m xdoctest ubelt.util_download download:1
 
     Example:
         >>> # xdoctest: +REQUIRES(--network)
@@ -226,6 +228,10 @@ def grabdata(url, fpath=None, dpath=None, fname=None, redo=False,
     """
     Downloads a file, caches it, and returns its local path.
 
+    If unspecified the location and name of the file is chosen automatically.
+    A hash_prefix can be specified to verify the integrity of the downloaded
+    data.
+
     Args:
         url (str): url to the file to download
 
@@ -239,26 +245,26 @@ def grabdata(url, fpath=None, dpath=None, fname=None, redo=False,
         fname (str): What to name the downloaded file. Defaults to the url
             basename. Mutually exclusive with fpath.
 
-        redo (bool): if True forces redownload of the file (default = False)
+        redo (bool, default=False): if True forces redownload of the file
 
-        verbose (bool):  verbosity flag (default = True)
+        verbose (bool, default=True):  verbosity flag
 
         appname (str): set dpath to `ub.get_app_cache_dir(appname)`.
             Mutually exclusive with dpath and fpath.
 
-        hash_prefix (None or str):
+        hash_prefix (None | str):
             If specified, grabdata verifies that this matches the hash of the
             file, and then saves the hash in a adjacent file to certify that
             the download was successful. Defaults to None.
 
-        hasher (str or Hasher):
+        hasher (str | Hasher):
             If hash_prefix is specified, this indicates the hashing
             algorithm to apply to the file. Defaults to sha512.
 
         **download_kw: additional kwargs to pass to ub.download
 
     Returns:
-        PathLike: fpath - file path string
+        PathLike: fpath - path to downloaded or cached file.
 
     Example:
         >>> # xdoctest: +REQUIRES(--network)

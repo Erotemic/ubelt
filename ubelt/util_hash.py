@@ -259,10 +259,16 @@ def _rectify_hashlen(hashlen):
         >>> assert _rectify_hashlen(NoParam) is DEFAULT_HASHLEN
         >>> assert _rectify_hashlen(8) == 8
     """
-    if hashlen is NoParam or hashlen == 'default':
+    if hashlen is NoParam:
         return DEFAULT_HASHLEN
     else:
-        return hashlen
+        import warnings
+        warnings.warn('Specifying hashlen is depricated. '
+                      'Use slice syntax instead', DeprecationWarning)
+        if hashlen == 'default':
+            return DEFAULT_HASHLEN
+        else:
+            return hashlen
 
 
 class HashableExtensions(object):
@@ -288,7 +294,7 @@ class HashableExtensions(object):
         hashed.
 
         Args:
-            hash_types (class or tuple of classes):
+            hash_types (type | Tuple[type]):
 
         Returns:
             func: closure to be used as the decorator
@@ -396,6 +402,16 @@ class HashableExtensions(object):
         try:
             hash_type, hash_func = self.keyed_extensions[key]
         except KeyError:
+            if issubclass(query_hash_type, dict):
+                # TODO: In Python 3.7+ dicts are ordered by default, so
+                # perhaps we should allow hashing them by default
+                import warnings
+                warnings.warn(
+                    'It looks like you are trying to hash an unordered dict. '
+                    'By default this is not allowed, but if you REALLY need '
+                    'to do this, then call '
+                    'ubelt.util_hash._HASHABLE_EXTENSIONS._register_agressive_extensions() '
+                    'beforehand')
             raise TypeError(
                 'No registered hash func for hashable type={!r}'.format(
                     query_hash_type))
@@ -585,7 +601,7 @@ def _convert_to_hashable(data, types=True, extensions=None):
         types (bool): include type prefixes in the hash
 
     Returns:
-        tuple(bytes, bytes): prefix, hashable:
+        Tuple[bytes, bytes]: prefix, hashable:
             a prefix hinting the original data type and the byte representation
             of `data`.
 
@@ -790,7 +806,7 @@ def hash_data(data, hasher=NoParam, base=NoParam, types=False,
             Maximum number of symbols in the returned hash. If not specified,
             all are returned.  DEPRECATED. Use slice syntax instead.
 
-        convert (bool, optional, default=True):
+        convert (bool, default=True):
             if True, try and convert the data to json an the json is hashed
             instead. This can improve runtime in some instances, however the
             hash may differ from the case where convert=False.
