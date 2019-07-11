@@ -99,7 +99,7 @@ def augpath(path, suffix='', prefix='', ext=None, base=None, dpath=None,
     orig_dpath, fname = split(path)
     if multidot:
         # The first dot defines the extension
-        parts = fname.split('.', maxsplit=1)
+        parts = fname.rsplit('.', 1)
         orig_base = parts[0]
         orig_ext = '' if len(parts) == 1 else '.' + parts[1]
     else:
