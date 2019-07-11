@@ -57,9 +57,9 @@ def augpath(path, suffix='', prefix='', ext=None, base=None, dpath=None,
         path (PathLike): a path to augment
         suffix (str, default=''): placed between the basename and extension
         prefix (str, default=''): placed in front of the basename
-        ext (str): if specified, replaces the extension
-        base (str): if specified, replaces the basename (without extension)
-        dpath (PathLike): if specified, replaces the directory
+        ext (str, optional): if specified, replaces the extension
+        base (str, optional): if specified, replaces the basename without extension
+        dpath (PathLike, optional): if specified, replaces the directory
         multidot (bool, default=False): if False, everything after the last dot
             in the basename is the extension. If True, everything after the first
             dot in the basename is the extension.
@@ -183,9 +183,6 @@ def compressuser(path, home='~'):
     Returns:
         PathLike: path: shortened path replacing the home directory with a tilde
 
-    CommandLine:
-        xdoctest -m ubelt.util_path compressuser
-
     Example:
         >>> path = expanduser('~')
         >>> assert path != '~'
@@ -246,9 +243,6 @@ def truepath(path, real=False):
 
         On windows expanduser will expand environment variables formatted as
         %name%, whereas on unix, this will not occur.
-
-    CommandLine:
-        python -m ubelt.util_path truepath
 
     Example:
         >>> import ubelt as ub
