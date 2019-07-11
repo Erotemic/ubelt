@@ -41,32 +41,31 @@ __all__ = [
 ]
 
 
-def augpath(path, suffix='', prefix='', ext=None, base=None, multidot=False):
+def augpath(path, suffix='', prefix='', ext=None, base=None, dpath=None,
+            multidot=False):
     """
-    Augments a path with a new basename, extension, prefix and/or suffix.
+    Create a new path with a different extension, basename, directory, prefix,
+    and/or suffix.
 
     A prefix is inserted before the basename. A suffix is inserted
     between the basename and the extension. The basename and extension can be
-    replaced with a new one.
+    replaced with a new one. Essentially a path is broken down into components
+    (dpath, base, ext), and then recombined as (dpath, prefix, base, suffix,
+    ext) after replacing any specified component.
 
     Args:
-        path (PathLike): string representation of a path
-        suffix (str): placed between the basename and extension
-        prefix (str): placed in front of the basename
+        path (PathLike): a path to augment
+        suffix (str, default=''): placed between the basename and extension
+        prefix (str, default=''): placed in front of the basename
         ext (str): if specified, replaces the extension
         base (str): if specified, replaces the basename (without extension)
-        multidot (bool): if False, everything after the last dot in the
-            basename is the extension. If True, everything after the first dot
-            in the basename is the extension (Defaults to False).
+        dpath (PathLike): if specified, replaces the directory
+        multidot (bool, default=False): if False, everything after the last dot
+            in the basename is the extension. If True, everything after the first
+            dot in the basename is the extension.
 
     Returns:
         PathLike: augmented path
-
-    CommandLine:
-        python -m ubelt.util_path augpath
-
-    TODO:
-        - [ ] Should there be an option to change the dpath/dirname?
 
     Example:
         >>> import ubelt as ub
@@ -93,19 +92,28 @@ def augpath(path, suffix='', prefix='', ext=None, base=None, multidot=False):
         foo.zip
         >>> augpath('foo.tar.gz', ext='.zip', multidot=False)
         foo.tar.zip
+        >>> augpath('foo.tar.gz', suffix='_new', multidot=True)
+        foo_new.tar.gz
     """
     # Breakup path
-    dpath, fname = split(path)
+    orig_dpath, fname = split(path)
     if multidot:
-        parts = fname.split('.')
-        fname_noext = '.'.join(parts[:1])
-        orig_ext = '.'.join(parts[1:])
+        # The first dot defines the extension
+        parts = fname.split('.', maxsplit=1)
+        orig_base = parts[0]
+        orig_ext = '' if len(parts) == 1 else '.' + parts[1]
     else:
-        fname_noext, orig_ext = splitext(fname)
-    ext = orig_ext if ext is None else ext
-    fname_noext = fname_noext if base is None else base
-    # Augment and recombine into new path
-    new_fname = ''.join((prefix, fname_noext, suffix, ext))
+        # The last dot defines the extension
+        orig_base, orig_ext = splitext(fname)
+    # Replace parts with specified augmentations
+    if dpath is None:
+        dpath = orig_dpath
+    if ext is None:
+        ext = orig_ext
+    if base is None:
+        base = orig_base
+    # Recombine into new path
+    new_fname = ''.join((prefix, base, suffix, ext))
     newpath = join(dpath, new_fname)
     return newpath
 

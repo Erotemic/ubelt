@@ -402,16 +402,16 @@ class HashableExtensions(object):
         try:
             hash_type, hash_func = self.keyed_extensions[key]
         except KeyError:
-            if issubclass(query_hash_type, dict):
-                # TODO: In Python 3.7+ dicts are ordered by default, so
-                # perhaps we should allow hashing them by default
-                import warnings
-                warnings.warn(
-                    'It looks like you are trying to hash an unordered dict. '
-                    'By default this is not allowed, but if you REALLY need '
-                    'to do this, then call '
-                    'ubelt.util_hash._HASHABLE_EXTENSIONS._register_agressive_extensions() '
-                    'beforehand')
+            # if issubclass(query_hash_type, dict):
+            #     # TODO: In Python 3.7+ dicts are ordered by default, so
+            #     # perhaps we should allow hashing them by default
+            #     import warnings
+            #     warnings.warn(
+            #         'It looks like you are trying to hash an unordered dict. '
+            #         'By default this is not allowed, but if you REALLY need '
+            #         'to do this, then call '
+            #         'ubelt.util_hash._HASHABLE_EXTENSIONS._register_agressive_extensions() '
+            #         'beforehand')
             raise TypeError(
                 'No registered hash func for hashable type={!r}'.format(
                     query_hash_type))
