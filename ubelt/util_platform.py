@@ -4,7 +4,8 @@ The goal of this module is to provide an idomatic cross-platform pattern of
 accessing platform dependant file systems.
 
 Standard application directory structure: cache, config, and other XDG
-standards [1].
+standards [1]. This is similar to the more focused `appdirs` module [5]. In the
+future ubelt may directly use `appdirs`.
 
 Notes:
     Table mapping the type of directory to the system default environment variable.
@@ -25,10 +26,11 @@ Notes:
         XDG_CONFIG_HOME = ~/.config
 
 References:
-    ..[1] https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html
-    ..[2] https://stackoverflow.com/questions/43853548/xdg-windows
-    ..[3] https://stackoverflow.com/questions/11113974/cross-plat-path
-    ..[4] https://github.com/harawata/appdirs#supported-directories
+    .. [1] https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html
+    .. [2] https://stackoverflow.com/questions/43853548/xdg-windows
+    .. [3] https://stackoverflow.com/questions/11113974/cross-plat-path
+    .. [4] https://github.com/harawata/appdirs#supported-directories
+    .. [5] https://github.com/ActiveState/appdirs
 
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
