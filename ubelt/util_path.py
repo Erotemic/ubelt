@@ -260,7 +260,7 @@ def truepath(path, real=False):
     return path
 
 
-def ensuredir(dpath, mode=0o1777, verbose=None):
+def ensuredir(dpath, mode=0o1777, verbose=None, recreate=False):
     r"""
     Ensures that directory will exist. Creates new dir with sticky bits by
     default
@@ -269,6 +269,9 @@ def ensuredir(dpath, mode=0o1777, verbose=None):
         dpath (PathLike): dir to ensure. Can also be a tuple to send to join
         mode (int): octal mode of directory (default 0o1777)
         verbose (int): verbosity (default 0)
+        recreate (bool, default=False): if True removes the directory and
+            all of its contents and creates a fresh new directory.
+            USE CAREFULLY.
 
     Returns:
         PathLike: path: the ensured directory
@@ -292,6 +295,10 @@ def ensuredir(dpath, mode=0o1777, verbose=None):
         verbose = 0
     if isinstance(dpath, (list, tuple)):  # nocover
         dpath = join(*dpath)
+
+    if recreate:
+        delete(dpath, verbose=verbose)
+
     if not exists(dpath):
         if verbose:  # nocover
             print('Ensuring new directory (%r)' % dpath)
