@@ -8,6 +8,8 @@ standards [1]. This is similar to the more focused `appdirs` module [5]. In the
 future ubelt may directly use `appdirs`.
 
 Notes:
+    # TODO: make this table look nice on read-the-docs
+
     Table mapping the type of directory to the system default environment variable.
     Inspired by [2,3,4].
 
