@@ -74,6 +74,10 @@ Example:
     >>>     # that signals the process has been done.
     >>>     self.renew()
     >>> assert not self.expired()
+
+
+Related Libraries:
+    https://github.com/grantjenks/python-diskcache
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import os
@@ -539,18 +543,25 @@ class CacheStamp(object):
 
         product (PathLike or Sequence[PathLike], optional):
             Path or paths that we expect the computation to produce. If
-            specified the hash of the paths are stored.
+            specified, details of the file like the hash or modification times
+            are stored and used to verify the validity of the file.
 
         hasher (str, default='sha1'):
             The type of hasher used to compute the file hash of product.
             If None, then we assume the file has not been corrupted or changed.
-            Defaults to sha1.
 
         verbose (bool, default=None):
-            Passed to internal ub.Cacher object
+            Passed to internal `ubelt.Cacher` object
 
         enabled (bool, default=True):
             if False, expired always returns True
+
+        product_checks (List[str], default=['mtime']):
+            list of codes indicating what checks will be done to verify the
+            validity of the products.
+            Valid choices are:
+                'hash': slow, but safe.
+                'mtime': which checks modification time.
 
     Example:
         >>> import ubelt as ub
@@ -579,10 +590,11 @@ class CacheStamp(object):
         >>> assert self.expired()
     """
     def __init__(self, fname, dpath, cfgstr=None, product=None, hasher='sha1',
-                 verbose=None, enabled=True):
+                 verbose=None, enabled=True, product_checks=['mtime']):
         self.cacher = Cacher(fname, cfgstr=cfgstr, dpath=dpath,
                              verbose=verbose, enabled=enabled)
         self.product = product
+        self.product_checks = product_checks
         self.hasher = hasher
 
     def _get_certificate(self, cfgstr=None):
@@ -603,7 +615,7 @@ class CacheStamp(object):
 
     def _product_file_hash(self, product=None):
         """
-        Get the hash of the each product file
+        Get the hash of each product file
         """
         if self.hasher is None:
             return None
@@ -615,6 +627,14 @@ class CacheStamp(object):
                 for p in products
             ]
             return product_file_hash
+
+    def _product_file_modified_times(self, product=None):
+        """
+        Get the modified times of each product file
+        """
+        products = self._rectify_products(product)
+        product_modified_times = [os.stat(p).st_mtime for p in products]
+        return product_modified_times
 
     def expired(self, cfgstr=None, product=None):
         """
@@ -646,9 +666,29 @@ class CacheStamp(object):
         else:
             # We are expired if the hash of the existing product data
             # does not match the expected hash in the certificate
-            product_file_hash = self._product_file_hash(products)
-            certificate_hash = certificate.get('product_file_hash', None)
-            is_expired = product_file_hash != certificate_hash
+
+            # TODO: checking the product hash can be expensive.
+            # A better check will be to remember the modified date and then
+            # check against that.
+
+            is_expired = False
+
+            if 'hash' in self.product_checks:
+                product_file_hash = self._product_file_hash(products)
+                certificate_hash = certificate.get('product_file_hash', None)
+                if product_file_hash != certificate_hash:
+                    is_expired |= True
+
+            if 'mtime' in self.product_checks:
+                product_mod_times = self._product_file_modified_times(products)
+                certificate_mod_times = certificate.get('product_modified_times', None)
+                if product_mod_times is not None:
+                    product_mod_times = max(product_mod_times)
+                if certificate_mod_times is not None:
+                    certificate_mod_times = max(certificate_mod_times)
+                if product_mod_times != certificate_mod_times:
+                    is_expired |= True
+
         return is_expired
 
     def renew(self, cfgstr=None, product=None):
@@ -669,6 +709,12 @@ class CacheStamp(object):
             if not all(map(exists, products)):
                 raise IOError(
                     'The stamped product must exist: {}'.format(products))
-            certificate['product_file_hash'] = self._product_file_hash(products)
+
+            if 'hash' in self.product_checks:
+                certificate['product_file_hash'] = self._product_file_hash(products)
+
+            if 'mtime' in self.product_checks:
+                certificate['product_file_modified_times'] = self._product_file_modified_times(products)
+
         self.cacher.save(certificate, cfgstr=cfgstr)
         return certificate
