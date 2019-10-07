@@ -1,17 +1,18 @@
 # -*- coding: utf-8 -*-
 """
-The goal of this module is to provide an idomatic cross-platform pattern of
-accessing platform dependant file systems.
+The goal of this module is to provide an idiomatic cross-platform pattern of
+accessing platform dependent file systems.
 
 Standard application directory structure: cache, config, and other XDG
-standards [1]. This is similar to the more focused `appdirs` module [5]. In the
-future ubelt may directly use `appdirs`.
+standards [1]_. This is similar to the more focused `appdirs` module [5]_. In
+the future ubelt may directly use `appdirs`.
 
 Notes:
-    # TODO: make this table look nice on read-the-docs
+    Table mapping the type of directory to the system default environment
+    variable.  Inspired by [2]_, [3]_, and [4]_.
 
-    Table mapping the type of directory to the system default environment variable.
-    Inspired by [2,3,4].
+
+.. code-block:: none
 
            | Linux            | Win32          |   Darwin
     data   | $XDG_DATA_HOME   | %APPDATA%      | ~/Library/Application Support
@@ -33,7 +34,6 @@ References:
     .. [3] https://stackoverflow.com/questions/11113974/cross-plat-path
     .. [4] https://github.com/harawata/appdirs#supported-directories
     .. [5] https://github.com/ActiveState/appdirs
-
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import os
