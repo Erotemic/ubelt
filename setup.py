@@ -10,36 +10,20 @@ Developing:
 """
 from setuptools import setup
 import sys
-from os.path import dirname
+from os.path import dirname, exists
 
 
 repodir = dirname(__file__)
 
 
-def parse_version(package):
+def parse_version(fpath):
     """
-    Statically parse the version number from __init__.py
-
-    CommandLine:
-        python -c "import setup; print(setup.parse_version('ubelt'))"
+    Statically parse the version number from a python file
     """
-    from os.path import dirname, join, exists
     import ast
-
-    # Check if the package is a single-file or multi-file package
-    _candiates = [
-        join(dirname(__file__), package + '.py'),
-        join(dirname(__file__), package, '__init__.py'),
-    ]
-    _found = [init_fpath for init_fpath in _candiates if exists(init_fpath)]
-    if len(_found) > 0:
-        init_fpath = _found[0]
-    elif len(_found) > 1:
-        raise Exception('parse_version found multiple init files')
-    elif len(_found) == 0:
-        raise Exception('Cannot find package init file')
-
-    with open(init_fpath, 'r') as file_:
+    if not exists(fpath):
+        raise ValueError('fpath={!r} does not exist'.format(fpath))
+    with open(fpath, 'r') as file_:
         sourcecode = file_.read()
     pt = ast.parse(sourcecode)
     class VersionVisitor(ast.NodeVisitor):
@@ -157,7 +141,7 @@ def parse_requirements(fname='requirements.txt'):
     return packages
 
 
-version = parse_version('ubelt')  # needs to be a global var for git tags
+version = parse_version('ubelt/__init__.py')  # must be global for git tags
 
 if __name__ == '__main__':
     setup(
