@@ -37,7 +37,7 @@ AutogenInit:
 #     * rsync
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-__version__ = '0.8.2'
+__version__ = '0.8.3'
 
 __submodules__ = [
     'util_arg',
