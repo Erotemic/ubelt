@@ -291,9 +291,9 @@ def ensuredir(dpath, mode=0o1777, verbose=None, recreate=False):
         >>> assert exists(dpath)
         >>> os.rmdir(dpath)
     """
-    if verbose is None:  # nocover
+    if verbose is None:
         verbose = 0
-    if isinstance(dpath, (list, tuple)):  # nocover
+    if isinstance(dpath, (list, tuple)):
         dpath = join(*dpath)
 
     if recreate:
@@ -301,15 +301,15 @@ def ensuredir(dpath, mode=0o1777, verbose=None, recreate=False):
         ub.delete(dpath, verbose=verbose)
 
     if not exists(dpath):
-        if verbose:  # nocover
-            print('Ensuring new directory (%r)' % dpath)
+        if verbose:
+            print('Ensuring directory (creating {!r})'.format(dpath))
         if sys.version_info.major == 2:  # nocover
             os.makedirs(normpath(dpath), mode=mode)
         else:
             os.makedirs(normpath(dpath), mode=mode, exist_ok=True)
     else:
-        if verbose:  # nocover
-            print('Ensuring existing directory (%r)' % dpath)
+        if verbose:
+            print('Ensuring directory (existing {!r})'.format(dpath))
     return dpath
 
 

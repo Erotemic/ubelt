@@ -55,8 +55,31 @@ def test_augpath_dpath():
 
 
 def test_ensuredir_recreate():
-    ub.ensuredir('foo', recreate=True)
-    ub.ensuredir('foo/bar')
-    assert exists('foo/bar')
-    ub.ensuredir('foo', recreate=True)
-    assert not exists('foo/bar')
+    base = ub.ensure_app_cache_dir('ubelt/tests')
+    folder = join(base, 'foo')
+    member = join(folder, 'bar')
+    ub.ensuredir(folder, recreate=True)
+    ub.ensuredir(member)
+    assert exists(member)
+    ub.ensuredir(folder, recreate=True)
+    assert not exists(member)
+
+
+def test_ensuredir_verbosity():
+    base = ub.ensure_app_cache_dir('ubelt/tests')
+
+    with ub.CaptureStdout() as cap:
+        ub.ensuredir(join(base, 'foo'), verbose=0)
+    assert cap.text == ''
+    # None defaults to verbose=0
+    with ub.CaptureStdout() as cap:
+        ub.ensuredir((base, 'foo'), verbose=None)
+    assert cap.text == ''
+
+    ub.delete(join(base, 'foo'))
+    with ub.CaptureStdout() as cap:
+        ub.ensuredir(join(base, 'foo'), verbose=1)
+    assert 'creating' in cap.text
+    with ub.CaptureStdout() as cap:
+        ub.ensuredir(join(base, 'foo'), verbose=1)
+    assert 'existing' in cap.text
