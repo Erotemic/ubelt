@@ -39,3 +39,23 @@ def test_tempdir():
     temp.cleanup()
     assert not exists(dpath)
     assert temp.dpath is None
+
+
+def test_augpath_identity():
+    assert ub.augpath('foo') == 'foo'
+    assert ub.augpath('foo/bar') == 'foo/bar'
+    assert ub.augpath('') == ''
+
+
+def test_augpath_dpath():
+    assert ub.augpath('foo', dpath='bar') == 'bar/foo'
+    assert ub.augpath('foo/bar', dpath='baz') == 'baz/bar'
+    assert ub.augpath('', dpath='bar').startswith('bar')
+
+
+def test_ensuredir_recreate():
+    ub.ensuredir('foo', recreate=True)
+    ub.ensuredir('foo/bar')
+    assert exists('foo/bar')
+    ub.ensuredir('foo', recreate=True)
+    assert not exists('foo/bar')

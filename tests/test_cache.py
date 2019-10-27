@@ -146,6 +146,11 @@ def test_disable():
     assert cacher.tryload(func) is None
 
 
+def test_disabled_cache_stamp():
+    stamp = ub.CacheStamp('foo', 'bar', enabled=False)
+    assert stamp.expired() is True, 'disabled cache stamps are always expired'
+
+
 if __name__ == '__main__':
     r"""
     CommandLine:

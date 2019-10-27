@@ -265,7 +265,7 @@ def _rectify_hashlen(hashlen):
         import warnings
         warnings.warn('Specifying hashlen is depricated. '
                       'Use slice syntax instead', DeprecationWarning)
-        if hashlen == 'default':
+        if hashlen == 'default':  # nocover
             return DEFAULT_HASHLEN
         else:
             return hashlen
