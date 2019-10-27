@@ -32,7 +32,7 @@ __all__ = [
 
 
 class PythonPathContext(object):
-    r"""
+    """
     Context for temporarily adding a dir to the PYTHONPATH. Used in testing
 
     Args:
