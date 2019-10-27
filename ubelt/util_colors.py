@@ -92,7 +92,6 @@ def color_text(text, color):
 
     CommandLine:
         python -c "import pygments.console; print(sorted(pygments.console.codes.keys()))"
-        python -m ubelt.util_colors color_text
 
     Example:
         >>> text = 'raw text'

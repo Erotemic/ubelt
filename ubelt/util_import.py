@@ -39,6 +39,9 @@ class PythonPathContext(object):
         dpath (str): directory to insert into the PYTHONPATH
         index (int): position to add to. Typically either -1 or 0.
 
+    CommandLine:
+        xdoctest -m ubelt.util_import PythonPathContext
+
     Example:
         >>> with PythonPathContext('foo', -1):
         >>>     assert sys.path[-1] == 'foo'
@@ -52,7 +55,9 @@ class PythonPathContext(object):
         >>> self = PythonPathContext('foo', 0)
         >>> self.__enter__()
         >>> sys.path.insert(0, 'mangled')
-        >>> self.__exit__(None, None, None)
+        >>> import pytest
+        >>> with pytest.warns(UserWarning):
+        >>>     self.__exit__(None, None, None)
 
     Example:
         >>> self = PythonPathContext('foo', 0)
