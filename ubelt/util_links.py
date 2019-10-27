@@ -224,10 +224,10 @@ def _dirstats(dpath=None):  # nocover
             path = util_colors.color_text(path, 'yellow')
         elif ELFDJ == [1, 1, 1, 0, 0]:
             # A file link
-            path = util_colors.color_text(path, 'turquoise')
+            path = util_colors.color_text(path, 'brightgreen')
         elif ELFDJ == [1, 1, 0, 1, 0]:
             # A directory link
-            path = util_colors.color_text(path, 'teal')
+            path = util_colors.color_text(path, 'brightcyan')
         elif ELFDJ == [0, 1, 0, 0, 0]:
             # A broken file link
             path = util_colors.color_text(path, 'red')

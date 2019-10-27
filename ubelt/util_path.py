@@ -297,7 +297,8 @@ def ensuredir(dpath, mode=0o1777, verbose=None, recreate=False):
         dpath = join(*dpath)
 
     if recreate:
-        delete(dpath, verbose=verbose)
+        import ubelt as ub
+        ub.delete(dpath, verbose=verbose)
 
     if not exists(dpath):
         if verbose:  # nocover

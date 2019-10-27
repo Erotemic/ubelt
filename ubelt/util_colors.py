@@ -77,14 +77,15 @@ def highlight_code(text, lexer_name='python', **kwargs):
 
 def color_text(text, color):
     r"""
-    Colorizes text a single color using ansii tags.
+    Colorizes text a single color using ansi tags.
 
     Args:
         text (str): text to colorize
         color (str): may be one of the following: yellow, blink, lightgray,
             underline, darkyellow, blue, darkblue, faint, fuchsia, black,
             white, red, brown, turquoise, bold, darkred, darkgreen, reset,
-            standout, darkteal, darkgray, overline, purple, green, teal, fuscia
+            standout, darkteal, darkgray, overline, purple, green, teal,
+            fuscia.  Note that different systems may have different colors.
 
     Returns:
         str: text : colorized text.
@@ -92,7 +93,6 @@ def color_text(text, color):
 
     CommandLine:
         python -c "import pygments.console; print(sorted(pygments.console.codes.keys()))"
-        python -m ubelt.util_colors color_text
 
     Example:
         >>> text = 'raw text'
@@ -124,11 +124,11 @@ def color_text(text, color):
 
         try:
             ansi_text = pygments.console.colorize(color, text)
-        except KeyError as ex:
+        except KeyError:
             import warnings
-            warnings.warn('unable to fine color: {!r}'.format(color))
+            warnings.warn('unable to find color: {!r}'.format(color))
             return text
-        except Exception as ex:
+        except Exception as ex:  # nocover
             import warnings
             warnings.warn('some other issue with text color: {!r}'.format(ex))
             return text
