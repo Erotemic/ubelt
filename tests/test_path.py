@@ -1,4 +1,5 @@
-from os.path import exists
+# -*- coding: utf-8 -*-
+from os.path import exists, join
 import ubelt as ub
 
 
@@ -43,13 +44,13 @@ def test_tempdir():
 
 def test_augpath_identity():
     assert ub.augpath('foo') == 'foo'
-    assert ub.augpath('foo/bar') == 'foo/bar'
+    assert ub.augpath('foo/bar') == join('foo', 'bar')
     assert ub.augpath('') == ''
 
 
 def test_augpath_dpath():
-    assert ub.augpath('foo', dpath='bar') == 'bar/foo'
-    assert ub.augpath('foo/bar', dpath='baz') == 'baz/bar'
+    assert ub.augpath('foo', dpath='bar') == join('bar', 'foo')
+    assert ub.augpath('foo/bar', dpath='baz') == join('baz', 'bar')
     assert ub.augpath('', dpath='bar').startswith('bar')
 
 

@@ -77,14 +77,15 @@ def highlight_code(text, lexer_name='python', **kwargs):
 
 def color_text(text, color):
     r"""
-    Colorizes text a single color using ansii tags.
+    Colorizes text a single color using ansi tags.
 
     Args:
         text (str): text to colorize
         color (str): may be one of the following: yellow, blink, lightgray,
             underline, darkyellow, blue, darkblue, faint, fuchsia, black,
             white, red, brown, turquoise, bold, darkred, darkgreen, reset,
-            standout, darkteal, darkgray, overline, purple, green, teal, fuscia
+            standout, darkteal, darkgray, overline, purple, green, teal,
+            fuscia.  Note that different systems may have different colors.
 
     Returns:
         str: text : colorized text.
