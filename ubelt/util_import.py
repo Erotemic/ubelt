@@ -19,6 +19,7 @@ from os.path import (abspath, exists, expanduser, isdir, join, split, dirname,
 import os
 import six
 import sys
+import warnings
 
 
 __all__ = [
@@ -45,8 +46,23 @@ class PythonPathContext(object):
         >>> with PythonPathContext('bar', 0):
         >>>     assert sys.path[0] == 'bar'
         >>> assert sys.path[0] != 'bar'
+
+    Example:
+        >>> # Mangle the path inside the context
+        >>> self = PythonPathContext('foo', 0)
+        >>> self.__enter__()
+        >>> sys.path.insert(0, 'mangled')
+        >>> self.__exit__(None, None, None)
+
+    Example:
+        >>> self = PythonPathContext('foo', 0)
+        >>> self.__enter__()
+        >>> sys.path.remove('foo')
+        >>> import pytest
+        >>> with pytest.raises(RuntimeError):
+        >>>     self.__exit__(None, None, None)
     """
-    def __init__(self, dpath, index=-1):
+    def __init__(self, dpath, index=0):
         self.dpath = dpath
         self.index = index
 
@@ -56,32 +72,44 @@ class PythonPathContext(object):
         sys.path.insert(self.index, self.dpath)
 
     def __exit__(self, type, value, trace):
-        msg_parts = [
-            'ERROR: sys.path significantly changed while in PythonPathContext.',
-        ]
+        need_recover = False
         if len(sys.path) <= self.index:  # nocover
-            msg_parts.append(
+            msg_parts = [
+                'sys.path changed while in PythonPathContext.',
                 'len(sys.path) = {!r} but index is {!r}'.format(
-                    len(sys.path), self.index))
-            raise RuntimeError('\n'.join(msg_parts))
+                    len(sys.path), self.index),
+            ]
+            need_recover = True
 
         if sys.path[self.index] != self.dpath:  # nocover
-            msg_parts.append((
-                'Expected dpath={!r} at index={!r} in sys.path, '
-                'but got dpath={!r}'
-            ).format(
-                self.dpath, self.index, sys.path[self.index]
-            ))
+            # The path is not where we put it, the path must have been mangled
+            msg_parts = [
+                'sys.path changed while in PythonPathContext',
+                'Expected dpath={!r} at index={!r} in sys.path, but got '
+                'dpath={!r}'.format(
+                    self.dpath, self.index, sys.path[self.index]
+                )
+            ]
+            need_recover = True
+
+        if need_recover:
+            # Try and find where the temporary path went
             try:
                 real_index = sys.path.index(self.dpath)
+            except ValueError:
+                msg_parts.append('Expected dpath was not in sys.path')
+                raise RuntimeError('\n'.join(msg_parts))
+            else:
+                # We were able to recover, but warn the user. This method of
+                # recovery is a hueristic and doesnt work in some cases.
                 msg_parts.append((
                     'Expected dpath was at index {}. '
                     'This could indicate conflicting module namespaces.'
                 ).format(real_index))
-            except IndexError:
-                msg_parts.append('Expected dpath was not in sys.path')
-            raise RuntimeError('\n'.join(msg_parts))
-        sys.path.pop(self.index)
+                warnings.warn('\n'.join(msg_parts))
+                sys.path.pop(real_index)
+        else:
+            sys.path.pop(self.index)
 
 
 def import_module_from_path(modpath, index=-1):
