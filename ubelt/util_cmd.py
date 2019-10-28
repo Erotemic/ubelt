@@ -316,7 +316,7 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
             detach = kwargs.pop('detatch')
 
         if kwargs:
-            raise ValueError('Unknown kwargs: {}'.format(list(kwargs.keys)))
+            raise ValueError('Unknown kwargs: {}'.format(list(kwargs.keys())))
 
     # Determine if command is specified as text or a tuple
     if isinstance(command, six.string_types):
