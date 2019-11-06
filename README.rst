@@ -219,8 +219,6 @@ To provide a sense of what functions are the most useful, here is a histogram
 
 .. code:: python
 
-    # I've grouped
-
     {
         # SS > 200
         'repr2': 638,

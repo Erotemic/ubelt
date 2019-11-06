@@ -2,23 +2,19 @@
 """
 Functions for working with filesystem paths.
 
-The `ensuredir` function operates like `mkdir -p` in unix.
+The :func:`expandpath` function expands the tilde to $HOME and environment
+variables to their values.
 
-The `expandpath` function expands the tilde to $HOME and environment variables
-to their values.
+The :func:`augpath` function creates variants of an existing path without
+having to spend multiple lines of code splitting it up and stitching it back
+together.
 
-The `augpath` function creates variants of an existing path without having to
-spend multiple lines of code spliting it up and stitching it back together.
+The :func:`compressuser` function replaces your home directory with a tilde.
 
-The `compressuser` function replaces your home directory with a tilde.
+The :func:`userhome` function reports the home directory of the current user of
+the operating system.
 
-The `userhome` function reports the home directory of the current user of the
-operating system.
-
-Even though ubelt is not at a `1.0.0` release, the above functions can be
-relied upon as stable, backwards compatible, and maintained.  Other functions
-defined in this file may be depricated or modified or unmaintained in the
-future.
+The :func:`ensuredir` function operates like `mkdir -p` in unix.
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 from os.path import abspath
@@ -54,18 +50,20 @@ def augpath(path, suffix='', prefix='', ext=None, base=None, dpath=None,
     ext) after replacing any specified component.
 
     Args:
-        path (PathLike): a path to augment
+        path (str | PathLike): a path to augment
         suffix (str, default=''): placed between the basename and extension
         prefix (str, default=''): placed in front of the basename
-        ext (str, optional): if specified, replaces the extension
-        base (str, optional): if specified, replaces the basename without extension
-        dpath (PathLike, optional): if specified, replaces the directory
-        multidot (bool, default=False): if False, everything after the last dot
-            in the basename is the extension. If True, everything after the first
-            dot in the basename is the extension.
+        ext (str, default=None): if specified, replaces the extension
+        base (str, default=None): if specified, replaces the basename without
+            extension
+        dpath (str | PathLike, default=None): if specified, replaces the directory
+        multidot (bool, default=False): Allows extensions to contain multiple
+            dots. Specifically, if False, everything after the last dot in the
+            basename is the extension. If True, everything after the first dot
+            in the basename is the extension.
 
     Returns:
-        PathLike: augmented path
+        str: augmented path
 
     Example:
         >>> import ubelt as ub
@@ -120,15 +118,20 @@ def augpath(path, suffix='', prefix='', ext=None, base=None, dpath=None,
 
 def userhome(username=None):
     """
-    Returns the user's home directory.
-    If `username` is None, this is the directory for the current user.
+    Returns the path to some user's home directory.
 
     Args:
         username (str, default=None): name of a user on the system. If not
             specified, the current user is inferred.
 
     Returns:
-        PathLike: userhome_dpath: path to the home directory
+        str: userhome_dpath: path to the specified home directory
+
+    Raises:
+        KeyError: if the specified user does not exist on the system
+
+        OSError: if username is unspecified and the current user cannot be
+            inferred
 
     Example:
         >>> import getpass
@@ -174,15 +177,16 @@ def userhome(username=None):
 
 def compressuser(path, home='~'):
     """
-    Inverse of `os.path.expanduser`
+    Inverse of :func:`os.path.expanduser`.
 
     Args:
-        path (PathLike): path in system file structure
-        home (str): symbol used to replace the home path. Defaults to '~', but
-            you might want to use '$HOME' or '%USERPROFILE%' instead.
+        path (str | PathLike): path in system file structure
+        home (str, default='~'): symbol used to replace the home path.
+            Defaults to '~', but you might want to use '$HOME' or
+            '%USERPROFILE%' instead.
 
     Returns:
-        PathLike: path: shortened path replacing the home directory with a tilde
+        str: path: shortened path replacing the home directory with a tilde
 
     Example:
         >>> path = expanduser('~')
@@ -204,16 +208,16 @@ def compressuser(path, home='~'):
 
 def expandpath(path):
     """
-    Wrapper around expanduser and expandvars.
+    Shell-like environment variable and tilde path expansion.
 
     Less aggressive than truepath. Only expands environs and tilde. Does not
     change relative paths to absolute paths.
 
     Args:
-        path (PathLike): string representation of a path
+        path (str | PathLike): string representation of a path
 
     Returns:
-        PathLike : expanded path
+        str : expanded path
 
     Example:
         >>> import ubelt as ub
@@ -230,11 +234,11 @@ def truepath(path, real=False):
     Normalizes a string representation of a path and does shell-like expansion.
 
     Args:
-        path (PathLike): string representation of a path
+        path (str | PathLike): string representation of a path
         real (bool): if True, all symbolic links are followed. (default: False)
 
     Returns:
-        PathLike : normalized path
+        str : normalized path
 
     Note:
         This function is similar to the composition of expanduser, expandvars,
@@ -267,15 +271,16 @@ def ensuredir(dpath, mode=0o1777, verbose=None, recreate=False):
     default
 
     Args:
-        dpath (PathLike): dir to ensure. Can also be a tuple to send to join
-        mode (int): octal mode of directory (default 0o1777)
-        verbose (int): verbosity (default 0)
+        dpath (str | PathLike | Tuple[str | PathLike]): dir to ensure. Can also
+            be a tuple to send to join
+        mode (int, default=0o1777): octal mode of directory
+        verbose (int, default=0): verbosity
         recreate (bool, default=False): if True removes the directory and
             all of its contents and creates a fresh new directory.
             USE CAREFULLY.
 
     Returns:
-        PathLike: path: the ensured directory
+        str: path: the ensured directory
 
     Notes:
         This function is not thread-safe in Python2
