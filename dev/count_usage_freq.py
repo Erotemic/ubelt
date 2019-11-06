@@ -1,12 +1,27 @@
 
+
+import scriptconfig as scfg
+
+
+class UsageConfig(scfg.Config):
+    default = {
+        'print_packages': False,
+        'remove_zeros': True,
+        'custom_hack': True,
+        'extra_modnames': [],
+    }
+
+
 def count_ubelt_usage():
+    config = UsageConfig(cmdline=True)
+
     import ubelt as ub
     import glob
     from os.path import join
     names = [
         'xdoctest', 'netharn', 'xdev', 'xinspect', 'ndsampler', 'kwil',
         'kwarray', 'kwimage', 'kwplot', 'scriptconfig',
-    ]
+    ] + config['extra_modnames']
 
     all_fpaths = []
     for name in names:
@@ -41,5 +56,26 @@ def count_ubelt_usage():
 
     usage = ub.odict(sorted(usage.items(), key=lambda t: t[1])[::-1])
 
-    print(ub.repr2(pkg_to_hist, nl=2))
+    if config['print_packages']:
+        print(ub.repr2(pkg_to_hist, nl=2))
+
+    if config['remove_zeros']:
+        for k, v in list(usage.items()):
+            if v == 0:
+                usage.pop(k)
+
+    if config['custom_hack']:
+        for k in list(usage):
+            if k.startswith('util_'):
+                usage.pop(k)
+
     print(ub.repr2(usage, nl=1))
+
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python ~/code/ubelt/dev/count_usage_freq.py --help
+        python ~/code/ubelt/dev/count_usage_freq.py
+    """
+    count_ubelt_usage()

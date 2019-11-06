@@ -124,7 +124,8 @@ def userhome(username=None):
     If `username` is None, this is the directory for the current user.
 
     Args:
-        username (str): name of a user on the system
+        username (str, default=None): name of a user on the system. If not
+            specified, the current user is inferred.
 
     Returns:
         PathLike: userhome_dpath: path to the home directory

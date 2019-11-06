@@ -215,88 +215,99 @@ A complete list of available functions can be seen in the
 
 
 To provide a sense of what functions are the most useful, here is a histogram
-of my most used ubelt functions over several of my projects:
+(/ tier list) of my most used ubelt functions over several of my projects:
 
 .. code:: python
 
+    # I've grouped
+
     {
-        'repr2': 544,
-        'ProgIter': 194,
-        'expandpath': 148,
-        'odict': 142,
-        'ensuredir': 137,
-        'take': 120,
-        'map_vals': 109,
-        'truepath': 103,
-        'Timerit': 79,
-        'NiceRepr': 77,
-        'argval': 71,
-        'iterable': 63,
-        'hash_data': 56,
-        'cmd': 54,
-        'dict_hist': 53,
-        'ddict': 52,
-        'argflag': 51,
-        'grabdata': 46,
-        'ensure_app_cache_dir': 46,
-        'NoParam': 45,
-        'codeblock': 45,
-        'augpath': 43,
-        'color_text': 38,
+        # SS > 200
+        'repr2': 638,
+        'expandpath': 281,
+        'ProgIter': 253,
+        'ensuredir': 205,
+        # S > 100
+        'odict': 189,
+        'take': 141,
+        'Timerit': 131,
+        'map_vals': 124,
+        'truepath': 104,
+        'NiceRepr': 101,
+        # A > 50
+        'argval': 93,
+        'hash_data': 88,
+        'cmd': 78,
+        'ddict': 76,
+        'argflag': 73,
+        'codeblock': 71,
+        'iterable': 70,
+        'dict_hist': 57,
+        'ensure_app_cache_dir': 56,
+        # B > 25
+        'NoParam': 49,
+        'augpath': 47,
+        'grabdata': 47,
+        'flatten': 41,
+        'color_text': 40,
+        'import_module_from_path': 38,
+        'delete': 38,
+        'allsame': 36,
+        'group_items': 36,
+        'Cacher': 36,
         'peek': 36,
-        'Cacher': 31,
-        'allsame': 30,
-        'delete': 30,
-        'flatten': 29,
-        'group_items': 26,
-        'timestamp': 25,
-        'import_module_from_path': 25,
+        'timestamp': 30,
+        'Timer': 29,
+        # C > 10
+        'dict_subset': 24,
+        'compressuser': 24,
         'compress': 23,
-        'Timer': 21,
-        'memoize': 20,
-        'argsort': 17,
-        'oset': 15,
-        'find_duplicates': 14,
-        'dict_subset': 14,
-        'memoize_method': 14,
-        'indent': 14,
-        'iter_window': 13,
+        'oset': 22,
+        'memoize': 21,
+        'argsort': 19,
+        'memoize_method': 19,
+        'indent': 19,
+        'hash_file': 18,
+        'find_duplicates': 18,
+        'readfrom': 17,
+        'dzip': 16,
+        'iter_window': 15,
+        'writeto': 14,
+        'unique': 13,
+        'dict_union': 13,
+        'startfile': 13,
         'memoize_property': 13,
-        'readfrom': 13,
-        'unique': 11,
-        'hash_file': 11,
+        'find_exe': 11,
+        'chunks': 11,
         'identity': 11,
+        # D > 5
         'map_keys': 10,
+        'argmax': 10,
         'dict_isect': 9,
-        'argmax': 9,
-        'dzip': 9,
-        'startfile': 9,
-        'writeto': 9,
+        'modname_to_modpath': 9,
+        'symlink': 9,
         'highlight_code': 9,
-        'modname_to_modpath': 8,
-        'find_exe': 7,
+        'CacheStamp': 8,
         'inject_method': 7,
         'ensure_unicode': 7,
+        'invert_dict': 7,
+        'touch': 7,
         'argmin': 6,
-        'chunks': 6,
-        'invert_dict': 6,
-        'symlink': 6,
-        'compressuser': 6,
+        # F > 0
         'dict_take': 5,
         'hzcat': 5,
-        'dict_union': 5,
+        'get_app_cache_dir': 5,
         'AutoDict': 4,
-        'get_app_cache_dir': 4,
         'WIN32': 3,
         'editfile': 3,
         'import_module_from_name': 3,
         'paragraph': 3,
-        'CacheStamp': 3,
         'download': 2,
+        'userhome': 2,
         'DARWIN': 2,
         'LINUX': 2,
         'modpath_to_modname': 2,
-        'touch': 2,
+        'argunique': 1,
         'dict_diff': 1,
         'unique_flags': 1,
         'split_modpath': 1,
@@ -732,26 +743,25 @@ text.
     A = [[1, 2], * [[5, 6],
          [3, 4]]    [7, 8]]
 
-Standalone tools.
------------------
+External tools.
+---------------
 
-Some of the tools in ``ubelt`` have been / are being ported to
-standalone modules. These tools will remain exposed in ``ubelt``, so you
-have all the extra batteries at your disposal, but they will eventually
-just be added as simple dependencies and the source code will be removed
-from ``ubelt``.
+Some of the tools in ``ubelt`` also exist as standalone modules.
 
-Here are the repos containing the standalone class utilities:
+Here are the repos containing the standalone utilities:
 
 -  ProgIter - https://github.com/Erotemic/progiter
 -  Timerit - https://github.com/Erotemic/timerit
 -  OrderedSet - https://github.com/LuminosoInsight/ordered-set
 
+In the future some of the functionaity in ubelt may be ported and integrated
+into the ``boltons`` project: https://github.com/mahmoud/boltons.
+
 
 Notes.
------------------
-Ubelt will support Python2 for the forseeable future (at least until everyone I
-work with is off it followed by a probation period).
+------
+Ubelt will support Python2 for the forseeable future (at least until the
+projects I work on are off it followed by a probation period).
 
 PRs are welcome. If you have a utility function that you think is useful then
 write a PR. I'm likely to respond promptly.
