@@ -1,3 +1,15 @@
+env:
+    global:
+        - secure: "c11dMqSR+Xu71dezMwYOInjtnLOCg3c5XbQk65AKCxni+T64EKj/mDivS/ahHyUcSEov+opGEjY9SQ+bmp5EjcGYf8DHYFSqIoyhLooxAuiyjO6M07NluE5jUVOPp/V5YVxt40lT82u+9VXnqEKFs+9931MSVuLcrrWm4QNjdVNRJyaOXMFc2Ns7jHmtyes0QNJAl84hIg6Y53+F1MXP1P+PB3ruiaSerPXBT9pngh9oEdQqlEMPnyM05HRjkxgAMyOJjP1c4Odw32baZDLhrt+JVzg1LAxy97SZy5pL9hwCjJXQiVXHmFE+JPqv1AWS8preFYwhcNkgqFN0vyBahmNfEOce0DXXnuVNh1JN33UVkWHMeZ1e1eN6lvdqOLxju3w3UeYaVZQ54ko+8Nh5VV8bb6ToKUd5lcfdFfBCNh6EaBGFyIBSFnGSwJn+gZJVtw5oZD/qpCW2aCeBG4tYqzKPQQOkpu3H2Y9P/f/IlVoAftswPYbHhY1ilEZ7KjBgUrmIL7fPNwVrCW5nr3oxZkuGKWH3GH4l8NzghgX9Ok03DSuqFgier+wURzLx0EH2s482Zz6VJ8zB4vPH44hZ0ltV8n520uBa60hdx+xD2F5nEXBmd4bFdi0nHkk39nf6OH5dX7awR2EB9SuJLgqmhWTK6leHcKt7A3ezUOhwKKw="
+             
+
+        - secure: "L20FzY4ZzwJzfch1VhpE/sKo+qWqckmhSPgoRDkUZ9qCSryek6cHPlYt77I6sm/OBxu+dZS6axwHCg8la85uGbX+z2+n8jEcvd/yo/LwwDPrM5qTCJ6+4u0c+XXt7WzjM3U6fPWxtxggu652xVcmW1SLfvH2M3tb6vZqtwX8IgGXfiMk6jnA5EvA5vUACB6TLwuDbsJm+xqSFRykAdXyjbmsYYarMCSsFBCma5giM3KwxMfT6QjPjRE1KqijnS0Uhdyqf1ZYJYQs/W5M+58Ui9Y9o7ZjaCi4VJOZPAnaJBrL8DkUYZvRNZGbsc4gOToVtuK31SrrYa2L0ok5JQnL3617Om0TApsHOPsVyyRRdfyTDTj3S33lwVORf5JYyr5B/4DJCzo1sQZ2VYJyqYocrAwAb3p7/jWzv+I1Z/dWWgWYBWEDm1v7vk9DAe+0aRMBbhCDiL1F8MIGj/8pr+Mx++8k2UwmxAcQKYOTbK3a2kzWx7tJGf3rzMoi33qbnwKqhOq6ZRes/PHOwjC44JWi2nS6slywz40WwZwvotDNLNjVMlV27Fb1jJcOGc9NsJOWOhd1Vw8Po28b/ZgGbxwMCYblqznkqZ0EsYS4T4oSMktsx21d9qqHNHdg1CQOG6W0eoaEQvF2YwWFDsj4enbTzJ87AtBSVajDnqT1meQtEH4="
+             
+
+        - secure: "AuKguxX6EPgYw1AsGsaVCdTXxDtsVjgP4GTElwfoS+L3biMoSMkYI+99fC0fyWH7u698mbWjiPZ6ndxx85OS8WrJ5XJqCzbVo1ZAClNhdw2zxisndb4U51mrzxvKG7AxPwskegMYwzaO9EJ1NI/0Cg2T+86PIN2Gfhm3PP0TrQDRST1z80kUO8/eiGxBW0TnPEAMOVwndjF+MCNSKuFngFPwavjcjKH50877a2My7MLHyuMo4DM5w/oGfHFoum0cbcDotJrpgH7fFKIMTMmS+P6YmDw/eIeO3NFwqBtPkvyVk6+WsMoEfTIbvwowGJJucOzDEDPQGyDulm6bj3nQn1gb5EuekUdEKVt0M2sowqrCQBb5X0Xqmhfv8xIm1Xo/fNbM6Srw+2FT4xx3gdXTMBxx7zBDc8ZksR8kfcK1Yt8vpbKTGDbZKvDc8kw2VooA0Ok4rx6vYbPrsHnh8ZAaJ33lAvoyUTL6aAH0IAj3jTZ2lAwMDPQO04HxTDbe0vq0GvirNhBf9v88uC/8BYN1wUfrFHxwxJrX7VJNvvwcIYp2Tlqlu2pL8TVI1OQ8KvyTHaKqIK7tyFTs+3S9bhqvnsl7u5N3bm4haQQNFGrN+rU3oN3keecqvx6IvT+haxmSM/TKSVpMiIZmGrU9XLxvnUktAWiKemUgvS8WdGS7VeI="
+
+  
+
 language: python
 sudo: false
 
@@ -6,22 +18,139 @@ cache:
   directories:
   - $HOME/.cache/pip
   - $HOME/download
+
 python:
   - "2.7"
   - "3.5"
   - "3.6"
   #- "3.7"
+  #
 before_install:
   - pip install pip -U
-  - pip install -r requirements/tests.txt -U
-  - pip install -r requirements/runtime.txt -U
-  - pip install -r requirements/optional.txt -U
+  - pip install -r requirements.txt -U
+
 install:
   - travis_retry pip install -e .
+    
 script: 
   - travis_wait ./run_tests.py --network
+
 after_success: 
-  - codecov 
+    - codecov 
+    - gpg --version
+    - gpg2 --version
+    - export GPG_EXECUTABLE=gpg2
+    - openssl version
+    - | 
+        __heredoc__='''
+        # Load or generate secrets
+        source $(secret_loader.sh)
+        echo $TRAVIS_SECRET
+        echo $TWINE_USERNAME
+
+        # encrypt relevant travis variables
+        travis encrypt TRAVIS_SECRET=$TRAVIS_SECRET
+        travis encrypt TWINE_PASSWORD=$TWINE_PASSWORD  
+        travis encrypt TWINE_USERNAME=$TWINE_USERNAME 
+
+        # HOW TO ENCRYPT YOUR SECRET GPG KEY
+        IDENTIFIER="travis-ci-Erotemic"
+        KEYID=$(gpg --list-keys --keyid-format LONG "$IDENTIFIER" | head -n 2 | tail -n 1 | awk '{print $1}' | tail -c 9)
+        echo "KEYID = $KEYID"
+
+        # Export plaintext gpg public keys, private keys, and trust info
+        mkdir -p dev
+        gpg --armor --export-secret-keys $KEYID > dev/travis_secret_gpg_key.pgp
+        gpg --armor --export $KEYID > dev/travis_public_gpg_key.pgp
+        gpg --export-ownertrust > dev/gpg_owner_trust
+
+        # Encrypt gpg keys and trust with travis secret
+        TSP=$TRAVIS_SECRET openssl enc -aes-256-cbc -md MD5 -pass env:TSP -e -a -in dev/travis_public_gpg_key.pgp > dev/travis_public_gpg_key.pgp.enc
+        TSP=$TRAVIS_SECRET openssl enc -aes-256-cbc -md MD5 -pass env:TSP -e -a -in dev/travis_secret_gpg_key.pgp > dev/travis_secret_gpg_key.pgp.enc
+        TSP=$TRAVIS_SECRET openssl enc -aes-256-cbc -md MD5 -pass env:TSP -e -a -in dev/gpg_owner_trust > dev/gpg_owner_trust.enc
+
+        source $(secret_unloader.sh)
+
+        # Look at what we did, clean up, and add it to git
+        ls dev/*.enc
+        rm dev/gpg_owner_trust dev/*.pgp
+        git status
+        git add dev/*.enc
+
+        '''  # <hack vim "regex" parser> '
+    - |
+        # Install a more recent version of GPG
+        # https://gnupg.org/download/
+        export TMP_PREFIX=$HOME/tmp_prefix
+        export LD_LIBRARY_PATH=$TMP_PREFIX/lib:$LD_LIBRARY_PATH
+        export PATH=$TMP_PREFIX/bin:$PATH
+        export CPATH=$TMP_PREFIX/include:$CPATH
+        if [[ ! -f "$TMP_PREFIX/bin/gpg" ]]; then
+            # try and have travis cache this
+            mkdir -p $TMP_PREFIX
+            echo $TMP_PREFIX
+            OLD=$(pwd)
+            cd $TMP_PREFIX
+            wget https://gnupg.org/ftp/gcrypt/libgpg-error/libgpg-error-1.36.tar.bz2
+            wget https://gnupg.org/ftp/gcrypt/libgcrypt/libgcrypt-1.8.5.tar.bz2
+            wget https://gnupg.org/ftp/gcrypt/libksba/libksba-1.3.5.tar.bz2
+            wget https://gnupg.org/ftp/gcrypt/libassuan/libassuan-2.5.3.tar.bz2
+            wget https://gnupg.org/ftp/gcrypt/ntbtls/ntbtls-0.1.2.tar.bz2
+            wget https://gnupg.org/ftp/gcrypt/npth/npth-1.6.tar.bz2
+            wget https://gnupg.org/ftp/gcrypt/gnupg/gnupg-2.2.17.tar.bz2
+            tar xjf libgpg-error-1.36.tar.bz2
+            tar xjf libgcrypt-1.8.5.tar.bz2
+            tar xjf libksba-1.3.5.tar.bz2
+            tar xjf libassuan-2.5.3.tar.bz2
+            tar xjf ntbtls-0.1.2.tar.bz2
+            tar xjf npth-1.6.tar.bz2
+            tar xjf gnupg-2.2.17.tar.bz2
+            (cd libgpg-error-1.36 && ./configure --prefix=$TMP_PREFIX && make install)
+            (cd libgcrypt-1.8.5 && ./configure --prefix=$TMP_PREFIX && make install)
+            (cd libksba-1.3.5 && ./configure --prefix=$TMP_PREFIX && make install)
+            (cd libassuan-2.5.3 && ./configure --prefix=$TMP_PREFIX && make install)
+            (cd ntbtls-0.1.2 && ./configure --prefix=$TMP_PREFIX && make install)
+            (cd npth-1.6 && ./configure --prefix=$TMP_PREFIX && make install)
+            (cd gnupg-2.2.17 && ./configure --prefix=$TMP_PREFIX && make install)
+            export GPG_EXECUTABLE=gpg
+            cd $OLD
+        fi
+    # Decrypt and import GPG Keys / trust
+    - $GPG_EXECUTABLE --version
+    - openssl version
+    - $GPG_EXECUTABLE --list-keys
+    - TSP=$TRAVIS_SECRET openssl enc -aes-256-cbc -md MD5 -pass env:TSP -d -a -in dev/travis_public_gpg_key.pgp.enc | $GPG_EXECUTABLE --import 
+    - TSP=$TRAVIS_SECRET openssl enc -aes-256-cbc -md MD5 -pass env:TSP -d -a -in dev/gpg_owner_trust.enc | $GPG_EXECUTABLE --import-ownertrust
+    - TSP=$TRAVIS_SECRET openssl enc -aes-256-cbc -md MD5 -pass env:TSP -d -a -in dev/travis_secret_gpg_key.pgp.enc | $GPG_EXECUTABLE --import 
+    - $GPG_EXECUTABLE --list-keys
+    - |
+        pip install twine
+        if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
+          pip install six pyopenssl ndg-httpsclient pyasn1 -U --user
+          pip install requests[security] twine --user
+        elfi
+        if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+          pip install six twine
+          pip install --upgrade pyOpenSSL
+        fi
+    # Package and publish to pypi (if on release)
+    - |
+        echo "TRAVIS_BRANCH = $TRAVIS_BRANCH"
+        if [[ "$TRAVIS_BRANCH" == "release" ]]; then
+            # use set +x to log all intermediate commands 
+            set +x
+            export CURRENT_BRANCH=$TRAVIS_BRANCH
+            # TODO: reliable and secure gpg keys
+            # Relies on a specific environmenmt being available 
+            git config --global user.signingkey D297D757
+            git config --local user.signingkey D297D757
+            # git config --global gpg.program
+            GPG_KEYID=D297D757 CURRENT_BRANCH=$TRAVIS_BRANCH TWINE_PASSWORD=$TWINE_PASSWORD TWINE_USERNAME=$TWINE_USERNAME GPG_EXECUTABLE=$GPG_EXECUTABLE USE_GPG=True DEPLOY_BRANCH=release TAG_AND_UPLOAD=yes ./publish.sh
+            set -x
+        else
+            GPG_KEYID=D297D757 CURRENT_BRANCH=$TRAVIS_BRANCH TWINE_PASSWORD=$TWINE_PASSWORD TWINE_USERNAME=$TWINE_USERNAME GPG_EXECUTABLE=$GPG_EXECUTABLE USE_GPG=True DEPLOY_BRANCH=release TAG_AND_UPLOAD=no ./publish.sh
+        fi
+
 cache: 
     apt: true
     directories:
