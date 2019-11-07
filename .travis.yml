@@ -1,13 +1,15 @@
 env:
     global:
        # TRAVIS_USERNAME
-       - secure: "SoGj5dx4/NRib9KY0FiT92lyqFaaWr6LY45RafWh3B2v2UReygHsnWTn+tkD0bNf7P+AhHYI8aQkU+S2YPCBhbZvM0o+sUJ/TkB7s0hpmiO7M68AkDOoae4TcY//CNsQXxrrs0JukV6SKSn2n4byn5VmSnA3Js0m+WP4gYTNVs627jg7Xima5b1sQzEuqgSVsz01wQH7Fbe/bxHx9fNjjQh5RtKmCrJ4kr7O+ye4Z14YYPT91iSVR2eaL6OV+ilxmB4UkbJpnWpX+WZGOm0YbvhrHJ3NgmCzKOAyIyxLfO63P/VwdSmJrnz8BVM5RsicUf56Gxyc1kyhqmKiRfhVnCZ6aweNIIK5MN106CnBWXTO1hXq2iSf4Bwzrqu+h+iJi9QX19v46Am0dbWDkOOhfhz/DfI85qHmzWTXxvQOEo5hvZ+P3ITFVWGawJa3dKEcB1tNpu8HgJA+iYogYfjCxfEJ0KmZf4/Gohx5pp+c/bXiguYwk66XnS5MzhIkpDXouIrU4UffDZD6t3oT2Mai1cWA3vluvDYija1163YHxVc0EfqBAwbht95g5RBcW1ikPPNhtxOXDmtUWDiHVs0b6+oNEq1r5YaSxFCFQ7EwPRNRJX8T5STu8wUR/5NFiDohkiyRDO1L0ZfO3Q2DSrSA0x//E2JBpMGdFqUh+6PYCdk="
+       - secure: "BA0If6r1mpmCSBNk00cxn+ek0NT6NDIcxznz3H7+EPpYJ1Rjmj4bMRz9UZdALu4oRRYZNmRAO0/rzjd4SbtcJNACQzYUWljRq3TwTXh8edLXYo8o1gFnTCWqDM4DImuVpwVR1Qy5OvTOFjzZuLwXShcvxHyAX1lkJ5jEm0+NO7QDwbLIxBTkO4orFK1PZarNtHQTbZZbnPbT8slNiUHnJW1mKapoljIuP1TfmIzIOzHrCVzWcfBM3BFujYnJjgqo7S00mvwrLJD9ZuFJubZDQO6Op7/AHCTEpNyM0Ub4vPfa1jihC7jlwp7g7IsG1v6rDs4cgOdIJL4eaFA6hRYXtpz7L9BtAk/NYZ8qhkk8DKrQBiwPEolCzhTKOTJ1Jqs49ybX/oxXYvD2n4ioZ8Q1UUiQmeiwwXly3/Q1a3JwA5OwxXmgSfedj5ekuPu+vwVQFA8RX/KU+/l+tUTCy2TtBtmjWP5YISQMrbwQr7lF7fNLMvTy3Zba+SzU2N/Cu4eIpmsAAmy25rtsjmE3mrVW9y8/8W1r+59Y6YzgdxNTsK7vkBwMn35GUyamLDPea2j/0LxltNPmvX+zKcNo+5HHayp9Vzq41RnUjWIGAd/WWRmY5R3/nFG4tPWqIZVbgFfY9JjZ+3+cJ8jrJQLAruHTS05Hw+ISUSugzRzUV7yLyMs="
+
         
        # TRAVIS_PASSWORD
-       - secure: "Klg3lLMx2Xrn5lqPWEdTotHj/WUvUchPd7+CoD5TrSPwIA3OcDCp0N+ehFEm6U65YLTh7HANUUYQM8bmXac+es4ffN7CxYGEYAEOXQyE3RFhd74udm2Wtm6GTsD/9vvZO4qDk2ozwafrp/3UlBKqdXEkyL0S3nHCDR5tpduvc6HImjQNLyYHvrzevgYv3KegzuRN84YVGhxVkQaxP0q1ygi+SHyJfk1G/bmvCKvui78Ku7Fe8pCtmog1dyI1/1uDzTrTQ7FvSRZkVQXDk2FRozIUqYd3OZJNeABWBVQKCP2rE8OyN32TSizaHTzejfFaB68//Z8C7Cbz9cvVaNwljS33pKnsG4GQ4lhDUBh8aHpRd2eA5/QaBoooTkmR/YywhJAvU6svusttSGzeQjMXvwagU7pjDB+8mfMRMxbWYBZGxVW6RxN/+QXLBbD4WpB8sVYiAA3QJkZ11A6VLO/YBopGUAroTtf2s9F1ReLOMYprJfy7co5stWq+C3nKB1KMk/qxZUkPk7eqQcBCgym6LvRAac3NvyEQWKXjuFF3mwDxJBAlIeTpDOpPi3NwzVOjheanSNwx+HTtXZ6inYh3Y61kq3ZcQPzZ6TroT/8uEz2it7m1wRBok5GZagLkVe95mx1rQ6Dp/TPx6B/Y5XQJ8SXnH8d8rQJw1zo+H8XIqek="
+       - secure: "elDB0gJZgZfHgnWrgoai+HzznMFT3Qj8o2zhfdaAt52fpEYyQY9zoIdcvQVkmOQNaGHvSwzqFQD/WRZamjqhbrUMSJ8RyZtCMNCMz5a7rEVHXZxtgablKHuCRXQCZzW0SOLkpESHbvi8sq0fycF6it7F6/IKoX9nBcFtd6el1vzL6XoVNRhEAA2JYWYXzT6hrthq8r/z7xjlsZf/q95GdsYm9327fEynF/UfQ2jzqEncS9T8WkjZih1k2HxHdQhgVvc4kvlaRzMPQbEyk0+z+QpCN9Dp/38RimQFXSxZ5cX3gP6wMz8miy8X0mqtSnkqPFwU0f3PTtUU0vcdI7IirsJOdsp0WbWYQAYxLaVnMTXESk18HgkACSy3DvPw8nbXTIP5MViZ95dm0+jun4NgLJKH2k7euwp1CVLEHAWiUN/GuuQFotx3h1nZits2RM+/Am21r0iLnyiy3SJbcYetHNoG7mm+BXZSqRASepEIGQEo0LrIluEZDeZ+K2hWXIyWFI3zEplX//rJNI4NmogZrVpd9rUDMePv/AG56jGAEMH31Ne0xnSMqMAk7iULblSjwFyYlm4JSKOIqt2BiA0LfHxSiB3SqocPQIWHgx/EEIWRw+5vMSXagy+VrEMVgQ9+spc6Wt6o+MKSe+5yRsPnEoZ6tLz20zWN/CPuSR9sS4w="
+
 
        # TRAVIS_SECRET
-       - secure: "WkD3a/Vv89eOQj18UkIQNa+HRtvJwXiaY9xHerywGazx4rY1FLBrrBiNFFIT27kKfz9s9yPvIyKw4Q9XM8pWIqHwFyHDEU10J4WnBz9b3ERVdgodxcOhNc5JhVnOQfqVKoiljEGSQehkoCeysdQymhgX2PDISN6KcVF37SIJt35t1xqa5/bKuppPZ1Px1bBIVPRMtCFPZbjCLan/u8SOOMoNOZb0n5leQVytVB8FM9dAOPpus26TUnKk7xqF0cpbDF/saITvLoBf8gxZTNWtZmXJqyO+laPGqiziM0VhYVd78AxNRBlAYTcu5u8enfP8mKcmsw0jZBWKrPxsXOrua1EwUPnCdDhyS6PbGIuxYN3oFIus8Gz26ifLpNkN4aqirj6P6WHcGnzF8pCXmjljgTmdOXjf+tNODmyrgWrmTctt3ndCFRW768Z7mfDu9Sdjc5UTnCzX/8nfkD1y3FOT2UFgk61ab6Kmf0Du6IZN9YPtkkGjNIpp4PbaNBGvRvAr1ILqdkJVg/0hdm3NcQOz2cjbSxCLb/kx1FB3uSwseR0W9bu6LPfjc7zFCrjKhyKWBz3Xa02EIC2jPdQ3uCR4vBY4c5jVR/o02aC8XDwu3/Ea0dZBhXq5aCcIcqojWGHZwxwSl1qqQFDtJYtEu9HzeUQZJPlHpe0OR9uc4fJ4bWw="
+       - secure: "zaMEXAbhGdq7H+Tj3Hj73G/mJC9d1cPNH382bRu/uWBOrJjprQGnWN9MTB6tVZYz/pzCaNepK5SWYi5NF+ujvdQRF36ndncDxWQRZ6sDEZwmICILBx+XjJy6Ee608k/j1BSCAVWZ7uYtLLRSj2hdyFuZxWc7kXtVhiZG0zU2FiyA9B32kLyY8eZACncVUGT18Toy5qfTSrGTej3Q5L4qPFP5YokP357J45dyd1pIB5zEJc5CHfrfp0coV3DuZEGHUBhtMk3DqbhUJbx5e/NSdHGLtvY5hJmsIHSJiUYG+1GZhE9b1tQTZcy42EFcBiRNRHb8Y8unwPK/qLo1lRaKN4D8as0qfjV00XlRIt4+zui8xJa2Wc21s1uW3lTCPx1C1wKmwiUEIAhon4OpKoOXvIfoVaDkn1X6bFdy2m8jhz3aFO3d/UNpUMKWcZgdTxKQ1VUC9hDh7tXfDuejbiFPA21G/+B4ZAdAOOIMcUv5kaeDTrRXrs4ZemrlO2imCnWK/ijo09TdscVh45Vsy84i6+clEgn3di/P+wHHxPeg59llMPglLyBb5aqWKFqwBI0uA82Y5ZfM4RaC4D0Egoe/Lf1RW93rV7K05QanCJiA/X/6YbM0ihyrkQYZDhpqW0JyEYKfdq76zm24XOL99CjBMDC0qh3qDCgg/LhnMkV9y4U="
   
 
 language: python
@@ -43,35 +45,36 @@ after_success:
     - openssl version
     - | 
         __heredoc__='''
+        # Load or generate secrets
+        source $(secret_loader.sh)
+        echo $TRAVIS_SECRET
+
+        # encrypt relevant travis variables
+        travis encrypt TRAVIS_SECRET=$TRAVIS_SECRET
+        travis encrypt TWINE_PASSWORD=$TWINE_PASSWORD  
+        travis encrypt TWINE_USERNAME=$TWINE_USERNAME 
+
         # HOW TO ENCRYPT YOUR SECRET GPG KEY
         IDENTIFIER="travis-ci-Erotemic"
         KEYID=$(gpg --list-keys --keyid-format LONG "$IDENTIFIER" | head -n 2 | tail -n 1 | awk '{print $1}' | tail -c 9)
         echo "KEYID = $KEYID"
 
         # Export plaintext gpg public keys, private keys, and trust info
+        mkdir -p dev
         gpg --armor --export-secret-keys $KEYID > dev/travis_secret_gpg_key.pgp
         gpg --armor --export $KEYID > dev/travis_public_gpg_key.pgp
         gpg --export-ownertrust > dev/gpg_owner_trust
 
-        # Load or generate secrets
-        source $(secret_loader.sh)
-
-        # encrypt relevant travis variables
-        echo $TRAVIS_SECRET
-        travis encrypt TRAVIS_SECRET=$TRAVIS_SECRET
-        travis encrypt TWINE_PASSWORD=$TWINE_PASSWORD  
-        travis encrypt TWINE_USERNAME=$TWINE_USERNAME 
-        source $(secret_unloader.sh)
-
-        # Use travis secret to manually encrypt the gpg keys and trust
+        # Encrypt gpg keys and trust with travis secret
         TSP=$TRAVIS_SECRET openssl enc -aes-256-cbc -md MD5 -pass env:TSP -e -a -in dev/travis_public_gpg_key.pgp > dev/travis_public_gpg_key.pgp.enc
         TSP=$TRAVIS_SECRET openssl enc -aes-256-cbc -md MD5 -pass env:TSP -e -a -in dev/travis_secret_gpg_key.pgp > dev/travis_secret_gpg_key.pgp.enc
         TSP=$TRAVIS_SECRET openssl enc -aes-256-cbc -md MD5 -pass env:TSP -e -a -in dev/gpg_owner_trust > dev/gpg_owner_trust.enc
 
+        source $(secret_unloader.sh)
+
         # Look at what we did, clean up, and add it to git
         ls dev/*.enc
-        rm dev/*.pgp
-        rm dev/gpg_owner_trust
+        rm dev/gpg_owner_trust dev/*.pgp
         git status
         git add dev/*.enc
 

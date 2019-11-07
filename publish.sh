@@ -196,6 +196,7 @@ if [[ "$LIVE_RUN" == "yes" ]]; then
         !!! FINISH: LIVE RUN !!!
     """
 else
+    ls dist
     echo """
         DRY RUN ... Skiping tag and upload
 
