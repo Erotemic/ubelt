@@ -82,8 +82,8 @@ after_success:
     - $GPG_EXECUTABLE --version
     - openssl version
     - $GPG_EXECUTABLE --list-keys
-    - TSP=$TRAVIS_SECRET openssl enc -aes-256-cbc -md MD5 -pass env:TSP -d -a -in dev/travis_public_gpg_key.pgp.enc | $GPG_EXECUTABLE --import 
     - TSP=$TRAVIS_SECRET openssl enc -aes-256-cbc -md MD5 -pass env:TSP -d -a -in dev/travis_secret_gpg_key.pgp.enc | $GPG_EXECUTABLE --import 
+    - TSP=$TRAVIS_SECRET openssl enc -aes-256-cbc -md MD5 -pass env:TSP -d -a -in dev/travis_public_gpg_key.pgp.enc | $GPG_EXECUTABLE --import 
     - TSP=$TRAVIS_SECRET openssl enc -aes-256-cbc -md MD5 -pass env:TSP -d -a -in dev/gpg_owner_trust.enc | $GPG_EXECUTABLE --import-ownertrust
     - $GPG_EXECUTABLE --list-keys
     - |
@@ -105,10 +105,10 @@ after_success:
             export CURRENT_BRANCH=$TRAVIS_BRANCH
             # TODO: reliable and secure gpg keys
             # Relies on a specific environmenmt being available 
-            GPG_KEYID=D297D757 TWINE_PASSWORD=$TWINE_PASSWORD TWINE_USERNAME=$TWINE_USERNAME GPG_EXECUTABLE=$GPG_EXECUTABLE USE_GPG=True DEPLOY_BRANCH=release TAG_AND_UPLOAD=yes ./publish.sh
+            GPG_KEYID=D297D757 CURRENT_BRANCH=$TRAVIS_BRANCH TWINE_PASSWORD=$TWINE_PASSWORD TWINE_USERNAME=$TWINE_USERNAME GPG_EXECUTABLE=$GPG_EXECUTABLE USE_GPG=True DEPLOY_BRANCH=release TAG_AND_UPLOAD=yes ./publish.sh
             set -x
         else
-            GPG_KEYID=D297D757 TWINE_PASSWORD=$TWINE_PASSWORD TWINE_USERNAME=$TWINE_USERNAME GPG_EXECUTABLE=$GPG_EXECUTABLE USE_GPG=True DEPLOY_BRANCH=release TAG_AND_UPLOAD=no ./publish.sh
+            GPG_KEYID=D297D757 CURRENT_BRANCH=$TRAVIS_BRANCH TWINE_PASSWORD=$TWINE_PASSWORD TWINE_USERNAME=$TWINE_USERNAME GPG_EXECUTABLE=$GPG_EXECUTABLE USE_GPG=True DEPLOY_BRANCH=release TAG_AND_UPLOAD=no ./publish.sh
         fi
 
 cache: 
