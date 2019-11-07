@@ -127,6 +127,7 @@ if [ "$USE_GPG" == "True" ]; then
     # secure gpg --export-secret-keys > all.gpg
 
     # REQUIRES GPG >= 2.2
+    check_variable GPG_EXECUTABLE
     check_variable GPG_KEYID
 
     OLD_SIGS=$(ls dist/*.asc)
@@ -149,9 +150,6 @@ if [ "$USE_GPG" == "True" ]; then
     echo "Verifying wheels"
     $GPG_EXECUTABLE --verify $BDIST_WHEEL_PATH.asc $BDIST_WHEEL_PATH 
     $GPG_EXECUTABLE --verify $SDIST_PATH.asc $SDIST_PATH 
-
-    check_variable BDIST_WHEEL_PATH
-    check_variable SDIST_PATH
 else
     echo "USE_GPG=False, Skipping GPG sign"
 fi
