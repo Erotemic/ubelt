@@ -140,6 +140,8 @@ if [ "$USE_GPG" == "True" ]; then
 
     echo "Signing wheels"
     GPG_SIGN_CMD="$GPG_EXECUTABLE --batch --yes --detach-sign --armor --local-user $GPG_KEYID"
+    ls dist
+    echo "GPG_SIGN_CMD = $GPG_SIGN_CMD"
     $GPG_SIGN_CMD --output $BDIST_WHEEL_PATH.asc $BDIST_WHEEL_PATH
     $GPG_SIGN_CMD --output $SDIST_PATH.asc $SDIST_PATH
 
