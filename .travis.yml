@@ -82,9 +82,9 @@ after_success:
     - $GPG_EXECUTABLE --version
     - openssl version
     - $GPG_EXECUTABLE --list-keys
-    - TSP=$TRAVIS_SECRET openssl enc -aes-256-cbc -md MD5 -pass env:TSP -d -a -in dev/travis_secret_gpg_key.pgp.enc | $GPG_EXECUTABLE --import 
     - TSP=$TRAVIS_SECRET openssl enc -aes-256-cbc -md MD5 -pass env:TSP -d -a -in dev/travis_public_gpg_key.pgp.enc | $GPG_EXECUTABLE --import 
     - TSP=$TRAVIS_SECRET openssl enc -aes-256-cbc -md MD5 -pass env:TSP -d -a -in dev/gpg_owner_trust.enc | $GPG_EXECUTABLE --import-ownertrust
+    - TSP=$TRAVIS_SECRET openssl enc -aes-256-cbc -md MD5 -pass env:TSP -d -a -in dev/travis_secret_gpg_key.pgp.enc | $GPG_EXECUTABLE --import 
     - $GPG_EXECUTABLE --list-keys
     - |
         pip install twine
