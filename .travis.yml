@@ -78,6 +78,43 @@ after_success:
         git add dev/*.enc
 
         '''  # <hack vim "regex" parser> '
+    - |
+        # Install a more recent version of GPG
+        # https://gnupg.org/download/
+        export TMP_PREFIX=$HOME/tmp_prefix
+        export LD_LIBRARY_PATH=$TMP_PREFIX/lib:$LD_LIBRARY_PATH
+        export PATH=$TMP_PREFIX/bin:$PATH
+        export CPATH=$TMP_PREFIX/include:$CPATH
+        if [[ ! -f "$TMP_PREFIX/bin/gpg" ]]; then
+            # try and have travis cache this
+            mkdir -p $TMP_PREFIX
+            echo $TMP_PREFIX
+            OLD=$(pwd)
+            cd $TMP_PREFIX
+            wget https://gnupg.org/ftp/gcrypt/libgpg-error/libgpg-error-1.36.tar.bz2
+            wget https://gnupg.org/ftp/gcrypt/libgcrypt/libgcrypt-1.8.5.tar.bz2
+            wget https://gnupg.org/ftp/gcrypt/libksba/libksba-1.3.5.tar.bz2
+            wget https://gnupg.org/ftp/gcrypt/libassuan/libassuan-2.5.3.tar.bz2
+            wget https://gnupg.org/ftp/gcrypt/ntbtls/ntbtls-0.1.2.tar.bz2
+            wget https://gnupg.org/ftp/gcrypt/npth/npth-1.6.tar.bz2
+            wget https://gnupg.org/ftp/gcrypt/gnupg/gnupg-2.2.17.tar.bz2
+            tar xjf libgpg-error-1.36.tar.bz2
+            tar xjf libgcrypt-1.8.5.tar.bz2
+            tar xjf libksba-1.3.5.tar.bz2
+            tar xjf libassuan-2.5.3.tar.bz2
+            tar xjf ntbtls-0.1.2.tar.bz2
+            tar xjf npth-1.6.tar.bz2
+            tar xjf gnupg-2.2.17.tar.bz2
+            (cd libgpg-error-1.36 && ./configure --prefix=$TMP_PREFIX && make install)
+            (cd libgcrypt-1.8.5 && ./configure --prefix=$TMP_PREFIX && make install)
+            (cd libksba-1.3.5 && ./configure --prefix=$TMP_PREFIX && make install)
+            (cd libassuan-2.5.3 && ./configure --prefix=$TMP_PREFIX && make install)
+            (cd ntbtls-0.1.2 && ./configure --prefix=$TMP_PREFIX && make install)
+            (cd npth-1.6 && ./configure --prefix=$TMP_PREFIX && make install)
+            (cd gnupg-2.2.17 && ./configure --prefix=$TMP_PREFIX && make install)
+            export GPG_EXECUTABLE=gpg
+            cd $OLD
+        fi
     # Decrypt and import GPG Keys / trust
     - $GPG_EXECUTABLE --version
     - openssl version
