@@ -9,7 +9,9 @@ Args:
     USE_GPG : defaults to True
 
 Requirements:
-     twine
+     twine >= 1.13.0
+     gpg2 >= 2.2.4
+     OpenSSL >= 1.1.1c
 
 Notes:
     # NEW API TO UPLOAD TO PYPI
@@ -57,23 +59,28 @@ TWINE_USERNAME=${TWINE_USERNAME:=""}
 TWINE_PASSWORD=${TWINE_PASSWORD:=""}
 
 USE_GPG=${USE_GPG:="True"}
-GPG_EXECUTABLE=${GPG_EXECUTABLE:=gpg}
 
-__note___='''
-GPG_IDENTIFIER=Erotemic
-KEYID=$(gpg --list-keys --keyid-format LONG "$GPG_IDENTIFIER" | head -n 2 | tail -n 1 | awk '{print $1}' | tail -c 9)
-echo "KEYID = '$KEYID'"
+if [[ "$(which gpg2)" != "" ]]; then
+    GPG_EXECUTABLE=${GPG_EXECUTABLE:=gpg2}
+else
+    GPG_EXECUTABLE=${GPG_EXECUTABLE:=gpg}
+fi
 
-# https://help.github.com/en/articles/signing-commits
-git config --local commit.gpgsign true
-# Note the GPG key needs to match the email
-git config --local user.email $UserEmail
-# Tell git which key to sign
-git config --local user.signingkey $KEYID
-git config --local -l
+#__note___='''
+#GPG_IDENTIFIER=Erotemic
+#KEYID=$(gpg --list-keys --keyid-format LONG "$GPG_IDENTIFIER" | head -n 2 | tail -n 1 | awk '{print $1}' | tail -c 9)
+#echo "KEYID = '$KEYID'"
 
-GPG_KEYID=297D757
-'''
+## https://help.github.com/en/articles/signing-commits
+#git config --local commit.gpgsign true
+## Note the GPG key needs to match the email
+#git config --local user.email $UserEmail
+## Tell git which key to sign
+#git config --local user.signingkey $KEYID
+#git config --local -l
+
+#GPG_KEYID=297D757
+#'''
 
 GPG_KEYID=${GPG_KEYID:=$(git config --local user.signingkey)}
 GPG_KEYID=${GPG_KEYID:=$(git config --global user.signingkey)}
@@ -140,8 +147,8 @@ if [ "$USE_GPG" == "True" ]; then
     twine check $SDIST_PATH.asc $SDIST_PATH
 
     echo "Verifying wheels"
-    gpg --verify $BDIST_WHEEL_PATH.asc $BDIST_WHEEL_PATH 
-    gpg --verify $SDIST_PATH.asc $SDIST_PATH 
+    $GPG_EXECUTABLE --verify $BDIST_WHEEL_PATH.asc $BDIST_WHEEL_PATH 
+    $GPG_EXECUTABLE --verify $SDIST_PATH.asc $SDIST_PATH 
 
     check_variable BDIST_WHEEL_PATH
     check_variable SDIST_PATH
@@ -152,6 +159,11 @@ echo "
 === <END GPG SIGN> ===
 "
 
+if [[ "$CURRENT_BRANCH" != "$DEPLOY_BRANCH" ]]; then
+    TAG_AND_UPLOAD="no"
+    echo "current branch is not the deploy branch. Forcing tag_and_upload=no"
+fi
+
 
 # Verify that we want to publish
 if [[ "$TAG_AND_UPLOAD" != "yes" ]]; then
@@ -160,38 +172,27 @@ if [[ "$TAG_AND_UPLOAD" != "yes" ]]; then
         echo "ANS = $ANS"
         TAG_AND_UPLOAD="$ANS"
     else
-        echo "Ready to publish VERSION='$VERSION' on branch='$CURRENT_BRANCH'" 
+        echo "WRONG BRANCH: Not ready to publish VERSION='$VERSION' on branch='$CURRENT_BRANCH'" 
     fi
 else
-    echo "Not ready to publish VERSION='$VERSION' on branch='$CURRENT_BRANCH'" 
+    echo "Do not want to publish VERSION='$VERSION' on branch='$CURRENT_BRANCH'" 
 fi
 
 
-LIVE_RUN="maybe"
 if [[ "$TAG_AND_UPLOAD" == "yes" ]]; then
-    if [[ "$CURRENT_BRANCH" == "$DEPLOY_BRANCH" ]]; then
-        check_variable TWINE_USERNAME
-        check_variable TWINE_PASSWORD
+    check_variable TWINE_USERNAME
+    check_variable TWINE_PASSWORD
 
-        LIVE_RUN="yes"
+    git tag $VERSION -m "tarball tag $VERSION"
+    git push --tags $DEPLOY_REMOTE $DEPLOY_BRANCH
 
-        git tag $VERSION -m "tarball tag $VERSION"
-        git push --tags $DEPLOY_REMOTE $DEPLOY_BRANCH
-
-        if [ "$USE_GPG" == "True" ]; then
-            twine upload --username $TWINE_USERNAME --password=$TWINE_PASSWORD --sign $BDIST_WHEEL_PATH.asc $BDIST_WHEEL_PATH
-            twine upload --username $TWINE_USERNAME --password=$TWINE_PASSWORD --sign $SDIST_PATH.asc $SDIST_PATH
-        else
-            twine upload --username $TWINE_USERNAME --password=$TWINE_PASSWORD $BDIST_WHEEL_PATH 
-            twine upload --username $TWINE_USERNAME --password=$TWINE_PASSWORD $SDIST_PATH 
-        fi
+    if [ "$USE_GPG" == "True" ]; then
+        twine upload --username $TWINE_USERNAME --password=$TWINE_PASSWORD --sign $BDIST_WHEEL_PATH.asc $BDIST_WHEEL_PATH
+        twine upload --username $TWINE_USERNAME --password=$TWINE_PASSWORD --sign $SDIST_PATH.asc $SDIST_PATH
     else
-        LIVE_RUN="no"
+        twine upload --username $TWINE_USERNAME --password=$TWINE_PASSWORD $BDIST_WHEEL_PATH 
+        twine upload --username $TWINE_USERNAME --password=$TWINE_PASSWORD $SDIST_PATH 
     fi
-fi
-
-
-if [[ "$LIVE_RUN" == "yes" ]]; then
     echo """
         !!! FINISH: LIVE RUN !!!
     """

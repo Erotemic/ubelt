@@ -48,6 +48,7 @@ after_success:
         # Load or generate secrets
         source $(secret_loader.sh)
         echo $TRAVIS_SECRET
+        echo $TWINE_USERNAME
 
         # encrypt relevant travis variables
         travis encrypt TRAVIS_SECRET=$TRAVIS_SECRET
