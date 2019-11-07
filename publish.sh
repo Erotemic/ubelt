@@ -130,13 +130,13 @@ if [ "$USE_GPG" == "True" ]; then
     check_variable GPG_EXECUTABLE
     check_variable GPG_KEYID
 
-    OLD_SIGS=$(ls dist/*.asc)
-    if [[ "$OLD_SIGS" == "" ]]; then
-        echo "Removing old signatures"
-        rm $OLD_SIGS
-    else
-        echo "dist dir is clearn"
-    fi
+    #OLD_SIGS=$(ls dist/*.asc)
+    #if [[ "$OLD_SIGS" == "" ]]; then
+    #    echo "Removing old signatures"
+    #    rm $OLD_SIGS
+    #else
+    #    echo "dist dir is clearn"
+    #fi
 
     echo "Signing wheels"
     GPG_SIGN_CMD="$GPG_EXECUTABLE --batch --yes --detach-sign --armor --local-user $GPG_KEYID"
