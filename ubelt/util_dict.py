@@ -510,30 +510,27 @@ def dict_isect(*args):
 
 def map_vals(func, dict_):
     """
-    Transform a dictionary by applying a function to each value, while keeping
-    the keys the same.
+    Apply a function to every value in a dictionary.
+
+    Creates a new dictionary with the same keys and modified values.
 
     Args:
         func (callable): a function or indexable object
         dict_ (dict): a dictionary
 
     Returns:
-        newdict: transformed dictionary
-
-    CommandLine:
-        xdoctest -m ubelt.util_dict map_vals
+        dict: transformed dictionary
 
     Example:
-        >>> import ubelt as ub
         >>> dict_ = {'a': [1, 2, 3], 'b': []}
-        >>> func = len
-        >>> newdict = ub.map_vals(func, dict_)
+        >>> newdict = map_vals(len, dict_)
         >>> assert newdict ==  {'a': 3, 'b': 0}
-        >>> print(newdict)
+
+    Example:
         >>> # Can also use indexables as `func`
         >>> dict_ = {'a': 0, 'b': 1}
         >>> func = [42, 21]
-        >>> newdict = ub.map_vals(func, dict_)
+        >>> newdict = map_vals(func, dict_)
         >>> assert newdict ==  {'a': 42, 'b': 21}
         >>> print(newdict)
     """
@@ -542,60 +539,57 @@ def map_vals(func, dict_):
     keyval_list = [(key, func(val)) for key, val in six.iteritems(dict_)]
     dictclass = OrderedDict if isinstance(dict_, OrderedDict) else dict
     newdict = dictclass(keyval_list)
-    # newdict = type(dict_)(keyval_list)
     return newdict
 
 
 def map_keys(func, dict_):
-    r"""
-    Transform a dictionary by applying a function to each key, while keeping
-    the values the same.
+    """
+    Apply a function to every key in a dictionary.
+
+    Creates a new dictionary with the same values and modified keys. An error
+    is raised if the new keys are not unique.
 
     Args:
         func (callable): a function or indexable object
         dict_ (dict): a dictionary
 
     Returns:
-        newdict: transformed dictionary
+        dict: transformed dictionary
 
-    CommandLine:
-        xdoctest -m ubelt.util_dict map_keys
+    Raises:
+        Exception : if multiple keys map to the same value
 
     Example:
-        >>> import ubelt as ub
         >>> dict_ = {'a': [1, 2, 3], 'b': []}
         >>> func = ord
-        >>> newdict = ub.map_keys(func, dict_)
+        >>> newdict = map_keys(func, dict_)
         >>> print(newdict)
         >>> assert newdict == {97: [1, 2, 3], 98: []}
-        >>> #ut.assert_raises(AssertionError, map_keys, len, dict_)
         >>> dict_ = {0: [1, 2, 3], 1: []}
         >>> func = ['a', 'b']
-        >>> newdict = ub.map_keys(func, dict_)
+        >>> newdict = map_keys(func, dict_)
         >>> print(newdict)
         >>> assert newdict == {'a': [1, 2, 3], 'b': []}
-        >>> #ut.assert_raises(AssertionError, map_keys, len, dict_)
-
     """
     if not hasattr(func, '__call__'):
         func = func.__getitem__
     keyval_list = [(func(key), val) for key, val in six.iteritems(dict_)]
-    # newdict = type(dict_)(keyval_list)
     dictclass = OrderedDict if isinstance(dict_, OrderedDict) else dict
     newdict = dictclass(keyval_list)
-    assert len(newdict) == len(dict_), (
-        'multiple input keys were mapped to the same output key')
+    if len(newdict) != len(dict_):
+        raise Exception('multiple input keys mapped to the same output key')
     return newdict
 
 
 def invert_dict(dict_, unique_vals=True):
-    r"""
+    """
     Swaps the keys and values in a dictionary.
 
     Args:
         dict_ (dict): dictionary to invert
-        unique_vals (bool): if False, inverted keys are returned in a set.
-            The default is True.
+
+        unique_vals (bool, default=True): if False, the values of the new
+            dictionary are sets of the original keys.
 
     Returns:
         dict: inverted
@@ -607,9 +601,6 @@ def invert_dict(dict_, unique_vals=True):
         the corresponding keys will be returned and the others will be
         discarded.  This can be prevented by setting `unique_vals=True`,
         causing the inverted keys to be returned in a set.
-
-    CommandLine:
-        python -m ubelt.util_dict invert_dict
 
     Example:
         >>> import ubelt as ub
