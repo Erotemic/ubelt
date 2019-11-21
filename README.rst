@@ -32,27 +32,49 @@ Read the docs here: http://ubelt.readthedocs.io/en/latest/
 These are some of the tasks that Ubelt's api enables:
 
   - hash common data structures
+
   - hash files
+
   - cache a block of code 
+
   - time a block of code
+
   - download a file
+
   - run shell commands
-  - nicely string format a nested data structure
-  - make a directory if it doesnt exist
-  - shell-like path expansion
+
+  - string-format nested data structures
+
+  - make a directory if it does't exist
+
+  - expand environment variables and tildes in path strings
+
   - map a function over the keys or values of a dictionary
-  - set operations on dictionaries
-  - dictionary operations like histogram, duplicates, and inversion 
+
+  - perform set operations on dictionaries
+
+  - perform dictionary operations like histogram, duplicates, and inversion 
+
   - delete a file or directory
+
   - import a module using the path to that module 
+
   - check if a particular flag or value is on the command line
-  - ansi coloring of text
-  - get paths to cross platform data directories
-  - make cross platform symlinks 
-  - space-aware horizontal string concatenation
-  - alias like ddict=defaultdict and odict=OrderedDict 
-  - implementation of an ordered set
+
+  - color text with ansi tags
+
+  - get paths to cross platform data/cache/config directories
+
+  - create cross platform symlinks 
+
+  - horizontally concatenate multiline strings
+
+  - access defaultdict and OrderedDict by ddict and odict aliases
+
+  - build ordered sets
+
   - memoize functions
+
   - argmax/min/sort on dictionaries
 
 Ubelt is small. Its top-level API is defined using roughly 40 lines:
