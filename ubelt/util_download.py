@@ -115,8 +115,8 @@ def download(url, fpath=None, hash_prefix=None, hasher='sha512',
         >>> with pytest.raises(RuntimeError):
         >>>     ub.download(url, hasher='sha512', hash_prefix='BAD_HASH')
     """
-    from progiter import ProgIter as Progress
-    from ubelt import util_platform
+    from ubelt import ProgIter as Progress
+    from ubelt import ensure_app_cache_dir
     import shutil
     import tempfile
     import hashlib
@@ -126,7 +126,7 @@ def download(url, fpath=None, hash_prefix=None, hasher='sha512',
     else:
         from urllib.request import urlopen  # NOQA
     if fpath is None:
-        dpath = util_platform.ensure_app_cache_dir('ubelt')
+        dpath = ensure_app_cache_dir('ubelt')
         fname = basename(url)
         fpath = join(dpath, fname)
 
@@ -310,7 +310,7 @@ def grabdata(url, fpath=None, dpath=None, fname=None, redo=False,
         >>> fpath = ub.grabdata(url2, fname=fname, hash_prefix=prefix2)
         >>> assert open(stamp_fpath, 'r').read() == prefix2
     """
-    from ubelt import util_platform
+    from ubelt.util_platform import ensure_app_cache_dir
     if appname and dpath:
         raise ValueError('Cannot specify appname with dpath')
     if fpath and (dpath or fname or appname):
@@ -319,7 +319,7 @@ def grabdata(url, fpath=None, dpath=None, fname=None, redo=False,
     if fpath is None:
         if dpath is None:
             appname = appname or 'ubelt'
-            dpath = util_platform.ensure_app_cache_dir(appname)
+            dpath = ensure_app_cache_dir(appname)
         if fname is None:
             fname = basename(url)
         fpath = join(dpath, fname)

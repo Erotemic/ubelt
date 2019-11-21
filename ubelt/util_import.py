@@ -194,7 +194,7 @@ def import_module_from_path(modpath, index=-1):
         >>> assert module.__name__ == os.path.normpath('folder/bar')
         >>> assert module.testvar == 1
 
-    Doctest:
+    Example:
         >>> import pytest
         >>> with pytest.raises(IOError):
         >>>     import_module_from_path('does-not-exist')

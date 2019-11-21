@@ -4,7 +4,16 @@ We are currently working on porting this changelog to the specifications in
 [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Version 0.8.3] - Unreleased
+
+## [Version 0.8.4] - 2019-11-20
+
+### Changed
+* The following functions are now officially deprecated: `startfile`, `truepath`, `compressuser`, `editfile`, `platform_resource_dir`, `get_app_resource_dir`, and `ensure_app_resource_dir`
+* Improve docs
+* `Timerit` and `ProgIter` are back, remove dependency on the external modules.
+
+
+## [Version 0.8.3] - 2019-11-06
 
 ### Changed
 * `PythonPathContext` now works in more corner cases, although some rarer

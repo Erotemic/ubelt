@@ -9,7 +9,7 @@ The :func:`augpath` function creates variants of an existing path without
 having to spend multiple lines of code splitting it up and stitching it back
 together.
 
-The :func:`compressuser` function replaces your home directory with a tilde.
+The :func:`shrinkuser` function replaces your home directory with a tilde.
 
 The :func:`userhome` function reports the home directory of the current user of
 the operating system.
@@ -24,7 +24,6 @@ from os.path import expanduser
 from os.path import expandvars
 from os.path import join
 from os.path import normpath
-from os.path import realpath
 from os.path import split
 from os.path import splitext
 import os
@@ -32,8 +31,7 @@ import sys
 
 
 __all__ = [
-    'TempDir', 'augpath', 'compressuser', 'truepath', 'userhome',
-    'ensuredir', 'expandpath',
+    'TempDir', 'augpath', 'shrinkuser', 'userhome', 'ensuredir', 'expandpath',
 ]
 
 
@@ -175,7 +173,7 @@ def userhome(username=None):
     return userhome_dpath
 
 
-def compressuser(path, home='~'):
+def shrinkuser(path, home='~'):
     """
     Inverse of :func:`os.path.expanduser`.
 
@@ -191,10 +189,11 @@ def compressuser(path, home='~'):
     Example:
         >>> path = expanduser('~')
         >>> assert path != '~'
-        >>> assert compressuser(path) == '~'
-        >>> assert compressuser(path + '1') == path + '1'
-        >>> assert compressuser(path + '/1') == join('~', '1')
-        >>> assert compressuser(path + '/1', '$HOME') == join('$HOME', '1')
+        >>> assert shrinkuser(path) == '~'
+        >>> assert shrinkuser(path + '1') == path + '1'
+        >>> assert shrinkuser(path + '/1') == join('~', '1')
+        >>> assert shrinkuser(path + '/1', '$HOME') == join('$HOME', '1')
+        >>> assert shrinkuser('.') == '.'
     """
     path = normpath(path)
     userhome_dpath = userhome()
@@ -226,42 +225,6 @@ def expandpath(path):
     """
     path = expanduser(path)
     path = expandvars(path)
-    return path
-
-
-def truepath(path, real=False):
-    """
-    Normalizes a string representation of a path and does shell-like expansion.
-
-    Args:
-        path (str | PathLike): string representation of a path
-        real (bool): if True, all symbolic links are followed. (default: False)
-
-    Returns:
-        str : normalized path
-
-    Note:
-        This function is similar to the composition of expanduser, expandvars,
-        normpath, and (realpath if `real` else abspath). However, on windows
-        backslashes are then replaced with forward slashes to offer a
-        consistent unix-like experience across platforms.
-
-        On windows expanduser will expand environment variables formatted as
-        %name%, whereas on unix, this will not occur.
-
-    Example:
-        >>> import ubelt as ub
-        >>> assert ub.truepath('~/foo') == join(ub.userhome(), 'foo')
-        >>> assert ub.truepath('~/foo') == ub.truepath('~/foo/bar/..')
-        >>> assert ub.truepath('~/foo', real=True) == ub.truepath('~/foo')
-    """
-    path = expanduser(path)
-    path = expandvars(path)
-    if real:
-        path = realpath(path)
-    else:
-        path = abspath(path)
-    path = normpath(path)
     return path
 
 

@@ -406,6 +406,11 @@ _FORMATTER_EXTENSIONS._register_builtin_extensions()
 
 @_FORMATTER_EXTENSIONS.lazy_init.append
 def _lazy_init():
+    """
+    Only called in the case where we encounter an unknown type that a commonly
+    used external library might have. For now this is just numpy. Numpy is
+    ubiquitous.
+    """
     try:
         # TODO: can we use lazy loading to prevent trying to import numpy until
         # some attribute of _FORMATTER_EXTENSIONS is used?

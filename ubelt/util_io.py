@@ -171,7 +171,7 @@ def delete(path, verbose=False):
             to the trash instead of irreversibly deleting them.
             https://github.com/hsoft/send2trash
 
-    Doctest:
+    Example:
         >>> import ubelt as ub
         >>> base = ub.ensure_app_cache_dir('ubelt', 'delete_test')
         >>> dpath1 = ub.ensuredir(join(base, 'dir'))
@@ -188,7 +188,7 @@ def delete(path, verbose=False):
         >>> ub.delete(dpath1)
         >>> assert not any(map(exists, (dpath1, fpath1, fpath2)))
 
-    Doctest:
+    Example:
         >>> import ubelt as ub
         >>> dpath = ub.ensure_app_cache_dir('ubelt', 'delete_test2')
         >>> dpath1 = ub.ensuredir(join(dpath, 'dir'))

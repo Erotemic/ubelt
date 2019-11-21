@@ -71,7 +71,7 @@ class chunks(object):
         >>> genresult = ub.chunks(items, chunksize=3, bordermode='replicate')
         >>> assert list(genresult) == [[1, 2, 3], [4, 5, 6], [7, 7, 7]]
 
-    Doctest:
+    Example:
         >>> import ubelt as ub
         >>> assert len(list(ub.chunks(range(2), nchunks=2))) == 2
         >>> assert len(list(ub.chunks(range(3), nchunks=2))) == 2
@@ -81,14 +81,14 @@ class chunks(object):
         >>> assert len(list(ub.chunks([], 2, None, 'cycle'))) == 0
         >>> assert len(list(ub.chunks([], 2, None, 'replicate'))) == 0
 
-    Doctest:
+    Example:
         >>> def _check_len(self):
         ...     assert len(self) == len(list(self))
         >>> _check_len(chunks(list(range(3)), nchunks=2))
         >>> _check_len(chunks(list(range(2)), nchunks=2))
         >>> _check_len(chunks(list(range(2)), nchunks=3))
 
-    Doctest:
+    Example:
         >>> import pytest
         >>> assert pytest.raises(ValueError, chunks, range(9))
         >>> assert pytest.raises(ValueError, chunks, range(9), chunksize=2, nchunks=2)

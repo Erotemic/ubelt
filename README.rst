@@ -11,11 +11,14 @@
 ..       <img src="https://i.imgur.com/AcWVroL.png" height="100px">
 
 Ubelt is a small library of robust, tested, documented, and simple functions
-that extend the Python standard library.  You've probably written and
-re-written some of the functions in ubelt before (or wrote out the logic
-inline). Next time, try ``pip install ubelt`` instead. 
+that extend the Python standard library. It has a flat API that all behaves
+similarly on Windows, Mac, and Linux (up to some small unavoidable
+differences).  Almost every function in ``ubelt`` was written with a doctest.
+This provides helpful documentation and example usage as well as helping
+achieve 100% test coverage (sans Python2, Windows, stuff that could not be
+tested automatically, etc).
 
-* Goal: provide simple functions that acomplish common tasks not yet addressed by the python standard library.
+* Goal: provide simple functions that accomplish common tasks not yet addressed by the python standard library.
 
 * Constraints: Must be low-impact pure python; it should be easy to install and use.
 
@@ -24,152 +27,57 @@ inline). Next time, try ``pip install ubelt`` instead.
 * Motto: Good utilities lift all codes. 
 
 
-Description:
-============
-
-UBelt is cross platform and all top-level functions behave similarly on
-Windows, Mac, and Linux (up to some small unavoidable differences).
-Almost every function in ``ubelt`` was written with a doctest. This
-provides helpful documentation and example usage as well as helping
-achieve 100% test coverage (sans Python2, Windows, stuff that could not
-be tested automatically, etc).
-
-See the (Available Functions) section for detailed information.
-
 Read the docs here: http://ubelt.readthedocs.io/en/latest/
 
+These are some of the tasks that ubelt's API enables:
 
-Current Functionality
-=====================
-Ubelt is a currated collection of utilities. 
+  - hash common data structures
 
-UBelt's functionality is a mixture of the following categories:
+  - hash files
 
-- Timing
-- Caching
-- Hashing
-- Command Line / Shell Interaction
-- Cross-Platform Cache, Config, and Data Directories
-- Symlinks
-- Downloading Files
-- Dictionary Histogram
-- Find Duplicates
-- Dictionary Manipulation
-- AutoDict - Autovivification
-- String-based imports
-- Horizontal String Concatenation
-- Standalone modules.
-    - `progiter <https://github.com/Erotemic/progiter>`__ for Loop Progress
-    - `timerit <https://github.com/Erotemic/timerit>`__ for Robust Timing and Benchmarking
-    - `ordered-set <https://github.com/LuminosoInsight/ordered-set>`__ for ordered set collections
+  - cache a block of code 
 
+  - time a block of code
 
-Installation:
-=============
+  - download a file
 
-UBelt is written in pure Python and integrated into the python package
-index. Just pip install it and then import it!
+  - run shell commands
 
-From pypi:
-----------
+  - string-format nested data structures
 
-::
+  - make a directory if it doesn't exist
 
-    pip install ubelt
+  - expand environment variables and tildes in path strings
 
-From github:
-------------
+  - map a function over the keys or values of a dictionary
 
-::
+  - perform set operations on dictionaries
 
-    pip install git+https://github.com/Erotemic/ubelt.git
+  - perform dictionary operations like histogram, duplicates, and inversion 
 
+  - delete a file or directory
 
-Purpose
-=======
+  - import a module using the path to that module 
 
-UBelt is a "utility belt" of commonly needed utility and helper
-functions.
+  - check if a particular flag or value is on the command line
 
--  Reusable code - Many functions in ``ubelt`` are simple to write
-   yourself (e.g. ``take``, ``memoize``, ``ensure_unicode``), but even
-   re-writing trivial functions takes time better spent on more
-   important tasks. Rewriting has its place, but not when you can just
-   ``pip install ubelt``!
+  - color text with ANSI tags
 
--  Easy access - The entire ``ubelt`` API is exposed at the top level.
-   While the functions are defined in submodules, explicit imports make
-   easy to access any function. There are also a small number of
-   functions (e.g. ``ub.odict``, ``ub.ddict``, ``ub.flatten``, which are
-   aliases for ``collections.OrderedDict``, ``collections.DefaultDict``,
-   and ``itertools.chain.from_iterable``, respectively) that are
-   essentially aliases for functions already in Python's standard
-   library. I found myself using these functions so much that I wanted
-   easier access to them, thus they are included in ``ubelt``.
+  - get paths to cross platform data/cache/config directories
 
--  Extra batteries - Python's standard library is "batteries included"
-   and provides great APIs for a variety of tasks. UBelt both extends
-   these batteries and provides simplified interfaces to others.
+  - create cross platform symlinks 
 
--  Copy paste - It is often not desirable to add extra dependencies to
-   code. While I encourage installation and use of this module, I
-   realize that option is not always feasible. Most (but not all)
-   functions were also written in a way where they can be copy and
-   pasted into your packages own utility library without needing to add
-   a dependency on ``ubelt``.
+  - horizontally concatenate multiline strings
 
-History:
-========
+  - access defaultdict and OrderedDict by ddict and odict aliases
 
-UBelt is a migration of the most useful parts of
-``utool``\ (https://github.com/Erotemic/utool) into a standalone module
-with minimal dependencies.
+  - build ordered sets
 
-The ``utool`` library contains a number of useful utility functions, but
-it also contained non-useful functions, as well as the kitchen sink. A
-number of the functions were too specific or not well documented. The
-``ubelt`` packages was created to is to slowly port over the most
-re-usable parts of ``utool`` into a stable package.
+  - memoize functions
 
-The doctest harness in ``utool`` was ported and rewritten in a new
-module called: ```xdoctest`` <https://github.com/Erotemic/xdoctest>`__,
-which integrates with ``pytest`` as a plugin. All of the doctests in
-``ubelt`` are run using ``xdoctest``.
+  - argmax/min/sort on dictionaries
 
-A small subset of the static-analysis and code introspection tools in
-``xdoctest`` are made visible through ``ubelt``.
-
-Available Functions:
-====================
-
-Be sure to checkout the new Jupyter notebook: https://github.com/Erotemic/ubelt/blob/master/docs/notebooks/Ubelt%20Demo.ipynb
-
-For the following functions, see corresponding doc-strings for more
-details.
-
-Some of the more interesting and useful functions and classes
-implemented are:
-
-.. code:: python
-
-    import ubelt as ub
-
-    ub.ensuredir
-    ub.Timerit  # powerful multiline alternative to timeit
-    ub.Cacher  # configuration based on-disk cachine
-    ub.cmd  # combines the best of subprocess.Popen and os.system
-    ub.hash_data  # extremely useful with Cacher to config strings
-    ub.repr2
-    ub.download 
-    ub.AutoDict
-    ub.modname_to_modpath  # (works via static analysis)
-    ub.modpath_to_modname  # (works via static analysis)
-    ub.import_module_from_path  # (Unlike importlib, this does not break pytest)
-    ub.import_module_from_name  # (Unlike importlib, this does not break pytest)
-
-A complete list of available functions can be seen in the
-``ubelt/__init__.py`` file, which was auto-generated by
-``mkinit``\ (https://github.com/Erotemic/mkinit):
+Ubelt is small. Its top-level API is defined using roughly 40 lines:
 
 .. code:: python
 
@@ -196,119 +104,173 @@ A complete list of available functions can be seen in the
                                    modpath_to_modname, split_modpath,)
     from ubelt.util_memoize import (memoize, memoize_method, memoize_property,)
     from ubelt.util_mixins import (NiceRepr,)
-    from ubelt.util_path import (TempDir, augpath, compressuser, ensuredir,
-                                 expandpath, truepath, userhome,)
-    from ubelt.util_platform import (DARWIN, LINUX, POSIX, WIN32, editfile,
+    from ubelt.util_path import (TempDir, augpath, ensuredir, expandpath,
+                                 shrinkuser, userhome,)
+    from ubelt.util_platform import (DARWIN, LINUX, POSIX, WIN32,
                                      ensure_app_cache_dir, ensure_app_config_dir,
-                                     ensure_app_data_dir, ensure_app_resource_dir,
-                                     find_exe, find_path, get_app_cache_dir,
-                                     get_app_config_dir, get_app_data_dir,
-                                     get_app_resource_dir, platform_cache_dir,
-                                     platform_config_dir, platform_data_dir,
-                                     platform_resource_dir, startfile,)
+                                     ensure_app_data_dir, find_exe, find_path,
+                                     get_app_cache_dir, get_app_config_dir,
+                                     get_app_data_dir, platform_cache_dir,
+                                     platform_config_dir, platform_data_dir,)
     from ubelt.util_str import (codeblock, ensure_unicode, hzcat, indent,
                                 paragraph,)
     from ubelt.util_stream import (CaptureStdout, CaptureStream, TeeStringIO,)
     from ubelt.util_time import (Timer, Timerit, timestamp,)
     from ubelt.orderedset import (OrderedSet, oset,)
     from ubelt.progiter import (ProgIter,)
+    from ubelt._util_depricated import (compressuser, editfile,
+                                        ensure_app_resource_dir,
+                                        get_app_resource_dir,
+                                        platform_resource_dir, startfile,
+                                        truepath,)
+
+Installation:
+=============
+
+Ubelt is distributed on pypi as a universal wheel and can be pip installed on
+Python 2.7 and Python 3.4+. It is also possible to simply install it from
+source.
+
+From pypi:
+----------
+
+::
+
+    pip install ubelt
+
+From github:
+------------
+
+::
+
+    pip install git+https://github.com/Erotemic/ubelt.git
 
 
-To provide a sense of what functions are the most useful, here is a histogram
-(/ tier list) of my most used ubelt functions over several of my projects:
+History:
+========
+
+Ubelt is a migration of the most useful parts of
+``utool``\ (https://github.com/Erotemic/utool) into a standalone module
+with minimal dependencies.
+
+The ``utool`` library contains a number of useful utility functions, but it
+also contained non-useful functions, as well as the kitchen sink. A number of
+the functions were too specific or not well documented. The ``ubelt`` is a port
+of the simplest and most useful parts of ``utool``.
+
+Note that there are other cool things in ``utool`` that are not in ``ubelt``.
+Notably, the doctest harness ultimately became `xdoctest <https://github.com/Erotemic/xdoctest>`__. 
+Code introspection and dynamic analysis tools were ported to `xinspect <https://github.com/Erotemic/xinspect>`__.
+The more IPython-y tools were ported to `xdev <https://github.com/Erotemic/xdev>`__.
+Parts of it made their way into `scriptconfig <https://gitlab.kitware.com/utils/scriptconfig>`__.
+The init-file generation was moved to `mkinit <https://github.com/Erotemic/mkinit>`__.
+Some vim and system-y things can be found in `vimtk <https://github.com/Erotemic/vimtk>`__.
+
+
+Function Usefulness 
+===================
+
+When I had to hand pick a set of functions that I thought were the most useful
+I chose these and provided some comment on why:
+
+.. code:: python
+
+    import ubelt as ub
+
+    ub.ensuredir  # os.makedirs(exist_ok=True) is 3 only and too verbose
+    ub.Timerit  # powerful multiline alternative to timeit
+    ub.Cacher  # configuration based on-disk cachine
+    ub.cmd  # combines the best of subprocess.Popen and os.system
+    ub.hash_data  # extremely useful with Cacher to config strings
+    ub.repr2  # readable representations of nested data structures
+    ub.download  # why is this not a one liner --- also see grabdata for the same thing, but builtin caching.
+    ub.AutoDict  # one of the most useful tools in Perl, 
+    ub.modname_to_modpath  # (works via static analysis)
+    ub.modpath_to_modname  # (works via static analysis)
+    ub.import_module_from_path  # (Unlike importlib, this does not break pytest)
+    ub.import_module_from_name  # (Unlike importlib, this does not break pytest)
+
+
+But a better way might to objectively measure the frequency of usage and built
+a histogram of usefulness. I generated this histogram using ``python dev/count_usage_freq.py``.
 
 .. code:: python
 
     {
-        # SS > 200
-        'repr2': 638,
-        'expandpath': 281,
-        'ProgIter': 253,
-        'ensuredir': 205,
-        # S > 100
-        'odict': 189,
-        'take': 141,
-        'Timerit': 131,
-        'map_vals': 124,
-        'truepath': 104,
-        'NiceRepr': 101,
-        # A > 50
-        'argval': 93,
-        'hash_data': 88,
-        'cmd': 78,
-        'ddict': 76,
-        'argflag': 73,
-        'codeblock': 71,
-        'iterable': 70,
-        'dict_hist': 57,
-        'ensure_app_cache_dir': 56,
-        # B > 25
-        'NoParam': 49,
-        'augpath': 47,
-        'grabdata': 47,
-        'flatten': 41,
-        'color_text': 40,
-        'import_module_from_path': 38,
-        'delete': 38,
-        'allsame': 36,
-        'group_items': 36,
-        'Cacher': 36,
-        'peek': 36,
-        'timestamp': 30,
-        'Timer': 29,
-        # C > 10
-        'dict_subset': 24,
-        'compressuser': 24,
-        'compress': 23,
-        'oset': 22,
-        'memoize': 21,
-        'argsort': 19,
-        'memoize_method': 19,
-        'indent': 19,
-        'hash_file': 18,
-        'find_duplicates': 18,
-        'readfrom': 17,
-        'dzip': 16,
-        'iter_window': 15,
-        'writeto': 14,
-        'unique': 13,
-        'dict_union': 13,
-        'startfile': 13,
-        'memoize_property': 13,
-        'find_exe': 11,
-        'chunks': 11,
-        'identity': 11,
-        # D > 5
-        'map_keys': 10,
-        'argmax': 10,
-        'dict_isect': 9,
-        'modname_to_modpath': 9,
-        'symlink': 9,
-        'highlight_code': 9,
-        'CacheStamp': 8,
-        'inject_method': 7,
-        'ensure_unicode': 7,
-        'invert_dict': 7,
-        'touch': 7,
-        'argmin': 6,
-        # F > 0
-        'dict_take': 5,
-        'hzcat': 5,
-        'get_app_cache_dir': 5,
-        'AutoDict': 4,
-        'WIN32': 3,
-        'editfile': 3,
-        'import_module_from_name': 3,
-        'paragraph': 3,
-        'download': 2,
-        'userhome': 2,
-        'DARWIN': 2,
-        'LINUX': 2,
-        'modpath_to_modname': 2,
-        'argunique': 1,
-        'dict_diff': 1,
-        'unique_flags': 1,
-        'split_modpath': 1,
+    'repr2': 1209,
+    'ProgIter': 250,
+    'odict': 210,
+    'take': 209,
+    'dzip': 180,
+    'ensuredir': 168,
+    'expandpath': 168,
+    'argval': 148,
+    'map_vals': 132,
+    'flatten': 129,
+    'Timerit': 113,
+    'NoParam': 104,
+    'NiceRepr': 102,
+    'cmd': 102,
+    'hzcat': 95,
+    'argflag': 95,
+    'ddict': 92,
+    'codeblock': 87,
+    'iterable': 82,
+    'dict_hist': 78,
+    'hash_data': 67,
+    'group_items': 65,
+    'compress': 64,
+    'grabdata': 63,
+    'color_text': 58,
+    'augpath': 48,
+    'allsame': 48,
+    'delete': 48,
+    'Cacher': 42,
+    'invert_dict': 39,
+    'peek': 39,
+    'chunks': 38,
+    'writeto': 38,
+    'argsort': 37,
+    'Timer': 37,
+    'dict_take': 35,
+    'timestamp': 30,
+    'find_duplicates': 27,
+    'indent': 26,
+    'unique': 23,
+    'map_keys': 23,
+    'iter_window': 22,
+    'memoize': 21,
+    'ensure_unicode': 21,
+    'readfrom': 21,
+    'identity': 19,
+    'oset': 18,
+    'modname_to_modpath': 16,
+    'dict_subset': 15,
+    'memoize_method': 14,
+    'highlight_code': 14,
+    'argmax': 13,
+    'memoize_property': 13,
+    'find_exe': 12,
+    'touch': 12,
+    'hash_file': 11,
+    'import_module_from_path': 10,
+    'dict_isect': 9,
+    'inject_method': 8,
+    'AutoDict': 6,
+    'argmin': 6,
+    'dict_union': 6,
+    'symlink': 6,
+    'split_modpath': 5,
+    'CaptureStdout': 4,
+    'dict_diff': 4,
+    'import_module_from_name': 4,
+    'download': 3,
+    'modpath_to_modname': 3,
+    'paragraph': 3,
+    'CacheStamp': 3,
+    'AutoOrderedDict': 2,
+    'unique_flags': 2,
+    'find_path': 2,
     }
     
    
@@ -316,6 +278,8 @@ To provide a sense of what functions are the most useful, here is a histogram
 
 Examples
 ========
+
+Be sure to checkout the new Jupyter notebook: https://github.com/Erotemic/ubelt/blob/master/docs/notebooks/Ubelt%20Demo.ipynb
 
 Here are some examples of some features inside ``ubelt``
 
@@ -345,6 +309,8 @@ convert to a single line. With ``ub.Timerit`` there is no need to resort
 to the ``timeit`` module!
 
 The quick and dirty way just requires one indent.
+
+Note: Timerit is also defined in a standalone module: ``pip install timerit``)
 
 .. code:: python
 
@@ -379,12 +345,13 @@ properties of the ``ub.Timerit`` class to programmatically use results.
 Loop Progress
 -------------
 
-``ProgIter`` is a (mostly) drop-in alternative to
-```tqdm`` <https://pypi.python.org/pypi/tqdm>`__. 
+``ProgIter`` is a no-threads attached Progress meter that writes to stdout.  It
+is a mostly drop-in alternative to `tqdm
+<https://pypi.python.org/pypi/tqdm>`__. 
 *The advantage of ``ProgIter`` is that it does not use any python threading*,
 and therefore can be safer with code that makes heavy use of multiprocessing.
 
-Note: ProgIter is now a standalone module: ``pip intstall progiter``)
+Note: ``ProgIter`` is also defined in a standalone module: ``pip install progiter``)
 
 .. code:: python
 
@@ -404,7 +371,10 @@ Note: ProgIter is now a standalone module: ``pip intstall progiter``)
 Caching
 -------
 
-Cache intermediate results in a script with minimal boilerplate.
+Cache intermediate results in a script with minimal boilerplate. 
+It looks like 4 lines of boilerplate is the best you can do with Python 3.8 syntax.
+See <https://raw.githubusercontent.com/Erotemic/ubelt/master/ubelt/util_cache.py>`__ for details.
+
 
 .. code:: python
 
@@ -500,7 +470,7 @@ Cross-Platform Resource and Cache Directories
 
 If you have an application which writes configuration or cache files,
 the standard place to dump those files differs depending if you are on
-Windows, Linux, or Mac. UBelt offers a unified functions for determining
+Windows, Linux, or Mac. Ubelt offers a unified functions for determining
 what these paths are.
 
 The ``ub.ensure_app_cache_dir`` and ``ub.ensure_app_resource_dir``
@@ -744,21 +714,35 @@ text.
 External tools.
 ---------------
 
-Some of the tools in ``ubelt`` also exist as standalone modules.
+Some of the tools in ``ubelt`` also exist as standalone modules. I haven't
+decided if its best to statically copy them into ubelt or require on pypi to
+satisfy the dependency. There are some tools that are not used by default 
+unless you explicitly allow for them. 
 
-Here are the repos containing the standalone utilities:
+Code that is currently statically included:
 
 -  ProgIter - https://github.com/Erotemic/progiter
 -  Timerit - https://github.com/Erotemic/timerit
+
+Code that is currently linked via pypi:
+
 -  OrderedSet - https://github.com/LuminosoInsight/ordered-set
 
-In the future some of the functionaity in ubelt may be ported and integrated
+
+Code that is completely optional, and only used in specific cases:
+
+- Numpy - ``ub.repr2`` will format a numpy array nicely by default
+- xxhash - this can be specified as a hasher to ``ub.hash_data``
+- Pygments - used by the ``util_color`` module.
+
+
+Also, in the future some of the functionality in ubelt may be ported and integrated
 into the ``boltons`` project: https://github.com/mahmoud/boltons.
 
 
 Notes.
 ------
-Ubelt will support Python2 for the forseeable future (at least until the
+Ubelt will support Python2 for the foreseeable future (at least until the
 projects I work on are off it followed by a probation period).
 
 PRs are welcome. If you have a utility function that you think is useful then

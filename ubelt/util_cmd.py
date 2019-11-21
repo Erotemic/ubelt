@@ -266,25 +266,25 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
         >>> assert info['out'].strip() == 'simple cmdline interface'
         >>> assert info['err'].strip() == ''
 
-    Doctest:
+    Example:
         >>> info = cmd('echo str noshell', verbose=0)
         >>> assert info['out'].strip() == 'str noshell'
 
-    Doctest:
+    Example:
         >>> # windows echo will output extra single quotes
         >>> info = cmd(('echo', 'tuple noshell'), verbose=0)
         >>> assert info['out'].strip().strip("'") == 'tuple noshell'
 
-    Doctest:
+    Example:
         >>> # Note this command is formatted to work on win32 and unix
         >>> info = cmd('echo str&&echo shell', verbose=0, shell=True)
         >>> assert info['out'].strip() == 'str' + chr(10) + 'shell'
 
-    Doctest:
+    Example:
         >>> info = cmd(('echo', 'tuple shell'), verbose=0, shell=True)
         >>> assert info['out'].strip().strip("'") == 'tuple shell'
 
-    Doctest:
+    Example:
         >>> import ubelt as ub
         >>> from os.path import join, exists
         >>> fpath1 = join(ub.get_app_cache_dir('ubelt'), 'cmdout1.txt')
@@ -346,7 +346,7 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
         import os
         import platform
         import getpass
-        from ubelt import util_path
+        from ubelt import shrinkuser
         if verbose > 2:
             try:
                 print('┌─── START CMD ───')
@@ -355,7 +355,7 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
         cwd_ = os.getcwd() if cwd is None else cwd
         compname = platform.node()
         username = getpass.getuser()
-        cwd_ = util_path.compressuser(cwd_)
+        cwd_ = shrinkuser(cwd_)
         ps1 = '[ubelt.cmd] {}@{}:{}$ '.format(username, compname, cwd_)
         print(ps1 + command_text)
 

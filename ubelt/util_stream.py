@@ -46,7 +46,7 @@ class TeeStringIO(io.StringIO):
         """
         Gets the encoding of the `redirect` IO object
 
-        Doctest:
+        Example:
             >>> redirect = io.StringIO()
             >>> assert TeeStringIO(redirect).encoding is None
             >>> assert TeeStringIO(None).encoding is None
@@ -148,7 +148,7 @@ class CaptureStdout(CaptureStream):
 
     def stop(self):
         """
-        Doctest:
+        Example:
             >>> CaptureStdout(enabled=False).stop()
             >>> CaptureStdout(enabled=True).stop()
         """
