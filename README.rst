@@ -164,7 +164,7 @@ Code introspection and dynamic analysis tools were ported to `xinspect <https://
 The more IPython-y tools were ported to `xdev <https://github.com/Erotemic/xdev>`__.
 Parts of it made their way into `scriptconfig <https://gitlab.kitware.com/utils/scriptconfig>`__.
 The init-file generation was moved to `mkinit <https://github.com/Erotemic/mkinit>`__.
-Some vim and system-y things can be found in VimTK `vimtk <https://github.com/Erotemic/vimtk>`__.
+Some vim and system-y things can be found in `vimtk <https://github.com/Erotemic/vimtk>`__.
 
 
 Function Usefulness 
