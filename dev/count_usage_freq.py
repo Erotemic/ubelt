@@ -20,7 +20,11 @@ def count_ubelt_usage():
     from os.path import join
     names = [
         'xdoctest', 'netharn', 'xdev', 'xinspect', 'ndsampler', 'kwil',
-        'kwarray', 'kwimage', 'kwplot', 'scriptconfig',
+        'kwarray', 'kwimage', 'kwplot', 'scriptconfig', 'vimtk',
+        'mkinit', 'futures_actors', 'graphid',
+
+        'ibeis', 'plottool', 'guitool', 'utool', 'dtool', 'vtool', 'utool',
+        'hesaff'
     ] + config['extra_modnames']
 
     all_fpaths = []
@@ -69,6 +73,10 @@ def count_ubelt_usage():
             if k.startswith('util_'):
                 usage.pop(k)
             if k.startswith('_util_'):
+                usage.pop(k)
+            # ub._util_deprecated
+            from ubelt import _util_deprecated
+            if k in dir(_util_deprecated):
                 usage.pop(k)
 
     print(ub.repr2(usage, nl=1))

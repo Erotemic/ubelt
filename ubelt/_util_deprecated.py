@@ -1,5 +1,5 @@
 """
-This file contains functions to be depricated, but are still accessible.
+This file contains functions to be deprecated, but are still accessible.
 """
 import os
 import six
@@ -243,7 +243,7 @@ def startfile(fpath, verbose=True):  # nocover
 if __name__ == '__main__':
     """
     CommandLine:
-        xdoctest -m ubelt._util_depricated
+        xdoctest -m ubelt._util_deprecated
     """
     import xdoctest
     xdoctest.doctest_module(__file__)

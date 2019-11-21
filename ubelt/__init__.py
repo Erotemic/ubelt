@@ -67,7 +67,7 @@ __submodules__ = [
     'util_time',
     'orderedset',
     'progiter',
-    '_util_depricated',
+    '_util_deprecated',
 ]
 
 # <AUTOGEN_INIT>
@@ -94,7 +94,7 @@ from ubelt import util_stream
 from ubelt import util_time
 from ubelt import orderedset
 from ubelt import progiter
-from ubelt import _util_depricated
+from ubelt import _util_deprecated
 
 from ubelt.util_arg import (argflag, argval,)
 from ubelt.util_cache import (CacheStamp, Cacher,)
@@ -133,7 +133,7 @@ from ubelt.util_stream import (CaptureStdout, CaptureStream, TeeStringIO,)
 from ubelt.util_time import (Timer, Timerit, timestamp,)
 from ubelt.orderedset import (OrderedSet, oset,)
 from ubelt.progiter import (ProgIter,)
-from ubelt._util_depricated import (compressuser, editfile,
+from ubelt._util_deprecated import (compressuser, editfile,
                                     ensure_app_resource_dir,
                                     get_app_resource_dir,
                                     platform_resource_dir, startfile,
@@ -143,7 +143,7 @@ __all__ = ['AutoDict', 'AutoOrderedDict', 'CacheStamp', 'Cacher',
            'CaptureStdout', 'CaptureStream', 'DARWIN', 'FormatterExtensions',
            'LINUX', 'NiceRepr', 'NoParam', 'OrderedSet', 'POSIX', 'ProgIter',
            'TeeStringIO', 'TempDir', 'Timer', 'Timerit', 'WIN32',
-           '_util_depricated', 'allsame', 'argflag', 'argmax', 'argmin',
+           '_util_deprecated', 'allsame', 'argflag', 'argmax', 'argmin',
            'argsort', 'argunique', 'argval', 'augpath', 'boolmask', 'chunks',
            'cmd', 'codeblock', 'color_text', 'compress', 'compressuser',
            'ddict', 'delete', 'dict_diff', 'dict_hist', 'dict_isect',
