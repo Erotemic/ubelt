@@ -18,7 +18,7 @@ This provides helpful documentation and example usage as well as helping
 achieve 100% test coverage (sans Python2, Windows, stuff that could not be
 tested automatically, etc).
 
-* Goal: provide simple functions that acomplish common tasks not yet addressed by the python standard library.
+* Goal: provide simple functions that accomplish common tasks not yet addressed by the python standard library.
 
 * Constraints: Must be low-impact pure python; it should be easy to install and use.
 
@@ -29,7 +29,7 @@ tested automatically, etc).
 
 Read the docs here: http://ubelt.readthedocs.io/en/latest/
 
-These are some of the tasks that Ubelt's api enables:
+These are some of the tasks that ubelt's API enables:
 
   - hash common data structures
 
@@ -45,7 +45,7 @@ These are some of the tasks that Ubelt's api enables:
 
   - string-format nested data structures
 
-  - make a directory if it does't exist
+  - make a directory if it doesn't exist
 
   - expand environment variables and tildes in path strings
 
@@ -61,7 +61,7 @@ These are some of the tasks that Ubelt's api enables:
 
   - check if a particular flag or value is on the command line
 
-  - color text with ansi tags
+  - color text with ANSI tags
 
   - get paths to cross platform data/cache/config directories
 
@@ -159,12 +159,12 @@ the functions were too specific or not well documented. The ``ubelt`` is a port
 of the simplest and most useful parts of ``utool``.
 
 Note that there are other cool things in ``utool`` that are not in ``ubelt``.
-Notabely, the doctest harness ultimately became ```xdoctest`` <https://github.com/Erotemic/xdoctest>`__. 
-Code introspection and dynamic analysis tools were ported to ```xinspect`` <https://github.com/Erotemic/xinspect>`__.
-The the more IPython-y tools were ported to ```xdev`` <https://github.com/Erotemic/xdev>`__.
-Parts of it made their way into ```scriptconfig`` <https://gitlab.kitware.com/utils/scriptconfig>`__.
-The init file generation was moved to ```mkinit`` <https://github.com/Erotemic/mkinit>`__.
-Some vim and system-y things can be found in vimtk ```vimtk`` <https://github.com/Erotemic/vimtk>`__.
+Notably, the doctest harness ultimately became `xdoctest <https://github.com/Erotemic/xdoctest>`__. 
+Code introspection and dynamic analysis tools were ported to `xinspect <https://github.com/Erotemic/xinspect>`__.
+The more IPython-y tools were ported to `xdev <https://github.com/Erotemic/xdev>`__.
+Parts of it made their way into `scriptconfig <https://gitlab.kitware.com/utils/scriptconfig>`__.
+The init-file generation was moved to `mkinit <https://github.com/Erotemic/mkinit>`__.
+Some vim and system-y things can be found in VimTK `vimtk <https://github.com/Erotemic/vimtk>`__.
 
 
 Function Usefulness 
@@ -353,12 +353,12 @@ Loop Progress
 -------------
 
 ``ProgIter`` is a no-threads attached Progress meter that writes to stdout.  It
-is a mostly drop-in alternative to ```tqdm``
+is a mostly drop-in alternative to `tqdm
 <https://pypi.python.org/pypi/tqdm>`__. 
 *The advantage of ``ProgIter`` is that it does not use any python threading*,
 and therefore can be safer with code that makes heavy use of multiprocessing.
 
-Note: ProgIter is also defined in a standalone module: ``pip install progiter``)
+Note: ``ProgIter`` is also defined in a standalone module: ``pip install progiter``)
 
 .. code:: python
 
@@ -736,20 +736,20 @@ Code that is currently linked via pypi:
 -  OrderedSet - https://github.com/LuminosoInsight/ordered-set
 
 
-Code that is completly optional, and only used in specific cases:
+Code that is completely optional, and only used in specific cases:
 
-- Numpy - ub.repr2 will format a numpy array nicely by default
-- xxhash - this can be specified as a hasher to ub.hash_data
-- Pygments - used by the util_color module.
+- Numpy - ``ub.repr2`` will format a numpy array nicely by default
+- xxhash - this can be specified as a hasher to ``ub.hash_data``
+- Pygments - used by the ``util_color`` module.
 
 
-Also, in the future some of the functionaity in ubelt may be ported and integrated
+Also, in the future some of the functionality in ubelt may be ported and integrated
 into the ``boltons`` project: https://github.com/mahmoud/boltons.
 
 
 Notes.
 ------
-Ubelt will support Python2 for the forseeable future (at least until the
+Ubelt will support Python2 for the foreseeable future (at least until the
 projects I work on are off it followed by a probation period).
 
 PRs are welcome. If you have a utility function that you think is useful then
