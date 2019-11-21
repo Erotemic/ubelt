@@ -43,7 +43,7 @@ if sys.version_info.major > 2:  # nocover
     text_type = str
     string_types = str,
     default_timer = time.perf_counter
-else:
+else:   # nocover
     # text_type = unicode
     # string_types = basestring,
     text_type = eval('unicode', {}, {})

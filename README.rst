@@ -177,7 +177,7 @@ I chose these and provided some comment on why:
 
     import ubelt as ub
 
-    ub.ensuredir  # this should be part of `os`
+    ub.ensuredir  # os.makedirs(exist_ok=True) is 3 only and too verbose
     ub.Timerit  # powerful multiline alternative to timeit
     ub.Cacher  # configuration based on-disk cachine
     ub.cmd  # combines the best of subprocess.Popen and os.system

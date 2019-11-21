@@ -5,7 +5,7 @@ We are currently working on porting this changelog to the specifications in
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
-## [Version 0.8.4] - Unreleased
+## [Version 0.8.4] - 2019-11-20
 
 ### Changed
 * The following functions are now officially deprecated: `startfile`, `truepath`, `compressuser`, `editfile`, `platform_resource_dir`, `get_app_resource_dir`, and `ensure_app_resource_dir`
