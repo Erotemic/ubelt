@@ -39,6 +39,17 @@ __all__ = [
     'ProgIter',
 ]
 
+if sys.version_info.major > 2:  # nocover
+    text_type = str
+    string_types = str,
+    default_timer = time.perf_counter
+else:
+    # text_type = unicode
+    # string_types = basestring,
+    text_type = eval('unicode', {}, {})
+    string_types = (eval('basestring', {}, {}),)
+    default_timer = time.clock if sys.platform.startswith('win32') else time.time
+
 
 CLEAR_BEFORE = '\r'
 AT_END = '\n'

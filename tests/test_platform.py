@@ -5,7 +5,7 @@ from os.path import expanduser, basename
 def test_compressuser_without_home():
     username = basename(expanduser('~'))
     not_the_user = 'foobar_' + username
-    ub.compressuser(not_the_user) == not_the_user
+    ub.shrinkuser(not_the_user) == not_the_user
 
 
 def test_find_path_no_path():

@@ -6,14 +6,10 @@ Runs the xdoctest CLI interface for ubelt
 CommandLine:
     python -m ubelt list
     python -m ubelt all
+    python -m ubelt zero
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-
-def main():
+if __name__ == '__main__':
     import xdoctest
     xdoctest.doctest_module('ubelt')
-
-
-if __name__ == '__main__':
-    main()

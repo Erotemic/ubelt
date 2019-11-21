@@ -15,8 +15,8 @@ def test_pathlib():
         got = ub.ensuredir(dpath)
         assert got.exists()
 
-        # compressuser
-        assert ub.compressuser(base) == '~/.cache/ubelt'
+        # shrinkuser
+        assert ub.shrinkuser(base) == '~/.cache/ubelt'
 
         assert ub.augpath(base, prefix='foo') == '/home/joncrall/.cache/fooubelt'
 

@@ -193,6 +193,7 @@ def shrinkuser(path, home='~'):
         >>> assert shrinkuser(path + '1') == path + '1'
         >>> assert shrinkuser(path + '/1') == join('~', '1')
         >>> assert shrinkuser(path + '/1', '$HOME') == join('$HOME', '1')
+        >>> assert shrinkuser('.') == '.'
     """
     path = normpath(path)
     userhome_dpath = userhome()

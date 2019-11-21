@@ -7,7 +7,7 @@ class UsageConfig(scfg.Config):
     default = {
         'print_packages': False,
         'remove_zeros': True,
-        'custom_hack': True,
+        'hardcoded_ubelt_hack': True,
         'extra_modnames': [],
     }
 
@@ -64,9 +64,11 @@ def count_ubelt_usage():
             if v == 0:
                 usage.pop(k)
 
-    if config['custom_hack']:
+    if config['hardcoded_ubelt_hack']:
         for k in list(usage):
             if k.startswith('util_'):
+                usage.pop(k)
+            if k.startswith('_util_'):
                 usage.pop(k)
 
     print(ub.repr2(usage, nl=1))
