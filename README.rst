@@ -13,7 +13,8 @@
 Ubelt is a small library of robust, tested, documented, and simple functions
 that extend the Python standard library.  You've probably written and
 re-written some of the functions in ubelt before (or wrote out the logic
-inline). Next time, try ``pip install ubelt`` instead. 
+inline). Next time, try ``pip install ubelt`` instead. Everything is on the top level, 
+so `dir(ubelt)` exposes its entire API.
 
 * Goal: provide simple functions that acomplish common tasks not yet addressed by the python standard library.
 
@@ -23,11 +24,22 @@ inline). Next time, try ``pip install ubelt`` instead.
 
 * Motto: Good utilities lift all codes. 
 
+* Key Features:
+
+  - easy hashing for python + custom (e.g. numpy.ndarray) data structures. 
+  - easy hashing for files.
+  - no-threads attached progress iterator.
+  - flat api - Ubelt's imports all public members of its api in the ``__init__.py``.
+  - learnable - Ubelt's flat api means that it has to be small, this makes it easier to learn.
+
+
+This is the entire API:
+
 
 Description:
 ============
 
-UBelt is cross platform and all top-level functions behave similarly on
+Ubelt is cross platform and all top-level functions behave similarly on
 Windows, Mac, and Linux (up to some small unavoidable differences).
 Almost every function in ``ubelt`` was written with a doctest. This
 provides helpful documentation and example usage as well as helping
@@ -43,7 +55,7 @@ Current Functionality
 =====================
 Ubelt is a currated collection of utilities. 
 
-UBelt's functionality is a mixture of the following categories:
+Ubelt's functionality is a mixture of the following categories:
 
 - Timing
 - Caching
@@ -67,7 +79,7 @@ UBelt's functionality is a mixture of the following categories:
 Installation:
 =============
 
-UBelt is written in pure Python and integrated into the python package
+Ubelt is written in pure Python and integrated into the python package
 index. Just pip install it and then import it!
 
 From pypi:
@@ -88,7 +100,7 @@ From github:
 Purpose
 =======
 
-UBelt is a "utility belt" of commonly needed utility and helper
+Ubelt is a "utility belt" of commonly needed utility and helper
 functions.
 
 -  Reusable code - Many functions in ``ubelt`` are simple to write
@@ -108,7 +120,7 @@ functions.
    easier access to them, thus they are included in ``ubelt``.
 
 -  Extra batteries - Python's standard library is "batteries included"
-   and provides great APIs for a variety of tasks. UBelt both extends
+   and provides great APIs for a variety of tasks. Ubelt both extends
    these batteries and provides simplified interfaces to others.
 
 -  Copy paste - It is often not desirable to add extra dependencies to
@@ -121,7 +133,7 @@ functions.
 History:
 ========
 
-UBelt is a migration of the most useful parts of
+Ubelt is a migration of the most useful parts of
 ``utool``\ (https://github.com/Erotemic/utool) into a standalone module
 with minimal dependencies.
 
@@ -500,7 +512,7 @@ Cross-Platform Resource and Cache Directories
 
 If you have an application which writes configuration or cache files,
 the standard place to dump those files differs depending if you are on
-Windows, Linux, or Mac. UBelt offers a unified functions for determining
+Windows, Linux, or Mac. Ubelt offers a unified functions for determining
 what these paths are.
 
 The ``ub.ensure_app_cache_dir`` and ``ub.ensure_app_resource_dir``
