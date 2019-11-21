@@ -10,7 +10,6 @@ from os.path import expanduser
 from os.path import expandvars
 from os.path import normpath
 from os.path import realpath
-from .util_path import userhome
 from .util_platform import get_app_cache_dir, platform_cache_dir, ensure_app_cache_dir, WIN32, LINUX, DARWIN
 
 
@@ -54,7 +53,7 @@ def truepath(path, real=False):
     return path
 
 
-def compressuser(path, home='~'):
+def compressuser(path, home='~'):  # nocover
     """
     Inverse of :func:`os.path.expanduser`.
 
@@ -76,6 +75,7 @@ def compressuser(path, home='~'):
         >>> assert compressuser(path + '/1') == join('~', '1')
         >>> assert compressuser(path + '/1', '$HOME') == join('$HOME', '1')
     """
+    from ubelt import userhome
     path = normpath(path)
     userhome_dpath = userhome()
     if path.startswith(userhome_dpath):
