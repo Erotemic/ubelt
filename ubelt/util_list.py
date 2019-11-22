@@ -25,6 +25,7 @@ import math
 import operator
 from six.moves import zip_longest
 from six import next
+from ubelt import util_const
 if six.PY2:  # NOQA
     import collections as collections_abc
 else:
@@ -197,15 +198,18 @@ def iterable(obj, strok=False):
         return strok or not isinstance(obj, six.string_types)
 
 
-def take(items, indices):
+def take(items, indices, default=util_const.NoParam):
     """
     Selects a subset of a list based on a list of indices.
     This is similar to np.take, but pure python.
 
     Args:
-        items (Sequence): an indexable object to select items from
+        items (Sequence | Mapping): an indexable object to select items from
 
         indices (Iterable): sequence of indexing objects
+
+        default (object, optional):
+            if specified uses default if `items` supports the `get` method.
 
     Returns:
         Iterable or scalar: subset of the list
@@ -219,8 +223,30 @@ def take(items, indices):
         >>> indices = [2, 0]
         >>> list(ub.take(items, indices))
         [2, 0]
+
+    Example:
+        >>> import ubelt as ub
+        >>> dict_ = {1: 'a', 2: 'b', 3: 'c'}
+        >>> keys = [1, 2, 3, 4, 5]
+        >>> result = list(ub.take(dict_, keys, None))
+        >>> assert result == ['a', 'b', 'c', None, None]
+
+    Example:
+        >>> import ubelt as ub
+        >>> dict_ = {1: 'a', 2: 'b', 3: 'c'}
+        >>> keys = [1, 2, 3, 4, 5]
+        >>> try:
+        >>>     print(list(ub.take(dict_, keys)))
+        >>>     raise AssertionError('did not get key error')
+        >>> except KeyError:
+        >>>     print('correctly got key error')
     """
-    return (items[index] for index in indices)
+    if default is util_const.NoParam:
+        for index in indices:
+            yield items[index]
+    else:
+        for index in indices:
+            yield items.get(index, default)
 
 
 def compress(items, flags):

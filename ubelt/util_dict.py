@@ -11,8 +11,6 @@ and values of a dictionary with less syntax than a dict comprehension.
 
 The `dict_union`, `dict_isect`, and `dict_subset` functions are similar to the set equivalents.
 
-The `dict_take` function works similarly to `ubelt.take` and `np.take`, except it allows for a default value to be specified.
-
 The `dzip` function zips two iterables and packs them into a dictionary where the first iterable is used to generate keys and the second generates values.
 
 The `group_items` function takes two lists and returns a dict mapping values in the second list to all items in corresponding locations in the first list.
@@ -30,6 +28,7 @@ from collections import OrderedDict
 from collections import defaultdict
 from six.moves import zip
 from ubelt import util_const
+from ubelt import util_list
 
 
 # Expose for convenience
@@ -43,7 +42,6 @@ __all__ = [
     'ddict',
     'dict_hist',
     'dict_subset',
-    'dict_take',
     'dict_union',
     'dict_isect',
     'dict_diff',
@@ -358,47 +356,9 @@ def dict_subset(dict_, keys, default=util_const.NoParam):
         >>> print(ub.repr2(subdict_, nl=0))
         {'K': 3, 'dcvs_clip_max': 0.2}
     """
-    keys = list(keys)
-    items = dict_take(dict_, keys, default)
+    items = util_list.take(dict_, keys, default)
     subdict_ = OrderedDict(list(zip(keys, items)))
     return subdict_
-
-
-def dict_take(dict_, keys, default=util_const.NoParam):
-    r"""
-    Generates values from a dictionary
-
-    Args:
-        dict_ (Mapping): a dictionary to take from
-        keys (Iterable): the keys to take
-        default (object, optional): if specified uses default if keys are missing
-
-    CommandLine:
-        python -m ubelt.util_dict dict_take_gen
-
-    Example:
-        >>> import ubelt as ub
-        >>> dict_ = {1: 'a', 2: 'b', 3: 'c'}
-        >>> keys = [1, 2, 3, 4, 5]
-        >>> result = list(ub.dict_take(dict_, keys, None))
-        >>> assert result == ['a', 'b', 'c', None, None]
-
-    Example:
-        >>> import ubelt as ub
-        >>> dict_ = {1: 'a', 2: 'b', 3: 'c'}
-        >>> keys = [1, 2, 3, 4, 5]
-        >>> try:
-        >>>     print(list(ub.dict_take(dict_, keys)))
-        >>>     raise AssertionError('did not get key error')
-        >>> except KeyError:
-        >>>     print('correctly got key error')
-    """
-    if default is util_const.NoParam:
-        for key in keys:
-            yield dict_[key]
-    else:
-        for key in keys:
-            yield dict_.get(key, default)
 
 
 def dict_union(*args):

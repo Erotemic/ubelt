@@ -48,6 +48,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import time
 import sys
 import itertools as it
+from collections import defaultdict
 
 __all__ = ['Timer', 'Timerit', 'timestamp']
 
@@ -181,6 +182,10 @@ class Timerit(object):
         unit (str): what units time is reported in
         verbose (int): verbosity flag, defaults to True if label is given
 
+    Attributes:
+        measures - labeled measurements taken by this object
+        rankings - ranked measurements (useful if more than one measurement was taken)
+
     Example:
         >>> from ubelt import Timerit
         >>> import math
@@ -235,18 +240,22 @@ class Timerit(object):
         self.n_loops = None
         self.total_time = None
 
+        # Keep track of measures
+        self.measures = defaultdict(dict)
+
         # Internal variables
         self._timer_cls = self._default_timer_cls
         self._asciimode = self._default_asciimode
         self._precision = self._default_precision
         self._precision_type = self._default_precision_type
 
-    def reset(self, label=None):
+    def reset(self, label=None, measures=False):
         """
         clears all measurements, allowing the object to be reused
 
         Args:
-            label (str, optional) : optionally change the label
+            label (str, optional) : change the label if specified
+            measures (bool, default=False): if True reset measures
 
         Example:
             >>> import math
@@ -260,6 +269,8 @@ class Timerit(object):
         """
         if label:
             self.label = label
+        if measures:
+            self.measures = defaultdict(dict)
         self.times = []
         self.n_loops = None
         self.total_time = None
@@ -318,8 +329,58 @@ class Timerit(object):
                 self.n_loops += 1
         # Timing complete, print results
         assert len(self.times) == self.num, 'incorrectly recorded times'
+
+        self._record_measurement()
+
         if self.verbose > 0:
             self.print(self.verbose)
+
+    def _record_measurement(self):
+        """
+        Saves the current time measurements for the current labels.
+        """
+        measures = self.measures
+        measures['mean'][self.label] = self.mean()
+        measures['min'][self.label] = self.min()
+        measures['mean-std'][self.label] = self.mean() - self.std()
+        measures['mean+std'][self.label] = self.mean() + self.std()
+        return measures
+
+    @property
+    def rankings(self):
+        """
+        Orders each list of measurements by ascending time
+        """
+        import ubelt as ub
+        rankings = {k: ub.dict_subset(d, ub.argsort(d))
+                    for k, d in self.measures.items()}
+        return rankings
+
+    @property
+    def consistency(self):
+        """"
+        Take the hamming distance between the preference profiles to as a
+        measure of consistency.
+        """
+        import itertools as it
+        import ubelt as ub
+
+        rankings = self.rankings
+
+        if len(rankings) == 0:
+            raise Exception('no measurements')
+
+        hamming_sum = sum(
+            k1 != k2
+            for v1, v2 in it.combinations(rankings.values(), 2)
+            for k1, k2 in zip(v1.keys(), v2.keys())
+        )
+        num_labels = len(ub.peek(rankings.values()))
+        num_metrics = len(rankings)
+        num_bits = (num_metrics * (num_metrics - 1) // 2) * num_labels
+        hamming_ave = hamming_sum / num_bits
+        score = 1.0 - hamming_ave
+        return score
 
     def min(self):
         """

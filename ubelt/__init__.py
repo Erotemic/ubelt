@@ -102,9 +102,9 @@ from ubelt.util_colors import (color_text, highlight_code,)
 from ubelt.util_const import (NoParam,)
 from ubelt.util_cmd import (cmd,)
 from ubelt.util_dict import (AutoDict, AutoOrderedDict, ddict, dict_diff,
-                             dict_hist, dict_isect, dict_subset, dict_take,
-                             dict_union, dzip, find_duplicates, group_items,
-                             invert_dict, map_keys, map_vals, odict,)
+                             dict_hist, dict_isect, dict_subset, dict_union,
+                             dzip, find_duplicates, group_items, invert_dict,
+                             map_keys, map_vals, odict,)
 from ubelt.util_download import (download, grabdata,)
 from ubelt.util_func import (identity, inject_method,)
 from ubelt.util_format import (FormatterExtensions, repr2,)
@@ -133,7 +133,7 @@ from ubelt.util_stream import (CaptureStdout, CaptureStream, TeeStringIO,)
 from ubelt.util_time import (Timer, Timerit, timestamp,)
 from ubelt.orderedset import (OrderedSet, oset,)
 from ubelt.progiter import (ProgIter,)
-from ubelt._util_deprecated import (compressuser, editfile,
+from ubelt._util_deprecated import (compressuser, dict_take, editfile,
                                     ensure_app_resource_dir,
                                     get_app_resource_dir,
                                     platform_resource_dir, startfile,
