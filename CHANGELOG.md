@@ -4,11 +4,23 @@ We are currently working on porting this changelog to the specifications in
 [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Version 0.8.5] - Unreleased
+
+### Added
+* Timerit now has 3 new properties `measures`, `rankings`, and `consistency`.
+  These keep track of and analyze differences in timings between labeled
+  timerit runs.
+* `ub.take` now accepts `default=NoParam` keyword argument. 
+
+
+### Changed
+* The following functions are now officially deprecated:  `dict_take`
+
 
 ## [Version 0.8.4] - 2019-11-20
 
 ### Changed
-* The following functions are now officially deprecated: `startfile`, `truepath`, `compressuser`, `editfile`, `platform_resource_dir`, `get_app_resource_dir`, and `ensure_app_resource_dir`
+* The following functions are now officially deprecated: `startfile`, `truepath`, `compressuser`, `editfile`, `platform_resource_dir`, `get_app_resource_dir`, and `ensure_app_resource_dir`, `dict_take`
 * Improve docs
 * `Timerit` and `ProgIter` are back, remove dependency on the external modules.
 
