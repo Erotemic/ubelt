@@ -87,9 +87,9 @@ Ubelt is small. Its top-level API is defined using roughly 40 lines:
     from ubelt.util_const import (NoParam,)
     from ubelt.util_cmd import (cmd,)
     from ubelt.util_dict import (AutoDict, AutoOrderedDict, ddict, dict_diff,
-                                 dict_hist, dict_isect, dict_subset, dict_take,
-                                 dict_union, dzip, find_duplicates, group_items,
-                                 invert_dict, map_keys, map_vals, odict,)
+                                 dict_hist, dict_isect, dict_subset, dict_union,
+                                 dzip, find_duplicates, group_items, invert_dict,
+                                 map_keys, map_vals, odict,)
     from ubelt.util_download import (download, grabdata,)
     from ubelt.util_func import (identity, inject_method,)
     from ubelt.util_format import (FormatterExtensions, repr2,)
@@ -118,11 +118,12 @@ Ubelt is small. Its top-level API is defined using roughly 40 lines:
     from ubelt.util_time import (Timer, Timerit, timestamp,)
     from ubelt.orderedset import (OrderedSet, oset,)
     from ubelt.progiter import (ProgIter,)
-    from ubelt._util_depricated import (compressuser, editfile,
+    from ubelt._util_deprecated import (compressuser, dict_take, editfile,
                                         ensure_app_resource_dir,
                                         get_app_resource_dir,
                                         platform_resource_dir, startfile,
                                         truepath,)
+
 
 Installation:
 =============
@@ -232,7 +233,6 @@ a histogram of usefulness. I generated this histogram using ``python dev/count_u
     'writeto': 38,
     'argsort': 37,
     'Timer': 37,
-    'dict_take': 35,
     'timestamp': 30,
     'find_duplicates': 27,
     'indent': 26,
@@ -603,7 +603,7 @@ Take only the values, optionally specify a default value.
 
     >>> import ubelt as ub
     >>> dict_ = {1: 'a', 2: 'b', 3: 'c'}
-    >>> print(list(ub.dict_take(dict_, [1, 2, 3, 4, 5], default=None)))
+    >>> print(list(ub.take(dict_, [1, 2, 3, 4, 5], default=None)))
     ['a', 'b', 'c', None, None]
 
 Apply a function to each value in the dictionary (see also
