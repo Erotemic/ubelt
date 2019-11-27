@@ -24,6 +24,10 @@ UBelt documentation
 .. :members:
 .. :undoc-members:
 
+
+The API by usefulness 
+=====================
+
 Perhaps the most useful way to learn this API is to sort by "usefulness".
 I measure usefulness as the number of times I've used a particular function in
 my own code (excluding ubelt itself).
@@ -109,6 +113,8 @@ my own code (excluding ubelt itself).
 ================================================================ ================
 
 
+The API by submodule 
+====================
 
 Alternatively you might prefer a module-based approach where functions are
 grouped based on similar functionality.
@@ -278,8 +284,6 @@ grouped based on similar functionality.
 :func:`ubelt.Timerit`
 :func:`ubelt.timestamp`
 
-
-Finally you might consider the package layout.
 
 
 .. toctree::
