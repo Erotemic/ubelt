@@ -2,8 +2,9 @@
 """
 Functions for reading and writing files on disk.
 
-:func:`writeto` and :func:`readfrom` wrap ``open().write()`` and ``open().read()`` and primarily
-serve to indicate that the type of data being written and read is unicode text.
+:func:`writeto` and :func:`readfrom` wrap ``open().write()`` and
+``open().read()`` and primarily serve to indicate that the type of data being
+written and read is unicode text.
 
 :func:`delete` wraps :func:`os.unlink` and :func:`shutil.rmtree` and does not
 throw an error if the file or directory does not exist. It also contains
@@ -26,10 +27,15 @@ def writeto(fpath, to_write, aslines=False, verbose=None):
     Writes (utf8) text to a file.
 
     Args:
-        fpath (PathLike): file path
+        fpath (str | PathLike): file path
         to_write (str): text to write (must be unicode text)
         aslines (bool): if True to_write is assumed to be a list of lines
         verbose (bool): verbosity flag
+
+    Note:
+        You probably should use `open(<fpath>).write(<to_write>)` instead.
+        This function exists as a convenience for writing in Python2. After
+        2020-01-01, we may consider deprecating the function.
 
     CommandLine:
         python -m ubelt.util_io writeto --verbose
@@ -88,8 +94,13 @@ def readfrom(fpath, aslines=False, errors='replace', verbose=None):
     """
     Reads (utf8) text from a file.
 
+    Note:
+        You probably should use `open(<fpath>).read()` instead.
+        This function exists as a convenience for writing in Python2. After
+        2020-01-01, we may consider deprecating the function.
+
     Args:
-        fpath (PathLike): file path
+        fpath (str | PathLike): file path
         aslines (bool): if True returns list of lines
         verbose (bool): verbosity flag
 
@@ -122,7 +133,7 @@ def touch(fpath, mode=0o666, dir_fd=None, verbose=0, **kwargs):
     Works like the touch unix utility
 
     Args:
-        fpath (PathLike): name of the file
+        fpath (str | PathLike): name of the file
         mode (int): file permissions (python3 and unix only)
         dir_fd (file): optional directory file descriptor. If specified, fpath
             is interpreted as relative to this descriptor (python 3 only).
@@ -130,7 +141,7 @@ def touch(fpath, mode=0o666, dir_fd=None, verbose=0, **kwargs):
         **kwargs : extra args passed to ``os.utime`` (python 3 only).
 
     Returns:
-        PathLike: path to the file
+        str: path to the file
 
     References:
         https://stackoverflow.com/questions/1158076/implement-touch-using-python
@@ -163,11 +174,11 @@ def delete(path, verbose=False):
     If a path does not exist, then this is does nothing.
 
     Args:
-        path (PathLike): file or directory to remove
+        path (str | PathLike): file or directory to remove
         verbose (bool): if True prints what is being done
 
     SeeAlso:
-        send2trash - A cross-platform Python package for sending files
+        :mod:`send2trash` - A cross-platform Python package for sending files
             to the trash instead of irreversibly deleting them.
             https://github.com/hsoft/send2trash
 

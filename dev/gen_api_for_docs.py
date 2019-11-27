@@ -1,5 +1,22 @@
 
+
 def count_ubelt_usage():
+    """
+    import sys, ubelt
+    sys.path.append(ubelt.expandpath('~/code/ubelt/dev'))
+    from gen_api_for_docs import *  # NOQA
+    """
+    from count_usage_freq import count_ubelt_usage
+    usage = count_ubelt_usage()
+
+    gaurd = ('=' * 64 + ' ' + '=' * 16)
+    print(gaurd)
+    print('{:<64} {:>8}'.format(' Function name ', 'Usefulness'))
+    print(gaurd)
+    for key, value in usage.items():
+        print('{:<64} {:>16}'.format(':func:`ubelt.' + key + '`', value))
+    print(gaurd)
+
     import ubelt as ub
     for attrname in ub.__all__:
         member = getattr(ub, attrname)
