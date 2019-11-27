@@ -354,9 +354,10 @@ class Timerit(object):
 
         Example:
             >>> import math
-            >>> ti = Timerit(num=1).call(math.factorial, 5)
-            >>> _ = ti.reset('a').call(math.factorial, 20)
-            >>> _ = ti.reset('b').call(math.factorial, 20)
+            >>> ti = Timerit(num=1)
+            >>> _ = ti.reset('a').call(math.factorial, 5)
+            >>> _ = ti.reset('b').call(math.factorial, 10)
+            >>> _ = ti.reset('c').call(math.factorial, 20)
             >>> ti.rankings
             >>> ti.consistency
         """
