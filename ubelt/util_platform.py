@@ -4,8 +4,8 @@ The goal of this module is to provide an idiomatic cross-platform pattern of
 accessing platform dependent file systems.
 
 Standard application directory structure: cache, config, and other XDG
-standards [1]_. This is similar to the more focused `appdirs` module [5]_. In
-the future ubelt may directly use `appdirs`.
+standards [1]_. This is similar to the more focused :mod:`appdirs` module [5]_.
+In the future ubelt may directly use :mod:`appdirs`.
 
 Notes:
     Table mapping the type of directory to the system default environment
@@ -133,7 +133,7 @@ def get_app_data_dir(appname, *args):
 
 def ensure_app_data_dir(appname, *args):
     """
-    Calls `get_app_data_dir` but ensures the directory exists.
+    Calls :func:`get_app_data_dir` but ensures the directory exists.
 
     Args:
         appname (str): the name of the application
@@ -174,7 +174,7 @@ def get_app_config_dir(appname, *args):
 
 def ensure_app_config_dir(appname, *args):
     """
-    Calls `get_app_config_dir` but ensures the directory exists.
+    Calls :func:`get_app_config_dir` but ensures the directory exists.
 
     Args:
         appname (str): the name of the application
@@ -215,7 +215,7 @@ def get_app_cache_dir(appname, *args):
 
 def ensure_app_cache_dir(appname, *args):
     """
-    Calls `get_app_cache_dir` but ensures the directory exists.
+    Calls :func:`get_app_cache_dir` but ensures the directory exists.
 
     Args:
         appname (str): the name of the application
@@ -258,7 +258,7 @@ def find_exe(name, multi=False, path=None):
         :func:`shutil.which` - which is available in Python 3.3+.
 
     Notes:
-        This is essentially the `which` UNIX command
+        This is essentially the ``which`` UNIX command
 
     References:
         https://stackoverflow.com/questions/377017/test-if-executable-exists-in-python/377028#377028
@@ -318,14 +318,14 @@ def find_path(name, path=None, exact=False):
         exact (bool, default=False): if True, only returns exact matches.
 
     Yields:
-        str: candidate: a path that matches `name`
+        str: candidate: a path that matches ``name``
 
     Notes:
-        Running with `name=''` (i.e. `ub.find_path('')`) will simply yield all
+        Running with ``name=''`` (i.e. ``ub.find_path('')``) will simply yield all
         directories in your PATH.
 
     Notes:
-        For recursive behavior set `path=(d for d, _, _ in os.walk('.'))`,
+        For recursive behavior set ``path=(d for d, _, _ in os.walk('.'))``,
         where '.' might be replaced by the root directory of interest.
 
     Example:
@@ -354,7 +354,7 @@ def find_path(name, path=None, exact=False):
     candidates = (join(dpath, name) for dpath in dpaths)
     if exact:
         if WIN32:  # nocover
-            # on WIN32 allow `name` to omit the extension suffix by trying
+            # on WIN32 allow ``name`` to omit the extension suffix by trying
             # to match with all possible "valid" suffixes specified by PATHEXT
             pathext = [''] + os.environ.get('PATHEXT', '').split(os.pathsep)
             candidates = (p + ext for p in candidates for ext in pathext)

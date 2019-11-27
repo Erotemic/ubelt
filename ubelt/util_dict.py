@@ -2,22 +2,29 @@
 """
 Functions for working with dictionaries.
 
-The `dict_hist` function counts the number of discrete occurrences of hashable
-items. Similarly `find_duplicates` looks for indices of items that occur more
+The :func:`dict_hist` function counts the number of discrete occurrences of hashable
+items. Similarly :func:`find_duplicates` looks for indices of items that occur more
 than `k=1` times.
 
-The `map_keys` and `map_vals` functions are useful for transforming the keys
+The :func:`map_keys` and :func:`map_vals` functions are useful for transforming the keys
 and values of a dictionary with less syntax than a dict comprehension.
 
-The `dict_union`, `dict_isect`, and `dict_subset` functions are similar to the set equivalents.
+The :func:`dict_union`, :func:`dict_isect`, and :func:`dict_subset` functions
+are similar to the set equivalents.
 
-The `dzip` function zips two iterables and packs them into a dictionary where the first iterable is used to generate keys and the second generates values.
+The :func:`dzip` function zips two iterables and packs them into a dictionary
+where the first iterable is used to generate keys and the second generates
+values.
 
-The `group_items` function takes two lists and returns a dict mapping values in the second list to all items in corresponding locations in the first list.
+The :func:`group_items` function takes two lists and returns a dict mapping
+values in the second list to all items in corresponding locations in the first
+list.
 
-The `invert_dict` function swaps keys and values. See the function docs for details on dealing with unique and non-unique values.
+The :func:`invert_dict` function swaps keys and values. See the function docs
+for details on dealing with unique and non-unique values.
 
-The `ddict` and `odict` functions are alias for the commonly used`collections.defaultdict` and `collections.OrderedDict` classes.
+The :func:`ddict` and :func:`odict` functions are alias for the commonly used
+:func:`collections.defaultdict` and :func:`collections.OrderedDict` classes.
 
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
@@ -61,10 +68,10 @@ class AutoDict(dict):
     Implementation of Perl's autovivification feature.
 
     SeeAlso:
-        ub.AutoOrderedDict - the ordered version
+        :class:`AutoOrderedDict` - the ordered version
 
     References:
-        http://stackoverflow.com/questions/651794/init-dict-of-dicts
+        .. [1] http://stackoverflow.com/questions/651794/init-dict-of-dicts
 
     Example:
         >>> import ubelt as ub
@@ -110,7 +117,7 @@ class AutoOrderedDict(OrderedDict, AutoDict):
     of items.
 
     SeeAlso:
-        ub.AutoDict - the unordered version
+        :class:`AutoDict` - the unordered version of this class
 
     Example:
         >>> import ubelt as ub
@@ -131,12 +138,11 @@ def dzip(items1, items2, cls=dict):
     Args:
         items1 (Iterable): full sequence
         items2 (Iterable): can either be a sequence of one item or a sequence
-            of equal length to `items1`
-        cls (Type[dict]): dictionary type to use. Defaults to dict, but could
-            be ordered dict instead.
+            of equal length to ``items1``
+        cls (Type[dict], default=dict): dictionary type to use.
 
     Returns:
-        dict: similar to dict(zip(items1, items2))
+        dict: similar to ``dict(zip(items1, items2))``.
 
     Example:
         >>> assert dzip([1, 2, 3], [4]) == {1: 4, 2: 4, 3: 4}
@@ -209,10 +215,13 @@ def dict_hist(item_list, weight_list=None, ordered=False, labels=None):
     in the input.
 
     Args:
-        item_list (Iterable): hashable items (usually containing duplicates)
-        weight_list (Iterable): corresponding weights for each item
-        ordered (bool): if True the result is ordered by frequency
-        labels (Iterable, optional): expected labels (default None)
+        item_list (Iterable):
+            hashable items (usually containing duplicates)
+        weight_list (Iterable, default=None):
+            Corresponding weights for each item.
+        ordered (bool, default=False):
+            If True the result is ordered by frequency.
+        labels (Iterable, default=None): Expected labels.
             Allows this function to pre-initialize the histogram.
             If specified the frequency of each label is initialized to
             zero and item_list can only contain items specified in labels.
@@ -276,13 +285,13 @@ def find_duplicates(items, k=2, key=None):
     """
     Find all duplicate items in a list.
 
-    Search for all items that appear more than `k` times and return a mapping
+    Search for all items that appear more than ``k`` times and return a mapping
     from each (k)-duplicate item to the positions it appeared in.
 
     Args:
         items (Iterable): hashable items possibly containing duplicates
-        k (int, default=2): only return items that appear at least `k` times.
-        key (Callable, optional): Returns indices where `key(items[i])`
+        k (int, default=2): only return items that appear at least ``k`` times.
+        key (Callable, default=None): Returns indices where `key(items[i])`
             maps to a particular value at least k times.
 
     Returns:
@@ -336,14 +345,15 @@ def dict_subset(dict_, keys, default=util_const.NoParam):
 
     Args:
         dict_ (Mapping): superset dictionary
-        keys (Iterable): keys to take from `dict_`
+        keys (Iterable): keys to take from ``dict_``
         default (object, optional): if specified uses default if keys are missing
 
     Returns:
         OrderedDict: subset dictionary
 
     SeeAlso:
-        dict_isect - similar functionality, but will only take existing keys
+        :func:`dict_isect` - similar functionality, but will only take existing
+            keys
 
     Example:
         >>> import ubelt as ub
@@ -353,6 +363,7 @@ def dict_subset(dict_, keys, default=util_const.NoParam):
         >>> print(ub.repr2(subdict_, nl=0))
         {'K': 3, 'dcvs_clip_max': 0.2}
     """
+    keys = list(keys)
     items = util_list.take(dict_, keys, default)
     subdict_ = OrderedDict(list(zip(keys, items)))
     return subdict_
@@ -402,9 +413,6 @@ def dict_diff(*args):
         Dict | OrderedDict :
             OrderedDict if the first argument is an OrderedDict, otherwise dict
 
-    Ignore:
-        python -c "import ubelt; print(len(ubelt.__all__))"
-
     Example:
         >>> dict_diff({'a': 1, 'b': 1}, {'a'}, {'c'})
         {'b': 1}
@@ -442,8 +450,9 @@ def dict_isect(*args):
             OrderedDict if the first argument is an OrderedDict, otherwise dict
 
     Notes:
-        This function can be used as an alternative to `dict_subset` where any
-        key not in the dictionary is ignored. See the following example:
+        This function can be used as an alternative to :func:`dict_subset`
+        where any key not in the dictionary is ignored. See the following
+        example:
 
         >>> dict_isect({'a': 1, 'b': 2, 'c': 3}, ['a', 'c', 'd'])
         {'a': 1, 'c': 3}
@@ -484,7 +493,7 @@ def map_vals(func, dict_):
         >>> assert newdict ==  {'a': 3, 'b': 0}
 
     Example:
-        >>> # Can also use an indexable as `func`
+        >>> # Can also use an indexable as ``func``
         >>> dict_ = {'a': 0, 'b': 1}
         >>> func = [42, 21]
         >>> newdict = map_vals(func, dict_)
@@ -556,7 +565,7 @@ def invert_dict(dict_, unique_vals=True):
 
         If the original dictionary contains duplicate values, then only one of
         the corresponding keys will be returned and the others will be
-        discarded.  This can be prevented by setting `unique_vals=True`,
+        discarded.  This can be prevented by setting ``unique_vals=True``,
         causing the inverted keys to be returned in a set.
 
     Example:

@@ -2,11 +2,11 @@
 """
 Helpers for functional programming.
 
-The `identity` function simply returns its own inputs. This is useful for
+The :func:`identity` function simply returns its own inputs. This is useful for
 bypassing print statements and many other cases. I also think it looks a little
 nicer than `lambda x: x`.
 
-The `inject` function "injects" another function into a class instance as a
+The :func:`inject` function "injects" another function into a class instance as a
 method. This is useful for monkey patching.
 """
 
@@ -51,8 +51,8 @@ def inject_method(self, func, name=None):
     Args:
         self (object): instance to inject a function into
         func (func): the function to inject (must contain an arg for self)
-        name (str): name of the method. optional. If not specified the name
-            of the function is used.
+        name (str, default=None): name of the method. optional. If not
+            specified the name of the function is used.
 
     Example:
         >>> class Foo(object):

@@ -94,6 +94,10 @@ def test_dict_hist_ordered():
 
 
 def test_dict_subset_iterable():
+    """
+    CommandLine:
+        xdoctest -m ~/code/ubelt/tests/test_dict.py test_dict_subset_iterable
+    """
     # There was a bug in 0.7.0 where iterable keys would be exhausted too soon
     keys_list = list(range(10))
     dict_ = {k: k for k in keys_list}

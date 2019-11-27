@@ -8,16 +8,17 @@ greater, and on 32 and 64 bit versions.
 
 Use Case #1: You have data that you want to hash. If we assume the data is in
 standard python scalars or ordered sequences: e.g.  tuple, list, odict, oset,
-int, str, etc..., then the solution is `hash_data`.
+int, str, etc..., then the solution is `:func:hash_data`.
 
 Use Case #2: You have a file you want to hash, but your system doesn't have a
-sha1sum executable (or you dont want to use Popen). The solution is `hash_file`
+sha1sum executable (or you dont want to use Popen). The solution is
+`:func:hash_file`
 
-The `ub.hash_data` function recursively hashes most builtin python data
+The :func:`ub.hash_data` function recursively hashes most builtin python data
 structures.
 
-The `ub.hash_file` function hashes data on disk.  Both of the aformentioned
-functions have options for different hashers and alphabets.
+The :func:`ub.hash_file` function hashes data on disk.  Both of the
+aformentioned functions have options for different hashers and alphabets.
 
 
 Example:
@@ -41,7 +42,7 @@ Example:
 
 NOTE:
     The exact hashes generated for data object and files may change in the
-    future. When this happens the `HASH_VERSION` attribute will be incremented.
+    future. When this happens the ``HASH_VERSION`` attribute will be incremented.
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import json
@@ -359,7 +360,7 @@ class HashableExtensions(object):
 
     def lookup(self, data):
         """
-        Returns an appropriate function to hash `data` if one has been
+        Returns an appropriate function to hash ``data`` if one has been
         registered.
 
         Raises:
@@ -593,7 +594,7 @@ def _hashable_sequence(data, types=True, extensions=None):
 
 def _convert_to_hashable(data, types=True, extensions=None):
     r"""
-    Converts `data` into a hashable byte representation if an appropriate
+    Converts ``data`` into a hashable byte representation if an appropriate
     hashing function is known.
 
     Args:
@@ -603,7 +604,7 @@ def _convert_to_hashable(data, types=True, extensions=None):
     Returns:
         Tuple[bytes, bytes]: prefix, hashable:
             a prefix hinting the original data type and the byte representation
-            of `data`.
+            of ``data``.
 
     Raises:
         TypeError : if data has no registered hash methods
@@ -652,11 +653,11 @@ def _convert_to_hashable(data, types=True, extensions=None):
 
 def _update_hasher(hasher, data, types=True, extensions=None):
     """
-    Converts `data` into a byte representation and calls update on the hasher
-    `hashlib.HASH` algorithm.
+    Converts ``data`` into a byte representation and calls update on the hasher
+    :class:`hashlib.HASH` algorithm.
 
     Args:
-        hasher (HASH): instance of a hashlib algorithm
+        hasher (hashlib.HASH): instance of a hashlib algorithm
         data (object): ordered data with structure
         types (bool): include type prefixes in the hash
 
@@ -812,7 +813,7 @@ def hash_data(data, hasher=NoParam, base=NoParam, types=False,
             hash may differ from the case where convert=False.
 
         extensions (HashableExtensions):
-            a custom `HashableExtensions` instance that can overwrite or
+            a custom :class:`HashableExtensions` instance that can overwrite or
             define how different types of objects are hashed.
 
     Returns:
@@ -833,7 +834,7 @@ def hash_data(data, hasher=NoParam, base=NoParam, types=False,
     if convert and not isinstance(data, six.string_types):  # nocover
         try:
             data = json.dumps(data)
-        except TypeError as ex:
+        except TypeError:
             # import warnings
             # warnings.warn('Unable to encode input as json due to: {!r}'.format(ex))
             pass

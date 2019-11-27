@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
 """
-This module defines the `NiceRepr` mixin class, which defines a `__repr__` and
-`__str__` method that only depend on a custom `__nice__` method, which you must
-define. This means you only have to overload one function instead of two.
-Furthermore, if the object defines a `__len__` method, then the `__nice__`
-method defaults to something sensible, otherwise it is treated as abstract and
-raises `NotImplementedError`.
+This module defines the :class:`NiceRepr` mixin class, which defines a
+``__repr__`` and ``__str__`` method that only depend on a custom ``__nice__``
+method, which you must define. This means you only have to overload one
+function instead of two.  Furthermore, if the object defines a ``__len__``
+method, then the ``__nice__`` method defaults to something sensible, otherwise
+it is treated as abstract and raises ``NotImplementedError``.
 
-To use simply have your object inherit from `NiceRepr` (multi-inheritance
-should be ok).
+To use simply have your object inherit from :class:`NiceRepr`
+(multi-inheritance should be ok).
 
 CommandLine:
     xdoctest -m ubelt.util_mixins __doc__
@@ -47,8 +47,13 @@ import warnings
 
 class NiceRepr(object):
     """
-    Defines `__str__` and `__repr__` in terms of `__nice__` function
-    Classes that inherit from `NiceRepr` must define `__nice__`
+    Inherit from this class and define ``__nice__`` to "nicely" print your
+    objects.
+
+    Defines ``__str__`` and ``__repr__`` in terms of ``__nice__`` function
+    Classes that inherit from :class:`NiceRepr` should redefine ``__nice__``.
+    If the inheriting class has a ``__len__``, method then the default
+    ``__nice__`` method will return its length.
 
     Example:
         >>> import ubelt as ub

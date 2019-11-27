@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 """
-This module exposes `Cacher` and `CacheStamp` classes, which provide a simple
-API for on-disk caching.
+This module exposes :class:`Cacher` and :class:`CacheStamp` classes, which
+provide a simple API for on-disk caching.
 
-The `Cacher` class is the simplest and most direct method of caching. In fact,
-it only requires four lines of boilderplate, which is the smallest general and
-robust way that I (Jon Crall) have ever achieved.  These four lines implement
-the following necessary and sufficient steps for general robust on-disk
-caching.
+The :class:`Cacher` class is the simplest and most direct method of caching. In
+fact, it only requires four lines of boilderplate, which is the smallest
+general and robust way that I (Jon Crall) have ever achieved.  These four lines
+implement the following necessary and sufficient steps for general robust
+on-disk caching.
 
     1. Defining the cache dependenies
     2. Checking if the cache missed
@@ -30,8 +30,8 @@ Example:
     >>>     cacher.save(data)                                               # boilerplate:4
 
 Surprisingly this uses just as many boilerplate lines as a decorator style
-cacher, but it is much more extensible. It is possible to use `ub.Cacher` in
-more sophisticated ways (e.g. metadata), but the simple in-line use is often
+cacher, but it is much more extensible. It is possible to use :class:`Cacher`
+in more sophisticated ways (e.g. metadata), but the simple in-line use is often
 easier and cleaner. The following example illustrates this:
 
 Example:
@@ -53,10 +53,10 @@ tracebacks, explicit procedures, and makes it easier to use breakpoint
 debugging (because there is no closure scope).
 
 
-While `Cacher` is used to store simple results of in-line code in a pickle
-format, the `CacheStamp` object is used to cache processes that produces an
-on-disk side effects other than the main return value. For instance, consider
-the following example:
+While :class:`Cacher` is used to store simple results of in-line code in a
+pickle format, the :class:`CacheStamp` object is used to cache processes that
+produces an on-disk side effects other than the main return value. For
+instance, consider the following example:
 
 Example:
     >>> def compute_many_files(dpath):
@@ -100,12 +100,12 @@ class Cacher(object):
 
         appname (str, default='ubelt'): Application name
             Specifies a folder in the application resource directory where to
-            cache the data if `dpath` is not specified.
+            cache the data if ``dpath`` is not specified.
 
         ext (str, default='.pkl'): File extension for the cache format
 
-        meta (object): Metadata that is also saved with the `cfgstr`.
-            This can be useful to indicate how the `cfgstr` was constructed.
+        meta (object): Metadata that is also saved with the ``cfgstr``.
+            This can be useful to indicate how the ``cfgstr`` was constructed.
 
         verbose (int, default=1): Level of verbosity. Can be 1, 2 or 3.
 
@@ -115,7 +115,7 @@ class Cacher(object):
         log (func): Overloads the print function. Useful for sending output to
             loggers (e.g. logging.info, tqdm.tqdm.write, ...)
 
-        hasher (str): Type of hashing algorithm to use if `cfgstr` needs to be
+        hasher (str): Type of hashing algorithm to use if ``cfgstr`` needs to be
             condensed to less than 49 characters.
 
         protocol (int, default=2): Protocol version used by pickle.

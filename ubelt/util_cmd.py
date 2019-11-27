@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 r"""
-This module exposes the `ubelt.cmd` command, which provides a simple means for
-interacting with the commandline. While this does use `subprocess.Popen` under
-the hood, the key draw of `ubelt.cmd` is that you can capture stdout/stderr in
-your program while simultaneously printing it to the terminal in real time.
+This module exposes the :func:`ubelt.cmd` command, which provides a simple
+means for interacting with the commandline. While this does use
+:class:`subprocess.Popen` under the hood, the key draw of :func:`ubelt.cmd` is
+that you can capture stdout/stderr in your program while simultaneously
+printing it to the terminal in real time.
 
 Example:
     >>> import ubelt as ub
@@ -134,7 +135,7 @@ def _proc_iteroutput_select(proc):
     """
     Iterates over output from a process line by line
 
-    UNIX only. Use `_proc_iteroutput_thread` instead for a cross platform
+    UNIX only. Use :func:`_proc_iteroutput_thread` instead for a cross platform
     solution based on threads.
 
     Yields:
@@ -215,16 +216,16 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
         command (str or Sequence): bash-like command string or tuple of
             executable and args
 
-        shell (bool): if True, process is run in shell, defaults to False.
+        shell (bool, default=False): if True, process is run in shell.
 
-        detach (bool): if True, process is detached and run in background,
-            defaults to False.
+        detach (bool, default=False):
+            if True, process is detached and run in background.
 
-        verbose (int): verbosity mode. Can be 0, 1, 2, or 3. Defaults to 0.
+        verbose (int, default=0): verbosity mode. Can be 0, 1, 2, or 3.
 
         tee (bool, optional): if True, simultaneously writes to stdout while
             capturing output from the command. If not specified, defaults to
-            True if verbose > 0.  If detech is True, then this argument is
+            True if verbose > 0.  If detach is True, then this argument is
             ignored.
 
         cwd (PathLike, optional): path to run command
@@ -234,20 +235,18 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
         tee_backend (str, optional): backend for tee output.
             Valid choices are: "auto", "select" (POSIX only), and "thread".
 
-        # TODO: stdout, stderr - experimental - custom file to pipe stdout/stderr to
-
         **kwargs: only used to support deprecated arguments
 
     Returns:
         dict: info - information about command status.
-            if detach is False `info` contains captured standard out,
+            if detach is False ``info`` contains captured standard out,
             standard error, and the return code
-            if detach is False `info` contains a reference to the process.
+            if detach is False ``info`` contains a reference to the process.
 
     Notes:
         Inputs can either be text or tuple based. On UNIX we ensure conversion
         to text if shell=True, and to tuple if shell=False. On windows, the
-        input is always text based.  See [3] for a potential cross-platform
+        input is always text based.  See [3]_ for a potential cross-platform
         shlex solution for windows.
 
     CommandLine:
@@ -255,9 +254,9 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
         python -c "import ubelt as ub; ub.cmd('ping localhost -c 2', verbose=2)"
 
     References:
-        [1] https://stackoverflow.com/questions/11495783/redirect-subprocess-stderr-to-stdout
-        [2] https://stackoverflow.com/questions/7729336/how-can-i-print-and-display-subprocess-stdout-and-stderr-output-without-distorti
-        [3] https://stackoverflow.com/questions/33560364/python-windows-parsing-command-lines-with-shlex
+        .. [1] https://stackoverflow.com/questions/11495783/redirect-subprocess-stderr-to-stdout
+        .. [2] https://stackoverflow.com/questions/7729336/how-can-i-print-and-display-subprocess-stdout-and-stderr-output-without-distorti
+        .. [3] https://stackoverflow.com/questions/33560364/python-windows-parsing-command-lines-with-shlex
 
     Example:
         >>> info = cmd(('echo', 'simple cmdline interface'), verbose=1)
@@ -302,6 +301,7 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
         >>> info1['proc'].wait()
         >>> info2['proc'].wait()
     """
+    # TODO: stdout, stderr - experimental - custom file to pipe stdout/stderr to
     if kwargs:  # nocover
         if 'verbout' in kwargs:
             warnings.warn(

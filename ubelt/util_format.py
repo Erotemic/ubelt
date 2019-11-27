@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-Defines the function `repr2`, which allows for a bit more customization than
-`repr` or `pprint`. See the docstring for more details.
+Defines the function :func:`repr2`, which allows for a bit more customization than
+:func:`repr` or :func:`pprint`. See the docstring for more details.
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import six
@@ -12,18 +12,18 @@ def repr2(data, **kwargs):
     """
     Makes a pretty and easy-to-doctest string representation!
 
-    This is an alternative to repr, and `pprint.pformat` that attempts to be
+    This is an alternative to repr, and :func:`pprint.pformat` that attempts to be
     both more configurable and generate output that is consistent between
     python versions.
 
     Notes:
         This function has many keyword arguments that can be used to customize
         the final representation. For convinience some of the more frequently
-        used kwargs have short aliases. See `Args` for more details.
+        used kwargs have short aliases. See "Args" for more details.
 
     Args:
         data (object): an arbitrary python object
-        **kwargs: see `the Kwargs` section
+        **kwargs: see "the Kwargs" section
 
     Kwargs:
         si, stritems, (bool):
@@ -49,11 +49,11 @@ def repr2(data, **kwargs):
 
         trailsep, trailing_sep (bool):
             if True, a separator is placed after the last item in a sequence.
-            By default this is True if there are any `nl > 0`.
+            By default this is True if there are any ``nl > 0``.
 
         explicit (bool, default=False):
-            changes dict representation from `{k1: v1, ...}` to
-            `dict(k1=v1, ...)`.
+            changes dict representation from ``{k1: v1, ...}`` to
+            ``dict(k1=v1, ...)``.
 
         precision (int, default=None):
             if specified floats are formatted with this precision
@@ -69,7 +69,7 @@ def repr2(data, **kwargs):
             ordered collections. This option attempts to be determenistic in
             most cases.
 
-            New in 0.8.0: if `sort` is callable, it will be used as a
+            New in 0.8.0: if ``sort`` is callable, it will be used as a
             key-function to sort all collections.
 
             if False, then nothing will be sorted, and the representation of
@@ -84,24 +84,26 @@ def repr2(data, **kwargs):
                 behavior of this arg is subject to change.
 
         suppress_small (bool):
-            passed to `numpy.array2string` for ndarrays
+            passed to :func:`numpy.array2string` for ndarrays
 
         max_line_width (int):
-            passed to `numpy.array2string` for ndarrays
+            passed to :func:`numpy.array2string` for ndarrays
 
         with_dtype (bool):
             only relevant to ndarrays. if True includes the dtype.
 
         extensions (FormatterExtensions):
-            a custom `FormatterExtensions` instance that can overwrite or
+            a custom :class:`FormatterExtensions` instance that can overwrite or
             define how different types of objects are formatted.
 
     Returns:
-        str: outstr: output string
+        str: outstr - output string
 
     Notes:
         There are also internal kwargs, which should not be used:
+
             _return_info (bool):  return information about child context
+
             _root_info (depth): information about parent context
 
     CommandLine:
@@ -124,9 +126,23 @@ def repr2(data, **kwargs):
         ...     'simple_list': [1, 2, 'red', 'blue'],
         ...     'odict': ub.odict([(1, '1'), (2, '2')]),
         ... }
+        >>> # In the interest of saving space we are only going to show the
+        >>> # output for the first example.
+        >>> result = repr2(dict_, nl=1, precision=2)
+        >>> print(result)
+        {
+            'custom_types': [slice(0, 1, None), 0.33],
+            'nest_dict': {'k1': [1, 2, {3: {4, 5}}], 'key2': [1, 2, {3: {4, 5}}], 'key3': [1, 2, {3: {4, 5}}]},
+            'nest_dict2': {'k': [1, 2, {3: {4, 5}}]},
+            'nested_tuples': [(1,), (2, 3), {4, 5, 6}],
+            'odict': {1: '1', 2: '2'},
+            'one_tup': (1,),
+            'simple_dict': {'ham': 'jam', 'spam': 'eggs'},
+            'simple_list': [1, 2, 'red', 'blue'],
+        }
+        >>> # You can try the rest yourself.
         >>> result = repr2(dict_, nl=3, precision=2); print(result)
         >>> result = repr2(dict_, nl=2, precision=2); print(result)
-        >>> result = repr2(dict_, nl=1, precision=2); print(result)
         >>> result = repr2(dict_, nl=1, precision=2, itemsep='', explicit=True); print(result)
         >>> result = repr2(dict_, nl=1, precision=2, nobr=1, itemsep='', explicit=True); print(result)
         >>> result = repr2(dict_, nl=3, precision=2, cbr=True); print(result)
@@ -205,7 +221,7 @@ class FormatterExtensions(object):
     """
     Helper class for managing non-builtin (e.g. numpy) format types.
 
-    This module (`ubelt.util_format`) maintains a global set of basic
+    This module (:mod:`ubelt.util_format`) maintains a global set of basic
     extensions, but it is also possible to create a locally scoped set of
     extensions and explicilty pass it to repr2. The following example
     demonstrates this.
@@ -273,7 +289,7 @@ class FormatterExtensions(object):
 
     def lookup(self, data):
         """
-        Returns an appropriate function to format `data` if one has been
+        Returns an appropriate function to format ``data`` if one has been
         registered.
         """
         for func in self.lazy_init:
@@ -732,7 +748,7 @@ def _list_itemstrs(list_, **kwargs):
 
 def _sort_itemstrs(items, itemstrs, key=None):
     """
-    Equivalent to `sorted(items)` except if `items` are unorderable, then
+    Equivalent to ``sorted(items)`` except if ``items`` are unorderable, then
     string values are used to define an ordering.
     """
     # First try to sort items by their normal values

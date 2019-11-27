@@ -1,19 +1,24 @@
 # -*- coding: utf-8 -*-
 """
-This module expoes simple functions to color your text and highlight your code
+This module defines simple functions to color your text and highlight your code
 using `ANSI <https://en.wikipedia.org/wiki/ANSI_escape_code#Colors>`_ escape
 sequences.  This works using the  `Pygments <http://pygments.org/>`_  library,
 which is an optional requirement. Therefore, these functions only work properly
 if Pygments is installed, otherwise these functions will return the unmodified
 text and a warning will be printed.
 
-The `highlight_code` function uses pygments to highlight syntax of a programing
+The :func:`highlight_code` function uses pygments to highlight syntax of a programing
 language.
 
-The `color_text` function colors text with a solid color.
+The :func:`color_text` function colors text with a solid color.
 
-Note the functions in this module require the optional `pygments` library to
-work correctly. These functions will warn if `pygments` is not installed.
+Note the functions in this module require the optional :mod:`pygments`
+library to work correctly. These functions will warn if :mod:`pygments` is
+not installed.
+
+
+Notes:
+    In the future we may rename this module to ``util_ansi``.
 
 Requirements:
     pip install pygments
@@ -32,7 +37,7 @@ def highlight_code(text, lexer_name='python', **kwargs):
         **kwargs: passed to pygments.lexers.get_lexer_by_name
 
     Returns:
-        str: text : highlighted text
+        str: text - highlighted text
             If pygments is not installed, the plain text is returned.
 
     CommandLine:
@@ -88,7 +93,7 @@ def color_text(text, color):
             fuscia.  Note that different systems may have different colors.
 
     Returns:
-        str: text : colorized text.
+        str: text - colorized text.
             If pygments is not installed plain text is returned.
 
     CommandLine:

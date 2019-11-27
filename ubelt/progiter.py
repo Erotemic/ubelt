@@ -229,20 +229,16 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
         ProgIter is an alternative to `tqdm`.  The main difference between
         `ProgIter` and `tqdm` is that ProgIter does not use threading where as
         `tqdm` does.  `ProgIter` is simpler than `tqdm` and thus more stable in
-        certain circumstances. However, `tqdm` is recommended for the majority
-        of use cases.
-
-    Note:
-        The `ProgIter` API will change to become inter-compatible with `tqdm`.
+        certain circumstances.
 
     SeeAlso:
         tqdm - https://pypi.python.org/pypi/tqdm
 
-    Reference:
+    References:
         http://datagenetics.com/blog/february12017/index.html
 
     Example:
-        >>> # doctest: +SKIP
+        >>> # xdoctest: +SKIP
         >>> def is_prime(n):
         ...     return n >= 2 and not any(n % i == 0 for i in range(2, n))
         >>> for n in ProgIter(range(100), verbose=1):
@@ -433,6 +429,9 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
     def begin(self):
         """
         Initializes information used to measure progress
+
+        This only needs to be used if this ProgIter is not wrapping an iterable.
+        Does nothing if the this ProgIter is disabled.
         """
         if not self.enabled:
             return
@@ -461,6 +460,13 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
         self.finished = False
 
     def end(self):
+        """
+        Signals that iteration has ended and displays the final message.
+
+        This only needs to be used if this ProgIter is not wrapping an
+        iterable.  Does nothing if the this ProgIter object is disabled or has
+        already finished.
+        """
         if not self.enabled or self.finished:
             return
         # Write the final progress line if it was not written in the loop
@@ -693,7 +699,9 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
             self._cursor_at_newline = True
 
     def display_message(self):
-        """ Writes current progress to the output stream """
+        """
+        Writes current progress to the output stream
+        """
         msg = self.format_message()
         self._write(msg)
         self._tryflush()

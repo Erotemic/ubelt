@@ -1,9 +1,13 @@
 # -*- coding: utf-8 -*-
 """
-This module defines `ub.NoParam`. This is a robust sentinel value that can act
-like None when None might be a valid value. The value of `NoParam` is robust to
-reloading, pickling, and copying (i.e. var is ub.NoParam will return True after
-these operations)
+This module defines :data:`ub.NoParam`. This is a robust sentinel value that
+can act like ``None`` when None might be a valid value. The value of
+:data:`NoParam` is robust to reloading, pickling, and copying (i.e. ``var is
+ub.NoParam`` will return ``True`` after these operations).
+
+Use cases that demonstrate the value of :data:`NoParam` can be found in
+:mod:`ubelt.util_dict`, where it simplifies the implementation of methods that
+behave like :meth:`dict.get`.
 
 Example:
     >>> import ubelt as ub
@@ -30,18 +34,18 @@ __all__ = ['NoParam']
 
 class _NoParamType(object):
     r"""
-    Class used to define `NoParam`, a sentinel that acts like None when None
-    might be a valid value. The value of `NoParam` is robust to reloading,
-    pickling, and copying.
+    Class used to define :data:`NoParam`, a sentinel that acts like None when
+    None might be a valid value. The value of :data:`NoParam` is robust to
+    reloading, pickling, and copying.
 
     However, try to never assign this value to a persistent variable.  Use this
     class sparingly.
 
+    References:
+        _[1] http://stackoverflow.com/questions/41048643/a-second-none
+
     CommandLine:
         xdoctest ubelt.util_const _NoParamType
-
-    References:
-        http://stackoverflow.com/questions/41048643/a-second-none
 
     Example:
         >>> import ubelt as ub

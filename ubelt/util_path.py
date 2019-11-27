@@ -14,10 +14,9 @@ The :func:`shrinkuser` function replaces your home directory with a tilde.
 The :func:`userhome` function reports the home directory of the current user of
 the operating system.
 
-The :func:`ensuredir` function operates like `mkdir -p` in unix.
+The :func:`ensuredir` function operates like ``mkdir -p`` in unix.
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
-from os.path import abspath
 from os.path import dirname
 from os.path import exists
 from os.path import expanduser

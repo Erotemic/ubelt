@@ -604,7 +604,7 @@ class _ToggleGC(object):
 
 
 def _chunks(seq, size):
-    """ simple (lighter?) two-line alternative to `ubelt.chunks` """
+    """ simple (lighter?) two-line alternative to :func:`ubelt.chunks` """
     return (seq[pos:pos + size] for pos in range(0, len(seq), size))
 
 
