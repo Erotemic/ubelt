@@ -281,29 +281,28 @@ def find_duplicates(items, k=2, key=None):
 
     Args:
         items (Iterable): hashable items possibly containing duplicates
-        k (int): only return items that appear at least `k` times (default=2)
+        k (int, default=2): only return items that appear at least `k` times.
         key (Callable, optional): Returns indices where `key(items[i])`
             maps to a particular value at least k times.
 
     Returns:
         dict: maps each duplicate item to the indices at which it appears
 
-    CommandLine:
-        python -m ubelt.util_dict find_duplicates
-
     Example:
         >>> import ubelt as ub
         >>> items = [0, 0, 1, 2, 3, 3, 0, 12, 2, 9]
         >>> duplicates = ub.find_duplicates(items)
-        >>> print('items = %r' % (items,))
-        >>> print('duplicates = %r' % (duplicates,))
+        >>> # Duplicates are a mapping from each item that occurs 2 or more
+        >>> # times to the indices at which they occur.
         >>> assert duplicates == {0: [0, 1, 6], 2: [3, 8], 3: [4, 5]}
-        >>> assert ub.find_duplicates(items, 3) == {0: [0, 1, 6]}
+        >>> # You can set k=3 if you want to don't mind duplicates but you
+        >>> # want to find triplicates or quadruplets etc.
+        >>> assert ub.find_duplicates(items, k=3) == {0: [0, 1, 6]}
 
     Example:
         >>> import ubelt as ub
         >>> items = [0, 0, 1, 2, 3, 3, 0, 12, 2, 9]
-        >>> # note: k can be 0
+        >>> # note: k can less then 2
         >>> duplicates = ub.find_duplicates(items, k=0)
         >>> print(ub.repr2(duplicates, nl=0))
         {0: [0, 1, 6], 1: [2], 2: [3, 8], 3: [4, 5], 9: [9], 12: [7]}
@@ -316,8 +315,6 @@ def find_duplicates(items, k=2, key=None):
         {5: [0, 1], 6: [2, 3], 7: [4, 5]}
     """
     # Build mapping from items to the indices at which they appear
-    # if key is not None:
-    #     items = map(key, items)
     duplicates = defaultdict(list)
     if key is None:
         for count, item in enumerate(items):
@@ -374,9 +371,9 @@ def dict_union(*args):
             OrderedDict if the first argument is an OrderedDict, otherwise dict
 
     SeeAlso:
-        collections.ChainMap - a standard python builtin data structure that
-            provides a view that treats multiple dicts as a single dict.
-            https://docs.python.org/3/library/collections.html#chainmap-objects
+        :func:`collections.ChainMap` - a standard python builtin data structure
+        that provides a view that treats multiple dicts as a single dict.
+        `https://docs.python.org/3/library/collections.html#chainmap-objects`
 
     Example:
         >>> result = dict_union({'a': 1, 'b': 1}, {'b': 2, 'c': 2})
@@ -475,7 +472,7 @@ def map_vals(func, dict_):
     Creates a new dictionary with the same keys and modified values.
 
     Args:
-        func (callable): a function or indexable object
+        func (callable | indexable): a function or indexable object
         dict_ (dict): a dictionary
 
     Returns:
@@ -487,7 +484,7 @@ def map_vals(func, dict_):
         >>> assert newdict ==  {'a': 3, 'b': 0}
 
     Example:
-        >>> # Can also use indexables as `func`
+        >>> # Can also use an indexable as `func`
         >>> dict_ = {'a': 0, 'b': 1}
         >>> func = [42, 21]
         >>> newdict = map_vals(func, dict_)
@@ -510,7 +507,7 @@ def map_keys(func, dict_):
     is raised if the new keys are not unique.
 
     Args:
-        func (callable): a function or indexable object
+        func (callable | indexable): a function or indexable object
         dict_ (dict): a dictionary
 
     Returns:
