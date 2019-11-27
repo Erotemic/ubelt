@@ -1,4 +1,4 @@
-|CircleCI| |Travis| |Appveyor| |Codecov| |Pypi| |Downloads| |ReadTheDocs|
+|ReadTheDocs| |Pypi| |Downloads| |Codecov| |CircleCI| |Travis| |Appveyor| 
 
 
 .. The large version wont work because github strips rst image rescaling. https://i.imgur.com/AcWVroL.png
