@@ -110,6 +110,8 @@ my own code (excluding ubelt itself).
 
 
 
+Alternatively you might prefer a module-based approach where functions are
+grouped based on similar functionality.
 
 
 :mod:`ubelt.orderedset`
@@ -275,6 +277,9 @@ my own code (excluding ubelt itself).
 :func:`ubelt.Timer`
 :func:`ubelt.Timerit`
 :func:`ubelt.timestamp`
+
+
+Finally you might consider the package layout.
 
 
 .. toctree::
