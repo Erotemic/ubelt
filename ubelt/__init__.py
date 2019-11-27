@@ -1,18 +1,15 @@
 # -*- coding: utf-8 -*-
 """
 UBelt is a "utility belt" of commonly needed utility and helper functions.  It
-is a currated collection of utilities with functionality that falls into a
-mixture of the following categories:
+is a currated collection of top-level utilities with functionality that falls
+into a mixture of categories.
 
-For more detailed high level documentation see the README on github:
-    `https://github.com/Erotemic/ubelt <https://github.com/Erotemic/ubelt>`_.
-For demos see the `Jupyter notebook <https://github.com/Erotemic/ubelt/blob/master/docs/notebooks/Ubelt%20Demo.ipynb>`_.
+The source code is available at `https://github.com/Erotemic/ubelt <https://github.com/Erotemic/ubelt>`_.
+We also have `Jupyter notebook demos <https://github.com/Erotemic/ubelt/blob/master/docs/notebooks/Ubelt%20Demo.ipynb>`_.
 
 The ubelt API is organized by submodules containing related functionality.
 Each submodule contains top level overview documentation, and each function
 contains a docstring with at least one example.
-
-One of the main features of ubelt is its curated top-level API.
 """
 # flake8: noqa
 from __future__ import absolute_import, division, print_function, unicode_literals
