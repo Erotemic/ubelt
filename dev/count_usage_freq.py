@@ -80,6 +80,7 @@ def count_ubelt_usage():
                 usage.pop(k)
 
     print(ub.repr2(usage, nl=1))
+    return usage
 
 
 if __name__ == '__main__':
