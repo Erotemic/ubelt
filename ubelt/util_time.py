@@ -266,6 +266,7 @@ class Timerit(object):
             Timed best=...s, mean=...s for 20!
             >>> _ = ti.reset().call(math.factorial, 20)
             Timed best=...s, mean=...s for 20!
+            >>> _ = ti.reset(measures=True).call(math.factorial, 20)
         """
         if label:
             self.label = label
@@ -350,6 +351,14 @@ class Timerit(object):
     def rankings(self):
         """
         Orders each list of measurements by ascending time
+
+        Example:
+            >>> import math
+            >>> ti = Timerit(num=1).call(math.factorial, 5)
+            >>> _ = ti.reset('a').call(math.factorial, 20)
+            >>> _ = ti.reset('b').call(math.factorial, 20)
+            >>> ti.rankings
+            >>> ti.consistency
         """
         import ubelt as ub
         rankings = {k: ub.dict_subset(d, ub.argsort(d))

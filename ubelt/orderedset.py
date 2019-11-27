@@ -41,7 +41,7 @@ __all__ = ['OrderedSet', 'oset']
 try:
     # Python 3
     from collections.abc import MutableSet, Sequence
-except ImportError:
+except ImportError:  # nocover
     # Python 2.7
     from collections import MutableSet, Sequence
 
