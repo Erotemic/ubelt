@@ -2,16 +2,16 @@
 r"""
 Expose functions to simplify importing from module names and paths.
 
-The `ub.import_module_from_path` function does its best to load a python file
+The :func:`ub.import_module_from_path` function does its best to load a python file
 into th current set of global modules.
 
-The `ub.import_module_from_name` works similarly.
+The :func:`ub.import_module_from_name` works similarly.
 
-The `ub.modname_to_modpath` and `ub.modname_to_modpath` work statically and
-convert between module names and file paths on disk.
+The :func:`ub.modname_to_modpath` and :func:`ub.modname_to_modpath` work
+statically and convert between module names and file paths on disk.
 
-The `ub.split_modpath` function separates modules into a root and base path
-depending on where the first `__init__.py` file is.
+The :func:`ub.split_modpath` function separates modules into a root and base
+path depending on where the first ``__init__.py`` file is.
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 from os.path import (abspath, exists, expanduser, isdir, join, split, dirname,
@@ -141,7 +141,7 @@ def import_module_from_path(modpath, index=-1):
         This can import a module from within a zipfile. To do this modpath
         should specify the path to the zipfile and the path to the module
         within that zipfile separated by a colon or pathsep.
-        E.g. `/path/to/archive.zip:mymodule.py`
+        E.g. "/path/to/archive.zip:mymodule.pl"
 
     Warning:
         It is best to use this with paths that will not conflict with
@@ -160,9 +160,9 @@ def import_module_from_path(modpath, index=-1):
                   |- mod.py
                   |- helper.py
 
-       If there exists another module named `pkg` already in sys.modules
-       and mod.py does something like `from . import helper`, Python will
-       assume helper belongs to the `pkg` module already in sys.modules.
+       If there exists another module named ``pkg`` already in sys.modules
+       and mod.py does something like ``from . import helper``, Python will
+       assume helper belongs to the ``pkg`` module already in sys.modules.
        This can cause a NameError or worse --- a incorrect helper module.
 
     Example:
@@ -318,7 +318,7 @@ def _syspath_modname_to_modpath(modname, sys_path=None, exclude=None):
     Args:
         modname (str): name of module to find
         sys_path (List[PathLike], default=None):
-            if specified overrides `sys.path`
+            if specified overrides ``sys.path``
         exclude (List[PathLike], default=None):
             list of directory paths. if specified prevents these directories
             from being searched.
@@ -441,7 +441,7 @@ def _importlib_import_modpath(modpath):  # nocover
 
 def _pkgutil_modname_to_modpath(modname):  # nocover
     """
-    faster version of `_syspath_modname_to_modpath` using builtin python
+    faster version of :func:`_syspath_modname_to_modpath` using builtin python
     mechanisms, but unfortunately it doesn't play nice with pytest.
 
     Example:
@@ -478,7 +478,7 @@ def modname_to_modpath(modname, hide_init=True, hide_main=False, sys_path=None):
         hide_init (bool): if False, __init__.py will be returned for packages
         hide_main (bool): if False, and hide_init is True, __main__.py will be
             returned for packages, if it exists.
-        sys_path (list, default=None): if specified overrides `sys.path`
+        sys_path (list, default=None): if specified overrides ``sys.path``
 
     Returns:
         str: modpath - path to the module, or None if it doesn't exist
@@ -633,7 +633,7 @@ def split_modpath(modpath, check=True):
     Args:
         modpath (str): module filepath
         check (bool): if False, does not raise an error if modpath is a
-            directory and does not contain an `__init__.py` file.
+            directory and does not contain an ``__init__.py`` file.
 
     Returns:
         tuple: (directory, rel_modpath)
@@ -680,7 +680,7 @@ def is_modname_importable(modname, sys_path=None, exclude=None):
 
     Args:
         modname (str): name of module to check
-        sys_path (list, default=None): if specified overrides `sys.path`
+        sys_path (list, default=None): if specified overrides ``sys.path``
         exclude (list): list of directory paths. if specified prevents these
             directories from being searched.
 

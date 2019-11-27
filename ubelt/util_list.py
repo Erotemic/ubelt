@@ -2,21 +2,23 @@
 """
 Utility functions for manipulating iterables, lists, and sequences.
 
-The `chunks` function splits a list into smaller parts. There are different strategies for how to do this.
+The :func:`chunks` function splits a list into smaller parts. There are different strategies for how to do this.
 
-The `flatten` function take a list of lists and removees the inner lists. This
+The :func:`flatten` function take a list of lists and removees the inner lists. This
 only removes one level of nesting.
 
-The `iterable` function checks if an object is iterable or not. Similar to the
-`callable` builtin function.
+The :func:`iterable` function checks if an object is iterable or not. Similar to the
+:func:`callable` builtin function.
 
-The `argmax`, `argmin`, and `argsort` work similarly to the analogous `numpy`
-functions, except they operate on dictionaries and other Python builtin types.
+The :func:`argmax`, :func:`argmin`, and :func:`argsort` work similarly to the
+analogous :mod:`numpy` functions, except they operate on dictionaries and other
+Python builtin types.
 
-The `take` and `compress` are generators, and also similar to their lesser known, but very useful numpy equivalents.
+The :func:`take` and :func:`compress` are generators, and also similar to their
+lesser known, but very useful numpy equivalents.
 
-There are also other numpy inspired functions: `unique`, `argunique`,
-`unique_flags`, and `boolmask`.
+There are also other numpy inspired functions: :func:`unique`,
+:func:`argunique`, :func:`unique_flags`, and :func:`boolmask`.
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import itertools as it
@@ -34,9 +36,9 @@ else:
 
 class chunks(object):
     """
-    Generates successive n-sized chunks from `items`.
+    Generates successive n-sized chunks from ``items``.
 
-    If the last chunk has less than n elements, `bordermode` is used to
+    If the last chunk has less than n elements, ``bordermode`` is used to
     determine fill values.
 
     Args:
@@ -172,7 +174,7 @@ class chunks(object):
 def iterable(obj, strok=False):
     """
     Checks if the input implements the iterator interface. An exception is made
-    for strings, which return False unless `strok` is True
+    for strings, which return False unless ``strok`` is True
 
     Args:
         obj (object): a scalar or iterable input
@@ -209,7 +211,7 @@ def take(items, indices, default=util_const.NoParam):
         indices (Iterable): sequence of indexing objects
 
         default (object, optional):
-            if specified uses default if `items` supports the `get` method.
+            if specified uses default if ``items`` supports the ``get`` method.
 
     Returns:
         Iterable or scalar: subset of the list
@@ -276,7 +278,7 @@ def flatten(nested_list):
     """
     Transforms a nested iterable into a flat iterable.
 
-    This is simply an alias for `itertools.chain.from_iterable`
+    This is simply an alias for ``itertools.chain.from_iterable``
 
     Args:
         nested_list (Iterable[Iterable]): list of lists
@@ -301,7 +303,7 @@ def unique(items, key=None):
         items (Iterable): list of items
 
         key (Callable, optional): custom normalization function.
-            If specified returns items where `key(item)` is unique.
+            If specified returns items where ``key(item)`` is unique.
 
     Yields:
         object: a unique item from the input sequence
@@ -345,7 +347,7 @@ def argunique(items, key=None):
         items (Sequence): indexable collection of items
 
         key (Callable, optional): custom normalization function.
-            If specified returns items where `key(item)` is unique.
+            If specified returns items where ``key(item)`` is unique.
 
     Yields:
         int : indices of the unique items
@@ -373,7 +375,7 @@ def unique_flags(items, key=None):
         items (Sequence): indexable collection of items
 
         key (Callable, optional): custom normalization function.
-            If specified returns items where `key(item)` is unique.
+            If specified returns items where ``key(item)`` is unique.
 
     Returns:
         List[bool] : flags the items that are unique
@@ -399,16 +401,16 @@ def unique_flags(items, key=None):
 def boolmask(indices, maxval=None):
     """
     Constructs a list of booleans where an item is True if its position is in
-    `indices` otherwise it is False.
+    ``indices`` otherwise it is False.
 
     Args:
         indices (list): list of integer indices
 
         maxval (int): length of the returned list. If not specified
-            this is inferred from `indices`
+            this is inferred from ``indices``
 
     Note:
-        In the future the arg `maxval` may change its name to `shape`
+        In the future the arg ``maxval`` may change its name to ``shape``
 
     Returns:
         list: mask: list of booleans. mask[idx] is True if idx in indices
@@ -536,8 +538,8 @@ def argsort(indexable, key=None, reverse=False):
     """
     Returns the indices that would sort a indexable object.
 
-    This is similar to `numpy.argsort`, but it is written in pure python and
-    works on both lists and dictionaries.
+    This is similar to :func:`numpy.argsort`, but it is written in pure python
+    and works on both lists and dictionaries.
 
     Args:
         indexable (Iterable or Mapping): indexable to sort by
@@ -591,8 +593,8 @@ def argmax(indexable, key=None):
     """
     Returns index / key of the item with the largest value.
 
-    This is similar to `numpy.argmax`, but it is written in pure python and
-    works on both lists and dictionaries.
+    This is similar to :func:`numpy.argmax`, but it is written in pure python
+    and works on both lists and dictionaries.
 
     Args:
         indexable (Iterable or Mapping): indexable to sort by
@@ -625,8 +627,8 @@ def argmin(indexable, key=None):
     """
     Returns index / key of the item with the smallest value.
 
-    This is similar to `numpy.argmin`, but it is written in pure python and
-    works on both lists and dictionaries.
+    This is similar to :func:`numpy.argmin`, but it is written in pure python
+    and works on both lists and dictionaries.
 
     Args:
         indexable (Iterable or Mapping): indexable to sort by

@@ -20,13 +20,15 @@ def argval(key, default=util_const.NoParam, argv=None):
     """
     Get the value of a keyword argument specified on the command line.
 
-    Values can be specified as `<key> <value>` or `<key>=<value>`
+    Values can be specified as ``<key> <value>`` or ``<key>=<value>``
 
     Args:
-        key (str or tuple): string or tuple of strings. Each key should be
-            prefixed with two hyphens (i.e. `--`)
-        default (Optional[object]): value to return if not specified
-        argv (Optional[list]): overrides `sys.argv` if specified
+        key (str | tuple):
+            string or tuple of strings. Each key should be prefixed with two
+            hyphens (i.e. ``--``)
+        default (object, default=NoParam):
+            a value to return if not specified.
+        argv (Optional[list]): overrides ``sys.argv`` if specified
 
     Returns:
         str: value : the value specified after the key. It they key is
@@ -74,9 +76,9 @@ def argflag(key, argv=None):
     Determines if a key is specified on the command line
 
     Args:
-        key (str or Tuple[str]): string or tuple of strings. Each key should be
-            prefixed with two hyphens (i.e. `--`)
-        argv (List[str], optional): overrides `sys.argv` if specified
+        key (str | Tuple[str]): string or tuple of strings. Each key should be
+            prefixed with two hyphens (i.e. ``--``)
+        argv (List[str], default=None): overrides ``sys.argv`` if specified
 
     Returns:
         bool: flag : True if the key (or any of the keys) was specified

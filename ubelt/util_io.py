@@ -2,12 +2,12 @@
 """
 Functions for reading and writing files on disk.
 
-`writeto` and `readfrom` wrap `open().write()` and `open().read()` and primarily
+:func:`writeto` and :func:`readfrom` wrap ``open().write()`` and ``open().read()`` and primarily
 serve to indicate that the type of data being written and read is unicode text.
 
-`delete` wraps `os.unlink` and `shutil.rmtree` and does not throw an error if
-the file or directory does not exist. It also contains workarounds for win32
-issues with `shutil`.
+:func:`delete` wraps :func:`os.unlink` and :func:`shutil.rmtree` and does not
+throw an error if the file or directory does not exist. It also contains
+workarounds for win32 issues with :mod:`shutil`.
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import six
@@ -127,7 +127,7 @@ def touch(fpath, mode=0o666, dir_fd=None, verbose=0, **kwargs):
         dir_fd (file): optional directory file descriptor. If specified, fpath
             is interpreted as relative to this descriptor (python 3 only).
         verbose (int): verbosity
-        **kwargs : extra args passed to `os.utime` (python 3 only).
+        **kwargs : extra args passed to ``os.utime`` (python 3 only).
 
     Returns:
         PathLike: path to the file

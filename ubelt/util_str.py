@@ -2,16 +2,16 @@
 """
 Functions for working with text and strings.
 
-The `ensure_unicode` function does its best to coerce python 2/3 bytes and text
-into a consistent unicode text representation.
+The :func:`ensure_unicode` function does its best to coerce python 2/3 bytes
+and text into a consistent unicode text representation.
 
-The `codeblock` and `paragraph` wrap multiline strings to help write text
-blocks without hindering the surrounding code indentation.
+The :func:`codeblock` and :func:`paragraph` wrap multiline strings to help
+write text blocks without hindering the surrounding code indentation.
 
-The `hzcat` function horizontally concatenates multiline text.
+The :func:`hzcat` function horizontally concatenates multiline text.
 
-The `indent` prefixes all lines in a text block with a given prefix. By default
-that prefix is 4 spaces.
+The :func:`indent` prefixes all lines in a text block with a given prefix. By
+default that prefix is 4 spaces.
 """
 from __future__ import print_function, division, absolute_import, unicode_literals
 import six

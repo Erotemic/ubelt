@@ -10,8 +10,9 @@ For demos see the `Jupyter notebook <https://github.com/Erotemic/ubelt/blob/mast
 
 The ubelt API is organized by submodules containing related functionality.
 Each submodule contains top level overview documentation, and each function
-contains a docstring with at least one example. Please see specific submodule
-documentation for more details.
+contains a docstring with at least one example.
+
+One of the main features of ubelt is its curated top-level API as shown below:
 """
 # flake8: noqa
 from __future__ import absolute_import, division, print_function, unicode_literals

@@ -2,16 +2,16 @@
 """
 Helpers for downloading data
 
-The `download` function access the network and requests the content at a
-specific url using `urllib` or `urllib2`. You can either specify where the data
-goes or download it to the default location in ubelt cache. Either way this
-function returns the location of the downloaded data. You can also specify the
-expected hash in order to check the validity of the data. By default
-downloading is verbose.
+The :func:`download` function access the network and requests the content at a
+specific url using :mod:`urllib` or :mod:`urllib2`. You can either specify
+where the data goes or download it to the default location in ubelt cache.
+Either way this function returns the location of the downloaded data. You can
+also specify the expected hash in order to check the validity of the data. By
+default downloading is verbose.
 
-The `grabdata` function is almost identitcal to `download`, but it checks if
-the data already exists in the download location, and only downloads if it
-needs to.
+The :func:`grabdata` function is almost identitcal to :func:`download`, but it
+checks if the data already exists in the download location, and only downloads
+if it needs to.
 
 """
 from __future__ import (absolute_import, division, print_function,

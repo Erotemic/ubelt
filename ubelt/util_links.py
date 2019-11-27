@@ -46,7 +46,7 @@ def symlink(real_path, link_path, overwrite=False, verbose=0):
     Create a symbolic link.
 
     This will work on linux or windows, however windows does have some corner
-    cases. For more details see notes in `ubelt._win32_links`.
+    cases. For more details see notes in :mod:`ubelt._win32_links`.
 
     Args:
         path (PathLike): path to real file or directory
