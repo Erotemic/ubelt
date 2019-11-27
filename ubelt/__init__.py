@@ -4,31 +4,18 @@ UBelt is a "utility belt" of commonly needed utility and helper functions.  It
 is a currated collection of utilities with functionality that falls into a
 mixture of the following categories:
 
-- Timing
-- Caching
-- Hashing
-- Command Line / Shell Interaction
-- Cross-Platform Cache, Config, and Data Directories
-- Symlinks
-- Downloading Files
-- Dictionary Histogram
-- Find Duplicates
-- Dictionary Manipulation
-- AutoDict - Autovivification
-- String-based imports
-- Horizontal String Concatenation
-- Standalone modules.
-    - `progiter <https://github.com/Erotemic/progiter>`__ for Loop Progress
-    - `timerit <https://github.com/Erotemic/timerit>`__ for Robust Timing and Benchmarking
-    - `ordered-set <https://github.com/LuminosoInsight/ordered-set>`__ for ordered set collections
-
-For more detailed high level documentation see the README on github: `https://github.com/Erotemic/ubelt <https://github.com/Erotemic/ubelt>`_. For demos see the `Jupyter notebook <https://github.com/Erotemic/ubelt/blob/master/docs/notebooks/Ubelt%20Demo.ipynb>`_.
+For more detailed high level documentation see the README on github:
+    `https://github.com/Erotemic/ubelt <https://github.com/Erotemic/ubelt>`_.
+For demos see the `Jupyter notebook <https://github.com/Erotemic/ubelt/blob/master/docs/notebooks/Ubelt%20Demo.ipynb>`_.
 
 The ubelt API is organized by submodules containing related functionality.
 Each submodule contains top level overview documentation, and each function
 contains a docstring with at least one example. Please see specific submodule
 documentation for more details.
-
+"""
+# flake8: noqa
+from __future__ import absolute_import, division, print_function, unicode_literals
+"""
 AutogenInit:
     mkinit ubelt
     mkinit ubelt -w  # todo: get sphinx to ignore this
@@ -36,10 +23,6 @@ AutogenInit:
 Testing:
     xdoctest ubelt
 """
-# Todo:
-#     The following functions and classes are candidates to be ported from utool:
-#     * rsync
-from __future__ import absolute_import, division, print_function, unicode_literals
 
 __version__ = '0.8.4'
 
