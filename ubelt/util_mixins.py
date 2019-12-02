@@ -95,9 +95,9 @@ class NiceRepr(object):
 
     def __repr__(self):
         try:
-            devnice = self.__nice__()
+            nice = self.__nice__()
             classname = self.__class__.__name__
-            return '<%s(%s) at %s>' % (classname, devnice, hex(id(self)))
+            return '<{0}({1}) at {2}>'.format(classname, nice, hex(id(self)))
         except NotImplementedError as ex:
             warnings.warn(str(ex), category=RuntimeWarning)
             return object.__repr__(self)
@@ -105,8 +105,8 @@ class NiceRepr(object):
     def __str__(self):
         try:
             classname = self.__class__.__name__
-            devnice = self.__nice__()
-            return '<%s(%s)>' % (classname, devnice)
+            nice = self.__nice__()
+            return '<{0}({1})>'.format(classname, nice)
         except NotImplementedError as ex:
             warnings.warn(str(ex), category=RuntimeWarning)
             return object.__repr__(self)
