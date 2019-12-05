@@ -47,7 +47,9 @@ check_variable(){
 CURRENT_BRANCH=${CURRENT_BRANCH:=$(git branch | grep \* | cut -d ' ' -f2)}
 DEPLOY_BRANCH=${DEPLOY_BRANCH:=release}
 DEPLOY_REMOTE=${DEPLOY_REMOTE:=origin}
-VERSION=$(python -c "import setup; print(setup.version)")
+VERSION=$(python -c "import setup; print(setup.VERSION)")
+MB_PYTHON_TAG=${MB_PYTHON_TAG:=py2.py3-none-any}
+NAME=${NAME:=$(python -c "import setup; print(setup.NAME)")}
 
 check_variable CURRENT_BRANCH
 check_variable DEPLOY_BRANCH
@@ -93,6 +95,8 @@ DEPLOY_BRANCH='$DEPLOY_BRANCH'
 VERSION='$VERSION'
 TWINE_USERNAME='$TWINE_USERNAME'
 GPG_KEYID = '$GPG_KEYID'
+MB_PYTHON_TAG = '$MB_PYTHON_TAG'
+NAME = '$NAME'
 "
 
 
@@ -104,8 +108,8 @@ echo "LIVE BUILDING"
 python setup.py bdist_wheel --universal
 python setup.py sdist 
 
-BDIST_WHEEL_PATH=$(ls dist/*-$VERSION-*.whl)
-SDIST_PATH=$(dir dist/*-$VERSION*.tar.gz)
+BDIST_WHEEL_PATH=$(ls dist/$NAME-$VERSION-$MB_PYTHON_TAG*.whl)
+SDIST_PATH=$(dir dist/$NAME-$VERSION*.tar.gz)
 echo "
 echo "VERSION='$VERSION'"
 BDIST_WHEEL_PATH='$BDIST_WHEEL_PATH'
