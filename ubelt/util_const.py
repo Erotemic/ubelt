@@ -87,8 +87,6 @@ class _NoParamType(object):
         return NoParam
     def __deepcopy__(self, memo):
         return NoParam
-    def __call__(self, default):
-        pass
     def __str__(cls):
         return 'NoParam'
     def __repr__(cls):
