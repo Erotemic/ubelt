@@ -4,6 +4,14 @@ We are currently working on porting this changelog to the specifications in
 [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Version 0.8.6] - 2019-12-05
+
+### Fixed
+* Removed the `NoParam.__call__` method. This method should not have been
+  defined, and by existing it caused issues when using `NoParam` as a
+  column-key in pandas.
+
+
 ## [Version 0.8.5] - 2019-11-26
 
 ### Added
