@@ -132,12 +132,13 @@ def parse_requirements(fname='requirements.txt', with_version=False):
     return packages
 
 
-version = parse_version('ubelt/__init__.py')  # must be global for git tags
+NAME = 'ubelt'
+VERSION = parse_version('ubelt/__init__.py')  # must be global for git tags
 
 if __name__ == '__main__':
     setup(
         name='ubelt',
-        version=version,
+        version=VERSION,
         author='Jon Crall',
         description=('A Python utility belt containing simple tools, '
                      'a stdlib like feel, and extra batteries.'),
