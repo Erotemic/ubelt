@@ -16,6 +16,29 @@ from os.path import dirname, exists
 repodir = dirname(__file__)
 
 
+def native_mb_python_tag():
+    import sys
+    import platform
+    major = sys.version_info[0]
+    minor = sys.version_info[1]
+    ver = '{}{}'.format(major, minor)
+    if platform.python_implementation() == 'CPython':
+        # TODO: get if cp27m or cp27mu
+        impl = 'cp'
+        if ver == '27':
+            IS_27_BUILT_WITH_UNICODE = True  # how to determine this?
+            if IS_27_BUILT_WITH_UNICODE:
+                abi = 'mu'
+            else:
+                abi = 'm'
+        else:
+            abi = 'm'
+    else:
+        raise NotImplementedError(impl)
+    mb_tag = '{impl}{ver}-{impl}{ver}{abi}'.format(**locals())
+    return mb_tag
+
+
 def parse_version(fpath):
     """
     Statically parse the version number from a python file
@@ -134,6 +157,7 @@ def parse_requirements(fname='requirements.txt', with_version=False):
 
 NAME = 'ubelt'
 VERSION = parse_version('ubelt/__init__.py')  # must be global for git tags
+
 
 if __name__ == '__main__':
     setup(
