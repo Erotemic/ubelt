@@ -145,7 +145,12 @@ if six.PY2:
             int_ = comp
         return int_
 else:
-    HASH = hashlib._hashlib.HASH
+    try:
+        HASH = hashlib._hashlib.HASH
+    except AttributeError:  # nocover
+        # Python seems to have been compiled without OpenSSL
+        HASH = None
+
     codecs = None
     def _int_to_bytes(int_):
         r"""
@@ -196,7 +201,8 @@ def _rectify_hasher(hasher):
         >>> assert _rectify_hasher('sha512') is hashlib.sha512
         >>> assert _rectify_hasher('md5') is hashlib.md5
         >>> assert _rectify_hasher(hashlib.sha1) is hashlib.sha1
-        >>> assert _rectify_hasher(hashlib.sha1())().name == 'sha1'
+        >>> if HASH is not None:
+        >>>     assert _rectify_hasher(hashlib.sha1())().name == 'sha1'
         >>> import pytest
         >>> assert pytest.raises(KeyError, _rectify_hasher, '42')
         >>> #assert pytest.raises(TypeError, _rectify_hasher, object)
@@ -217,7 +223,7 @@ def _rectify_hasher(hasher):
             raise KeyError('unknown hasher: {}'.format(hasher))
         else:
             hasher = getattr(hashlib, hasher)
-    elif isinstance(hasher, HASH):
+    elif HASH is not None and isinstance(hasher, HASH):
         # by default the result of this function is a class we will make an
         # instance of, if we already have an instance, wrap it in a callable
         # so the external syntax does not need to change.
