@@ -50,7 +50,7 @@ def indent(text, prefix='    '):
     return prefix + text.replace('\n', '\n' + prefix)
 
 
-def codeblock(block_str):
+def codeblock(text):
     """
     Create a block of text that preserves all newlines and relative indentation
 
@@ -58,7 +58,7 @@ def codeblock(block_str):
     Useful for templated code defined in indented parts of code.
 
     Args:
-        block_str (str): typically in the form of a multiline string
+        text (str): typically a multiline string
 
     Returns:
         str: the unindented string
@@ -89,10 +89,10 @@ def codeblock(block_str):
         >>> print(codeblock_version)
     """
     import textwrap  # this is a slow import, do it lazy
-    return textwrap.dedent(block_str).strip('\n')
+    return textwrap.dedent(text).strip('\n')
 
 
-def paragraph(block_str):
+def paragraph(text):
     r"""
     Wraps multi-line strings and restructures the text to remove all newlines,
     heading, trailing, and double spaces.
@@ -100,7 +100,7 @@ def paragraph(block_str):
     Useful for writing log messages
 
     Args:
-        block_str (str): typically in the form of a multiline string
+        text (str): typically a multiline string
 
     Returns:
         str: the reduced text block
@@ -110,21 +110,20 @@ def paragraph(block_str):
 
     Example:
         >>> from ubelt.util_str import *  # NOQA
-        >>> block_str = (
+        >>> text = (
         >>>     '''
         >>>     Lorem ipsum dolor sit amet, consectetur adipiscing
         >>>     elit, sed do eiusmod tempor incididunt ut labore et
         >>>     dolore magna aliqua.
         >>>     ''')
-        >>> out = paragraph(block_str)
-        >>> assert chr(10) in block_str
+        >>> out = paragraph(text)
+        >>> assert chr(10) in text
         >>> assert chr(10) not in out
-        >>> print('block_str = {!r}'.format(block_str))
+        >>> print('text = {!r}'.format(text))
         >>> print('out = {!r}'.format(out))
     """
     import re
-    out = block_str
-    out = re.sub(r'\s\s*', ' ', out).strip()
+    out = re.sub(r'\s\s*', ' ', text).strip()
     return out
 
 

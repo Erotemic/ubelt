@@ -37,6 +37,10 @@ def writeto(fpath, to_write, aslines=False, verbose=None):
         This function exists as a convenience for writing in Python2. After
         2020-01-01, we may consider deprecating the function.
 
+        NOTE: It turns out that `open(<fpath>).write(<to_write>)` does not work
+        in pypy. See `https://pypy.org/compat.html`. This is a strong argument
+        for keeping this function.
+
     CommandLine:
         python -m ubelt.util_io writeto --verbose
 

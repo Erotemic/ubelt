@@ -1,5 +1,3 @@
-
-
 class Simple(object):
 
     class_attr1 = True
@@ -90,7 +88,7 @@ def benchmark_attribute_access():
 
     import ubelt as ub
 
-    ti = ub.Timerit(10000, bestof=100, verbose=1, unit='us')
+    ti = ub.Timerit(100000, bestof=500, verbose=1, unit='us')
 
     # Do this twice, but keep the second measure
     data = ub.AutoDict()
@@ -104,12 +102,12 @@ def benchmark_attribute_access():
         for timer in ti.reset('self.attr1'):
             with timer:
                 self.attr1
-        subdata[ti.label] = ti.mean()
+        subdata[ti.label] = ti.min()
 
         for timer in ti.reset('getattr(self, attr1)'):
             with timer:
                 getattr(self, 'attr1')
-        subdata[ti.label] = ti.mean()
+        subdata[ti.label] = ti.min()
 
         attrs = ['attr1', 'attr2']
 
@@ -117,12 +115,18 @@ def benchmark_attribute_access():
             for timer in ti.reset('hasattr(self, {})'.format(attrname)):
                 with timer:
                     hasattr(self, attrname)
-            subdata[ti.label] = ti.mean()
+            subdata[ti.label] = ti.min()
 
             for timer in ti.reset('getattr(self, {}, None)'.format(attrname)):
                 with timer:
                     getattr(self, attrname, None)
-            subdata[ti.label] = ti.mean()
+            subdata[ti.label] = ti.min()
+
+            if 'slot' not in selfname.lower():
+                for timer in ti.reset('self.__dict__.get({}, None)'.format(attrname)):
+                    with timer:
+                        self.__dict__.get(attrname, None)
+                subdata[ti.label] = ti.min()
 
         for timer in ti.reset('try/except: self.attr2'):
             with timer:
@@ -130,7 +134,7 @@ def benchmark_attribute_access():
                     x = self.attr2
                 except AttributeError:
                     x = None
-        subdata[ti.label] = ti.mean()
+        subdata[ti.label] = ti.min()
 
         for timer in ti.reset('try/except: self.attr1'):
             with timer:
@@ -138,7 +142,7 @@ def benchmark_attribute_access():
                     x = self.attr1
                 except AttributeError:
                     x = None
-        subdata[ti.label] = ti.mean()
+        subdata[ti.label] = ti.min()
 
         del x
 
@@ -153,6 +157,8 @@ def benchmark_attribute_access():
     except ImportError:
         print('no pandas')
         print(ub.repr2(data, nl=2, precision=4))
+
+    # print(ub.repr2(ti.measures))
 
 
 if __name__ == '__main__':
