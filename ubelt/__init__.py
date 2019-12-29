@@ -22,7 +22,7 @@ Testing:
     xdoctest ubelt
 """
 
-__version__ = '0.8.7'
+__version__ = '0.8.8'
 
 __submodules__ = [
     'util_arg',
@@ -48,6 +48,7 @@ __submodules__ = [
     'util_time',
     'orderedset',
     'progiter',
+    'timerit',
     '_util_deprecated',
 ]
 
@@ -75,6 +76,7 @@ from ubelt import util_stream
 from ubelt import util_time
 from ubelt import orderedset
 from ubelt import progiter
+from ubelt import timerit
 from ubelt import _util_deprecated
 
 from ubelt.util_arg import (argflag, argval,)
@@ -111,9 +113,10 @@ from ubelt.util_platform import (DARWIN, LINUX, POSIX, WIN32,
 from ubelt.util_str import (codeblock, ensure_unicode, hzcat, indent,
                             paragraph,)
 from ubelt.util_stream import (CaptureStdout, CaptureStream, TeeStringIO,)
-from ubelt.util_time import (Timer, Timerit, timestamp,)
+from ubelt.util_time import (timestamp,)
 from ubelt.orderedset import (OrderedSet, oset,)
 from ubelt.progiter import (ProgIter,)
+from ubelt.timerit import (Timer, Timerit,)
 from ubelt._util_deprecated import (compressuser, dict_take, editfile,
                                     ensure_app_resource_dir,
                                     get_app_resource_dir,
@@ -143,10 +146,11 @@ __all__ = ['AutoDict', 'AutoOrderedDict', 'CacheStamp', 'Cacher',
            'platform_cache_dir', 'platform_config_dir', 'platform_data_dir',
            'platform_resource_dir', 'progiter', 'readfrom', 'repr2',
            'shrinkuser', 'split_modpath', 'startfile', 'symlink', 'take',
-           'timestamp', 'touch', 'truepath', 'unique', 'unique_flags',
-           'userhome', 'util_arg', 'util_cache', 'util_cmd', 'util_colors',
-           'util_const', 'util_dict', 'util_download', 'util_format',
-           'util_func', 'util_hash', 'util_import', 'util_io', 'util_links',
-           'util_list', 'util_memoize', 'util_mixins', 'util_path',
-           'util_platform', 'util_str', 'util_stream', 'util_time', 'writeto']
+           'timerit', 'timestamp', 'touch', 'truepath', 'unique',
+           'unique_flags', 'userhome', 'util_arg', 'util_cache', 'util_cmd',
+           'util_colors', 'util_const', 'util_dict', 'util_download',
+           'util_format', 'util_func', 'util_hash', 'util_import', 'util_io',
+           'util_links', 'util_list', 'util_memoize', 'util_mixins',
+           'util_path', 'util_platform', 'util_str', 'util_stream',
+           'util_time', 'writeto']
 # </AUTOGEN_INIT>
