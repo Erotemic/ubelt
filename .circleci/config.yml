@@ -13,19 +13,22 @@ workflows:
   version: 2
   test:
     jobs:
+      - test-full-3.8
       - test-full-3.7
       - test-full-3.6
       - test-full-3.5
       - test-full-3.4
       - test-full-2.7
-      #- test-full-pypy3
 
+      - test-minimal-3.8
       - test-minimal-3.7
       - test-minimal-3.6
       - test-minimal-3.5
       - test-minimal-3.4
       - test-minimal-2.7
+
       - test-minimal-pypy3
+      - test-full-pypy3
 
 jobs:
 
