@@ -16,50 +16,6 @@ from os.path import dirname, exists
 repodir = dirname(__file__)
 
 
-def native_mb_python_tag(plat_impl=None, version_info=None):
-    """
-    Example:
-        >>> print(native_mb_python_tag())
-        >>> print(native_mb_python_tag('PyPy', (2, 7)))
-        >>> print(native_mb_python_tag('CPython', (3, 8)))
-    """
-    if plat_impl is None:
-        import platform
-        plat_impl = platform.python_implementation()
-
-    if version_info is None:
-        import sys
-        version_info = sys.version_info
-
-    major, minor = version_info[0:2]
-    ver = '{}{}'.format(major, minor)
-
-    if plat_impl == 'CPython':
-        # TODO: get if cp27m or cp27mu
-        impl = 'cp'
-        if ver == '27':
-            IS_27_BUILT_WITH_UNICODE = True  # how to determine this?
-            if IS_27_BUILT_WITH_UNICODE:
-                abi = 'mu'
-            else:
-                abi = 'm'
-        else:
-            if ver == '38':
-                # no abi in 38?
-                abi = ''
-            else:
-                abi = 'm'
-        mb_tag = '{impl}{ver}-{impl}{ver}{abi}'.format(**locals())
-    elif plat_impl == 'PyPy':
-        abi = ''
-        impl = 'pypy'
-        ver = '{}{}'.format(major, minor)
-        mb_tag = '{impl}-{ver}'.format(**locals())
-    else:
-        raise NotImplementedError(plat_impl)
-    return mb_tag
-
-
 def parse_version(fpath):
     """
     Statically parse the version number from a python file
@@ -176,13 +132,57 @@ def parse_requirements(fname='requirements.txt', with_version=False):
     return packages
 
 
+def native_mb_python_tag(plat_impl=None, version_info=None):
+    """
+    Example:
+        >>> print(native_mb_python_tag())
+        >>> print(native_mb_python_tag('PyPy', (2, 7)))
+        >>> print(native_mb_python_tag('CPython', (3, 8)))
+    """
+    if plat_impl is None:
+        import platform
+        plat_impl = platform.python_implementation()
+
+    if version_info is None:
+        import sys
+        version_info = sys.version_info
+
+    major, minor = version_info[0:2]
+    ver = '{}{}'.format(major, minor)
+
+    if plat_impl == 'CPython':
+        # TODO: get if cp27m or cp27mu
+        impl = 'cp'
+        if ver == '27':
+            IS_27_BUILT_WITH_UNICODE = True  # how to determine this?
+            if IS_27_BUILT_WITH_UNICODE:
+                abi = 'mu'
+            else:
+                abi = 'm'
+        else:
+            if ver == '38':
+                # no abi in 38?
+                abi = ''
+            else:
+                abi = 'm'
+        mb_tag = '{impl}{ver}-{impl}{ver}{abi}'.format(**locals())
+    elif plat_impl == 'PyPy':
+        abi = ''
+        impl = 'pypy'
+        ver = '{}{}'.format(major, minor)
+        mb_tag = '{impl}-{ver}'.format(**locals())
+    else:
+        raise NotImplementedError(plat_impl)
+    return mb_tag
+
+
 NAME = 'ubelt'
 VERSION = parse_version('ubelt/__init__.py')  # must be global for git tags
 
 
 if __name__ == '__main__':
     setup(
-        name='ubelt',
+        name=NAME,
         version=VERSION,
         author='Jon Crall',
         description=('A Python utility belt containing simple tools, '
