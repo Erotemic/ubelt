@@ -203,7 +203,6 @@ def import_module_from_path(modpath, index=-1):
         >>> with pytest.raises(IOError):
         >>>     import_module_from_path('does-not-exist.zip/')
     """
-    import os
     if not os.path.exists(modpath):
         import re
         import zipimport

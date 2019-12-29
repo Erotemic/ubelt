@@ -567,7 +567,6 @@ _HASHABLE_EXTENSIONS = HashableExtensions()
 _HASHABLE_EXTENSIONS._register_builtin_class_extensions()
 try:
     _HASHABLE_EXTENSIONS._register_numpy_extensions()
-    pass
 except ImportError:  # nocover
     pass
 
