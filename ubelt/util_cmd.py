@@ -312,6 +312,7 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
         >>> info1['proc'].wait()
         >>> info2['proc'].wait()
     """
+    import subprocess
     # TODO: stdout, stderr - experimental - custom file to pipe stdout/stderr to
     if kwargs:  # nocover
         if 'verbout' in kwargs:
@@ -373,7 +374,6 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
     # Create a new process to execute the command
     def make_proc():
         # delay the creation of the process until we validate all args
-        import subprocess
         proc = subprocess.Popen(args, stdout=subprocess.PIPE,
                                 stderr=subprocess.PIPE, shell=shell,
                                 universal_newlines=True, cwd=cwd, env=env)
@@ -425,7 +425,6 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
 
         if check:
             if info['ret'] != 0:
-                import subprocess
                 if six.PY2 or six.PY34:
                     raise subprocess.CalledProcessError(
                         info['ret'], info['command'], info['out'])

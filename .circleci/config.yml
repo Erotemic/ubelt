@@ -215,7 +215,7 @@ jobs:
     steps:
       - | 
         __heredoc__=" 
-        docker run -v $HOME/code/ubelt:/io -it pypy:3 bash
+        docker run -v $(pwd):/io -it pypy:3 bash
 
         cd /io
 

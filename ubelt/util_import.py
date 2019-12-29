@@ -430,7 +430,8 @@ def _importlib_import_modpath(modpath):  # nocover
         import imp
         module = imp.load_source(modname, modpath)
     elif sys.version_info[0:2] <= (3, 4):  # nocover
-        assert sys.version_info[0:2] <= (3, 2), '3.0 to 3.2 is not supported'
+        if sys.version_info[0:2] <= (3, 2):
+            raise AssertionError('3.0 to 3.2 is not supported')
         from importlib.machinery import SourceFileLoader
         module = SourceFileLoader(modname, modpath).load_module()
     else:

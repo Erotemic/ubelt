@@ -293,7 +293,8 @@ class Timerit(object):
                 self.total_time += block_time
                 self.n_loops += 1
         # Timing complete, print results
-        assert len(self.times) == self.num, 'incorrectly recorded times'
+        if len(self.times) != self.num:
+            raise AssertionError('incorrectly recorded times')
 
         self._record_measurement()
 

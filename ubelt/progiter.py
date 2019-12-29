@@ -44,11 +44,10 @@ if sys.version_info.major > 2:  # nocover
     string_types = str,
     default_timer = time.perf_counter
 else:   # nocover
-    import ast
     # text_type = unicode
     # string_types = basestring,
-    text_type = ast.literal_eval('unicode')
-    string_types = (ast.literal_eval('basestring'),)
+    text_type = eval('unicode', {}, {})
+    string_types = (eval('basestring', {}, {}),)
     default_timer = time.clock if sys.platform.startswith('win32') else time.time
 
 

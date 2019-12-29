@@ -92,9 +92,10 @@ def _win32_can_symlink(verbose=0, force=0, testing=0):
     if verbose:
         print('can_symlink_files = {!r}'.format(can_symlink_files))
 
-    assert int(can_symlink_directories) + int(can_symlink_files) != 1, (
-        'can do one but not both. Unexpected {} {}'.format(
-            can_symlink_directories, can_symlink_files))
+    if int(can_symlink_directories) + int(can_symlink_files) == 1:
+        raise AssertionError(
+            'can do one but not both. Unexpected {} {}'.format(
+                can_symlink_directories, can_symlink_files))
 
     try:
         # test that we can create junctions, even if symlinks are disabled
@@ -103,8 +104,10 @@ def _win32_can_symlink(verbose=0, force=0, testing=0):
         if testing:
             _win32_junction(broken_dpath, join(tempdir, 'broken_djunc'))
             _win32_junction(broken_fpath, join(tempdir, 'broken_fjunc.txt'))
-        assert _win32_is_junction(djunc)
-        assert _win32_is_hardlinked(fpath, fjunc)
+        if not _win32_is_junction(djunc):
+            raise AssertionError('expected junction')
+        if not _win32_is_hardlinked(fpath, fjunc):
+            raise AssertionError('expected hardlink')
     except Exception:
         warnings.warn('We cannot create junctions either!')
         raise

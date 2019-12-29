@@ -187,8 +187,10 @@ class Cacher(object):
                 'No cfgstr given in Cacher constructor or call for {}'.format(
                     self.fname), UserWarning)
             cfgstr = ''
-        assert self.fname is not None, 'no fname specified in Cacher'
-        assert self.dpath is not None, 'no dpath specified in Cacher'
+        if self.fname is None:
+            raise AssertionError('no fname specified in Cacher')
+        if self.dpath is None:
+            raise AssertionError('no dpath specified in Cacher')
         return cfgstr
 
     def _condense_cfgstr(self, cfgstr=None):
