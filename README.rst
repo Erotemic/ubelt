@@ -129,7 +129,8 @@ Installation:
 =============
 
 Ubelt is distributed on pypi as a universal wheel and can be pip installed on
-Python 2.7, Python 3.4+. Installations are tested on CPython and PyPy implementations. 
+Python 2.7, Python 3.4+. Installations are tested on CPython and PyPy
+implementations. 
 
 ::
 
