@@ -4,6 +4,11 @@ We are currently working on porting this changelog to the specifications in
 [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Version 0.8.8] - Unreleased
+
+### Changed
+* Moved `timerit` to its own module.
+
 ## [Version 0.8.7] - 2019-12-06
 
 ### Fixed

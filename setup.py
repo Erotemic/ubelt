@@ -16,13 +16,25 @@ from os.path import dirname, exists
 repodir = dirname(__file__)
 
 
-def native_mb_python_tag():
-    import sys
-    import platform
-    major = sys.version_info[0]
-    minor = sys.version_info[1]
+def native_mb_python_tag(plat_impl=None, version_info=None):
+    """
+    Example:
+        >>> print(native_mb_python_tag())
+        >>> print(native_mb_python_tag('PyPy', (2, 7)))
+        >>> print(native_mb_python_tag('CPython', (3, 8)))
+    """
+    if plat_impl is None:
+        import platform
+        plat_impl = platform.python_implementation()
+
+    if version_info is None:
+        import sys
+        version_info = sys.version_info
+
+    major, minor = version_info[0:2]
     ver = '{}{}'.format(major, minor)
-    if platform.python_implementation() == 'CPython':
+
+    if plat_impl == 'CPython':
         # TODO: get if cp27m or cp27mu
         impl = 'cp'
         if ver == '27':
@@ -32,10 +44,19 @@ def native_mb_python_tag():
             else:
                 abi = 'm'
         else:
-            abi = 'm'
+            if ver == '38':
+                # no abi in 38?
+                abi = ''
+            else:
+                abi = 'm'
+        mb_tag = '{impl}{ver}-{impl}{ver}{abi}'.format(**locals())
+    elif plat_impl == 'PyPy':
+        abi = ''
+        impl = 'pypy'
+        ver = '{}{}'.format(major, minor)
+        mb_tag = '{impl}-{ver}'.format(**locals())
     else:
-        raise NotImplementedError(impl)
-    mb_tag = '{impl}{ver}-{impl}{ver}{abi}'.format(**locals())
+        raise NotImplementedError(plat_impl)
     return mb_tag
 
 
