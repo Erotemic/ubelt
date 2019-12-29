@@ -15,8 +15,8 @@ that extend the Python standard library. It has a flat API that all behaves
 similarly on Windows, Mac, and Linux (up to some small unavoidable
 differences).  Almost every function in ``ubelt`` was written with a doctest.
 This provides helpful documentation and example usage as well as helping
-achieve 100% test coverage (sans Python2, Windows, stuff that could not be
-tested automatically, etc).
+achieve 100% test coverage (with minor exceptions for Python2, Windows,
+etc...). 
 
 * Goal: provide simple functions that accomplish common tasks not yet addressed by the python standard library.
 
@@ -129,18 +129,13 @@ Installation:
 =============
 
 Ubelt is distributed on pypi as a universal wheel and can be pip installed on
-Python 2.7 and Python 3.4+. It is also possible to simply install it from
-source.
-
-From pypi:
-----------
+Python 2.7, Python 3.4+. Installations are tested on CPython and PyPy implementations. 
 
 ::
 
     pip install ubelt
 
-From github:
-------------
+It is also possible to simply install it from source.
 
 ::
 

@@ -283,7 +283,7 @@ def grabdata(url, fpath=None, dpath=None, fname=None, redo=False,
         >>> prefix1 = '944389a39dfb8fa9'
         >>> fpath = ub.grabdata(url, fname=fname, hash_prefix=prefix1)
         >>> stamp_fpath = fpath + '.hash'
-        >>> assert open(stamp_fpath, 'r').read() == prefix1
+        >>> assert ub.readfrom(stamp_fpath) == prefix1
         >>> # Check that the download doesn't happen again
         >>> fpath = ub.grabdata(url, fname=fname, hash_prefix=prefix1)
         >>> # todo: check file timestamps have not changed
@@ -295,7 +295,7 @@ def grabdata(url, fpath=None, dpath=None, fname=None, redo=False,
         >>> # Check that a redownload occurs when the stamp is changed
         >>> open(stamp_fpath, 'w').write('corrupt-stamp')
         >>> fpath = ub.grabdata(url, fname=fname, hash_prefix=prefix1)
-        >>> assert open(stamp_fpath, 'r').read() == prefix1
+        >>> assert ub.readfrom(stamp_fpath) == prefix1
         >>> #
         >>> # Check that a redownload occurs when the stamp is removed
         >>> ub.delete(stamp_fpath)
@@ -308,7 +308,7 @@ def grabdata(url, fpath=None, dpath=None, fname=None, redo=False,
         >>> url2 = 'https://data.kitware.com/api/v1/item/5b4039308d777f2e6225994c/download'
         >>> prefix2 = 'c98a46cb31205cf'
         >>> fpath = ub.grabdata(url2, fname=fname, hash_prefix=prefix2)
-        >>> assert open(stamp_fpath, 'r').read() == prefix2
+        >>> assert ub.readfrom(stamp_fpath) == prefix2
     """
     from ubelt.util_platform import ensure_app_cache_dir
     if appname and dpath:

@@ -181,7 +181,9 @@ def import_module_from_path(modpath, index=-1):
         >>> #dpath = utils.TempDir().ensure()
         >>> # Write to an external module named bar
         >>> external_modpath = join(dpath, 'bar.py')
-        >>> open(external_modpath, 'w').write('testvar = 1')
+        >>> # For pypy support we have to write this using with
+        >>> with open(external_modpath, 'w') as file:
+        >>>     file.write('testvar = 1')
         >>> internal = 'folder/bar.py'
         >>> # Move the external bar module into a zipfile
         >>> zippath = join(dpath, 'myzip.zip')
@@ -331,6 +333,7 @@ def _syspath_modname_to_modpath(modname, sys_path=None, exclude=None):
         ...static_analysis.py
         >>> print(_syspath_modname_to_modpath('xdoctest'))
         ...xdoctest
+        >>> # xdoctest: +REQUIRES(CPython)
         >>> print(_syspath_modname_to_modpath('_ctypes'))
         ..._ctypes...
         >>> assert _syspath_modname_to_modpath('xdoctest', sys_path=[]) is None
@@ -449,6 +452,7 @@ def _pkgutil_modname_to_modpath(modname):  # nocover
         >>> modname = 'xdoctest.static_analysis'
         >>> _pkgutil_modname_to_modpath(modname)
         ...static_analysis.py
+        >>> # xdoctest: +REQUIRES(CPython)
         >>> _pkgutil_modname_to_modpath('_ctypes')
         ..._ctypes...
 
@@ -490,6 +494,7 @@ def modname_to_modpath(modname, hide_init=True, hide_main=False, sys_path=None):
         >>> modname = 'xdoctest'
         >>> modpath = modname_to_modpath(modname, hide_init=False)
         >>> assert modpath.endswith('__init__.py')
+        >>> # xdoctest: +REQUIRES(CPython)
         >>> modpath = basename(modname_to_modpath('_ctypes'))
         >>> assert 'ctypes' in modpath
     """
@@ -595,6 +600,7 @@ def modpath_to_modname(modpath, hide_init=True, hide_main=False, check=True,
         >>> assert modpath_to_modname(dirname(xdoctest.__file__.replace('.pyc', '.py'))) == 'xdoctest'
 
     Example:
+        >>> # xdoctest: +REQUIRES(CPython)
         >>> modpath = modname_to_modpath('_ctypes')
         >>> modname = modpath_to_modname(modpath)
         >>> assert modname == '_ctypes'
