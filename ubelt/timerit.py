@@ -275,7 +275,7 @@ class Timerit(object):
         # disable the garbage collector while timing
         with _ToggleGC(False):
             # Core timing loop
-            for i in it.repeat(None, self.num):
+            for _ in it.repeat(None, self.num):
                 # Start background timer (in case the user doesn't use fg_timer)
                 # Yield foreground timer to let the user run a block of code
                 # When we return from yield the user code will have just finished
