@@ -426,6 +426,10 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
         if check:
             if info['ret'] != 0:
                 import subprocess
-                raise subprocess.CalledProcessError(
-                    info['ret'], info['command'], info['out'], info['err'])
+                if six.PY2:
+                    raise subprocess.CalledProcessError(
+                        info['ret'], info['command'], info['out'])
+                else:
+                    raise subprocess.CalledProcessError(
+                        info['ret'], info['command'], info['out'], info['err'])
     return info
