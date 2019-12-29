@@ -6,6 +6,10 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Version 0.8.8] - Unreleased
 
+### Added
+* Added `check` kwarg to `ub.cmd`, which when True will raise a
+  `CalledProcessError` if the exit-code is non-zero.
+
 ### Changed
 * Moved `timerit` to its own module.
 

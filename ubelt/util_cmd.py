@@ -200,7 +200,7 @@ def _tee_output(proc, stdout=None, stderr=None, backend='auto'):
 
 
 def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
-        env=None, tee_backend='auto', **kwargs):
+        env=None, tee_backend='auto', check=False, **kwargs):
     """
     Executes a command in a subprocess.
 
@@ -234,6 +234,10 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
 
         tee_backend (str, optional): backend for tee output.
             Valid choices are: "auto", "select" (POSIX only), and "thread".
+
+        check (bool, default=False): if True, check that the return code was
+            zero before returning, otherwise raise a CalledProcessError.
+            Does nothing if detach is True.
 
         **kwargs: only used to support deprecated arguments
 
@@ -282,6 +286,13 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
     Example:
         >>> info = cmd(('echo', 'tuple shell'), verbose=0, shell=True)
         >>> assert info['out'].strip().strip("'") == 'tuple shell'
+
+    Example:
+        >>> import pytest
+        >>> info = cmd('echo hi', check=True)
+        >>> import subprocess
+        >>> with pytest.raises(subprocess.CalledProcessError):
+        >>>     cmd('exit 1', check=True, shell=True)
 
     Example:
         >>> import ubelt as ub
@@ -411,4 +422,10 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
                 print('└─── END CMD ───')
             except Exception:  # nocover
                 print('L___ END CMD ___')
+
+        if check:
+            if info['ret'] != 0:
+                import subprocess
+                raise subprocess.CalledProcessError(
+                    info['ret'], info['command'], info['out'], info['err'])
     return info
