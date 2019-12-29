@@ -187,7 +187,6 @@ jobs:
       - image: circleci/python:2.7
     working_directory: ~/repo-minimal-27
 
-
   # --- pypy ----
 
   test-minimal-pypy3:
