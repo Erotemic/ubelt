@@ -14,7 +14,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import six
 import sys
 import os
-from os.path import exists, join  # NOQA
+from os.path import exists
 
 
 __all__ = [
@@ -152,6 +152,7 @@ def touch(fpath, mode=0o666, dir_fd=None, verbose=0, **kwargs):
 
     Example:
         >>> import ubelt as ub
+        >>> from os.path import join
         >>> dpath = ub.ensure_app_cache_dir('ubelt')
         >>> fpath = join(dpath, 'touch_file')
         >>> assert not exists(fpath)
@@ -188,6 +189,7 @@ def delete(path, verbose=False):
 
     Example:
         >>> import ubelt as ub
+        >>> from os.path import join
         >>> base = ub.ensure_app_cache_dir('ubelt', 'delete_test')
         >>> dpath1 = ub.ensuredir(join(base, 'dir'))
         >>> ub.ensuredir(join(base, 'dir', 'subdir'))
@@ -205,6 +207,7 @@ def delete(path, verbose=False):
 
     Example:
         >>> import ubelt as ub
+        >>> from os.path import exists, join
         >>> dpath = ub.ensure_app_cache_dir('ubelt', 'delete_test2')
         >>> dpath1 = ub.ensuredir(join(dpath, 'dir'))
         >>> fpath1 = ub.touch(join(dpath1, 'to_remove.txt'))
