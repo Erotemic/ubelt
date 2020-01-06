@@ -338,8 +338,6 @@ class Timerit(object):
         Take the hamming distance between the preference profiles to as a
         measure of consistency.
         """
-        import itertools as it
-
         rankings = self.rankings
 
         if len(rankings) == 0:

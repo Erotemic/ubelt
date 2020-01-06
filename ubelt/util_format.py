@@ -432,7 +432,6 @@ def _lazy_init():
         # some attribute of _FORMATTER_EXTENSIONS is used?
         _FORMATTER_EXTENSIONS._register_numpy_extensions()
         # TODO: register pandas by default if available
-        pass
     except ImportError:  # nocover
         pass
 
