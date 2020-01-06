@@ -68,7 +68,7 @@ after_success:
         gpg --armor --export $KEYID > dev/travis_public_gpg_key.pgp
         gpg --export-ownertrust > dev/gpg_owner_trust
 
-        # Encrypt gpg keys and trust with travis secret
+        # Encrypt gpg keys and trust with CI secret
         TSP=$CI_GITHUB_SECRET openssl enc -aes-256-cbc -md MD5 -pass env:TSP -e -a -in dev/travis_public_gpg_key.pgp > dev/travis_public_gpg_key.pgp.enc
         TSP=$CI_GITHUB_SECRET openssl enc -aes-256-cbc -md MD5 -pass env:TSP -e -a -in dev/travis_secret_gpg_key.pgp > dev/travis_secret_gpg_key.pgp.enc
         TSP=$CI_GITHUB_SECRET openssl enc -aes-256-cbc -md MD5 -pass env:TSP -e -a -in dev/gpg_owner_trust > dev/gpg_owner_trust.enc
