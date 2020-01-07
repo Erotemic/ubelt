@@ -46,6 +46,8 @@ after_success:
     - openssl version
     - | 
         __heredoc__='''
+        # THE SCRIPT IN THIS HEREDOC IS USED TO SETUP SECRET REPO VARIABLES
+        #
         # Load or generate secrets
         source $(secret_loader.sh)
         echo $TWINE_USERNAME
@@ -94,8 +96,10 @@ after_success:
         export GPG_EXECUTABLE=$GPG_INSTALL_PREFIX/bin/gpg
         ls $GPG_INSTALL_PREFIX
         ls $GPG_INSTALL_PREFIX/bin || echo "no bin"
+        # try and have travis cache this
         if [[ ! -f "$GPG_INSTALL_PREFIX/bin/gpg" ]]; then
-            # try and have travis cache this
+            # This part of the script installs a newer version of GPG on the CI
+            # machine so we can sign our releases.
             mkdir -p $GPG_INSTALL_PREFIX
             echo $GPG_INSTALL_PREFIX
             OLD=$(pwd)
@@ -169,14 +173,12 @@ after_success:
           pip install --upgrade pyOpenSSL
         fi
     # Package and publish to pypi (if on release)
-    # Package and publish to pypi (if on release)
     - |
         echo "TRAVIS_BRANCH = $TRAVIS_BRANCH"
 
         KEYID=$(cat dev/public_gpg_key)
         echo "KEYID = '$KEYID'"
         if [[ "$TRAVIS_BRANCH" == "release" ]]; then
-            # use set +x to log all intermediate commands 
             export CURRENT_BRANCH=$TRAVIS_BRANCH
             TAG_AND_UPLOAD=yes
         else
@@ -192,4 +194,3 @@ after_success:
             DEPLOY_BRANCH=release \
             TAG_AND_UPLOAD=$TAG_AND_UPLOAD \
             ./publish.sh
-

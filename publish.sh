@@ -47,13 +47,18 @@ Usage:
     MB_PYTHON_TAG=$MB_PYTHON_TAG ./run_multibuild.sh
     DEPLOY_BRANCH=master DEPLOY_REMOTE=ibeis MB_PYTHON_TAG=$MB_PYTHON_TAG ./publish.sh yes
 
-    MB_PYTHON_TAG=py2.py3-none-any ./publish.sh
+    MB_PYTHON_TAG=py3-none-any ./publish.sh
 '''
 
 check_variable(){
     KEY=$1
+    HIDE=$2
     VAL=${!KEY}
-    echo "[DEBUG] CHECK VARIABLE: $KEY=\"$VAL\""
+    if [[ "$HIDE" == "" ]]; then
+        echo "[DEBUG] CHECK VARIABLE: $KEY=\"$VAL\""
+    else
+        echo "[DEBUG] CHECK VARIABLE: $KEY=<hidden>"
+    fi
     if [[ "$VAL" == "" ]]; then
         echo "[ERROR] UNSET VARIABLE: $KEY=\"$VAL\""
         exit 1;
@@ -66,11 +71,11 @@ DEPLOY_BRANCH=${DEPLOY_BRANCH:=release}
 DEPLOY_REMOTE=${DEPLOY_REMOTE:=origin}
 NAME=${NAME:=$(python -c "import setup; print(setup.NAME)")}
 VERSION=$(python -c "import setup; print(setup.VERSION)")
-MB_PYTHON_TAG=${MB_PYTHON_TAG:=$(python -c "import setup; print(setup.native_mb_python_tag())")}
+MB_PYTHON_TAG=${MB_PYTHON_TAG:py3-none-any}
 
 # The default should change depending on the application
 #DEFAULT_MODE_LIST=("sdist" "universal" "bdist")
-DEFAULT_MODE_LIST=("sdist" "universal")
+DEFAULT_MODE_LIST=("sdist" "native" "universal")
 #DEFAULT_MODE_LIST=("sdist" "bdist")
 
 check_variable CURRENT_BRANCH
@@ -132,9 +137,13 @@ do
         python setup.py sdist 
         WHEEL_PATH=$(ls dist/$NAME-$VERSION*.tar.gz)
         WHEEL_PATHS+=($WHEEL_PATH)
+    elif [[ "$_MODE" == "native" ]]; then
+        python setup.py bdist_wheel 
+        WHEEL_PATH=$(ls dist/$NAME-$VERSION*.whl)
+        WHEEL_PATHS+=($WHEEL_PATH)
     elif [[ "$_MODE" == "universal" ]]; then
         python setup.py bdist_wheel --universal
-        UNIVERSAL_TAG="py2.py3-none-any"
+        UNIVERSAL_TAG="py3-none-any"
         WHEEL_PATH=$(ls dist/$NAME-$VERSION-$UNIVERSAL_TAG*.whl)
         WHEEL_PATHS+=($WHEEL_PATH)
     elif [[ "$_MODE" == "bdist" ]]; then
@@ -179,7 +188,6 @@ do
 
         echo "Signing wheels"
         GPG_SIGN_CMD="$GPG_EXECUTABLE --batch --yes --detach-sign --armor --local-user $GPG_KEYID"
-        ls wheelhouse
         echo "GPG_SIGN_CMD = $GPG_SIGN_CMD"
         $GPG_SIGN_CMD --output $WHEEL_PATH.asc $WHEEL_PATH
 
@@ -218,7 +226,7 @@ fi
 
 if [[ "$TAG_AND_UPLOAD" == "yes" ]]; then
     check_variable TWINE_USERNAME
-    check_variable TWINE_PASSWORD
+    check_variable TWINE_PASSWORD "hide"
 
     #git tag $VERSION -m "tarball tag $VERSION"
     #git push --tags $DEPLOY_REMOTE $DEPLOY_BRANCH
@@ -239,14 +247,19 @@ else
     echo """
         DRY RUN ... Skiping tag and upload
 
-        VERSION = '$VERSION'
         DEPLOY_REMOTE = '$DEPLOY_REMOTE'
-        CURRENT_BRANCH = '$CURRENT_BRANCH'
-        DEPLOY_BRANCH = '$DEPLOY_BRANCH'
         TAG_AND_UPLOAD = '$TAG_AND_UPLOAD'
         WHEEL_PATH = '$WHEEL_PATH'
         WHEEL_PATHS_STR = '$WHEEL_PATHS_STR'
         MODE_LIST_STR = '$MODE_LIST_STR'
+
+        CURRENT_BRANCH='$CURRENT_BRANCH'
+        DEPLOY_BRANCH='$DEPLOY_BRANCH'
+        VERSION='$VERSION'
+        NAME='$NAME'
+        TWINE_USERNAME='$TWINE_USERNAME'
+        GPG_KEYID = '$GPG_KEYID'
+        MB_PYTHON_TAG = '$MB_PYTHON_TAG'
 
         To do live run set TAG_AND_UPLOAD=yes and ensure deploy and current branch are the same
 
