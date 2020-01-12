@@ -636,7 +636,7 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
 
             >>> self = ProgIter(total=0, show_times=True)
             >>> print(self._build_message_template().strip())
-            {desc} {iter_idx:1d}/0...{extra} rate={rate:{rate_format}} Hz, total={total}, wall={wall} EST
+            {desc} {iter_idx:1d}/0...{extra} rate={rate:{rate_format}} Hz, total={total}, wall={wall} ...
         """
         from math import log10, floor
         tzname = time.tzname[0]
