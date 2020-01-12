@@ -24,8 +24,8 @@ import os
 __all__ = ['download', 'grabdata']
 
 
-def download(url, fpath=None, hash_prefix=None, hasher='sha512',
-             chunksize=8192, verbose=1):
+def download(url, fpath=None, dpath=None, fname=None, hash_prefix=None,
+             hasher='sha512', chunksize=8192, verbose=1):
     """
     Downloads a url to a file on disk.
 
@@ -43,6 +43,12 @@ def download(url, fpath=None, hash_prefix=None, hasher='sha512',
             application cache. If this is a io.BytesIO object then information
             is directly written to this object (note this prevents the use of
             temporary files).
+
+        dpath (PathLike): where to download the file. If unspecified `appname`
+            is used to determine this. Mutually exclusive with fpath.
+
+        fname (str): What to name the downloaded file. Defaults to the url
+            basename. Mutually exclusive with fpath.
 
         hash_prefix (None | str):
             If specified, download will retry / error if the file hash
@@ -125,9 +131,14 @@ def download(url, fpath=None, hash_prefix=None, hasher='sha512',
         from urllib2 import urlopen  # NOQA
     else:
         from urllib.request import urlopen  # NOQA
+
+    if fpath and (dpath or fname):
+        raise ValueError('Cannot specify fpath with dpath or fname')
     if fpath is None:
-        dpath = ensure_app_cache_dir('ubelt')
-        fname = basename(url)
+        if dpath is None:
+            dpath = ensure_app_cache_dir('ubelt')
+        if fname is None:
+            fname = basename(url)
         fpath = join(dpath, fname)
 
     _dst_is_io_object = hasattr(fpath, 'write')
@@ -155,6 +166,10 @@ def download(url, fpath=None, hash_prefix=None, hasher='sha512',
         if isinstance(hasher, six.string_types):
             if hasher == 'sha1':
                 hasher = hashlib.sha1()
+            elif hasher == 'md5':
+                hasher = hashlib.md5()
+            elif hasher == 'sha256':
+                hasher = hashlib.sha256()
             elif hasher == 'sha512':
                 hasher = hashlib.sha512()
             else:
