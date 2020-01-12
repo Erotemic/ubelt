@@ -10,10 +10,7 @@ Developing:
 """
 from setuptools import setup
 import sys
-from os.path import dirname, exists
-
-
-repodir = dirname(__file__)
+from os.path import exists
 
 
 def parse_version(fpath):
