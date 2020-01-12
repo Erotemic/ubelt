@@ -4,7 +4,17 @@ We are currently working on porting this changelog to the specifications in
 [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Version 0.8.8] - Unreleased
+## [Version 0.8.9] - Unreleased
+
+### Added
+* `dpath` and `fname` keywords to the `ub.download` function.
+
+
+### Fixed
+* `ub.download` now accepts `sha256` and `md5` hashes.
+
+
+## [Version 0.8.8] - 2020-01-12
 
 ### Added
 * Added `check` kwarg to `ub.cmd`, which when True will raise a
