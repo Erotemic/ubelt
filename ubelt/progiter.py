@@ -1,32 +1,87 @@
 # -*- coding: utf-8 -*-
 """
-ProgIter IS BACK! It is at an almost-drop in replacement for TQDM, it is better
-in some ways --- namely its simpler.
+A Progress Iterator
 
-A Progress Iterator:
+ProgIter lets you measure and print the progress of an iterative process. This
+can be done either via an iterable interface or using the manual API. Using the
+iterable inferface is most common.
 
-    The API is compatible with TQDM!
+ProgIter was originally developed independantly of ``tqdm``, but the newer
+versions of this library have been designed to be compatible with tqdm-API.
+``ProgIter`` is now a (mostly) drop-in alternative to tqdm_. The ``tqdm``
+library may be more appropriate in some cases. *The main advantage of ``ProgIter``
+is that it does not use any python threading*, and therefore can be safer with
+code that makes heavy use of multiprocessing. `The reason`_ for this is that
+threading before forking may cause locks to be duplicated across processes,
+which may lead to deadlocks.
 
-    We have our own ways of running too!
-    You can divide the runtime overhead by two as many times as you want.
+ProgIter is simpler than tqdm, which may be desirable for some applications.
+However, this also means ProgIter is not as extensible as tqdm.
+If you want a pretty bar or need something fancy, use tqdm;
+if you want useful information  about your iteration by default, use progiter.
 
-CommandLine:
-    python -m ubelt.progiter __doc__:0
+The basic usage of ProgIter is simple and intuitive. Just wrap a python
+iterable.  The following example wraps a ``range`` iterable and prints reported
+progress to stdout as the iterable is consumed.
 
 Example:
-    >>> # xdoctest: +SKIP
-    >>> import progiter
-    >>> def is_prime(n):
-    ...     return n >= 2 and not any(n % i == 0 for i in range(2, n))
-    >>> for n in progiter.ProgIter(range(1000000), verbose=1):
-    >>>     # do some work
-    >>>     is_prime(n)
-
-Example:
-    >>> import ubelt as ub
-    >>> for n in ub.ProgIter(range(1000)):
+    >>> for n in ProgIter(range(1000)):
     >>>     # do some work
     >>>     pass
+
+Note that by default ProgIter reports information about iteration-rate,
+fraction-complete, estimated time remaining, time taken so far, and the current
+wall time.
+
+Example:
+    >>> # xdoctest: +IGNORE_WANT
+    >>> def is_prime(n):
+    ...     return n >= 2 and not any(n % i == 0 for i in range(2, n))
+    >>> for n in ProgIter(range(1000), verbose=1):
+    >>>     # do some work
+    >>>     is_prime(n)
+    1000/1000... rate=21153.08 Hz, eta=0:00:00, total=0:00:00, wall=13:00 EST
+
+For more complex applications is may sometimes be desireable to
+manually use the ProgIter API. This is done as follows:
+
+Example:
+    >>> # xdoctest: +IGNORE_WANT
+    >>> n = 3
+    >>> prog = ProgIter(desc='manual', total=n, verbose=3)
+    >>> prog.begin() # Manually begin progress iteration
+    >>> for _ in range(n):
+    ...     prog.step(inc=1)  # specify the number of steps to increment
+    >>> prog.end()  # Manually end progress iteration
+    manual 0/3... rate=0 Hz, eta=?, total=0:00:00, wall=12:46 EST
+    manual 1/3... rate=12036.01 Hz, eta=0:00:00, total=0:00:00, wall=12:46 EST
+    manual 2/3... rate=16510.10 Hz, eta=0:00:00, total=0:00:00, wall=12:46 EST
+    manual 3/3... rate=20067.43 Hz, eta=0:00:00, total=0:00:00, wall=12:46 EST
+
+When working with ProgIter in either iterable or manual mode you can use the
+``prog.ensure_newline`` method to guarantee that the next call you make to
+stdout will start on a new line. You can also use the ``prog.set_extra`` method
+to update a dynamci "extra" message that is shown in the formatted output. The
+following example demonstrates this.
+
+Example:
+    >>> # xdoctest: +IGNORE_WANT
+    >>> def is_prime(n):
+    ...     return n >= 2 and not any(n % i == 0 for i in range(2, n))
+    >>> _iter = range(1000)
+    >>> prog = ProgIter(_iter, desc='check primes', verbose=2)
+    >>> for n in prog:
+    >>>     if n == 97:
+    >>>         print('!!! Special print at n=97 !!!')
+    >>>     if is_prime(n):
+    >>>         prog.set_extra('Biggest prime so far: {}'.format(n))
+    >>>         prog.ensure_newline()
+    check primes    0/1000... rate=0 Hz, eta=?, total=0:00:00, wall=12:55 EST
+    check primes    1/1000... rate=98376.78 Hz, eta=0:00:00, total=0:00:00, wall=12:55 EST
+    !!! Special print at n=97 !!!
+    check primes  257/1000...Biggest prime so far: 251 rate=308037.13 Hz, eta=0:00:00, total=0:00:00, wall=12:55 EST
+    check primes  642/1000...Biggest prime so far: 641 rate=185166.01 Hz, eta=0:00:00, total=0:00:00, wall=12:55 EST
+    check primes 1000/1000...Biggest prime so far: 997 rate=120063.72 Hz, eta=0:00:00, total=0:00:00, wall=12:55 EST
 """
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
@@ -196,29 +251,49 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
     """
     Prints progress as an iterator progresses
 
+    ProgIter is an alternative to `tqdm`. ProgIter implements much of the
+    tqdm-API.  The main difference between `ProgIter` and `tqdm` is that
+    ProgIter does not use threading where as `tqdm` does.
+
     Attributes:
         iterable (iterable): An iterable iterable
+
         desc (str): description label to show with progress
-        total (int): Maximum length of the process
-            (estimated from iterable if not specified)
-        freq (int): How many iterations to wait between messages.
-        adjust (bool): if True freq is adjusted based on time_thresh
-        eta_window (int): number of previous measurements to use in eta calculation
-        clearline (bool): if true messages are printed on the same line
-        adjust (bool): if True `freq` is adjusted based on time_thresh
-        time_thresh (float): desired amount of time to wait between messages if
+
+        total (int): Maximum length of the process. If not specified, we
+            estimate it from the iterable, if possible.
+
+        freq (int, default=1): How many iterations to wait between messages.
+
+        adjust (bool, default=True): if True freq is adjusted based on time_thresh
+
+        eta_window (int, default=64): number of previous measurements to use in eta calculation
+
+        clearline (bool, default=True): if True messages are printed on the same line
+            otherwise each new progress message is printed on new line.
+
+        adjust (bool, default=True): if True `freq` is adjusted based on time_thresh
+
+        time_thresh (float, default=2.0): desired amount of time to wait between messages if
             adjust is True otherwise does nothing
-        show_times (bool): shows rate, eta, and wall (defaults to True)
-        initial (int): starting index offset (defaults to 0)
-        stream (file): defaults to sys.stdout
-        enabled (bool): if False nothing happens.
-        chunksize (int): indicates that each iteration processes a batch of
+
+        show_times (bool, default=True): shows rate, eta, and wall (defaults to True)
+
+        initial (int, default=0): starting index offset (defaults to 0)
+
+        stream (file, default=sys.stdout): stream where progress information is written to
+
+        enabled (bool, default=True): if False nothing happens.
+
+        chunksize (int, optional): indicates that each iteration processes a batch of
             this size. Iteration rate is displayed in terms of single-items.
-        verbose (int): verbosity mode
-            0 - no verbosity,
-            1 - verbosity with clearline=True and adjust=True
-            2 - verbosity without clearline=False and adjust=True
-            3 - verbosity without clearline=False and adjust=False
+
+        verbose (int): verbosity mode, which controls clearline, adjust, and
+            enabled. The following maps the value of `verbose` to its effect.
+            0: enabled=False,
+            1: enabled=True with clearline=True and adjust=True,
+            2: enabled=True with clearline=False and adjust=True,
+            3: enabled=True with clearline=False and adjust=False
 
     Note:
         Either use ProgIter in a with statement or call prog.end() at the end
@@ -238,7 +313,7 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
         http://datagenetics.com/blog/february12017/index.html
 
     Example:
-        >>> # xdoctest: +SKIP
+        >>> # doctest: +SKIP
         >>> def is_prime(n):
         ...     return n >= 2 and not any(n % i == 0 for i in range(2, n))
         >>> for n in ProgIter(range(100), verbose=1):
@@ -376,9 +451,7 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
         Manually step progress update, either directly or by an increment.
 
         Args:
-            idx (int): current step index (default None)
-                if specified, takes precidence over `inc`
-            inc (int): number of steps to increment (defaults to 1)
+            inc (int, default=1): number of steps to increment
 
         Example:
             >>> n = 3
@@ -556,17 +629,25 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
             >>> self = ProgIter(show_times=True)
             >>> print(self._build_message_template().strip())
             {desc} {iter_idx:4d}/?...{extra} rate={rate:{rate_format}} Hz, total={total}, wall={wall} ...
+
             >>> self = ProgIter(show_times=False)
             >>> print(self._build_message_template().strip())
             {desc} {iter_idx:4d}/?...{extra}
+
+            >>> self = ProgIter(total=0, show_times=True)
+            >>> print(self._build_message_template().strip())
+            {desc} {iter_idx:1d}/0...{extra} rate={rate:{rate_format}} Hz, total={total}, wall={wall} EST
         """
         from math import log10, floor
         tzname = time.tzname[0]
-        length_unknown = self.total is None or self.total <= 0
+        length_unknown = self.total is None or self.total < 0
         if length_unknown:
             n_chrs = 4
         else:
-            n_chrs = int(floor(log10(float(self.total))) + 1)
+            if self.total == 0:
+                n_chrs = 1
+            else:
+                n_chrs = int(floor(log10(float(self.total))) + 1)
 
         if self.chunksize and not length_unknown:
             msg_body = [
