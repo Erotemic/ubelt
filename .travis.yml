@@ -1,14 +1,9 @@
 env:
     global:
-        - secure: "c11dMqSR+Xu71dezMwYOInjtnLOCg3c5XbQk65AKCxni+T64EKj/mDivS/ahHyUcSEov+opGEjY9SQ+bmp5EjcGYf8DHYFSqIoyhLooxAuiyjO6M07NluE5jUVOPp/V5YVxt40lT82u+9VXnqEKFs+9931MSVuLcrrWm4QNjdVNRJyaOXMFc2Ns7jHmtyes0QNJAl84hIg6Y53+F1MXP1P+PB3ruiaSerPXBT9pngh9oEdQqlEMPnyM05HRjkxgAMyOJjP1c4Odw32baZDLhrt+JVzg1LAxy97SZy5pL9hwCjJXQiVXHmFE+JPqv1AWS8preFYwhcNkgqFN0vyBahmNfEOce0DXXnuVNh1JN33UVkWHMeZ1e1eN6lvdqOLxju3w3UeYaVZQ54ko+8Nh5VV8bb6ToKUd5lcfdFfBCNh6EaBGFyIBSFnGSwJn+gZJVtw5oZD/qpCW2aCeBG4tYqzKPQQOkpu3H2Y9P/f/IlVoAftswPYbHhY1ilEZ7KjBgUrmIL7fPNwVrCW5nr3oxZkuGKWH3GH4l8NzghgX9Ok03DSuqFgier+wURzLx0EH2s482Zz6VJ8zB4vPH44hZ0ltV8n520uBa60hdx+xD2F5nEXBmd4bFdi0nHkk39nf6OH5dX7awR2EB9SuJLgqmhWTK6leHcKt7A3ezUOhwKKw="
-             
+        - secure: "dHNetfkkniieEzWkDIflR/Z9adca7ptb0tMTWbO0Nvv8cuKqX4FL2qPnjjYnTYsiTeSyhRXncZ29nYQmeB5LJ1Hcp4/FXYS0foNNAUiq9RDZ/4WnIR2tgHdBRs63PhEAQtPSwFwFogoWqz4Zl0/VxAQbKqO5akSsWrsFbUyGCou4OhqEmyrImBeBDFuayREMktB5A5E70G3re8cL9EoEsHaO1XRJiTZC6hD/OTgTAAgzIp6Eoj9zKHcZCsY7BU1dVnO0I1aT35RNB4iZn5whSvTYL0kTOnjMk//bg+U4wylemTeEdkhI2epu362VQ7hRwSc1giaD1v9aF/Dbm8Eq9j+qCkJinjDIlgsc2VSZNbKF5tEPS57S/0GXWYM4M4Vp7sCvzFLMglW6Wtt1eUhst5R5D3g4oOwTaJhG3v3/l6Yo5lruIU/vVapIj6sECVjACLKCIMxdbHdf/bgoztedlyGYgC5L2TwdARSm9+TyDpZksxrATX2TAgFlcUjIPRTTOxf9DP7VBHJay084ScDFGks+ilcfd1EYVBh4SGC80TE38Uo2z3JpV6EXHZfS2l0B+DnNwE5HLB8japuWEib4vhoYKpn0aHyTMoeYgFIFvaEdxK+qEPyYBcQEHj2DMSmTC/MHmGA3WP82WKbNLM8F3I1QqmordTToBvxZM6D6+p8="
+        - secure: "roe73a2Pn/JRGapFFC6wQiddIBu3qYQBNl58K05aRQEdP/u/qojYbeEFzuoQak7ZAgaT1iXrL8SWBcFRPdIn5+hBnb7kg4HkeEUAuX7zEkwroQESU9RMbIbd9wKoUbI1I3ee3QOkSZhhqAYgru0OpZdzrgouMWm9ceEMxypLpluerJApSQADq3vyjnPUyMLR4jQm+Vf8BCaOEMlNcc+VQBDTTu+AwsIpXKhkG/ikxCBPRM7hanvrChc9MOBMtufQOtI4vJsrJFJB23B346FyNM1XIGD3OQ/MoMa/drNgTx+cfw+F9dM1/G/9sETGwLuSgSE3cu+bvC70/7ED7rIHOptoDqFoHKdZ33aHeOwKvU3wxWrcUJ0Gillnb3dwhHvYZJylYmgmVisDAPmOYLSdpCdd4oaggxfpxvmrHezkxd7YPXzBPbgc83Z5UNNEGv3RALyjsM1MD21Rma2NYw1gDSam+mZ+367NjdUd01xrz7+X9t4x+ugJnyn3dQZk3YCAKJLwOZadx8+WO5afCzCiFv5z+1zmpg9KsXuxWE3DCcBJmtQqc7TPoxRdhOgR3ArOv/Jev4G3/t7b0EyjNP2iLOVSGCw0slqM/De8HjfoFRuYd4WdL+Nxv1H50oZuUjQPodecBTKL/FQiOdL9rW1EhygKsVNdJptMbUCf1QousGk="
+        - secure: "JOsCSOpvZpznujnwBDI4hA0rVIA1r/p29sLK+jQqB/DuQZVjgvC7xcyNV1Skw+YTEZEo5Ub3mVDnCNN9Gf6Ke/YTlOlaFDYa2UlvmbL9hQ/2BQmjLtFAk64rjGLBnfd/SLR5cWnjr81/L2eso2svjrtx+J2Y5WYpTYGyIfnwT3JeQcprePZ4OjuLmC2SgKHhfhgCtdQd/wcS847UvA6tQ//ysh9hYg1yfukkqUt52mOeRFyXHbkmA1DadMeBjd4feLR2/02T+vpacd0ga1YyFPMHEc3x+1J4QdnNZ2pdVxWd7hUICv22ustlBIHS/BYv6SsF7z/GPUrLh/9kOEDTJj6pVoviML6L4Is9lQYIj0HHdAOrK3rw+vYARP1UkjlogA4HX2MrZ0yjwO9rSiZ9ktrYc84TjfaZPPA9GX5ywkHiB9Gd3XC22tbnFOH8+a9452PYeQqIYWyzPJZxsU8hhxqqwmbPJPFrSjlqCXd6sS6dC4uiCrPep5X0Z+hoBmnOaqD8Rdn0Q0+21URRTjUrFoef7jYrGScEakO3GSukiyD5Z2RGMWiUB2pAIdtlrCE5auiTzvU/1Z4iF32Yh4xlSv9e+uYHiSgclMKyppKCJgghuESbONM1+M4O1nzhSe9O3StefRD64bKHSh03+Ar1hKBj0IkEOLdjU/7F5enKjCg="
 
-        - secure: "L20FzY4ZzwJzfch1VhpE/sKo+qWqckmhSPgoRDkUZ9qCSryek6cHPlYt77I6sm/OBxu+dZS6axwHCg8la85uGbX+z2+n8jEcvd/yo/LwwDPrM5qTCJ6+4u0c+XXt7WzjM3U6fPWxtxggu652xVcmW1SLfvH2M3tb6vZqtwX8IgGXfiMk6jnA5EvA5vUACB6TLwuDbsJm+xqSFRykAdXyjbmsYYarMCSsFBCma5giM3KwxMfT6QjPjRE1KqijnS0Uhdyqf1ZYJYQs/W5M+58Ui9Y9o7ZjaCi4VJOZPAnaJBrL8DkUYZvRNZGbsc4gOToVtuK31SrrYa2L0ok5JQnL3617Om0TApsHOPsVyyRRdfyTDTj3S33lwVORf5JYyr5B/4DJCzo1sQZ2VYJyqYocrAwAb3p7/jWzv+I1Z/dWWgWYBWEDm1v7vk9DAe+0aRMBbhCDiL1F8MIGj/8pr+Mx++8k2UwmxAcQKYOTbK3a2kzWx7tJGf3rzMoi33qbnwKqhOq6ZRes/PHOwjC44JWi2nS6slywz40WwZwvotDNLNjVMlV27Fb1jJcOGc9NsJOWOhd1Vw8Po28b/ZgGbxwMCYblqznkqZ0EsYS4T4oSMktsx21d9qqHNHdg1CQOG6W0eoaEQvF2YwWFDsj4enbTzJ87AtBSVajDnqT1meQtEH4="
-             
-
-        - secure: "AuKguxX6EPgYw1AsGsaVCdTXxDtsVjgP4GTElwfoS+L3biMoSMkYI+99fC0fyWH7u698mbWjiPZ6ndxx85OS8WrJ5XJqCzbVo1ZAClNhdw2zxisndb4U51mrzxvKG7AxPwskegMYwzaO9EJ1NI/0Cg2T+86PIN2Gfhm3PP0TrQDRST1z80kUO8/eiGxBW0TnPEAMOVwndjF+MCNSKuFngFPwavjcjKH50877a2My7MLHyuMo4DM5w/oGfHFoum0cbcDotJrpgH7fFKIMTMmS+P6YmDw/eIeO3NFwqBtPkvyVk6+WsMoEfTIbvwowGJJucOzDEDPQGyDulm6bj3nQn1gb5EuekUdEKVt0M2sowqrCQBb5X0Xqmhfv8xIm1Xo/fNbM6Srw+2FT4xx3gdXTMBxx7zBDc8ZksR8kfcK1Yt8vpbKTGDbZKvDc8kw2VooA0Ok4rx6vYbPrsHnh8ZAaJ33lAvoyUTL6aAH0IAj3jTZ2lAwMDPQO04HxTDbe0vq0GvirNhBf9v88uC/8BYN1wUfrFHxwxJrX7VJNvvwcIYp2Tlqlu2pL8TVI1OQ8KvyTHaKqIK7tyFTs+3S9bhqvnsl7u5N3bm4haQQNFGrN+rU3oN3keecqvx6IvT+haxmSM/TKSVpMiIZmGrU9XLxvnUktAWiKemUgvS8WdGS7VeI="
-
-  
 
 language: python
 sudo: false
@@ -54,10 +49,24 @@ after_success:
         echo $TWINE_PASSWORD
         echo $CI_GITHUB_SECRET
 
+        # In your repo directory run the command to ensure travis recognizes the repo
+        # It will say: Detected repository as <user>/<repo>, is this correct? |yes|
+        # Answer yes before running the encrypt commands.
+        travis status
+
         # encrypt relevant travis variables
-        travis encrypt TWINE_USERNAME=$TWINE_USERNAME 
-        travis encrypt TWINE_PASSWORD=$TWINE_PASSWORD  
-        travis encrypt CI_GITHUB_SECRET=$CI_GITHUB_SECRET
+        SECURE_TWINE_USERNAME=$(travis encrypt --no-interactive TWINE_USERNAME=$TWINE_USERNAME)
+        SECURE_TWINE_PASSWORD=$(travis encrypt --no-interactive TWINE_PASSWORD=$TWINE_PASSWORD)
+        SECURE_CI_GITHUB_SECRET=$(travis encrypt --no-interactive CI_GITHUB_SECRET=$CI_GITHUB_SECRET)
+        echo "
+        Add the following lines to your .travis.yml
+
+        env:
+            global:
+                - secure: $SECURE_TWINE_USERNAME
+                - secure: $SECURE_TWINE_PASSWORD
+                - secure: $SECURE_CI_GITHUB_SECRET
+        "
 
         # HOW TO ENCRYPT YOUR SECRET GPG KEY
         IDENTIFIER="travis-ci-Erotemic"
