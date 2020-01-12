@@ -136,6 +136,10 @@ implementations.
 
     pip install ubelt
 
+Note that our distributions on pypi are signed with GPG. The signing public key
+is ``D297D757``; this should agree with the value in `dev/public_gpg_key`.
+
+
 It is also possible to simply install it from source.
 
 ::
