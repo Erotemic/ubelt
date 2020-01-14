@@ -85,15 +85,15 @@ class Cacher(object):
     """
     Cacher designed to be quickly integrated into existing scripts.
 
+    A dependency string can be specified, which will invalidate the cache if it
+    changes to an unseen value. The location
+
     Args:
         fname (str): A file name. This is the prefix that will be used by the
             cache. It will always be used as-is.
 
-        cfgstr (str): Indicates the state. Either this string or a hash of this
-            string will be used to identify the cache. A cfgstr should always
-            be reasonably readable, thus it is good practice to hash extremely
-            detailed cfgstrs to a reasonable readable level. Use meta to store
-            make original details persist.
+        depends (str | List[str]): Indicate dependencies of this cache.
+            If the dependencies change, then the cache is recomputed.
 
         dpath (PathLike): Specifies where to save the cache. If unspecified,
             Cacher defaults to an application resource dir as given by appname.
@@ -121,6 +121,13 @@ class Cacher(object):
         protocol (int, default=2): Protocol version used by pickle.
             If python 2 compatibility is not required, then it is better to use
             protocol 4.
+
+        cfgstr (str): Deprecated in favor of depends. Indicates the state.
+            Either this string or a hash of this string will be used to
+            identify the cache. A cfgstr should always be reasonably readable,
+            thus it is good practice to hash extremely detailed cfgstrs to a
+            reasonable readable level. Use meta to store make original details
+            persist.
 
     CommandLine:
         python -m ubelt.util_cache Cacher
@@ -158,9 +165,18 @@ class Cacher(object):
     VERBOSE = 1  # default verbosity
     FORCE_DISABLE = False  # global scope override
 
-    def __init__(self, fname, cfgstr=None, dpath=None, appname='ubelt',
+    def __init__(self, fname, depends=None, dpath=None, appname='ubelt',
                  ext='.pkl', meta=None, verbose=None, enabled=True, log=None,
-                 hasher='sha1', protocol=2):
+                 hasher='sha1', protocol=2, cfgstr=None):
+
+        if depends is None:
+            depends = cfgstr
+
+        if cfgstr is not None:
+            import warnings
+            warnings.warn('cfgstr is deprecated, use depends instead')
+            depends = cfgstr
+
         if verbose is None:
             verbose = self.VERBOSE
         if dpath is None:  # pragma: no branch
@@ -168,6 +184,7 @@ class Cacher(object):
             dpath = util_platform.get_app_cache_dir(appname)
         self.dpath = dpath
         self.fname = fname
+        self.depends = depends
         self.cfgstr = cfgstr
         self.verbose = verbose
         self.ext = ext
