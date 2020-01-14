@@ -203,7 +203,9 @@ def iterable(obj, strok=False):
 def take(items, indices, default=util_const.NoParam):
     """
     Selects a subset of a list based on a list of indices.
-    This is similar to np.take, but pure python.
+
+    This is similar to ``np.take``, but pure python. This also supports
+    specifying a default element if ``items`` is an iterable of dictionaries.
 
     Args:
         items (Sequence | Mapping): an indexable object to select items from
@@ -218,6 +220,10 @@ def take(items, indices, default=util_const.NoParam):
 
     SeeAlso:
         ub.dict_subset
+
+    Notes:
+        `ub.take(items, indices)` is equivalent to
+        `(items[i] for i in indices)`.
 
     Example:
         >>> import ubelt as ub
