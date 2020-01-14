@@ -94,6 +94,7 @@ class Cacher(object):
 
         depends (str | List[str]): Indicate dependencies of this cache.
             If the dependencies change, then the cache is recomputed.
+            New in version 0.8.9, replaces `cfgstr`.
 
         dpath (PathLike): Specifies where to save the cache. If unspecified,
             Cacher defaults to an application resource dir as given by appname.
@@ -134,9 +135,9 @@ class Cacher(object):
 
     Example:
         >>> import ubelt as ub
-        >>> cfgstr = 'repr-of-params-that-uniquely-determine-the-process'
+        >>> depends = 'repr-of-params-that-uniquely-determine-the-process'
         >>> # Create a cacher and try loading the data
-        >>> cacher = ub.Cacher('test_process', cfgstr)
+        >>> cacher = ub.Cacher('test_process', depends)
         >>> cacher.clear()
         >>> data = cacher.tryload()
         >>> if data is None:
@@ -153,9 +154,9 @@ class Cacher(object):
     Example:
         >>> # The previous example can be shorted if only a single value
         >>> from ubelt.util_cache import Cacher
-        >>> cfgstr = 'repr-of-params-that-uniquely-determine-the-process'
+        >>> depends = 'repr-of-params-that-uniquely-determine-the-process'
         >>> # Create a cacher and try loading the data
-        >>> cacher = Cacher('test_process', cfgstr)
+        >>> cacher = Cacher('test_process', depends)
         >>> myvar = cacher.tryload()
         >>> if myvar is None:
         >>>     myvar = ('result of expensive process', 'another result')
