@@ -131,6 +131,8 @@ def parse_requirements(fname='requirements.txt', with_version=False):
 
 def native_mb_python_tag(plat_impl=None, version_info=None):
     """
+    Get the correct manylinux python version tag for this interpreter
+
     Example:
         >>> print(native_mb_python_tag())
         >>> print(native_mb_python_tag('PyPy', (2, 7)))
