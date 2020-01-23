@@ -37,7 +37,7 @@ Notes:
 
 
 # -- Project information -----------------------------------------------------
-import ubelt as ub
+import ubelt
 import sphinx_rtd_theme
 
 project = 'UBelt'
@@ -45,9 +45,9 @@ copyright = '2018, Jon Crall'
 author = 'Jon Crall'
 
 # The short X.Y version
-version = '.'.join(ub.__version__.split('.')[0:2])
+version = '.'.join(ubelt.__version__.split('.')[0:2])
 # The full version, including alpha/beta/rc tags
-release = ub.__version__
+release = ubelt.__version__
 
 
 # -- General configuration ---------------------------------------------------
