@@ -23,10 +23,18 @@ Example:
     ...        return self.name
     >>> s1 = Student('Alice')
     >>> s2 = Student('Bob')
+    >>> # The __str__ representation looks nice
     >>> print('s1 = {}'.format(s1))
     >>> print('s2 = {}'.format(s2))
     s1 = <Student(Alice)>
     s2 = <Student(Bob)>
+    >>> # xdoctest: +IGNORE_WANT
+    >>> # The __repr__ representation also looks nice
+    >>> print('s1 = {!r}'.format(s1))
+    >>> print('s2 = {!r}'.format(s2))
+    s1 = <Student(Alice) at 0x7f2c5460aad0>
+    s2 = <Student(Bob) at 0x7f2c5460ad10>
+
 
 Example:
     >>> # Objects that define __len__ have a default __nice__
