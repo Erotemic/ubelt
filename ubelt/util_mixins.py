@@ -91,7 +91,7 @@ class NiceRepr(object):
         else:
             # In all other cases force the subclass to overload __nice__
             raise NotImplementedError(
-                'Define the __nice__ method for %r' % (self.__class__,))
+                'Define the __nice__ method for {!r}'.format(self.__class__))
 
     def __repr__(self):
         try:
