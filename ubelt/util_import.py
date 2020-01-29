@@ -412,11 +412,8 @@ def _custom_import_modpath(modpath, index=-1):
             'ERROR: Failed to import modname={} with modpath={}'.format(
                 modname, modpath)
         ]
-        msg_parts.append('Caused by: {}'.format(str(ex)))
+        msg_parts.append('Caused by: {}'.format(repr(ex)))
         raise RuntimeError('\n'.join(msg_parts))
-        # print('ERROR: Failed to import modname={} with modpath={}'.format(
-        #     modname, modpath))
-        # raise
     return module
 
 
