@@ -174,8 +174,10 @@ class Cacher(object):
             depends = cfgstr
 
         if cfgstr is not None:
-            import warnings
-            warnings.warn('cfgstr is deprecated, use depends instead')
+            # We will start warning after the next version releases and a
+            # stable version with depends exists on pypi.
+            # import warnings
+            # warnings.warn('cfgstr is deprecated, use depends instead')
             depends = cfgstr
 
         if verbose is None:

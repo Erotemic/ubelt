@@ -339,7 +339,7 @@ def find_duplicates(items, k=2, key=None):
     return duplicates
 
 
-def dict_subset(dict_, keys, default=util_const.NoParam):
+def dict_subset(dict_, keys, default=util_const.NoParam, cls=OrderedDict):
     """
     Get a subset of a dictionary
 
@@ -347,9 +347,10 @@ def dict_subset(dict_, keys, default=util_const.NoParam):
         dict_ (Mapping): superset dictionary
         keys (Iterable): keys to take from ``dict_``
         default (object, optional): if specified uses default if keys are missing
+        cls (type, default=OrderedDict): type of the returned dictionary.
 
     Returns:
-        OrderedDict: subset dictionary
+        cls: subset dictionary
 
     SeeAlso:
         :func:`dict_isect` - similar functionality, but will only take existing
