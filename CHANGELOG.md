@@ -8,6 +8,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### Added
 * `dpath` and `fname` keywords to the `ub.download` function.
+* `modname_to_modpath` can now find modules referenced by egg-link files.
 
 
 ### Fixed
