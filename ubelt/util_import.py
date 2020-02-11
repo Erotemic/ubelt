@@ -400,6 +400,42 @@ def _syspath_modname_to_modpath(modname, sys_path=None, exclude=None):
                 if _isvalid(modpath, dpath):
                     return modpath
 
+    def check_dpath(dpath):
+        # Check for directory-based modules (has presidence over files)
+        modpath = join(dpath, _fname_we)
+        if exists(modpath):
+            if isfile(join(modpath, '__init__.py')):
+                if _isvalid(modpath, dpath):
+                    return modpath
+
+        # If that fails, check for file-based modules
+        for fname in candidate_fnames:
+            modpath = join(dpath, fname)
+            if isfile(modpath):
+                if _isvalid(modpath, dpath):
+                    return modpath
+
+    _pkg_name = _fname_we.split(os.path.sep)[0]
+
+    for dpath in candidate_dpaths:
+        modpath = check_dpath(dpath)
+        if modpath:
+            return modpath
+
+        # If file path checks fails, check for egg-link based modules
+        # (Python usually puts egg links into sys.path, but if the user is
+        #  providing the path then it is important to check them explicitly)
+        linkpath = join(dpath, _pkg_name + '.egg-link')
+        if isfile(linkpath):
+            # TODO: ensure this is the correct way to parse egg-link files
+            # https://setuptools.readthedocs.io/en/latest/formats.html#egg-links
+            # The docs state there should only be one line, but I see two.
+            with open(linkpath, 'r') as file:
+                target = file.readline().strip()
+            modpath = check_dpath(target)
+            if modpath:
+                return modpath
+
 
 def _custom_import_modpath(modpath, index=-1):
     dpath, rel_modpath = split_modpath(modpath)
