@@ -610,7 +610,7 @@ def sorted_keys(dict_, key=None, reverse=False):
         {'eggs': 1.2, 'jam': 2.92, 'spam': 2.62}
         >>> newdict = sorted_keys(dict_, reverse=True)
         >>> print(ub.repr2(newdict, nl=0))
-        {'spam': 2.62, 'jam': 2.92, 'eggs': 1.2
+        {'spam': 2.62, 'jam': 2.92, 'eggs': 1.2}
         >>> newdict = sorted_keys(dict_, key=lambda x: sum(map(ord, x)))
         >>> print(ub.repr2(newdict, nl=0))
         {'jam': 2.92, 'eggs': 1.2, 'spam': 2.62}
