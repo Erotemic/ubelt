@@ -185,6 +185,7 @@ class Cacher(object):
         if dpath is None:  # pragma: no branch
             from ubelt import util_platform
             dpath = util_platform.get_app_cache_dir(appname)
+
         self.dpath = dpath
         self.fname = fname
         self.depends = depends
@@ -202,6 +203,11 @@ class Cacher(object):
 
     def _rectify_cfgstr(self, cfgstr=None):
         cfgstr = self.cfgstr if cfgstr is None else cfgstr
+
+        if cfgstr is None and self.depends is not None:
+            from ubelt import util_hash
+            cfgstr = util_hash.hash_data(self.depends)
+
         if cfgstr is None and self.enabled:
             warnings.warn(
                 'No cfgstr given in Cacher constructor or call for {}'.format(
@@ -240,6 +246,7 @@ class Cacher(object):
             PathLike
 
         Example:
+            >>> # xdoctest: +REQUIRES(module:pytest)
             >>> from ubelt.util_cache import Cacher
             >>> import pytest
             >>> with pytest.warns(UserWarning):
@@ -274,15 +281,15 @@ class Cacher(object):
             >>> from ubelt.util_cache import Cacher
             >>> # Ensure that some data exists
             >>> known_fnames = set()
-            >>> cacher = Cacher('versioned_data', cfgstr='1')
+            >>> cacher = Cacher('versioned_data_v2', cfgstr='1')
             >>> cacher.ensure(lambda: 'data1')
             >>> known_fnames.add(cacher.get_fpath())
-            >>> cacher = Cacher('versioned_data', cfgstr='2')
+            >>> cacher = Cacher('versioned_data_v2', cfgstr='2')
             >>> cacher.ensure(lambda: 'data2')
             >>> known_fnames.add(cacher.get_fpath())
             >>> # List previously computed configs for this type
             >>> from os.path import basename
-            >>> cacher = Cacher('versioned_data', cfgstr='2')
+            >>> cacher = Cacher('versioned_data_v2', cfgstr='2')
             >>> exist_fpaths = set(cacher.existing_versions())
             >>> exist_fnames = list(map(basename, exist_fpaths))
             >>> print(exist_fnames)

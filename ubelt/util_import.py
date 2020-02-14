@@ -385,21 +385,6 @@ def _syspath_modname_to_modpath(modname, sys_path=None, exclude=None):
         candidate_dpaths = [p for p in candidate_dpaths
                             if normalize(p) not in real_exclude]
 
-    for dpath in candidate_dpaths:
-        # Check for directory-based modules (has presidence over files)
-        modpath = join(dpath, _fname_we)
-        if exists(modpath):
-            if isfile(join(modpath, '__init__.py')):
-                if _isvalid(modpath, dpath):
-                    return modpath
-
-        # If that fails, check for file-based modules
-        for fname in candidate_fnames:
-            modpath = join(dpath, fname)
-            if isfile(modpath):
-                if _isvalid(modpath, dpath):
-                    return modpath
-
     def check_dpath(dpath):
         # Check for directory-based modules (has presidence over files)
         modpath = join(dpath, _fname_we)
@@ -426,15 +411,20 @@ def _syspath_modname_to_modpath(modname, sys_path=None, exclude=None):
         # (Python usually puts egg links into sys.path, but if the user is
         #  providing the path then it is important to check them explicitly)
         linkpath = join(dpath, _pkg_name + '.egg-link')
-        if isfile(linkpath):
+        if isfile(linkpath):  # nocover
+            # We exclude this from coverage because its difficult to write a
+            # unit test where we can enforce that there is a module installed
+            # in development mode.
+
             # TODO: ensure this is the correct way to parse egg-link files
             # https://setuptools.readthedocs.io/en/latest/formats.html#egg-links
             # The docs state there should only be one line, but I see two.
             with open(linkpath, 'r') as file:
                 target = file.readline().strip()
-            modpath = check_dpath(target)
-            if modpath:
-                return modpath
+            if not exclude or normalize(target) not in real_exclude:
+                modpath = check_dpath(target)
+                if modpath:
+                    return modpath
 
 
 def _custom_import_modpath(modpath, index=-1):
