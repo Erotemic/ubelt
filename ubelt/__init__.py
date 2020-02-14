@@ -87,7 +87,8 @@ from ubelt.util_cmd import (cmd,)
 from ubelt.util_dict import (AutoDict, AutoOrderedDict, ddict, dict_diff,
                              dict_hist, dict_isect, dict_subset, dict_union,
                              dzip, find_duplicates, group_items, invert_dict,
-                             map_keys, map_vals, odict,)
+                             map_keys, map_vals, odict, sorted_keys,
+                             sorted_vals,)
 from ubelt.util_download import (download, grabdata,)
 from ubelt.util_func import (identity, inject_method,)
 from ubelt.util_format import (FormatterExtensions, repr2,)
@@ -145,12 +146,12 @@ __all__ = ['AutoDict', 'AutoOrderedDict', 'CacheStamp', 'Cacher',
            'odict', 'orderedset', 'oset', 'paragraph', 'peek',
            'platform_cache_dir', 'platform_config_dir', 'platform_data_dir',
            'platform_resource_dir', 'progiter', 'readfrom', 'repr2',
-           'shrinkuser', 'split_modpath', 'startfile', 'symlink', 'take',
-           'timerit', 'timestamp', 'touch', 'truepath', 'unique',
-           'unique_flags', 'userhome', 'util_arg', 'util_cache', 'util_cmd',
-           'util_colors', 'util_const', 'util_dict', 'util_download',
-           'util_format', 'util_func', 'util_hash', 'util_import', 'util_io',
-           'util_links', 'util_list', 'util_memoize', 'util_mixins',
-           'util_path', 'util_platform', 'util_str', 'util_stream',
-           'util_time', 'writeto']
+           'shrinkuser', 'sorted_keys', 'sorted_vals', 'split_modpath',
+           'startfile', 'symlink', 'take', 'timerit', 'timestamp', 'touch',
+           'truepath', 'unique', 'unique_flags', 'userhome', 'util_arg',
+           'util_cache', 'util_cmd', 'util_colors', 'util_const', 'util_dict',
+           'util_download', 'util_format', 'util_func', 'util_hash',
+           'util_import', 'util_io', 'util_links', 'util_list', 'util_memoize',
+           'util_mixins', 'util_path', 'util_platform', 'util_str',
+           'util_stream', 'util_time', 'writeto']
 # </AUTOGEN_INIT>

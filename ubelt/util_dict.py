@@ -57,6 +57,8 @@ __all__ = [
     'invert_dict',
     'map_keys',
     'map_vals',
+    'sorted_keys',
+    'sorted_vals',
     'odict'
 ]
 
@@ -545,6 +547,80 @@ def map_keys(func, dict_):
     newdict = dictclass(keyval_list)
     if len(newdict) != len(dict_):
         raise Exception('multiple input keys mapped to the same output key')
+    return newdict
+
+
+def sorted_vals(dict_, key=None, reverse=False):
+    """
+    Return an ordered dictionary sorted by its values
+
+    Args:
+        dict_ (dict): dictionary to sort. The values must be of comparable
+            types.
+
+        key (Callable, optional): customizes the sort ordering
+
+        reverse (bool, default=False): if True returns in descending order
+
+    Returns:
+        OrderedDict: new dictionary where the values are ordered
+
+    Example:
+        >>> import ubelt as ub
+        >>> dict_ = {'spam': 2.62, 'eggs': 1.20, 'jam': 2.92}
+        >>> newdict = sorted_vals(dict_)
+        >>> print(ub.repr2(newdict, nl=0))
+        {'eggs': 1.2, 'spam': 2.62, 'jam': 2.92}
+        >>> newdict = sorted_vals(dict_, reverse=True)
+        >>> print(ub.repr2(newdict, nl=0))
+        {'jam': 2.92, 'spam': 2.62, 'eggs': 1.2}
+        >>> newdict = sorted_vals(dict_, key=lambda x: x % 1.6)
+        >>> print(ub.repr2(newdict, nl=0))
+        {'spam': 2.62, 'eggs': 1.2, 'jam': 2.92}
+    """
+    if key is None:
+        newdict = OrderedDict(sorted(dict_.items(), key=lambda kv: kv[1],
+                                     reverse=reverse))
+    else:
+        newdict = OrderedDict(sorted(dict_.items(), key=lambda kv: key(kv[1]),
+                                     reverse=reverse))
+    return newdict
+
+
+def sorted_keys(dict_, key=None, reverse=False):
+    """
+    Return an ordered dictionary sorted by its keys
+
+    Args:
+        dict_ (dict): dictionary to sort. The keys must be of comparable
+            types.
+
+        key (Callable, optional): customizes the sort ordering
+
+        reverse (bool, default=False): if True returns in descending order
+
+    Returns:
+        OrderedDict: new dictionary where the keys are ordered
+
+    Example:
+        >>> import ubelt as ub
+        >>> dict_ = {'spam': 2.62, 'eggs': 1.20, 'jam': 2.92}
+        >>> newdict = sorted_keys(dict_)
+        >>> print(ub.repr2(newdict, nl=0))
+        {'eggs': 1.2, 'jam': 2.92, 'spam': 2.62}
+        >>> newdict = sorted_keys(dict_, reverse=True)
+        >>> print(ub.repr2(newdict, nl=0))
+        {'spam': 2.62, 'jam': 2.92, 'eggs': 1.2
+        >>> newdict = sorted_keys(dict_, key=lambda x: sum(map(ord, x)))
+        >>> print(ub.repr2(newdict, nl=0))
+        {'jam': 2.92, 'eggs': 1.2, 'spam': 2.62}
+    """
+    if key is None:
+        newdict = OrderedDict(sorted(dict_.items(), key=lambda kv: kv[0],
+                                     reverse=reverse))
+    else:
+        newdict = OrderedDict(sorted(dict_.items(), key=lambda kv: key(kv[0]),
+                                     reverse=reverse))
     return newdict
 
 
