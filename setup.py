@@ -8,9 +8,11 @@ Developing:
     git clone https://github.com/Erotemic/ubelt.git
     pip install -e ubelt
 """
-from setuptools import setup
 import sys
 from os.path import exists
+
+from setuptools import find_packages
+from setuptools import setup
 
 
 def parse_version(fpath):
@@ -197,7 +199,7 @@ if __name__ == '__main__':
         author_email='erotemic@gmail.com',
         url='https://github.com/Erotemic/ubelt',
         license='Apache 2',
-        packages=['ubelt'],
+        packages=find_packages('ubelt*'),
         classifiers=[
             # List of classifiers available at:
             # https://pypi.python.org/pypi?%3Aaction=list_classifiers
