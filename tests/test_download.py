@@ -68,6 +68,24 @@ def test_download_chunksize():
 
 
 @pytest.mark.timeout(5)
+def test_download_cover_hashers():
+    # url = 'https://www.dropbox.com/s/jl506apezj42zjz/ibeis-win32-setup-ymd_hm-2015-08-01_16-28.exe?dl=1'
+    url = 'http://i.imgur.com/rqwaDag.png'
+
+    if not ub.argflag('--network'):
+        pytest.skip('not running network tests')
+
+    dpath = ub.ensure_app_cache_dir('ubelt')
+    fname = basename(url)
+
+    # add coverage for different hashers
+    ub.download(url, hasher='md5', hash_prefix='545e3a51404f664e46aa65',
+                dpath=dpath, fname=fname)
+    ub.download(url, hasher='sha256', hash_prefix='31a129618c87dd667103',
+                dpath=dpath, fname=fname)
+
+
+@pytest.mark.timeout(5)
 def test_download_hashalgo():
     # url = 'https://www.dropbox.com/s/jl506apezj42zjz/ibeis-win32-setup-ymd_hm-2015-08-01_16-28.exe?dl=1'
     import hashlib
