@@ -89,7 +89,8 @@ Ubelt is small. Its top-level API is defined using roughly 40 lines:
     from ubelt.util_dict import (AutoDict, AutoOrderedDict, ddict, dict_diff,
                                  dict_hist, dict_isect, dict_subset, dict_union,
                                  dzip, find_duplicates, group_items, invert_dict,
-                                 map_keys, map_vals, odict,)
+                                 map_keys, map_vals, odict, sorted_keys,
+                                 sorted_vals,)
     from ubelt.util_download import (download, grabdata,)
     from ubelt.util_func import (identity, inject_method,)
     from ubelt.util_format import (FormatterExtensions, repr2,)
@@ -115,14 +116,10 @@ Ubelt is small. Its top-level API is defined using roughly 40 lines:
     from ubelt.util_str import (codeblock, ensure_unicode, hzcat, indent,
                                 paragraph,)
     from ubelt.util_stream import (CaptureStdout, CaptureStream, TeeStringIO,)
-    from ubelt.util_time import (Timer, Timerit, timestamp,)
+    from ubelt.util_time import (timestamp,)
     from ubelt.orderedset import (OrderedSet, oset,)
     from ubelt.progiter import (ProgIter,)
-    from ubelt._util_deprecated import (compressuser, dict_take, editfile,
-                                        ensure_app_resource_dir,
-                                        get_app_resource_dir,
-                                        platform_resource_dir, startfile,
-                                        truepath,)
+    from ubelt.timerit import (Timer, Timerit,)
 
 
 Installation:
@@ -130,7 +127,7 @@ Installation:
 
 Ubelt is distributed on pypi as a universal wheel and can be pip installed on
 Python 2.7, Python 3.4+. Installations are tested on CPython and PyPy
-implementations. 
+implementations.
 
 ::
 
