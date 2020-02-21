@@ -432,13 +432,13 @@ containing the return code, standard out, standard error, and the
 Also note the use of ``ub.repr2`` to nicely format the output
 dictionary.
 
-Additionally, if you specify ``verbout=True``, ``ub.cmd`` will
+Additionally, if you specify ``verbose=True``, ``ub.cmd`` will
 simultaneously capture the standard output and display it in real time.
 
 .. code:: python
 
     >>> import ubelt as ub
-    >>> info = ub.cmd('gcc --version', verbout=True)
+    >>> info = ub.cmd('gcc --version', verbose=True)
     gcc (Ubuntu 5.4.0-6ubuntu1~16.04.9) 5.4.0 20160609
     Copyright (C) 2015 Free Software Foundation, Inc.
     This is free software; see the source for copying conditions.  There is NO
