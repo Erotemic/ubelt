@@ -33,11 +33,13 @@ __win32_can_symlink__ = None
 
 def _win32_can_symlink(verbose=0, force=0, testing=0):
     """
-    CommandLine:
-        python -m ubelt._win32_links _win32_can_symlink
+    Args:
+        verbose (int, default=0): flag
+        force (int, default=0): flag
+        testing (int, default=0): flag
 
     Example:
-        >>> # xdoc: +REQUIRES(WIN32)
+        >>> # xdoctest: +REQUIRES(WIN32)
         >>> import ubelt as ub
         >>> _win32_can_symlink(verbose=1, force=1, testing=1)
     """
@@ -256,9 +258,6 @@ def _win32_junction(path, link, verbose=0):
 
     For paths we do a junction (softlink) and for files we use a hard link
 
-    CommandLine:
-        python -m ubelt._win32_links _win32_junction
-
     Example:
         >>> # xdoc: +REQUIRES(WIN32)
         >>> import ubelt as ub
@@ -323,9 +322,6 @@ def _win32_is_junction(path):
     """
     Determines if a path is a win32 junction
 
-    CommandLine:
-        python -m ubelt._win32_links _win32_is_junction
-
     Example:
         >>> # xdoc: +REQUIRES(WIN32)
         >>> import ubelt as ub
@@ -352,9 +348,6 @@ def _win32_read_junction(path):
     """
     Returns the location that the junction points, raises ValueError if path is
     not a junction.
-
-    CommandLine:
-        python -m ubelt._win32_links _win32_read_junction
 
     Example:
         >>> # xdoc: +REQUIRES(WIN32)
@@ -469,9 +462,6 @@ def _win32_rmtree(path, verbose=0):
 def _win32_is_hardlinked(fpath1, fpath2):
     """
     Test if two hard links point to the same location
-
-    CommandLine:
-        python -m ubelt._win32_links _win32_is_hardlinked
 
     Example:
         >>> # xdoc: +REQUIRES(WIN32)

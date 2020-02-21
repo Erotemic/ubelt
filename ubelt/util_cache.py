@@ -130,9 +130,6 @@ class Cacher(object):
             reasonable readable level. Use meta to store make original details
             persist.
 
-    CommandLine:
-        python -m ubelt.util_cache Cacher
-
     Example:
         >>> import ubelt as ub
         >>> depends = 'repr-of-params-that-uniquely-determine-the-process'

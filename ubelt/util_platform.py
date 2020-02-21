@@ -139,6 +139,9 @@ def ensure_app_data_dir(appname, *args):
         appname (str): the name of the application
         *args: any other subdirectories may be specified
 
+    Returns:
+        str: the path to the ensured directory
+
     SeeAlso:
         :func:`get_app_data_dir`
 
@@ -166,7 +169,7 @@ def get_app_config_dir(appname, *args):
         str : dpath - writable config directory for this application
 
     SeeAlso:
-        ensure_app_config_dir
+        :func:`ensure_app_config_dir`
     """
     dpath = join(platform_config_dir(), appname, *args)
     return dpath
@@ -180,8 +183,11 @@ def ensure_app_config_dir(appname, *args):
         appname (str): the name of the application
         *args: any other subdirectories may be specified
 
+    Returns:
+        str: the path to the ensured directory
+
     SeeAlso:
-        get_app_config_dir
+        :func:`get_app_config_dir`
 
     Example:
         >>> import ubelt as ub
@@ -204,10 +210,13 @@ def get_app_cache_dir(appname, *args):
         *args: any other subdirectories may be specified
 
     Returns:
+        str: the path to the ensured directory
+
+    Returns:
         str : dpath - writable cache directory for this application
 
     SeeAlso:
-        ensure_app_cache_dir
+        :func:`ensure_app_cache_dir`
     """
     dpath = join(platform_cache_dir(), appname, *args)
     return dpath
@@ -221,8 +230,11 @@ def ensure_app_cache_dir(appname, *args):
         appname (str): the name of the application
         *args: any other subdirectories may be specified
 
+    Returns:
+        str: the path to the ensured directory
+
     SeeAlso:
-        get_app_cache_dir
+        :func:`get_app_cache_dir`
 
     Example:
         >>> import ubelt as ub
@@ -308,17 +320,18 @@ def find_path(name, path=None, exact=False):
     (file must be in a directory specified in a PATH environment variable)
 
     Args:
-        fname (str | PathLike or str): file name to match.
+        fname (str | PathLike): file name to match.
             If exact is False this may be a glob pattern
 
-        path (str or Iterable[str | PathLike]): list of directories to search either
-            specified as an os.pathsep separated string or a list of
-            directories.  Defaults to environment PATH.
+        path (str | Iterable[str | PathLike], default=None):
+            list of directories to search either specified as an ``os.pathsep``
+            separated string or a list of directories.  Defaults to environment
+            PATH.
 
         exact (bool, default=False): if True, only returns exact matches.
 
     Yields:
-        str: candidate: a path that matches ``name``
+        str: candidate - a path that matches ``name``
 
     Notes:
         Running with ``name=''`` (i.e. ``ub.find_path('')``) will simply yield all

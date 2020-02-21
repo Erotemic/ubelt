@@ -11,7 +11,9 @@ from os.path import expandvars
 from os.path import normpath
 from os.path import realpath
 from ubelt import util_const
-from .util_platform import get_app_cache_dir, platform_cache_dir, ensure_app_cache_dir, WIN32, LINUX, DARWIN
+from .util_platform import (
+    get_app_cache_dir, platform_cache_dir, ensure_app_cache_dir, WIN32, LINUX,
+    DARWIN)
 
 
 # DEPRICATED:
@@ -250,9 +252,6 @@ def dict_take(dict_, keys, default=util_const.NoParam):
         keys (Iterable): the keys to take
         default (object, optional): if specified uses default if keys are missing
 
-    CommandLine:
-        python -m ubelt.util_dict dict_take_gen
-
     Example:
         >>> import ubelt as ub
         >>> dict_ = {1: 'a', 2: 'b', 3: 'c'}
@@ -276,12 +275,3 @@ def dict_take(dict_, keys, default=util_const.NoParam):
     else:
         for key in keys:
             yield dict_.get(key, default)
-
-
-if __name__ == '__main__':
-    """
-    CommandLine:
-        xdoctest -m ubelt._util_deprecated
-    """
-    import xdoctest
-    xdoctest.doctest_module(__file__)

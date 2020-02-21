@@ -6,9 +6,6 @@ corner cases depending on your version. Recent versions of Windows tend to
 work, but there certain system settings that cause issues. Obviously, any POSIX
 system work without difficulty.
 
-CommandLine:
-    xdoctest -m ubelt.util_links __doc__:0
-
 Example:
     >>> import ubelt as ub
     >>> from os.path import normpath, join
@@ -50,19 +47,19 @@ def symlink(real_path, link_path, overwrite=False, verbose=0):
 
     Args:
         path (PathLike): path to real file or directory
+
         link_path (PathLike): path to desired location for symlink
-        overwrite (bool): overwrite existing symlinks.
+
+        overwrite (bool, default=False): overwrite existing symlinks.
             This will not overwrite real files on systems with proper symlinks.
             However, on older versions of windows junctions are
             indistinguishable from real files, so we cannot make this
-            guarantee.  (default = False)
-        verbose (int):  verbosity level (default=0)
+            guarantee.
+
+        verbose (int, default=0): verbosity level
 
     Returns:
         PathLike: link path
-
-    CommandLine:
-        python -m ubelt.util_links symlink:0
 
     Example:
         >>> import ubelt as ub
@@ -173,9 +170,6 @@ def _can_symlink(verbose=0):  # nocover
     This check always returns True on non-win32 systems.
     If this check returns false, then we still may be able to use junctions.
 
-    CommandLine:
-        python -m ubelt.util_platform _can_symlink
-
     Example:
         >>> # Script
         >>> print(_can_symlink(verbose=1))
@@ -190,9 +184,6 @@ def _dirstats(dpath=None):  # nocover
     """
     Testing helper for printing directory information
     (mostly for investigating windows weirdness)
-
-    CommandLine:
-        python -m ubelt.util_links _dirstats
     """
     from ubelt import util_colors
     if dpath is None:

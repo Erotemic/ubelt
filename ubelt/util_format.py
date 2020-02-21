@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-Defines the function :func:`repr2`, which allows for a bit more customization than
-:func:`repr` or :func:`pprint`. See the docstring for more details.
+Defines the function :func:`repr2`, which allows for a bit more customization
+than :func:`repr` or :func:`pprint`. See the docstring for more details.
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import six
@@ -10,16 +10,20 @@ import collections
 
 def repr2(data, **kwargs):
     """
-    Makes a pretty and easy-to-doctest string representation!
+    Makes a pretty string representation of ``data``.
 
-    This is an alternative to repr, and :func:`pprint.pformat` that attempts to be
-    both more configurable and generate output that is consistent between
-    python versions.
+    Makes a pretty and easy-to-doctest string representation. Has nice handling
+    of common nested datatypes. This is an alternative to repr, and
+    :func:`pprint.pformat`.
+
+    This output of this function are very configurable. By default it aims to
+    produce strings that are executable and consistent between Python versions.
+    This makes them great for doctests.
 
     Notes:
         This function has many keyword arguments that can be used to customize
         the final representation. For convinience some of the more frequently
-        used kwargs have short aliases. See "Args" for more details.
+        used kwargs have short aliases. See "Kwargs" for more details.
 
     Args:
         data (object): an arbitrary python object
@@ -105,10 +109,6 @@ def repr2(data, **kwargs):
             _return_info (bool):  return information about child context
 
             _root_info (depth): information about parent context
-
-    CommandLine:
-        python -m ubelt.util_format repr2:0
-        python -m ubelt.util_format repr2:1
 
     Example:
         >>> from ubelt.util_format import *
@@ -311,9 +311,6 @@ class FormatterExtensions(object):
 
     def _register_numpy_extensions(self):
         """
-        CommandLine:
-            python -m ubelt.util_format FormatterExtensions._register_numpy_extensions
-
         Example:
             >>> import sys
             >>> import pytest
@@ -420,7 +417,6 @@ _FORMATTER_EXTENSIONS = FormatterExtensions()
 _FORMATTER_EXTENSIONS._register_builtin_extensions()
 
 
-@_FORMATTER_EXTENSIONS.lazy_init.append
 def _lazy_init():
     """
     Only called in the case where we encounter an unknown type that a commonly
@@ -434,6 +430,8 @@ def _lazy_init():
         # TODO: register pandas by default if available
     except ImportError:  # nocover
         pass
+
+_FORMATTER_EXTENSIONS.lazy_init.append(_lazy_init)
 
 
 def _format_object(val, **kwargs):
@@ -529,14 +527,19 @@ def _format_dict(dict_, **kwargs):
                   explicit, itemsep, precision, kvsep, sort
 
     Kwargs:
-        sort (None): if True, sorts ALL collections and subcollections,
+        sort (None, default=None):
+            if True, sorts ALL collections and subcollections,
             note, collections with undefined orders (e.g. dicts, sets) are
-            sorted by default. (default = None)
-        nl (int): preferred alias for newline. can be a countdown variable
-            (default = None)
-        explicit (int): can be a countdown variable. if True, uses
-            dict(a=b) syntax instead of {'a': b}
-        nobr (bool): removes outer braces (default = False)
+            sorted by default.
+
+        nl (int, default=None):
+            preferred alias for newline. can be a countdown variable
+
+        explicit (int, default=False):
+            can be a countdown variable.
+            if True, uses dict(a=b) syntax instead of {'a': b}
+
+        nobr (bool, default=False): removes outer braces
 
     Returns:
         Tuple[str, Dict] : retstr, _leaf_info
@@ -720,10 +723,6 @@ def _list_itemstrs(list_, **kwargs):
     Args:
         list_ (Sequence):
         **kwargs: _return_info, sort
-
-    Ignore:
-        import xinspect
-        ', '.join(xinspect.get_kwargs(_list_itemstrs, max_depth=0).keys())
     """
     items = list(list_)
     kwargs['_return_info'] = True
@@ -775,14 +774,11 @@ def _rectify_countdown_or_bool(count_or_bool):
     counting up yields False, False, False, ... True
 
     Args:
-        count_or_bool (bool or int): if positive and an integer, it will count
+        count_or_bool (bool | int): if positive and an integer, it will count
             down, otherwise it will remain the same.
 
     Returns:
         int or bool: count_or_bool_
-
-    CommandLine:
-        python -m utool.util_str --test-_rectify_countdown_or_bool
 
     Example:
         >>> from ubelt.util_format import _rectify_countdown_or_bool  # NOQA
