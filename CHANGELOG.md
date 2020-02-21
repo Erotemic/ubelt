@@ -15,6 +15,11 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ### Fixed
 * `ub.download` now accepts `sha256` and `md5` hashes.
 
+### Changed
+* The argument names in `ub.group_items`, `groupids` was changed to `key`.
+* The argument names in `ub.dict_hist`. `item_list` was changed to `items` and
+  `weight_list` was changed to `weights`.
+
 
 ## [Version 0.8.8] - 2020-01-12
 
