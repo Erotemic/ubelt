@@ -1,14 +1,15 @@
 # -*- coding: utf-8 -*-
 """
 Simple ways to interact with the commandline without defining a full blown
-CLI.These are usually used for developer hacks. Any real interface should
-probably be defined using `argparse` or `click`. Be sure to ignore unknown
-arguments if you use them in conjuction with these functions.
+CLI. These are usually used for developer hacks. Any real interface should
+probably be defined using :py:mod:`argparse` or :py:mod:`click`. Be sure to
+ignore unknown arguments if you use them in conjuction with these functions.
 
-The `argflag` function checks if a boolean `--flag` style CLI argument exists
-on the command line.
+The :func:`argflag` function checks if a boolean ``--flag`` style CLI argument
+exists on the command line.
 
-The `argval` function returns the value of a `--key=value` style CLI argument.
+The :func:`argval` function returns the value of a ``--key=value`` style CLI
+argument.
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import six
@@ -23,15 +24,18 @@ def argval(key, default=util_const.NoParam, argv=None):
     Values can be specified as ``<key> <value>`` or ``<key>=<value>``
 
     Args:
-        key (str | tuple):
+        key (str | Tuple[str, ...]):
             string or tuple of strings. Each key should be prefixed with two
             hyphens (i.e. ``--``)
+
         default (object, default=NoParam):
             a value to return if not specified.
-        argv (Optional[list]): overrides ``sys.argv`` if specified
+
+        argv (Optional[list], default=None):
+            uses ``sys.argv`` if unspecified
 
     Returns:
-        str: value : the value specified after the key. It they key is
+        str: value - the value specified after the key. It they key is
             specified multiple times, then the first value is returned.
 
     TODO:
@@ -73,15 +77,19 @@ def argval(key, default=util_const.NoParam, argv=None):
 
 def argflag(key, argv=None):
     """
-    Determines if a key is specified on the command line
+    Determines if a key is specified on the command line.
+
+    This is a functional alternative to ``key in sys.argv``.
 
     Args:
-        key (str | Tuple[str]): string or tuple of strings. Each key should be
-            prefixed with two hyphens (i.e. ``--``)
+        key (str | Tuple[str, ...]):
+            string or tuple of strings. Each key should be prefixed with two
+            hyphens (i.e. ``--``).
+
         argv (List[str], default=None): overrides ``sys.argv`` if specified
 
     Returns:
-        bool: flag : True if the key (or any of the keys) was specified
+        bool: flag - True if the key (or any of the keys) was specified
 
     Example:
         >>> import ubelt as ub

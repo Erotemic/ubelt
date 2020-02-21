@@ -122,7 +122,7 @@ def userhome(username=None):
             specified, the current user is inferred.
 
     Returns:
-        str: userhome_dpath: path to the specified home directory
+        str: userhome_dpath - path to the specified home directory
 
     Raises:
         KeyError: if the specified user does not exist on the system
@@ -183,7 +183,7 @@ def shrinkuser(path, home='~'):
             '%USERPROFILE%' instead.
 
     Returns:
-        str: path: shortened path replacing the home directory with a tilde
+        str: path - shortened path replacing the home directory with a tilde
 
     Example:
         >>> path = expanduser('~')
@@ -242,7 +242,7 @@ def ensuredir(dpath, mode=0o1777, verbose=None, recreate=False):
             USE CAREFULLY.
 
     Returns:
-        str: path: the ensured directory
+        str: path - the ensured directory
 
     Notes:
         This function is not thread-safe in Python2
