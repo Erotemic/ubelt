@@ -42,7 +42,7 @@ class chunks(object):
     determine fill values.
 
     Args:
-        items (Iterable): input to iterate over
+        items (Iterable[T]): input to iterate over
 
         chunksize (int): size of each sublist yielded
 
@@ -55,14 +55,18 @@ class chunks(object):
 
         total (int): hints about the length of the input
 
-    TODO:
-        should this handle the case when sequence is a string?
+    Yields:
+        List[T]: subsequent non-overlapping chunks of the input items
 
     References:
         http://stackoverflow.com/questions/434287/iterate-over-a-list-in-chunks
 
-    CommandLine:
-        python -m ubelt.util_list chunks
+    Example:
+        >>> import ubelt as ub
+        >>> items = '1234567'
+        >>> genresult = ub.chunks(items, chunksize=3)
+        >>> list(genresult)
+        [['1', '2', '3'], ['4', '5', '6'], ['7']]
 
     Example:
         >>> import ubelt as ub
@@ -208,22 +212,24 @@ def take(items, indices, default=util_const.NoParam):
     specifying a default element if ``items`` is an iterable of dictionaries.
 
     Args:
-        items (Sequence | Mapping): an indexable object to select items from
+        items (Sequence[V] | Mapping[K, V]):
+            An indexable object to select items from
 
-        indices (Iterable): sequence of indexing objects
+        indices (Iterable[int | K]):
+            sequence of indexes into ``items``
 
-        default (object, optional):
-            if specified uses default if ``items`` supports the ``get`` method.
+        default (Any, default=NoParam):
+            if specified ``items`` must support the ``get`` method.
 
-    Returns:
-        Iterable or scalar: subset of the list
+    Yeilds:
+        V: a selected item within the list
 
     SeeAlso:
-        ub.dict_subset
+        :func:`ub.dict_subset`
 
     Notes:
-        `ub.take(items, indices)` is equivalent to
-        `(items[i] for i in indices)`.
+        ``ub.take(items, indices)`` is equivalent to
+        ``(items[i] for i in indices)`` when ``default`` is unspecified.
 
     Example:
         >>> import ubelt as ub
@@ -259,16 +265,18 @@ def take(items, indices, default=util_const.NoParam):
 
 def compress(items, flags):
     """
-    Selects items where the corresponding value in flags is True
-    This is similar to np.compress and it.compress
+    Selects from ``items`` where the corresponding value in ``flags`` is True.
+    This is similar to :func:`numpy.compress`.
+
+    This is actually a simple alias for :func:`itertools.compress`.
 
     Args:
-        items (Iterable): a sequence to select items from
+        items (Iterable[Any]): a sequence to select items from
 
-        flags (Iterable): corresponding sequence of bools
+        flags (Iterable[bool]): corresponding sequence of bools
 
     Returns:
-        Iterable: a subset of masked items
+        Iterable[Any]: a subset of masked items
 
     Example:
         >>> import ubelt as ub
@@ -280,25 +288,25 @@ def compress(items, flags):
     return it.compress(items, flags)
 
 
-def flatten(nested_list):
+def flatten(nested):
     """
     Transforms a nested iterable into a flat iterable.
 
-    This is simply an alias for ``itertools.chain.from_iterable``
+    This is simply an alias for :func:`itertools.chain.from_iterable`.
 
     Args:
-        nested_list (Iterable[Iterable]): list of lists
+        nested (Iterable[Iterable[Any]]): list of lists
 
     Returns:
-        Iterable: flattened items
+        Iterable[Any]: flattened items
 
     Example:
         >>> import ubelt as ub
-        >>> nested_list = [['a', 'b'], ['c', 'd']]
-        >>> list(ub.flatten(nested_list))
+        >>> nested = [['a', 'b'], ['c', 'd']]
+        >>> list(ub.flatten(nested))
         ['a', 'b', 'c', 'd']
     """
-    return it.chain.from_iterable(nested_list)
+    return it.chain.from_iterable(nested)
 
 
 def unique(items, key=None):
@@ -306,16 +314,13 @@ def unique(items, key=None):
     Generates unique items in the order they appear.
 
     Args:
-        items (Iterable): list of items
+        items (Iterable[A]): list of items
 
-        key (Callable, optional): custom normalization function.
+        key (Callable[[A], B], default=None): custom normalization function.
             If specified returns items where ``key(item)`` is unique.
 
     Yields:
-        object: a unique item from the input sequence
-
-    CommandLine:
-        python -m utool.util_list --exec-unique_ordered
+        A: a unique item from the input sequence
 
     Example:
         >>> import ubelt as ub
@@ -350,13 +355,13 @@ def argunique(items, key=None):
     Returns indices corresponding to the first instance of each unique item.
 
     Args:
-        items (Sequence): indexable collection of items
+        items (Sequence[V]): indexable collection of items
 
-        key (Callable, optional): custom normalization function.
+        key (Callable[[V], Any], default=None): custom normalization function.
             If specified returns items where ``key(item)`` is unique.
 
-    Yields:
-        int : indices of the unique items
+    Returns:
+        Iterator[int] : indices of the unique items
 
     Example:
         >>> items = [0, 2, 5, 1, 1, 0, 2, 4]
@@ -365,7 +370,6 @@ def argunique(items, key=None):
         >>> indices = list(argunique(items, key=lambda x: x % 2 == 0))
         >>> assert indices == [0, 2]
     """
-    # yield from unique(range(len(items)), key=lambda i: items[i])
     if key is None:
         return unique(range(len(items)), key=lambda i: items[i])
     else:
@@ -380,7 +384,7 @@ def unique_flags(items, key=None):
     Args:
         items (Sequence): indexable collection of items
 
-        key (Callable, optional): custom normalization function.
+        key (Callable[[V], Any], default=None): custom normalization function.
             If specified returns items where ``key(item)`` is unique.
 
     Returns:
@@ -410,16 +414,17 @@ def boolmask(indices, maxval=None):
     ``indices`` otherwise it is False.
 
     Args:
-        indices (list): list of integer indices
+        indices (List[int]): list of integer indices
 
         maxval (int): length of the returned list. If not specified
-            this is inferred from ``indices``
+            this is inferred using ``max(indices)``
+
+    Returns:
+        List[bool]:
+            mask - a list of booleans. mask[idx] is True if idx in indices
 
     Note:
         In the future the arg ``maxval`` may change its name to ``shape``
-
-    Returns:
-        list: mask: list of booleans. mask[idx] is True if idx in indices
 
     Example:
         >>> import ubelt as ub
@@ -444,16 +449,16 @@ def iter_window(iterable, size=2, step=1, wrap=False):
     sliding window.
 
     Args:
-        iterable (Iterable): an iterable sequence
+        iterable (Iterable[T]): an iterable sequence
 
-        size (int): sliding window size (default = 2)
+        size (int, default=2): sliding window size
 
-        step (int): sliding step size (default = 1)
+        step (int, default=1): sliding step size
 
-        wrap (bool): wraparound (default = False)
+        wrap (bool, default=False): wraparound flag
 
     Returns:
-        iter: returns windows in a sequence
+        Iterable[T]: returns a possibly overlaping windows in a sequence
 
     Example:
         >>> iterable = [1, 2, 3, 4, 5, 6]
@@ -468,7 +473,7 @@ def iter_window(iterable, size=2, step=1, wrap=False):
         >>> size, step, wrap = 3, 2, True
         >>> window_iter = iter_window(iterable, size, step, wrap)
         >>> window_list = list(window_iter)
-        >>> print('window_list = %r' % (window_list,))
+        >>> print('window_list = {!r}'.format(window_list))
         window_list = [(1, 2, 3), (3, 4, 5), (5, 6, 1)]
 
     Example:
@@ -476,7 +481,7 @@ def iter_window(iterable, size=2, step=1, wrap=False):
         >>> size, step, wrap = 3, 2, False
         >>> window_iter = iter_window(iterable, size, step, wrap)
         >>> window_list = list(window_iter)
-        >>> print('window_list = %r' % (window_list,))
+        >>> print('window_list = {!r}'.format(window_list))
         window_list = [(1, 2, 3), (3, 4, 5)]
 
     Example:
@@ -484,7 +489,7 @@ def iter_window(iterable, size=2, step=1, wrap=False):
         >>> size, step, wrap = 3, 2, False
         >>> window_iter = iter_window(iterable, size, step, wrap)
         >>> window_list = list(window_iter)
-        >>> print('window_list = %r' % (window_list,))
+        >>> print('window_list = {!r}'.format(window_list))
         window_list = []
     """
     # it.tee may be slow, but works on all iterables
@@ -511,10 +516,14 @@ def allsame(iterable, eq=operator.eq):
     Determine if all items in a sequence are the same
 
     Args:
-        iterable (Iterable): items to determine if they are all the same
+        iterable (Iterable[A]):
+            items to determine if they are all the same
 
-        eq (Callable, optional): function to determine equality
-            (default: operator.eq)
+        eq (Callable[[A, A], bool], default=operator.eq):
+            function used to test for equality
+
+    Returns:
+        bool: True if all items are equal, otherwise False
 
     Example:
         >>> allsame([1, 1, 1, 1])
@@ -548,14 +557,15 @@ def argsort(indexable, key=None, reverse=False):
     and works on both lists and dictionaries.
 
     Args:
-        indexable (Iterable or Mapping): indexable to sort by
+        indexable (Iterable[B] | Mapping[A, B]): indexable to sort by
 
-        key (Callable, optional): customizes the ordering of the indexable
+        key (Callable[[A], B], default=None):
+            customizes the ordering of the indexable
 
-        reverse (bool, optional): if True returns in descending order
+        reverse (bool, default=False): if True returns in descending order
 
     Returns:
-        list: indices: list of indices such that sorts the indexable
+        List[int]: indices - list of indices such that sorts the indexable
 
     Example:
         >>> import ubelt as ub
@@ -603,12 +613,13 @@ def argmax(indexable, key=None):
     and works on both lists and dictionaries.
 
     Args:
-        indexable (Iterable or Mapping): indexable to sort by
+        indexable (Iterable[B] | Mapping[A, B]): indexable to sort by
 
-        key (Callable, optional): customizes the ordering of the indexable
+        key (Callable[[A], B], default=None):
+            customizes the ordering of the indexable
 
-    CommandLine:
-        python -m ubelt.util_list argmax
+    Returns:
+        int: the index of the item with the maximum value.
 
     Example:
         >>> assert argmax({'a': 3, 'b': 2, 'c': 100}) == 'c'
@@ -637,9 +648,13 @@ def argmin(indexable, key=None):
     and works on both lists and dictionaries.
 
     Args:
-        indexable (Iterable or Mapping): indexable to sort by
+        indexable (Iterable[B] | Mapping[A, B]): indexable to sort by
 
-        key (Callable, optional): customizes the ordering of the indexable
+        key (Callable[[A], B], default=None):
+            customizes the ordering of the indexable
+
+    Returns:
+        int: the index of the item with the minimum value.
 
     Example:
         >>> assert argmin({'a': 3, 'b': 2, 'c': 100}) == 'b'
@@ -669,7 +684,7 @@ def peek(iterable):
         iterable (List[T]): an iterable
 
     Returns:
-        T: item: the first item of ordered sequence, a popped item from an
+        T: item - the first item of ordered sequence, a popped item from an
                  iterator, or an arbitrary item from an unordered collection.
 
     Example:

@@ -19,6 +19,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 * The argument names in `ub.group_items`, `groupids` was changed to `key`.
 * The argument names in `ub.dict_hist`. `item_list` was changed to `items` and
   `weight_list` was changed to `weights`.
+* The argument names in `ub.flatten`. `nested_list` was changed to `nested` and
 
 
 ## [Version 0.8.8] - 2020-01-12
