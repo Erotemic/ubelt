@@ -134,17 +134,21 @@ class AutoOrderedDict(OrderedDict, AutoDict):
 
 def dzip(items1, items2, cls=dict):
     """
-    Zips elementwise pairs between items1 and items2 into a dictionary. Values
-    from items2 can be broadcast onto items1.
+    Zips elementwise pairs between items1 and items2 into a dictionary.
+
+    Values from items2 can be broadcast onto items1.
 
     Args:
-        items1 (Iterable): full sequence
-        items2 (Iterable): can either be a sequence of one item or a sequence
-            of equal length to ``items1``
+        items1 (Iterable[A]): full sequence
+
+        items2 (Iterable[B]):
+            can either be a sequence of one item or a sequence of equal length
+            to ``items1``
+
         cls (Type[dict], default=dict): dictionary type to use.
 
     Returns:
-        dict: similar to ``dict(zip(items1, items2))``.
+        Dict[A, B]: similar to ``dict(zip(items1, items2))``.
 
     Example:
         >>> assert dzip([1, 2, 3], [4]) == {1: 4, 2: 4, 3: 4}
@@ -174,88 +178,88 @@ def dzip(items1, items2, cls=dict):
     return cls(zip(items1, items2))
 
 
-def group_items(items, groupids):
-    r"""
+def group_items(items, key):
+    """
     Groups a list of items by group id.
 
     Args:
-        items (Iterable): a list of items to group
-        groupids (Iterable or Callable): a corresponding list of item groupids
-            or a function mapping an item to a groupid.
+        items (Iterable[A]): a list of items to group
+
+        key (Iterable[B] | Callable[[A], B]):
+            either a corresponding list of group-ids for each item or
+            a function used to map each item to a group-id.
 
     Returns:
-        dict: groupid_to_items: maps a groupid to a list of items
-
-    CommandLine:
-        python -m ubelt.util_dict group_items
+        dict[B, List[A]]:
+            a mapping from each group id to the list of corresponding items
 
     Example:
         >>> import ubelt as ub
         >>> items    = ['ham',     'jam',   'spam',     'eggs',    'cheese', 'banana']
         >>> groupids = ['protein', 'fruit', 'protein',  'protein', 'dairy',  'fruit']
-        >>> groupid_to_items = ub.group_items(items, groupids)
-        >>> print(ub.repr2(groupid_to_items, nl=0))
+        >>> id_to_items = ub.group_items(items, groupids)
+        >>> print(ub.repr2(id_to_items, nl=0))
         {'dairy': ['cheese'], 'fruit': ['jam', 'banana'], 'protein': ['ham', 'spam', 'eggs']}
     """
-    if callable(groupids):
-        keyfunc = groupids
+    if callable(key):
+        keyfunc = key
         pair_list = ((keyfunc(item), item) for item in items)
     else:
-        pair_list = zip(groupids, items)
+        pair_list = zip(key, items)
 
     # Initialize a dict of lists
-    groupid_to_items = defaultdict(list)
+    id_to_items = defaultdict(list)
     # Insert each item into the correct group
     for key, item in pair_list:
-        groupid_to_items[key].append(item)
-    return groupid_to_items
+        id_to_items[key].append(item)
+    return id_to_items
 
 
-def dict_hist(item_list, weight_list=None, ordered=False, labels=None):
+def dict_hist(items, weights=None, ordered=False, labels=None):
     """
     Builds a histogram of items, counting the number of time each item appears
     in the input.
 
     Args:
-        item_list (Iterable):
+        items (Iterable[T]):
             hashable items (usually containing duplicates)
-        weight_list (Iterable, default=None):
+
+        weights (Iterable[float], default=None):
             Corresponding weights for each item.
+
         ordered (bool, default=False):
             If True the result is ordered by frequency.
-        labels (Iterable, default=None): Expected labels.
-            Allows this function to pre-initialize the histogram.
-            If specified the frequency of each label is initialized to
-            zero and item_list can only contain items specified in labels.
+
+        labels (Iterable[T], default=None):
+            Expected labels.  Allows this function to pre-initialize the
+            histogram.  If specified the frequency of each label is initialized
+            to zero and ``items`` can only contain items specified in labels.
 
     Returns:
-        dict : dictionary where the keys are items in item_list, and the values
-          are the number of times the item appears in item_list.
-
-    CommandLine:
-        python -m ubelt.util_dict dict_hist
+        dict[T, int] :
+            dictionary where the keys are unique elements from ``items``, and
+            the values are the number of times the item appears in ``items``.
 
     Example:
         >>> import ubelt as ub
-        >>> item_list = [1, 2, 39, 900, 1232, 900, 1232, 2, 2, 2, 900]
-        >>> hist = ub.dict_hist(item_list)
+        >>> items = [1, 2, 39, 900, 1232, 900, 1232, 2, 2, 2, 900]
+        >>> hist = ub.dict_hist(items)
         >>> print(ub.repr2(hist, nl=0))
         {1: 1, 2: 4, 39: 1, 900: 3, 1232: 2}
 
     Example:
         >>> import ubelt as ub
-        >>> item_list = [1, 2, 39, 900, 1232, 900, 1232, 2, 2, 2, 900]
-        >>> hist1 = ub.dict_hist(item_list)
-        >>> hist2 = ub.dict_hist(item_list, ordered=True)
+        >>> items = [1, 2, 39, 900, 1232, 900, 1232, 2, 2, 2, 900]
+        >>> hist1 = ub.dict_hist(items)
+        >>> hist2 = ub.dict_hist(items, ordered=True)
         >>> try:
-        >>>     hist3 = ub.dict_hist(item_list, labels=[])
+        >>>     hist3 = ub.dict_hist(items, labels=[])
         >>> except KeyError:
         >>>     pass
         >>> else:
         >>>     raise AssertionError('expected key error')
-        >>> #result = ub.repr2(hist_)
-        >>> weight_list = [1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1]
-        >>> hist4 = ub.dict_hist(item_list, weight_list=weight_list)
+        >>> weights = [1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1]
+        >>> hist4 = ub.dict_hist(items, weights=weights)
         >>> print(ub.repr2(hist1, nl=0))
         {1: 1, 2: 4, 39: 1, 900: 3, 1232: 2}
         >>> print(ub.repr2(hist4, nl=0))
@@ -265,10 +269,10 @@ def dict_hist(item_list, weight_list=None, ordered=False, labels=None):
         hist_ = defaultdict(lambda: 0)
     else:
         hist_ = {k: 0 for k in labels}
-    if weight_list is None:
-        weight_list = it.repeat(1)
+    if weights is None:
+        weights = it.repeat(1)
     # Accumulate frequency
-    for item, weight in zip(item_list, weight_list):
+    for item, weight in zip(items, weights):
         hist_[item] += weight
     if ordered:
         # Order by value
@@ -291,13 +295,19 @@ def find_duplicates(items, k=2, key=None):
     from each (k)-duplicate item to the positions it appeared in.
 
     Args:
-        items (Iterable): hashable items possibly containing duplicates
-        k (int, default=2): only return items that appear at least ``k`` times.
-        key (Callable, default=None): Returns indices where `key(items[i])`
-            maps to a particular value at least k times.
+        items (Iterable[T]):
+            hashable items possibly containing duplicates
+
+        k (int, default=2):
+            only return items that appear at least ``k`` times.
+
+        key (Callable[[T], Any], default=None):
+            Returns indices where `key(items[i])` maps to a particular value at
+            least k times.
 
     Returns:
-        dict: maps each duplicate item to the indices at which it appears
+        dict[T: List[int]]:
+            maps each duplicate item to the indices at which it appears
 
     Example:
         >>> import ubelt as ub
@@ -346,17 +356,19 @@ def dict_subset(dict_, keys, default=util_const.NoParam, cls=OrderedDict):
     Get a subset of a dictionary
 
     Args:
-        dict_ (Mapping): superset dictionary
-        keys (Iterable): keys to take from ``dict_``
+        dict_ (Dict[A, B]): superset dictionary
+
+        keys (Iterable[A]): keys to take from ``dict_``
+
         default (object, optional): if specified uses default if keys are missing
+
         cls (type, default=OrderedDict): type of the returned dictionary.
 
     Returns:
-        cls: subset dictionary
+        cls[A, B]: subset dictionary
 
     SeeAlso:
-        :func:`dict_isect` - similar functionality, but will only take existing
-            keys
+        :func:`dict_isect` - similar functionality, but ignores missing keys
 
     Example:
         >>> import ubelt as ub
@@ -484,11 +496,11 @@ def map_vals(func, dict_):
     Creates a new dictionary with the same keys and modified values.
 
     Args:
-        func (callable | indexable): a function or indexable object
-        dict_ (dict): a dictionary
+        func (Callable[[B], C] | Mapping[B, C]): a function or indexable object
+        dict_ (Dict[A, B]): a dictionary
 
     Returns:
-        dict: transformed dictionary
+        Dict[A, C]: transformed dictionary
 
     Example:
         >>> dict_ = {'a': [1, 2, 3], 'b': []}
@@ -519,11 +531,11 @@ def map_keys(func, dict_):
     is raised if the new keys are not unique.
 
     Args:
-        func (callable | indexable): a function or indexable object
-        dict_ (dict): a dictionary
+        func (Callable[[A], C] | Mapping[A, C]): a function or indexable object
+        dict_ (Dict[A, B]): a dictionary
 
     Returns:
-        dict: transformed dictionary
+        Dict[C, B]: transformed dictionary
 
     Raises:
         Exception : if multiple keys map to the same value
@@ -555,15 +567,17 @@ def sorted_vals(dict_, key=None, reverse=False):
     Return an ordered dictionary sorted by its values
 
     Args:
-        dict_ (dict): dictionary to sort. The values must be of comparable
-            types.
+        dict_ (Dict[A, B]):
+            dictionary to sort. The values must be of comparable types.
 
-        key (Callable, optional): customizes the sort ordering
+        key (Callable[[B], Any], optional):
+            customizes the sorting by ordering using transformed values
 
-        reverse (bool, default=False): if True returns in descending order
+        reverse (bool, default=False):
+            if True returns in descending order
 
     Returns:
-        OrderedDict: new dictionary where the values are ordered
+        OrderedDict[A, B]: new dictionary where the values are ordered
 
     Example:
         >>> import ubelt as ub
@@ -592,15 +606,17 @@ def sorted_keys(dict_, key=None, reverse=False):
     Return an ordered dictionary sorted by its keys
 
     Args:
-        dict_ (dict): dictionary to sort. The keys must be of comparable
-            types.
+        dict_ (Dict[A, B]):
+            dictionary to sort. The keys must be of comparable types.
 
-        key (Callable, optional): customizes the sort ordering
+        key (Callable[[A], Any], optional):
+            customizes the sorting by ordering using transformed keys
 
-        reverse (bool, default=False): if True returns in descending order
+        reverse (bool, default=False):
+            if True returns in descending order
 
     Returns:
-        OrderedDict: new dictionary where the keys are ordered
+        OrderedDict[A, B]: new dictionary where the keys are ordered
 
     Example:
         >>> import ubelt as ub
@@ -629,13 +645,14 @@ def invert_dict(dict_, unique_vals=True):
     Swaps the keys and values in a dictionary.
 
     Args:
-        dict_ (dict): dictionary to invert
+        dict_ (Dict[A, B]): dictionary to invert
 
         unique_vals (bool, default=True): if False, the values of the new
             dictionary are sets of the original keys.
 
     Returns:
-        dict: inverted
+        Dict[B, A] | Dict[B, List[A]]:
+            the inverted dictionary
 
     Notes:
         The must values be hashable.
