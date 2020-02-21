@@ -4,7 +4,7 @@ We are currently working on porting this changelog to the specifications in
 [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Version 0.8.9] - Unreleased
+## [Version 0.8.9] - 2020-02-20
 
 ### Added
 * `dpath` and `fname` keywords to the `ub.download` function.
@@ -17,9 +17,9 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### Changed
 * The argument names in `ub.group_items`, `groupids` was changed to `key`.
-* The argument names in `ub.dict_hist`. `item_list` was changed to `items` and
+* The argument names in `ub.dict_hist`. `item_list` was changed to `items`, 
   `weight_list` was changed to `weights`.
-* The argument names in `ub.flatten`. `nested_list` was changed to `nested` and
+* The argument names in `ub.flatten`. `nested_list` was changed to `nested`
 
 
 ## [Version 0.8.8] - 2020-01-12
