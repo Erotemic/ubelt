@@ -40,10 +40,6 @@ def highlight_code(text, lexer_name='python', **kwargs):
         str: text - highlighted text
             If pygments is not installed, the plain text is returned.
 
-    CommandLine:
-        python -c "import pygments.formatters; print(list(pygments.formatters.get_all_formatters()))"
-        python -c "import pygments.lexers, ubelt; print(ubelt.repr2(pygments.lexers.__all__, nl=2))"
-
     Example:
         >>> import ubelt as ub
         >>> text = 'import ubelt as ub; print(ub)'
@@ -86,18 +82,14 @@ def color_text(text, color):
 
     Args:
         text (str): text to colorize
-        color (str): may be one of the following: yellow, blink, lightgray,
-            underline, darkyellow, blue, darkblue, faint, fuchsia, black,
-            white, red, brown, turquoise, bold, darkred, darkgreen, reset,
-            standout, darkteal, darkgray, overline, purple, green, teal,
-            fuscia.  Note that different systems may have different colors.
+
+        color (str): color code. different systems may have different colors.
+            commonly available colors are: 'red', 'brown', 'yellow', 'green',
+            'blue', 'black', and 'white'.
 
     Returns:
         str: text - colorized text.
             If pygments is not installed plain text is returned.
-
-    CommandLine:
-        python -c "import pygments.console; print(sorted(pygments.console.codes.keys()))"
 
     Example:
         >>> text = 'raw text'

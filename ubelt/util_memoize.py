@@ -64,9 +64,6 @@ def _make_signature_key(args, kwargs):
     """
     Transforms function args into a key that can be used by the cache
 
-    CommandLine:
-        xdoctest -m ubelt.util_memoize _make_signature_key
-
     Example:
         >>> args = (4, [1, 2])
         >>> kwargs = {'a': 'b'}
@@ -101,7 +98,9 @@ def _make_signature_key(args, kwargs):
     try:
         key = _hashable(args), _hashable(kwitems)
     except TypeError:
-        raise TypeError('Signature is not hashable: args={} kwargs{}'.format(args, kwargs))
+        msg = ('Signature is not hashable: '
+               'args={} kwargs{}'.format(args, kwargs))
+        raise TypeError(msg)
     return key
 
 
@@ -109,17 +108,14 @@ def memoize(func):
     """
     memoization decorator that respects args and kwargs
 
-    References:
-        https://wiki.python.org/moin/PythonDecoratorLibrary#Memoize
-
     Args:
         func (Callable): live python function
 
     Returns:
-        func: memoized wrapper
+        Callable: memoized wrapper
 
-    CommandLine:
-        xdoctest -m ubelt.util_memoize memoize
+    References:
+        https://wiki.python.org/moin/PythonDecoratorLibrary#Memoize
 
     Example:
         >>> import ubelt as ub
@@ -245,9 +241,6 @@ def memoize_property(fget):
 
     References:
         ..[1] https://github.com/estebistec/python-memoized-property
-
-    CommandLine:
-        xdoctest -m ubelt.util_memoize memoize_property
 
     Example:
         >>> class C(object):

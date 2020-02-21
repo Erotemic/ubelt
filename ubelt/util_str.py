@@ -31,13 +31,10 @@ def indent(text, prefix='    '):
 
     Args:
         text (str): text to indent
-        prefix (str): prefix to add to each line (default = '    ')
+        prefix (str, default = '    '): prefix to add to each line
 
     Returns:
         str: indented text
-
-    CommandLine:
-        python -m util_str indent
 
     Example:
         >>> from ubelt.util_str import *  # NOQA
@@ -62,9 +59,6 @@ def codeblock(text):
 
     Returns:
         str: the unindented string
-
-    CommandLine:
-        python -m ubelt.util_str codeblock
 
     Example:
         >>> from ubelt.util_str import *  # NOQA
@@ -105,9 +99,6 @@ def paragraph(text):
     Returns:
         str: the reduced text block
 
-    CommandLine:
-        xdoctest -m ubelt.util_str paragraph
-
     Example:
         >>> from ubelt.util_str import *  # NOQA
         >>> text = (
@@ -136,10 +127,7 @@ def hzcat(args, sep=''):
 
     Args:
         args (List[str]): strings to concatenate
-        sep (str): separator (defaults to '')
-
-    CommandLine:
-        python -m ubelt.util_str hzcat
+        sep (str, default=''): separator
 
     Example1:
         >>> import ubelt as ub

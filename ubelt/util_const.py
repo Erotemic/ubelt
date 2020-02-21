@@ -44,9 +44,6 @@ class _NoParamType(object):
     References:
         _[1] http://stackoverflow.com/questions/41048643/a-second-none
 
-    CommandLine:
-        xdoctest ubelt.util_const _NoParamType
-
     Example:
         >>> import ubelt as ub
         >>> from ubelt import util_const

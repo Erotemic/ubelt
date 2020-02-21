@@ -10,9 +10,6 @@ it is treated as abstract and raises ``NotImplementedError``.
 To use simply have your object inherit from :class:`NiceRepr`
 (multi-inheritance should be ok).
 
-CommandLine:
-    xdoctest -m ubelt.util_mixins __doc__
-
 Example:
     >>> # Objects that define __nice__ have a default __str__ and __repr__
     >>> import ubelt as ub

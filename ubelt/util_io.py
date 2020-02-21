@@ -41,9 +41,6 @@ def writeto(fpath, to_write, aslines=False, verbose=None):
         in pypy. See `https://pypy.org/compat.html`. This is a strong argument
         for keeping this function.
 
-    CommandLine:
-        python -m ubelt.util_io writeto --verbose
-
     Example:
         >>> import ubelt as ub
         >>> dpath = ub.ensure_app_cache_dir('ubelt')
