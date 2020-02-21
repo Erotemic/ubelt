@@ -23,10 +23,7 @@ def identity(arg=None, *args, **kwargs):
         **kwargs: ignored
 
     Returns:
-        object: arg: the same value
-
-    CommandLine:
-        xdoctest -m ubelt.util_func identity
+        object: arg - the same value
 
     Example:
         >>> import ubelt as ub
@@ -49,8 +46,11 @@ def inject_method(self, func, name=None):
     simply remind the developer that there might be a better way.
 
     Args:
-        self (object): instance to inject a function into
-        func (func): the function to inject (must contain an arg for self)
+        self (T): instance to inject a function into
+
+        func (Callable[[T, ...], Any]):
+            the function to inject (must contain an arg for self)
+
         name (str, default=None): name of the method. optional. If not
             specified the name of the function is used.
 

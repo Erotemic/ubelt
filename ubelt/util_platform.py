@@ -122,10 +122,10 @@ def get_app_data_dir(appname, *args):
         *args: any other subdirectories may be specified
 
     Returns:
-        str : dpath: writable data directory for this application
+        str : dpath - writable data directory for this application
 
     SeeAlso:
-        ensure_app_data_dir
+        :func:`ensure_app_data_dir`
     """
     dpath = join(platform_data_dir(), appname, *args)
     return dpath
@@ -140,7 +140,7 @@ def ensure_app_data_dir(appname, *args):
         *args: any other subdirectories may be specified
 
     SeeAlso:
-        get_app_data_dir
+        :func:`get_app_data_dir`
 
     Example:
         >>> import ubelt as ub
@@ -163,7 +163,7 @@ def get_app_config_dir(appname, *args):
         *args: any other subdirectories may be specified
 
     Returns:
-        str : dpath: writable config directory for this application
+        str : dpath - writable config directory for this application
 
     SeeAlso:
         ensure_app_config_dir
@@ -204,7 +204,7 @@ def get_app_cache_dir(appname, *args):
         *args: any other subdirectories may be specified
 
     Returns:
-        str : dpath: writable cache directory for this application
+        str : dpath - writable cache directory for this application
 
     SeeAlso:
         ensure_app_cache_dir
