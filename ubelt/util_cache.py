@@ -274,6 +274,9 @@ class Cacher(object):
         Returns data with different cfgstr values that were previously computed
         with this cacher.
 
+        CommandLine:
+            xdoctest -m ubelt.util_cache existing_versions
+
         Example:
             >>> from ubelt.util_cache import Cacher
             >>> # Ensure that some data exists
@@ -289,7 +292,8 @@ class Cacher(object):
             >>> cacher = Cacher('versioned_data_v2', cfgstr='2')
             >>> exist_fpaths = set(cacher.existing_versions())
             >>> exist_fnames = list(map(basename, exist_fpaths))
-            >>> print(exist_fnames)
+            >>> print('exist_fnames = {!r}'.format(exist_fnames))
+            >>> print('known_fnames = {!r}'.format(known_fnames))
             >>> assert exist_fpaths == known_fnames
 
             ['versioned_data_1.pkl', 'versioned_data_2.pkl']
