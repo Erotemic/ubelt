@@ -196,7 +196,7 @@ if __name__ == '__main__':
         author_email='erotemic@gmail.com',
         url='https://github.com/Erotemic/ubelt',
         license='Apache 2',
-        packages=find_packages('ubelt*'),
+        packages=find_packages('.'),
         classifiers=[
             # List of classifiers available at:
             # https://pypi.python.org/pypi?%3Aaction=list_classifiers
