@@ -14,8 +14,8 @@ The :func:`ub.split_modpath` function separates modules into a root and base
 path depending on where the first ``__init__.py`` file is.
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
-from os.path import (abspath, exists, expanduser, isdir, join, split, dirname,
-                     relpath, splitext, basename, isfile, realpath,)
+from os.path import (abspath, basename, dirname, exists, expanduser, isdir,
+                     isfile, join, realpath, relpath, split, splitext)
 import os
 import six
 import sys
@@ -48,6 +48,7 @@ class PythonPathContext(object):
         >>> assert sys.path[0] != 'bar'
 
     Example:
+        >>> # xdoctest: +REQUIRES(module:pytest)
         >>> # Mangle the path inside the context
         >>> self = PythonPathContext('foo', 0)
         >>> self.__enter__()
@@ -57,6 +58,7 @@ class PythonPathContext(object):
         >>>     self.__exit__(None, None, None)
 
     Example:
+        >>> # xdoctest: +REQUIRES(module:pytest)
         >>> self = PythonPathContext('foo', 0)
         >>> self.__enter__()
         >>> sys.path.remove('foo')
