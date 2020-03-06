@@ -352,6 +352,24 @@ def test_newline_keys():
     assert text == want
 
 
+def test_format_inf():
+    import ubelt as ub
+    ub.repr2(float('inf'))
+    ub.repr2({'a': float('inf')})
+
+    try:
+        import numpy as np
+    except ImportError:
+        pass
+    else:
+        ub.repr2(float(np.inf), sv=1)
+        text1 = ub.repr2(np.array([np.inf, 1, 2, np.nan, -np.inf]), sv=0)
+        assert 'np.inf' in text1 and 'np.nan' in text1
+        text2 = ub.repr2(np.array([np.inf, 1, 2, np.nan, -np.inf]), sv=1)
+        assert 'np.inf' not in text2 and 'inf' in text2
+        assert 'np.nan' not in text2 and 'nan' in text2
+
+
 if __name__ == '__main__':
     """
     CommandLine:

@@ -4,6 +4,14 @@ We are currently working on porting this changelog to the specifications in
 [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+
+## [Version 0.9.1] - 
+
+### Changed
+* `ub.repr2` now encodes inf and nan as `float('inf')` and `float('nan')` to
+  allow output to be evaluated.
+
+
 ## [Version 0.9.0] - 2020-02-22
 
 ### Fixed
