@@ -94,7 +94,8 @@ def repr2(data, **kwargs):
             passed to :func:`numpy.array2string` for ndarrays
 
         with_dtype (bool):
-            only relevant to ndarrays. if True includes the dtype.
+            only relevant to numpy.ndarrays. if True includes the dtype.
+            Defaults to `not strvals`.
 
         extensions (FormatterExtensions):
             a custom :class:`FormatterExtensions` instance that can overwrite or
@@ -388,6 +389,12 @@ class FormatterExtensions(object):
                                        suppress_small=suppress_small,
                                        prefix=prefix,
                                        max_line_width=max_line_width)
+
+            if not strvals:
+                # Handle special float values inf / nan
+                body = re.sub('\\binf\\b', np_nice + '.inf', body)
+                body = re.sub('\\bnan\\b', np_nice + '.nan', body)
+
             if not newlines:
                 # remove newlines if we need to
                 body = re.sub('\n *', '', body)
@@ -401,10 +408,28 @@ class FormatterExtensions(object):
         @self.register(float)
         def format_float(data, **kwargs):
             precision = kwargs.get('precision', None)
+            strvals = kwargs.get('sv', kwargs.get('strvals', False))
+
             if precision is None:
-                return six.text_type(data)
+                text = six.text_type(data)
             else:
-                return ('{:.%df}' % precision).format(data)
+                text = ('{:.%df}' % precision).format(data)
+
+            if not strvals:
+                # Ensure the representation of inf and nan is evaluatable
+                # NOTE: sometimes this function is used to make json objects
+                # how can we ensure that this doesn't break things?
+                # Turns out json, never handled these cases. In the future we
+                # may want to add a json flag to repr2 to encourage it to
+                # output json-like representations.
+                # json.loads("[0, 1, 2, nan]")
+                # json.loads("[Infinity, NaN]")
+                # json.dumps([float('inf'), float('nan')])
+                import math
+                if math.isinf(data) or math.isnan(data):
+                    text = "float('{}')".format(text)
+
+            return text
 
         @self.register(slice)
         def format_slice(data, **kwargs):
