@@ -203,7 +203,13 @@ class Cacher(object):
 
         if cfgstr is None and self.depends is not None:
             from ubelt import util_hash
-            cfgstr = util_hash.hash_data(self.depends)
+            import six
+            # lazy hashing of depends data into cfgstr
+            if isinstance(self.depends, six.string_types):
+                self.cfgstr = self.depends
+            else:
+                self.cfgstr = util_hash.hash_data(self.depends)
+            cfgstr = self.cfgstr
 
         if cfgstr is None and self.enabled:
             warnings.warn(
@@ -223,7 +229,8 @@ class Cacher(object):
         max_len = 49
         if len(cfgstr) > max_len:
             from ubelt import util_hash
-            condensed = util_hash.hash_data(cfgstr, hasher=self.hasher, base='hex')
+            condensed = util_hash.hash_data(cfgstr, hasher=self.hasher,
+                                            base='hex')
             condensed = condensed[0:max_len]
         else:
             condensed = cfgstr
@@ -266,37 +273,37 @@ class Cacher(object):
 
         Args:
             cfgstr (str, optional): overrides the instance-level cfgstr
+
+        Returns:
+            bool
         """
-        return exists(self.get_fpath())
+        return exists(self.get_fpath(cfgstr=cfgstr))
 
     def existing_versions(self):
         """
         Returns data with different cfgstr values that were previously computed
         with this cacher.
 
-        CommandLine:
-            xdoctest -m ubelt.util_cache existing_versions
+        Yields:
+            str: paths to cached files corresponding to this cacher
 
         Example:
             >>> from ubelt.util_cache import Cacher
             >>> # Ensure that some data exists
-            >>> known_fnames = set()
-            >>> cacher = Cacher('versioned_data_v2', cfgstr='1')
+            >>> known_fpaths = set()
+            >>> cacher = Cacher('versioned_data_v2', depends='1')
             >>> cacher.ensure(lambda: 'data1')
-            >>> known_fnames.add(cacher.get_fpath())
-            >>> cacher = Cacher('versioned_data_v2', cfgstr='2')
+            >>> known_fpaths.add(cacher.get_fpath())
+            >>> cacher = Cacher('versioned_data_v2', depends='2')
             >>> cacher.ensure(lambda: 'data2')
-            >>> known_fnames.add(cacher.get_fpath())
+            >>> known_fpaths.add(cacher.get_fpath())
             >>> # List previously computed configs for this type
             >>> from os.path import basename
-            >>> cacher = Cacher('versioned_data_v2', cfgstr='2')
+            >>> cacher = Cacher('versioned_data_v2', depends='2')
             >>> exist_fpaths = set(cacher.existing_versions())
             >>> exist_fnames = list(map(basename, exist_fpaths))
             >>> print('exist_fnames = {!r}'.format(exist_fnames))
-            >>> print('known_fnames = {!r}'.format(known_fnames))
-            >>> assert exist_fpaths == known_fnames
-
-            ['versioned_data_1.pkl', 'versioned_data_2.pkl']
+            >>> assert exist_fpaths.issubset(known_fpaths)
         """
         import glob
         pattern = join(self.dpath, self.fname + '_*' + self.ext)
@@ -338,6 +345,10 @@ class Cacher(object):
                 How to handle non-io errors errors. Either 'raise', which
                 re-raises the exception, or 'clear' which deletes the cache and
                 returns None.
+
+        Returns:
+            None | object:
+                the cached data if it exists, otherwise returns None
         """
         cfgstr = self._rectify_cfgstr(cfgstr)
         if self.enabled:
@@ -369,6 +380,9 @@ class Cacher(object):
 
         Args:
             cfgstr (str, optional): overrides the instance-level cfgstr
+
+        Returns:
+            object: the cached data
 
         Raises:
             IOError - if the data is unable to be loaded. This could be due to

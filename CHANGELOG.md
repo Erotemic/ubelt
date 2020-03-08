@@ -10,6 +10,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ### Changed
 * `ub.repr2` now encodes inf and nan as `float('inf')` and `float('nan')` to
   allow output to be evaluated.
+* `ub.grab_data` now uses the hasher name in the cached hash stamp file.
 
 
 ## [Version 0.9.0] - 2020-02-22

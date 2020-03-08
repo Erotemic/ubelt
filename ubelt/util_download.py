@@ -281,6 +281,9 @@ def grabdata(url, fpath=None, dpath=None, fname=None, redo=False,
     Returns:
         PathLike: fpath - path to downloaded or cached file.
 
+    CommandLine:
+        xdoctest -m ubelt.util_download grabdata --network
+
     Example:
         >>> # xdoctest: +REQUIRES(--network)
         >>> import ubelt as ub
@@ -297,7 +300,7 @@ def grabdata(url, fpath=None, dpath=None, fname=None, redo=False,
         >>> url = 'http://i.imgur.com/rqwaDag.png'
         >>> prefix1 = '944389a39dfb8fa9'
         >>> fpath = ub.grabdata(url, fname=fname, hash_prefix=prefix1)
-        >>> stamp_fpath = fpath + '.hash'
+        >>> stamp_fpath = fpath + '.sha512.hash'
         >>> assert ub.readfrom(stamp_fpath) == prefix1
         >>> # Check that the download doesn't happen again
         >>> fpath = ub.grabdata(url, fname=fname, hash_prefix=prefix1)
@@ -368,7 +371,13 @@ def grabdata(url, fpath=None, dpath=None, fname=None, redo=False,
 
 
 def _check_hash_stamp(fpath, hash_prefix, hasher, verbose, needs_download=False):
-    stamp_fpath = fpath + '.hash'
+    if isinstance(hasher, six.string_types):
+        hasher_name = hasher
+    else:
+        hasher_name = hasher.name
+
+    stamp_fpath = '{}.{}.hash'.format(fpath, hasher_name)
+    print('stamp_fpath = {!r}'.format(stamp_fpath))
     # Force a re-download if the hash file does not exist or it does
     # not match the expected hash
     if exists(stamp_fpath):
