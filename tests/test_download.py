@@ -300,7 +300,7 @@ def test_grabdata_hash_typo():
 
     for verbose in [0]:
         ub.delete(fpath)
-        ub.delete(fpath + '.hash')
+        ub.delete(fpath + '.md5.hash')
         assert not exists(fpath)
 
         print('[STEP1] Downloading file, but we have a typo in the hash')
@@ -318,12 +318,12 @@ def test_grabdata_hash_typo():
         assert exists(fpath)
 
         # If we delete the .hash file we will simply recompute
-        ub.delete(fpath + '.hash')
+        ub.delete(fpath + '.md5.hash')
         print('[STEP3] Deleting the hash file recomputes the hash')
         got_fpath = ub.grabdata(url, fpath=fpath,
                                 hash_prefix='545e3a51404f664e46aa65a70948e126',
                                 hasher=hashlib.md5(), verbose=verbose)
-        assert exists(fpath + '.hash')
+        assert exists(fpath + '.md5.hash')
 
 
 if __name__ == '__main__':
