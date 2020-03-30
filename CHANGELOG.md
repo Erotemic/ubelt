@@ -5,7 +5,7 @@ We are currently working on porting this changelog to the specifications in
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
-## [Version 0.9.1] - 
+## [Version 0.9.1] - 2020-03-30
 
 ### Changed
 * `ub.repr2` now encodes inf and nan as `float('inf')` and `float('nan')` to
