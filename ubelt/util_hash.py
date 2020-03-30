@@ -210,7 +210,7 @@ def _rectify_hasher(hasher):
         >>>     assert _rectify_hasher('xxh64') is xxhash.xxh64
         >>>     assert _rectify_hasher('xxh32') is xxhash.xxh32
     """
-    if xxhash is not None:  # pragma: nobranch
+    if xxhash is not None:  # pragma: no cover
         if hasher in {'xxh32', 'xx32', 'xxhash'}:
             return xxhash.xxh32
         if hasher in {'xxh64', 'xx64'}:

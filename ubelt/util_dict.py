@@ -651,7 +651,7 @@ def invert_dict(dict_, unique_vals=True):
             dictionary are sets of the original keys.
 
     Returns:
-        Dict[B, A] | Dict[B, List[A]]:
+        Dict[B, A] | Dict[B, Set[A]]:
             the inverted dictionary
 
     Notes:
@@ -659,7 +659,7 @@ def invert_dict(dict_, unique_vals=True):
 
         If the original dictionary contains duplicate values, then only one of
         the corresponding keys will be returned and the others will be
-        discarded.  This can be prevented by setting ``unique_vals=True``,
+        discarded.  This can be prevented by setting ``unique_vals=False``,
         causing the inverted keys to be returned in a set.
 
     Example:

@@ -377,7 +377,6 @@ def _check_hash_stamp(fpath, hash_prefix, hasher, verbose, needs_download=False)
         hasher_name = hasher.name
 
     stamp_fpath = '{}.{}.hash'.format(fpath, hasher_name)
-    print('stamp_fpath = {!r}'.format(stamp_fpath))
     # Force a re-download if the hash file does not exist or it does
     # not match the expected hash
     if exists(stamp_fpath):
