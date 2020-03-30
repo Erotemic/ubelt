@@ -151,6 +151,15 @@ def test_disabled_cache_stamp():
     assert stamp.expired() is True, 'disabled cache stamps are always expired'
 
 
+def test_cache_depends():
+    """
+    What no errors happen when an external processes removes meta
+    """
+    cacher = ub.Cacher('name', depends=['a', 'b', 'c'],
+                        verbose=10, enabled=False)
+    cfgstr = cacher._rectify_cfgstr()
+    assert cfgstr.startswith('8a82eef87cb905220841f95')
+
 if __name__ == '__main__':
     r"""
     CommandLine:
