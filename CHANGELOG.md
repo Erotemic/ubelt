@@ -5,6 +5,18 @@ We are currently working on porting this changelog to the specifications in
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [Version 0.9.2] - 2020-03-30
+
+### Fixed
+* `ProgIter` now correctly checks if it needs to displays a message on every iteration.
+
+
+### Changed
+* `ProgIter.step` now respects update freq, and will not update the estimates
+  if too few iterations have passed. This prevents `ub.download` from
+  generating extremely large amounts of standard out. 
+
+
 ## [Version 0.9.1] - 2020-03-30
 
 ### Changed

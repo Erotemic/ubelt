@@ -1,5 +1,6 @@
 xdoctest >= 0.3.0
 pytest >= 3.3.1
 pytest-cov
+pytest-timeout
 coverage >= 4.3.4
 codecov >= 2.0.15
