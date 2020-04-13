@@ -439,13 +439,14 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
         # Wrap input sequence in a generator
         for self._iter_idx, item in enumerate(self.iterable, start=self.initial + 1):
             yield item
-            _between_idx = (self._iter_idx - self._last_idx)
-            if (self._iter_idx) % self.freq == 0 or _between_idx  > self.freq:
-                # update progress information every so often
-                # Note: this is the same logic as `self.step`, but inline
-                self._update_measurements()
-                self._update_estimates()
-                self.display_message()
+            self.step(0)  # inc is 0 because we already updated
+            # _between_idx = (self._iter_idx - self._last_idx)
+            # if (self._iter_idx) % self.freq == 0 or _between_idx > self.freq:
+            #     # update progress information every so often
+            #     # Note: this is the same logic as `self.step`, but inline
+            #     self._update_measurements()
+            #     self._update_estimates()
+            #     self.display_message()
         self.end()
 
     def step(self, inc=1):
@@ -474,8 +475,8 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
         if not self.enabled:
             return
         self._iter_idx += inc
-        _between_idx = (self._iter_idx - self._last_idx)
-        if (self._iter_idx) % self.freq == 0 or _between_idx  > self.freq:
+        _between_idx = (self._iter_idx - self._now_idx)
+        if (self._iter_idx) % self.freq == 0 or _between_idx > self.freq:
             self._update_measurements()
             self._update_estimates()
             self.display_message()

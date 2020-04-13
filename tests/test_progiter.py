@@ -140,6 +140,7 @@ def test_progiter():
 def test_progiter_offset_10():
     """
     pytest -s  ~/code/ubelt/ubelt/tests/test_progiter.py::test_progiter_offset_10
+    xdoctest ~/code/ubelt/tests/test_progiter.py test_progiter_offset_10
     """
     # Define a function that takes some time
     file = cStringIO()
@@ -152,6 +153,8 @@ def test_progiter_offset_10():
         # on windows \r seems to be mixed up with ansi sequences
         from xdoctest.utils import strip_ansi
         got = [strip_ansi(line).strip() for line in got]
+    print('want = {!r}'.format(want))
+    print('got = {!r}'.format(got))
     assert got == want
 
 

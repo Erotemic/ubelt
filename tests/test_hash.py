@@ -262,11 +262,11 @@ def test_hash_data_custom_base():
 def test_hash_file():
     fpath = join(ub.ensure_app_cache_dir('ubelt'), 'tmp.txt')
     ub.writeto(fpath, 'foobar')
-    hashid1_a = ub.hash_file(fpath, hasher='sha512', hashlen=8, stride=1, blocksize=1)
-    hashid2_a = ub.hash_file(fpath, hasher='sha512', hashlen=8, stride=2, blocksize=1)
+    hashid1_a = ub.hash_file(fpath, hasher='sha512', stride=1, blocksize=1)
+    hashid2_a = ub.hash_file(fpath, hasher='sha512', stride=2, blocksize=1)
 
-    hashid1_b = ub.hash_file(fpath, hasher='sha512', hashlen=8, stride=1, blocksize=10)
-    hashid2_b = ub.hash_file(fpath, hasher='sha512', hashlen=8, stride=2, blocksize=10)
+    hashid1_b = ub.hash_file(fpath, hasher='sha512', stride=1, blocksize=10)
+    hashid2_b = ub.hash_file(fpath, hasher='sha512', stride=2, blocksize=10)
 
     assert hashid1_a == hashid1_b
     assert hashid2_a != hashid2_b, 'blocksize matters when stride is > 1'
