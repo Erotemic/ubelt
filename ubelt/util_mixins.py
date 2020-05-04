@@ -86,6 +86,16 @@ class NiceRepr(object):
         ...        return 5
         >>> baz = Baz()
         >>> assert str(baz) == '<Baz(5)>'
+
+    Example:
+        >>> import ubelt as ub
+        >>> # If your nice message has a bug, it shouldn't bring down the house
+        >>> class Foo(ub.NiceRepr):
+        ...    def __nice__(self):
+        ...        assert False
+        >>> foo = Foo()
+        >>> print('foo = {!r}'.format(foo))
+        foo = <...Foo ...>
     """
 
     def __nice__(self):
@@ -103,7 +113,7 @@ class NiceRepr(object):
             nice = self.__nice__()
             classname = self.__class__.__name__
             return '<{0}({1}) at {2}>'.format(classname, nice, hex(id(self)))
-        except NotImplementedError as ex:
+        except Exception as ex:
             warnings.warn(str(ex), category=RuntimeWarning)
             return object.__repr__(self)
 
@@ -112,6 +122,6 @@ class NiceRepr(object):
             classname = self.__class__.__name__
             nice = self.__nice__()
             return '<{0}({1})>'.format(classname, nice)
-        except NotImplementedError as ex:
+        except Exception as ex:
             warnings.warn(str(ex), category=RuntimeWarning)
             return object.__repr__(self)
