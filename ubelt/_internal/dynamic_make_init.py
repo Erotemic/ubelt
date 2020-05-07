@@ -171,7 +171,7 @@ def dynamic_import(modname, imports, ignore_froms=[],
     # Get the module that will be imported into
     try:
         module = sys.modules[modname]
-    except:
+    except Exception:
         module = __import__(modname)
     # Import the modules
     __excecute_imports(module, modname, imports, verbose=verbose)
