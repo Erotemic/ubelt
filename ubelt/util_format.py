@@ -6,6 +6,7 @@ than :func:`repr` or :func:`pprint`. See the docstring for more details.
 from __future__ import absolute_import, division, print_function, unicode_literals
 import six
 import collections
+from typing import List, Callable, Type, Dict
 
 
 def repr2(data, **kwargs):
@@ -268,23 +269,32 @@ class FormatterExtensions(object):
     #     return cls.list_types + cls.set_types
 
     def __init__(self):
-        self.func_registry = {}
-        self.lazy_init = []
+        self._type_registry = {}      # type: Dict[Type, Callable]
+        self._typename_registry = {}  # type: Dict[str, Callable]
+        self._lazy_queue = []         # type: List[Callable]
         # self._lazy_registrations = [
         #     self._register_numpy_extensions,
         #     self._register_builtin_extensions,
         # ]
 
-    def register(self, type):
+    def register(self, key):
         """
         Registers a custom formatting function with ub.repr2
+
+        Args:
+            key (Type | Tuple[Type] | str): indicator of the type
+
+        Returns:
+            Callable: decorator function
         """
         def _decorator(func):
-            if isinstance(type, tuple):
-                for t in type:
-                    self.func_registry[t] = func
+            if isinstance(key, tuple):
+                for t in key:
+                    self._type_registry[t] = func
+            if isinstance(key, six.string_types):
+                self._typename_registry[key] = func
             else:
-                self.func_registry[type] = func
+                self._type_registry[key] = func
             return func
         return _decorator
 
@@ -293,26 +303,62 @@ class FormatterExtensions(object):
         Returns an appropriate function to format ``data`` if one has been
         registered.
         """
-        for func in self.lazy_init:
-            func()
+        if self._lazy_queue:
+            for func in self._lazy_queue:
+                func()
+            self._lazy_queue = []
 
-        for type, func in self.func_registry.items():
-            if isinstance(data, type):
+        for type_, func in self._type_registry.items():
+            if isinstance(data, type_):
                 return func
 
-    # def _register_pandas_extensions(self):
-    #     # import numpy as np
-    #     # @self.register(pd.DataFrame)
-    #     def format_pandas(data, **kwargs):
-    #         precision = kwargs.get('precision', None)
-    #         float_format = (None if precision is None
-    #                         else '%.{}f'.format(precision))
-    #         formatted = data.to_string(float_format=float_format)
-    #         return formatted
+        # Fallback to registered typenames.
+        # If we cannot find a formatter for this type, then return None
+        typename = type(data).__name__
+        func = self._typename_registry.get(typename, None)
+        return func
+
+    def _register_pandas_extensions(self):
+        @self.register('DataFrame')
+        def format_pandas(data, **kwargs):
+            precision = kwargs.get('precision', None)
+            float_format = (None if precision is None
+                            else '%.{}f'.format(precision))
+            formatted = data.to_string(float_format=float_format)
+            return formatted
+
+    def _register_torch_extensions(self):
+        @self.register('Tensor')
+        def format_tensor(data, **kwargs):
+            """
+            Example:
+                >>> # xdoctest: +REQUIRES(module:torch)
+                >>> # xdoctest: +IGNORE_WHITESPACE
+                >>> import torch
+                >>> import numpy as np
+                >>> data = np.array([[.2, 42, 5], [21.2, 3, .4]])
+                >>> data = torch.from_numpy(data)
+                >>> data = torch.rand(100, 100)
+                >>> print('data = {}'.format(ub.repr2(data, nl=1)))
+                >>> print(ub.repr2(data))
+
+            """
+            import numpy as np
+            func = self._type_registry[np.ndarray]
+            npdata = data.data.numpy()
+            # kwargs['strvals'] = True
+            kwargs['with_dtype'] = False
+            formatted = func(npdata, **kwargs)
+            # hack for prefix class
+            formatted = formatted.replace('np.array', '__Tensor')
+            # import ubelt as ub
+            # formatted = ub.hzcat('Tensor(' + formatted + ')')
+            return formatted
 
     def _register_numpy_extensions(self):
         """
         Example:
+            >>> # xdoctest: +REQUIRES(module:numpy)
             >>> import sys
             >>> import pytest
             >>> import ubelt as ub
@@ -339,6 +385,8 @@ class FormatterExtensions(object):
             >>> print(ub.repr2(data, strvals=False))
             np.ma.empty((0, 10), dtype=np.float64)
         """
+
+        # TODO: should we register numpy using the new string method?
         import numpy as np
         @self.register(np.ndarray)
         def format_ndarray(data, **kwargs):
@@ -402,7 +450,7 @@ class FormatterExtensions(object):
             return formatted
 
         # Hack, make sure we also register numpy floats
-        self.register(np.float32)(self.func_registry[float])
+        self.register(np.float32)(self._type_registry[float])
 
     def _register_builtin_extensions(self):
         @self.register(float)
@@ -452,11 +500,12 @@ def _lazy_init():
         # TODO: can we use lazy loading to prevent trying to import numpy until
         # some attribute of _FORMATTER_EXTENSIONS is used?
         _FORMATTER_EXTENSIONS._register_numpy_extensions()
-        # TODO: register pandas by default if available
+        _FORMATTER_EXTENSIONS._register_pandas_extensions()
+        _FORMATTER_EXTENSIONS._register_torch_extensions()
     except ImportError:  # nocover
         pass
 
-_FORMATTER_EXTENSIONS.lazy_init.append(_lazy_init)
+_FORMATTER_EXTENSIONS._lazy_queue.append(_lazy_init)
 
 
 def _format_object(val, **kwargs):
