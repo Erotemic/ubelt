@@ -345,7 +345,7 @@ class FormatterExtensions(object):
             """
             import numpy as np
             func = self._type_registry[np.ndarray]
-            npdata = data.data.numpy()
+            npdata = data.data.cpu().numpy()
             # kwargs['strvals'] = True
             kwargs['with_dtype'] = False
             formatted = func(npdata, **kwargs)
