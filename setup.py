@@ -47,7 +47,7 @@ def parse_description():
     readme_fpath = join(dirname(__file__), 'README.rst')
     # This breaks on pip install, so check that it exists.
     if exists(readme_fpath):
-        with open(readme_fpath, 'r') as f:
+        with open(readme_fpath, 'r', encoding='utf-8') as f:
             text = f.read()
         return text
     return ''
