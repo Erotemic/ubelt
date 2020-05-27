@@ -1,0 +1,231 @@
+# Python CircleCI 2.0 configuration file
+# Check https://circleci.com/docs/2.0/language-python/ for more details
+#
+# References:
+#     # how to setup multiple python versions
+#     https://stackoverflow.com/questions/948354/default-behavior-of-git-push-without-a-branch-specified
+#     https://github.com/adambrenecki/virtualfish/blob/aa3d6271bcb86ad27b6d24f96b5bd386d176f588/.circleci/config.yml
+#
+#     # Multiple files for a checksum
+#     https://discuss.circleci.com/t/cant-checksum-multiple-files-with-slashes-in-the-file-path/20667/2
+version: 2
+workflows:
+  version: 2
+  test:
+    jobs:
+      - test-full-3.8
+      - test-full-3.7
+      - test-full-3.6
+      - test-full-3.5
+      - test-full-3.4
+      - test-full-2.7
+
+      - test-minimal-3.8
+      - test-minimal-3.7
+      - test-minimal-3.6
+      - test-minimal-3.5
+      - test-minimal-3.4
+      - test-minimal-2.7
+
+      - test-minimal-pypy3
+      - test-full-pypy3
+
+jobs:
+
+  ###########
+  # TEMPLATES
+  ###########
+
+  .test-minimal-template: &test-minimal-template  
+    environment:
+      # Setting the python executable environ allows template reuse for pypy
+      - PYTHON_EXE: python
+    docker:
+      - image: circleci/python
+    steps:
+      - checkout
+      # ### INITIALIZE AND CACHE REQUIREMENTS ###
+      - restore_cache:
+          keys:
+          - v2-dependencies-{{ checksum "requirements/runtime.txt" }}-{{ checksum "requirements/tests.txt" }}
+      - run:
+          name: install dependencies
+          command: |
+            $PYTHON_EXE -m venv venv || virtualenv -v venv  # first command is python3 || second is python2
+            . venv/bin/activate
+            # The "minimal" tests install barebones requirements
+            pip install -r requirements/tests.txt
+            pip install -r requirements/runtime.txt 
+            pip install .
+      - save_cache:
+          paths:
+            - ./venv
+          key: v2-dependencies-{{ checksum "requirements/runtime.txt" }}-{{ checksum "requirements/tests.txt" }}
+      # ### RUN TESTS ###
+      - run:
+          name: run tests
+          command: |
+            . venv/bin/activate
+            python run_tests.py
+      - store_artifacts:
+          path: test-reports
+          destination: test-reports
+
+
+  .test-full-template: &test-full-template  
+    environment:
+      - PYTHON_EXE: python
+    docker:
+      - image: circleci/python
+    steps:
+      - checkout
+      # ### INITIALIZE AND CACHE REQUIREMENTS ###
+      - restore_cache:
+          keys:
+          - v2-dependencies-{{ checksum "requirements/runtime.txt" }}-{{ checksum "requirements/optional.txt" }}-{{ checksum "requirements/tests.txt" }}
+      - run:
+          name: install dependencies
+          command: |
+            $PYTHON_EXE -m venv venv || virtualenv -v venv  # first command is python3 || second is python2
+            . venv/bin/activate
+            # The "full" dependency install
+            pip install -r requirements.txt
+            pip install .
+      - save_cache:
+          paths:
+            - ./venv
+          key: v2-dependencies-{{ checksum "requirements/runtime.txt" }}-{{ checksum "requirements/optional.txt" }}-{{ checksum "requirements/tests.txt" }}
+      # ### RUN TESTS ###
+      - run:
+          name: run tests
+          command: |
+            . venv/bin/activate
+            python run_tests.py
+      - store_artifacts:
+          path: test-reports
+          destination: test-reports
+
+
+  ###################################
+  ### INHERIT FROM BASE TEMPLATES ###
+  ###################################
+
+  # Define tests fo the other python verisons using the "test3.6" template
+  # and indicating what needs to be modified.
+  #
+  # All we need to do is change the base docker image so python is the
+  # version we want we can reuse everything else from the template
+  
+  test-full-3.8:
+    <<: *test-full-template
+    docker:
+      - image: circleci/python:3.8
+    working_directory: ~/repo-full-38
+  
+  test-full-3.7:
+    <<: *test-full-template
+    docker:
+      - image: circleci/python:3.7
+    working_directory: ~/repo-full-37
+
+  test-full-3.6:
+    <<: *test-full-template
+    docker:
+      - image: circleci/python:3.5
+    working_directory: ~/repo-full-36
+
+  test-full-3.5:
+    <<: *test-full-template
+    docker:
+      - image: circleci/python:3.5
+    working_directory: ~/repo-full-35
+
+  test-full-3.4:
+    <<: *test-full-template
+    docker:
+      - image: circleci/python:3.4
+    working_directory: ~/repo-full-34
+
+  test-full-2.7:
+    <<: *test-full-template
+    docker:
+      - image: circleci/python:2.7
+    working_directory: ~/repo-full-27
+
+  # ------------
+  
+  test-minimal-3.8:
+    <<: *test-minimal-template
+    docker:
+      - image: circleci/python:3.8
+    working_directory: ~/repo-minimal-38
+
+  test-minimal-3.7:
+    <<: *test-minimal-template
+    docker:
+      - image: circleci/python:3.7
+    working_directory: ~/repo-minimal-37
+
+  test-minimal-3.6:
+    <<: *test-minimal-template
+    docker:
+      - image: circleci/python:3.6
+    working_directory: ~/repo-minimal-36
+
+  test-minimal-3.5:
+    <<: *test-minimal-template
+    docker:
+      - image: circleci/python:3.5
+    working_directory: ~/repo-minimal-35
+
+  test-minimal-3.4:
+    <<: *test-minimal-template
+    docker:
+      - image: circleci/python:3.4
+    working_directory: ~/repo-minimal-34
+
+  test-minimal-2.7:
+    <<: *test-minimal-template
+    docker:
+      - image: circleci/python:2.7
+    working_directory: ~/repo-minimal-27
+
+  # --- pypy ----
+
+  test-minimal-pypy3:
+    <<: *test-minimal-template
+    docker:
+      - image: pypy:3
+    environment:
+      - PYTHON_EXE: pypy3
+    working_directory: ~/repo-minimal-pypy3
+
+  test-full-pypy3:
+    <<: *test-full-template
+    docker:
+      - image: pypy:3
+    environment:
+      - PYTHON_EXE: pypy3
+    working_directory: ~/repo-full-pypy3
+        
+  heredoc:
+    docker:
+      - image: pypy:3
+    working_directory: ~/dev-only-not-a-real-job
+    steps:
+      - | 
+        __heredoc__=" 
+        docker run -v $(pwd):/io -it pypy:3 bash
+
+        cd /io
+
+        pypy3 -m venv venv 
+        . venv/bin/activate
+        # The "minimal" tests install barebones requirements
+        pip install -r requirements/tests.txt
+        pip install -r requirements/runtime.txt 
+        pip install -e .
+
+        ./run_doctests.sh || echo "pypy failed, but this is allowed"
+        ./run_tests.sh || echo "pypy failed, but this is allowed"
+        "

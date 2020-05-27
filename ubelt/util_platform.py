@@ -1,31 +1,89 @@
 # -*- coding: utf-8 -*-
+"""
+The goal of this module is to provide an idiomatic cross-platform pattern of
+accessing platform dependent file systems.
+
+Standard application directory structure: cache, config, and other XDG
+standards [1]_. This is similar to the more focused :mod:`appdirs` module [5]_.
+In the future ubelt may directly use :mod:`appdirs`.
+
+Notes:
+    Table mapping the type of directory to the system default environment
+    variable.  Inspired by [2]_, [3]_, and [4]_.
+
+
+.. code-block:: none
+
+           | Linux            | Win32          |   Darwin
+    data   | $XDG_DATA_HOME   | %APPDATA%      | ~/Library/Application Support
+    config | $XDG_CONFIG_HOME | %APPDATA%      | ~/Library/Application Support
+    cache  | $XDG_CACHE_HOME  | %LOCALAPPDATA% | ~/Library/Caches
+
+
+    If an environment variable is not specified the defaults are:
+        APPDATA      = ~/AppData/Roaming
+        LOCALAPPDATA = ~/AppData/Local
+
+        XDG_DATA_HOME   = ~/.local/share
+        XDG_CACHE_HOME  = ~/.cache
+        XDG_CONFIG_HOME = ~/.config
+
+References:
+    .. [1] https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html
+    .. [2] https://stackoverflow.com/questions/43853548/xdg-windows
+    .. [3] https://stackoverflow.com/questions/11113974/cross-plat-path
+    .. [4] https://github.com/harawata/appdirs#supported-directories
+    .. [5] https://github.com/ActiveState/appdirs
+"""
 from __future__ import absolute_import, division, print_function, unicode_literals
-from os.path import normpath, expanduser, join, exists
 import os
 import sys
+import six
+import itertools as it
+from os.path import exists, join, isdir, expanduser, normpath
 
-PY2 = sys.version_info.major == 2
-PY3 = sys.version_info.major == 3
 
-WIN32  = sys.platform.startswith('win32')
+# References:
+# https://stackoverflow.com/questions/446209/possible-values-from-sys-platform
+WIN32  = sys.platform == 'win32'
 LINUX  = sys.platform.startswith('linux')
-DARWIN = sys.platform.startswith('darwin')
+DARWIN = sys.platform == 'darwin'
+POSIX = 'posix' in sys.builtin_module_names
 
 
-def platform_resource_dir():
+def platform_data_dir():
+    """
+    Returns path for user-specific data files
+
+    Returns:
+        str : path to the data dir used by the current operating system
+    """
+    if LINUX:  # nocover
+        dpath_ = os.environ.get('XDG_DATA_HOME', '~/.local/share')
+    elif DARWIN:  # nocover
+        dpath_  = '~/Library/Application Support'
+    elif WIN32:  # nocover
+        dpath_ = os.environ.get('APPDATA', '~/AppData/Roaming')
+    else:  # nocover
+        raise NotImplementedError('Unknown Platform  %r' % (sys.platform,))
+    dpath = normpath(expanduser(dpath_))
+    return dpath
+
+
+def platform_config_dir():
     """
     Returns a directory which should be writable for any application
     This should be used for persistent configuration files.
 
     Returns:
-        str : path to the resource dir used by the current operating system
+        str : path to the cahce dir used by the current operating system
     """
-    if WIN32:  # nocover
-        dpath_ = '~/AppData/Roaming'
-    elif LINUX:  # nocover
-        dpath_ = '~/.config'
+    if LINUX:  # nocover
+        dpath_ = os.environ.get('XDG_CONFIG_HOME', '~/.config')
     elif DARWIN:  # nocover
         dpath_  = '~/Library/Application Support'
+    elif WIN32:  # nocover
+        dpath_ = os.environ.get('APPDATA', '~/AppData/Roaming')
     else:  # nocover
         raise NotImplementedError('Unknown Platform  %r' % (sys.platform,))
     dpath = normpath(expanduser(dpath_))
@@ -40,19 +98,65 @@ def platform_cache_dir():
     Returns:
         str : path to the cache dir used by the current operating system
     """
-    if WIN32:  # nocover
-        dpath_ = '~/AppData/Local'
-    elif LINUX:  # nocover
-        dpath_ = '~/.cache'
+    if LINUX:  # nocover
+        dpath_ = os.environ.get('XDG_CACHE_HOME', '~/.cache')
     elif DARWIN:  # nocover
         dpath_  = '~/Library/Caches'
+    elif WIN32:  # nocover
+        dpath_ = os.environ.get('LOCALAPPDATA', '~/AppData/Local')
     else:  # nocover
         raise NotImplementedError('Unknown Platform  %r' % (sys.platform,))
     dpath = normpath(expanduser(dpath_))
     return dpath
 
+# ---
 
-def get_app_resource_dir(appname, *args):
+
+def get_app_data_dir(appname, *args):
+    r"""
+    Returns a writable directory for an application.
+    This should be used for temporary deletable data.
+
+    Args:
+        appname (str): the name of the application
+        *args: any other subdirectories may be specified
+
+    Returns:
+        str : dpath - writable data directory for this application
+
+    SeeAlso:
+        :func:`ensure_app_data_dir`
+    """
+    dpath = join(platform_data_dir(), appname, *args)
+    return dpath
+
+
+def ensure_app_data_dir(appname, *args):
+    """
+    Calls :func:`get_app_data_dir` but ensures the directory exists.
+
+    Args:
+        appname (str): the name of the application
+        *args: any other subdirectories may be specified
+
+    Returns:
+        str: the path to the ensured directory
+
+    SeeAlso:
+        :func:`get_app_data_dir`
+
+    Example:
+        >>> import ubelt as ub
+        >>> dpath = ub.ensure_app_data_dir('ubelt')
+        >>> assert exists(dpath)
+    """
+    from ubelt import util_path
+    dpath = get_app_data_dir(appname, *args)
+    util_path.ensuredir(dpath)
+    return dpath
+
+
+def get_app_config_dir(appname, *args):
     r"""
     Returns a writable directory for an application
     This should be used for persistent configuration files.
@@ -62,30 +166,37 @@ def get_app_resource_dir(appname, *args):
         *args: any other subdirectories may be specified
 
     Returns:
-        str: dpath: writable resource directory for this application
+        str : dpath - writable config directory for this application
 
     SeeAlso:
-        ensure_app_resource_dir
+        :func:`ensure_app_config_dir`
     """
-    dpath = join(platform_resource_dir(), appname, *args)
+    dpath = join(platform_config_dir(), appname, *args)
     return dpath
 
 
-def ensure_app_resource_dir(appname, *args):
+def ensure_app_config_dir(appname, *args):
     """
-    Calls `get_app_resource_dir` but ensures the directory exists.
+    Calls :func:`get_app_config_dir` but ensures the directory exists.
+
+    Args:
+        appname (str): the name of the application
+        *args: any other subdirectories may be specified
+
+    Returns:
+        str: the path to the ensured directory
 
     SeeAlso:
-        get_app_resource_dir
+        :func:`get_app_config_dir`
 
     Example:
-        >>> from ubelt.util_platform import *  # NOQA
         >>> import ubelt as ub
-        >>> dpath = ub.ensure_app_resource_dir('ubelt')
+        >>> dpath = ub.ensure_app_config_dir('ubelt')
         >>> assert exists(dpath)
     """
-    dpath = get_app_resource_dir(appname, *args)
-    ensuredir(dpath)
+    from ubelt import util_path
+    dpath = get_app_config_dir(appname, *args)
+    util_path.ensuredir(dpath)
     return dpath
 
 
@@ -99,10 +210,13 @@ def get_app_cache_dir(appname, *args):
         *args: any other subdirectories may be specified
 
     Returns:
-        str: dpath: writable cache directory for this application
+        str: the path to the ensured directory
+
+    Returns:
+        str : dpath - writable cache directory for this application
 
     SeeAlso:
-        ensure_app_cache_dir
+        :func:`ensure_app_cache_dir`
     """
     dpath = join(platform_cache_dir(), appname, *args)
     return dpath
@@ -110,282 +224,158 @@ def get_app_cache_dir(appname, *args):
 
 def ensure_app_cache_dir(appname, *args):
     """
-    Calls `get_app_cache_dir` but ensures the directory exists.
+    Calls :func:`get_app_cache_dir` but ensures the directory exists.
+
+    Args:
+        appname (str): the name of the application
+        *args: any other subdirectories may be specified
+
+    Returns:
+        str: the path to the ensured directory
 
     SeeAlso:
-        get_app_cache_dir
+        :func:`get_app_cache_dir`
 
     Example:
-        >>> from ubelt.util_platform import *  # NOQA
         >>> import ubelt as ub
         >>> dpath = ub.ensure_app_cache_dir('ubelt')
         >>> assert exists(dpath)
     """
+    from ubelt import util_path
     dpath = get_app_cache_dir(appname, *args)
-    ensuredir(dpath)
+    util_path.ensuredir(dpath)
     return dpath
 
 
-def ensuredir(dpath, mode=0o1777, verbose=None):
-    r"""
-    Ensures that directory will exist. creates new dir with sticky bits by
-    default
+def find_exe(name, multi=False, path=None):
+    """
+    Locate a command.
+
+    Search your local filesystem for an executable and return the first
+    matching file with executable permission.
 
     Args:
-        dpath (str): dir to ensure. Can also be a tuple to send to join
-        mode (int): octal mode of directory (default 0o1777)
-        verbose (int): verbosity (default 0)
+        name (str | PathLike): globstr of matching filename
+
+        multi (bool, default=False):
+            if True return all matches instead of just the first.
+
+        path (str | PathLike | Iterable[str | PathLike], default=None):
+            overrides the system PATH variable.
 
     Returns:
-        str: path - the ensured directory
+        str | List[str] | None: returns matching executable(s).
 
-    Example:
-        >>> from ubelt.util_platform import *  # NOQA
-        >>> import ubelt as ub
-        >>> cache_dpath = ub.ensure_app_cache_dir('ubelt')
-        >>> dpath = join(cache_dpath, 'ensuredir')
-        >>> if exists(dpath):
-        >>>     os.rmdir(dpath)
-        >>> assert not exists(dpath)
-        >>> ub.ensuredir(dpath)
-        >>> assert exists(dpath)
-        >>> os.rmdir(dpath)
-    """
-    if verbose is None:  # nocover
-        verbose = 0
-    if isinstance(dpath, (list, tuple)):  # nocover
-        dpath = join(*dpath)
-    if not exists(dpath):
-        if verbose:  # nocover
-            print('[ubelt] mkdir(%r)' % dpath)
-        try:
-            os.makedirs(normpath(dpath), mode=mode)
-        except OSError as ex:  # nocover
-            print('Error in ensuredir')
-            raise
-    return dpath
+    SeeAlso:
+        :func:`shutil.which` - which is available in Python 3.3+.
 
-
-def _run_process(proc):
-    """ helper for cmd """
-    while True:
-        # returns None while subprocess is running
-        retcode = proc.poll()
-        line = proc.stdout.readline()
-        yield line
-        if retcode is not None:
-            # The program has a return code, so its done executing.
-            # Grab any remaining data in stdout
-            for line in proc.stdout.readlines():
-                yield line
-            raise StopIteration('process finished')
-
-
-def cmd(command, shell=False, detatch=False, verbose=False, verbout=None):
-    r"""
-    Trying to clean up cmd
-
-    Args:
-        command (str): bash-like command string or tuple of executable and args
-        shell (bool): if True, process is run in shell
-        detatch (bool): if True, process is detached and run in background.
-        verbose (int): verbosity mode
-        verbout (bool): if True, `command` writes to stdout in realtime.
-            defaults to True iff verbose > 0. Note when detatch is True
-            all stdout is lost.
-
-    Returns:
-        dict: info - information about command status.
-            if detatch is False `info` contains captured standard out,
-            standard error, and the return code
-            if detatch is False `info` contains a reference to the process.
-
-    CommandLine:
-        python -m ubelt.util_platform cmd
-
-    Doctest:
-        >>> import ubelt as ub
-        >>> from os.path import join, exists
-        >>> verbose = 0
-        >>> # ----
-        >>> info = ub.cmd('echo str noshell', verbose=verbose)
-        >>> assert info['out'].strip() == 'str noshell'
-        >>> # ----
-        >>> info = ub.cmd(('echo', 'tuple noshell'), verbose=verbose)
-        >>> assert info['out'].strip() == 'tuple noshell'
-        >>> # ----
-        >>> info = ub.cmd('echo "str\n\nshell"', verbose=verbose, shell=True)
-        >>> assert info['out'].strip() == 'str\n\nshell'
-        >>> # ----
-        >>> info = ub.cmd(('echo', 'tuple shell'), verbose=verbose, shell=True)
-        >>> assert info['out'].strip() == 'tuple shell'
-        >>> # ----
-        >>> fpath1 = join(ub.get_app_cache_dir('ubelt'), 'cmdout1.txt')
-        >>> fpath2 = join(ub.get_app_cache_dir('ubelt'), 'cmdout2.txt')
-        >>> ub.delete(fpath1)
-        >>> ub.delete(fpath2)
-        >>> info = ub.cmd(('touch', fpath1), detatch=True)
-        >>> info = ub.cmd('echo writing2 > ' + fpath2, shell=True, detatch=True)
-        >>> while not exists(fpath1):
-        >>>     pass
-        >>> while not exists(fpath2):
-        >>>     pass
-        >>> assert ub.readfrom(fpath1) == ''
-        >>> assert ub.readfrom(fpath2).strip() == 'writing2'
-
-    # Doctest:
-    #     >>> import ubelt as ub
-    #     >>> info = ub.cmd('ping localhost -c 2', verbose=1)
-
-    """
-    import shlex
-    import subprocess
-    import pipes
-    if verbout is None:
-        verbout = verbose >= 1
-    if verbose >= 2:  # nocover
-        print('+=== START CMD ===')
-        print('Command:')
-        print(command)
-        if verbout and not detatch:
-            print('----')
-            print('Stdout:')
-
-    # When shell=True, args is a string sent to the shell (e.g. bin/sh)
-    # When shell=False, args is a list of executable and arguments
-    if shell:
-        if isinstance(command, (list, tuple)):
-            args = ' '.join(list(map(pipes.quote, command)))
-        else:
-            args = command
-    else:
-        if isinstance(command, (list, tuple)):
-            args = command
-        else:
-            args = shlex.split(command, posix=not WIN32)
-    # Create a new process to execute the command
-    proc = subprocess.Popen(args, stdout=subprocess.PIPE,
-                            stderr=subprocess.STDOUT, shell=shell,
-                            universal_newlines=True)
-    if detatch:
-        info = {'proc': proc}
-        if verbose >= 2:  # nocover
-            print('...detatching')
-    else:
-        write_fn = sys.stdout.write
-        flush_fn = sys.stdout.flush
-        logged_out = []
-        for line in _run_process(proc):
-            #line_ = line if six.PY2 else line.decode('utf-8')
-            line_ = line if PY2 else line
-            if len(line_) > 0:
-                if verbout:  # nocover
-                    write_fn(line_)
-                    flush_fn()
-                logged_out.append(line)
-        try:
-            out = ''.join(logged_out)
-        except UnicodeDecodeError:  # nocover
-            out = '\n'.join(_.decode('utf-8') for _ in logged_out)
-        (out_, err) = proc.communicate()
-        ret = proc.wait()
-        info = {
-            'out': out,
-            'err': err,
-            'ret': ret,
-        }
-        if verbose >= 2:  # nocover
-            print('L___ END CMD ___')
-    return info
-
-
-def startfile(fpath, verbose=True):  # nocover
-    """
-    Uses default program defined by the system to open a file.
-
-    Args:
-        fpath (str): a file to open using the program associated with the
-            files extension type.
-        verbose (int): verbosity
+    Notes:
+        This is essentially the ``which`` UNIX command
 
     References:
-        http://stackoverflow.com/questions/2692873/quote-posix
+        https://stackoverflow.com/questions/377017/test-if-executable-exists-in-python/377028#377028
+        https://docs.python.org/dev/library/shutil.html#shutil.which
 
-    DisableExample:
-        >>> # This test interacts with a GUI frontend, not sure how to test.
+    Example:
+        >>> find_exe('ls')
+        >>> find_exe('ping')
+        >>> assert find_exe('which') == find_exe(find_exe('which'))
+        >>> find_exe('which', multi=True)
+        >>> find_exe('ping', multi=True)
+        >>> find_exe('cmake', multi=True)
+        >>> find_exe('nvcc', multi=True)
+        >>> find_exe('noexist', multi=True)
+
+    Example:
+        >>> assert not find_exe('noexist', multi=False)
+        >>> assert find_exe('ping', multi=False)
+        >>> assert not find_exe('noexist', multi=True)
+        >>> assert find_exe('ping', multi=True)
+
+    Benchmark:
+        >>> # xdoctest: +IGNORE_WANT
         >>> import ubelt as ub
-        >>> base = ub.ensure_app_cache_dir('ubelt')
-        >>> fpath1 = join(base, 'test_open.txt')
-        >>> ub.touch(fpath1)
-        >>> proc = ub.startfile(fpath1)
+        >>> import shutil
+        >>> for timer in ub.Timerit(100, bestof=10, label='ub.find_exe'):
+        >>>     ub.find_exe('which')
+        >>> for timer in ub.Timerit(100, bestof=10, label='shutil.which'):
+        >>>     shutil.which('which')
+        Timed best=58.71 µs, mean=59.64 ± 0.96 µs for ub.find_exe
+        Timed best=72.75 µs, mean=73.07 ± 0.22 µs for shutil.which
     """
-    import pipes
-    if verbose:
-        print('[ubelt] startfile("{}")'.format(fpath))
-    fpath = normpath(fpath)
-    if not exists(fpath):
-        raise Exception('Cannot start nonexistant file: %r' % fpath)
-    if not WIN32:
-        fpath = pipes.quote(fpath)
-    if LINUX:
-        info = cmd(('xdg-open', fpath), detatch=True, verbose=verbose)
-    elif DARWIN:
-        info = cmd(('open', fpath), detatch=True, verbose=verbose)
-    elif WIN32:
-        os.startfile(fpath)
-        info = None
+    candidates = find_path(name, path=path, exact=True)
+    mode = os.X_OK | os.F_OK
+    results = (fpath for fpath in candidates
+               if os.access(fpath, mode) and not isdir(fpath))
+    if not multi:
+        for fpath in results:
+            return fpath
     else:
-        raise RuntimeError('Unknown Platform')
-    if info is not None:
-        if not info['proc']:
-            raise Exception('startfile failed')
+        return list(results)
 
 
-def editfile(fpath, verbose=True):  # nocover
+def find_path(name, path=None, exact=False):
     """
-    Opens a file or python module in your preferred visual editor.
-
-    Your preferred visual editor is gvim... unless you specify one using the
-    VISUAL environment variable. This function is extremely useful in an
-    IPython development environment.
+    Search for a file or directory on your local filesystem by name
+    (file must be in a directory specified in a PATH environment variable)
 
     Args:
-        fpath (str): a file path or python module / function
-        verbose (int): verbosity
+        fname (str | PathLike): file name to match.
+            If exact is False this may be a glob pattern
 
-    DisableExample:
-        >>> # This test interacts with a GUI frontend, not sure how to test.
+        path (str | Iterable[str | PathLike], default=None):
+            list of directories to search either specified as an ``os.pathsep``
+            separated string or a list of directories.  Defaults to environment
+            PATH.
+
+        exact (bool, default=False): if True, only returns exact matches.
+
+    Yields:
+        str: candidate - a path that matches ``name``
+
+    Notes:
+        Running with ``name=''`` (i.e. ``ub.find_path('')``) will simply yield all
+        directories in your PATH.
+
+    Notes:
+        For recursive behavior set ``path=(d for d, _, _ in os.walk('.'))``,
+        where '.' might be replaced by the root directory of interest.
+
+    Example:
+        >>> list(find_path('ping', exact=True))
+        >>> list(find_path('bin'))
+        >>> list(find_path('bin'))
+        >>> list(find_path('*cc*'))
+        >>> list(find_path('cmake*'))
+
+    Example:
         >>> import ubelt as ub
-        >>> ub.editfile(ub.util_test.__file__)
-        >>> ub.editfile(ub)
-        >>> ub.editfile(ub.editfile)
+        >>> from os.path import dirname
+        >>> path = dirname(dirname(ub.util_platform.__file__))
+        >>> res = sorted(find_path('ubelt/util_*.py', path=path))
+        >>> assert len(res) >= 10
+        >>> res = sorted(find_path('ubelt/util_platform.py', path=path, exact=True))
+        >>> print(res)
+        >>> assert len(res) == 1
     """
-    import six
-    if not isinstance(fpath, six.string_types):
-        from six import types
-        if isinstance(fpath, types.ModuleType):
-            fpath = fpath.__file__
-        else:
-            fpath =  sys.modules[fpath.__module__].__file__
-        fpath_py = fpath.replace('.pyc', '.py')
-        if exists(fpath_py):
-            fpath = fpath_py
+    if path is None:
+        path = os.environ.get('PATH', os.defpath)
+    if isinstance(path, six.string_types):
+        dpaths = path.split(os.pathsep)
+    else:
+        dpaths = path
+    candidates = (join(dpath, name) for dpath in dpaths)
+    if exact:
+        if WIN32:  # nocover
+            # on WIN32 allow ``name`` to omit the extension suffix by trying
+            # to match with all possible "valid" suffixes specified by PATHEXT
+            pathext = [''] + os.environ.get('PATHEXT', '').split(os.pathsep)
+            candidates = (p + ext for p in candidates for ext in pathext)
+        candidates = filter(exists, candidates)
+    else:
+        import glob
+        candidates = it.chain.from_iterable(
+            glob.glob(pattern) for pattern in candidates)
 
-    if verbose:
-        print('[ubelt] editfile("{}")'.format(fpath))
-
-    editor = os.environ.get('VISUAL', 'gvim')
-
-    if not exists(fpath):
-        raise IOError('Cannot start nonexistant file: %r' % fpath)
-    cmd([editor, fpath], fpath, detatch=True)
-
-
-if __name__ == '__main__':
-    r"""
-    CommandLine:
-        python -m ubelt.util_platform
-        python -m ubelt.util_platform all
-    """
-    import ubelt as ub  # NOQA
-    ub.doctest_package()
+    for candidate in candidates:
+        yield candidate

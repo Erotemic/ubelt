@@ -1,49 +1,117 @@
 # -*- coding: utf-8 -*-
+"""
+This module defines the :class:`NiceRepr` mixin class, which defines a
+``__repr__`` and ``__str__`` method that only depend on a custom ``__nice__``
+method, which you must define. This means you only have to overload one
+function instead of two.  Furthermore, if the object defines a ``__len__``
+method, then the ``__nice__`` method defaults to something sensible, otherwise
+it is treated as abstract and raises ``NotImplementedError``.
+
+To use simply have your object inherit from :class:`NiceRepr`
+(multi-inheritance should be ok).
+
+Example:
+    >>> # Objects that define __nice__ have a default __str__ and __repr__
+    >>> import ubelt as ub
+    >>> class Student(ub.NiceRepr):
+    ...    def __init__(self, name):
+    ...        self.name = name
+    ...    def __nice__(self):
+    ...        return self.name
+    >>> s1 = Student('Alice')
+    >>> s2 = Student('Bob')
+    >>> # The __str__ representation looks nice
+    >>> print('s1 = {}'.format(s1))
+    >>> print('s2 = {}'.format(s2))
+    s1 = <Student(Alice)>
+    s2 = <Student(Bob)>
+    >>> # xdoctest: +IGNORE_WANT
+    >>> # The __repr__ representation also looks nice
+    >>> print('s1 = {!r}'.format(s1))
+    >>> print('s2 = {!r}'.format(s2))
+    s1 = <Student(Alice) at 0x7f2c5460aad0>
+    s2 = <Student(Bob) at 0x7f2c5460ad10>
+
+
+Example:
+    >>> # Objects that define __len__ have a default __nice__
+    >>> import ubelt as ub
+    >>> class Group(ub.NiceRepr):
+    ...    def __init__(self, data):
+    ...        self.data = data
+    ...    def __len__(self):
+    ...        return len(self.data)
+    >>> g = Group([1, 2, 3])
+    >>> print('g = {}'.format(g))
+    g = <Group(3)>
+
+"""
 from __future__ import absolute_import, division, print_function, unicode_literals
 import warnings
 
 
 class NiceRepr(object):
     """
-    Defines `__str__` and `__repr__` in terms of `__nice__` function
-    Classes that inherit `NiceRepr` must define `__nice__`
+    Inherit from this class and define ``__nice__`` to "nicely" print your
+    objects.
+
+    Defines ``__str__`` and ``__repr__`` in terms of ``__nice__`` function
+    Classes that inherit from :class:`NiceRepr` should redefine ``__nice__``.
+    If the inheriting class has a ``__len__``, method then the default
+    ``__nice__`` method will return its length.
 
     Example:
         >>> import ubelt as ub
         >>> class Foo(ub.NiceRepr):
-        ...    pass
-        >>> class Bar(ub.NiceRepr):
         ...    def __nice__(self):
         ...        return 'info'
         >>> foo = Foo()
+        >>> assert str(foo) == '<Foo(info)>'
+        >>> assert repr(foo).startswith('<Foo(info) at ')
+
+    Example:
+        >>> import ubelt as ub
+        >>> class Bar(ub.NiceRepr):
+        ...    pass
         >>> bar = Bar()
-        >>> assert str(bar) == '<Bar(info)>'
-        >>> assert repr(bar).startswith('<Bar(info) at ')
-        >>> assert 'object at' in str(foo)
-        >>> assert 'object at' in repr(foo)
+        >>> import pytest
+        >>> with pytest.warns(None) as record:
+        >>>     assert 'object at' in str(bar)
+        >>>     assert 'object at' in repr(bar)
+
+    Example:
+        >>> import ubelt as ub
+        >>> class Baz(ub.NiceRepr):
+        ...    def __len__(self):
+        ...        return 5
+        >>> baz = Baz()
+        >>> assert str(baz) == '<Baz(5)>'
     """
+
+    def __nice__(self):
+        if hasattr(self, '__len__'):
+            # It is a common pattern for objects to use __len__ in __nice__
+            # As a convenience we define a default __nice__ for these objects
+            return str(len(self))
+        else:
+            # In all other cases force the subclass to overload __nice__
+            raise NotImplementedError(
+                'Define the __nice__ method for {!r}'.format(self.__class__))
+
     def __repr__(self):
         try:
+            nice = self.__nice__()
             classname = self.__class__.__name__
-            devnice = self.__nice__()
-            return '<%s(%s) at %s>' % (classname, devnice, hex(id(self)))
-        except AttributeError:
-            if hasattr(self, '__nice__'):
-                raise
-            warnings.warn('Define the __nice__ method for %r' %
-                          (self.__class__,), category=RuntimeWarning)
+            return '<{0}({1}) at {2}>'.format(classname, nice, hex(id(self)))
+        except NotImplementedError as ex:
+            warnings.warn(str(ex), category=RuntimeWarning)
             return object.__repr__(self)
-            #return super(NiceRepr, self).__repr__()
 
     def __str__(self):
         try:
             classname = self.__class__.__name__
-            devnice = self.__nice__()
-            return '<%s(%s)>' % (classname, devnice)
-        except AttributeError:
-            if hasattr(self, '__nice__'):
-                raise
-            warnings.warn('Define the __nice__ method for %r' %
-                          (self.__class__,), category=RuntimeWarning)
-            return object.__str__(self)
-            #return super(NiceRepr, self).__str__()
+            nice = self.__nice__()
+            return '<{0}({1})>'.format(classname, nice)
+        except NotImplementedError as ex:
+            warnings.warn(str(ex), category=RuntimeWarning)
+            return object.__repr__(self)

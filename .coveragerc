@@ -13,14 +13,14 @@ exclude_lines =
     if 0:
     if trace is not None
     verbose = .*
-    raise
-    pass
+    ^ *raise
+    ^ *pass *$
     if _debug:
     if __name__ == .__main__.:
-    print(.*)
-    .*if six.PY3:
+    .*if six.PY2:
 
 omit =
-    tests/*
+    ubelt/tests/*
+    ubelt/_win32_links.py
+    ubelt/__main__.py
     */setup.py
-

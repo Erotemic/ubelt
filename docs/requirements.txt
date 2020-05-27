@@ -1,0 +1,10 @@
+sphinx
+sphinx-autobuild 
+sphinx_rtd_theme 
+sphinxcontrib-napoleon
+
+pytest  # is this necessary?
+
+six
+Pygments
+# -e git://github.com/snide/sphinx_rtd_theme.git#egg=sphinx_rtd_theme

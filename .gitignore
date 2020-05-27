@@ -62,6 +62,7 @@ instance/
 
 # Sphinx documentation
 docs/_build/
+docs/build/
 
 # PyBuilder
 target/
@@ -87,3 +88,9 @@ ENV/
 
 # Rope project settings
 .ropeproject
+
+.pytest_cache
+
+profile_output.*
+_skbuild
+pip-wheel-metadata/
