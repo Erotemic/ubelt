@@ -14,6 +14,8 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 * `ub.repr2` now accept type name strings at register time (which makes it
   easier to lazy-load heavy libraries)
 * `ub.repr2` now handles torch.Tensor and pandas.DataFrame objects by default
+* `ub.repr2` now accepts the `align` keyword arg, which will align dictionary
+  kv separators.
 
 
 ### Changed
