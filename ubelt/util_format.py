@@ -322,6 +322,17 @@ class FormatterExtensions(object):
         return func
 
     def _register_pandas_extensions(self):
+        """
+        Example:
+            >>> # xdoctest: +REQUIRES(module:pandas)
+            >>> # xdoctest: +IGNORE_WHITESPACE
+            >>> import pandas as pd
+            >>> import numpy as np
+            >>> rng = np.random.RandomState(0)
+            >>> data = pd.DataFrame(rng.rand(3, 3))
+            >>> print(ub.repr2(data))
+            >>> print(ub.repr2(data, precision=2))
+        """
         @self.register('DataFrame')
         def format_pandas(data, **kwargs):  # nocover
             precision = kwargs.get('precision', None)
