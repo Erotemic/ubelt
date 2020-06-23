@@ -47,7 +47,7 @@ jobs:
       # ### INITIALIZE AND CACHE REQUIREMENTS ###
       - restore_cache:
           keys:
-          - v2-dependencies-{{ checksum "requirements/runtime.txt" }}-{{ checksum "requirements/tests.txt" }}
+          - v3-dependencies-{{ checksum "requirements/runtime.txt" }}-{{ checksum "requirements/tests.txt" }}
       - run:
           name: install dependencies
           command: |
@@ -60,7 +60,7 @@ jobs:
       - save_cache:
           paths:
             - ./venv
-          key: v2-dependencies-{{ checksum "requirements/runtime.txt" }}-{{ checksum "requirements/tests.txt" }}
+          key: v3-dependencies-{{ checksum "requirements/runtime.txt" }}-{{ checksum "requirements/tests.txt" }}
       # ### RUN TESTS ###
       - run:
           name: run tests
