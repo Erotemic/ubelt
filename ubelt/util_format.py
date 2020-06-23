@@ -323,40 +323,40 @@ class FormatterExtensions(object):
 
     def _register_pandas_extensions(self):
         @self.register('DataFrame')
-        def format_pandas(data, **kwargs):
+        def format_pandas(data, **kwargs):  # nocover
             precision = kwargs.get('precision', None)
             float_format = (None if precision is None
                             else '%.{}f'.format(precision))
             formatted = data.to_string(float_format=float_format)
             return formatted
 
-    def _register_torch_extensions(self):
-        @self.register('Tensor')
-        def format_tensor(data, **kwargs):
-            """
-            Example:
-                >>> # xdoctest: +REQUIRES(module:torch)
-                >>> # xdoctest: +IGNORE_WHITESPACE
-                >>> import torch
-                >>> import numpy as np
-                >>> data = np.array([[.2, 42, 5], [21.2, 3, .4]])
-                >>> data = torch.from_numpy(data)
-                >>> data = torch.rand(100, 100)
-                >>> print('data = {}'.format(ub.repr2(data, nl=1)))
-                >>> print(ub.repr2(data))
+    # def _register_torch_extensions(self):
+    #     @self.register('Tensor')
+    #     def format_tensor(data, **kwargs):
+    #         """
+    #         Example:
+    #             >>> # xdoctest: +REQUIRES(module:torch)
+    #             >>> # xdoctest: +IGNORE_WHITESPACE
+    #             >>> import torch
+    #             >>> import numpy as np
+    #             >>> data = np.array([[.2, 42, 5], [21.2, 3, .4]])
+    #             >>> data = torch.from_numpy(data)
+    #             >>> data = torch.rand(100, 100)
+    #             >>> print('data = {}'.format(ub.repr2(data, nl=1)))
+    #             >>> print(ub.repr2(data))
 
-            """
-            import numpy as np
-            func = self._type_registry[np.ndarray]
-            npdata = data.data.cpu().numpy()
-            # kwargs['strvals'] = True
-            kwargs['with_dtype'] = False
-            formatted = func(npdata, **kwargs)
-            # hack for prefix class
-            formatted = formatted.replace('np.array', '__Tensor')
-            # import ubelt as ub
-            # formatted = ub.hzcat('Tensor(' + formatted + ')')
-            return formatted
+    #         """
+    #         import numpy as np
+    #         func = self._type_registry[np.ndarray]
+    #         npdata = data.data.cpu().numpy()
+    #         # kwargs['strvals'] = True
+    #         kwargs['with_dtype'] = False
+    #         formatted = func(npdata, **kwargs)
+    #         # hack for prefix class
+    #         formatted = formatted.replace('np.array', '__Tensor')
+    #         # import ubelt as ub
+    #         # formatted = ub.hzcat('Tensor(' + formatted + ')')
+    #         return formatted
 
     def _register_numpy_extensions(self):
         """
@@ -504,7 +504,7 @@ def _lazy_init():
         # some attribute of _FORMATTER_EXTENSIONS is used?
         _FORMATTER_EXTENSIONS._register_numpy_extensions()
         _FORMATTER_EXTENSIONS._register_pandas_extensions()
-        _FORMATTER_EXTENSIONS._register_torch_extensions()
+        # _FORMATTER_EXTENSIONS._register_torch_extensions()
     except ImportError:  # nocover
         pass
 
