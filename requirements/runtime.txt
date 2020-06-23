@@ -1,8 +1,7 @@
 six >= 1.10.0
 ordered-set >= 0.3.1
-
+jaraco.windows >= 3.9.1;platform_system=="Windows"
+typing >= 3.7.4;python_version < '3.0' 
 # Now included by default
 # progiter >= 0.1.0
 # timerit >= 0.2.1
-
-jaraco.windows >= 3.9.1;platform_system=="Windows"
