@@ -328,10 +328,12 @@ class FormatterExtensions(object):
             >>> # xdoctest: +IGNORE_WHITESPACE
             >>> import pandas as pd
             >>> import numpy as np
+            >>> import ubelt as ub
             >>> rng = np.random.RandomState(0)
             >>> data = pd.DataFrame(rng.rand(3, 3))
             >>> print(ub.repr2(data))
             >>> print(ub.repr2(data, precision=2))
+            >>> print(ub.repr2({'akeyfdfj': data}, precision=2))
         """
         @self.register('DataFrame')
         def format_pandas(data, **kwargs):  # nocover
@@ -631,6 +633,25 @@ def _format_dict(dict_, **kwargs):
 
     Returns:
         Tuple[str, Dict] : retstr, _leaf_info
+
+    Example:
+        >>> dict_ = {'a': 'edf', 'bc': 'ghi'}
+        >>> print(_format_dict(dict_)[0])
+        {
+            'a': 'edf',
+            'bc': 'ghi',
+        }
+        >>> print(_format_dict(dict_, align=True)[0])
+        >>> print(_format_dict(dict_, align=':')[0])
+        {
+            'a' : 'edf',
+            'bc': 'ghi',
+        }
+        >>> print(_format_dict(dict_, explicit=True, align=True)[0])
+        dict(
+            a ='edf',
+            bc='ghi',
+        )
     """
     kwargs['_root_info'] = _rectify_root_info(kwargs.get('_root_info', None))
     kwargs['_root_info']['depth'] += 1
@@ -783,7 +804,8 @@ def _dict_itemstrs(dict_, **kwargs):
 
         if compact_brace or not first_line.rstrip().endswith(tuple('([{<')):
             rest = '' if pos == -1 else val_str[pos:]
-            val_str = first_line.lstrip() + rest
+            # val_str = first_line.lstrip() + rest
+            val_str = first_line + rest
             if '\n' in prefix:
                 # Fix issue with keys that span new lines
                 item_str = prefix + val_str
@@ -1031,7 +1053,7 @@ def _align_lines(line_list, character='=', replchar=None, pos=0):
     tup_list = [line.split(character) for line in line_list]
 
     handle_ansi = True
-    if handle_ansi:
+    if handle_ansi:  # nocover
         # Remove ansi from length calculation
         # References: http://stackoverflow.com/questions/14693701remove-ansi
         ansi_escape = re.compile(r'\x1b[^m]*m')
@@ -1040,7 +1062,7 @@ def _align_lines(line_list, character='=', replchar=None, pos=0):
     maxlen = 0
     for tup in tup_list:
         if len(tup) >= rpos + 1:
-            if handle_ansi:
+            if handle_ansi:  # nocover
                 tup = [ansi_escape.sub('', x) for x in tup]
             left_lenlist = list(map(len, tup[0:rpos]))
             left_len = sum(left_lenlist) + lpos * len(replchar)
