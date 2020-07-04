@@ -25,6 +25,7 @@ from os.path import join
 from os.path import normpath
 from os.path import split
 from os.path import splitext
+from os.path import relpath
 import os
 import sys
 
@@ -35,7 +36,7 @@ __all__ = [
 
 
 def augpath(path, suffix='', prefix='', ext=None, base=None, dpath=None,
-            multidot=False):
+            relative=None, multidot=False):
     """
     Create a new path with a different extension, basename, directory, prefix,
     and/or suffix.
@@ -53,11 +54,22 @@ def augpath(path, suffix='', prefix='', ext=None, base=None, dpath=None,
         ext (str, default=None): if specified, replaces the extension
         base (str, default=None): if specified, replaces the basename without
             extension
-        dpath (str | PathLike, default=None): if specified, replaces the directory
+        dpath (str | PathLike, default=None): if specified, replaces the
+            specified "relative" directory, which by default is the parent
+            directory.
+        relative (str | PathLike, default=None):
+            Replaces ``relative`` with ``dpath`` in ``path``.
+            Has no effect if ``dpath`` is not specified.
+            Defaults to the dirname of the input ``path``.
         multidot (bool, default=False): Allows extensions to contain multiple
             dots. Specifically, if False, everything after the last dot in the
             basename is the extension. If True, everything after the first dot
             in the basename is the extension.
+
+    TODO:
+        - New feature: relative: if specified dpath is is changed relative to
+          this path. Otherwise we assume we are relative to the path's
+          immediate parent.
 
     Returns:
         str: augmented path
@@ -91,7 +103,13 @@ def augpath(path, suffix='', prefix='', ext=None, base=None, dpath=None,
         foo_new.tar.gz
     """
     # Breakup path
-    orig_dpath, fname = split(path)
+    if relative is None:
+        orig_dpath, fname = split(path)
+    else:
+        orig_dpath = relative
+        fname = relpath(path, relative)
+        raise NotImplementedError('finalize later')
+
     if multidot:
         # The first dot defines the extension
         parts = fname.split('.', 1)

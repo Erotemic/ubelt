@@ -31,51 +31,59 @@ Read the docs here: http://ubelt.readthedocs.io/en/latest/
 
 These are some of the tasks that ubelt's API enables:
 
-  - hash common data structures
+  - hash common data structures like list, dict, int, str, etc. (hash_data)
 
-  - hash files
+  - hash files (hash_file)
 
-  - cache a block of code 
+  - cache a block of code (Cacher, CacheStamp)
 
-  - time a block of code
+  - time a block of code (Timerit, Timer)
 
-  - download a file
+  - show loop progress (ProgIter)
 
-  - run shell commands
+  - download a file with optional caching and hash verification (download, grabdata)
 
-  - string-format nested data structures
+  - run shell commands (cmd)
 
-  - make a directory if it doesn't exist
+  - find a file or directory in candidate locations (find_path, find_exe) 
 
-  - expand environment variables and tildes in path strings
+  - string-format nested data structures (repr2)
 
-  - map a function over the keys or values of a dictionary
+  - color text with ANSI tags (color_text)
 
-  - perform set operations on dictionaries
+  - horizontally concatenate multiline strings (hzcat)
 
-  - perform dictionary operations like histogram, duplicates, and inversion 
+  - make a directory if it doesn't exist (ensuredir)
 
-  - delete a file or directory
+  - delete a file, link, or entire directory (delete)
 
-  - import a module using the path to that module 
+  - create cross platform symlinks (symlink)
 
-  - check if a particular flag or value is on the command line
+  - expand environment variables and tildes in path strings (expandpath)
 
-  - color text with ANSI tags
+  - import a module using the path to that module (import_module_from_path)
 
-  - get paths to cross platform data/cache/config directories
+  - check if a particular flag or value is on the command line (argflag, argval)
 
-  - create cross platform symlinks 
+  - get paths to cross platform data/cache/config directories  (ensure_app_cache_dir, ...)
 
-  - horizontally concatenate multiline strings
+  - memoize functions (memoize, memoize_method, memoize_property)
 
-  - access defaultdict and OrderedDict by ddict and odict aliases
+  - build ordered sets (oset)
 
-  - build ordered sets
+  - short defaultdict and OrderedDict aliases (ddict and odict)
 
-  - memoize functions
+  - map a function over the keys or values of a dictionary (map_keys, map_vals)
 
-  - argmax/min/sort on dictionaries
+  - perform set operations on dictionaries (dict_union, dict_isect, dict_diff, dict_subset, ...)
+
+  - perform dictionary operations like histogram, inversion, and sorting (dict_hist, invert_dict, sorted_keys, sorted_vals)
+
+  - argmax/min/sort on lists and dictionaries (argmin, argsort,) 
+
+  - find duplicates in a list (find_duplicates)
+
+  - group a sequence of items by some criterion (group_items)
 
 Ubelt is small. Its top-level API is defined using roughly 40 lines:
 
@@ -670,7 +678,7 @@ does not actually depend on ``xdoctest`` during runtime).
 .. code:: python
 
     >>> import ubelt as ub
-    >>> module = ub.import_module_from_path(ub.truepath('~/code/ubelt/ubelt'))
+    >>> module = ub.import_module_from_path(ub.expandpath('~/code/ubelt/ubelt'))
     >>> print('module = {!r}'.format(module))
     module = <module 'ubelt' from '/home/joncrall/code/ubelt/ubelt/__init__.py'>
     >>> module = ub.import_module_from_name('ubelt')
@@ -691,7 +699,7 @@ module paths (e.g.
     >>> print(ub.modpath_to_modname(modpath))
     ubelt.util_import
     >>> modname = ub.util_import.__name__
-    >>> assert ub.truepath(ub.modname_to_modpath(modname)) == modpath
+    >>> assert ub.modname_to_modpath(modname) == modpath
 
 Horizontal String Concatenation
 -------------------------------
