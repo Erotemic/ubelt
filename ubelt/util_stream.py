@@ -27,8 +27,18 @@ class TeeStringIO(io.StringIO):
         >>> self = TeeStringIO(redirect)
     """
     def __init__(self, redirect=None):
-        self.redirect = redirect
+        self.redirect = redirect  # type: io.IOBase
         super(TeeStringIO, self).__init__()
+
+        # Logic taken from prompt_toolkit/output/vt100.py version 3.0.5 in
+        # flush I don't have a full understanding of what the buffer
+        # attribute is supposed to be capturing here, but this seems to
+        # allow us to embed in IPython while still capturing and Teeing
+        # stdout
+        if hasattr(redirect, 'buffer'):
+            self.buffer = redirect.buffer  # Py3.
+        else:
+            self.buffer = redirect
 
     def isatty(self):  # nocover
         """
@@ -40,6 +50,16 @@ class TeeStringIO(io.StringIO):
         """
         return (self.redirect is not None and
                 hasattr(self.redirect, 'isatty') and self.redirect.isatty())
+
+    def fileno(self):
+        """
+        Returns underlying file descriptor of the redirected IOBase object
+        if one exists.
+        """
+        if self.redirect is not None:
+            return self.redirect.fileno()
+        else:
+            return super(TeeStringIO, self).fileno()
 
     @property
     def encoding(self):
