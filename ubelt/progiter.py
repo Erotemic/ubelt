@@ -386,6 +386,10 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
         self.started = False
         self.finished = False
 
+        # indicates if the cursor is currently at the start of a line (True) or
+        # if characters have been written with no newline yet.
+        self._cursor_at_newline = True
+
         self._reset_internals()
 
     def __call__(self, iterable):

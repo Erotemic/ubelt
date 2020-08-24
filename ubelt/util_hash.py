@@ -761,7 +761,7 @@ def _convert_hexstr_base(hexstr, base):
     baselen = len(base)
     x = int(hexstr, 16)  # first convert to base 16
     if x == 0:
-        return '0'
+        return '0'  # bug: should be base[0]
     sign = 1 if x > 0 else -1
     x *= sign
     digits = []
