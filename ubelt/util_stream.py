@@ -55,6 +55,15 @@ class TeeStringIO(io.StringIO):
         """
         Returns underlying file descriptor of the redirected IOBase object
         if one exists.
+
+        Example:
+            >>> # Not sure the best way to test, this func is important for
+            >>> # capturing stdout when ipython embedding
+            >>> import pytest
+            >>> with pytest.raises(io.UnsupportedOperation):
+            >>>     TeeStringIO(redirect=io.StringIO()).fileno()
+            >>> with pytest.raises(io.UnsupportedOperation):
+            >>>     TeeStringIO(None).fileno()
         """
         if self.redirect is not None:
             return self.redirect.fileno()
