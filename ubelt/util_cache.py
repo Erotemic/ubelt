@@ -134,7 +134,7 @@ class Cacher(object):
         >>> import ubelt as ub
         >>> depends = 'repr-of-params-that-uniquely-determine-the-process'
         >>> # Create a cacher and try loading the data
-        >>> cacher = ub.Cacher('test_process', depends)
+        >>> cacher = ub.Cacher('demo_process', depends, verbose=4)
         >>> cacher.clear()
         >>> data = cacher.tryload()
         >>> if data is None:
@@ -142,18 +142,22 @@ class Cacher(object):
         >>>     myvar1 = 'result of expensive process'
         >>>     myvar2 = 'another result'
         >>>     # Tell the cacher to write at the end of the if block
-        >>>     # It is idomatic to put results in a tuple named data
+        >>>     # It is idomatic to put results in an object named data
         >>>     data = myvar1, myvar2
         >>>     cacher.save(data)
-        >>> # Last part of the Cacher pattern is to unpack the data tuple
+        >>> # Last part of the Cacher pattern is to unpack the data object
         >>> myvar1, myvar2 = data
+        >>> #
+        >>> #
+        >>> # If we know the data exists, we can also simply call load
+        >>> data = cacher.tryload()
 
     Example:
         >>> # The previous example can be shorted if only a single value
         >>> from ubelt.util_cache import Cacher
         >>> depends = 'repr-of-params-that-uniquely-determine-the-process'
         >>> # Create a cacher and try loading the data
-        >>> cacher = Cacher('test_process', depends)
+        >>> cacher = Cacher('demo_process', depends)
         >>> myvar = cacher.tryload()
         >>> if myvar is None:
         >>>     myvar = ('result of expensive process', 'another result')
@@ -165,7 +169,7 @@ class Cacher(object):
 
     def __init__(self, fname, depends=None, dpath=None, appname='ubelt',
                  ext='.pkl', meta=None, verbose=None, enabled=True, log=None,
-                 hasher='sha1', protocol=2, cfgstr=None):
+                 hasher='sha1', protocol=-1, cfgstr=None):
 
         if depends is None:
             depends = cfgstr
@@ -419,9 +423,10 @@ class Cacher(object):
             raise IOError(2, 'No such file or directory: %r' % (fpath,))
         else:
             if verbose > 3:
+                sizestr = _byte_str(os.stat(fpath).st_size)
                 self.log('[cacher] ... cache exists: '
-                         'dpath={} fname={} cfgstr={}'.format(
-                             basename(dpath), fname, cfgstr))
+                         'dpath={} fname={} cfgstr={}, size={}'.format(
+                             basename(dpath), fname, cfgstr, sizestr))
         try:
             with open(fpath, 'rb') as file_:
                 data = pickle.load(file_)
@@ -498,6 +503,10 @@ class Cacher(object):
             # Use protocol 2 to support python2 and 3
             pickle.dump(data, file_, protocol=self.protocol)
 
+        if self.verbose > 3:
+            sizestr = _byte_str(os.stat(data_fpath).st_size)
+            self.log('[cacher] ... finish save, size={}'.format(sizestr))
+
     def ensure(self, func, *args, **kwargs):
         """
         Wraps around a function. A cfgstr must be stored in the base cacher.
@@ -548,9 +557,6 @@ class Cacher(object):
             >>> func.cacher.clear()
         """
         # Cant return arguments because cfgstr wont take them into account
-        # def _wrapper(*args, **kwargs):
-        #     data = self.ensure(func, *args, **kwargs)
-        #     return data
         def _wrapper():
             data = self.ensure(func)
             return data
@@ -716,3 +722,65 @@ class CacheStamp(object):
             certificate['product_file_hash'] = self._product_file_hash(products)
         self.cacher.save(certificate, cfgstr=cfgstr)
         return certificate
+
+
+def _byte_str(num, unit='auto', precision=2):
+    """
+    Automatically chooses relevant unit (KB, MB, or GB) for displaying some
+    number of bytes.
+
+    Args:
+        num (int): number of bytes
+        unit (str): which unit to use, can be auto, B, KB, MB, GB, or TB
+
+    References:
+        https://en.wikipedia.org/wiki/Orders_of_magnitude_(data)
+
+    Returns:
+        str: string representing the number of bytes with appropriate units
+
+    Example:
+        >>> import ubelt as ub
+        >>> num_list = [1, 100, 1024,  1048576, 1073741824, 1099511627776]
+        >>> result = ub.repr2(list(map(_byte_str, num_list)), nl=0)
+        >>> print(result)
+        ['0.00KB', '0.10KB', '1.00KB', '1.00MB', '1.00GB', '1.00TB']
+        >>> _byte_str(10, unit='B')
+        10.00B
+    """
+    abs_num = abs(num)
+    if unit == 'auto':
+        if abs_num < 2.0 ** 10:
+            unit = 'KB'
+        elif abs_num < 2.0 ** 20:
+            unit = 'KB'
+        elif abs_num < 2.0 ** 30:
+            unit = 'MB'
+        elif abs_num < 2.0 ** 40:
+            unit = 'GB'
+        else:
+            unit = 'TB'
+    if unit.lower().startswith('b'):
+        num_unit = num
+    elif unit.lower().startswith('k'):
+        num_unit =  num / (2.0 ** 10)
+    elif unit.lower().startswith('m'):
+        num_unit =  num / (2.0 ** 20)
+    elif unit.lower().startswith('g'):
+        num_unit = num / (2.0 ** 30)
+    elif unit.lower().startswith('t'):
+        num_unit = num / (2.0 ** 40)
+    else:
+        raise ValueError('unknown num={!r} unit={!r}'.format(num, unit))
+    fmtstr = ('{:.' + str(precision) + 'f}{}')
+    res = fmtstr.format(num_unit, unit)
+    return res
+
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python ~/code/ubelt/ubelt/util_cache.py Cacher
+    """
+    import xdoctest
+    xdoctest.doctest_module(__file__)

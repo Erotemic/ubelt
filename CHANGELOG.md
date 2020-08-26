@@ -12,11 +12,16 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
   easier to lazy-load heavy libraries)
 * `ub.repr2` now handles pandas.DataFrame objects by default
 * `ub.repr2` now accepts the `align` keyword arg, which will align dictionary kv separators.
+* functions in `ub.util_color` now respects a global `NO_COLOR` flag which
+  prevents ANSI coloration. 
 
 ### Changed
 * `ProgIter.step` now respects update freq, and will not update the estimates
   if too few iterations have passed. This prevents `ub.download` from
   generating extremely large amounts of standard out. 
+* `ub.Cacher` now reports the file size of the cache file.
+* `ub.Cacher` now defaults to the latest pickle protocol (-1), which may cause
+  compatibility issues.
 
 ### Fixed
 * `ProgIter` now correctly checks if it needs to displays a message on every iteration.

@@ -17,6 +17,15 @@ library to work correctly. These functions will warn if :mod:`pygments` is
 not installed.
 
 
+This module contains a global variable ``NO_COLOR``, which if set to True will
+force all ANSI text coloring functions to become no-ops. This defaults to the
+value of the ``bool(os.environ.get('NO_COLOR'))`` flag, which is complient with
+[1]_.
+
+
+References:
+    .. [1] https://no-color.org/
+
 Notes:
     In the future we may rename this module to ``util_ansi``.
 
@@ -25,6 +34,13 @@ Requirements:
 """
 from __future__ import print_function, division, absolute_import, unicode_literals
 import sys
+import os
+
+
+# Global state that determines if ANSI-coloring text is allowed
+# (which is mainly to address non-ANSI complient windows consoles)
+# complient with https://no-color.org/
+NO_COLOR = bool(os.environ.get('NO_COLOR'))
 
 
 def highlight_code(text, lexer_name='python', **kwargs):
@@ -46,6 +62,8 @@ def highlight_code(text, lexer_name='python', **kwargs):
         >>> new_text = ub.highlight_code(text)
         >>> print(new_text)
     """
+    if NO_COLOR:
+        return text
     # Resolve extensions to languages
     lexer_name = {
         'py': 'python',
@@ -108,7 +126,7 @@ def color_text(text, color):
         >>>     assert color_text(text, 'red') == 'raw text'
         >>>     assert color_text(text, None) == 'raw text'
     """
-    if color is None:
+    if NO_COLOR or color is None:
         return text
     try:
         import pygments
