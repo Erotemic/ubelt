@@ -5,7 +5,10 @@ We are currently working on porting this changelog to the specifications in
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
-## [Version 0.9.2] - Unreleased
+## Version 0.9.3 - Unreleased
+
+
+## [Version 0.9.2] - 2020-08-26
 
 ### Added
 * `ub.repr2` now accept type name strings at register time (which makes it
@@ -490,3 +493,6 @@ NOTE: THIS RELEASE WAS BROKEN DUE TO AN ISSUE WITH THE SETUP SCRIPT
 ### Added
 - First release of ubelt
 - Changed from and before this time are undocumented
+## Version 0.9.3 - Unreleased
+
+
