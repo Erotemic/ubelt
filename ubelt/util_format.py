@@ -6,6 +6,7 @@ than :func:`repr` or :func:`pprint`. See the docstring for more details.
 from __future__ import absolute_import, division, print_function, unicode_literals
 import six
 import collections
+from typing import List, Callable, Type, Dict
 
 
 def repr2(data, **kwargs):
@@ -96,6 +97,9 @@ def repr2(data, **kwargs):
         with_dtype (bool):
             only relevant to numpy.ndarrays. if True includes the dtype.
             Defaults to `not strvals`.
+
+        align (bool | str, default=False):
+            if True, will align multi-line dictionaries by the kvsep
 
         extensions (FormatterExtensions):
             a custom :class:`FormatterExtensions` instance that can overwrite or
@@ -268,23 +272,32 @@ class FormatterExtensions(object):
     #     return cls.list_types + cls.set_types
 
     def __init__(self):
-        self.func_registry = {}
-        self.lazy_init = []
+        self._type_registry = {}      # type: Dict[Type, Callable]
+        self._typename_registry = {}  # type: Dict[str, Callable]
+        self._lazy_queue = []         # type: List[Callable]
         # self._lazy_registrations = [
         #     self._register_numpy_extensions,
         #     self._register_builtin_extensions,
         # ]
 
-    def register(self, type):
+    def register(self, key):
         """
         Registers a custom formatting function with ub.repr2
+
+        Args:
+            key (Type | Tuple[Type] | str): indicator of the type
+
+        Returns:
+            Callable: decorator function
         """
         def _decorator(func):
-            if isinstance(type, tuple):
-                for t in type:
-                    self.func_registry[t] = func
+            if isinstance(key, tuple):
+                for t in key:
+                    self._type_registry[t] = func
+            if isinstance(key, six.string_types):
+                self._typename_registry[key] = func
             else:
-                self.func_registry[type] = func
+                self._type_registry[key] = func
             return func
         return _decorator
 
@@ -293,26 +306,75 @@ class FormatterExtensions(object):
         Returns an appropriate function to format ``data`` if one has been
         registered.
         """
-        for func in self.lazy_init:
-            func()
+        if self._lazy_queue:
+            for func in self._lazy_queue:
+                func()
+            self._lazy_queue = []
 
-        for type, func in self.func_registry.items():
-            if isinstance(data, type):
+        for type_, func in self._type_registry.items():
+            if isinstance(data, type_):
                 return func
 
-    # def _register_pandas_extensions(self):
-    #     # import numpy as np
-    #     # @self.register(pd.DataFrame)
-    #     def format_pandas(data, **kwargs):
-    #         precision = kwargs.get('precision', None)
-    #         float_format = (None if precision is None
-    #                         else '%.{}f'.format(precision))
-    #         formatted = data.to_string(float_format=float_format)
+        # Fallback to registered typenames.
+        # If we cannot find a formatter for this type, then return None
+        typename = type(data).__name__
+        func = self._typename_registry.get(typename, None)
+        return func
+
+    def _register_pandas_extensions(self):
+        """
+        Example:
+            >>> # xdoctest: +REQUIRES(module:pandas)
+            >>> # xdoctest: +IGNORE_WHITESPACE
+            >>> import pandas as pd
+            >>> import numpy as np
+            >>> import ubelt as ub
+            >>> rng = np.random.RandomState(0)
+            >>> data = pd.DataFrame(rng.rand(3, 3))
+            >>> print(ub.repr2(data))
+            >>> print(ub.repr2(data, precision=2))
+            >>> print(ub.repr2({'akeyfdfj': data}, precision=2))
+        """
+        @self.register('DataFrame')
+        def format_pandas(data, **kwargs):  # nocover
+            precision = kwargs.get('precision', None)
+            float_format = (None if precision is None
+                            else '%.{}f'.format(precision))
+            formatted = data.to_string(float_format=float_format)
+            return formatted
+
+    # def _register_torch_extensions(self):
+    #     @self.register('Tensor')
+    #     def format_tensor(data, **kwargs):
+    #         """
+    #         Example:
+    #             >>> # xdoctest: +REQUIRES(module:torch)
+    #             >>> # xdoctest: +IGNORE_WHITESPACE
+    #             >>> import torch
+    #             >>> import numpy as np
+    #             >>> data = np.array([[.2, 42, 5], [21.2, 3, .4]])
+    #             >>> data = torch.from_numpy(data)
+    #             >>> data = torch.rand(100, 100)
+    #             >>> print('data = {}'.format(ub.repr2(data, nl=1)))
+    #             >>> print(ub.repr2(data))
+
+    #         """
+    #         import numpy as np
+    #         func = self._type_registry[np.ndarray]
+    #         npdata = data.data.cpu().numpy()
+    #         # kwargs['strvals'] = True
+    #         kwargs['with_dtype'] = False
+    #         formatted = func(npdata, **kwargs)
+    #         # hack for prefix class
+    #         formatted = formatted.replace('np.array', '__Tensor')
+    #         # import ubelt as ub
+    #         # formatted = ub.hzcat('Tensor(' + formatted + ')')
     #         return formatted
 
     def _register_numpy_extensions(self):
         """
         Example:
+            >>> # xdoctest: +REQUIRES(module:numpy)
             >>> import sys
             >>> import pytest
             >>> import ubelt as ub
@@ -339,6 +401,8 @@ class FormatterExtensions(object):
             >>> print(ub.repr2(data, strvals=False))
             np.ma.empty((0, 10), dtype=np.float64)
         """
+
+        # TODO: should we register numpy using the new string method?
         import numpy as np
         @self.register(np.ndarray)
         def format_ndarray(data, **kwargs):
@@ -402,7 +466,7 @@ class FormatterExtensions(object):
             return formatted
 
         # Hack, make sure we also register numpy floats
-        self.register(np.float32)(self.func_registry[float])
+        self.register(np.float32)(self._type_registry[float])
 
     def _register_builtin_extensions(self):
         @self.register(float)
@@ -452,11 +516,12 @@ def _lazy_init():
         # TODO: can we use lazy loading to prevent trying to import numpy until
         # some attribute of _FORMATTER_EXTENSIONS is used?
         _FORMATTER_EXTENSIONS._register_numpy_extensions()
-        # TODO: register pandas by default if available
+        _FORMATTER_EXTENSIONS._register_pandas_extensions()
+        # _FORMATTER_EXTENSIONS._register_torch_extensions()
     except ImportError:  # nocover
         pass
 
-_FORMATTER_EXTENSIONS.lazy_init.append(_lazy_init)
+_FORMATTER_EXTENSIONS._lazy_queue.append(_lazy_init)
 
 
 def _format_object(val, **kwargs):
@@ -568,6 +633,25 @@ def _format_dict(dict_, **kwargs):
 
     Returns:
         Tuple[str, Dict] : retstr, _leaf_info
+
+    Example:
+        >>> dict_ = {'a': 'edf', 'bc': 'ghi'}
+        >>> print(_format_dict(dict_)[0])
+        {
+            'a': 'edf',
+            'bc': 'ghi',
+        }
+        >>> print(_format_dict(dict_, align=True)[0])
+        >>> print(_format_dict(dict_, align=':')[0])
+        {
+            'a' : 'edf',
+            'bc': 'ghi',
+        }
+        >>> print(_format_dict(dict_, explicit=True, align=True)[0])
+        dict(
+            a ='edf',
+            bc='ghi',
+        )
     """
     kwargs['_root_info'] = _rectify_root_info(kwargs.get('_root_info', None))
     kwargs['_root_info']['depth'] += 1
@@ -593,6 +677,13 @@ def _format_dict(dict_, **kwargs):
     explicit = kwargs.get('explicit', False)
     itemsep = kwargs.get('itemsep', ' ')
 
+    align = kwargs.get('align', False)
+    if align and not isinstance(align, six.string_types):
+        kvsep = kwargs.get('kvsep', ': ')
+        if kwargs.get('explicit', False):
+            kvsep = '='
+        align = kvsep
+
     if len(dict_) == 0:
         retstr = 'dict()' if explicit else '{}'
         _leaf_info = None
@@ -605,12 +696,12 @@ def _format_dict(dict_, **kwargs):
         else:
             lbr, rbr = '{', '}'
         retstr = _join_itemstrs(itemstrs, itemsep, newlines, _leaf_info, nobraces,
-                                trailing_sep, compact_brace, lbr, rbr)
+                                trailing_sep, compact_brace, lbr, rbr, align)
     return retstr, _leaf_info
 
 
 def _join_itemstrs(itemstrs, itemsep, newlines, _leaf_info, nobraces,
-                   trailing_sep, compact_brace, lbr, rbr):
+                   trailing_sep, compact_brace, lbr, rbr, align=False):
     """
     Joins string-ified items with separators newlines and container-braces.
     """
@@ -642,6 +733,9 @@ def _join_itemstrs(itemstrs, itemsep, newlines, _leaf_info, nobraces,
                 prefix = ' ' * 4
                 indented = [ub.indent(s, prefix) for s in itemstrs]
 
+            if align:
+                indented = _align_lines(indented, character=align)
+
             body_str = sep.join(indented)
             if trailing_sep and len(itemstrs) > 0:
                 body_str += ','
@@ -670,8 +764,9 @@ def _dict_itemstrs(dict_, **kwargs):
             compact_brace, sort
 
     Ignore:
+        from ubelt.util_format import _dict_itemstrs
         import xinspect
-        ', '.join(xinspect.get_kwargs(_dict_itemstrs, max_depth=0).keys())
+        print(', '.join(xinspect.get_kwargs(_dict_itemstrs, max_depth=0).keys()))
 
     Example:
         >>> from ubelt.util_format import *
@@ -709,7 +804,8 @@ def _dict_itemstrs(dict_, **kwargs):
 
         if compact_brace or not first_line.rstrip().endswith(tuple('([{<')):
             rest = '' if pos == -1 else val_str[pos:]
-            val_str = first_line.lstrip() + rest
+            # val_str = first_line.lstrip() + rest
+            val_str = first_line + rest
             if '\n' in prefix:
                 # Fix issue with keys that span new lines
                 item_str = prefix + val_str
@@ -833,3 +929,154 @@ def _rectify_countdown_or_bool(count_or_bool):
     else:
         count_or_bool_ = False
     return count_or_bool_
+
+
+def _align_text(text, character='=', replchar=None, pos=0):
+    r"""
+    Left justifies text on the left side of character
+
+    Args:
+        text (str): text to align
+        character (str): character to align at
+        replchar (str): replacement character (default=None)
+
+    Returns:
+        str: new_text
+
+    Example:
+        >>> character = '='
+        >>> text = 'a = b=\none = two\nthree = fish\n'
+        >>> print(text)
+        >>> result = (_align_text(text, '='))
+        >>> print(result)
+        a     = b=
+        one   = two
+        three = fish
+    """
+    line_list = text.splitlines()
+    new_lines = _align_lines(line_list, character, replchar, pos=pos)
+    new_text = '\n'.join(new_lines)
+    return new_text
+
+
+def _align_lines(line_list, character='=', replchar=None, pos=0):
+    r"""
+    Left justifies text on the left side of character
+
+    Args:
+        line_list (list of strs):
+        character (str):
+        pos (int or list or None): does one alignment for all chars beyond this
+            column position. If pos is None, then all chars are aligned.
+
+    Returns:
+        list: new_lines
+
+    Example:
+        >>> line_list = 'a = b\none = two\nthree = fish'.split('\n')
+        >>> character = '='
+        >>> new_lines = _align_lines(line_list, character)
+        >>> result = ('\n'.join(new_lines))
+        >>> print(result)
+        a     = b
+        one   = two
+        three = fish
+
+    Example:
+        >>> line_list = 'foofish:\n    a = b\n    one    = two\n    three    = fish'.split('\n')
+        >>> character = '='
+        >>> new_lines = _align_lines(line_list, character)
+        >>> result = ('\n'.join(new_lines))
+        >>> print(result)
+        foofish:
+            a        = b
+            one      = two
+            three    = fish
+
+    Example:
+        >>> import ubelt as ub
+        >>> character = ':'
+        >>> text = ub.codeblock('''
+            {'max': '1970/01/01 02:30:13',
+             'mean': '1970/01/01 01:10:15',
+             'min': '1970/01/01 00:01:41',
+             'range': '2:28:32',
+             'std': '1:13:57',}''').split('\n')
+        >>> new_lines = _align_lines(text, ':', ' :')
+        >>> result = '\n'.join(new_lines)
+        >>> print(result)
+        {'max'   : '1970/01/01 02:30:13',
+         'mean'  : '1970/01/01 01:10:15',
+         'min'   : '1970/01/01 00:01:41',
+         'range' : '2:28:32',
+         'std'   : '1:13:57',}
+
+    Example:
+        >>> line_list = 'foofish:\n a = b = c\n one = two = three\nthree=4= fish'.split('\n')
+        >>> character = '='
+        >>> # align the second occurence of a character
+        >>> new_lines = _align_lines(line_list, character, pos=None)
+        >>> print(('\n'.join(line_list)))
+        >>> result = ('\n'.join(new_lines))
+        >>> print(result)
+        foofish:
+         a   = b   = c
+         one = two = three
+        three=4    = fish
+    """
+    import re
+
+    # FIXME: continue to fix ansi
+    if pos is None:
+        # Align all occurences
+        num_pos = max([line.count(character) for line in line_list])
+        pos = list(range(num_pos))
+
+    # Allow multiple alignments
+    if isinstance(pos, list):
+        pos_list = pos
+        # recursive calls
+        new_lines = line_list
+        for pos in pos_list:
+            new_lines = _align_lines(new_lines, character=character,
+                                     replchar=replchar, pos=pos)
+        return new_lines
+
+    # base case
+    if replchar is None:
+        replchar = character
+
+    # the pos-th character to align
+    lpos = pos
+    rpos = lpos + 1
+
+    tup_list = [line.split(character) for line in line_list]
+
+    handle_ansi = True
+    if handle_ansi:  # nocover
+        # Remove ansi from length calculation
+        # References: http://stackoverflow.com/questions/14693701remove-ansi
+        ansi_escape = re.compile(r'\x1b[^m]*m')
+
+    # Find how much padding is needed
+    maxlen = 0
+    for tup in tup_list:
+        if len(tup) >= rpos + 1:
+            if handle_ansi:  # nocover
+                tup = [ansi_escape.sub('', x) for x in tup]
+            left_lenlist = list(map(len, tup[0:rpos]))
+            left_len = sum(left_lenlist) + lpos * len(replchar)
+            maxlen = max(maxlen, left_len)
+
+    # Pad each line to align the pos-th occurence of the chosen character
+    new_lines = []
+    for tup in tup_list:
+        if len(tup) >= rpos + 1:
+            lhs = character.join(tup[0:rpos])
+            rhs = character.join(tup[rpos:])
+            # pad the new line with requested justification
+            newline = lhs.ljust(maxlen) + replchar + rhs
+            new_lines.append(newline)
+        else:
+            new_lines.append(replchar.join(tup))
+    return new_lines

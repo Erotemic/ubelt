@@ -428,6 +428,10 @@ def dict_diff(*args):
         Dict | OrderedDict :
             OrderedDict if the first argument is an OrderedDict, otherwise dict
 
+    TODO:
+        - [ ] Add inplace keyword argument, which modifies the first dictionary
+          inplace.
+
     Example:
         >>> dict_diff({'a': 1, 'b': 1}, {'a'}, {'c'})
         {'b': 1}

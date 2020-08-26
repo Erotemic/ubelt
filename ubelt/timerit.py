@@ -1,9 +1,5 @@
 # -*- coding: utf-8 -*-
 """
-This is ubelt's copy of timerit. Even though this module exists in a standalone
-library: https://github.com/Erotemic/timerit, ubelt has its own copy. There is
-a tradeoff here, but the code is pretty static, I'll try to keep them in sync.
-
 First, :class:`Timer` is a context manager that times a block of indented
 code. Also has `tic` and `toc` methods for a more matlab like feel.
 
@@ -16,8 +12,7 @@ a with statement.
 Example:
     >>> # xdoctest: +IGNORE_WANT
     >>> import math
-    >>> import ubelt as ub
-    >>> timer = ub.Timer('Timer demo!', verbose=1)
+    >>> timer = Timer('Timer demo!', verbose=1)
     >>> with timer:
     >>>     math.factorial(100000)
     tic('Timer demo!')
@@ -26,8 +21,7 @@ Example:
 Example:
     >>> # xdoctest: +IGNORE_WANT
     >>> import math
-    >>> import ubelt as ub
-    >>> for timer in ub.Timerit(num=200, verbose=3):
+    >>> for timer in Timerit(num=200, verbose=3):
     >>>     with timer:
     >>>         math.factorial(10000)
     Timing for 200 loops
@@ -294,7 +288,8 @@ class Timerit(object):
                 self.n_loops += 1
         # Timing complete, print results
         if len(self.times) != self.num:
-            raise AssertionError('incorrectly recorded times')
+            raise AssertionError(
+                'incorrectly recorded times, need to reset timerit object')
 
         self._record_measurement()
 

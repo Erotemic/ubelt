@@ -145,9 +145,10 @@ def download(url, fpath=None, dpath=None, fname=None, hash_prefix=None,
 
     if verbose:
         if _dst_is_io_object:
-            print('Downloading url=%r to IO object' % (url,))
+            print('Downloading url={!r} to IO object'.format(url))
         else:
-            print('Downloading url=%r to fpath=%r' % (url, fpath))
+            print('Downloading url={!r} to fpath={!r}'.format(
+                url, fpath))
 
     urldata = urlopen(url)
     meta = urldata.info()
@@ -184,7 +185,9 @@ def download(url, fpath=None, dpath=None, fname=None, hash_prefix=None,
     # possible optimization (have not tested or timed)
     _urldata_read = urldata.read
     try:
-        with Progress(total=file_size, disable=not verbose) as pbar:
+        pbar = Progress(total=file_size, disable=not verbose,
+                        freq=chunksize)
+        with pbar:
             _pbar_update = pbar.update
 
             def _critical_loop():

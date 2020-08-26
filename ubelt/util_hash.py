@@ -102,8 +102,6 @@ except ImportError:  # nocover
 # DEFAULT_HASHER = hashlib.sha1  # fast algo, but has a known collision
 DEFAULT_HASHER = hashlib.sha512  # most robust algo, but slower than others
 
-DEFAULT_HASHLEN = None
-
 
 if six.PY2:
     import codecs
@@ -260,20 +258,20 @@ def _rectify_base(base):
         return base
 
 
-def _rectify_hashlen(hashlen):
+def _rectify_hashlen(hashlen):  # nocover
     """
     Example:
-        >>> assert _rectify_hashlen(NoParam) is DEFAULT_HASHLEN
+        >>> assert _rectify_hashlen(NoParam) is None
         >>> assert _rectify_hashlen(8) == 8
     """
     if hashlen is NoParam:
-        return DEFAULT_HASHLEN
-    else:
+        return None
+    else:  # nocover
         import warnings
-        warnings.warn('Specifying hashlen is deprecated. '
+        warnings.warn('Specifying hashlen is deprecated and will be removed. '
                       'Use slice syntax instead', DeprecationWarning)
         if hashlen == 'default':  # nocover
-            return DEFAULT_HASHLEN
+            return None
         else:
             return hashlen
 
@@ -763,7 +761,7 @@ def _convert_hexstr_base(hexstr, base):
     baselen = len(base)
     x = int(hexstr, 16)  # first convert to base 16
     if x == 0:
-        return '0'
+        return '0'  # bug: should be base[0]
     sign = 1 if x > 0 else -1
     x *= sign
     digits = []

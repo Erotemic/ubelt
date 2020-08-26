@@ -46,8 +46,9 @@ jobs:
       - checkout
       # ### INITIALIZE AND CACHE REQUIREMENTS ###
       - restore_cache:
+          # NOTE: cache keys should contain the Python Version
           keys:
-          - v2-dependencies-{{ checksum "requirements/runtime.txt" }}-{{ checksum "requirements/tests.txt" }}
+          - v3-dependencies-{{ checksum "requirements/runtime.txt" }}-{{ checksum "requirements/tests.txt" }}-{{ .Environment.CIRCLE_JOB }}
       - run:
           name: install dependencies
           command: |
@@ -60,7 +61,7 @@ jobs:
       - save_cache:
           paths:
             - ./venv
-          key: v2-dependencies-{{ checksum "requirements/runtime.txt" }}-{{ checksum "requirements/tests.txt" }}
+          key: v3-dependencies-{{ checksum "requirements/runtime.txt" }}-{{ checksum "requirements/tests.txt" }}-{{ .Environment.CIRCLE_JOB }}
       # ### RUN TESTS ###
       - run:
           name: run tests
@@ -82,7 +83,7 @@ jobs:
       # ### INITIALIZE AND CACHE REQUIREMENTS ###
       - restore_cache:
           keys:
-          - v2-dependencies-{{ checksum "requirements/runtime.txt" }}-{{ checksum "requirements/optional.txt" }}-{{ checksum "requirements/tests.txt" }}
+          - v2-dependencies-{{ checksum "requirements/runtime.txt" }}-{{ checksum "requirements/optional.txt" }}-{{ checksum "requirements/tests.txt" }}-{{ .Environment.CIRCLE_JOB }}
       - run:
           name: install dependencies
           command: |
@@ -94,7 +95,7 @@ jobs:
       - save_cache:
           paths:
             - ./venv
-          key: v2-dependencies-{{ checksum "requirements/runtime.txt" }}-{{ checksum "requirements/optional.txt" }}-{{ checksum "requirements/tests.txt" }}
+          key: v2-dependencies-{{ checksum "requirements/runtime.txt" }}-{{ checksum "requirements/optional.txt" }}-{{ checksum "requirements/tests.txt" }}-{{ .Environment.CIRCLE_JOB }}
       # ### RUN TESTS ###
       - run:
           name: run tests
