@@ -35,3 +35,17 @@ def count_ubelt_usage():
                 if not subname.startswith('_'):
                     print(':func:`ubelt.{}`'.format(subname))
             submembers = dir(member)
+
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python ~/code/ubelt/dev/gen_api_for_docs.py
+
+        # First run and copy the table:
+        python ~/code/ubelt/dev/count_usage_freq.py
+
+        # Then edit:
+        ~/code/ubelt/docs/source/index.rst
+    """
+    count_ubelt_usage()
