@@ -37,17 +37,44 @@ Notes:
 
 
 # -- Project information -----------------------------------------------------
-import ubelt
+# import ubelt
 import sphinx_rtd_theme
+from os.path import exists
+from os.path import dirname
+from os.path import join
+
+
+def parse_version(fpath):
+    """
+    Statically parse the version number from a python file
+    """
+    import ast
+    if not exists(fpath):
+        raise ValueError('fpath={!r} does not exist'.format(fpath))
+    with open(fpath, 'r') as file_:
+        sourcecode = file_.read()
+    pt = ast.parse(sourcecode)
+    class VersionVisitor(ast.NodeVisitor):
+        def visit_Assign(self, node):
+            for target in node.targets:
+                if getattr(target, 'id', None) == '__version__':
+                    self.version = node.value.s
+    visitor = VersionVisitor()
+    visitor.visit(pt)
+    return visitor.version
 
 project = 'UBelt'
 copyright = '2018, Jon Crall'
 author = 'Jon Crall'
 
 # The short X.Y version
-version = '.'.join(ubelt.__version__.split('.')[0:2])
+# version = '.'.join(ubelt.__version__.split('.')[0:2])
+# # The full version, including alpha/beta/rc tags
+# release = ubelt.__version__
+modpath = join(dirname(dirname(dirname(__file__))), 'ubelt', '__init__.py')
 # The full version, including alpha/beta/rc tags
-release = ubelt.__version__
+release = parse_version(modpath)
+version = '.'.join(release.split('.')[0:2])
 
 
 # -- General configuration ---------------------------------------------------
