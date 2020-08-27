@@ -45,7 +45,7 @@ if __name__ == '__main__':
         # First run and copy the table:
         python ~/code/ubelt/dev/count_usage_freq.py
 
-        # Then edit:
+        # Then edit: TODO make less manual
         ~/code/ubelt/docs/source/index.rst
     """
     count_ubelt_usage()
