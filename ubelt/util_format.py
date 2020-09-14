@@ -2,6 +2,42 @@
 """
 Defines the function :func:`repr2`, which allows for a bit more customization
 than :func:`repr` or :func:`pprint`. See the docstring for more details.
+
+
+Two main goals of repr2 are to provide nice string representations of nested
+data structures and make those "eval-able" whenever possible. As an example
+take the value `float('inf')`, which normaly has a non-evalable repr of `inf`:
+
+>>> import ubelt as ub
+>>> ub.repr2(float('inf'))
+"float('inf')"
+
+The `newline` (or `nl`) keyword argument can control how deep in the nesting
+newlines are allowed.
+
+>>> print(ub.repr2({1: float('nan'), 2: float('inf'), 3: 3.0}))
+{
+    1: float('nan'),
+    2: float('inf'),
+    3: 3.0,
+}
+
+>>> print(ub.repr2({1: float('nan'), 2: float('inf'), 3: 3.0}, nl=0))
+{1: float('nan'), 2: float('inf'), 3: 3.0}
+
+
+You can also define or overwrite how representations for different types are
+created. You can either create your own extension object, or you can
+monkey-patch `ub.util_format._FORMATTER_EXTENSIONS` without specifying the
+extensions keyword argument (although this will be a global change).
+
+>>> extensions = ub.util_format.FormatterExtensions()
+>>> @extensions.register(float)
+>>> def my_float_formater(data, **kw):
+>>>     return "monkey({})".format(data)
+>>> print(ub.repr2({1: float('nan'), 2: float('inf'), 3: 3.0}, nl=0, extensions=extensions))
+{1: monkey(nan), 2: monkey(inf), 3: monkey(3.0)}
+
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import six
@@ -1080,3 +1116,11 @@ def _align_lines(line_list, character='=', replchar=None, pos=0):
         else:
             new_lines.append(replchar.join(tup))
     return new_lines
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python ~/code/ubelt/ubelt/util_format.py all
+    """
+    import xdoctest
+    xdoctest.doctest_module(__file__)
