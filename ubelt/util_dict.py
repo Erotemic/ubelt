@@ -490,7 +490,8 @@ def dict_isect(*args):
         dictclass = OrderedDict if isinstance(args[0], OrderedDict) else dict
         common_keys = set.intersection(*map(set, args))
         first_dict = args[0]
-        return dictclass((k, first_dict[k]) for k in common_keys)
+        return dictclass((k, first_dict[k]) for k in first_dict
+                         if k in common_keys)
 
 
 def map_vals(func, dict_):

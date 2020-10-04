@@ -7,6 +7,8 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## Version 0.9.3 - Unreleased
 
+### Fixed
+* Bug in `dict_isect` where order was not taken into account
 
 ## [Version 0.9.2] - 2020-08-26
 
