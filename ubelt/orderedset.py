@@ -420,6 +420,8 @@ class OrderedSet(MutableSet, Sequence):
             return False
         return all(item in other for item in self)
 
+    # todo: contiguous subset / subsequence_index?
+
     def issuperset(self, other):
         """
         Report whether this set contains another set.

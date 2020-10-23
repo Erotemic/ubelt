@@ -7,8 +7,19 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## Version 0.9.3 - Unreleased
 
+### Added
+* Added `meta` and `depends` to `CacheStamp` to agree with `Cacher`
+* `ProgIter.step` can now accept the `force` keyword argument to force display
+* `ProgIter.step` returns True if the display was written
+
 ### Fixed
 * Bug in `dict_isect` where order was not taken into account
+* Bug in `ProgIter` display frequency adjustment 
+
+### Changed
+* Tweaked display frequency adjustment in `ProgIter`
+* `ProgIter` no longer displays wall time by default. Set `show_wall=True` to
+  regain this functionality. When true this now shows the date and time.
 
 ## [Version 0.9.2] - 2020-08-26
 
