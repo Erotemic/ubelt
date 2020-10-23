@@ -40,7 +40,8 @@ Example:
     >>> for n in ProgIter(range(1000), verbose=1):
     >>>     # do some work
     >>>     is_prime(n)
-    1000/1000... rate=21153.08 Hz, eta=0:00:00, total=0:00:00, wall=13:00 EST
+    1000/1000... rate=114326.51 Hz, eta=0:00:00, total=0:00:00
+
 
 For more complex applications is may sometimes be desireable to
 manually use the ProgIter API. This is done as follows:
@@ -53,10 +54,11 @@ Example:
     >>> for _ in range(n):
     ...     prog.step(inc=1)  # specify the number of steps to increment
     >>> prog.end()  # Manually end progress iteration
-    manual 0/3... rate=0 Hz, eta=?, total=0:00:00, wall=12:46 EST
-    manual 1/3... rate=12036.01 Hz, eta=0:00:00, total=0:00:00, wall=12:46 EST
-    manual 2/3... rate=16510.10 Hz, eta=0:00:00, total=0:00:00, wall=12:46 EST
-    manual 3/3... rate=20067.43 Hz, eta=0:00:00, total=0:00:00, wall=12:46 EST
+    manual 0/3... rate=0 Hz, eta=?, total=0:00:00
+    manual 1/3... rate=14454.63 Hz, eta=0:00:00, total=0:00:00
+    manual 2/3... rate=17485.42 Hz, eta=0:00:00, total=0:00:00
+    manual 3/3... rate=21689.78 Hz, eta=0:00:00, total=0:00:00
+
 
 When working with ProgIter in either iterable or manual mode you can use the
 ``prog.ensure_newline`` method to guarantee that the next call you make to
@@ -69,25 +71,26 @@ Example:
     >>> def is_prime(n):
     ...     return n >= 2 and not any(n % i == 0 for i in range(2, n))
     >>> _iter = range(1000)
-    >>> prog = ProgIter(_iter, desc='check primes', verbose=2)
+    >>> prog = ProgIter(_iter, desc='check primes', verbose=2, show_wall=True)
     >>> for n in prog:
     >>>     if n == 97:
     >>>         print('!!! Special print at n=97 !!!')
     >>>     if is_prime(n):
     >>>         prog.set_extra('Biggest prime so far: {}'.format(n))
     >>>         prog.ensure_newline()
-    check primes    0/1000... rate=0 Hz, eta=?, total=0:00:00, wall=12:55 EST
-    check primes    1/1000... rate=98376.78 Hz, eta=0:00:00, total=0:00:00, wall=12:55 EST
+    check primes    0/1000... rate=0 Hz, eta=?, total=0:00:00, wall=2020-10-23 17:27 EST
+    check primes    1/1000... rate=95547.49 Hz, eta=0:00:00, total=0:00:00, wall=2020-10-23 17:27 EST
+    check primes    4/1000...Biggest prime so far: 3 rate=41062.28 Hz, eta=0:00:00, total=0:00:00, wall=2020-10-23 17:27 EST
+    check primes   16/1000...Biggest prime so far: 13 rate=85340.61 Hz, eta=0:00:00, total=0:00:00, wall=2020-10-23 17:27 EST
+    check primes   64/1000...Biggest prime so far: 61 rate=164739.98 Hz, eta=0:00:00, total=0:00:00, wall=2020-10-23 17:27 EST
     !!! Special print at n=97 !!!
-    check primes  257/1000...Biggest prime so far: 251 rate=308037.13 Hz, eta=0:00:00, total=0:00:00, wall=12:55 EST
-    check primes  642/1000...Biggest prime so far: 641 rate=185166.01 Hz, eta=0:00:00, total=0:00:00, wall=12:55 EST
-    check primes 1000/1000...Biggest prime so far: 997 rate=120063.72 Hz, eta=0:00:00, total=0:00:00, wall=12:55 EST
-
+    check primes  256/1000...Biggest prime so far: 251 rate=206287.91 Hz, eta=0:00:00, total=0:00:00, wall=2020-10-23 17:27 EST
+    check primes  512/1000...Biggest prime so far: 509 rate=165271.92 Hz, eta=0:00:00, total=0:00:00, wall=2020-10-23 17:27 EST
+    check primes  768/1000...Biggest prime so far: 761 rate=136480.12 Hz, eta=0:00:00, total=0:00:00, wall=2020-10-23 17:27 EST
+    check primes 1000/1000...Biggest prime so far: 997 rate=115214.95 Hz, eta=0:00:00, total=0:00:00, wall=2020-10-23 17:27 EST
 
 TODO:
-    - [X] Allow WALL times to be toggled on / off
-    - [X] WALL times should show the date.
-    - [ ] Specify callback that occurs whenever progress is written
+    - [ ] Specify callback that occurs whenever progress is written?
 """
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
@@ -603,7 +606,7 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
         # (i.e. how many iterations) we wait before we report progress We
         # don't want to incrase the interval by too much, but decreasing
         # (down to a minimum of 1) is usually ok.
-        rel_limit = 2.0
+        rel_limit = 4.0
         abs_limit = 256
         max_freq = min(self.freq + abs_limit, int(self.freq * rel_limit))
         self.freq = min(max_freq, new_freq)
