@@ -40,7 +40,8 @@ Example:
     >>> for n in ProgIter(range(1000), verbose=1):
     >>>     # do some work
     >>>     is_prime(n)
-    1000/1000... rate=21153.08 Hz, eta=0:00:00, total=0:00:00, wall=13:00 EST
+    1000/1000... rate=114326.51 Hz, eta=0:00:00, total=0:00:00
+
 
 For more complex applications is may sometimes be desireable to
 manually use the ProgIter API. This is done as follows:
@@ -53,10 +54,11 @@ Example:
     >>> for _ in range(n):
     ...     prog.step(inc=1)  # specify the number of steps to increment
     >>> prog.end()  # Manually end progress iteration
-    manual 0/3... rate=0 Hz, eta=?, total=0:00:00, wall=12:46 EST
-    manual 1/3... rate=12036.01 Hz, eta=0:00:00, total=0:00:00, wall=12:46 EST
-    manual 2/3... rate=16510.10 Hz, eta=0:00:00, total=0:00:00, wall=12:46 EST
-    manual 3/3... rate=20067.43 Hz, eta=0:00:00, total=0:00:00, wall=12:46 EST
+    manual 0/3... rate=0 Hz, eta=?, total=0:00:00
+    manual 1/3... rate=14454.63 Hz, eta=0:00:00, total=0:00:00
+    manual 2/3... rate=17485.42 Hz, eta=0:00:00, total=0:00:00
+    manual 3/3... rate=21689.78 Hz, eta=0:00:00, total=0:00:00
+
 
 When working with ProgIter in either iterable or manual mode you can use the
 ``prog.ensure_newline`` method to guarantee that the next call you make to
@@ -69,19 +71,26 @@ Example:
     >>> def is_prime(n):
     ...     return n >= 2 and not any(n % i == 0 for i in range(2, n))
     >>> _iter = range(1000)
-    >>> prog = ProgIter(_iter, desc='check primes', verbose=2)
+    >>> prog = ProgIter(_iter, desc='check primes', verbose=2, show_wall=True)
     >>> for n in prog:
     >>>     if n == 97:
     >>>         print('!!! Special print at n=97 !!!')
     >>>     if is_prime(n):
     >>>         prog.set_extra('Biggest prime so far: {}'.format(n))
     >>>         prog.ensure_newline()
-    check primes    0/1000... rate=0 Hz, eta=?, total=0:00:00, wall=12:55 EST
-    check primes    1/1000... rate=98376.78 Hz, eta=0:00:00, total=0:00:00, wall=12:55 EST
+    check primes    0/1000... rate=0 Hz, eta=?, total=0:00:00, wall=2020-10-23 17:27 EST
+    check primes    1/1000... rate=95547.49 Hz, eta=0:00:00, total=0:00:00, wall=2020-10-23 17:27 EST
+    check primes    4/1000...Biggest prime so far: 3 rate=41062.28 Hz, eta=0:00:00, total=0:00:00, wall=2020-10-23 17:27 EST
+    check primes   16/1000...Biggest prime so far: 13 rate=85340.61 Hz, eta=0:00:00, total=0:00:00, wall=2020-10-23 17:27 EST
+    check primes   64/1000...Biggest prime so far: 61 rate=164739.98 Hz, eta=0:00:00, total=0:00:00, wall=2020-10-23 17:27 EST
     !!! Special print at n=97 !!!
-    check primes  257/1000...Biggest prime so far: 251 rate=308037.13 Hz, eta=0:00:00, total=0:00:00, wall=12:55 EST
-    check primes  642/1000...Biggest prime so far: 641 rate=185166.01 Hz, eta=0:00:00, total=0:00:00, wall=12:55 EST
-    check primes 1000/1000...Biggest prime so far: 997 rate=120063.72 Hz, eta=0:00:00, total=0:00:00, wall=12:55 EST
+    check primes  256/1000...Biggest prime so far: 251 rate=206287.91 Hz, eta=0:00:00, total=0:00:00, wall=2020-10-23 17:27 EST
+    check primes  512/1000...Biggest prime so far: 509 rate=165271.92 Hz, eta=0:00:00, total=0:00:00, wall=2020-10-23 17:27 EST
+    check primes  768/1000...Biggest prime so far: 761 rate=136480.12 Hz, eta=0:00:00, total=0:00:00, wall=2020-10-23 17:27 EST
+    check primes 1000/1000...Biggest prime so far: 997 rate=115214.95 Hz, eta=0:00:00, total=0:00:00, wall=2020-10-23 17:27 EST
+
+TODO:
+    - [ ] Specify callback that occurs whenever progress is written?
 """
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
@@ -256,40 +265,58 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
     ProgIter does not use threading where as `tqdm` does.
 
     Attributes:
-        iterable (iterable): An iterable iterable
+        iterable (iterable):
+            An iterable iterable
 
-        desc (str): description label to show with progress
+        desc (str):
+            description label to show with progress
 
-        total (int): Maximum length of the process. If not specified, we
-            estimate it from the iterable, if possible.
+        total (int):
+            Maximum length of the process. If not specified, we estimate it
+            from the iterable, if possible.
 
-        freq (int, default=1): How many iterations to wait between messages.
+        freq (int, default=1):
+            How many iterations to wait between messages.
 
-        adjust (bool, default=True): if True freq is adjusted based on time_thresh
+        adjust (bool, default=True):
+            if True freq is adjusted based on time_thresh
 
-        eta_window (int, default=64): number of previous measurements to use in eta calculation
+        eta_window (int, default=64):
+            number of previous measurements to use in eta calculation
 
-        clearline (bool, default=True): if True messages are printed on the same line
-            otherwise each new progress message is printed on new line.
+        clearline (bool, default=True):
+            if True messages are printed on the same line otherwise each new
+            progress message is printed on new line.
 
-        adjust (bool, default=True): if True `freq` is adjusted based on time_thresh
+        adjust (bool, default=True):
+            if True `freq` is adjusted based on time_thresh. This may be
+            overwritten depending on the setting of verbose.
 
-        time_thresh (float, default=2.0): desired amount of time to wait between messages if
-            adjust is True otherwise does nothing
+        time_thresh (float, default=2.0):
+            desired amount of time to wait between messages if adjust is True
+            otherwise does nothing
 
-        show_times (bool, default=True): shows rate, eta, and wall (defaults to True)
+        show_times (bool, default=True):
+            shows rate and eta
 
-        initial (int, default=0): starting index offset (defaults to 0)
+        show_wall (bool, default=False):
+            show wall time
 
-        stream (file, default=sys.stdout): stream where progress information is written to
+        initial (int, default=0):
+            starting index offset
+
+        stream (file, default=sys.stdout):
+            stream where progress information is written to
 
         enabled (bool, default=True): if False nothing happens.
 
-        chunksize (int, optional): indicates that each iteration processes a batch of
-            this size. Iteration rate is displayed in terms of single-items.
+        chunksize (int, optional):
+            indicates that each iteration processes a batch of this size.
+            Iteration rate is displayed in terms of single-items.
 
-        verbose (int): verbosity mode, which controls clearline, adjust, and
-            enabled. The following maps the value of `verbose` to its effect.
+        verbose (int):
+            verbosity mode, which controls clearline, adjust, and enabled. The
+            following maps the value of `verbose` to its effect.
             0: enabled=False,
             1: enabled=True with clearline=True and adjust=True,
             2: enabled=True with clearline=False and adjust=True,
@@ -316,15 +343,16 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
         >>> # doctest: +SKIP
         >>> def is_prime(n):
         ...     return n >= 2 and not any(n % i == 0 for i in range(2, n))
-        >>> for n in ProgIter(range(100), verbose=1):
+        >>> for n in ProgIter(range(100), verbose=1, show_wall=True):
         >>>     # do some work
         >>>     is_prime(n)
-        100/100... rate=... Hz, total=..., wall=... EST
+        100/100... rate=... Hz, total=..., wall=...
     """
     def __init__(self, iterable=None, desc=None, total=None, freq=1,
                  initial=0, eta_window=64, clearline=True, adjust=True,
-                 time_thresh=2.0, show_times=True, enabled=True, verbose=None,
-                 stream=None, chunksize=None, **kwargs):
+                 time_thresh=2.0, show_times=True, show_wall=False,
+                 enabled=True, verbose=None, stream=None, chunksize=None,
+                 **kwargs):
         """
         Notes:
             See attributes for arg information
@@ -378,6 +406,7 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
         self.enabled = enabled
         self.adjust = adjust
         self.show_times = show_times
+        self.show_wall = show_wall
         self.eta_window = eta_window
         self.time_thresh = 1.0
         self.clearline = clearline
@@ -444,21 +473,15 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
         for self._iter_idx, item in enumerate(self.iterable, start=self.initial + 1):
             yield item
             self.step(0)  # inc is 0 because we already updated
-            # _between_idx = (self._iter_idx - self._last_idx)
-            # if (self._iter_idx) % self.freq == 0 or _between_idx > self.freq:
-            #     # update progress information every so often
-            #     # Note: this is the same logic as `self.step`, but inline
-            #     self._update_measurements()
-            #     self._update_estimates()
-            #     self.display_message()
         self.end()
 
-    def step(self, inc=1):
+    def step(self, inc=1, force=False):
         """
         Manually step progress update, either directly or by an increment.
 
         Args:
             inc (int, default=1): number of steps to increment
+            force (bool, default=False): if True forces progress display
 
         Example:
             >>> n = 3
@@ -480,7 +503,7 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
             return
         self._iter_idx += inc
         _between_idx = (self._iter_idx - self._now_idx)
-        if (self._iter_idx) % self.freq == 0 or _between_idx > self.freq:
+        if force or (self._iter_idx) % self.freq == 0 or _between_idx > self.freq:
             self._update_measurements()
             self._update_estimates()
             self.display_message()
@@ -578,15 +601,15 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
                        self._max_between_time)
         new_freq = max(new_freq, 1)
         # But things are not perfect. So, don't make drastic changes
-        factor = 1.5
-        max_freq_change_up = max(256, int(self.freq * factor))
-        max_freq_change_down = int(self.freq // factor)
-        if (new_freq - self.freq) > max_freq_change_up:
-            self.freq += max_freq_change_up
-        elif (self.freq - new_freq) > max_freq_change_down:
-            self.freq -= max_freq_change_down
-        else:
-            self.freq = new_freq
+
+        # freq is actually a bad name here. It is really the interval
+        # (i.e. how many iterations) we wait before we report progress We
+        # don't want to incrase the interval by too much, but decreasing
+        # (down to a minimum of 1) is usually ok.
+        rel_limit = 4.0
+        abs_limit = 256
+        max_freq = min(self.freq + abs_limit, int(self.freq * rel_limit))
+        self.freq = min(max_freq, new_freq)
 
     def _update_measurements(self):
         """
@@ -605,6 +628,20 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
         # Record that measures were updated
 
     def _update_estimates(self):
+        """
+        Ignore:
+            import random
+            import time
+            total = 1000
+            _iter = (time.sleep(abs(random.gauss(0, 0.5)) * 0.01)
+                     for _ in range(total))
+            self = ProgIter(_iter, total=total)
+            list(self)
+            self._measured_times
+
+            self._now_idx / self._total_seconds
+            self._iters_per_second
+        """
         # Estimate rate of progress
         if self.eta_window is None:
             self._iters_per_second = self._now_idx / self._total_seconds
@@ -637,7 +674,7 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
         Example:
             >>> self = ProgIter(show_times=True)
             >>> print(self._build_message_template().strip())
-            {desc} {iter_idx:4d}/?...{extra} rate={rate:{rate_format}} Hz, total={total}, wall={wall} ...
+            {desc} {iter_idx:4d}/?...{extra} rate={rate:{rate_format}} Hz, total={total} ...
 
             >>> self = ProgIter(show_times=False)
             >>> print(self._build_message_template().strip())
@@ -645,10 +682,9 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
 
             >>> self = ProgIter(total=0, show_times=True)
             >>> print(self._build_message_template().strip())
-            {desc} {iter_idx:1d}/0...{extra} rate={rate:{rate_format}} Hz, total={total}, wall={wall} ...
+            {desc} {iter_idx:1d}/0...{extra} rate={rate:{rate_format}} Hz, total={total} ...
         """
         from math import log10, floor
-        tzname = time.tzname[0]
         length_unknown = self.total is None or self.total < 0
         if length_unknown:
             n_chrs = 4
@@ -679,10 +715,15 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
 
         if self.show_times:
             msg_body += [
-                    ('rate={rate:{rate_format}} Hz,'),
-                    (' eta={eta},' if self.total else ''),
-                    (' total={total},'),  # this is total time
-                    (' wall={wall} ' + tzname),
+                ('rate={rate:{rate_format}} Hz,'),
+                (' eta={eta},' if self.total else ''),
+                (' total={total}'),  # this is total time
+                # (' wall={wall} ' + tzname),
+            ]
+        if self.show_wall:
+
+            msg_body += [
+                (', wall={wall}'),
             ]
         if self.clearline:
             msg_body = [CLEAR_BEFORE] + msg_body + [CLEAR_AFTER]
@@ -738,7 +779,7 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
                 rate=self._iters_per_second * self.chunksize,
                 rate_format='4.2f' if self._iters_per_second * self.chunksize > .001 else 'g',
                 eta=eta, total=total,
-                wall=time.strftime('%H:%M'),
+                wall=time.strftime('%Y-%m-%d %H:%M ') + time.tzname[0] if self.show_wall else None,
                 extra=self.extra,
             )
         else:
@@ -748,7 +789,7 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
                 rate=self._iters_per_second,
                 rate_format='4.2f' if self._iters_per_second > .001 else 'g',
                 eta=eta, total=total,
-                wall=time.strftime('%H:%M'),
+                wall=time.strftime('%Y-%m-%d %H:%M ') + time.tzname[0] if self.show_wall else None,
                 extra=self.extra,
             )
         return msg
@@ -761,28 +802,26 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
 
         Example:
             >>> # Unsafe version may write your message on the wrong line
-            >>> prog = ProgIter(range(4), show_times=False, verbose=1)
+            >>> prog = ProgIter(range(3), show_times=False, freq=2, adjust=False)
             >>> for n in prog:
             ...     print('unsafe message')
-             0/4...  unsafe message
-             1/4...  unsafe message
+             0/3... unsafe message
             unsafe message
-            unsafe message
-             4/4...
+             2/3... unsafe message
+             3/3...
             >>> # apparently the safe version does this too.
             >>> print('---')
             ---
-            >>> prog = ProgIter(range(4), show_times=False, verbose=1)
+            >>> prog = ProgIter(range(3), show_times=False, freq=2, adjust=False)
             >>> for n in prog:
             ...     prog.ensure_newline()
             ...     print('safe message')
-             0/4...
-            safe message
-             1/4...
+             0/3...
             safe message
             safe message
+             2/3...
             safe message
-             4/4...
+             3/3...
         """
         if not self._cursor_at_newline:
             self._write(AT_END)

@@ -160,7 +160,8 @@ def _readlink(link):
         return os.readlink(link)
     except Exception:  # nocover
         # On modern operating systems, we should never get here. (I think)
-        warnings.warn('Reading symlinks seems to not be supported')
+        if exists(link):
+            warnings.warn('Reading symlinks seems to not be supported')
         raise
 
 

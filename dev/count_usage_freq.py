@@ -19,12 +19,13 @@ def count_ubelt_usage():
     import glob
     from os.path import join
     names = [
-        'xdoctest', 'netharn', 'xdev', 'xinspect', 'ndsampler', 'kwil',
-        'kwarray', 'kwimage', 'kwplot', 'scriptconfig', 'vimtk',
+        'xdoctest', 'netharn', 'xdev', 'xinspect', 'ndsampler',
+        'kwarray', 'kwimage', 'kwplot', 'kwcoco',
+        'scriptconfig', 'vimtk',
         'mkinit', 'futures_actors', 'graphid',
 
-        'ibeis', 'plottool', 'guitool', 'utool', 'dtool', 'vtool', 'utool',
-        'hesaff'
+        'ibeis', 'plottool_ibeis', 'guitool_ibeis', 'utool', 'dtool_ibeis',
+        'vtool_ibeis', 'hesaff', 'torch_liberator', 'liberator',
     ] + config['extra_modnames']
 
     all_fpaths = []
@@ -85,6 +86,9 @@ def count_ubelt_usage():
 
 if __name__ == '__main__':
     """
+    For Me:
+        ~/internal/dev/ubelt_stats_update.sh
+
     CommandLine:
         python ~/code/ubelt/dev/count_usage_freq.py --help
         python ~/code/ubelt/dev/count_usage_freq.py

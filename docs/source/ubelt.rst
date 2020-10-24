@@ -5,9 +5,11 @@ Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 4
 
    ubelt.orderedset
    ubelt.progiter
+   ubelt.timerit
    ubelt.util_arg
    ubelt.util_cache
    ubelt.util_cmd
@@ -34,6 +36,6 @@ Module contents
 ---------------
 
 .. automodule:: ubelt
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

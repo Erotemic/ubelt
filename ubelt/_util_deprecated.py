@@ -136,6 +136,9 @@ def editfile(fpath, verbose=True):  # nocover
             'gedit',
             'TextEdit'
             'Notepad',
+            # 'todo vscode',
+            # 'todo atom',
+            # 'todo sublime',
         ]
         for cand in alt_candidates:
             if ub.find_exe(cand):

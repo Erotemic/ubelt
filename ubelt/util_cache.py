@@ -582,7 +582,14 @@ class CacheStamp(object):
 
         cfgstr (str):
             Configuration associated with the stamped computation.  A common
-            pattern is to call `ubelt.hash_data` on a dependency list.
+            pattern is to call :func:`ubelt.hash_data` on a dependency list.
+
+            Deprecated in favor of depends. Indicates the state.
+            Either this string or a hash of this string will be used to
+            identify the cache. A cfgstr should always be reasonably readable,
+            thus it is good practice to hash extremely detailed cfgstrs to a
+            reasonable readable level. Use meta to store make original details
+            persist.
 
         dpath (PathLike):
             Where to store the cached stamp file
@@ -601,6 +608,15 @@ class CacheStamp(object):
 
         enabled (bool, default=True):
             if False, expired always returns True
+
+        depends (str | List[str]): Indicate dependencies of this cache.
+            If the dependencies change, then the cache is recomputed.
+            New to CacheStamp in version 0.9.2, replaces `cfgstr`.
+
+        meta (object): Metadata that is also saved with the ``cfgstr``.
+            This can be useful to indicate how the ``cfgstr`` was constructed.
+            New to CacheStamp in version 0.9.2.
+
 
     Example:
         >>> import ubelt as ub
@@ -629,9 +645,10 @@ class CacheStamp(object):
         >>> assert self.expired()
     """
     def __init__(self, fname, dpath, cfgstr=None, product=None, hasher='sha1',
-                 verbose=None, enabled=True):
+                 verbose=None, enabled=True, depends=None, meta=None):
         self.cacher = Cacher(fname, cfgstr=cfgstr, dpath=dpath,
-                             verbose=verbose, enabled=enabled)
+                             verbose=verbose, enabled=enabled, depends=depends,
+                             meta=meta)
         self.product = product
         self.hasher = hasher
 

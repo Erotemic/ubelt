@@ -344,7 +344,7 @@ def test_adjust_freq():
     prog._between_time = 1
     prog._between_count = 1000
     prog._adjust_frequency()
-    assert prog.freq == 257
+    assert prog.freq == 4
 
     # Adjust frequency down to have each update happen every 1sec or so
     prog.freq = 1000
@@ -354,7 +354,7 @@ def test_adjust_freq():
     prog._between_time = 1
     prog._between_count = 1
     prog._adjust_frequency()
-    assert prog.freq == 334
+    assert prog.freq == 1
 
     # No need to adjust frequency to have each update happen every 1sec or so
     prog.freq = 1
