@@ -603,6 +603,10 @@ def modpath_to_modname(modpath, hide_init=True, hide_main=False, check=True,
         relativeto (str, default=None): if specified, all checks are ignored
             and this is considered the path to the root module.
 
+    TODO:
+        - [ ] Does this need modification to support PEP 420?
+              https://www.python.org/dev/peps/pep-0420/
+
     Returns:
         str: modname
 
