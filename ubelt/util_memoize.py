@@ -43,8 +43,10 @@ Example:
 from __future__ import absolute_import, division, print_function, unicode_literals
 import functools
 import sys
-import six
 from ubelt import util_hash
+
+
+PY2 = sys.version_info[0] == 2
 
 
 def _hashable(item):
@@ -71,8 +73,7 @@ def _make_signature_key(args, kwargs):
         >>> print('key = {!r}'.format(key))
         >>> # Some mutable types cannot be handled by ub.hash_data
         >>> import pytest
-        >>> import six
-        >>> if six.PY2:
+        >>> if PY2:
         >>>     import collections as abc
         >>> else:
         >>>     from collections import abc
@@ -197,7 +198,7 @@ class memoize_method(object):
         self._func = func
         self._cache_name = '_cache__' + func.__name__
         # Mimic attributes of a bound method
-        if six.PY2:
+        if PY2:
             self.im_func = func
         else:
             self.__func__ = func

@@ -14,7 +14,17 @@ The :func:`indent` prefixes all lines in a text block with a given prefix. By
 default that prefix is 4 spaces.
 """
 from __future__ import print_function, division, absolute_import, unicode_literals
-import six
+import sys
+
+PY2 = sys.version_info[0] == 2
+
+if PY2:
+    import six
+    text_type = six.text_type
+    binary_type = six.binary_type
+else:
+    binary_type = bytes
+    text_type = str
 
 __all__ = [
     'indent',
@@ -198,9 +208,9 @@ def ensure_unicode(text):
         >>> assert ensure_unicode('ï»¿text1'.encode('utf8')) == 'ï»¿text1'
         >>> assert (codecs.BOM_UTF8 + 'text»¿'.encode('utf8')).decode('utf8')
     """
-    if isinstance(text, six.text_type):
+    if isinstance(text, text_type):
         return text
-    elif isinstance(text, six.binary_type):
+    elif isinstance(text, binary_type):
         return text.decode('utf8')
     else:  # nocover
         raise ValueError('unknown input type {!r}'.format(text))

@@ -75,7 +75,7 @@ class NiceRepr(object):
         ...    pass
         >>> bar = Bar()
         >>> import pytest
-        >>> with pytest.warns(None) as record:
+        >>> with pytest.warns(RuntimeWarning) as record:
         >>>     assert 'object at' in str(bar)
         >>>     assert 'object at' in repr(bar)
 
@@ -94,7 +94,9 @@ class NiceRepr(object):
         ...    def __nice__(self):
         ...        assert False
         >>> foo = Foo()
-        >>> print('foo = {!r}'.format(foo))
+        >>> import pytest
+        >>> with pytest.warns(RuntimeWarning) as record:
+        >>>     print('foo = {!r}'.format(foo))
         foo = <...Foo ...>
     """
 

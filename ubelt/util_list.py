@@ -22,16 +22,24 @@ There are also other numpy inspired functions: :func:`unique`,
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import itertools as it
-import six
+import sys
 import math
 import operator
-from six.moves import zip_longest
-from six import next
 from ubelt import util_const
-if six.PY2:  # NOQA
+
+
+PY2 = sys.version_info[0] == 2
+
+if PY2:
+    import six
     import collections as collections_abc
+    from six import next
+    from six.moves import zip_longest
+    string_types = six.string_types
 else:
     from collections import abc as collections_abc
+    from itertools import zip_longest
+    string_types = (str,)
 
 
 class chunks(object):
@@ -201,7 +209,7 @@ def iterable(obj, strok=False):
     except Exception:
         return False
     else:
-        return strok or not isinstance(obj, six.string_types)
+        return strok or not isinstance(obj, string_types)
 
 
 def take(items, indices, default=util_const.NoParam):
@@ -330,6 +338,7 @@ def unique(items, key=None):
 
     Example:
         >>> import ubelt as ub
+        >>> import six
         >>> items = ['A', 'a', 'b', 'B', 'C', 'c', 'D', 'e', 'D', 'E']
         >>> unique_items = list(ub.unique(items, key=six.text_type.lower))
         >>> assert unique_items == ['A', 'b', 'C', 'D', 'e']

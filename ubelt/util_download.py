@@ -17,11 +17,21 @@ if it needs to.
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 from os.path import basename, join, exists
-import six
 import os
+import sys
 
 
 __all__ = ['download', 'grabdata']
+
+
+PY2 = sys.version_info[0] == 2
+
+
+if PY2:
+    import six
+    string_types = six.string_types
+else:
+    string_types = (str,)
 
 
 def download(url, fpath=None, dpath=None, fname=None, hash_prefix=None,
@@ -127,7 +137,7 @@ def download(url, fpath=None, dpath=None, fname=None, hash_prefix=None,
     import tempfile
     import hashlib
 
-    if six.PY2:  # nocover
+    if PY2:  # nocover
         from urllib2 import urlopen  # NOQA
     else:
         from urllib.request import urlopen  # NOQA
@@ -164,7 +174,7 @@ def download(url, fpath=None, dpath=None, fname=None, hash_prefix=None,
         file_size = None
 
     if hash_prefix:
-        if isinstance(hasher, six.string_types):
+        if isinstance(hasher, string_types):
             if hasher == 'sha1':
                 hasher = hashlib.sha1()
             elif hasher == 'md5':
@@ -374,7 +384,7 @@ def grabdata(url, fpath=None, dpath=None, fname=None, redo=False,
 
 
 def _check_hash_stamp(fpath, hash_prefix, hasher, verbose, needs_download=False):
-    if isinstance(hasher, six.string_types):
+    if isinstance(hasher, string_types):
         hasher_name = hasher
     else:
         hasher_name = hasher.name

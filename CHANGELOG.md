@@ -7,6 +7,14 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## Version 0.9.4 - Unreleased
 
+### Changed
+
+* Made import time 13x faster (was 109680, is now 8120) by using lazy
+  external type registration in `util_hash` and removing other eager imports.
+
+* Removed import dependency on six. There is still a runtime dependency, but we
+  are moving away from six. This is a first step to deprecating Python2 support
+
 
 ## Version 0.9.3 - Released 2020-10-24
 

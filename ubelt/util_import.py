@@ -17,10 +17,8 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 from os.path import (abspath, basename, dirname, exists, expanduser, isdir,
                      isfile, join, realpath, relpath, split, splitext)
 import os
-import six
 import sys
 import warnings
-
 
 __all__ = [
     'split_modpath',
@@ -29,6 +27,8 @@ __all__ = [
     'import_module_from_name',
     'import_module_from_path',
 ]
+
+PY2 = sys.version_info[0] == 2
 
 
 class PythonPathContext(object):
@@ -275,7 +275,7 @@ def _extension_module_tags():
     """
     import sysconfig
     tags = []
-    if six.PY2:
+    if PY2:
         # see also 'SHLIB_EXT'
         multiarch = sysconfig.get_config_var('MULTIARCH')
         if multiarch is not None:
@@ -298,7 +298,7 @@ def _platform_pylib_exts():  # nocover
     """
     import sysconfig
     valid_exts = []
-    if six.PY2:
+    if PY2:
         # see also 'SHLIB_EXT'
         base_ext = '.' + sysconfig.get_config_var('SO').split('.')[-1]
     else:
@@ -448,7 +448,7 @@ def _importlib_import_modpath(modpath):  # nocover
     """
     dpath, rel_modpath = split_modpath(modpath)
     modname = modpath_to_modname(modpath)
-    if six.PY2:  # nocover
+    if PY2:  # nocover
         import imp
         module = imp.load_source(modname, modpath)
     elif sys.version_info[0:2] <= (3, 4):  # nocover
@@ -560,7 +560,7 @@ def normalize_modpath(modpath, hide_init=True, hide_main=False):
         >>> assert not res2.endswith('.py')
         >>> assert not res3.endswith('.py')
     """
-    if six.PY2:
+    if PY2:
         if modpath.endswith('.pyc'):
             modpath = modpath[:-1]
     if hide_init:
@@ -682,7 +682,7 @@ def split_modpath(modpath, check=True):
         >>> assert recon == modpath
         >>> assert rel_modpath == join('xdoctest', 'static_analysis.py')
     """
-    if six.PY2:
+    if PY2:
         if modpath.endswith('.pyc'):
             modpath = modpath[:-1]
     modpath_ = abspath(expanduser(modpath))

@@ -45,13 +45,11 @@ NOTE:
     future. When this happens the ``HASH_VERSION`` attribute will be incremented.
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
-import json
 import hashlib
-import six
-import uuid
+import sys
 import math
 from collections import OrderedDict
-from six.moves import zip
+# from typing import List, Callable, Type, Dict  # NOQA
 # we will use NoParam instead of None because None is a valid hashlen setting
 from ubelt.util_const import NoParam
 
@@ -68,10 +66,24 @@ _ALPHABET_26 = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j',
                 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't',
                 'u', 'v', 'w', 'x', 'y', 'z']
 
-if six.PY2:
+
+PY2 = sys.version_info[0] == 2
+
+if PY2:
+    import six
+    from six.moves import zip
+    b = six.b
+    string_types = six.string_types
+    binary_type = six.binary_type
+    text_type = six.text_type
     _stringlike = (basestring, bytes)  # NOQA
     _intlike = (int, long)  # NOQA
 else:
+    def b(s):
+        return s.encode("latin-1")
+    binary_type = bytes
+    text_type = str
+    string_types = (str,)
     _stringlike = (str, bytes)  # NOQA
     _intlike = (int,)
 
@@ -103,7 +115,7 @@ except ImportError:  # nocover
 DEFAULT_HASHER = hashlib.sha512  # most robust algo, but slower than others
 
 
-if six.PY2:
+if PY2:
     import codecs
     HASH = type(hashlib.sha1())  # python2 doesn't expose the hash type
 
@@ -216,7 +228,7 @@ def _rectify_hasher(hasher):
 
     if hasher is NoParam or hasher == 'default':
         hasher = DEFAULT_HASHER
-    elif isinstance(hasher, six.string_types):
+    elif isinstance(hasher, string_types):
         if hasher not in hashlib.algorithms_available:
             raise KeyError('unknown hasher: {}'.format(hasher))
         else:
@@ -287,6 +299,7 @@ class HashableExtensions(object):
     def __init__(self):
         self.keyed_extensions = {}
         self.iterable_checks = []
+        self._lazy_queue = []         # type: List[Callable]
 
     def register(self, hash_types):
         """
@@ -307,7 +320,6 @@ class HashableExtensions(object):
         Example:
             >>> import ubelt as ub
             >>> import pytest
-            >>> import six
             >>> class MyType(object):
             ...     def __init__(self, id):
             ...         self.id = id
@@ -320,7 +332,7 @@ class HashableExtensions(object):
             >>> extensions = ub.util_hash.HashableExtensions()
             >>> @extensions.register(MyType)
             >>> def hash_my_type(data):
-            ...     return b'mytype', six.b(ub.hash_data(data.id))
+            ...     return b'mytype', b(ub.hash_data(data.id))
             >>> my_instance = MyType(1)
             >>> ub.hash_data(my_instance, extensions=extensions)
 
@@ -341,7 +353,7 @@ class HashableExtensions(object):
             >>> # hashable_extension registry.
             >>> @ub.util_hash._HASHABLE_EXTENSIONS.register(MyType)
             >>> def hash_my_type(data):
-            ...     return b'mytype', six.b(ub.hash_data(data.id))
+            ...     return b'mytype', b(ub.hash_data(data.id))
             >>> my_instance = MyType(1)
             >>> ub.hash_data(my_instance)
         """
@@ -397,9 +409,16 @@ class HashableExtensions(object):
             >>> func = self.lookup(data)
             >>> assert func(data)[1] == 1
 
+            >>> import uuid
             >>> data = uuid.uuid4()
             >>> self.lookup(data)
         """
+        # Evaluate the lazy queue if anything is in it
+        if self._lazy_queue:
+            for func in self._lazy_queue:
+                func()
+            self._lazy_queue = []
+
         # Maybe try using functools.singledispatch instead?
         # First try O(1) lookup
         query_hash_type = data.__class__
@@ -505,6 +524,7 @@ class HashableExtensions(object):
             * collections.OrderedDict
 
         Example:
+            >>> import uuid
             >>> data = uuid.UUID('7e9d206b-dc02-4240-8bdb-fffe858121d0')
             >>> print(hash_data(data, base='abc', hasher='sha512', types=True)[0:8])
             cryarepd
@@ -513,6 +533,7 @@ class HashableExtensions(object):
             >>> print(hash_data(data, base='abc', hasher='sha512', types=True)[0:8])
             qjspicvv
         """
+        import uuid
         @self.register(uuid.UUID)
         def _convert_uuid(data):
             hashable = data.bytes
@@ -562,11 +583,21 @@ class HashableExtensions(object):
             return prefix, _convert_to_hashable(data_, extensions=self)[1]
 
 _HASHABLE_EXTENSIONS = HashableExtensions()
-_HASHABLE_EXTENSIONS._register_builtin_class_extensions()
-try:
-    _HASHABLE_EXTENSIONS._register_numpy_extensions()
-except ImportError:  # nocover
-    pass
+
+
+def _lazy_init():
+    """
+    Delay the registration of any external libraries until a hashable extension
+    is needed.
+    """
+    try:
+        _HASHABLE_EXTENSIONS._register_builtin_class_extensions()
+        _HASHABLE_EXTENSIONS._register_numpy_extensions()
+    except ImportError:  # nocover
+        pass
+
+
+_HASHABLE_EXTENSIONS._lazy_queue.append(_lazy_init)
 
 
 class _HashTracer(object):
@@ -626,10 +657,10 @@ def _convert_to_hashable(data, types=True, extensions=None):
     if data is None:
         hashable = b'NONE'
         prefix = b'NULL'
-    elif isinstance(data, six.binary_type):
+    elif isinstance(data, binary_type):
         hashable = data
         prefix = b'TXT'
-    elif isinstance(data, six.text_type):
+    elif isinstance(data, text_type):
         # convert unicode into bytes
         hashable = data.encode('utf-8')
         prefix = b'TXT'
@@ -670,8 +701,6 @@ def _update_hasher(hasher, data, types=True, extensions=None):
         >>> _update_hasher(hasher, data)
         >>> print(hasher.hexdigest()[0:8])
         e2c67675
-
-        2ba8d82b
     """
     if extensions is None:
         extensions = _HASHABLE_EXTENSIONS
@@ -834,7 +863,8 @@ def hash_data(data, hasher=NoParam, base=NoParam, types=False,
         >>> print(ub.hash_data([1, 2, (3, '4')], base='abc',  hasher='sha512')[:32])
         hsrgqvfiuxvvhcdnypivhhthmrolkzej
     """
-    if convert and not isinstance(data, six.string_types):  # nocover
+    if convert and not isinstance(data, string_types):  # nocover
+        import json
         try:
             data = json.dumps(data)
         except TypeError:
@@ -852,7 +882,7 @@ def hash_data(data, hasher=NoParam, base=NoParam, types=False,
     return text
 
 
-def hash_file(fpath, blocksize=65536, stride=1, hasher=NoParam,
+def hash_file(fpath, blocksize=65536, stride=1, maxbytes=None, hasher=NoParam,
               hashlen=NoParam, base=NoParam):
     """
     Hashes the data in a file on disk.
@@ -871,12 +901,15 @@ def hash_file(fpath, blocksize=65536, stride=1, hasher=NoParam,
             strides > 1 skip data to hash, useful for faster hashing, but less
             accurate, also makes hash dependant on blocksize.
 
+        maxbytes (int | None):
+            if specified, only hash the leading `maxbytes` of data in the file.
+
         hasher (str | HASH, default='sha512'):
             string code or a hash algorithm from hashlib.
 
         hashlen (int):
             maximum number of symbols in the returned hash. If not specified,
-            all are returned.
+            all are returned. DEPRECATED. DO NOT USE.
 
         base (List[str] | str, default='hex'):
             list of symbols or shorthand key.
@@ -898,6 +931,15 @@ def hash_file(fpath, blocksize=65536, stride=1, hasher=NoParam,
         >>> ub.writeto(fpath, 'foobar')
         >>> print(ub.hash_file(fpath, hasher='sha1', base='hex'))
         8843d7f92416211de9ebb963ff4ce28125932878
+
+    Example:
+        >>> import ubelt as ub
+        >>> from os.path import join
+        >>> fpath = join(ub.ensure_app_cache_dir('ubelt'), 'tmp.txt')
+        >>> ub.writeto(fpath, 'foobar')
+        >>> print(ub.hash_file(fpath, hasher='sha1', base='hex', maxbytes=1000))
+        8843d7f92416211de9ebb963ff4ce28125932878
+        >>> print(ub.hash_file(fpath, hasher='sha1', base='hex', maxbytes=4))
 
     Example:
         >>> import ubelt as ub
@@ -929,17 +971,31 @@ def hash_file(fpath, blocksize=65536, stride=1, hasher=NoParam,
     hasher = _rectify_hasher(hasher)()
     with open(fpath, 'rb') as file:
         buf = file.read(blocksize)
-        if stride > 1:
-            # skip blocks when stride is greater than 1
-            while len(buf) > 0:
-                hasher.update(buf)
-                file.seek(blocksize * (stride - 1), 1)
-                buf = file.read(blocksize)
+        # We separate implementations for speed. Haven't benchmarked, but the
+        # idea is to keep the inner loop extremely tight
+        if maxbytes is None:
+            if stride > 1:
+                # skip blocks when stride is greater than 1
+                while len(buf) > 0:
+                    hasher.update(buf)
+                    file.seek(blocksize * (stride - 1), 1)
+                    buf = file.read(blocksize)
+            else:
+                # otherwise hash the entire file
+                while len(buf) > 0:
+                    hasher.update(buf)
+                    buf = file.read(blocksize)
         else:
-            # otherwise hash the entire file
-            while len(buf) > 0:
-                hasher.update(buf)
-                buf = file.read(blocksize)
+            if stride > 1:
+                while maxbytes > len(buf) > 0:
+                    hasher.update(buf)
+                    file.seek(blocksize * (stride - 1), 1)
+                    buf = file.read(blocksize)
+            else:
+                while maxbytes > len(buf) > 0:
+                    hasher.update(buf)
+                    buf = file.read(blocksize)
+
     # Get the hashed representation
     text = _digest_hasher(hasher, hashlen, base)
     return text
