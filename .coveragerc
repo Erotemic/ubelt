@@ -18,6 +18,7 @@ exclude_lines =
     if _debug:
     if __name__ == .__main__.:
     .*if six.PY2:
+    .*if PY2:
 
 omit =
     ubelt/tests/*
