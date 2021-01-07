@@ -825,7 +825,10 @@ def hash_data(data, hasher=NoParam, base=NoParam, types=False,
             Any sort of loosely organized data
 
         hasher (str | HASH, default='sha512'):
-            string code or a hash algorithm from hashlib.
+            string code or a hash algorithm from hashlib. Valid hashing
+            algorithms are defined by ``hashlib.algorithms_available`` (e.g.
+            'sha1', 'sha512', 'md5') as well as 'xxh32' and 'xxh64' if
+            :mod:`xxhash` is installed.
 
         base (List[str] | str, default='hex'):
             list of symbols or shorthand key.
@@ -882,7 +885,7 @@ def hash_data(data, hasher=NoParam, base=NoParam, types=False,
     return text
 
 
-def hash_file(fpath, blocksize=65536, stride=1, maxbytes=None, hasher=NoParam,
+def hash_file(fpath, blocksize=1048576, stride=1, maxbytes=None, hasher=NoParam,
               hashlen=NoParam, base=NoParam):
     """
     Hashes the data in a file on disk.
@@ -894,8 +897,12 @@ def hash_file(fpath, blocksize=65536, stride=1, maxbytes=None, hasher=NoParam,
         fpath (PathLike):
             location of the file to be hashed.
 
-        blocksize (int, default=2 ** 16):
-            Affects speed of reading file
+        blocksize (int, default=2 ** 20):
+            Amount of data to read and hash at a time. There is a trade off and
+            the optimal number will depend on specific hardware. This number
+            was chosen to be optimal on a developer system. See
+            "dev/bench_hash_file" for methodology to choose this number for
+            your use case.
 
         stride (int, default=1):
             strides > 1 skip data to hash, useful for faster hashing, but less
@@ -905,7 +912,10 @@ def hash_file(fpath, blocksize=65536, stride=1, maxbytes=None, hasher=NoParam,
             if specified, only hash the leading `maxbytes` of data in the file.
 
         hasher (str | HASH, default='sha512'):
-            string code or a hash algorithm from hashlib.
+            string code or a hash algorithm from hashlib. Valid hashing
+            algorithms are defined by ``hashlib.algorithms_available`` (e.g.
+            'sha1', 'sha512', 'md5') as well as 'xxh32' and 'xxh64' if
+            :mod:`xxhash` is installed.
 
         hashlen (int):
             maximum number of symbols in the returned hash. If not specified,
@@ -939,7 +949,26 @@ def hash_file(fpath, blocksize=65536, stride=1, maxbytes=None, hasher=NoParam,
         >>> ub.writeto(fpath, 'foobar')
         >>> print(ub.hash_file(fpath, hasher='sha1', base='hex', maxbytes=1000))
         8843d7f92416211de9ebb963ff4ce28125932878
-        >>> print(ub.hash_file(fpath, hasher='sha1', base='hex', maxbytes=4))
+
+        >>> # We have the ability to only hash at most ``maxbytes`` in a file
+        >>> ub.writeto(fpath, 'abcdefghijklmnop')
+        >>> h0 = ub.hash_file(fpath, hasher='sha1', base='hex', maxbytes=11, blocksize=3)
+        >>> h1 = ub.hash_file(fpath, hasher='sha1', base='hex', maxbytes=32, blocksize=3)
+        >>> h2 = ub.hash_file(fpath, hasher='sha1', base='hex', maxbytes=32, blocksize=32)
+        >>> h3 = ub.hash_file(fpath, hasher='sha1', base='hex', maxbytes=16, blocksize=1)
+        >>> h4 = ub.hash_file(fpath, hasher='sha1', base='hex', maxbytes=16, blocksize=18)
+        >>> assert h1 == h2 == h3 == h4
+        >>> assert h1 != h0
+
+        >>> # Using a stride makes the result dependant on the blocksize
+        >>> h0 = ub.hash_file(fpath, hasher='sha1', base='hex', maxbytes=11, blocksize=3, stride=2)
+        >>> h1 = ub.hash_file(fpath, hasher='sha1', base='hex', maxbytes=32, blocksize=3, stride=2)
+        >>> h2 = ub.hash_file(fpath, hasher='sha1', base='hex', maxbytes=32, blocksize=32, stride=2)
+        >>> h3 = ub.hash_file(fpath, hasher='sha1', base='hex', maxbytes=16, blocksize=1, stride=2)
+        >>> h4 = ub.hash_file(fpath, hasher='sha1', base='hex', maxbytes=16, blocksize=18, stride=2)
+        >>> assert h1 != h2 != h3
+        >>> assert h1 == h0
+        >>> assert h2 == h4
 
     Example:
         >>> import ubelt as ub
@@ -986,15 +1015,23 @@ def hash_file(fpath, blocksize=65536, stride=1, maxbytes=None, hasher=NoParam,
                     hasher.update(buf)
                     buf = file.read(blocksize)
         else:
+            # In this case we hash at most ``maxbytes``
+            maxremain = maxbytes
             if stride > 1:
-                while maxbytes > len(buf) > 0:
+                while len(buf) > 0 and maxremain > 0:
+                    buf = buf[:maxremain]
+                    maxremain -= len(buf)
                     hasher.update(buf)
-                    file.seek(blocksize * (stride - 1), 1)
-                    buf = file.read(blocksize)
+                    if maxremain > 0:
+                        file.seek(blocksize * (stride - 1), 1)
+                        buf = file.read(blocksize)
             else:
-                while maxbytes > len(buf) > 0:
+                while len(buf) > 0 and maxremain > 0:
+                    buf = buf[:maxremain]
+                    maxremain -= len(buf)
                     hasher.update(buf)
-                    buf = file.read(blocksize)
+                    if maxremain > 0:
+                        buf = file.read(blocksize)
 
     # Get the hashed representation
     text = _digest_hasher(hasher, hashlen, base)
