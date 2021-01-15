@@ -12,6 +12,10 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 * Added `maxbytes` parameter to `hash_file` to allow for only hashing a prefix.
 
+### Fixed
+
+* Docs seem to be building correctly now
+
 
 ### Changed
 
