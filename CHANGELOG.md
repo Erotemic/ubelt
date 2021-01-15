@@ -5,7 +5,10 @@ We are currently working on porting this changelog to the specifications in
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
-## Version 0.9.4 - Unreleased
+## Version 0.9.5 - Unreleased
+
+
+## Version 0.9.4 - Released 2021-01-15
 
 
 ### Added
