@@ -11,8 +11,10 @@ how the former is implemented.
 """
 from __future__ import print_function, division, absolute_import, unicode_literals
 import sys
-import six
 import io
+
+
+PY2 = sys.version_info[0] == 2
 
 
 class TeeStringIO(io.StringIO):
@@ -94,7 +96,7 @@ class TeeStringIO(io.StringIO):
         """
         if self.redirect is not None:
             self.redirect.write(msg)
-        if six.PY2:
+        if PY2:
             from xdoctest.utils.util_str import ensure_unicode
             msg = ensure_unicode(msg)
         super(TeeStringIO, self).write(msg)
@@ -131,6 +133,7 @@ class CaptureStdout(CaptureStream):
         ...     text = 'capture the heart ♥'
         ...     print(text)
         >>> print('dont capture look of disapproval ಠ_ಠ')
+        >>> import six
         >>> assert isinstance(self.text, six.text_type)
         >>> assert self.text == text + '\n', 'failed capture text'
 

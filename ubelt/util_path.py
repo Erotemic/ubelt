@@ -17,17 +17,15 @@ the operating system.
 The :func:`ensuredir` function operates like ``mkdir -p`` in unix.
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
-from os.path import dirname
-from os.path import exists
-from os.path import expanduser
-from os.path import expandvars
-from os.path import join
-from os.path import normpath
-from os.path import split
-from os.path import splitext
-from os.path import relpath
+from os.path import (
+    dirname, exists, expanduser, expandvars, join, normpath, split, splitext,
+    # relpath
+)
 import os
 import sys
+
+
+PY2 = sys.version_info[0] == 2
 
 
 __all__ = [
@@ -295,7 +293,7 @@ def ensuredir(dpath, mode=0o1777, verbose=None, recreate=False):
     if not exists(dpath):
         if verbose:
             print('Ensuring directory (creating {!r})'.format(dpath))
-        if sys.version_info.major == 2:  # nocover
+        if PY2:  # nocover
             os.makedirs(normpath(dpath), mode=mode)
         else:
             os.makedirs(normpath(dpath), mode=mode, exist_ok=True)

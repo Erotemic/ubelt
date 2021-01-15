@@ -2,18 +2,21 @@
 This file contains functions to be deprecated, but are still accessible.
 """
 import os
-import six
-from os.path import exists
-from os.path import sys
-from os.path import abspath
-from os.path import expanduser
-from os.path import expandvars
-from os.path import normpath
-from os.path import realpath
+import sys
+from os.path import exists, abspath, expanduser, expandvars, normpath, realpath
 from ubelt import util_const
 from .util_platform import (
     get_app_cache_dir, platform_cache_dir, ensure_app_cache_dir, WIN32, LINUX,
     DARWIN)
+
+
+PY2 = sys.version_info[0] == 2
+
+if PY2:
+    import six
+    string_types = six.string_types
+else:
+    string_types = (str,)
 
 
 # DEPRICATED:
@@ -116,7 +119,7 @@ def editfile(fpath, verbose=True):  # nocover
     import ubelt as ub
     import warnings
     warnings.warn('Please use xdev.editfile instead', DeprecationWarning)
-    if not isinstance(fpath, six.string_types):
+    if not isinstance(fpath, string_types):
         if isinstance(fpath, types.ModuleType):
             fpath = fpath.__file__
         else:

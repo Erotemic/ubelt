@@ -1,6 +1,9 @@
 # .readthedocs.yml
 # Read the Docs configuration file
 # See https://docs.readthedocs.io/en/stable/config-file/v2.html for details
+# 
+# See Also:
+# https://readthedocs.org/dashboard/ubelt/advanced/
 
 # Required
 version: 2
@@ -21,3 +24,10 @@ python:
   version: 3.7
   install:
     - requirements: docs/requirements.txt
+    - method: pip
+      path: .
+      #extra_requirements:
+      #  - docs
+
+#conda:
+#  environment: environment.yml

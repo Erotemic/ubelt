@@ -40,9 +40,24 @@ extensions keyword argument (although this will be a global change).
 
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
-import six
 import collections
-from typing import List, Callable, Type, Dict
+import sys
+# from typing import List, Callable, Type, Dict
+
+
+PY2 = sys.version_info[0] == 2
+
+if PY2:
+    import six
+    iteritems = six.iteritems
+    string_types = six.string_types
+    text_type = six.text_type
+else:
+    string_types = (str,)
+    text_type = str
+
+    def iteritems(d, **kw):
+        return d.items(**kw)
 
 
 def repr2(data, **kwargs):
@@ -330,7 +345,7 @@ class FormatterExtensions(object):
             if isinstance(key, tuple):
                 for t in key:
                     self._type_registry[t] = func
-            if isinstance(key, six.string_types):
+            if isinstance(key, string_types):
                 self._typename_registry[key] = func
             else:
                 self._type_registry[key] = func
@@ -342,6 +357,7 @@ class FormatterExtensions(object):
         Returns an appropriate function to format ``data`` if one has been
         registered.
         """
+        # Evaluate the lazy queue if anything is in it
         if self._lazy_queue:
             for func in self._lazy_queue:
                 func()
@@ -511,7 +527,7 @@ class FormatterExtensions(object):
             strvals = kwargs.get('sv', kwargs.get('strvals', False))
 
             if precision is None:
-                text = six.text_type(data)
+                text = text_type(data)
             else:
                 text = ('{:.%df}' % precision).format(data)
 
@@ -563,12 +579,12 @@ _FORMATTER_EXTENSIONS._lazy_queue.append(_lazy_init)
 def _format_object(val, **kwargs):
     stritems = kwargs.get('si', kwargs.get('stritems', False))
     strvals = stritems or kwargs.get('sv', kwargs.get('strvals', False))
-    base_valfunc = six.text_type if strvals else repr
+    base_valfunc = text_type if strvals else repr
 
     itemstr = base_valfunc(val)
 
     # Remove unicode repr from python2 to agree with python3 output
-    if six.PY2 and isinstance(val, six.string_types):  # nocover
+    if PY2 and isinstance(val, string_types):  # nocover
         if itemstr.startswith(("u'", 'u"')):
             itemstr = itemstr[1:]
     return itemstr
@@ -714,7 +730,7 @@ def _format_dict(dict_, **kwargs):
     itemsep = kwargs.get('itemsep', ' ')
 
     align = kwargs.get('align', False)
-    if align and not isinstance(align, six.string_types):
+    if align and not isinstance(align, string_types):
         kvsep = kwargs.get('kvsep', ': ')
         if kwargs.get('explicit', False):
             kvsep = '='
@@ -822,7 +838,7 @@ def _dict_itemstrs(dict_, **kwargs):
 
     def make_item_str(key, val):
         if explicit or kwargs.get('strkeys', False):
-            key_str = six.text_type(key)
+            key_str = text_type(key)
         else:
             key_str = repr2(key, precision=precision, newlines=0)
 
@@ -851,7 +867,7 @@ def _dict_itemstrs(dict_, **kwargs):
             item_str = prefix + val_str
         return item_str, _leaf_info
 
-    items = list(six.iteritems(dict_))
+    items = list(iteritems(dict_))
     _tups = [make_item_str(key, val) for (key, val) in items]
     itemstrs = [t[0] for t in _tups]
     max_height = max([t[1]['max_height'] for t in _tups]) if _tups else 0

@@ -11,7 +11,6 @@ throw an error if the file or directory does not exist. It also contains
 workarounds for win32 issues with :mod:`shutil`.
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
-import six
 import sys
 import os
 from os.path import exists
@@ -20,6 +19,9 @@ from os.path import exists
 __all__ = [
     'readfrom', 'writeto', 'touch', 'delete',
 ]
+
+
+PY2 = sys.version_info[0] == 2
 
 
 def writeto(fpath, to_write, aslines=False, verbose=None):
@@ -80,7 +82,7 @@ def writeto(fpath, to_write, aslines=False, verbose=None):
             file.write(bytes)
 
 
-if six.PY2:  # nocover
+if PY2:  # nocover
     def _ensure_bytes(text):
         if isinstance(text, unicode):  # NOQA
             text = text.encode('utf8')
@@ -159,7 +161,7 @@ def touch(fpath, mode=0o666, dir_fd=None, verbose=0, **kwargs):
     """
     if verbose:
         print('Touching file {}'.format(fpath))
-    if six.PY2:  # nocover
+    if PY2:  # nocover
         with open(fpath, 'a'):
             os.utime(fpath, None)
     else:

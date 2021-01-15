@@ -18,12 +18,8 @@ Example:
     >>> print(parts[-1])
     link_file.txt
 """
-from os.path import exists
-from os.path import islink
-from os.path import join
-from os.path import normpath
-from os.path import os
-import six
+from os.path import exists, islink, join, normpath
+import os
 import sys
 import warnings
 from ubelt import util_io
@@ -34,7 +30,9 @@ if sys.platform.startswith('win32'):  # nocover
 else:
     _win32_links = None
 
-if six.PY2:
+
+PY2 = sys.version_info[0] == 2
+if PY2:
     FileExistsError = IOError
 
 

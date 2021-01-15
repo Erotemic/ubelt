@@ -38,7 +38,6 @@ References:
 from __future__ import absolute_import, division, print_function, unicode_literals
 import os
 import sys
-import six
 import itertools as it
 from os.path import exists, join, isdir, expanduser, normpath
 
@@ -49,6 +48,15 @@ WIN32  = sys.platform == 'win32'
 LINUX  = sys.platform.startswith('linux')
 DARWIN = sys.platform == 'darwin'
 POSIX = 'posix' in sys.builtin_module_names
+
+
+PY2 = sys.version_info[0] == 2
+
+if PY2:
+    import six
+    string_types = six.string_types
+else:
+    string_types = (str,)
 
 
 def platform_data_dir():
@@ -360,7 +368,7 @@ def find_path(name, path=None, exact=False):
     """
     if path is None:
         path = os.environ.get('PATH', os.defpath)
-    if isinstance(path, six.string_types):
+    if isinstance(path, string_types):
         dpaths = path.split(os.pathsep)
     else:
         dpaths = path

@@ -65,49 +65,63 @@ def parse_requirements(fname='requirements.txt', with_version=False):
     Returns:
         List[str]: list of requirements items
     """
-    from os.path import exists
+    from os.path import exists, dirname, join
     import re
     require_fpath = fname
 
-    def parse_line(line):
+    def parse_line(line, dpath=''):
         """
         Parse information from a line in a requirements text file
+
+        line = 'git+https://a.com/somedep@sometag#egg=SomeDep'
+        line = '-e git+https://a.com/somedep@sometag#egg=SomeDep'
         """
+        # Remove inline comments
+        comment_pos = line.find(' #')
+        if comment_pos > -1:
+            line = line[:comment_pos]
+
         if line.startswith('-r '):
             # Allow specifying requirements in other files
-            target = line.split(' ')[1]
+            target = join(dpath, line.split(' ')[1])
             for info in parse_require_file(target):
                 yield info
         else:
+            # See: https://www.python.org/dev/peps/pep-0508/
             info = {'line': line}
             if line.startswith('-e '):
                 info['package'] = line.split('#egg=')[1]
             else:
+                if ';' in line:
+                    pkgpart, platpart = line.split(';')
+                    # Handle platform specific dependencies
+                    # setuptools.readthedocs.io/en/latest/setuptools.html
+                    # #declaring-platform-specific-dependencies
+                    plat_deps = platpart.strip()
+                    info['platform_deps'] = plat_deps
+                else:
+                    pkgpart = line
+                    platpart = None
+
                 # Remove versioning from the package
                 pat = '(' + '|'.join(['>=', '==', '>']) + ')'
-                parts = re.split(pat, line, maxsplit=1)
+                parts = re.split(pat, pkgpart, maxsplit=1)
                 parts = [p.strip() for p in parts]
 
                 info['package'] = parts[0]
                 if len(parts) > 1:
                     op, rest = parts[1:]
-                    if ';' in rest:
-                        # Handle platform specific dependencies
-                        # setuptools.readthedocs.io/en/latest/setuptools.html
-                        # #declaring-platform-specific-dependencies
-                        version, plat_deps = map(str.strip, rest.split(';'))
-                        info['platform_deps'] = plat_deps
-                    else:
-                        version = rest  # NOQA
+                    version = rest  # NOQA
                     info['version'] = (op, version)
             yield info
 
     def parse_require_file(fpath):
+        dpath = dirname(fpath)
         with open(fpath, 'r') as f:
             for line in f.readlines():
                 line = line.strip()
                 if line and not line.startswith('#'):
-                    for info in parse_line(line):
+                    for info in parse_line(line, dpath=dpath):
                         yield info
 
     def gen_packages_items():

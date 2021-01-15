@@ -5,7 +5,32 @@ We are currently working on porting this changelog to the specifications in
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
-## Version 0.9.3 - Unreleased
+## Version 0.9.4 - Unreleased
+
+
+### Added
+
+* Added `maxbytes` parameter to `hash_file` to allow for only hashing a prefix.
+
+### Fixed
+
+* Docs seem to be building correctly now
+
+
+### Changed
+
+* Made import time 13x faster (was 109680, is now 8120) by using lazy
+  external type registration in `util_hash` and removing other eager imports.
+
+* Removed import dependency on six. There is still a runtime dependency, but we
+  are moving away from six. This is a first step to deprecating Python2 support
+
+* Changed default of "blocksize" in `hash_file` to `2 ** 20` based on benchmarks.
+
+* Removing Travis-CI, will soon migrate to Circle-CI
+
+
+## Version 0.9.3 - Released 2020-10-24
 
 ### Added
 * Added `meta` and `depends` to `CacheStamp` to agree with `Cacher`
@@ -506,6 +531,6 @@ NOTE: THIS RELEASE WAS BROKEN DUE TO AN ISSUE WITH THE SETUP SCRIPT
 ### Added
 - First release of ubelt
 - Changed from and before this time are undocumented
-## Version 0.9.3 - Unreleased
+## Version 0.9.3 - Released 2020-10-24
 
 

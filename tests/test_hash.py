@@ -272,6 +272,9 @@ def test_hash_file():
     assert hashid2_a != hashid2_b, 'blocksize matters when stride is > 1'
     assert hashid1_a != hashid2_a
 
+    hashid3_c = ub.hash_file(fpath, hasher='sha512', stride=2, blocksize=10, maxbytes=1000)
+    assert hashid3_c == hashid2_b
+
 
 def test_convert_base_hex():
     # Test that hex values are unchanged

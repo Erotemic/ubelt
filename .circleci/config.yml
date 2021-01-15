@@ -209,7 +209,7 @@ jobs:
       - PYTHON_EXE: pypy3
     working_directory: ~/repo-full-pypy3
         
-  heredoc:
+  __doc__:
     docker:
       - image: pypy:3
     working_directory: ~/dev-only-not-a-real-job
