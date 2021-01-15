@@ -917,6 +917,8 @@ def hash_file(fpath, blocksize=1048576, stride=1, maxbytes=None, hasher=NoParam,
             'sha1', 'sha512', 'md5') as well as 'xxh32' and 'xxh64' if
             :mod:`xxhash` is installed.
 
+            TODO: add logic such that you can update an existing hasher
+
         hashlen (int):
             maximum number of symbols in the returned hash. If not specified,
             all are returned. DEPRECATED. DO NOT USE.

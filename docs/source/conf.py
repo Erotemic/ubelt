@@ -17,6 +17,17 @@ Notes:
     make html
     sphinx-apidoc -f -o ~/code/ubelt/docs/source ~/code/ubelt/ubelt --separate
     make html
+
+
+    Also:
+        To turn on PR checks
+
+        https://docs.readthedocs.io/en/stable/guides/autobuild-docs-for-pull-requests.html
+
+        https://readthedocs.org/dashboard/ubelt/advanced/
+
+        ensure your github account is connected to readthedocs
+        https://readthedocs.org/accounts/social/connections/
 """
 #
 # Configuration file for the Sphinx documentation builder.
