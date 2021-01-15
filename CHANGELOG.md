@@ -27,6 +27,8 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 * Changed default of "blocksize" in `hash_file` to `2 ** 20` based on benchmarks.
 
+* Removing Travis-CI, will soon migrate to Circle-CI
+
 
 ## Version 0.9.3 - Released 2020-10-24
 
