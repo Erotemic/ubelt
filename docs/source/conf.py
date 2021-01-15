@@ -28,6 +28,7 @@ Notes:
 
         ensure your github account is connected to readthedocs
         https://readthedocs.org/accounts/social/connections/
+
 """
 #
 # Configuration file for the Sphinx documentation builder.
