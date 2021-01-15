@@ -522,6 +522,11 @@ class HashableExtensions(object):
         This registers extensions for the following types:
             * uuid.UUID
             * collections.OrderedDict
+            * dict (caveat: will be sorted, so must be sortable)
+
+        CommandLine:
+            xdoctest -m ubelt.util_hash HashableExtensions._register_builtin_class_extensions:0
+            xdoctest -m ubelt.util_hash HashableExtensions._register_builtin_class_extensions:1
 
         Example:
             >>> import uuid
@@ -532,12 +537,58 @@ class HashableExtensions(object):
             >>>                     (4, OrderedDict())])
             >>> print(hash_data(data, base='abc', hasher='sha512', types=True)[0:8])
             qjspicvv
+
+        Example:
+            >>> # Ordered dictionaries are hashed differently that builtin dicts
+            >>> import ubelt as ub
+            >>> from collections import OrderedDict
+            >>> datas = {}
+            >>> datas['odict_data1'] = OrderedDict([
+            >>>     ('4', OrderedDict()),
+            >>>     ('a', 1),
+            >>>     ('b', 2),
+            >>>     ('c', [1, 2, 3]),
+            >>> ])
+            >>> datas['udict_data1'] = {
+            >>>     '4': {},
+            >>>     'a': 1,
+            >>>     'b': 2,
+            >>>     'c': [1, 2, 3],
+            >>> }
+            >>> datas['odict_data2'] = ub.dict_subset(datas['odict_data1'], ['a', '4', 'c', 'b'])
+            >>> datas['udict_data2'] = ub.dict_isect(datas['udict_data1'], ['a', '4', 'c', 'b'])
+            >>> datas['odict_data3'] = ub.dict_subset(datas['odict_data1'], ['c', 'b', 'a', '4'])
+            >>> datas['udict_data3'] = ub.dict_isect(datas['udict_data1'], ['c', 'b', 'a', '4'])
+            >>> # print('datas = {}'.format(ub.repr2(datas, nl=-1)))
+            >>> for key, val in sorted(datas.items()):
+            >>>     hashstr = ub.hash_data(val, base='abc', hasher='sha512', types=True)[0:8]
+            >>>     print('{} = {}'.format(key, hashstr))
+            odict_data1 = omnqalbe
+            odict_data2 = tjrlsoel
+            odict_data3 = cycowefz
+            udict_data1 = bvshfmzm
+            udict_data2 = bvshfmzm
+            udict_data3 = bvshfmzm
         """
         import uuid
         @self.register(uuid.UUID)
         def _convert_uuid(data):
             hashable = data.bytes
             prefix = b'UUID'
+            return prefix, hashable
+
+        @self.register(dict)
+        def _convert_dict(data):
+            if isinstance(data, OrderedDict):
+                return _convert_dict(data)
+            # Note: dictionary keys must be sortable
+            try:
+                ordered_ = sorted(data.items())
+            except TypeError as ex:
+                raise TypeError('Cannot hash dict with non-sortable keys: ' +
+                                str(ex))
+            hashable = b''.join(_hashable_sequence(ordered_, extensions=self))
+            prefix = b'DICT'
             return prefix, hashable
 
         @self.register(OrderedDict)
@@ -555,20 +606,8 @@ class HashableExtensions(object):
         Extensions that might be desired, but we do not enable them by default
 
         This registers extensions for the following types:
-            * dict
         """
-        # UNSURE IF THIS IS DESIRABLE
-        @self.register(dict)
-        def _convert_dict(data):
-            # Note: dictionary keys must be sortable
-            try:
-                ordered_ = sorted(data.items())
-            except TypeError as ex:
-                raise TypeError('Cannot hash dict with non-sortable keys: ' +
-                                str(ex))
-            hashable = b''.join(_hashable_sequence(ordered_, extensions=self))
-            prefix = b'DICT'
-            return prefix, hashable
+        pass
 
     def _register_torch_extensions(self):  # nocover
         """
@@ -850,6 +889,15 @@ def hash_data(data, hasher=NoParam, base=NoParam, types=False,
         extensions (HashableExtensions):
             a custom :class:`HashableExtensions` instance that can overwrite or
             define how different types of objects are hashed.
+
+    Notes:
+        The types allowed are specified by the  HashableExtensions object. By
+        default ubelt will register:
+
+        OrderedDict, uuid.UUID, np.random.RandomState, np.int64, np.int32,
+        np.int16, np.int8, np.uint64, np.uint32, np.uint16, np.uint8,
+        np.float16, np.float32, np.float64, np.float128, np.ndarray, bytes,
+        str, int, float, long (in python2), list, and tuple
 
     Returns:
         str: text representing the hashed data
