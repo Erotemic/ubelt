@@ -609,6 +609,7 @@ class HashableExtensions(object):
         def _convert_dict(data):
             try:
                 ordered_ = sorted(data.items())
+                # what raises a TypeError differs between Python 2 and 3
             except TypeError:
                 import ubelt as ub
                 sortx = ub.argsort(data, key=str)
@@ -620,7 +621,8 @@ class HashableExtensions(object):
         @self.register(OrderedDict)
         def _convert_ordered_dict(data):
             """
-            Note, we should not be hashing dicts because they are unordered
+            Currently ordered dictionaries are considered separately from
+            regular dictionaries. I'm not sure what the right thing to do is.
             """
             hashable = b''.join(_hashable_sequence(list(data.items()),
                                                    extensions=self))

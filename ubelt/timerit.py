@@ -11,22 +11,41 @@ a with statement.
 
 Example:
     >>> # xdoctest: +IGNORE_WANT
+    >>> #
+    >>> # The Timerit class allows for robust benchmarking based
+    >>> # It can be used in normal scripts by simply adjusting the indentation
     >>> import math
-    >>> timer = Timer('Timer demo!', verbose=1)
-    >>> with timer:
-    >>>     math.factorial(100000)
-    tic('Timer demo!')
-    ...toc('Timer demo!')=0.1453s
+    >>> for timer in Timerit(num=12, verbose=3):
+    >>>     with timer:
+    >>>         math.factorial(100)
+    Timing for: 200 loops, best of 3
+    Timed for: 200 loops, best of 3
+        body took: 331.840 µs
+        time per loop: best=1.569 µs, mean=1.615 ± 0.0 µs
+
+    >>> # xdoctest: +SKIP
+    >>> # In Contrast, timeit is similar, but not having to worry about setup
+    >>> # and inputing the program as a string, is nice.
+    >>> import timeit
+    >>> timeit.timeit(stmt='math.factorial(100)', setup='import math')
+    1.12695...
+
 
 Example:
     >>> # xdoctest: +IGNORE_WANT
+    >>> #
+    >>> # The Timer class can also be useful for quick checks
+    >>> #
     >>> import math
-    >>> for timer in Timerit(num=200, verbose=3):
-    >>>     with timer:
-    >>>         math.factorial(10000)
-    Timing for 200 loops
-    Timed for: 200 loops, best of 3
-        time per loop: best=2.055 ms, mean=2.145 ± 0.083 ms
+    >>> timer = Timer('Timer demo!', verbose=1)
+    >>> x = 100000  # the input for example output
+    >>> x = 10      # the input for test speed considerations
+    >>> with timer:
+    >>>     math.factorial(x)
+    tic('Timer demo!')
+    ...toc('Timer demo!')=0.1959s
+
+
 
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
@@ -67,7 +86,7 @@ class Timer(object):
         >>> import math
         >>> timer = Timer('Timer test!', verbose=1)
         >>> with timer:
-        >>>     math.factorial(10000)
+        >>>     math.factorial(10)
         >>> assert timer.elapsed > 0
         tic('Timer test!')
         ...toc('Timer test!')=...
@@ -148,13 +167,13 @@ class Timerit(object):
 
     Example:
         >>> import math
-        >>> num = 15
+        >>> num = 3
         >>> t1 = Timerit(num, label='factorial', verbose=1)
         >>> for timer in t1:
         >>>     # <write untimed setup code here> this example has no setup
         >>>     with timer:
         >>>         # <write code to time here> for example...
-        >>>         math.factorial(10000)
+        >>>         math.factorial(100)
         Timed best=..., mean=... for factorial
         >>> # <you can now access Timerit attributes>
         >>> assert t1.total_time > 0
@@ -164,19 +183,21 @@ class Timerit(object):
     Example:
         >>> # xdoc: +IGNORE_WANT
         >>> import math
-        >>> num = 10
+        >>> num = 4
         >>> # If the timer object is unused, time will still be recorded,
         >>> # but with less precision.
-        >>> for _ in Timerit(num, 'concise', verbose=2):
-        >>>     math.factorial(10000)
-        Timed concise for: 10 loops, best of 3
-            time per loop: best=4.954 ms, mean=4.972 ± 0.018 ms
+        >>> for _ in Timerit(num, 'concise', bestof=2, verbose=2):
+        >>>     math.factorial(100)
+        Timed concise for: 4 loops, best of 2
+            time per loop: best=1.637 µs, mean=1.935 ± 0.3 µs
         >>> # Using the timer object results in the most precise timings
-        >>> for timer in Timerit(num, 'precise', verbose=3):
-        >>>     with timer: math.factorial(10000)
-        Timing precise for: 15 loops, best of 3
-        Timed precise for: 15 loops, best of 3
-            time per loop: best=2.474 ms, mean=2.54 ± 0.046 ms
+        >>> for timer in Timerit(num, 'precise', bestof=2, verbose=3):
+        >>>     with timer: math.factorial(100)
+        Timed precise for: 4 loops, best of 2
+            body took: 8.696 µs
+            time per loop: best=1.754 µs, mean=1.821 ± 0.1 µs
+
+
     """
 
     _default_timer_cls = Timer
