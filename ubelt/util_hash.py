@@ -569,6 +569,18 @@ class HashableExtensions(object):
             udict_data1 = bvshfmzm
             udict_data2 = bvshfmzm
             udict_data3 = bvshfmzm
+
+        Example:
+            >>> # Ordered dictionaries are hashed differently that builtin dicts
+            >>> import ubelt as ub
+            >>> print(ub.hash_data({1, 2, 3})[0:8])
+            >>> print(ub.hash_data({2, 3, 1})[0:8])
+            >>> print(ub.hash_data({'2', 3, 1})[0:8])
+            >>> print(ub.hash_data({3, 1, '2'})[0:8])
+            36fb38a1
+            36fb38a1
+            742ae82d
+            742ae82d
         """
         import uuid
         @self.register(uuid.UUID)
@@ -577,19 +589,27 @@ class HashableExtensions(object):
             prefix = b'UUID'
             return prefix, hashable
 
+        @self.register(set)
+        def _convert_set(data):
+            try:
+                ordered_ = sorted(data)
+            except TypeError:
+                import ubelt as ub
+                data_ = list(data)
+                sortx = ub.argsort(data_, key=str)
+                ordered_ = [data_[k] for k in sortx]
+            hashable = b''.join(_hashable_sequence(ordered_, extensions=self))
+            prefix = b'SET'
+            return prefix, hashable
+
         @self.register(dict)
         def _convert_dict(data):
-            if isinstance(data, OrderedDict):
-                return _convert_dict(data)
-            # Note: dictionary keys must be sortable
             try:
                 ordered_ = sorted(data.items())
             except TypeError:
                 import ubelt as ub
                 sortx = ub.argsort(data, key=str)
                 ordered_ = [(k, data[k]) for k in sortx]
-                # raise TypeError('Cannot hash dict with non-sortable keys: ' +
-                #                 str(ex))
             hashable = b''.join(_hashable_sequence(ordered_, extensions=self))
             prefix = b'DICT'
             return prefix, hashable
@@ -901,7 +921,7 @@ def hash_data(data, hasher=NoParam, base=NoParam, types=False,
         OrderedDict, uuid.UUID, np.random.RandomState, np.int64, np.int32,
         np.int16, np.int8, np.uint64, np.uint32, np.uint16, np.uint8,
         np.float16, np.float32, np.float64, np.float128, np.ndarray, bytes,
-        str, int, float, long (in python2), list, and tuple
+        str, int, float, long (in python2), list, tuple, set, and dict
 
     Returns:
         str: text representing the hashed data
