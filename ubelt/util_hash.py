@@ -573,12 +573,14 @@ class HashableExtensions(object):
         Example:
             >>> # Ordered dictionaries are hashed differently that builtin dicts
             >>> import ubelt as ub
+            >>> import six
             >>> print(ub.hash_data({1, 2, 3})[0:8])
             >>> print(ub.hash_data({2, 3, 1})[0:8])
+            36fb38a1
+            36fb38a1
+            >>> # xdoctest: +REQUIRES(PY3):
             >>> print(ub.hash_data({'2', 3, 1})[0:8])
             >>> print(ub.hash_data({3, 1, '2'})[0:8])
-            36fb38a1
-            36fb38a1
             742ae82d
             742ae82d
         """
@@ -592,6 +594,7 @@ class HashableExtensions(object):
         @self.register(set)
         def _convert_set(data):
             try:
+                # what raises a TypeError differs between Python 2 and 3
                 ordered_ = sorted(data)
             except TypeError:
                 import ubelt as ub
