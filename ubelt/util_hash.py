@@ -584,9 +584,12 @@ class HashableExtensions(object):
             # Note: dictionary keys must be sortable
             try:
                 ordered_ = sorted(data.items())
-            except TypeError as ex:
-                raise TypeError('Cannot hash dict with non-sortable keys: ' +
-                                str(ex))
+            except TypeError:
+                import ubelt as ub
+                sortx = ub.argsort(data, key=str)
+                ordered_ = [(k, data[k]) for k in sortx]
+                # raise TypeError('Cannot hash dict with non-sortable keys: ' +
+                #                 str(ex))
             hashable = b''.join(_hashable_sequence(ordered_, extensions=self))
             prefix = b'DICT'
             return prefix, hashable
@@ -606,6 +609,7 @@ class HashableExtensions(object):
         Extensions that might be desired, but we do not enable them by default
 
         This registers extensions for the following types:
+            * none right now *
         """
         pass
 

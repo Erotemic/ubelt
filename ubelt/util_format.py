@@ -927,17 +927,13 @@ def _sort_itemstrs(items, itemstrs, key=None):
     import ubelt as ub
     try:
         # Set ordering is not unique. Sort by strings values instead.
-        if _peek_isinstance(items, (set, frozenset)):
+        if len(items) > 0 and isinstance(items[0], (set, frozenset)):
             raise TypeError
         sortx = ub.argsort(items, key=key)
     except TypeError:
         sortx = ub.argsort(itemstrs, key=key)
     itemstrs = [itemstrs[x] for x in sortx]
     return itemstrs
-
-
-def _peek_isinstance(items, types):
-    return len(items) > 0 and isinstance(items[0], types)
 
 
 def _rectify_countdown_or_bool(count_or_bool):

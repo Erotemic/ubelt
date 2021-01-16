@@ -77,8 +77,8 @@ def _make_signature_key(args, kwargs):
         >>>     import collections as abc
         >>> else:
         >>>     from collections import abc
-        >>> with pytest.raises(TypeError):
-        >>>     _make_signature_key((4, [1, 2], {1: 2, 'a': 'b'}), kwargs={})
+        >>> # This used to error, in ubelt versions < 0.9.5
+        >>> _make_signature_key((4, [1, 2], {1: 2, 'a': 'b'}), kwargs={})
         >>> class Dummy(abc.MutableSet):
         >>>     def __contains__(self, item): return None
         >>>     def __iter__(self): return iter([])
