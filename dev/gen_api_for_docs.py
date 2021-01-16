@@ -9,6 +9,10 @@ def count_ubelt_usage():
     from count_usage_freq import count_ubelt_usage
     usage = count_ubelt_usage()
 
+    import numpy as np
+    import kwarray
+    import ubelt as ub
+
     gaurd = ('=' * 64 + ' ' + '=' * 16)
     print(gaurd)
     print('{:<64} {:>8}'.format(' Function name ', 'Usefulness'))
@@ -17,7 +21,12 @@ def count_ubelt_usage():
         print('{:<64} {:>16}'.format(':func:`ubelt.' + key + '`', value))
     print(gaurd)
 
-    import ubelt as ub
+    raw_scores = np.array(list(usage.values()))
+
+    print('\n.. code:: python\n')
+    print(ub.indent('usage stats = ' + ub.repr2(kwarray.stats_dict(
+        raw_scores, median=True, sum=True), nl=1)))
+
     for attrname in ub.__all__:
         member = getattr(ub, attrname)
 

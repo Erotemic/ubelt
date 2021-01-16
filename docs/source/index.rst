@@ -118,6 +118,20 @@ my own code (excluding ubelt itself).
 :func:`ubelt.boolmask`                                                          1
 ================================================================ ================
 
+
+.. code:: python
+
+    usage stats = {
+        'mean': 73.12658,
+        'std': 170.95476,
+        'min': 1.0,
+        'max': 1478.0,
+        'med': 27.0,
+        'sum': 5777,
+        'shape': (79,),
+    }
+
+
 :mod:`ubelt.orderedset`
 -------------
 :func:`ubelt.OrderedSet`
