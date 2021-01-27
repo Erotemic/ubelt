@@ -1,6 +1,9 @@
 def test_unable_to_find_color():
     import ubelt as ub
     import pytest
+    if ub.util_colors.NO_COLOR:
+        pytest.skip()
+
     with pytest.warns(UserWarning):
         text = ub.color_text('text', 'wizbang')
         assert text == 'text', 'bad colors should pass the text back'
@@ -12,6 +15,11 @@ def test_global_color_disable():
         xdoctest -m /home/joncrall/code/ubelt/tests/test_color.py test_global_color_disable
     """
     import ubelt as ub
+    import pytest
+
+    if ub.util_colors.NO_COLOR:
+        pytest.skip()
+
     text = 'text = "hi"'
 
     has_color = ub.color_text(text, 'red') != ub.color_text(text, None)
