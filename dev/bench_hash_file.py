@@ -11,19 +11,18 @@ def hash_file2(fpath, blocksize=65536, hasher='xx64'):
     xxHash is much faster than sha1, bringing computation time down from .57
     seconds to .12 seconds for a 387M file.
 
-    my_weights_fpath_ = ub.truepath('~/tmp/my_weights.pt')
-
-
+    fpath = ub.truepath('~/Crayfish_low_contrast.jpeg')
     xdata = 2 ** np.array([8, 12, 14, 16])
     ydatas = ub.ddict(list)
     for blocksize in xdata:
         print('blocksize = {!r}'.format(blocksize))
-        ydatas['sha1'].append(ub.Timerit(2).call(ub.hash_file, my_weights_fpath_, hasher='sha1', blocksize=blocksize).min())
-        ydatas['sha256'].append(ub.Timerit(2).call(ub.hash_file, my_weights_fpath_, hasher='sha256', blocksize=blocksize).min())
-        ydatas['sha512'].append(ub.Timerit(2).call(ub.hash_file, my_weights_fpath_, hasher='sha512', blocksize=blocksize).min())
-        ydatas['md5'].append(ub.Timerit(2).call(ub.hash_file, my_weights_fpath_, hasher='md5', blocksize=blocksize).min())
-        ydatas['xx32'].append(ub.Timerit(2).call(hash_file2, my_weights_fpath_, hasher='xx32', blocksize=blocksize).min())
-        ydatas['xx64'].append(ub.Timerit(2).call(hash_file2, my_weights_fpath_, hasher='xx64', blocksize=blocksize).min())
+        ydatas['sha1'].append(ub.Timerit(2).call(ub.hash_file, fpath, hasher='sha1', blocksize=blocksize).min())
+        ydatas['sha256'].append(ub.Timerit(2).call(ub.hash_file, fpath, hasher='sha256', blocksize=blocksize).min())
+        ydatas['sha512'].append(ub.Timerit(2).call(ub.hash_file, fpath, hasher='sha512', blocksize=blocksize).min())
+        ydatas['md5'].append(ub.Timerit(2).call(ub.hash_file, fpath, hasher='md5', blocksize=blocksize).min())
+        ydatas['xx32'].append(ub.Timerit(2).call(hash_file2, fpath, hasher='xx32', blocksize=blocksize).min())
+        ydatas['xx64'].append(ub.Timerit(2).call(hash_file2, fpath, hasher='xx64', blocksize=blocksize).min())
+        ydatas['blake3'].append(ub.Timerit(2).call(hash_file2, fpath, hasher='blake3', blocksize=blocksize).min())
 
     import netharn as nh
     nh.util.qtensure()

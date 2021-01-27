@@ -141,6 +141,7 @@ else
         read -p "Do you want to git tag version='$VERSION'? (input 'yes' to confirm)" ANS
         echo "ANS = $ANS"
         DO_TAG="$ANS"
+        DO_TAG=$(normalize_boolean "$DO_TAG")
     fi
 fi
 
@@ -155,6 +156,7 @@ else
         read -p "Are you ready to publish version='$VERSION'? (input 'yes' to confirm)" ANS
         echo "ANS = $ANS"
         DO_UPLOAD="$ANS"
+        DO_UPLOAD=$(normalize_boolean "$DO_UPLOAD")
     fi
 fi
 

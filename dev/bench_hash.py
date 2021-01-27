@@ -8,7 +8,7 @@ def benchmark_hash_data():
     import ubelt as ub
     #ITEM = 'JUST A STRING' * 100
     ITEM = [0, 1, 'a', 'b', ['JUST A STRING'] * 4]
-    HASHERS = ['sha1', 'sha512', 'xxh32', 'xxh64']
+    HASHERS = ['sha1', 'sha512', 'xxh32', 'xxh64', 'blake3']
     scales = list(range(5, 13))
     results = ub.AutoDict()
     # Use json is faster or at least as fast it most cases

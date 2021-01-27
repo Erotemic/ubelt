@@ -81,7 +81,9 @@ def highlight_code(text, lexer_name='python', **kwargs):
         if sys.platform.startswith('win32'):  # nocover
             # Hack on win32 to support colored output
             import colorama
-            colorama.init()
+            if colorama.initialise.atexit_done is None:
+                # Only init if it hasn't been done
+                colorama.init()
 
         formater = pygments.formatters.terminal.TerminalFormatter(bg='dark')
         lexer = pygments.lexers.get_lexer_by_name(lexer_name, **kwargs)
@@ -135,7 +137,9 @@ def color_text(text, color):
         if sys.platform.startswith('win32'):  # nocover
             # Hack on win32 to support colored output
             import colorama
-            colorama.init()
+            if colorama.initialise.atexit_done is None:
+                # Only init if it hasn't been done
+                colorama.init()
 
         try:
             ansi_text = pygments.console.colorize(color, text)

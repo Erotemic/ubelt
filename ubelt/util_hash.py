@@ -79,6 +79,7 @@ if PY2:
     _stringlike = (basestring, bytes)  # NOQA
     _intlike = (int, long)  # NOQA
 else:
+    six = None
     def b(s):
         return s.encode("latin-1")
     binary_type = bytes
@@ -95,6 +96,11 @@ try:
     import xxhash
 except ImportError:  # nocover
     xxhash = None
+
+try:
+    import blake3
+except ImportError:  # nocover
+    blake3 = None
 
 # Sensible choices for default hashers are sha1, sha512, and xxh64.
 
@@ -219,12 +225,18 @@ def _rectify_hasher(hasher):
         >>> if xxhash:
         >>>     assert _rectify_hasher('xxh64') is xxhash.xxh64
         >>>     assert _rectify_hasher('xxh32') is xxhash.xxh32
+        >>> if blake3:
+        >>>     assert _rectify_hasher('blake3') is blake3.blake3
     """
     if xxhash is not None:  # pragma: no cover
         if hasher in {'xxh32', 'xx32', 'xxhash'}:
             return xxhash.xxh32
         if hasher in {'xxh64', 'xx64'}:
             return xxhash.xxh64
+
+    if blake3 is not None:  # pragma: no cover
+        if hasher in {'blake3', 'b3'}:
+            return blake3.blake3
 
     if hasher is NoParam or hasher == 'default':
         hasher = DEFAULT_HASHER
