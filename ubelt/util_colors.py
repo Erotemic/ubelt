@@ -73,10 +73,6 @@ def highlight_code(text, lexer_name='python', **kwargs):
         'c': 'cpp',
     }.get(lexer_name.replace('.', ''), lexer_name)
     try:
-        import pygments
-        import pygments.lexers
-        import pygments.formatters
-        import pygments.formatters.terminal
 
         if sys.platform.startswith('win32'):  # nocover
             # Hack on win32 to support colored output
@@ -84,6 +80,11 @@ def highlight_code(text, lexer_name='python', **kwargs):
             if colorama.initialise.atexit_done is None:
                 # Only init if it hasn't been done
                 colorama.init()
+
+        import pygments
+        import pygments.lexers
+        import pygments.formatters
+        import pygments.formatters.terminal
 
         formater = pygments.formatters.terminal.TerminalFormatter(bg='dark')
         lexer = pygments.lexers.get_lexer_by_name(lexer_name, **kwargs)
@@ -131,8 +132,6 @@ def color_text(text, color):
     if NO_COLOR or color is None:
         return text
     try:
-        import pygments
-        import pygments.console
 
         if sys.platform.startswith('win32'):  # nocover
             # Hack on win32 to support colored output
@@ -141,6 +140,8 @@ def color_text(text, color):
                 # Only init if it hasn't been done
                 colorama.init()
 
+        import pygments
+        import pygments.console
         try:
             ansi_text = pygments.console.colorize(color, text)
         except KeyError:
