@@ -212,7 +212,7 @@ workflows:
   version: 2
   test:
     jobs:
-      - test_full/cp3_10-3_10-linux
+      #- test_full/cp3_10-3_10-linux  # numpy isnt out for 3_10 yet
       - test_full/cp39-39-linux
       - test_full/cp38-38-linux
       - test_full/cp37-37m-linux
@@ -326,6 +326,9 @@ jobs:
           command: |
             . venv/bin/activate
             $PYTHON_EXE run_tests.py --network
+      - store_artifacts:
+          path: test-reports
+          destination: test-reports
       - store_artifacts:
           path: test-reports
           destination: test-reports

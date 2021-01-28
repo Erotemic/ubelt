@@ -6,7 +6,8 @@ Installation:
 
 Developing:
     git clone https://github.com/Erotemic/ubelt.git
-    pip install -e ubelt
+    cd ubelt
+    pip install -e ubelt[all]
 """
 import sys
 from os.path import exists
