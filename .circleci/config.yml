@@ -261,7 +261,7 @@ jobs:
       - image: circleci/python
     steps:
       - checkout
-    working_directory: ~/{{ .Environment.CIRCLE_JOB }}
+    #working_directory: ~/{{ .Environment.CIRCLE_JOB }}
 
   .test_minimal_template: &test_minimal_template  
     <<: 
