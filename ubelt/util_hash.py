@@ -213,7 +213,7 @@ class _Hashers(object):
                 pass
         self._lazy_queue = []
 
-    def __contains__(self, key):
+    def __contains__(self, key):  # nocover
         if self._lazy_queue:
             self._evaluate_registration_queue()
         return key in self.algos
