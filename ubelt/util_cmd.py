@@ -18,7 +18,7 @@ Example:
         'cwd': None,
         'err': '',
         'out': 'write your command naturally\n',
-        'proc': <subprocess.Popen object at ...>,
+        'proc': <...Popen...>,
         'ret': 0,
     }
 """
