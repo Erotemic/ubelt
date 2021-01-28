@@ -239,3 +239,83 @@ def bench_find_optimal_blocksize():
 
     print('ti.rankings = {}'.format(ub.repr2(ti.rankings, nl=2, align=':')))
     assert ub.allsame(results)
+
+
+def benchmark_hash_file():
+    """
+    CommandLine:
+        python ~/code/ubelt/dev/bench_hash.py --show
+        python ~/code/ubelt/dev/bench_hash.py --show
+    """
+    import ubelt as ub
+    import random
+
+    dpath = ub.ensuredir(ub.expandpath('$HOME/raid/data/tmp'))
+
+    rng = random.Random(0)
+    # Create a pool of random chunks of data
+    chunksize = int(2 ** 20)
+    pool_size = 8
+    part_pool = [_random_data(rng, chunksize) for _ in range(pool_size)]
+
+    #ITEM = 'JUST A STRING' * 100
+    HASHERS = ['sha1', 'sha512', 'xxh32', 'xxh64', 'blake3']
+
+    scales = list(range(5, 8))
+    import os
+
+    results = ub.AutoDict()
+    # Use json is faster or at least as fast it most cases
+    # xxhash is also significantly faster than sha512
+    ti = ub.Timerit(9, bestof=3, verbose=1, unit='ms')
+    for s in ub.ProgIter(scales, desc='benchmark', verbose=3):
+        N = 2 ** s
+        print(' --- s={s}, N={N} --- '.format(s=s, N=N))
+        # Write a big file
+        size_pool = [N]
+        fpath = _write_random_file(dpath, part_pool, size_pool, rng)
+
+        megabytes = os.stat(fpath).st_size / (2 ** 20)
+        print('megabytes = {!r}'.format(megabytes))
+
+        for hasher in HASHERS:
+            for timer in ti.reset(hasher):
+                ub.hash_file(fpath, hasher=hasher)
+            results[hasher].update({N: ti.mean()})
+        col = {h: results[h][N] for h in HASHERS}
+        sortx = ub.argsort(col)
+        ranking = ub.dict_subset(col, sortx)
+        print('walltime: ' + ub.repr2(ranking, precision=9, nl=0))
+        best = next(iter(ranking))
+        #pairs = list(ub.iter_window( 2))
+        pairs = [(k, best) for k in ranking]
+        ratios = [ranking[k1] / ranking[k2] for k1, k2 in pairs]
+        nicekeys = ['{}/{}'.format(k1, k2) for k1, k2 in pairs]
+        relratios = ub.odict(zip(nicekeys, ratios))
+        print('speedup: ' + ub.repr2(relratios, precision=4, nl=0))
+    # xdoc +REQUIRES(--show)
+    # import pytest
+    # pytest.skip()
+    import pandas as pd
+    df = pd.DataFrame.from_dict(results)
+    df.columns.name = 'hasher'
+    df.index.name = 'N'
+    ratios = df.copy().drop(columns=df.columns)
+    for k1, k2 in [('sha512', 'xxh32'), ('sha1', 'xxh32'), ('xxh64', 'xxh32'), ('xxh64', 'blake3')]:
+        ratios['{}/{}'.format(k1, k2)] = df[k1] / df[k2]
+    print()
+    print('Seconds per iteration')
+    print(df.to_string(float_format='%.9f'))
+    print()
+    print('Ratios of seconds')
+    print(ratios.to_string(float_format='%.2f'))
+    print()
+    print('Average Ratio (over all N)')
+    print(ratios.mean().sort_values())
+    if ub.argflag('--show'):
+        import kwplot
+        kwplot.autompl()
+        xdata = sorted(ub.peek(results.values()).keys())
+        ydata = ub.map_vals(lambda d: [d[x] for x in xdata], results)
+        kwplot.multi_plot(xdata, ydata, xlabel='N', ylabel='seconds')
+        kwplot.show_if_requested()

@@ -79,6 +79,7 @@ if PY2:
     _stringlike = (basestring, bytes)  # NOQA
     _intlike = (int, long)  # NOQA
 else:
+    zip = zip  # hack for editor
     six = None
     def b(s):
         return s.encode("latin-1")
@@ -91,16 +92,6 @@ else:
 
 # DEFAULT_ALPHABET = _ALPHABET_26
 DEFAULT_ALPHABET = _ALPHABET_16
-
-try:
-    import xxhash
-except ImportError:  # nocover
-    xxhash = None
-
-try:
-    import blake3
-except ImportError:  # nocover
-    blake3 = None
 
 # Sensible choices for default hashers are sha1, sha512, and xxh64.
 
@@ -201,6 +192,80 @@ else:
         return int_
 
 
+class _Hashers(object):
+    """
+    We offer hashers beyond what is available in hashlib.
+    This class is used to lazy load them.
+    """
+    def __init__(self):
+        self.algos = {}
+        self._lazy_queue = [
+            self._register_xxhash,
+            self._register_blake3,
+            self._register_hashlib,
+        ]
+
+    def _evaluate_registration_queue(self):
+        for func in self._lazy_queue:
+            try:
+                func()
+            except ImportError:
+                pass
+        self._lazy_queue = []
+
+    def __contains__(self, key):
+        if self._lazy_queue:
+            self._evaluate_registration_queue()
+        return key in self.algos
+
+    def _register_xxhash(self):  # nocover
+        import xxhash
+        self.algos['xxh32'] = xxhash.xxh32
+        self.algos['xx32'] = xxhash.xxh32
+        self.algos['xxh64'] = xxhash.xxh64
+        self.algos['xx64'] = xxhash.xxh64
+        self.algos['xxhash'] = xxhash.xxh32
+
+    def _register_blake3(self):  # nocover
+        import blake3
+        self.algos['blake3'] = blake3.blake3
+        self.algos['b3'] = blake3.blake3
+
+    def _register_hashlib(self):
+        guaranteed = set(hashlib.algorithms_guaranteed)
+        for key in guaranteed:
+            self.algos[key] = getattr(hashlib, key)
+
+        if 0:
+            # Do we want to expose these hash algos?
+            available = set(hashlib.algorithms_available)
+            extra = available - guaranteed
+            for key in extra:
+                self.algos[key] = hashlib.new(key)
+
+    def lookup(self, hasher):
+        if hasher is NoParam or hasher == 'default':
+            hasher = DEFAULT_HASHER
+        elif HASH is not None and isinstance(hasher, HASH):
+            # by default the result of this function is a class we will make an
+            # instance of, if we already have an instance, wrap it in a
+            # callable so the external syntax does not need to change.
+            return lambda: hasher
+        else:
+            # Ensure lazy registration functions have been executed
+            if self._lazy_queue:
+                self._evaluate_registration_queue()
+
+            if isinstance(hasher, string_types):
+                if hasher in self.algos:  # pragma: no cover
+                    return self.algos[hasher]
+                else:
+                    raise KeyError('unknown hasher: {}'.format(hasher))
+        return hasher
+
+_HASHERS = _Hashers()
+
+
 def _rectify_hasher(hasher):
     """
     Convert a string-based key into a hasher class
@@ -222,35 +287,19 @@ def _rectify_hasher(hasher):
         >>> import pytest
         >>> assert pytest.raises(KeyError, _rectify_hasher, '42')
         >>> #assert pytest.raises(TypeError, _rectify_hasher, object)
-        >>> if xxhash:
+        >>> if 'xxh32' in _HASHERS:
+        >>>     import xxhash
         >>>     assert _rectify_hasher('xxh64') is xxhash.xxh64
         >>>     assert _rectify_hasher('xxh32') is xxhash.xxh32
-        >>> if blake3:
+        >>> if 'blake3' in _HASHERS:
+        >>>     import blake3
         >>>     assert _rectify_hasher('blake3') is blake3.blake3
+        >>> if 'whirlpool' in _HASHERS:
+        >>>     assert _rectify_hasher('whirlpool') is blake3.blake3
     """
-    if xxhash is not None:  # pragma: no cover
-        if hasher in {'xxh32', 'xx32', 'xxhash'}:
-            return xxhash.xxh32
-        if hasher in {'xxh64', 'xx64'}:
-            return xxhash.xxh64
-
-    if blake3 is not None:  # pragma: no cover
-        if hasher in {'blake3', 'b3'}:
-            return blake3.blake3
-
-    if hasher is NoParam or hasher == 'default':
-        hasher = DEFAULT_HASHER
-    elif isinstance(hasher, string_types):
-        if hasher not in hashlib.algorithms_available:
-            raise KeyError('unknown hasher: {}'.format(hasher))
-        else:
-            hasher = getattr(hashlib, hasher)
-    elif HASH is not None and isinstance(hasher, HASH):
-        # by default the result of this function is a class we will make an
-        # instance of, if we already have an instance, wrap it in a callable
-        # so the external syntax does not need to change.
-        return lambda: hasher
-    return hasher
+    # Keeping this function for backwards compatability (even though its not
+    # part of the public API)
+    return _HASHERS.lookup(hasher)
 
 
 def _rectify_base(base):
@@ -906,7 +955,7 @@ def hash_data(data, hasher=NoParam, base=NoParam, types=False,
 
         hasher (str | HASH, default='sha512'):
             string code or a hash algorithm from hashlib. Valid hashing
-            algorithms are defined by ``hashlib.algorithms_available`` (e.g.
+            algorithms are defined by ``hashlib.algorithms_guaranteed`` (e.g.
             'sha1', 'sha512', 'md5') as well as 'xxh32' and 'xxh64' if
             :mod:`xxhash` is installed.
 
@@ -1002,7 +1051,7 @@ def hash_file(fpath, blocksize=1048576, stride=1, maxbytes=None, hasher=NoParam,
 
         hasher (str | HASH, default='sha512'):
             string code or a hash algorithm from hashlib. Valid hashing
-            algorithms are defined by ``hashlib.algorithms_available`` (e.g.
+            algorithms are defined by ``hashlib.algorithms_guaranteed`` (e.g.
             'sha1', 'sha512', 'md5') as well as 'xxh32' and 'xxh64' if
             :mod:`xxhash` is installed.
 

@@ -8,11 +8,23 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ## Version 0.9.5 - Unreleased
 
 
+### Added 
+
+* `blake3` is now an optional hasher
+
 ### Changed 
 
 * `ubelt.hash_data` can now hash dictionaries and sets by default.
 
 * increased test speed
+
+* Internal change in how external hashers are maintained. 
+
+
+### Fixes 
+
+* On windows colorama init is no longer called if it was ever initialized
+  before. This fixes rare infinite recursion bugs when using pytest.
  
 
 ## Version 0.9.4 - Released 2021-01-15
