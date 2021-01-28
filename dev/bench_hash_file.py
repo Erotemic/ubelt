@@ -250,7 +250,8 @@ def benchmark_hash_file():
     import ubelt as ub
     import random
 
-    dpath = ub.ensuredir(ub.expandpath('$HOME/raid/data/tmp'))
+    # dpath = ub.ensuredir(ub.expandpath('$HOME/raid/data/tmp'))
+    dpath = ub.ensuredir(ub.expandpath('$HOME/tmp'))
 
     rng = random.Random(0)
     # Create a pool of random chunks of data
@@ -261,7 +262,7 @@ def benchmark_hash_file():
     #ITEM = 'JUST A STRING' * 100
     HASHERS = ['sha1', 'sha512', 'xxh32', 'xxh64', 'blake3']
 
-    scales = list(range(5, 8))
+    scales = list(range(5, 10))
     import os
 
     results = ub.AutoDict()
@@ -301,7 +302,7 @@ def benchmark_hash_file():
     df.columns.name = 'hasher'
     df.index.name = 'N'
     ratios = df.copy().drop(columns=df.columns)
-    for k1, k2 in [('sha512', 'xxh32'), ('sha1', 'xxh32'), ('xxh64', 'xxh32'), ('xxh64', 'blake3')]:
+    for k1, k2 in [('sha512', 'xxh64'), ('sha1', 'xxh64'), ('xxh32', 'xxh64'), ('blake3', 'xxh64')]:
         ratios['{}/{}'.format(k1, k2)] = df[k1] / df[k2]
     print()
     print('Seconds per iteration')
