@@ -212,6 +212,7 @@ workflows:
   version: 2
   test:
     jobs:
+      - test_full/cp310-310-linux
       - test_full/cp39-39-linux
       - test_full/cp38-38-linux
       - test_full/cp37-37m-linux
@@ -220,6 +221,7 @@ workflows:
       - test_full/cp34-34m-linux
       - test_full/cp27-27mu-linux
 
+      - test_minimal/cp310-310-linux
       - test_minimal/cp39-39-linux
       - test_minimal/cp38-38-linux
       - test_minimal/cp37-37m-linux
