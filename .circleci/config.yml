@@ -299,6 +299,9 @@ jobs:
       - store_artifacts:
           path: test-reports
           destination: test-reports
+      - store_artifacts:
+          path: .coverage
+          destination: .coverage
 
 
   .test_full_template: &test_full_template  
@@ -371,6 +374,9 @@ jobs:
       - store_artifacts:
           path: dist
           destination: dist
+      - store_artifacts:
+          path: .coverage
+          destination: .coverage
 
 
   .deploy_template: &deploy_template  
@@ -545,6 +551,9 @@ jobs:
     steps:
       - | 
         __heredoc__=" 
+        circleci local execute --job test_full/pypy3
+
+
         docker run -v $(pwd):/io -it pypy:3 bash
 
         cd /io

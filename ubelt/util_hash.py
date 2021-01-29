@@ -79,7 +79,7 @@ if PY2:
     _stringlike = (basestring, bytes)  # NOQA
     _intlike = (int, long)  # NOQA
 else:
-    zip = zip  # hack for editor
+    # zip = zip  # hack for editor
     six = None
     def b(s):
         return s.encode("latin-1")
@@ -114,7 +114,7 @@ DEFAULT_HASHER = hashlib.sha512  # most robust algo, but slower than others
 
 if PY2:
     import codecs
-    HASH = type(hashlib.sha1())  # python2 doesn't expose the hash type
+    # HASH = type(hashlib.sha1())  # python2 doesn't expose the hash type
 
     def _py2_to_bytes(int_, length, byteorder='big', signed=True):
         """
@@ -152,11 +152,11 @@ if PY2:
             int_ = comp
         return int_
 else:
-    try:
-        HASH = hashlib._hashlib.HASH
-    except AttributeError:  # nocover
-        # Python seems to have been compiled without OpenSSL
-        HASH = None
+    # try:
+    #     HASH = hashlib._hashlib.HASH
+    # except AttributeError:  # nocover
+    #     # Python seems to have been compiled without OpenSSL
+    #     HASH = None
 
     codecs = None
     def _int_to_bytes(int_):
@@ -246,7 +246,8 @@ class _Hashers(object):
     def lookup(self, hasher):
         if hasher is NoParam or hasher == 'default':
             hasher = DEFAULT_HASHER
-        elif HASH is not None and isinstance(hasher, HASH):
+        elif hasattr(hasher, 'hexdigest'):
+            # HASH is not None and isinstance(hasher, HASH):
             # by default the result of this function is a class we will make an
             # instance of, if we already have an instance, wrap it in a
             # callable so the external syntax does not need to change.
@@ -282,8 +283,8 @@ def _rectify_hasher(hasher):
         >>> assert _rectify_hasher('sha512') is hashlib.sha512
         >>> assert _rectify_hasher('md5') is hashlib.md5
         >>> assert _rectify_hasher(hashlib.sha1) is hashlib.sha1
-        >>> if HASH is not None:
-        >>>     assert _rectify_hasher(hashlib.sha1())().name == 'sha1'
+        >>> #if HASH is not None:
+        >>> assert _rectify_hasher(hashlib.sha1())().name == 'sha1'
         >>> import pytest
         >>> assert pytest.raises(KeyError, _rectify_hasher, '42')
         >>> #assert pytest.raises(TypeError, _rectify_hasher, object)
@@ -953,7 +954,7 @@ def hash_data(data, hasher=NoParam, base=NoParam, types=False,
         data (object):
             Any sort of loosely organized data
 
-        hasher (str | HASH, default='sha512'):
+        hasher (str | hashlib.HASH, default='sha512'):
             string code or a hash algorithm from hashlib. Valid hashing
             algorithms are defined by ``hashlib.algorithms_guaranteed`` (e.g.
             'sha1', 'sha512', 'md5') as well as 'xxh32' and 'xxh64' if
@@ -1049,7 +1050,7 @@ def hash_file(fpath, blocksize=1048576, stride=1, maxbytes=None, hasher=NoParam,
         maxbytes (int | None):
             if specified, only hash the leading `maxbytes` of data in the file.
 
-        hasher (str | HASH, default='sha512'):
+        hasher (str | hashlib.HASH, default='sha512'):
             string code or a hash algorithm from hashlib. Valid hashing
             algorithms are defined by ``hashlib.algorithms_guaranteed`` (e.g.
             'sha1', 'sha512', 'md5') as well as 'xxh32' and 'xxh64' if
