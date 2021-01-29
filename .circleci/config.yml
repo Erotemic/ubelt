@@ -212,38 +212,77 @@ workflows:
   version: 2
   test:
     jobs:
-      #- test_full/cp3_10-3_10-linux  # numpy isnt out for 3_10 yet
-      - test_full/cp39-39-linux
-      - test_full/cp38-38-linux
-      - test_full/cp37-37m-linux
-      - test_full/cp36-36m-linux
-      - test_full/cp35-35m-linux
-      - test_full/cp34-34m-linux
-      - test_full/cp27-27mu-linux
+       #- test_full/cp3_10-3_10-linux:
+       #   filters: &__ignore_release__ # this yaml anchor to ignore tests on the release branch
+       #       branches:
+       #           ignore: 
+       #               - release
+      - test_full/cp39-39-linux:
+          filters: &__ignore_release__ # this yaml anchor to ignore tests on the release branch
+              branches:
+                  ignore: 
+                      - release
+      - test_full/cp38-38-linux:
+          filters:
+              <<: *__ignore_release__
+      - test_full/cp37-37m-linux:
+          filters:
+              <<: *__ignore_release__
+      - test_full/cp36-36m-linux:
+          filters:
+              <<: *__ignore_release__
+      - test_full/cp35-35m-linux:
+          filters:
+              <<: *__ignore_release__
+      - test_full/cp34-34m-linux:
+          filters:
+              <<: *__ignore_release__
+      - test_full/cp27-27mu-linux:
+          filters:
+              <<: *__ignore_release__
 
-      - test_minimal/cp3_10-3_10-linux
-      - test_minimal/cp39-39-linux
-      - test_minimal/cp38-38-linux
-      - test_minimal/cp37-37m-linux
-      - test_minimal/cp36-36m-linux
-      - test_minimal/cp35-35m-linux
-      - test_minimal/cp34-34m-linux
-      - test_minimal/cp27-27mu-linux
+      - test_minimal/cp3_10-3_10-linux:
+          filters:
+              <<: *__ignore_release__
+      - test_minimal/cp39-39-linux:
+          filters:
+              <<: *__ignore_release__
+      - test_minimal/cp38-38-linux:
+          filters:
+              <<: *__ignore_release__
+      - test_minimal/cp37-37m-linux:
+          filters:
+              <<: *__ignore_release__
+      - test_minimal/cp36-36m-linux:
+          filters:
+              <<: *__ignore_release__
+      - test_minimal/cp35-35m-linux:
+          filters:
+              <<: *__ignore_release__
+      - test_minimal/cp34-34m-linux:
+          filters:
+              <<: *__ignore_release__
+      - test_minimal/cp27-27mu-linux:
+          filters:
+              <<: *__ignore_release__
 
-      - test_minimal/pypy3
-      - test_full/pypy3
+      - test_minimal/pypy3:
+          filters:
+              <<: *__ignore_release__
+      - test_full/pypy3:
+          filters:
+              <<: *__ignore_release__
 
-      - test_full/pypy3
-      - gpgsign/cp38-38-linux
-
-      #- gpgsign/cp38-38-linux:
-      #    filters:
-      #      branches:
-      #        only: 
-      #           - master
-      #           - release
+      - gpgsign/cp38-38-linux:
+          filters:
+            branches:
+              only: 
+                 - master
+                 - release
 
       - deploy/cp38-38-linux:
+          requires:
+              - gpgsign/cp38-38-linux
           filters:
             branches:
               only: 
@@ -335,8 +374,8 @@ jobs:
           path: test-reports
           destination: test-reports
       - store_artifacts:
-          path: test-reports
-          destination: test-reports
+          path: .coverage
+          destination: .coverage
 
   .gpgsign_template: &gpgsign_template  
     <<: 
@@ -417,7 +456,7 @@ jobs:
                 echo "Tag already exists"
             else
                 git tag $VERSION -m "tarball tag $VERSION"
-                git push --tags "https://${GIT_PUSH_TOKEN}@${URL_HOST}"
+                git push --tags "https://${GITHUB_PUSH_TOKEN}@${URL_HOST}"
             fi
 
 
