@@ -209,7 +209,7 @@ class _Hashers(object):
         for func in self._lazy_queue:
             try:
                 func()
-            except ImportError:
+            except ImportError:  # nocover
                 pass
         self._lazy_queue = []
 
@@ -233,10 +233,10 @@ class _Hashers(object):
 
     def _register_hashlib(self):
         guaranteed = set(hashlib.algorithms_guaranteed)
-        for key in guaranteed:
+        for key in guaranteed:  # nocover
             self.algos[key] = getattr(hashlib, key)
 
-        if 0:
+        if 0:  # nocover
             # Do we want to expose these hash algos?
             available = set(hashlib.algorithms_available)
             extra = available - guaranteed
