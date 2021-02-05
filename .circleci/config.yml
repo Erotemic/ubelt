@@ -66,10 +66,26 @@ __doc__: &__doc__
             This is only needed if you want to automatically sign published
             wheels with a gpg key.
 
-        * GITHUB_PUSH_TOKEN - 
-            This is only needed if you want to automatically git-tag release branches.
+        * PERSONAL_GITHUB_PUSH_TOKEN - 
+            This is only needed if you want to automatically git-tag release
+            branches. This token is global to an entire account, so it only
+            needs to be done once per user.
 
-            To make a API token go to:
+            To create this token go to:
+            https://github.com/settings/tokens/new
+
+            And create a token with "write:packages" checked. 
+            Name (via the Note field) the token something like "github-push-token".
+            Copy the value of that token and store it somewhere secure (like a
+            secret environment file). 
+            The environment variable should have the form:
+
+            PERSONAL_GITHUB_PUSH_TOKEN="{token-name}:{token-password}"
+
+            For instance it may look like this: 
+            PERSONAL_GITHUB_PUSH_TOKEN=git-push-token:thisshouldbealongrandomsecretstringfj62fdsla
+
+            Other References:
                 https://docs.github.com/en/free-pro-team@latest/github/authenticating-to-github/creating-a-personal-access-token
 
         Instructions:
@@ -80,7 +96,7 @@ __doc__: &__doc__
             Do whatever you need to locally access the values of these variables
 
             echo $TWINE_USERNAME
-            echo $GITHUB_PUSH_TOKEN
+            echo $PERSONAL_GITHUB_PUSH_TOKEN
             echo $CIRCLE_CI_SECRET
             echo $TWINE_PASSWORD
 
@@ -122,7 +138,7 @@ __doc__: &__doc__
             export TWINE_USERNAME=<pypi-username>
             export TWINE_PASSWORD=<pypi-password>
             export CIRCLE_CI_SECRET="<a-very-long-secret-string>"
-            export GITHUB_PUSH_TOKEN='git-push-token:<token-password>'
+            export PERSONAL_GITHUB_PUSH_TOKEN='git-push-token:<token-password>'
         ```
 
         You should also make a secret_unloader.sh that points to a script that
@@ -180,10 +196,10 @@ __doc__: &__doc__
         ```
 
 
-        TEST GITHUB_PUSH_TOKEN 
+        TEST PERSONAL_GITHUB_PUSH_TOKEN 
         -------------------
 
-        The following script tests if your GITHUB_PUSH_TOKEN environment variable is correctly setup.
+        The following script tests if your PERSONAL_GITHUB_PUSH_TOKEN environment variable is correctly setup.
 
         ```bash
         docker run -it ubuntu
@@ -193,10 +209,10 @@ __doc__: &__doc__
         # do sed twice to handle the case of https clone with and without a read token
         git config user.email "ci@circleci.com"
         git config user.name "CircleCI-User"
-        URL_HOST=$(git remote get-url origin | sed -e 's|https\?://.*@||g' | sed -e 's|https\?://||g')
+        URL_HOST=$(git remote get-url origin | sed -e 's|https\?://.*@||g' | sed -e 's|https\?://||g' | sed -e 's|git@||g' | sed -e 's|:|/|g')
         echo "URL_HOST = $URL_HOST"
         git tag "test-tag4"
-        git push --tags "https://${GITHUB_PUSH_TOKEN}@${URL_HOST}"
+        git push --tags "https://${PERSONAL_GITHUB_PUSH_TOKEN}@${URL_HOST}"
 
         # Cleanup after you verify the tags shows up on the remote
         git push --delete origin test-tag4
@@ -437,7 +453,7 @@ jobs:
             # Have the server git-tag the release and push the tags
             VERSION=$($PYTHON_EXE -c "import setup; print(setup.VERSION)")
             # do sed twice to handle the case of https clone with and without a read token
-            URL_HOST=$(git remote get-url origin | sed -e 's|https\?://.*@||g' | sed -e 's|https\?://||g')
+            URL_HOST=$(git remote get-url origin | sed -e 's|https\?://.*@||g' | sed -e 's|https\?://||g' | sed -e 's|git@||g' | sed -e 's|:|/|g')
             echo "URL_HOST = $URL_HOST"
             # A git config user name and email is required. Set if needed.
             if [[ "$(git config user.email)" == "" ]]; then
@@ -448,7 +464,7 @@ jobs:
                 echo "Tag already exists"
             else
                 git tag $VERSION -m "tarball tag $VERSION"
-                git push --tags "https://${GITHUB_PUSH_TOKEN}@${URL_HOST}"
+                git push --tags "https://${PERSONAL_GITHUB_PUSH_TOKEN}@${URL_HOST}"
             fi
 
 
