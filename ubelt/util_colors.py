@@ -34,6 +34,7 @@ Requirements:
 """
 from __future__ import print_function, division, absolute_import, unicode_literals
 import sys
+import warnings
 import os
 
 
@@ -73,22 +74,28 @@ def highlight_code(text, lexer_name='python', **kwargs):
         'c': 'cpp',
     }.get(lexer_name.replace('.', ''), lexer_name)
     try:
+
+        if sys.platform.startswith('win32'):  # nocover
+            # Hack on win32 to support colored output
+            try:
+                import colorama
+                if not colorama.initialise.atexit_done:
+                    # Only init if it hasn't been done
+                    colorama.init()
+            except ImportError:
+                warnings.warn(
+                    'colorama is not installed, ansi colors may not work')
+
         import pygments
         import pygments.lexers
         import pygments.formatters
         import pygments.formatters.terminal
-
-        if sys.platform.startswith('win32'):  # nocover
-            # Hack on win32 to support colored output
-            import colorama
-            colorama.init()
 
         formater = pygments.formatters.terminal.TerminalFormatter(bg='dark')
         lexer = pygments.lexers.get_lexer_by_name(lexer_name, **kwargs)
         new_text = pygments.highlight(text, lexer, formater)
 
     except ImportError:  # nocover
-        import warnings
         warnings.warn('pygments is not installed, code will not be highlighted')
         new_text = text
     return new_text
@@ -129,26 +136,29 @@ def color_text(text, color):
     if NO_COLOR or color is None:
         return text
     try:
-        import pygments
-        import pygments.console
 
         if sys.platform.startswith('win32'):  # nocover
             # Hack on win32 to support colored output
-            import colorama
-            colorama.init()
+            try:
+                import colorama
+                if not colorama.initialise.atexit_done:
+                    # Only init if it hasn't been done
+                    colorama.init()
+            except ImportError:
+                warnings.warn(
+                    'colorama is not installed, ansi colors may not work')
 
+        import pygments
+        import pygments.console
         try:
             ansi_text = pygments.console.colorize(color, text)
         except KeyError:
-            import warnings
             warnings.warn('unable to find color: {!r}'.format(color))
             return text
         except Exception as ex:  # nocover
-            import warnings
             warnings.warn('some other issue with text color: {!r}'.format(ex))
             return text
         return ansi_text
     except ImportError:  # nocover
-        import warnings
         warnings.warn('pygments is not installed, text will not be colored')
         return text

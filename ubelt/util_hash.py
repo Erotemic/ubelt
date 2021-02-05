@@ -79,6 +79,8 @@ if PY2:
     _stringlike = (basestring, bytes)  # NOQA
     _intlike = (int, long)  # NOQA
 else:
+    # zip = zip  # hack for editor
+    six = None
     def b(s):
         return s.encode("latin-1")
     binary_type = bytes
@@ -90,11 +92,6 @@ else:
 
 # DEFAULT_ALPHABET = _ALPHABET_26
 DEFAULT_ALPHABET = _ALPHABET_16
-
-try:
-    import xxhash
-except ImportError:  # nocover
-    xxhash = None
 
 # Sensible choices for default hashers are sha1, sha512, and xxh64.
 
@@ -117,7 +114,7 @@ DEFAULT_HASHER = hashlib.sha512  # most robust algo, but slower than others
 
 if PY2:
     import codecs
-    HASH = type(hashlib.sha1())  # python2 doesn't expose the hash type
+    # HASH = type(hashlib.sha1())  # python2 doesn't expose the hash type
 
     def _py2_to_bytes(int_, length, byteorder='big', signed=True):
         """
@@ -155,11 +152,11 @@ if PY2:
             int_ = comp
         return int_
 else:
-    try:
-        HASH = hashlib._hashlib.HASH
-    except AttributeError:  # nocover
-        # Python seems to have been compiled without OpenSSL
-        HASH = None
+    # try:
+    #     HASH = hashlib._hashlib.HASH
+    # except AttributeError:  # nocover
+    #     # Python seems to have been compiled without OpenSSL
+    #     HASH = None
 
     codecs = None
     def _int_to_bytes(int_):
@@ -195,6 +192,81 @@ else:
         return int_
 
 
+class _Hashers(object):
+    """
+    We offer hashers beyond what is available in hashlib.
+    This class is used to lazy load them.
+    """
+    def __init__(self):
+        self.algos = {}
+        self._lazy_queue = [
+            self._register_xxhash,
+            self._register_blake3,
+            self._register_hashlib,
+        ]
+
+    def _evaluate_registration_queue(self):
+        for func in self._lazy_queue:
+            try:
+                func()
+            except ImportError:  # nocover
+                pass
+        self._lazy_queue = []
+
+    def __contains__(self, key):  # nocover
+        if self._lazy_queue:
+            self._evaluate_registration_queue()
+        return key in self.algos
+
+    def _register_xxhash(self):  # nocover
+        import xxhash
+        self.algos['xxh32'] = xxhash.xxh32
+        self.algos['xx32'] = xxhash.xxh32
+        self.algos['xxh64'] = xxhash.xxh64
+        self.algos['xx64'] = xxhash.xxh64
+        self.algos['xxhash'] = xxhash.xxh32
+
+    def _register_blake3(self):  # nocover
+        import blake3
+        self.algos['blake3'] = blake3.blake3
+        self.algos['b3'] = blake3.blake3
+
+    def _register_hashlib(self):
+        guaranteed = set(hashlib.algorithms_guaranteed)
+        for key in guaranteed:  # nocover
+            self.algos[key] = getattr(hashlib, key)
+
+        if 0:  # nocover
+            # Do we want to expose these hash algos?
+            available = set(hashlib.algorithms_available)
+            extra = available - guaranteed
+            for key in extra:
+                self.algos[key] = hashlib.new(key)
+
+    def lookup(self, hasher):
+        if hasher is NoParam or hasher == 'default':
+            hasher = DEFAULT_HASHER
+        elif hasattr(hasher, 'hexdigest'):
+            # HASH is not None and isinstance(hasher, HASH):
+            # by default the result of this function is a class we will make an
+            # instance of, if we already have an instance, wrap it in a
+            # callable so the external syntax does not need to change.
+            return lambda: hasher
+        else:
+            # Ensure lazy registration functions have been executed
+            if self._lazy_queue:
+                self._evaluate_registration_queue()
+
+            if isinstance(hasher, string_types):
+                if hasher in self.algos:  # pragma: no cover
+                    return self.algos[hasher]
+                else:
+                    raise KeyError('unknown hasher: {}'.format(hasher))
+        return hasher
+
+_HASHERS = _Hashers()
+
+
 def _rectify_hasher(hasher):
     """
     Convert a string-based key into a hasher class
@@ -211,34 +283,24 @@ def _rectify_hasher(hasher):
         >>> assert _rectify_hasher('sha512') is hashlib.sha512
         >>> assert _rectify_hasher('md5') is hashlib.md5
         >>> assert _rectify_hasher(hashlib.sha1) is hashlib.sha1
-        >>> if HASH is not None:
-        >>>     assert _rectify_hasher(hashlib.sha1())().name == 'sha1'
+        >>> #if HASH is not None:
+        >>> assert _rectify_hasher(hashlib.sha1())().name == 'sha1'
         >>> import pytest
         >>> assert pytest.raises(KeyError, _rectify_hasher, '42')
         >>> #assert pytest.raises(TypeError, _rectify_hasher, object)
-        >>> if xxhash:
+        >>> if 'xxh32' in _HASHERS:
+        >>>     import xxhash
         >>>     assert _rectify_hasher('xxh64') is xxhash.xxh64
         >>>     assert _rectify_hasher('xxh32') is xxhash.xxh32
+        >>> if 'blake3' in _HASHERS:
+        >>>     import blake3
+        >>>     assert _rectify_hasher('blake3') is blake3.blake3
+        >>> if 'whirlpool' in _HASHERS:
+        >>>     assert _rectify_hasher('whirlpool') is blake3.blake3
     """
-    if xxhash is not None:  # pragma: no cover
-        if hasher in {'xxh32', 'xx32', 'xxhash'}:
-            return xxhash.xxh32
-        if hasher in {'xxh64', 'xx64'}:
-            return xxhash.xxh64
-
-    if hasher is NoParam or hasher == 'default':
-        hasher = DEFAULT_HASHER
-    elif isinstance(hasher, string_types):
-        if hasher not in hashlib.algorithms_available:
-            raise KeyError('unknown hasher: {}'.format(hasher))
-        else:
-            hasher = getattr(hashlib, hasher)
-    elif HASH is not None and isinstance(hasher, HASH):
-        # by default the result of this function is a class we will make an
-        # instance of, if we already have an instance, wrap it in a callable
-        # so the external syntax does not need to change.
-        return lambda: hasher
-    return hasher
+    # Keeping this function for backwards compatability (even though its not
+    # part of the public API)
+    return _HASHERS.lookup(hasher)
 
 
 def _rectify_base(base):
@@ -522,6 +584,11 @@ class HashableExtensions(object):
         This registers extensions for the following types:
             * uuid.UUID
             * collections.OrderedDict
+            * dict (caveat: will be sorted, so must be sortable)
+
+        CommandLine:
+            xdoctest -m ubelt.util_hash HashableExtensions._register_builtin_class_extensions:0
+            xdoctest -m ubelt.util_hash HashableExtensions._register_builtin_class_extensions:1
 
         Example:
             >>> import uuid
@@ -532,6 +599,52 @@ class HashableExtensions(object):
             >>>                     (4, OrderedDict())])
             >>> print(hash_data(data, base='abc', hasher='sha512', types=True)[0:8])
             qjspicvv
+
+        Example:
+            >>> # Ordered dictionaries are hashed differently that builtin dicts
+            >>> import ubelt as ub
+            >>> from collections import OrderedDict
+            >>> datas = {}
+            >>> datas['odict_data1'] = OrderedDict([
+            >>>     ('4', OrderedDict()),
+            >>>     ('a', 1),
+            >>>     ('b', 2),
+            >>>     ('c', [1, 2, 3]),
+            >>> ])
+            >>> datas['udict_data1'] = {
+            >>>     '4': {},
+            >>>     'a': 1,
+            >>>     'b': 2,
+            >>>     'c': [1, 2, 3],
+            >>> }
+            >>> datas['odict_data2'] = ub.dict_subset(datas['odict_data1'], ['a', '4', 'c', 'b'])
+            >>> datas['udict_data2'] = ub.dict_isect(datas['udict_data1'], ['a', '4', 'c', 'b'])
+            >>> datas['odict_data3'] = ub.dict_subset(datas['odict_data1'], ['c', 'b', 'a', '4'])
+            >>> datas['udict_data3'] = ub.dict_isect(datas['udict_data1'], ['c', 'b', 'a', '4'])
+            >>> # print('datas = {}'.format(ub.repr2(datas, nl=-1)))
+            >>> for key, val in sorted(datas.items()):
+            >>>     hashstr = ub.hash_data(val, base='abc', hasher='sha512', types=True)[0:8]
+            >>>     print('{} = {}'.format(key, hashstr))
+            odict_data1 = omnqalbe
+            odict_data2 = tjrlsoel
+            odict_data3 = cycowefz
+            udict_data1 = bvshfmzm
+            udict_data2 = bvshfmzm
+            udict_data3 = bvshfmzm
+
+        Example:
+            >>> # Ordered dictionaries are hashed differently that builtin dicts
+            >>> import ubelt as ub
+            >>> import six
+            >>> print(ub.hash_data({1, 2, 3})[0:8])
+            >>> print(ub.hash_data({2, 3, 1})[0:8])
+            36fb38a1
+            36fb38a1
+            >>> # xdoctest: +REQUIRES(PY3):
+            >>> print(ub.hash_data({'2', 3, 1})[0:8])
+            >>> print(ub.hash_data({3, 1, '2'})[0:8])
+            742ae82d
+            742ae82d
         """
         import uuid
         @self.register(uuid.UUID)
@@ -540,10 +653,38 @@ class HashableExtensions(object):
             prefix = b'UUID'
             return prefix, hashable
 
+        @self.register(set)
+        def _convert_set(data):
+            try:
+                # what raises a TypeError differs between Python 2 and 3
+                ordered_ = sorted(data)
+            except TypeError:
+                import ubelt as ub
+                data_ = list(data)
+                sortx = ub.argsort(data_, key=str)
+                ordered_ = [data_[k] for k in sortx]
+            hashable = b''.join(_hashable_sequence(ordered_, extensions=self))
+            prefix = b'SET'
+            return prefix, hashable
+
+        @self.register(dict)
+        def _convert_dict(data):
+            try:
+                ordered_ = sorted(data.items())
+                # what raises a TypeError differs between Python 2 and 3
+            except TypeError:
+                import ubelt as ub
+                sortx = ub.argsort(data, key=str)
+                ordered_ = [(k, data[k]) for k in sortx]
+            hashable = b''.join(_hashable_sequence(ordered_, extensions=self))
+            prefix = b'DICT'
+            return prefix, hashable
+
         @self.register(OrderedDict)
         def _convert_ordered_dict(data):
             """
-            Note, we should not be hashing dicts because they are unordered
+            Currently ordered dictionaries are considered separately from
+            regular dictionaries. I'm not sure what the right thing to do is.
             """
             hashable = b''.join(_hashable_sequence(list(data.items()),
                                                    extensions=self))
@@ -555,20 +696,9 @@ class HashableExtensions(object):
         Extensions that might be desired, but we do not enable them by default
 
         This registers extensions for the following types:
-            * dict
+            * none right now *
         """
-        # UNSURE IF THIS IS DESIRABLE
-        @self.register(dict)
-        def _convert_dict(data):
-            # Note: dictionary keys must be sortable
-            try:
-                ordered_ = sorted(data.items())
-            except TypeError as ex:
-                raise TypeError('Cannot hash dict with non-sortable keys: ' +
-                                str(ex))
-            hashable = b''.join(_hashable_sequence(ordered_, extensions=self))
-            prefix = b'DICT'
-            return prefix, hashable
+        pass
 
     def _register_torch_extensions(self):  # nocover
         """
@@ -824,9 +954,9 @@ def hash_data(data, hasher=NoParam, base=NoParam, types=False,
         data (object):
             Any sort of loosely organized data
 
-        hasher (str | HASH, default='sha512'):
+        hasher (str | hashlib.HASH, default='sha512'):
             string code or a hash algorithm from hashlib. Valid hashing
-            algorithms are defined by ``hashlib.algorithms_available`` (e.g.
+            algorithms are defined by ``hashlib.algorithms_guaranteed`` (e.g.
             'sha1', 'sha512', 'md5') as well as 'xxh32' and 'xxh64' if
             :mod:`xxhash` is installed.
 
@@ -850,6 +980,15 @@ def hash_data(data, hasher=NoParam, base=NoParam, types=False,
         extensions (HashableExtensions):
             a custom :class:`HashableExtensions` instance that can overwrite or
             define how different types of objects are hashed.
+
+    Notes:
+        The types allowed are specified by the  HashableExtensions object. By
+        default ubelt will register:
+
+        OrderedDict, uuid.UUID, np.random.RandomState, np.int64, np.int32,
+        np.int16, np.int8, np.uint64, np.uint32, np.uint16, np.uint8,
+        np.float16, np.float32, np.float64, np.float128, np.ndarray, bytes,
+        str, int, float, long (in python2), list, tuple, set, and dict
 
     Returns:
         str: text representing the hashed data
@@ -911,9 +1050,9 @@ def hash_file(fpath, blocksize=1048576, stride=1, maxbytes=None, hasher=NoParam,
         maxbytes (int | None):
             if specified, only hash the leading `maxbytes` of data in the file.
 
-        hasher (str | HASH, default='sha512'):
+        hasher (str | hashlib.HASH, default='sha512'):
             string code or a hash algorithm from hashlib. Valid hashing
-            algorithms are defined by ``hashlib.algorithms_available`` (e.g.
+            algorithms are defined by ``hashlib.algorithms_guaranteed`` (e.g.
             'sha1', 'sha512', 'md5') as well as 'xxh32' and 'xxh64' if
             :mod:`xxhash` is installed.
 

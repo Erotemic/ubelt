@@ -5,6 +5,19 @@ import ubelt as ub
 
 
 def test_cmd_stdout():
+    """
+    Debug:
+
+        # Issues on windows
+        python -c "import ubelt; ubelt.cmd('echo hello stdout')"
+
+        python -c "import subprocess; subprocess.call(['echo', 'hi'])"
+
+        proc = subprocess.Popen(args, stdout=subprocess.PIPE,
+                                stderr=subprocess.PIPE, shell=shell,
+                                universal_newlines=True, cwd=cwd, env=env)
+
+    """
     with ub.CaptureStdout() as cap:
         result = ub.cmd('echo hello stdout', verbose=True)
     assert result['out'].strip() == 'hello stdout'

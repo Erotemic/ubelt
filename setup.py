@@ -6,7 +6,8 @@ Installation:
 
 Developing:
     git clone https://github.com/Erotemic/ubelt.git
-    pip install -e ubelt
+    cd ubelt
+    pip install -e ubelt[all]
 """
 import sys
 from os.path import exists
@@ -160,7 +161,10 @@ def native_mb_python_tag(plat_impl=None, version_info=None):
         version_info = sys.version_info
 
     major, minor = version_info[0:2]
-    ver = '{}{}'.format(major, minor)
+    if minor > 9:
+        ver = '{}_{}'.format(major, minor)
+    else:
+        ver = '{}{}'.format(major, minor)
 
     if plat_impl == 'CPython':
         # TODO: get if cp27m or cp27mu
@@ -172,8 +176,8 @@ def native_mb_python_tag(plat_impl=None, version_info=None):
             else:
                 abi = 'm'
         else:
-            if ver == '38':
-                # no abi in 38?
+            if sys.version_info[:2] >= (3, 8):
+                # bpo-36707: 3.8 dropped the m flag
                 abi = ''
             else:
                 abi = 'm'

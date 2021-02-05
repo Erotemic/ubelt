@@ -36,92 +36,100 @@ my own code (excluding ubelt itself).
 ================================================================ ================
  Function name                                                   Usefulness
 ================================================================ ================
-:func:`ubelt.repr2`                                                          1598
-:func:`ubelt.ProgIter`                                                        610
-:func:`ubelt.expandpath`                                                      610
-:func:`ubelt.ensuredir`                                                       482
-:func:`ubelt.take`                                                            337
-:func:`ubelt.odict`                                                           311
-:func:`ubelt.map_vals`                                                        272
-:func:`ubelt.dzip`                                                            246
-:func:`ubelt.augpath`                                                         209
-:func:`ubelt.NiceRepr`                                                        197
-:func:`ubelt.ddict`                                                           191
-:func:`ubelt.argval`                                                          184
-:func:`ubelt.cmd`                                                             176
-:func:`ubelt.argflag`                                                         171
-:func:`ubelt.flatten`                                                         168
-:func:`ubelt.codeblock`                                                       159
-:func:`ubelt.Timerit`                                                         158
-:func:`ubelt.NoParam`                                                         149
-:func:`ubelt.dict_hist`                                                       146
-:func:`ubelt.group_items`                                                     138
-:func:`ubelt.peek`                                                            134
-:func:`ubelt.iterable`                                                        124
-:func:`ubelt.hash_data`                                                       116
-:func:`ubelt.grabdata`                                                         93
-:func:`ubelt.delete`                                                           82
-:func:`ubelt.compress`                                                         76
-:func:`ubelt.color_text`                                                       76
-:func:`ubelt.dict_subset`                                                      72
-:func:`ubelt.Cacher`                                                           68
-:func:`ubelt.allsame`                                                          66
-:func:`ubelt.Timer`                                                            57
-:func:`ubelt.argsort`                                                          53
-:func:`ubelt.oset`                                                             51
-:func:`ubelt.invert_dict`                                                      50
-:func:`ubelt.indent`                                                           47
-:func:`ubelt.chunks`                                                           45
-:func:`ubelt.memoize`                                                          44
-:func:`ubelt.dict_isect`                                                       42
-:func:`ubelt.timestamp`                                                        40
-:func:`ubelt.import_module_from_path`                                          39
-:func:`ubelt.unique`                                                           36
-:func:`ubelt.map_keys`                                                         35
-:func:`ubelt.hzcat`                                                            35
-:func:`ubelt.find_duplicates`                                                  35
-:func:`ubelt.writeto`                                                          35
-:func:`ubelt.dict_union`                                                       34
-:func:`ubelt.ensure_unicode`                                                   30
-:func:`ubelt.readfrom`                                                         30
-:func:`ubelt.iter_window`                                                      29
-:func:`ubelt.sorted_vals`                                                      29
-:func:`ubelt.argmax`                                                           26
-:func:`ubelt.memoize_property`                                                 26
-:func:`ubelt.modname_to_modpath`                                               25
-:func:`ubelt.symlink`                                                          25
-:func:`ubelt.memoize_method`                                                   23
-:func:`ubelt.dict_diff`                                                        23
-:func:`ubelt.identity`                                                         22
-:func:`ubelt.hash_file`                                                        21
-:func:`ubelt.touch`                                                            19
-:func:`ubelt.import_module_from_name`                                          17
-:func:`ubelt.highlight_code`                                                   16
-:func:`ubelt.find_exe`                                                         15
-:func:`ubelt.CacheStamp`                                                       13
-:func:`ubelt.find_path`                                                         9
-:func:`ubelt.AutoDict`                                                          8
-:func:`ubelt.split_modpath`                                                     7
-:func:`ubelt.shrinkuser`                                                        7
-:func:`ubelt.argmin`                                                            6
-:func:`ubelt.inject_method`                                                     6
+:func:`ubelt.repr2`                                                          2140
+:func:`ubelt.ProgIter`                                                        715
+:func:`ubelt.expandpath`                                                      695
+:func:`ubelt.ensuredir`                                                       553
+:func:`ubelt.take`                                                            430
+:func:`ubelt.odict`                                                           391
+:func:`ubelt.map_vals`                                                        331
+:func:`ubelt.dzip`                                                            278
+:func:`ubelt.NiceRepr`                                                        261
+:func:`ubelt.ddict`                                                           255
+:func:`ubelt.augpath`                                                         229
+:func:`ubelt.argflag`                                                         209
+:func:`ubelt.flatten`                                                         202
+:func:`ubelt.argval`                                                          200
+:func:`ubelt.cmd`                                                             199
+:func:`ubelt.peek`                                                            196
+:func:`ubelt.NoParam`                                                         189
+:func:`ubelt.Timerit`                                                         187
+:func:`ubelt.dict_hist`                                                       173
+:func:`ubelt.codeblock`                                                       172
+:func:`ubelt.group_items`                                                     168
+:func:`ubelt.iterable`                                                        168
+:func:`ubelt.hash_data`                                                       142
+:func:`ubelt.grabdata`                                                        127
+:func:`ubelt.color_text`                                                       97
+:func:`ubelt.delete`                                                           94
+:func:`ubelt.dict_subset`                                                      89
+:func:`ubelt.oset`                                                             88
+:func:`ubelt.compress`                                                         87
+:func:`ubelt.allsame`                                                          86
+:func:`ubelt.Cacher`                                                           81
+:func:`ubelt.Timer`                                                            70
+:func:`ubelt.dict_isect`                                                       68
+:func:`ubelt.indent`                                                           60
+:func:`ubelt.argsort`                                                          59
+:func:`ubelt.chunks`                                                           48
+:func:`ubelt.map_keys`                                                         48
+:func:`ubelt.invert_dict`                                                      47
+:func:`ubelt.dict_union`                                                       47
+:func:`ubelt.memoize`                                                          46
+:func:`ubelt.timestamp`                                                        46
+:func:`ubelt.find_duplicates`                                                  45
+:func:`ubelt.unique`                                                           43
+:func:`ubelt.import_module_from_path`                                          40
+:func:`ubelt.sorted_vals`                                                      39
+:func:`ubelt.dict_diff`                                                        38
+:func:`ubelt.hzcat`                                                            38
+:func:`ubelt.argmax`                                                           37
+:func:`ubelt.memoize_property`                                                 37
+:func:`ubelt.writeto`                                                          37
+:func:`ubelt.iter_window`                                                      35
+:func:`ubelt.readfrom`                                                         34
+:func:`ubelt.paragraph`                                                        33
+:func:`ubelt.identity`                                                         33
+:func:`ubelt.symlink`                                                          32
+:func:`ubelt.memoize_method`                                                   31
+:func:`ubelt.ensure_unicode`                                                   24
+:func:`ubelt.touch`                                                            24
+:func:`ubelt.hash_file`                                                        24
+:func:`ubelt.CacheStamp`                                                       20
+:func:`ubelt.modname_to_modpath`                                               17
+:func:`ubelt.highlight_code`                                                   17
+:func:`ubelt.import_module_from_name`                                          16
+:func:`ubelt.find_exe`                                                         14
+:func:`ubelt.inject_method`                                                    13
+:func:`ubelt.shrinkuser`                                                       11
+:func:`ubelt.AutoDict`                                                          9
+:func:`ubelt.argmin`                                                            9
+:func:`ubelt.find_path`                                                         7
 :func:`ubelt.download`                                                          5
-:func:`ubelt.modpath_to_modname`                                                5
-:func:`ubelt.paragraph`                                                         5
+:func:`ubelt.sorted_keys`                                                       5
 :func:`ubelt.CaptureStdout`                                                     4
-:func:`ubelt.sorted_keys`                                                       3
-:func:`ubelt.userhome`                                                          2
+:func:`ubelt.split_modpath`                                                     4
+:func:`ubelt.modpath_to_modname`                                                4
+:func:`ubelt.orderedset`                                                        4
+:func:`ubelt.userhome`                                                          3
+:func:`ubelt.argunique`                                                         3
 :func:`ubelt.AutoOrderedDict`                                                   2
-:func:`ubelt.argunique`                                                         2
 :func:`ubelt.unique_flags`                                                      2
+:func:`ubelt.boolmask`                                                          1
 ================================================================ ================
 
 
-The API by submodule 
-====================
+.. code:: python
 
-Alternatively you might prefer a module-based approach where functions are
-grouped based on similar functionality.
+    usage stats = {
+        'mean': 73.12658,
+        'std': 170.95476,
+        'min': 1.0,
+        'max': 1478.0,
+        'med': 27.0,
+        'sum': 5777,
+        'shape': (79,),
+    }
 
 
 :mod:`ubelt.orderedset`
@@ -140,6 +148,8 @@ grouped based on similar functionality.
 
 :mod:`ubelt.util_arg`
 -------------
+:func:`ubelt.PY2`
+:func:`ubelt.string_types`
 :func:`ubelt.argval`
 :func:`ubelt.argflag`
 
@@ -189,6 +199,10 @@ grouped based on similar functionality.
 
 :mod:`ubelt.util_format`
 -------------
+:func:`ubelt.PY2`
+:func:`ubelt.iteritems`
+:func:`ubelt.string_types`
+:func:`ubelt.text_type`
 :func:`ubelt.repr2`
 :func:`ubelt.FormatterExtensions`
 
@@ -219,10 +233,13 @@ grouped based on similar functionality.
 
 :mod:`ubelt.util_links`
 -------------
+:func:`ubelt.PY2`
 :func:`ubelt.symlink`
 
 :mod:`ubelt.util_list`
 -------------
+:func:`ubelt.PY2`
+:func:`ubelt.string_types`
 :func:`ubelt.chunks`
 :func:`ubelt.iterable`
 :func:`ubelt.take`
@@ -241,6 +258,7 @@ grouped based on similar functionality.
 
 :mod:`ubelt.util_memoize`
 -------------
+:func:`ubelt.PY2`
 :func:`ubelt.memoize`
 :func:`ubelt.memoize_method`
 :func:`ubelt.memoize_property`
@@ -264,6 +282,8 @@ grouped based on similar functionality.
 :func:`ubelt.LINUX`
 :func:`ubelt.DARWIN`
 :func:`ubelt.POSIX`
+:func:`ubelt.PY2`
+:func:`ubelt.string_types`
 :func:`ubelt.platform_data_dir`
 :func:`ubelt.platform_config_dir`
 :func:`ubelt.platform_cache_dir`
@@ -286,6 +306,7 @@ grouped based on similar functionality.
 
 :mod:`ubelt.util_stream`
 -------------
+:func:`ubelt.PY2`
 :func:`ubelt.TeeStringIO`
 :func:`ubelt.CaptureStream`
 :func:`ubelt.CaptureStdout`
@@ -293,6 +314,7 @@ grouped based on similar functionality.
 :mod:`ubelt.util_time`
 -------------
 :func:`ubelt.timestamp`
+
 
 
 .. toctree::
