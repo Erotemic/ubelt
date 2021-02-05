@@ -22,7 +22,7 @@ Testing:
     xdoctest ubelt
 """
 
-__version__ = '0.9.5'
+__version__ = '0.9.6'
 
 __submodules__ = [
     'util_arg',
