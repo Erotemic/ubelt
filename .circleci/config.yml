@@ -336,9 +336,6 @@ jobs:
             # Upload to codecov.io (requires a CODECOV_TOKEN environ or github+circleci integration)
             codecov
       - store_artifacts:
-          path: test-reports
-          destination: test-reports
-      - store_artifacts:
           path: .coverage
           destination: .coverage
 
@@ -370,9 +367,7 @@ jobs:
           command: |
             . venv/bin/activate
             $PYTHON_EXE run_tests.py --network
-      - store_artifacts:
-          path: test-reports
-          destination: test-reports
+            codecov
       - store_artifacts:
           path: .coverage
           destination: .coverage
@@ -413,9 +408,6 @@ jobs:
       - store_artifacts:
           path: dist
           destination: dist
-      - store_artifacts:
-          path: .coverage
-          destination: .coverage
 
 
   .deploy_template: &deploy_template  
