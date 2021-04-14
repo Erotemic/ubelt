@@ -18,8 +18,6 @@
 __doc__: &__doc__
     - | 
 
-        __doc__="""
-
         ============
         CIRCLECI INSTRUCTIONS
         ============
@@ -220,19 +218,16 @@ __doc__: &__doc__
         ```
 
 
-        """ # "  # hack for vim yml syntax highlighter
-
-
 version: 2
 workflows:
   version: 2
   test:
     jobs:
-       #- test_full/cp3_10-3_10-linux:
-       #   filters: &__ignore_release__ # this yaml anchor to ignore tests on the release branch
-       #       branches:
-       #           ignore: 
-       #               - release
+      #- test_full/cp3_10-3_10-linux:
+      #    filters: &__ignore_release__ # this yaml anchor to ignore tests on the release branch
+      #        branches:
+      #            ignore: 
+      #                - release
       - test_full/cp39-39-linux:
           filters: &__ignore_release__ # this yaml anchor to ignore tests on the release branch
               branches:
@@ -394,7 +389,7 @@ jobs:
     steps:
       - checkout
       - run:
-          name: build_gpg_deps
+          name: gpg_sign_dist
           command: |
             $PYTHON_EXE -m venv venv || virtualenv -v venv  # first command is python3 || second is python2
             . venv/bin/activate

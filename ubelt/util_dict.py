@@ -616,6 +616,9 @@ def sorted_vals(dict_, key=None, reverse=False):
     return newdict
 
 
+sorted_values = sorted_vals  # ? Is this a better name?
+
+
 def sorted_keys(dict_, key=None, reverse=False):
     """
     Return an ordered dictionary sorted by its keys

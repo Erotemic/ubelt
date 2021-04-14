@@ -15,14 +15,36 @@ contains a docstring with at least one example.
 from __future__ import absolute_import, division, print_function, unicode_literals
 """
 AutogenInit:
-    mkinit ubelt
+    mkinit ubelt --diff
     mkinit ubelt -w  # todo: get sphinx to ignore this
+
+    # TODO: Lazy imports with mkinit
 
 Testing:
     xdoctest ubelt
 """
 
 __version__ = '0.9.6'
+
+def _augment_version(__version__):
+    from os.path import join, dirname, exists
+    repo_dpath = join(dirname(dirname(__file__)))
+    git_dpath = join(repo_dpath, '.git')
+    if exists(git_dpath):
+        head_fpath = join(git_dpath, 'HEAD')
+        with open(head_fpath, 'r') as file:
+            ref = file.readline().split()[-1]
+        ref_fpath = join(git_dpath, ref)
+        with open(ref_fpath, 'r') as file:
+            ref_hash = file.read().strip()
+        hashid = ref_hash[0:8]
+        if ref != 'refs/heads/release':
+            if '.dev' in __version__:
+                __version__ = __version__[:__version__.find('.dev')]
+            __version__ = __version__ + '.dev' + hashid
+    return __version__
+
+__version__ = _augment_version(__version__)
 
 __submodules__ = [
     'util_arg',
@@ -88,7 +110,7 @@ from ubelt.util_dict import (AutoDict, AutoOrderedDict, ddict, dict_diff,
                              dict_hist, dict_isect, dict_subset, dict_union,
                              dzip, find_duplicates, group_items, invert_dict,
                              map_keys, map_vals, odict, sorted_keys,
-                             sorted_vals,)
+                             sorted_vals, sorted_values,)
 from ubelt.util_download import (download, grabdata,)
 from ubelt.util_func import (identity, inject_method,)
 from ubelt.util_format import (FormatterExtensions, repr2,)
@@ -146,12 +168,12 @@ __all__ = ['AutoDict', 'AutoOrderedDict', 'CacheStamp', 'Cacher',
            'odict', 'orderedset', 'oset', 'paragraph', 'peek',
            'platform_cache_dir', 'platform_config_dir', 'platform_data_dir',
            'platform_resource_dir', 'progiter', 'readfrom', 'repr2',
-           'shrinkuser', 'sorted_keys', 'sorted_vals', 'split_modpath',
-           'startfile', 'symlink', 'take', 'timerit', 'timestamp', 'touch',
-           'truepath', 'unique', 'unique_flags', 'userhome', 'util_arg',
-           'util_cache', 'util_cmd', 'util_colors', 'util_const', 'util_dict',
-           'util_download', 'util_format', 'util_func', 'util_hash',
-           'util_import', 'util_io', 'util_links', 'util_list', 'util_memoize',
-           'util_mixins', 'util_path', 'util_platform', 'util_str',
-           'util_stream', 'util_time', 'writeto']
+           'shrinkuser', 'sorted_keys', 'sorted_vals', 'sorted_values',
+           'split_modpath', 'startfile', 'symlink', 'take', 'timerit',
+           'timestamp', 'touch', 'truepath', 'unique', 'unique_flags',
+           'userhome', 'util_arg', 'util_cache', 'util_cmd', 'util_colors',
+           'util_const', 'util_dict', 'util_download', 'util_format',
+           'util_func', 'util_hash', 'util_import', 'util_io', 'util_links',
+           'util_list', 'util_memoize', 'util_mixins', 'util_path',
+           'util_platform', 'util_str', 'util_stream', 'util_time', 'writeto']
 # </AUTOGEN_INIT>
