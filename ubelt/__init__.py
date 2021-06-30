@@ -26,26 +26,6 @@ Testing:
 
 __version__ = '0.9.6'
 
-def _augment_version(__version__):
-    from os.path import join, dirname, exists
-    repo_dpath = join(dirname(dirname(__file__)))
-    git_dpath = join(repo_dpath, '.git')
-    if exists(git_dpath):
-        head_fpath = join(git_dpath, 'HEAD')
-        with open(head_fpath, 'r') as file:
-            ref = file.readline().split()[-1]
-        ref_fpath = join(git_dpath, ref)
-        with open(ref_fpath, 'r') as file:
-            ref_hash = file.read().strip()
-        hashid = ref_hash[0:8]
-        if ref != 'refs/heads/release':
-            if '.dev' in __version__:
-                __version__ = __version__[:__version__.find('.dev')]
-            __version__ = __version__ + '.dev' + hashid
-    return __version__
-
-__version__ = _augment_version(__version__)
-
 __submodules__ = [
     'util_arg',
     'util_cache',
