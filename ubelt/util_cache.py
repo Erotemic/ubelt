@@ -617,6 +617,8 @@ class CacheStamp(object):
             This can be useful to indicate how the ``cfgstr`` was constructed.
             New to CacheStamp in version 0.9.2.
 
+    TODO:
+        - [ ] expiration time delta or date time (also remember when renewed)
 
     Example:
         >>> import ubelt as ub
