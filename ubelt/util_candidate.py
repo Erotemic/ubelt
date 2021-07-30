@@ -5,13 +5,12 @@ Candidate functions
 from __future__ import absolute_import, division, print_function, unicode_literals
 from collections import defaultdict as ddict
 from ubelt.util_const import NoParam
-import six
 import itertools as it
 
-if six.PY2:
-    Generator = object  # Python2 doesnt have Generator ABC
-else:
+try:
     from collections.abc import Generator
+except Exception:
+    Generator = object  # Python <3.4 doesnt have Generator ABC
 
 
 def basis_product(basis):
@@ -141,8 +140,6 @@ def varied_values(longform, min_variations=0, default=NoParam):
         }
 
     Example:
-        >>> # xdoctest: +REQUIRES(PY3)
-        >>> # Disable on Python2 due to sorting issues
         >>> from ubelt.util_candidate import *  # NOQA
         >>> import ubelt as ub
         >>> import random
@@ -160,14 +157,15 @@ def varied_values(longform, min_variations=0, default=NoParam):
         >>>     varied = varied_values(longform)
         >>> #
         >>> # Operation works with a default
-        >>> varied = varied_values(longform, default=float('nan'))
-        >>> print('varied = {}'.format(ub.repr2(varied, nl=1)))
-        varied = {
-            'col1': {1, 2, 3, 9},
-            'col2': {'bar', 'foo', (1, 2)},
-            'col3': {None},
-            'extra_col': {float('nan'), 3},
-        }
+        >>> varied = varied_values(longform, default='<unset>')
+        >>> expected = {
+        >>>     'col1': {1, 2, 3, 9},
+        >>>     'col2': {'bar', 'foo', (1, 2)},
+        >>>     'col3': set([None]),
+        >>>     'extra_col': {'<unset>', 3},
+        >>> }
+        >>> print('varied = {!r}'.format(varied))
+        >>> assert varied == expected
 
     Example:
         >>> # xdoctest: +REQUIRES(PY3)
