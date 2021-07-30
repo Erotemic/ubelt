@@ -4,17 +4,42 @@ Candidate functions
 from collections import defaultdict as ddict
 from ubelt.util_const import NoParam
 from collections.abc import Generator
+import itertools as it
 
 
 def basis_product(basis):
     """
+    Generates the Cartesian product of the ``basis.values()``, where each
+    generated item labeled by ``basis.keys()``.
+
+    In other words, given a dictionary that maps each "axes" (i.e. some
+    variable) to its "basis" (i.e. the possible values that it can take),
+    generate all possible points in that grid (i.e. unique assignments of
+    variables to values).
+
     Args:
-        basis (Dict[str, List[T]]): list of values for each axes
+        basis (Dict[K, List[T]]):
+            A dictionary where the keys correspond to "columns" and the values
+            are a list of possible values that "column" can take.
+
+            I.E. each key corresponds to an "axes", the values are the list of
+            possible values for that "axes".
 
     Yields:
-        Dict[str, T] - points in the grid
+        Dict[K, T] - a "row" in the "longform" data containing a point in the
+            Cartesian product.
+
+    Notes:
+        This function is similar to :func:`itertools.product`, the only
+        difference is that the generated items are a dictionary that retains
+        the input keys instead of an tuple.
+
+    TODO:
+        - [ ] Does this go in util_dict?
 
     Example:
+        >>> # An example use case is looping over all possible settings in a
+        >>> # configuration dictionary for a grid search over parameters.
         >>> basis = {
         >>>     'arg1': [1, 2, 3],
         >>>     'arg2': ['A1', 'B1'],
@@ -39,60 +64,150 @@ def basis_product(basis):
             {'arg1': 3, 'arg2': 'B1', 'arg3': 'Z2', 'arg4': 'always'}
         ]
     """
-    import itertools as it
     keys = list(basis.keys())
     for vals in it.product(*basis.values()):
         kw = dict(zip(keys, vals))
         yield kw
 
 
-def varied_values(dict_list, min_variations=1):
+def varied_values(longform, min_variations=0, default=NoParam):
     """
-    Given a list of dictionaries, find the values that differ between them
+    Given a list of dictionaries, find the values that differ between them.
 
     Args:
-        dict_list (List[Dict]):
+        longform (List[Dict]):
+            This is longform data, as described in [1]_. It is a list of
+            dictionaries.
+
+            Each item in the list - or row - is a dictionary and can be thought
+            of as an observation. The keys in each dictionary are the columns.
             The values of the dictionary must be hashable. Lists will be
             converted into tuples.
 
-        min_variations (int, default=1): minimum number of variations to return
+        min_variations (int, default=0):
+            "columns" with fewer than ``min_variations`` unique values are
+            removed from the result.
+
+        default (object, default=NoParam):
+            if specified, unspecified columns are given this value.
+
+    Returns:
+        dict : a mapping from each "column" to the set of unique values it took
+            over each "row". If a column is not specified for each row, it is
+            assumed to take a `default` value, if it is specified.
+
+    Raises:
+        KeyError: If ``default`` is unspecified and all the rows
+            do not contain the same columns.
+
+    References:
+        .. [1] https://seaborn.pydata.org/tutorial/data_structure.html#long-form-data
 
     TODO:
-        - [ ] Is this a ubelt function?
+        - [ ] Does this go in util_dict?
 
     Example:
+        >>> # An example use case is to determine what values of a
+        >>> # configuration dictionary were tried in a random search
+        >>> # over a parameter grid.
+        >>> from ubelt.util_candidate import *  # NOQA
+        >>> import ubelt as ub
+        >>> import random
+        >>> longform = [
+        >>>     {'col1': 1, 'col2': 'foo', 'col3': None},
+        >>>     {'col1': 1, 'col2': 'foo', 'col3': None},
+        >>>     {'col1': 2, 'col2': 'bar', 'col3': None},
+        >>>     {'col1': 3, 'col2': 'bar', 'col3': None},
+        >>>     {'col1': 9, 'col2': 'bar', 'col3': None},
+        >>>     {'col1': 1, 'col2': 'bar', 'col3': None},
+        >>> ]
+        >>> varied = varied_values(longform)
+        >>> print('varied = {}'.format(ub.repr2(varied, nl=1)))
+        varied = {
+            'col1': {1, 2, 3, 9},
+            'col2': {'bar', 'foo'},
+            'col3': {None},
+        }
+
+    Example:
+        >>> from ubelt.util_candidate import *  # NOQA
+        >>> import ubelt as ub
+        >>> import random
+        >>> longform = [
+        >>>     {'col1': 1, 'col2': 'foo', 'col3': None},
+        >>>     {'col1': 1, 'col2': 'foo', 'col3': None},
+        >>>     {'col1': 2, 'col2': 'bar', 'col3': None},
+        >>>     {'col1': 3, 'col2': 'bar', 'col3': None},
+        >>>     {'col1': 9, 'col2': 'bar', 'col3': None},
+        >>>     {'col1': 1, 'col2': 'bar', 'col3': None, 'extra_col': 3},
+        >>> ]
+        >>> # Operation fails without a default
+        >>> import pytest
+        >>> with pytest.raises(KeyError):
+        >>>     varied = varied_values(longform)
+        >>> #
+        >>> # Operation works with a default
+        >>> varied = varied_values(longform, default=float('nan'))
+        >>> print('varied = {}'.format(ub.repr2(varied, nl=1)))
+        varied = {
+            'col1': {1, 2, 3, 9},
+            'col2': {'bar', 'foo'},
+            'col3': {None},
+            'extra_col': {float('nan'), 3},
+        }
+
+    Example:
+        >>> from ubelt.util_candidate import *  # NOQA
+        >>> import ubelt as ub
+        >>> import random
         >>> num_keys = 10
         >>> num_dicts = 10
         >>> all_keys = {ub.hash_data(i)[0:16] for i in range(num_keys)}
-        >>> dict_list = [
+        >>> longform = [
         >>>     {key: ub.hash_data(key)[0:16] for key in all_keys}
         >>>     for _ in range(num_dicts)
         >>> ]
-        >>> import random
         >>> rng = random.Random(0)
-        >>> for data in dict_list:
+        >>> for row in longform:
         >>>     if rng.random() > 0.5:
-        >>>         for key in list(data):
+        >>>         for key in row.keys():
         >>>             if rng.random() > 0.9:
-        >>>                 data[key] = rng.randint(1, 32)
-        >>> varied = varied_values(dict_list)
+        >>>                 row[key] = rng.randint(1, 32)
+        >>> varied = varied_values(longform, min_variations=1)
         >>> print('varied = {}'.format(ub.repr2(varied, nl=1)))
+        varied = {
+            '095f3e448a55fa2c': {'74f95d329b39c8b9', 32, 9},
+            '5815087df95b7c04': {'9373207842af3621', 15, 6},
+            '7b54b66836c1fbdd': {'1dc52ec906964ccd', 1, 19},
+            'b5b8c725507b5b13': {'7cb8d0c7fd254bfb', 31},
+            'f27b5bf8d35ea2bb': {'bdc12402662e0598', 26, 29},
+            'fab848c9b657a853': {'7e3ab488d37412fc', 10},
+        }
     """
-    all_keys = set()
-    for data in dict_list:
-        all_keys.update(data.keys())
+    # Enumerate all defined columns
+    columns = set()
+    for row in longform:
+        if default is NoParam and len(row) != len(columns) and len(columns):
+            missing = set(columns).symmetric_difference(set(row))
+            raise KeyError((
+                'No default specified and not every '
+                'row contains columns {}').format(missing))
+        columns.update(row.keys())
 
+    # Build up the set of unique values for each column
     varied = ddict(set)
-    for data in dict_list:
-        for key in all_keys:
-            value = data.get(key, NoParam)
+    for row in longform:
+        for key in columns:
+            value = row.get(key, default)
             if isinstance(value, list):
                 value = tuple(value)
             varied[key].add(value)
 
-    for key, values in list(varied.items()):
-        if len(values) <= min_variations:
-            del varied[key]
+    # Remove any column that does not have enough variation
+    if min_variations > 0:
+        for key, values in list(varied.items()):
+            if len(values) <= min_variations:
+                varied.pop(key)
     return varied
 
 
@@ -109,9 +224,14 @@ class IndexableWalker(Generator):
     When generating values, you can use "send" to prevent traversal of a
     particular branch.
 
+    TODO:
+        - [ ] Does this go in util_dict, util_list, or maybe a new util?
+
     Example:
         >>> # Create nested data
+        >>> # xdoctest: +REQUIRES(module:numpy)
         >>> import numpy as np
+        >>> import ubelt as ub
         >>> data = ub.ddict(lambda: int)
         >>> data['foo'] = ub.ddict(lambda: int)
         >>> data['bar'] = np.array([1, 2, 3])
@@ -134,6 +254,8 @@ class IndexableWalker(Generator):
 
     Example:
         >>> # Test sending false for every data item
+        >>> # xdoctest: +REQUIRES(module:numpy)
+        >>> import ubelt as ub
         >>> import numpy as np
         >>> data = {1: 1}
         >>> walker = IndexableWalker(data)
@@ -278,3 +400,43 @@ class IndexableWalker(Generator):
                 else:
                     if isinstance(value, self.indexable_cls):
                         stack.append((value, path))
+
+
+def compatible(config, func, start=0):
+    """
+    Take only the items of a dict that can be passed to function as kwargs
+
+    Args:
+        config (dict): a flat configuration dictionary
+        func (Callable): a function or method
+        start (int, default=0): set to 1 if calling with an unbound method
+
+    Returns:
+        dict : a subset of ``config`` that only contains items compatible with
+            the signature of ``func``.
+
+    TODO:
+        - [ ] Does this go in util_dict or util_func?
+
+    Example:
+        >>> # An example use case is to select a subset of of a config
+        >>> # that can be passed to some function as kwargs
+        >>> from ubelt.util_candidate import *  # NOQA
+        >>> # Define a function with arguments that match some keys in the
+        >>> # config.
+        >>> def myfunc(a, e, f):
+        >>>     return a * e * f
+        >>> # Define a config that has a superset of items needed by the func
+        >>> config = {
+        ...   'a': 2, 'b': 3, 'c': 7,
+        ...   'd': 11, 'e': 13, 'f': 17,
+        ... }
+        >>> # Call the function only with keys that are compatible
+        >>> myfunc(**compatible(config, myfunc))
+        442
+    """
+    import inspect
+    sig = inspect.signature(func)
+    argnames = list(sig.parameters.keys())[start:]
+    common = {k: config[k] for k in argnames if k in config}  # dict-isect
+    return common
