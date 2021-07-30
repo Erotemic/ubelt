@@ -19,15 +19,15 @@ The following example illustrates these four points.
 Example:
     >>> import ubelt as ub
     >>> # Define a cache name and dependencies (which is fed to `ub.hash_data`)
-    >>> cacher = ub.Cacher('name', depends={'dep1': 1, 'dep2': 2})  # boilerplate:1
+    >>> cacher = ub.Cacher('name', depends='set-of-deps')  # boilerplate:1
     >>> # Calling tryload will return your data on a hit and None on a miss
-    >>> data = cacher.tryload(on_error='clear')                     # boilerplate:2
+    >>> data = cacher.tryload(on_error='clear')            # boilerplate:2
     >>> # Check if you need to recompute your data
-    >>> if data is None:                                            # boilerplate:3
+    >>> if data is None:                                   # boilerplate:3
     >>>     # Your code to recompute data goes here (this is not boilerplate).
     >>>     data = 'mydata'
     >>>     # Cache the computation result (via pickle)
-    >>>     cacher.save(data)                                       # boilerplate:4
+    >>>     cacher.save(data)                              # boilerplate:4
 
 Surprisingly this uses just as many boilerplate lines as a decorator style
 cacher, but it is much more extensible. It is possible to use :class:`Cacher`
@@ -117,8 +117,8 @@ class Cacher(object):
         log (func): Overloads the print function. Useful for sending output to
             loggers (e.g. logging.info, tqdm.tqdm.write, ...)
 
-        hasher (str): Type of hashing algorithm to use if ``cfgstr`` needs to be
-            condensed to less than 49 characters.
+        hasher (str): Type of hashing algorithm to use if ``cfgstr`` needs to
+            be condensed to less than 49 characters.
 
         protocol (int, default=-1): Protocol version used by pickle.
             Defaults to the -1 which is the latest protocol.
@@ -297,7 +297,8 @@ class Cacher(object):
             >>> # Ensure that some data exists
             >>> known_fpaths = set()
             >>> import ubelt as ub
-            >>> dpath = ub.ensure_app_cache_dir('ubelt', 'test-existing-versions')
+            >>> dpath = ub.ensure_app_cache_dir('ubelt',
+            >>>                                 'test-existing-versions')
             >>> ub.delete(dpath)  # start fresh
             >>> cacher = Cacher('versioned_data_v2', depends='1', dpath=dpath)
             >>> cacher.ensure(lambda: 'data1')
@@ -376,10 +377,12 @@ class Cacher(object):
                     self.clear(cfgstr)
                     return None
                 else:
-                    raise KeyError('Unknown method on_error={}'.format(on_error))
+                    raise KeyError('Unknown method on_error={}'.format(
+                        on_error))
         else:
             if self.verbose > 1:
-                self.log('[cacher] ... cache disabled: fname={}'.format(self.fname))
+                self.log('[cacher] ... cache disabled: fname={}'.format(
+                    self.fname))
         return None
 
     def load(self, cfgstr=None):
@@ -414,7 +417,8 @@ class Cacher(object):
 
         if not self.enabled:
             if verbose > 1:
-                self.log('[cacher] ... cache disabled: fname={}'.format(self.fname))
+                self.log('[cacher] ... cache disabled: fname={}'.format(
+                    self.fname))
             raise IOError(3, 'Cache Loading Is Disabled')
 
         fpath = self.get_fpath(cfgstr=cfgstr)
@@ -742,7 +746,8 @@ class CacheStamp(object):
             if not all(map(exists, products)):
                 raise IOError(
                     'The stamped product must exist: {}'.format(products))
-            certificate['product_file_hash'] = self._product_file_hash(products)
+            product_hash = self._product_file_hash(products)
+            certificate['product_file_hash'] = product_hash
         self.cacher.save(certificate, cfgstr=cfgstr)
         return certificate
 
