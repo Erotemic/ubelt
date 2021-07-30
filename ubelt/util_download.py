@@ -16,7 +16,7 @@ if it needs to.
 """
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
-from os.path import basename, join, exists
+from os.path import basename, join, exists, dirname
 import os
 import sys
 
@@ -150,6 +150,9 @@ def download(url, fpath=None, dpath=None, fname=None, hash_prefix=None,
         if fname is None:
             fname = basename(url)
         fpath = join(dpath, fname)
+
+    if not exists(dirname(fpath)):
+        raise Exception('parent of {} does not exist'.format(fpath))
 
     _dst_is_io_object = hasattr(fpath, 'write')
 
