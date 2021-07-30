@@ -252,6 +252,8 @@ class IndexableWalker(Generator):
         >>> # Create an IndexableWalker objct
         >>> walker = IndexableWalker(data)
         >>> # We iterate over the data as if it was flat
+        >>> # ignore the <want> string due to order issues on older Pythons
+        >>> # xdoctest: +IGNORE_WANT
         >>> for path, val in walker:
         >>>     print(path)
         ['foo']
