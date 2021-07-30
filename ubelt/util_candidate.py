@@ -112,7 +112,6 @@ def varied_values(longform, min_variations=0, default=NoParam):
         >>> # over a parameter grid.
         >>> from ubelt.util_candidate import *  # NOQA
         >>> import ubelt as ub
-        >>> import random
         >>> longform = [
         >>>     {'col1': 1, 'col2': 'foo', 'col3': None},
         >>>     {'col1': 1, 'col2': 'foo', 'col3': None},
@@ -160,28 +159,31 @@ def varied_values(longform, min_variations=0, default=NoParam):
         >>> from ubelt.util_candidate import *  # NOQA
         >>> import ubelt as ub
         >>> import random
-        >>> num_keys = 10
-        >>> num_dicts = 10
-        >>> all_keys = {ub.hash_data(i)[0:16] for i in range(num_keys)}
-        >>> longform = [
-        >>>     {key: ub.hash_data(key)[0:16] for key in all_keys}
-        >>>     for _ in range(num_dicts)
-        >>> ]
+        >>> num_cols = 5
+        >>> num_rows = 11
         >>> rng = random.Random(0)
+        >>> # Generate a set of columns
+        >>> columns = sorted(ub.hash_data(i)[0:8] for i in range(num_cols))
+        >>> # Generate rows for each column
+        >>> longform = [
+        >>>     {key: ub.hash_data(key)[0:8] for key in columns}
+        >>>     for _ in range(num_rows)
+        >>> ]
+        >>> print('longform = {}'.format(ub.repr2(longform, nl=1)))
+        ...
         >>> for row in longform:
         >>>     if rng.random() > 0.5:
         >>>         for key in row.keys():
         >>>             if rng.random() > 0.9:
         >>>                 row[key] = rng.randint(1, 32)
         >>> varied = varied_values(longform, min_variations=1)
-        >>> print('varied = {}'.format(ub.repr2(varied, nl=1)))
+        >>> print('varied = {}'.format(ub.repr2(varied, nl=1, sort=True)))
         varied = {
-            '095f3e448a55fa2c': {'74f95d329b39c8b9', 32, 9},
-            '5815087df95b7c04': {'9373207842af3621', 15, 6},
-            '7b54b66836c1fbdd': {'1dc52ec906964ccd', 1, 19},
-            'b5b8c725507b5b13': {'7cb8d0c7fd254bfb', 31},
-            'f27b5bf8d35ea2bb': {'bdc12402662e0598', 26, 29},
-            'fab848c9b657a853': {'7e3ab488d37412fc', 10},
+            '7b54b668': {'349a782c', 31},
+            'b5b8c725': {'17fe0c46', 32},
+            'b8244d02': {'d57bca90', 10, 15},
+            'e45bf581': {'b8fb3ee2', 9},
+            'fab848c9': {'481f84f5', 1, 29},
         }
     """
     # Enumerate all defined columns
