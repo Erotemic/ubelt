@@ -249,7 +249,7 @@ class IndexableWalker(Generator):
         >>>     'foo': {'bar': 1},
         >>>     'baz': [{'biz': 3}, {'buz': [4, 5, 6]}],
         >>> }
-        >>> # Create an IndexableWalker objct
+        >>> # Create an IndexableWalker
         >>> walker = IndexableWalker(data)
         >>> # We iterate over the data as if it was flat
         >>> # ignore the <want> string due to order issues on older Pythons
@@ -481,8 +481,7 @@ def compatible(config, func, start=0):
         >>> # An example use case is to select a subset of of a config
         >>> # that can be passed to some function as kwargs
         >>> from ubelt.util_candidate import *  # NOQA
-        >>> # Define a function with arguments that match some keys in the
-        >>> # config.
+        >>> # Define a function with args that match some keys in a config.
         >>> def func(a, e, f):
         >>>     return a * e * f
         >>> # Define a config that has a superset of items needed by the func

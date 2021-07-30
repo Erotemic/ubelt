@@ -297,7 +297,7 @@ class Cacher(object):
             >>> # Ensure that some data exists
             >>> known_fpaths = set()
             >>> import ubelt as ub
-            >>> dpath = ub.ensure_app_cache_dir('ubelt/cache/test-existing-versions')
+            >>> dpath = ub.ensure_app_cache_dir('ubelt', 'test-existing-versions')
             >>> ub.delete(dpath)  # start fresh
             >>> cacher = Cacher('versioned_data_v2', depends='1', dpath=dpath)
             >>> cacher.ensure(lambda: 'data1')
