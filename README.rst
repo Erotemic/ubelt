@@ -752,8 +752,7 @@ into the ``boltons`` project: https://github.com/mahmoud/boltons.
 
 Notes.
 ------
-Ubelt will support Python2 for the foreseeable future (at least until the
-projects I work on are off it followed by a probation period).
+Ubelt will support Python 2.7 and 3.5 until the 1.0 release.
 
 PRs are welcome. If you have a utility function that you think is useful then
 write a PR. I'm likely to respond promptly.
@@ -769,6 +768,9 @@ Also check out my other projects (many of which are powered by ubelt):
 -  vimtk https://github.com/Erotemic/vimtk
 -  graphid https://github.com/Erotemic/graphid
 -  ibeis https://github.com/Erotemic/ibeis
+-  kwarray https://github.com/Kitware/kwarray
+-  kwimage https://github.com/Kitware/kwimage
+-  kwcoco https://github.com/Kitware/kwcoco
   
 
 .. |CircleCI| image:: https://circleci.com/gh/Erotemic/ubelt.svg?style=svg
