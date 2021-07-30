@@ -313,6 +313,7 @@ def _rectify_base(base):
         >>> assert _rectify_base(NoParam) is DEFAULT_ALPHABET
         >>> assert _rectify_base('hex') is _ALPHABET_16
         >>> assert _rectify_base('abc') is _ALPHABET_26
+        >>> assert _rectify_base('alphanum') is _ALPHABET_36
         >>> assert _rectify_base(10) is _ALPHABET_10
         >>> assert _rectify_base(['1', '2']) == ['1', '2']
         >>> import pytest

@@ -141,12 +141,14 @@ def varied_values(longform, min_variations=0, default=NoParam):
         }
 
     Example:
+        >>> # xdoctest: +REQUIRES(PY3)
+        >>> # Disable on Python2 due to sorting issues
         >>> from ubelt.util_candidate import *  # NOQA
         >>> import ubelt as ub
         >>> import random
         >>> longform = [
         >>>     {'col1': 1, 'col2': 'foo', 'col3': None},
-        >>>     {'col1': 1, 'col2': 'foo', 'col3': None},
+        >>>     {'col1': 1, 'col2': [1, 2], 'col3': None},
         >>>     {'col1': 2, 'col2': 'bar', 'col3': None},
         >>>     {'col1': 3, 'col2': 'bar', 'col3': None},
         >>>     {'col1': 9, 'col2': 'bar', 'col3': None},
@@ -162,7 +164,7 @@ def varied_values(longform, min_variations=0, default=NoParam):
         >>> print('varied = {}'.format(ub.repr2(varied, nl=1)))
         varied = {
             'col1': {1, 2, 3, 9},
-            'col2': {'bar', 'foo'},
+            'col2': {'bar', 'foo', (1, 2)},
             'col3': {None},
             'extra_col': {float('nan'), 3},
         }
