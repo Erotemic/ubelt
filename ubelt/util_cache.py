@@ -19,9 +19,9 @@ The following example illustrates these four points.
 Example:
     >>> import ubelt as ub
     >>> # Defines a cache name and dependencies, note the use of `ub.hash_data`.
-    >>> cacher = ub.Cacher('name', cfgstr=ub.hash_data('dependencies'))     # boilerplate:1
+    >>> cacher = ub.Cacher('name', depends=['list-of-deps'])                # boilerplate:1
     >>> # Calling tryload will return your data on a hit and None on a miss
-    >>> data = cacher.tryload()                                             # boilerplate:2
+    >>> data = cacher.tryload(on_error='clear')                             # boilerplate:2
     >>> # Check if you need to recompute your data
     >>> if data is None:                                                    # boilerplate:3
     >>>     # Your code to recompute data goes here (this is not boilerplate).
@@ -36,14 +36,14 @@ easier and cleaner. The following example illustrates this:
 
 Example:
     >>> import ubelt as ub
-    >>> @ub.Cacher('name', cfgstr=ub.hash_data('dependencies'))  # boilerplate:1
+    >>> @ub.Cacher('name', depends=['dependencies'])             # boilerplate:1
     >>> def func():                                              # boilerplate:2
     >>>     data = 'mydata'
     >>>     return data                                          # boilerplate:3
     >>> data = func()                                            # boilerplate:4
 
-    >>> cacher = ub.Cacher('name', cfgstr=ub.hash_data('dependencies'))  # boilerplate:1
-    >>> data = cacher.tryload()                                          # boilerplate:2
+    >>> cacher = ub.Cacher('name', depends=['dependencies'])             # boilerplate:1
+    >>> data = cacher.tryload(on_error='clear')                          # boilerplate:2
     >>> if data is None:                                                 # boilerplate:3
     >>>     data = 'mydata'
     >>>     cacher.save(data)                                            # boilerplate:4
@@ -66,6 +66,7 @@ Example:
     >>> #
     >>> import ubelt as ub
     >>> dpath = ub.ensure_app_cache_dir('ubelt/demo/cache')
+    >>> ub.delete(dpath)  # start fresh
     >>> # You must specify a directory, unlike in Cacher where it is optional
     >>> self = ub.CacheStamp('name', dpath=dpath, cfgstr='dependencies')
     >>> if self.expired():
@@ -119,9 +120,9 @@ class Cacher(object):
         hasher (str): Type of hashing algorithm to use if ``cfgstr`` needs to be
             condensed to less than 49 characters.
 
-        protocol (int, default=2): Protocol version used by pickle.
-            If python 2 compatibility is not required, then it is better to use
-            protocol 4.
+        protocol (int, default=-1): Protocol version used by pickle.
+            Defaults to the -1 which is the latest protocol.
+            If python 2 compatibility is not required, set to 2.
 
         cfgstr (str): Deprecated in favor of depends. Indicates the state.
             Either this string or a hash of this string will be used to
@@ -295,15 +296,18 @@ class Cacher(object):
             >>> from ubelt.util_cache import Cacher
             >>> # Ensure that some data exists
             >>> known_fpaths = set()
-            >>> cacher = Cacher('versioned_data_v2', depends='1')
+            >>> import ubelt as ub
+            >>> dpath = ub.ensure_app_cache_dir('ubelt/cache/test-existing-versions')
+            >>> ub.delete(dpath)  # start fresh
+            >>> cacher = Cacher('versioned_data_v2', depends='1', dpath=dpath)
             >>> cacher.ensure(lambda: 'data1')
             >>> known_fpaths.add(cacher.get_fpath())
-            >>> cacher = Cacher('versioned_data_v2', depends='2')
+            >>> cacher = Cacher('versioned_data_v2', depends='2', dpath=dpath)
             >>> cacher.ensure(lambda: 'data2')
             >>> known_fpaths.add(cacher.get_fpath())
             >>> # List previously computed configs for this type
             >>> from os.path import basename
-            >>> cacher = Cacher('versioned_data_v2', depends='2')
+            >>> cacher = Cacher('versioned_data_v2', depends='2', dpath=dpath)
             >>> exist_fpaths = set(cacher.existing_versions())
             >>> exist_fnames = list(map(basename, exist_fpaths))
             >>> print('exist_fnames = {!r}'.format(exist_fnames))

@@ -1,10 +1,17 @@
+# -*- coding: utf-8 -*-
 """
 Candidate functions
 """
+from __future__ import absolute_import, division, print_function, unicode_literals
 from collections import defaultdict as ddict
 from ubelt.util_const import NoParam
-from collections.abc import Generator
+import six
 import itertools as it
+
+if six.PY2:
+    Generator = object  # Python2 doesnt have Generator ABC
+else:
+    from collections.abc import Generator
 
 
 def basis_product(basis):
@@ -46,8 +53,10 @@ def basis_product(basis):
         >>>     'arg3': [9999, 'Z2'],
         >>>     'arg4': ['always'],
         >>> }
-        >>> got = list(basis_product(basis))
         >>> import ubelt as ub
+        >>> # sort input data for older python versions
+        >>> basis = ub.odict(sorted(basis.items()))
+        >>> got = list(basis_product(basis))
         >>> print(ub.repr2(got, nl=-1))
         [
             {'arg1': 1, 'arg2': 'A1', 'arg3': 9999, 'arg4': 'always'},
@@ -103,6 +112,9 @@ def varied_values(longform, min_variations=0, default=NoParam):
     References:
         .. [1] https://seaborn.pydata.org/tutorial/data_structure.html#long-form-data
 
+    CommandLine:
+        xdoctest -m /home/joncrall/code/ubelt/ubelt/util_candidate.py varied_values
+
     TODO:
         - [ ] Does this go in util_dict?
 
@@ -156,6 +168,8 @@ def varied_values(longform, min_variations=0, default=NoParam):
         }
 
     Example:
+        >>> # xdoctest: +REQUIRES(PY3)
+        >>> # Random numbers are different in Python2, so skip in that case
         >>> from ubelt.util_candidate import *  # NOQA
         >>> import ubelt as ub
         >>> import random
@@ -169,21 +183,20 @@ def varied_values(longform, min_variations=0, default=NoParam):
         >>>     {key: ub.hash_data(key)[0:8] for key in columns}
         >>>     for _ in range(num_rows)
         >>> ]
-        >>> print('longform = {}'.format(ub.repr2(longform, nl=1)))
-        ...
+        >>> # Add in some varied values in random positions
         >>> for row in longform:
         >>>     if rng.random() > 0.5:
-        >>>         for key in row.keys():
+        >>>         for key in sorted(row.keys()):
         >>>             if rng.random() > 0.9:
-        >>>                 row[key] = rng.randint(1, 32)
+        >>>                 row[key] = 'special-' + str(rng.randint(1, 32))
         >>> varied = varied_values(longform, min_variations=1)
         >>> print('varied = {}'.format(ub.repr2(varied, nl=1, sort=True)))
         varied = {
-            '7b54b668': {'349a782c', 31},
-            'b5b8c725': {'17fe0c46', 32},
-            'b8244d02': {'d57bca90', 10, 15},
-            'e45bf581': {'b8fb3ee2', 9},
-            'fab848c9': {'481f84f5', 1, 29},
+            '7b54b668': {'349a782c', 'special-31'},
+            'b5b8c725': {'17fe0c46', 'special-32'},
+            'b8244d02': {'d57bca90', 'special-10', 'special-15'},
+            'e45bf581': {'b8fb3ee2', 'special-9'},
+            'fab848c9': {'481f84f5', 'special-1', 'special-29'},
         }
     """
     # Enumerate all defined columns
@@ -297,6 +310,10 @@ class IndexableWalker(Generator):
             self._walk_gen = self._walk()
         return next(self._walk_gen)
 
+    def next(self):
+        # For Python 2.7
+        return self.__next__()
+
     def send(self, arg):
         """
         send(arg) -> send 'arg' into generator,
@@ -321,7 +338,8 @@ class IndexableWalker(Generator):
             value (object): new value
         """
         d = self.data
-        *prefix, key = path
+        prefix, key = path[:-1], path[-1]
+        # *prefix, key = path
         for k in prefix:
             d = d[k]
         d[key] = value
@@ -337,7 +355,8 @@ class IndexableWalker(Generator):
             value
         """
         d = self.data
-        *prefix, key = path
+        prefix, key = path[:-1], path[-1]
+        # *prefix, key = path
         for k in prefix:
             d = d[k]
         return d[key]
@@ -357,7 +376,8 @@ class IndexableWalker(Generator):
                 The item at the last index will be removed.
         """
         d = self.data
-        *prefix, key = path
+        prefix, key = path[:-1], path[-1]
+        # *prefix, key = path
         for k in prefix:
             d = d[k]
         del d[key]
@@ -426,7 +446,7 @@ def compatible(config, func, start=0):
         >>> from ubelt.util_candidate import *  # NOQA
         >>> # Define a function with arguments that match some keys in the
         >>> # config.
-        >>> def myfunc(a, e, f):
+        >>> def func(a, e, f):
         >>>     return a * e * f
         >>> # Define a config that has a superset of items needed by the func
         >>> config = {
@@ -434,11 +454,63 @@ def compatible(config, func, start=0):
         ...   'd': 11, 'e': 13, 'f': 17,
         ... }
         >>> # Call the function only with keys that are compatible
-        >>> myfunc(**compatible(config, myfunc))
+        >>> func(**compatible(config, func))
         442
+
+    Example:
+        >>> # Test case with kwargs
+        >>> from ubelt.util_candidate import *  # NOQA
+        >>> def func(a, e, f, *args, **kwargs):
+        >>>     return a * e * f
+        >>> config = {
+        ...   'a': 2, 'b': 3, 'c': 7,
+        ...   'd': 11, 'e': 13, 'f': 17,
+        ... }
+        >>> func(**compatible(config, func))
+
+    Ignore:
+        >>> # xdoctest: +REQUIRES(PY3)
+        >>> # Test case with positional only 3.x +
+        >>> def func(a, e, /,  f):
+        >>>     return a * e * f
+        >>> config = {
+        ...   'a': 2, 'b': 3, 'c': 7,
+        ...   'd': 11, 'e': 13, 'f': 17,
+        ... }
+        >>> import pytest
+        >>> with pytest.raises(ValueError):
+        ...     func(**compatible(config, func))
     """
     import inspect
-    sig = inspect.signature(func)
-    argnames = list(sig.parameters.keys())[start:]
-    common = {k: config[k] for k in argnames if k in config}  # dict-isect
+    if hasattr(inspect, 'signature'):  # pragma :nobranch
+        sig = inspect.signature(func)
+        argnames = []
+        has_kwargs = False
+        for arg in sig.parameters.values():
+            if arg.kind == inspect.Parameter.VAR_KEYWORD:
+                has_kwargs = True
+            elif arg.kind == inspect.Parameter.VAR_POSITIONAL:
+                # Ignore variadic positional args
+                pass
+            elif arg.kind == inspect.Parameter.POSITIONAL_ONLY:
+                raise ValueError('this does not work with positional only')
+            elif arg.kind in {inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                              inspect.Parameter.KEYWORD_ONLY}:
+                argnames.append(arg.name)
+            else:  # nocover
+                raise TypeError(arg.kind)
+    else:  # nocover
+        # For Python 2.7
+        spec = inspect.getargspec(func)
+        argnames = spec.args
+        has_kwargs = spec.keywords
+        if spec.keywords:
+            # kwargs could be anything, so keep everything
+            return config
+    if has_kwargs:
+        # kwargs could be anything, so keep everything
+        common = config
+    else:
+        common = {k: config[k] for k in argnames[start:]
+                  if k in config}  # dict-isect
     return common

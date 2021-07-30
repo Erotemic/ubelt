@@ -8,10 +8,12 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ## Version 0.9.6 - Unreleased
 
 ### Added
+* new candidate utilities: `basis_product`,  `varied_values`, `IndexableWalker`, `compatible`.
 * new hashing 36-character base with alias (alphanum / abc123 / 36)
 
 ### Fixed
 * `ubelt.download` now errors earlier if the parent directory does not exist
+* PyTest no longer throws warnings
 
 
 ## Version 0.9.5 - Released 2021-02-05

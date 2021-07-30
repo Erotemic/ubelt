@@ -154,7 +154,7 @@ def _proc_iteroutput_select(proc):
         yield oline, eline
 
 
-def _tee_output(proc, stdout=None, stderr=None, backend='auto'):
+def _tee_output(proc, stdout=None, stderr=None, backend='thread'):
     """
     Simultaneously reports and captures stdout and stderr from a process
 
@@ -175,8 +175,10 @@ def _tee_output(proc, stdout=None, stderr=None, backend='auto'):
     elif backend == 'thread':
         # the thread version is fast, but might run into issues.
         _proc_iteroutput = _proc_iteroutput_thread
-    else:
-        raise ValueError('backend must be select, thread, or auto')
+    else:  # nocover
+        # The value of "backend" should be checked before we create the
+        # processes, otherwise we will have a dangling process
+        raise AssertionError('Validate "backend" before creating the proc')
 
     for oline, eline in _proc_iteroutput(proc):
         if oline:
@@ -247,8 +249,9 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
         shlex solution for windows.
 
     CommandLine:
-        python -m ubelt.util_cmd cmd
+        xdoctest -m ubelt.util_cmd cmd:6
         python -c "import ubelt as ub; ub.cmd('ping localhost -c 2', verbose=2)"
+        pytest "$(python -c 'import ubelt; print(ubelt.util_cmd.__file__)')" -sv --xdoctest-verbose 2
 
     References:
         .. [1] https://stackoverflow.com/questions/11495783/redirect-subprocess-stderr-to-stdout
@@ -294,16 +297,25 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
         >>> fpath2 = join(ub.get_app_cache_dir('ubelt'), 'cmdout2.txt')
         >>> ub.delete(fpath1)
         >>> ub.delete(fpath2)
+        >>> # Start up two processes that run simultaniously in the background
         >>> info1 = ub.cmd(('touch', fpath1), detach=True)
         >>> info2 = ub.cmd('echo writing2 > ' + fpath2, shell=True, detach=True)
+        >>> # Detatched processes are running in the background
+        >>> # We can run other code while we wait for them.
         >>> while not exists(fpath1):
         ...     pass
         >>> while not exists(fpath2):
         ...     pass
+        >>> # communicate with the process before you finish
+        >>> # (otherwise you may leak a text wrapper)
+        >>> info1['proc'].communicate()
+        >>> info2['proc'].communicate()
+        >>> # Check that the process actually did finish
+        >>> assert (info1['proc'].wait()) == 0
+        >>> assert (info2['proc'].wait()) == 0
+        >>> # Check that the process did what we expect
         >>> assert ub.readfrom(fpath1) == ''
         >>> assert ub.readfrom(fpath2).strip() == 'writing2'
-        >>> info1['proc'].wait()
-        >>> info2['proc'].wait()
     """
     import subprocess
     # TODO: stdout, stderr - experimental - custom file to pipe stdout/stderr to
@@ -347,6 +359,10 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
 
     if tee is None:
         tee = verbose > 0
+
+    if tee and tee_backend not in {'auto', 'thread', 'select'}:
+        raise ValueError('tee_backend must be select, thread, or auto')
+
     if verbose > 1:
         import os
         import platform
