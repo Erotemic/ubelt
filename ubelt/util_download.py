@@ -48,7 +48,7 @@ def download(url, fpath=None, dpath=None, fname=None, hash_prefix=None,
         url (str):
             The url to download.
 
-        fpath (PathLike | io.BytesIOtringIO):
+        fpath (PathLike | io.BytesIO):
             The path to download to. Defaults to basename of url and ubelt's
             application cache. If this is a io.BytesIO object then information
             is directly written to this object (note this prevents the use of
@@ -108,7 +108,7 @@ def download(url, fpath=None, dpath=None, fname=None, hash_prefix=None,
         >>> import io
         >>> url = 'http://i.imgur.com/rqwaDag.png'
         >>> file = io.BytesIO()
-        >>> fpath = download(url, file)
+        >>> fpath = ub.download(url, file)
         >>> file.seek(0)
         >>> data = file.read()
         >>> assert ub.hash_data(data, hasher='sha1').startswith('f79ea24571')
@@ -151,10 +151,11 @@ def download(url, fpath=None, dpath=None, fname=None, hash_prefix=None,
             fname = basename(url)
         fpath = join(dpath, fname)
 
-    if not exists(dirname(fpath)):
-        raise Exception('parent of {} does not exist'.format(fpath))
-
+    # Check if fpath was given as an BytesIO object
     _dst_is_io_object = hasattr(fpath, 'write')
+
+    if not _dst_is_io_object and not exists(dirname(fpath)):
+        raise Exception('parent of {} does not exist'.format(fpath))
 
     if verbose:
         if _dst_is_io_object:

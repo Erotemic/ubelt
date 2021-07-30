@@ -14,6 +14,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ### Fixed
 * `ubelt.download` now errors earlier if the parent directory does not exist
 * PyTest no longer throws warnings
+* Fixed issue with `download` and ByteIO objects in 3.8
 
 
 ## Version 0.9.5 - Released 2021-02-05
