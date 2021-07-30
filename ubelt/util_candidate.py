@@ -175,8 +175,8 @@ def varied_values(longform, min_variations=0, default=NoParam):
         >>> from ubelt.util_candidate import *  # NOQA
         >>> import ubelt as ub
         >>> import random
-        >>> num_cols = 5
-        >>> num_rows = 11
+        >>> num_cols = 11
+        >>> num_rows = 17
         >>> rng = random.Random(0)
         >>> # Generate a set of columns
         >>> columns = sorted(ub.hash_data(i)[0:8] for i in range(num_cols))
@@ -189,16 +189,17 @@ def varied_values(longform, min_variations=0, default=NoParam):
         >>> for row in longform:
         >>>     if rng.random() > 0.5:
         >>>         for key in sorted(row.keys()):
-        >>>             if rng.random() > 0.9:
+        >>>             if rng.random() > 0.95:
         >>>                 row[key] = 'special-' + str(rng.randint(1, 32))
         >>> varied = varied_values(longform, min_variations=1)
         >>> print('varied = {}'.format(ub.repr2(varied, nl=1, sort=True)))
         varied = {
-            '7b54b668': {'349a782c', 'special-31'},
-            'b5b8c725': {'17fe0c46', 'special-32'},
-            'b8244d02': {'d57bca90', 'special-10', 'special-15'},
-            'e45bf581': {'b8fb3ee2', 'special-9'},
-            'fab848c9': {'481f84f5', 'special-1', 'special-29'},
+            '095f3e44': {'8fb4d4c9', 'special-23'},
+            '365d11a1': {'daa409da', 'special-31', 'special-32'},
+            '5815087d': {'1b823610', 'special-3'},
+            '7b54b668': {'349a782c', 'special-10'},
+            'b8244d02': {'d57bca90', 'special-8'},
+            'f27b5bf8': {'fa0f90d1', 'special-19'},
         }
     """
     # Enumerate all defined columns
@@ -243,6 +244,40 @@ class IndexableWalker(Generator):
 
     TODO:
         - [ ] Does this go in util_dict, util_list, or maybe a new util?
+
+    Example:
+        >>> # Given Nested Data
+        >>> data = {
+        >>>     'foo': {'bar': 1},
+        >>>     'baz': [{'biz': 3}, {'buz': [4, 5, 6]}],
+        >>> }
+        >>> # Create an IndexableWalker objct
+        >>> walker = IndexableWalker(data)
+        >>> # We iterate over the data as if it was flat
+        >>> for path, val in walker:
+        >>>     print(path)
+        ['foo']
+        ['baz']
+        ['baz', 0]
+        ['baz', 1]
+        ['baz', 1, 'buz']
+        ['baz', 1, 'buz', 0]
+        ['baz', 1, 'buz', 1]
+        ['baz', 1, 'buz', 2]
+        ['baz', 0, 'biz']
+        ['foo', 'bar']
+        >>> # We can use "paths" as keys to getitem into the walker
+        >>> path = ['baz', 1, 'buz', 2]
+        >>> val = walker[path]
+        >>> assert val == 6
+        >>> # We can use "paths" as keys to setitem into the walker
+        >>> assert data['baz'][1]['buz'][2] == 6
+        >>> walker[path] = 7
+        >>> assert data['baz'][1]['buz'][2] == 7
+        >>> # We can use "paths" as keys to delitem into the walker
+        >>> assert data['baz'][1]['buz'][1] == 5
+        >>> del walker[['baz', 1, 'buz', 1]]
+        >>> assert data['baz'][1]['buz'][1] == 7
 
     Example:
         >>> # Create nested data
@@ -312,7 +347,7 @@ class IndexableWalker(Generator):
             self._walk_gen = self._walk()
         return next(self._walk_gen)
 
-    def next(self):
+    def next(self):  # nocover
         # For Python 2.7
         return self.__next__()
 
@@ -396,7 +431,7 @@ class IndexableWalker(Generator):
             Can also yield None in the case that `send` is called on the
             generator.
         """
-        if data is None:
+        if data is None:  # pragma: nobranch
             data = self.data
         stack = [(data, prefix)]
         while stack:
