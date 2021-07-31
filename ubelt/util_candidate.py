@@ -466,16 +466,22 @@ def compatible(config, func, start=0):
     Take only the items of a dict that can be passed to function as kwargs
 
     Args:
-        config (dict): a flat configuration dictionary
-        func (Callable): a function or method
-        start (int, default=0): set to 1 if calling with an unbound method
+        config (dict):
+            a flat configuration dictionary
+
+        func (Callable):
+            a function or method
+
+        start (int, default=0):
+            Only take args after this position. Set to 1 if calling with an
+            unbound method to avoid the "self" argument.
 
     Returns:
         dict : a subset of ``config`` that only contains items compatible with
             the signature of ``func``.
 
     TODO:
-        - [ ] Does this go in util_dict or util_func?
+        - [ ] Move to util_func
 
     Example:
         >>> # An example use case is to select a subset of of a config
@@ -540,9 +546,7 @@ def compatible(config, func, start=0):
         spec = inspect.getargspec(func)
         argnames = spec.args
         has_kwargs = spec.keywords
-        if spec.keywords:
-            # kwargs could be anything, so keep everything
-            return config
+
     if has_kwargs:
         # kwargs could be anything, so keep everything
         common = config
