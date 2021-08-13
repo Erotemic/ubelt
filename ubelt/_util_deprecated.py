@@ -23,10 +23,10 @@ else:
 DEP_SCHEDULE_1 = dict(deprecate='0.9.6', remove='1.0.0')
 
 
-def schedule_deprecation(deprecate=None, error=None, remove=None):
-    # deprecate = '0.9.0'
-    # error = '0.9.6'
-    # remove = '1.0.0'
+def schedule_deprecation(deprecate=None, error=None, remove=None):  # nocover
+    """
+    Deprecation machinery to help provide users with a smoother transition
+    """
     import ubelt as ub
     from distutils.version import LooseVersion
     current = LooseVersion(ub.__version__)
