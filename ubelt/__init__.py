@@ -13,7 +13,9 @@ contains a docstring with at least one example.
 """
 # flake8: noqa
 from __future__ import absolute_import, division, print_function, unicode_literals
-"""
+
+
+__dev__="""
 AutogenInit:
     mkinit ubelt --diff
     mkinit ubelt -w  # todo: get sphinx to ignore this

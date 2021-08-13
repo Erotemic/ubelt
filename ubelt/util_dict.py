@@ -9,7 +9,7 @@ than `k=1` times.
 The :func:`map_keys` and :func:`map_vals` functions are useful for transforming the keys
 and values of a dictionary with less syntax than a dict comprehension.
 
-The :func:`dict_union`, :func:`dict_isect`, and :func:`dict_subset` functions
+The :func:`dict_union`, :func:`dict_isect`, and :func:`dict_diff` functions
 are similar to the set equivalents.
 
 The :func:`dzip` function zips two iterables and packs them into a dictionary
@@ -396,6 +396,8 @@ def dict_subset(dict_, keys, default=util_const.NoParam, cls=OrderedDict):
 
 def dict_union(*args):
     """
+    Dictionary set extension for ``set.union``
+
     Combines the disjoint keys in multiple dictionaries. For intersecting keys,
     dictionaries towards the end of the sequence are given precedence.
 
@@ -428,6 +430,8 @@ def dict_union(*args):
 
 def dict_diff(*args):
     """
+    Dictionary set extension for ``set.difference``
+
     Constructs a dictionary that contains any of the keys in the first arg,
     which are not in any of the following args.
 
@@ -468,6 +472,8 @@ def dict_diff(*args):
 
 def dict_isect(*args):
     """
+    Dictionary set extension for ``set.intersection``
+
     Constructs a dictionary that contains keys common between all inputs.
     The returned values will only belong to the first dictionary.
 
