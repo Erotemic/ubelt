@@ -68,9 +68,9 @@ def repr2(data, **kwargs):
     of common nested datatypes. This is an alternative to repr, and
     :func:`pprint.pformat`.
 
-    This output of this function are very configurable. By default it aims to
-    produce strings that are executable and consistent between Python versions.
-    This makes them great for doctests.
+    This output of this function are configurable. By default it aims to
+    produce strings that are consistent, compact, and executable.  This makes
+    them great for doctests.
 
     Notes:
         This function has many keyword arguments that can be used to customize
@@ -78,8 +78,8 @@ def repr2(data, **kwargs):
         used kwargs have short aliases. See "Kwargs" for more details.
 
     Args:
-        data (object): an arbitrary python object
-        **kwargs: see "the Kwargs" section
+        data (object):
+            an arbitrary python object to form the string "representation" of
 
     Kwargs:
         si, stritems, (bool):
@@ -153,8 +153,8 @@ def repr2(data, **kwargs):
             if True, will align multi-line dictionaries by the kvsep
 
         extensions (FormatterExtensions):
-            a custom :class:`FormatterExtensions` instance that can overwrite or
-            define how different types of objects are formatted.
+            a custom :class:`FormatterExtensions` instance that can overwrite
+            or define how different types of objects are formatted.
 
     Returns:
         str: outstr - output string
