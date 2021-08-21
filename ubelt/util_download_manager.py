@@ -76,7 +76,6 @@ class DownloadManager:
         self.pool = ub.JobPool(mode=mode, max_workers=max_workers)
         self.download_root = download_root
         self.cache = cache
-        import ubelt as ub
         if self.cache:
             self.dl_func = ub.grabdata
         else:
@@ -104,6 +103,19 @@ class DownloadManager:
     def as_completed(self, prog=None, desc=None, verbose=1):
         """
         Generate completed jobs as they become available
+
+        Example:
+            >>> import pytest
+            >>> import ubelt as ub
+            >>> download_root = ub.ensure_app_config_dir('ubelt', 'dlman')
+            >>> manager = ub.DownloadManager(download_root=download_root,
+            >>>                              cache=False)
+            >>> for i in range(3):
+            >>>     manager.submit('localhost')
+            >>> results = list(manager)
+            >>> print('results = {!r}'.format(results))
+            >>> manager.shutdown()
+
         """
         if prog is True:
             import ubelt as ub
@@ -119,6 +131,9 @@ class DownloadManager:
         Cancel all jobs and close all connections.
         """
         self.pool.executor.shutdown()
+
+    def __iter__(self):
+        return self.as_completed()
 
     def __len__(self):
         return len(self.pool)

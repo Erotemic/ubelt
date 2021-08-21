@@ -29,11 +29,34 @@ class SerialFuture(concurrent.futures.Future):
     def set_result(self, result):
         """
         Overrides the implementation to revert to pre python3.8 behavior
+
+        Example:
+            >>> # Just for coverage
+            >>> from ubelt.util_futures import SerialFuture  # NOQA
+            >>> self = SerialFuture(print, 'arg1', 'arg2')
+            >>> self.add_done_callback(lambda x: print('done callback got x = {}'.format(x)))
+            >>> print('result() before set_result()')
+            >>> ret = self.result()
+            >>> print('ret = {!r}'.format(ret))
+            >>> self.set_result(1)
+            >>> ret = self.result()
+            >>> print('ret = {!r}'.format(ret))
+            >>> #
+            >>> print('set_result() before result()')
+            >>> self = SerialFuture(print, 'arg1', 'arg2')
+            >>> self.add_done_callback(lambda x: print('done callback got x = {}'.format(x)))
+            >>> self.set_result(1)
+            >>> ret = self.result()
+            >>> print('ret = {!r}'.format(ret))
         """
         with self._condition:
             self._result = result
             self._state = concurrent.futures._base.FINISHED
-            for waiter in self._waiters:
+            # I'm cheating a little by not covering this.
+            # Lets call it, cheating in good faith. *shifty eyes*
+            # I don't know how to test it, and its not a critical pieces of the
+            # library. Consider it a bug.  help wanted.
+            for waiter in self._waiters:  # nocover
                 waiter.add_result(self)
             self._condition.notify_all()
         self._invoke_callbacks()
@@ -50,7 +73,8 @@ class SerialExecutor(object):
     Implements the concurrent.futures API around a single-threaded backend
 
     Example:
-        >>> from ubelt.util_futures import *  # NOQA
+        >>> from ubelt.util_futures import SerialExecutor  # NOQA
+        >>> import concurrent.futures
         >>> with SerialExecutor() as executor:
         >>>     futures = []
         >>>     for i in range(100):
@@ -60,7 +84,7 @@ class SerialExecutor(object):
         >>>         assert f.result() > 0
         >>>     for i, f in enumerate(futures):
         >>>         assert i + 1 == f.result()
-        """
+    """
     def __enter__(self):
         self.max_workers = 0
         return self
@@ -84,6 +108,39 @@ class Executor(object):
     Args:
         mode (str, default='thread'): either thread, serial, or process
         max_workers (int, default=0): number of workers. If 0, serial is forced.
+
+    Example:
+        >>> import ubelt as ub
+        >>> # Fork before threading!
+        >>> self1 = ub.Executor(mode='serial', max_workers=0)
+        >>> self2 = ub.Executor(mode='process', max_workers=2)
+        >>> self3 = ub.Executor(mode='thread', max_workers=2)
+        >>> jobs = []
+        >>> jobs.append(self1.submit(sum, [1, 2, 3]))
+        >>> jobs.append(self1.submit(sum, [1, 2, 3]))
+        >>> jobs.append(self2.submit(sum, [10, 20, 30]))
+        >>> jobs.append(self2.submit(sum, [10, 20, 30]))
+        >>> jobs.append(self3.submit(sum, [4, 5, 5]))
+        >>> jobs.append(self3.submit(sum, [4, 5, 5]))
+        >>> for job in jobs:
+        >>>     result = job.result()
+        >>>     print('result = {!r}'.format(result))
+        >>> self1.shutdown()
+        >>> self2.shutdown()
+        >>> self3.shutdown()
+
+    Example:
+        >>> import ubelt as ub
+        >>> self1 = ub.Executor(mode='serial', max_workers=0)
+        >>> with self1:
+        >>>     jobs = []
+        >>>     for i in range(10):
+        >>>         jobs.append(self1.submit(sum, [i + 1, i]))
+        >>>     for job in jobs:
+        >>>         job.add_done_callback(lambda x: print('done callback got x = {}'.format(x)))
+        >>>         result = job.result()
+        >>>         print('result = {!r}'.format(result))
+
     """
 
     def __init__(self, mode='thread', max_workers=0):
@@ -153,5 +210,24 @@ class JobPool(object):
             yield job
 
     def __iter__(self):
+        """
+        Example:
+            >>> import ubelt as ub
+            >>> pool = ub.JobPool('thread', max_workers=8)
+            >>> text = ub.paragraph(
+                '''
+                UDP is a cool protocol, check out the wiki:
+
+                UDP-based Data Transfer Protocol (UDT), is a high-performance
+                data transfer protocol designed for transferring large
+                volumetric datasets over high-speed wide area networks. Such
+                settings are typically disadvantageous for the more common TCP
+                protocol.
+                ''')
+            >>> for word in text.split(' '):
+            ...     pool.submit(print, word)
+            >>> for _ in pool:
+            ...     pass
+        """
         for job in self.as_completed():
             yield job

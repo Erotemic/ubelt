@@ -293,6 +293,23 @@ def indexable_allclose(dct1, dct2, return_info=False):
         >>> flag, return_info =  ub.indexable_allclose(dct1, dct2, return_info=True)
         >>> print('return_info = {}'.format(ub.repr2(return_info, nl=1)))
         >>> print('flag = {!r}'.format(flag))
+
+    Example:
+        >>> import ubelt as ub
+        >>> flag, return_info =  ub.indexable_allclose([], [], return_info=True)
+        >>> print('return_info = {!r}'.format(return_info))
+        >>> print('flag = {!r}'.format(flag))
+
+    Example:
+        >>> import ubelt as ub
+        >>> flag =  ub.indexable_allclose([], [], return_info=False)
+        >>> print('flag = {!r}'.format(flag))
+
+    Example:
+        >>> import ubelt as ub
+        >>> flag, return_info =  ub.indexable_allclose([], [1], return_info=True)
+        >>> print('return_info = {!r}'.format(return_info))
+        >>> print('flag = {!r}'.format(flag))
     """
     import math
     walker1 = IndexableWalker(dct1)

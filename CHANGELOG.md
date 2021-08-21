@@ -8,10 +8,10 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ## Version 0.9.6 - Unreleased
 
 ### Added
-* new candidate utilities: `basis_product`,  `varied_values`, `IndexableWalker`, `compatible`.
 * new hashing 36-character base with alias (alphanum / abc123 / 36)
 * Added "compact" argument to `ub.repr2`
-
+* added candidate utilities: `basis_product`,  `varied_values` to `util_dict`
+* added candidate utilities: `compatible` to  `util_func`
 * Added `util_indexable` and `IndexableWalker` (ported from kwcoco)
 * Added `util_futures` with `ub.JobPool` and `ub.Executor` (ported from kwcoco)
 * Added `util_download_manager` with simple implementation of `ub.DownloadManager`
