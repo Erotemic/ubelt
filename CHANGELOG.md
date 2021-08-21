@@ -10,6 +10,13 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ### Added
 * new candidate utilities: `basis_product`,  `varied_values`, `IndexableWalker`, `compatible`.
 * new hashing 36-character base with alias (alphanum / abc123 / 36)
+* Added "compact" argument to `ub.repr2`
+
+
+### Changed 
+
+* Modified corner cases in `ub.repr2` to move towards behavior that is easier
+  to reason about.
 
 ### Fixed
 * `ubelt.download` now errors earlier if the parent directory does not exist
