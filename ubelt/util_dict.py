@@ -35,6 +35,7 @@ from collections import OrderedDict
 from collections import defaultdict
 from ubelt import util_const
 from ubelt import util_list
+from ubelt.util_const import NoParam
 
 
 PY2 = sys.version_info[0] == 2
@@ -716,3 +717,217 @@ def invert_dict(dict_, unique_vals=True):
             inverted[value].add(key)
         inverted = dict(inverted)
     return inverted
+
+
+def basis_product(basis):
+    """
+    Generates the Cartesian product of the ``basis.values()``, where each
+    generated item labeled by ``basis.keys()``.
+
+    In other words, given a dictionary that maps each "axes" (i.e. some
+    variable) to its "basis" (i.e. the possible values that it can take),
+    generate all possible points in that grid (i.e. unique assignments of
+    variables to values).
+
+    Args:
+        basis (Dict[K, List[T]]):
+            A dictionary where the keys correspond to "columns" and the values
+            are a list of possible values that "column" can take.
+
+            I.E. each key corresponds to an "axes", the values are the list of
+            possible values for that "axes".
+
+    Yields:
+        Dict[K, T] - a "row" in the "longform" data containing a point in the
+            Cartesian product.
+
+    Notes:
+        This function is similar to :func:`itertools.product`, the only
+        difference is that the generated items are a dictionary that retains
+        the input keys instead of an tuple.
+
+    TODO:
+        - [ ] Does this go in util_dict?
+
+    Example:
+        >>> # An example use case is looping over all possible settings in a
+        >>> # configuration dictionary for a grid search over parameters.
+        >>> basis = {
+        >>>     'arg1': [1, 2, 3],
+        >>>     'arg2': ['A1', 'B1'],
+        >>>     'arg3': [9999, 'Z2'],
+        >>>     'arg4': ['always'],
+        >>> }
+        >>> import ubelt as ub
+        >>> # sort input data for older python versions
+        >>> basis = ub.odict(sorted(basis.items()))
+        >>> got = list(basis_product(basis))
+        >>> print(ub.repr2(got, nl=-1))
+        [
+            {'arg1': 1, 'arg2': 'A1', 'arg3': 9999, 'arg4': 'always'},
+            {'arg1': 1, 'arg2': 'A1', 'arg3': 'Z2', 'arg4': 'always'},
+            {'arg1': 1, 'arg2': 'B1', 'arg3': 9999, 'arg4': 'always'},
+            {'arg1': 1, 'arg2': 'B1', 'arg3': 'Z2', 'arg4': 'always'},
+            {'arg1': 2, 'arg2': 'A1', 'arg3': 9999, 'arg4': 'always'},
+            {'arg1': 2, 'arg2': 'A1', 'arg3': 'Z2', 'arg4': 'always'},
+            {'arg1': 2, 'arg2': 'B1', 'arg3': 9999, 'arg4': 'always'},
+            {'arg1': 2, 'arg2': 'B1', 'arg3': 'Z2', 'arg4': 'always'},
+            {'arg1': 3, 'arg2': 'A1', 'arg3': 9999, 'arg4': 'always'},
+            {'arg1': 3, 'arg2': 'A1', 'arg3': 'Z2', 'arg4': 'always'},
+            {'arg1': 3, 'arg2': 'B1', 'arg3': 9999, 'arg4': 'always'},
+            {'arg1': 3, 'arg2': 'B1', 'arg3': 'Z2', 'arg4': 'always'}
+        ]
+    """
+    keys = list(basis.keys())
+    for vals in it.product(*basis.values()):
+        kw = dict(zip(keys, vals))
+        yield kw
+
+
+def varied_values(longform, min_variations=0, default=NoParam):
+    """
+    Given a list of dictionaries, find the values that differ between them.
+
+    Args:
+        longform (List[Dict]):
+            This is longform data, as described in [1]_. It is a list of
+            dictionaries.
+
+            Each item in the list - or row - is a dictionary and can be thought
+            of as an observation. The keys in each dictionary are the columns.
+            The values of the dictionary must be hashable. Lists will be
+            converted into tuples.
+
+        min_variations (int, default=0):
+            "columns" with fewer than ``min_variations`` unique values are
+            removed from the result.
+
+        default (object, default=NoParam):
+            if specified, unspecified columns are given this value.
+
+    Returns:
+        dict : a mapping from each "column" to the set of unique values it took
+            over each "row". If a column is not specified for each row, it is
+            assumed to take a `default` value, if it is specified.
+
+    Raises:
+        KeyError: If ``default`` is unspecified and all the rows
+            do not contain the same columns.
+
+    References:
+        .. [1] https://seaborn.pydata.org/tutorial/data_structure.html#long-form-data
+
+    CommandLine:
+        xdoctest -m /home/joncrall/code/ubelt/ubelt/util_candidate.py varied_values
+
+    TODO:
+        - [ ] Does this go in util_dict?
+
+    Example:
+        >>> # An example use case is to determine what values of a
+        >>> # configuration dictionary were tried in a random search
+        >>> # over a parameter grid.
+        >>> from ubelt.util_candidate import *  # NOQA
+        >>> import ubelt as ub
+        >>> longform = [
+        >>>     {'col1': 1, 'col2': 'foo', 'col3': None},
+        >>>     {'col1': 1, 'col2': 'foo', 'col3': None},
+        >>>     {'col1': 2, 'col2': 'bar', 'col3': None},
+        >>>     {'col1': 3, 'col2': 'bar', 'col3': None},
+        >>>     {'col1': 9, 'col2': 'bar', 'col3': None},
+        >>>     {'col1': 1, 'col2': 'bar', 'col3': None},
+        >>> ]
+        >>> varied = varied_values(longform)
+        >>> print('varied = {}'.format(ub.repr2(varied, nl=1)))
+        varied = {
+            'col1': {1, 2, 3, 9},
+            'col2': {'bar', 'foo'},
+            'col3': {None},
+        }
+
+    Example:
+        >>> from ubelt.util_candidate import *  # NOQA
+        >>> import ubelt as ub
+        >>> import random
+        >>> longform = [
+        >>>     {'col1': 1, 'col2': 'foo', 'col3': None},
+        >>>     {'col1': 1, 'col2': [1, 2], 'col3': None},
+        >>>     {'col1': 2, 'col2': 'bar', 'col3': None},
+        >>>     {'col1': 3, 'col2': 'bar', 'col3': None},
+        >>>     {'col1': 9, 'col2': 'bar', 'col3': None},
+        >>>     {'col1': 1, 'col2': 'bar', 'col3': None, 'extra_col': 3},
+        >>> ]
+        >>> # Operation fails without a default
+        >>> import pytest
+        >>> with pytest.raises(KeyError):
+        >>>     varied = varied_values(longform)
+        >>> #
+        >>> # Operation works with a default
+        >>> varied = varied_values(longform, default='<unset>')
+        >>> expected = {
+        >>>     'col1': {1, 2, 3, 9},
+        >>>     'col2': {'bar', 'foo', (1, 2)},
+        >>>     'col3': set([None]),
+        >>>     'extra_col': {'<unset>', 3},
+        >>> }
+        >>> print('varied = {!r}'.format(varied))
+        >>> assert varied == expected
+
+    Example:
+        >>> # xdoctest: +REQUIRES(PY3)
+        >>> # Random numbers are different in Python2, so skip in that case
+        >>> from ubelt.util_candidate import *  # NOQA
+        >>> import ubelt as ub
+        >>> import random
+        >>> num_cols = 11
+        >>> num_rows = 17
+        >>> rng = random.Random(0)
+        >>> # Generate a set of columns
+        >>> columns = sorted(ub.hash_data(i)[0:8] for i in range(num_cols))
+        >>> # Generate rows for each column
+        >>> longform = [
+        >>>     {key: ub.hash_data(key)[0:8] for key in columns}
+        >>>     for _ in range(num_rows)
+        >>> ]
+        >>> # Add in some varied values in random positions
+        >>> for row in longform:
+        >>>     if rng.random() > 0.5:
+        >>>         for key in sorted(row.keys()):
+        >>>             if rng.random() > 0.95:
+        >>>                 row[key] = 'special-' + str(rng.randint(1, 32))
+        >>> varied = varied_values(longform, min_variations=1)
+        >>> print('varied = {}'.format(ub.repr2(varied, nl=1, sort=True)))
+        varied = {
+            '095f3e44': {'8fb4d4c9', 'special-23'},
+            '365d11a1': {'daa409da', 'special-31', 'special-32'},
+            '5815087d': {'1b823610', 'special-3'},
+            '7b54b668': {'349a782c', 'special-10'},
+            'b8244d02': {'d57bca90', 'special-8'},
+            'f27b5bf8': {'fa0f90d1', 'special-19'},
+        }
+    """
+    # Enumerate all defined columns
+    columns = set()
+    for row in longform:
+        if default is NoParam and len(row) != len(columns) and len(columns):
+            missing = set(columns).symmetric_difference(set(row))
+            raise KeyError((
+                'No default specified and not every '
+                'row contains columns {}').format(missing))
+        columns.update(row.keys())
+
+    # Build up the set of unique values for each column
+    varied = ddict(set)
+    for row in longform:
+        for key in columns:
+            value = row.get(key, default)
+            if isinstance(value, list):
+                value = tuple(value)
+            varied[key].add(value)
+
+    # Remove any column that does not have enough variation
+    if min_variations > 0:
+        for key, values in list(varied.items()):
+            if len(values) <= min_variations:
+                varied.pop(key)
+    return varied

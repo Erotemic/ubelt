@@ -12,6 +12,11 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 * new hashing 36-character base with alias (alphanum / abc123 / 36)
 * Added "compact" argument to `ub.repr2`
 
+* Added `util_indexable` and `IndexableWalker` (ported from kwcoco)
+* Added `util_futures` with `ub.JobPool` and `ub.Executor` (ported from kwcoco)
+* Added `util_download_manager` with simple implementation of `ub.DownloadManager`
+* Added candidate functions to `ubelt` proper
+
 
 ### Changed 
 
