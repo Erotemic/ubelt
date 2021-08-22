@@ -593,9 +593,16 @@ jobs:
     steps:
       - | 
         __heredoc__=" 
+
+        # Install CircleCI (todo check hashes)
+        # https://github.com/CircleCI-Public/circleci-cli/releases/download/v0.1.15848/circleci-cli_0.1.15848_linux_amd64.tar.gz
+        # https://github.com/CircleCI-Public/circleci-cli/releases/download/v0.1.15848/circleci-cli_0.1.15848_checksums.txt
+        curl -fLSs https://raw.githubusercontent.com/CircleCI-Public/circleci-cli/master/install.sh | DESTDIR=$HOME/.local/bin bash
+
+        # Run entire script end-to-end
         circleci local execute --job test_full/pypy3
 
-
+        # Manually drop into docker and run things
         docker run -v $(pwd):/io -it pypy:3 bash
 
         cd /io

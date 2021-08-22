@@ -109,12 +109,19 @@ class Executor(object):
         mode (str, default='thread'): either thread, serial, or process
         max_workers (int, default=0): number of workers. If 0, serial is forced.
 
+
     Example:
+        >>> # xdoctest: +REQUIRES(CPYTHON)
+        >>> # Only run on CPython, process breaks pyp3 when using coverage
         >>> import ubelt as ub
         >>> # Fork before threading!
+        >>> # https://pybay.com/site_media/slides/raymond2017-keynote/combo.html
         >>> self1 = ub.Executor(mode='serial', max_workers=0)
+        >>> self1.__enter__()
         >>> self2 = ub.Executor(mode='process', max_workers=2)
+        >>> self2.__enter__()
         >>> self3 = ub.Executor(mode='thread', max_workers=2)
+        >>> self3.__enter__()
         >>> jobs = []
         >>> jobs.append(self1.submit(sum, [1, 2, 3]))
         >>> jobs.append(self1.submit(sum, [1, 2, 3]))
@@ -125,9 +132,9 @@ class Executor(object):
         >>> for job in jobs:
         >>>     result = job.result()
         >>>     print('result = {!r}'.format(result))
-        >>> self1.shutdown()
-        >>> self2.shutdown()
-        >>> self3.shutdown()
+        >>> self1.__exit__(None, None, None)
+        >>> self2.__exit__(None, None, None)
+        >>> self3.__exit__(None, None, None)
 
     Example:
         >>> import ubelt as ub
@@ -140,7 +147,6 @@ class Executor(object):
         >>>         job.add_done_callback(lambda x: print('done callback got x = {}'.format(x)))
         >>>         result = job.result()
         >>>         print('result = {!r}'.format(result))
-
     """
 
     def __init__(self, mode='thread', max_workers=0):
@@ -185,6 +191,7 @@ class JobPool(object):
         >>>         info = job.result()
         >>>         final.append(info)
         >>> print('final = {!r}'.format(final))
+        >>> pool.shutdown()
     """
     def __init__(self, mode='thread', max_workers=0):
         self.executor = Executor(mode=mode, max_workers=max_workers)
@@ -197,6 +204,10 @@ class JobPool(object):
         job = self.executor.submit(func, *args, **kwargs)
         self.jobs.append(job)
         return job
+
+    def shutdown(self):
+        self.jobs = None
+        return self.executor.shutdown()
 
     def __enter__(self):
         self.executor.__enter__()
@@ -231,6 +242,7 @@ class JobPool(object):
             ...     pool.submit(print, word)
             >>> for _ in pool:
             ...     pass
+            >>> pool.shutdown()
         """
         for job in self.as_completed():
             yield job
