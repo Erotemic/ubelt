@@ -248,9 +248,9 @@ workflows:
       #- test_full/cp34-34m-linux:
       #    filters:
       #        <<: *__ignore_release__
-      #- test_full/cp27-27mu-linux:
-      #    filters:
-      #        <<: *__ignore_release__
+      - test_full/cp27-27mu-linux:
+          filters:
+              <<: *__ignore_release__
 
       - test_minimal/cp3_10-3_10-linux:
           filters:
@@ -273,9 +273,9 @@ workflows:
       #- test_minimal/cp34-34m-linux:
       #    filters:
       #        <<: *__ignore_release__
-      #- test_minimal/cp27-27mu-linux:
-      #    filters:
-      #        <<: *__ignore_release__
+      - test_minimal/cp27-27mu-linux:
+          filters:
+              <<: *__ignore_release__
 
       - test_minimal/pypy3:
           filters:
