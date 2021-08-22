@@ -21,6 +21,8 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 * `ubelt.download` now errors earlier if the parent directory does not exist
 * PyTest no longer throws warnings
 * Fixed issue with `download` and ByteIO objects in 3.8
+* Bug in Python 3.8+ on win32 that did not account for the change on
+  `os.readlink` behavior
 
 
 ### Changed 

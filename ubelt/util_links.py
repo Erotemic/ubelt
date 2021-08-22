@@ -151,11 +151,23 @@ def symlink(real_path, link_path, overwrite=False, verbose=0):
 
 
 def _readlink(link):
+    # Note:
+    # https://docs.python.org/3/library/os.html#os.readlink
+    # os.readlink was changed on win32 in version 3.8: Added support for
+    # directory junctions, and changed to return the substitution path (which
+    # typically includes \\?\ prefix) rather than the optional “print name”
+    # field that was previously returned.
+
     if _win32_links:  # nocover
         if _win32_links._win32_is_junction(link):
             return _win32_links._win32_read_junction(link)
     try:
-        return os.readlink(link)
+        path = os.readlink(link)
+        if util_platform.WIN32:
+            junction_prefix = '\\\\?\\'
+            if path.startswith(junction_prefix):
+                path = path[len(junction_prefix):]
+        return path
     except Exception:  # nocover
         # On modern operating systems, we should never get here. (I think)
         if exists(link):
@@ -183,6 +195,9 @@ def _dirstats(dpath=None):  # nocover
     """
     Testing helper for printing directory information
     (mostly for investigating windows weirdness)
+
+    The column prefixes stand for:
+    (E - exists), (L - islink), (F - isfile), (D - isdir), (J - isjunction)
     """
     from ubelt import util_colors
     if dpath is None:
@@ -234,6 +249,11 @@ def _dirstats(dpath=None):  # nocover
             elif ELFDJ == [1, 1, 0, 0, 0]:
                 # Windows? Why? What does this mean!?
                 # A directory link that cant be resolved?
+                path = util_colors.color_text(path, 'red')
+            elif ELFDJ == [0, 0, 0, 0, 0]:
+                # Windows? AGAIN? HOW DO YOU LIST FILES THAT DONT EXIST?
+                # I get it, they are probably broken junctions, but common
+                # That should probably be 00011 not 00000
                 path = util_colors.color_text(path, 'red')
             else:
                 print('dpath = {!r}'.format(dpath))
