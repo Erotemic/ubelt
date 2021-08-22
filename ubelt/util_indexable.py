@@ -3,6 +3,7 @@ The util_indexable module defines ``IndexableWalker`` which is a powerful
 way to iterate through nested Python containers.
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
+import sys
 
 try:
     from collections.abc import Generator
@@ -311,7 +312,6 @@ def indexable_allclose(dct1, dct2, return_info=False):
         >>> print('return_info = {!r}'.format(return_info))
         >>> print('flag = {!r}'.format(flag))
     """
-    import math
     walker1 = IndexableWalker(dct1)
     walker2 = IndexableWalker(dct2)
     flat_items1 = [
@@ -340,7 +340,7 @@ def indexable_allclose(dct1, dct2, return_info=False):
 
             flag = (v1 == v2)
             if not flag:
-                if isinstance(v1, float) and isinstance(v2, float) and math.isclose(v1, v2):
+                if isinstance(v1, float) and isinstance(v2, float) and _isclose(v1, v2):
                     flag = True
             if flag:
                 passlist.append(p1)
@@ -361,3 +361,12 @@ def indexable_allclose(dct1, dct2, return_info=False):
         return final_flag, info
     else:
         return final_flag
+
+
+# Define isclose for Python 2.7
+if sys.version_info[0] == 2:
+    def _isclose(a, b, rel_tol=1e-9, abs_tol=0.0):
+        return abs(a - b) <= max(rel_tol * max(abs(a), abs(b)), abs_tol)
+else:
+    import math
+    _isclose = math.isclose
