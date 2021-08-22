@@ -10,6 +10,9 @@ We also have `Jupyter notebook demos <https://github.com/Erotemic/ubelt/blob/mas
 The ubelt API is organized by submodules containing related functionality.
 Each submodule contains top level overview documentation, and each function
 contains a docstring with at least one example.
+
+NOTE: The `README <https://github.com/Erotemic/ubelt#readme>` on github
+contains information and examples complementary to these docs.
 """
 # flake8: noqa
 from __future__ import absolute_import, division, print_function, unicode_literals
