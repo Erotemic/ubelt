@@ -19,6 +19,7 @@ exclude_lines =
     if __name__ == .__main__.:
     .*if six.PY2:
     .*if PY2:
+    .*sys.version_info[0] == 2:
 
 omit =
     ubelt/tests/*

@@ -18,7 +18,7 @@ from ubelt import util_const
 __all__ = ['argval', 'argflag']
 
 
-if sys.version_info[0] == 2:
+if sys.version_info[0] == 2:  # nocover
     import six
     string_types = six.string_types
 else:

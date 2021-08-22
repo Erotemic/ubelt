@@ -794,6 +794,19 @@ def named_product(_=None, **basis):
             {'arg1': 3, 'arg2': 'B1', 'arg3': 9999, 'arg4': 'always'},
             {'arg1': 3, 'arg2': 'B1', 'arg3': 'Z2', 'arg4': 'always'}
         ]
+
+    Example:
+        >>> import ubelt as ub
+        >>> list(ub.named_product(a=[1, 2, 3]))
+        [{'a': 1}, {'a': 2}, {'a': 3}]
+        >>> # xdoctest: +IGNORE_WANT
+        >>> list(ub.named_product(a=[1, 2, 3], b=[4, 5]))
+        [{'a': 1, 'b': 4},
+         {'a': 1, 'b': 5},
+         {'a': 2, 'b': 4},
+         {'a': 2, 'b': 5},
+         {'a': 3, 'b': 4},
+         {'a': 3, 'b': 5}]
     """
     # Handle one positional argument.
     if _ is not None:
