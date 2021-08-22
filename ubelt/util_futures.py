@@ -211,6 +211,9 @@ class JobPool(object):
 
     def __iter__(self):
         """
+        CommandLine:
+            xdoctest -m /home/joncrall/code/ubelt/ubelt/util_futures.py JobPool.__iter__
+
         Example:
             >>> import ubelt as ub
             >>> pool = ub.JobPool('thread', max_workers=8)

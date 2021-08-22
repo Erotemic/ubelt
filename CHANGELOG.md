@@ -5,7 +5,7 @@ We are currently working on porting this changelog to the specifications in
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
-## Version 0.9.6 - Unreleased
+## Version 0.10.0 - Unreleased
 
 ### Added
 * new hashing 36-character base with alias (alphanum / abc123 / 36)
@@ -17,16 +17,18 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 * Added `util_download_manager` with simple implementation of `ub.DownloadManager`
 * Added candidate functions to `ubelt` proper
 
+### Fixed
+* `ubelt.download` now errors earlier if the parent directory does not exist
+* PyTest no longer throws warnings
+* Fixed issue with `download` and ByteIO objects in 3.8
+
 
 ### Changed 
 
 * Modified corner cases in `ub.repr2` to move towards behavior that is easier
   to reason about.
 
-### Fixed
-* `ubelt.download` now errors earlier if the parent directory does not exist
-* PyTest no longer throws warnings
-* Fixed issue with `download` and ByteIO objects in 3.8
+* DEPRECATE Python 2.7 - Python 3.4
 
 
 ## Version 0.9.5 - Released 2021-02-05
