@@ -296,10 +296,11 @@ def find_exe(name, multi=False, path=None):
         >>> find_exe('noexist', multi=True)
 
     Example:
-        >>> assert not find_exe('noexist', multi=False)
-        >>> assert find_exe('ping', multi=False)
-        >>> assert not find_exe('noexist', multi=True)
-        >>> assert find_exe('ping', multi=True)
+        >>> import ubelt as ub
+        >>> assert not ub.find_exe('noexist', multi=False)
+        >>> assert ub.find_exe('ping', multi=False) or ub.find_exe('ls', multi=False)
+        >>> assert not ub.find_exe('noexist', multi=True)
+        >>> assert ub.find_exe('ping', multi=True) or ub.find_exe('ls', multi=True)
 
     Benchmark:
         >>> # xdoctest: +IGNORE_WANT
