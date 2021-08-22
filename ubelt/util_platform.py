@@ -43,6 +43,14 @@ import itertools as it
 from os.path import exists, join, isdir, expanduser, normpath
 
 
+__all__ = [
+    'WIN32', 'LINUX', 'DARWIN', 'POSIX',
+    'find_exe', 'find_path',
+    'ensure_app_cache_dir', 'ensure_app_config_dir', 'ensure_app_data_dir',
+    'get_app_cache_dir', 'get_app_config_dir', 'get_app_data_dir',
+    'platform_cache_dir', 'platform_config_dir', 'platform_data_dir'
+]
+
 # References:
 # https://stackoverflow.com/questions/446209/possible-values-from-sys-platform
 WIN32  = sys.platform == 'win32'
@@ -296,10 +304,11 @@ def find_exe(name, multi=False, path=None):
         >>> find_exe('noexist', multi=True)
 
     Example:
-        >>> assert not find_exe('noexist', multi=False)
-        >>> assert find_exe('ping', multi=False)
-        >>> assert not find_exe('noexist', multi=True)
-        >>> assert find_exe('ping', multi=True)
+        >>> import ubelt as ub
+        >>> assert not ub.find_exe('noexist', multi=False)
+        >>> assert ub.find_exe('ping', multi=False) or ub.find_exe('ls', multi=False)
+        >>> assert not ub.find_exe('noexist', multi=True)
+        >>> assert ub.find_exe('ping', multi=True) or ub.find_exe('ls', multi=True)
 
     Benchmark:
         >>> # xdoctest: +IGNORE_WANT

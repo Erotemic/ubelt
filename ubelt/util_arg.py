@@ -15,10 +15,10 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import sys
 from ubelt import util_const
 
+__all__ = ['argval', 'argflag']
 
-PY2 = sys.version_info[0] == 2
 
-if PY2:
+if sys.version_info[0] == 2:  # nocover
     import six
     string_types = six.string_types
 else:

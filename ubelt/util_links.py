@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Cross-platform logic for dealing with symlinks. Basic functionality should work
 on all operating systems including everyone's favorite pathological OS (note
@@ -25,11 +26,12 @@ import warnings
 from ubelt import util_io
 from ubelt import util_platform
 
+__all__ = ['symlink']
+
 if sys.platform.startswith('win32'):  # nocover
     from ubelt import _win32_links
 else:
     _win32_links = None
-
 
 PY2 = sys.version_info[0] == 2
 if PY2:
@@ -151,11 +153,23 @@ def symlink(real_path, link_path, overwrite=False, verbose=0):
 
 
 def _readlink(link):
+    # Note:
+    # https://docs.python.org/3/library/os.html#os.readlink
+    # os.readlink was changed on win32 in version 3.8: Added support for
+    # directory junctions, and changed to return the substitution path (which
+    # typically includes \\?\ prefix) rather than the optional “print name”
+    # field that was previously returned.
+
     if _win32_links:  # nocover
         if _win32_links._win32_is_junction(link):
             return _win32_links._win32_read_junction(link)
     try:
-        return os.readlink(link)
+        path = os.readlink(link)
+        if util_platform.WIN32:  # nocover
+            junction_prefix = '\\\\?\\'
+            if path.startswith(junction_prefix):
+                path = path[len(junction_prefix):]
+        return path
     except Exception:  # nocover
         # On modern operating systems, we should never get here. (I think)
         if exists(link):
@@ -183,66 +197,76 @@ def _dirstats(dpath=None):  # nocover
     """
     Testing helper for printing directory information
     (mostly for investigating windows weirdness)
+
+    The column prefixes stand for:
+    (E - exists), (L - islink), (F - isfile), (D - isdir), (J - isjunction)
     """
     from ubelt import util_colors
     if dpath is None:
         dpath = os.getcwd()
-    print('===============')
+    print('+--------------')
     print('Listing for dpath={}'.format(dpath))
     print('E L F D J - path')
-    print('--------------')
+    print('+--------------')
     if not os.path.exists(dpath):
         print('... does not exist')
-        return
-    paths = sorted(os.listdir(dpath))
-    for path in paths:
-        full_path = join(dpath, path)
-        E = os.path.exists(full_path)
-        L = os.path.islink(full_path)
-        F = os.path.isfile(full_path)
-        D = os.path.isdir(full_path)
-        J = util_platform.WIN32 and _win32_links._win32_is_junction(full_path)
-        ELFDJ = [E, L, F, D, J]
-        if   ELFDJ == [1, 0, 0, 1, 0]:
-            # A directory
-            path = util_colors.color_text(path, 'green')
-        elif ELFDJ == [1, 0, 1, 0, 0]:
-            # A file (or a hard link they are indistinguishable with one query)
-            path = util_colors.color_text(path, 'white')
-        elif ELFDJ == [1, 0, 0, 1, 1]:
-            # A directory junction
-            path = util_colors.color_text(path, 'yellow')
-        elif ELFDJ == [1, 1, 1, 0, 0]:
-            # A file link
-            path = util_colors.color_text(path, 'brightgreen')
-        elif ELFDJ == [1, 1, 0, 1, 0]:
-            # A directory link
-            path = util_colors.color_text(path, 'brightcyan')
-        elif ELFDJ == [0, 1, 0, 0, 0]:
-            # A broken file link
-            path = util_colors.color_text(path, 'red')
-        elif ELFDJ == [0, 1, 0, 1, 0]:
-            # A broken directory link
-            path = util_colors.color_text(path, 'darkred')
-        elif ELFDJ == [0, 0, 0, 1, 1]:
-            # A broken directory junction
-            path = util_colors.color_text(path, 'purple')
-        elif ELFDJ == [1, 0, 1, 0, 1]:
-            # A file junction? Thats not good.
-            # I guess this is a windows 7 thing?
-            path = util_colors.color_text(path, 'red')
-        elif ELFDJ == [1, 1, 0, 0, 0]:
-            # Windows? Why? What does this mean!?
-            # A directory link that cant be resolved?
-            path = util_colors.color_text(path, 'red')
-        else:
-            print('dpath = {!r}'.format(dpath))
-            print('path = {!r}'.format(path))
-            raise AssertionError(str(ELFDJ) + str(path))
-        line = '{E:d} {L:d} {F:d} {D:d} {J:d} - {path}'.format(**locals())
-        if os.path.islink(full_path):
-            line += ' -> ' + os.readlink(full_path)
-        elif _win32_links is not None:
-            if _win32_links._win32_is_junction(full_path):
-                line += ' => ' + _win32_links._win32_read_junction(full_path)
-        print(line)
+    else:
+        paths = sorted(os.listdir(dpath))
+        for path in paths:
+            full_path = join(dpath, path)
+            E = os.path.exists(full_path)
+            L = os.path.islink(full_path)
+            F = os.path.isfile(full_path)
+            D = os.path.isdir(full_path)
+            J = util_platform.WIN32 and _win32_links._win32_is_junction(full_path)
+            ELFDJ = [E, L, F, D, J]
+            if   ELFDJ == [1, 0, 0, 1, 0]:
+                # A directory
+                path = util_colors.color_text(path, 'green')
+            elif ELFDJ == [1, 0, 1, 0, 0]:
+                # A file (or a hard link, they're indistinguishable with 1 query)
+                path = util_colors.color_text(path, 'white')
+            elif ELFDJ == [1, 0, 0, 1, 1]:
+                # A directory junction
+                path = util_colors.color_text(path, 'yellow')
+            elif ELFDJ == [1, 1, 1, 0, 0]:
+                # A file link
+                path = util_colors.color_text(path, 'brightgreen')
+            elif ELFDJ == [1, 1, 0, 1, 0]:
+                # A directory link
+                path = util_colors.color_text(path, 'brightcyan')
+            elif ELFDJ == [0, 1, 0, 0, 0]:
+                # A broken file link
+                path = util_colors.color_text(path, 'red')
+            elif ELFDJ == [0, 1, 0, 1, 0]:
+                # A broken directory link
+                path = util_colors.color_text(path, 'darkred')
+            elif ELFDJ == [0, 0, 0, 1, 1]:
+                # A broken directory junction
+                path = util_colors.color_text(path, 'purple')
+            elif ELFDJ == [1, 0, 1, 0, 1]:
+                # A file junction? Thats not good.
+                # I guess this is a windows 7 thing?
+                path = util_colors.color_text(path, 'red')
+            elif ELFDJ == [1, 1, 0, 0, 0]:
+                # Windows? Why? What does this mean!?
+                # A directory link that cant be resolved?
+                path = util_colors.color_text(path, 'red')
+            elif ELFDJ == [0, 0, 0, 0, 0]:
+                # Windows? AGAIN? HOW DO YOU LIST FILES THAT DONT EXIST?
+                # I get it, they are probably broken junctions, but common
+                # That should probably be 00011 not 00000
+                path = util_colors.color_text(path, 'red')
+            else:
+                print('dpath = {!r}'.format(dpath))
+                print('path = {!r}'.format(path))
+                raise AssertionError(str(ELFDJ) + str(path))
+            line = '{E:d} {L:d} {F:d} {D:d} {J:d} - {path}'.format(**locals())
+            if os.path.islink(full_path):
+                line += ' -> ' + os.readlink(full_path)
+            elif _win32_links is not None:
+                if _win32_links._win32_is_junction(full_path):
+                    resolved = _win32_links._win32_read_junction(full_path)
+                    line += ' => ' + resolved
+            print(line)
+    print('+--------------')

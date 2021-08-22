@@ -74,3 +74,98 @@ def inject_method(self, func, name=None):
     if name is None:
         name = func.__name__
     setattr(self, name, new_method)
+
+
+def compatible(config, func, start=0):
+    """
+    Take only the items of a dict that can be passed to function as kwargs
+
+    Args:
+        config (dict):
+            a flat configuration dictionary
+
+        func (Callable):
+            a function or method
+
+        start (int, default=0):
+            Only take args after this position. Set to 1 if calling with an
+            unbound method to avoid the "self" argument.
+
+    Returns:
+        dict : a subset of ``config`` that only contains items compatible with
+            the signature of ``func``.
+
+    TODO:
+        - [ ] Move to util_func
+
+    Example:
+        >>> # An example use case is to select a subset of of a config
+        >>> # that can be passed to some function as kwargs
+        >>> from ubelt.util_candidate import *  # NOQA
+        >>> # Define a function with args that match some keys in a config.
+        >>> def func(a, e, f):
+        >>>     return a * e * f
+        >>> # Define a config that has a superset of items needed by the func
+        >>> config = {
+        ...   'a': 2, 'b': 3, 'c': 7,
+        ...   'd': 11, 'e': 13, 'f': 17,
+        ... }
+        >>> # Call the function only with keys that are compatible
+        >>> func(**compatible(config, func))
+        442
+
+    Example:
+        >>> # Test case with kwargs
+        >>> from ubelt.util_candidate import *  # NOQA
+        >>> def func(a, e, f, *args, **kwargs):
+        >>>     return a * e * f
+        >>> config = {
+        ...   'a': 2, 'b': 3, 'c': 7,
+        ...   'd': 11, 'e': 13, 'f': 17,
+        ... }
+        >>> func(**compatible(config, func))
+
+    Ignore:
+        >>> # xdoctest: +REQUIRES(PY3)
+        >>> # Test case with positional only 3.x +
+        >>> def func(a, e, /,  f):
+        >>>     return a * e * f
+        >>> config = {
+        ...   'a': 2, 'b': 3, 'c': 7,
+        ...   'd': 11, 'e': 13, 'f': 17,
+        ... }
+        >>> import pytest
+        >>> with pytest.raises(ValueError):
+        ...     func(**compatible(config, func))
+    """
+    import inspect
+    if hasattr(inspect, 'signature'):  # pragma :nobranch
+        sig = inspect.signature(func)
+        argnames = []
+        has_kwargs = False
+        for arg in sig.parameters.values():
+            if arg.kind == inspect.Parameter.VAR_KEYWORD:
+                has_kwargs = True
+            elif arg.kind == inspect.Parameter.VAR_POSITIONAL:
+                # Ignore variadic positional args
+                pass
+            elif arg.kind == inspect.Parameter.POSITIONAL_ONLY:
+                raise ValueError('this does not work with positional only')
+            elif arg.kind in {inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                              inspect.Parameter.KEYWORD_ONLY}:
+                argnames.append(arg.name)
+            else:  # nocover
+                raise TypeError(arg.kind)
+    else:  # nocover
+        # For Python 2.7
+        spec = inspect.getargspec(func)
+        argnames = spec.args
+        has_kwargs = spec.keywords
+
+    if has_kwargs:
+        # kwargs could be anything, so keep everything
+        common = config
+    else:
+        common = {k: config[k] for k in argnames[start:]
+                  if k in config}  # dict-isect
+    return common

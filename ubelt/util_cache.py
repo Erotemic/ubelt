@@ -5,9 +5,9 @@ provide a simple API for on-disk caching.
 
 The :class:`Cacher` class is the simplest and most direct method of caching. In
 fact, it only requires four lines of boilderplate, which is the smallest
-general and robust way that I (Jon Crall) have ever achieved.  These four lines
-implement the following necessary and sufficient steps for general robust
-on-disk caching.
+general and robust way that I (Jon Crall) have achieved, and I don't think its
+possible to do better.  These four lines implement the following necessary and
+sufficient steps for general robust on-disk caching.
 
     1. Defining the cache dependenies
     2. Checking if the cache missed
@@ -18,16 +18,16 @@ The following example illustrates these four points.
 
 Example:
     >>> import ubelt as ub
-    >>> # Defines a cache name and dependencies, note the use of `ub.hash_data`.
-    >>> cacher = ub.Cacher('name', cfgstr=ub.hash_data('dependencies'))     # boilerplate:1
+    >>> # Define a cache name and dependencies (which is fed to `ub.hash_data`)
+    >>> cacher = ub.Cacher('name', depends='set-of-deps')  # boilerplate:1
     >>> # Calling tryload will return your data on a hit and None on a miss
-    >>> data = cacher.tryload()                                             # boilerplate:2
+    >>> data = cacher.tryload(on_error='clear')            # boilerplate:2
     >>> # Check if you need to recompute your data
-    >>> if data is None:                                                    # boilerplate:3
+    >>> if data is None:                                   # boilerplate:3
     >>>     # Your code to recompute data goes here (this is not boilerplate).
     >>>     data = 'mydata'
-    >>>     # Cache the computation result (pickle is used by default)
-    >>>     cacher.save(data)                                               # boilerplate:4
+    >>>     # Cache the computation result (via pickle)
+    >>>     cacher.save(data)                              # boilerplate:4
 
 Surprisingly this uses just as many boilerplate lines as a decorator style
 cacher, but it is much more extensible. It is possible to use :class:`Cacher`
@@ -36,24 +36,25 @@ easier and cleaner. The following example illustrates this:
 
 Example:
     >>> import ubelt as ub
-    >>> @ub.Cacher('name', cfgstr=ub.hash_data('dependencies'))  # boilerplate:1
-    >>> def func():                                              # boilerplate:2
-    >>>     data = 'mydata'
-    >>>     return data                                          # boilerplate:3
-    >>> data = func()                                            # boilerplate:4
 
-    >>> cacher = ub.Cacher('name', cfgstr=ub.hash_data('dependencies'))  # boilerplate:1
-    >>> data = cacher.tryload()                                          # boilerplate:2
-    >>> if data is None:                                                 # boilerplate:3
+    >>> @ub.Cacher('name', depends={'dep1': 1, 'dep2': 2})  # boilerplate:1
+    >>> def func():                                         # boilerplate:2
     >>>     data = 'mydata'
-    >>>     cacher.save(data)                                            # boilerplate:4
+    >>>     return data                                     # boilerplate:3
+    >>> data = func()                                       # boilerplate:4
+
+    >>> cacher = ub.Cacher('name', depends=['dependencies'])  # boilerplate:1
+    >>> data = cacher.tryload(on_error='clear')               # boilerplate:2
+    >>> if data is None:                                      # boilerplate:3
+    >>>     data = 'mydata'
+    >>>     cacher.save(data)                                 # boilerplate:4
 
 While the above two are equivalent, the second version provides simpler
 tracebacks, explicit procedures, and makes it easier to use breakpoint
 debugging (because there is no closure scope).
 
 
-While :class:`Cacher` is used to store simple results of in-line code in a
+While :class:`Cacher` is used to store direct results of in-line code in a
 pickle format, the :class:`CacheStamp` object is used to cache processes that
 produces an on-disk side effects other than the main return value. For
 instance, consider the following example:
@@ -66,14 +67,19 @@ Example:
     >>> #
     >>> import ubelt as ub
     >>> dpath = ub.ensure_app_cache_dir('ubelt/demo/cache')
+    >>> ub.delete(dpath)  # start fresh
     >>> # You must specify a directory, unlike in Cacher where it is optional
-    >>> self = ub.CacheStamp('name', dpath=dpath, cfgstr='dependencies')
+    >>> self = ub.CacheStamp('name', dpath=dpath, depends={'a': 1, 'b': 2})
     >>> if self.expired():
     >>>     compute_many_files(dpath)
     >>>     # Instead of caching the whole processes, we just write a file
     >>>     # that signals the process has been done.
     >>>     self.renew()
     >>> assert not self.expired()
+
+
+TODO:
+    - [ ] Remove the cfgstr-overrides?
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import os
@@ -116,12 +122,12 @@ class Cacher(object):
         log (func): Overloads the print function. Useful for sending output to
             loggers (e.g. logging.info, tqdm.tqdm.write, ...)
 
-        hasher (str): Type of hashing algorithm to use if ``cfgstr`` needs to be
-            condensed to less than 49 characters.
+        hasher (str): Type of hashing algorithm to use if ``cfgstr`` needs to
+            be condensed to less than 49 characters.
 
-        protocol (int, default=2): Protocol version used by pickle.
-            If python 2 compatibility is not required, then it is better to use
-            protocol 4.
+        protocol (int, default=-1): Protocol version used by pickle.
+            Defaults to the -1 which is the latest protocol.
+            If python 2 compatibility is not required, set to 2.
 
         cfgstr (str): Deprecated in favor of depends. Indicates the state.
             Either this string or a hash of this string will be used to
@@ -147,7 +153,6 @@ class Cacher(object):
         >>>     cacher.save(data)
         >>> # Last part of the Cacher pattern is to unpack the data object
         >>> myvar1, myvar2 = data
-        >>> #
         >>> #
         >>> # If we know the data exists, we can also simply call load
         >>> data = cacher.tryload()
@@ -260,9 +265,9 @@ class Cacher(object):
             >>> with pytest.warns(UserWarning):
             >>>     cacher = Cacher('test_cacher1')
             >>>     cacher.get_fpath()
-            >>> self = Cacher('test_cacher2', cfgstr='cfg1')
+            >>> self = Cacher('test_cacher2', depends='cfg1')
             >>> self.get_fpath()
-            >>> self = Cacher('test_cacher3', cfgstr='cfg1' * 32)
+            >>> self = Cacher('test_cacher3', depends='cfg1' * 32)
             >>> self.get_fpath()
         """
         condensed = self._condense_cfgstr(cfgstr)
@@ -295,15 +300,19 @@ class Cacher(object):
             >>> from ubelt.util_cache import Cacher
             >>> # Ensure that some data exists
             >>> known_fpaths = set()
-            >>> cacher = Cacher('versioned_data_v2', depends='1')
+            >>> import ubelt as ub
+            >>> dpath = ub.ensure_app_cache_dir('ubelt',
+            >>>                                 'test-existing-versions')
+            >>> ub.delete(dpath)  # start fresh
+            >>> cacher = Cacher('versioned_data_v2', depends='1', dpath=dpath)
             >>> cacher.ensure(lambda: 'data1')
             >>> known_fpaths.add(cacher.get_fpath())
-            >>> cacher = Cacher('versioned_data_v2', depends='2')
+            >>> cacher = Cacher('versioned_data_v2', depends='2', dpath=dpath)
             >>> cacher.ensure(lambda: 'data2')
             >>> known_fpaths.add(cacher.get_fpath())
             >>> # List previously computed configs for this type
             >>> from os.path import basename
-            >>> cacher = Cacher('versioned_data_v2', depends='2')
+            >>> cacher = Cacher('versioned_data_v2', depends='2', dpath=dpath)
             >>> exist_fpaths = set(cacher.existing_versions())
             >>> exist_fnames = list(map(basename, exist_fpaths))
             >>> print('exist_fnames = {!r}'.format(exist_fnames))
@@ -372,10 +381,12 @@ class Cacher(object):
                     self.clear(cfgstr)
                     return None
                 else:
-                    raise KeyError('Unknown method on_error={}'.format(on_error))
+                    raise KeyError('Unknown method on_error={}'.format(
+                        on_error))
         else:
             if self.verbose > 1:
-                self.log('[cacher] ... cache disabled: fname={}'.format(self.fname))
+                self.log('[cacher] ... cache disabled: fname={}'.format(
+                    self.fname))
         return None
 
     def load(self, cfgstr=None):
@@ -410,7 +421,8 @@ class Cacher(object):
 
         if not self.enabled:
             if verbose > 1:
-                self.log('[cacher] ... cache disabled: fname={}'.format(self.fname))
+                self.log('[cacher] ... cache disabled: fname={}'.format(
+                    self.fname))
             raise IOError(3, 'Cache Loading Is Disabled')
 
         fpath = self.get_fpath(cfgstr=cfgstr)
@@ -463,8 +475,8 @@ class Cacher(object):
         Example:
             >>> from ubelt.util_cache import *  # NOQA
             >>> # Normal functioning
-            >>> cfgstr = 'long-cfg' * 32
-            >>> cacher = Cacher('test_enabled_save', cfgstr)
+            >>> depends = 'long-cfg' * 32
+            >>> cacher = Cacher('test_enabled_save', depends=depends)
             >>> cacher.save('data')
             >>> assert exists(cacher.get_fpath()), 'should be enabeled'
             >>> assert exists(cacher.get_fpath() + '.meta'), 'missing metadata'
@@ -521,8 +533,8 @@ class Cacher(object):
             >>> def func():
             >>>     return 'expensive result'
             >>> fname = 'test_cacher_ensure'
-            >>> cfgstr = 'func params'
-            >>> cacher = Cacher(fname, cfgstr)
+            >>> depends = 'func params'
+            >>> cacher = Cacher(fname, depends=depends)
             >>> cacher.clear()
             >>> data1 = cacher.ensure(func)
             >>> data2 = cacher.ensure(func)
@@ -547,7 +559,7 @@ class Cacher(object):
 
         Example:
             >>> from ubelt.util_cache import *  # NOQA
-            >>> @Cacher('demo_cacher_call', cfgstr='foobar')
+            >>> @Cacher('demo_cacher_call', depends='foobar')
             >>> def func():
             >>>     return 'expensive result'
             >>> func.cacher.clear()
@@ -617,6 +629,8 @@ class CacheStamp(object):
             This can be useful to indicate how the ``cfgstr`` was constructed.
             New to CacheStamp in version 0.9.2.
 
+    TODO:
+        - [ ] expiration time delta or date time (also remember when renewed)
 
     Example:
         >>> import ubelt as ub
@@ -626,7 +640,7 @@ class CacheStamp(object):
         >>> ub.delete(dpath)
         >>> ub.ensuredir(dpath)
         >>> product = join(dpath, 'expensive-to-compute.txt')
-        >>> self = CacheStamp('somedata', cfgstr='someconfig', dpath=dpath,
+        >>> self = CacheStamp('somedata', depends='someconfig', dpath=dpath,
         >>>                   product=product, hasher=None)
         >>> self.hasher = None
         >>> if self.expired():
@@ -736,7 +750,8 @@ class CacheStamp(object):
             if not all(map(exists, products)):
                 raise IOError(
                     'The stamped product must exist: {}'.format(products))
-            certificate['product_file_hash'] = self._product_file_hash(products)
+            product_hash = self._product_file_hash(products)
+            certificate['product_file_hash'] = product_hash
         self.cacher.save(certificate, cfgstr=cfgstr)
         return certificate
 

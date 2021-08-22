@@ -3,11 +3,18 @@ This file contains functions to be deprecated, but are still accessible.
 """
 import os
 import sys
+import warnings
 from os.path import exists, abspath, expanduser, expandvars, normpath, realpath
 from ubelt import util_const
 from .util_platform import (
     get_app_cache_dir, platform_cache_dir, ensure_app_cache_dir, WIN32, LINUX,
     DARWIN)
+
+__all__ = [
+    'dict_take', 'editfile', 'compressuser', 'dict_take', 'editfile',
+    'ensure_app_resource_dir', 'get_app_resource_dir', 'platform_resource_dir',
+    'schedule_deprecation', 'startfile', 'truepath'
+]
 
 
 PY2 = sys.version_info[0] == 2
@@ -17,6 +24,44 @@ if PY2:
     string_types = six.string_types
 else:
     string_types = (str,)
+
+
+DEP_SCHEDULE_1 = dict(deprecate='0.9.6', remove='1.0.0')
+
+
+def schedule_deprecation(deprecate=None, error=None, remove=None):  # nocover
+    """
+    Deprecation machinery to help provide users with a smoother transition
+    """
+    import ubelt as ub
+    from distutils.version import LooseVersion
+    current = LooseVersion(ub.__version__)
+    deprecate = None if deprecate is None else LooseVersion(deprecate)
+    remove = None if remove is None else LooseVersion(remove)
+    error = None if error is None else LooseVersion(error)
+
+    if deprecate is None or current >= deprecate:
+        import inspect
+        prev_frame = inspect.currentframe().f_back
+        # the_class = prev_frame.f_locals["self"].__class__
+        caller = prev_frame.f_code.co_name
+        # the_method = prev_frame.f_code.co_name
+        # stack = inspect.stack()
+        # the_class = stack[1][0].f_locals["self"].__class__.__name__
+        # the_method = stack[1][0].f_code.co_name
+        # caller = str(str(inspect.currentframe())).split(' ')[-1][:-1]
+        msg = ub.paragraph(
+            '''
+            The "{caller}" function was deprecated in {deprecate}, will cause
+            an error in {error} and will be removed in {remove}. The current
+            version is {current}.
+            ''').format(**locals())
+        if remove is not None and current >= remove:
+            raise AssertionError('forgot to remove a deprecated function')
+        if error is not None and current >= error:
+            raise DeprecationWarning(msg)
+        else:
+            warnings.warn(msg, DeprecationWarning)
 
 
 # DEPRICATED:
@@ -49,6 +94,7 @@ def truepath(path, real=False):
         >>> assert ub.truepath('~/foo') == ub.truepath('~/foo/bar/..')
         >>> assert ub.truepath('~/foo', real=True) == ub.truepath('~/foo')
     """
+    schedule_deprecation(**DEP_SCHEDULE_1)
     path = expanduser(path)
     path = expandvars(path)
     if real:
@@ -82,6 +128,7 @@ def compressuser(path, home='~'):  # nocover
         >>> assert compressuser(path + '/1', '$HOME') == join('$HOME', '1')
     """
     from ubelt import userhome
+    schedule_deprecation(**DEP_SCHEDULE_1)
     path = normpath(path)
     userhome_dpath = userhome()
     if path.startswith(userhome_dpath):
@@ -118,6 +165,7 @@ def editfile(fpath, verbose=True):  # nocover
     from six import types
     import ubelt as ub
     import warnings
+    schedule_deprecation(**DEP_SCHEDULE_1)
     warnings.warn('Please use xdev.editfile instead', DeprecationWarning)
     if not isinstance(fpath, string_types):
         if isinstance(fpath, types.ModuleType):
@@ -164,6 +212,7 @@ def platform_resource_dir():  # nocover
     Returns:
         PathLike : path to the resource dir used by the current operating system
     """
+    schedule_deprecation(**DEP_SCHEDULE_1)
     return platform_cache_dir()
 
 
@@ -184,6 +233,7 @@ def get_app_resource_dir(appname, *args):  # nocover
     SeeAlso:
         ensure_app_resource_dir
     """
+    schedule_deprecation(**DEP_SCHEDULE_1)
     return get_app_cache_dir(appname, *args)
 
 
@@ -200,6 +250,7 @@ def ensure_app_resource_dir(appname, *args):  # nocover
     SeeAlso:
         get_app_resource_dir
     """
+    schedule_deprecation(**DEP_SCHEDULE_1)
     return ensure_app_cache_dir(appname, *args)
 
 
@@ -226,6 +277,7 @@ def startfile(fpath, verbose=True):  # nocover
         >>> ub.touch(fpath1)
         >>> proc = ub.startfile(fpath1)
     """
+    schedule_deprecation(**DEP_SCHEDULE_1)
     from ubelt import util_cmd
     if verbose:
         print('[ubelt] startfile("{}")'.format(fpath))
@@ -275,6 +327,7 @@ def dict_take(dict_, keys, default=util_const.NoParam):
         >>> except KeyError:
         >>>     print('correctly got key error')
     """
+    schedule_deprecation(**DEP_SCHEDULE_1)
     if default is util_const.NoParam:
         for key in keys:
             yield dict_[key]

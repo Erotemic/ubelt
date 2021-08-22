@@ -54,3 +54,12 @@ def benchmark_multi_or_combined_import():
     for timer in ti.reset('multi_lines'):
         with timer:
             info = ub.cmd('python -c "{}"'.format(multi_lines))
+
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python ~/code/ubelt/dev/bench_import_time.py
+    """
+    benchmark_import_time()
+    benchmark_multi_or_combined_import()

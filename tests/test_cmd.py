@@ -101,7 +101,7 @@ def test_cmd_tee_select():
 @pytest.mark.skipif(sys.platform == 'win32', reason='not available on win32')
 def test_cmd_tee_badmethod():
     """
-    pytest ubelt/tests/test_cmd.py::test_cmd_tee_badmethod
+    pytest tests/test_cmd.py::test_cmd_tee_badmethod
     """
     command = 'python -c "for i in range(100): print(str(i))"'
     with pytest.raises(ValueError):

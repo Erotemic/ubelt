@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-
-This is util_time, it has a few functions for handling time related code that I
-wish there was standard library support for.
+This is util_time, it contains functions for handling time related code that I
+wish there was standard library support for. Currently there is only one
+function.
 
 
 The :func:`timestamp` is less interesting than the previous two methods, but I

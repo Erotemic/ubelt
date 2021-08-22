@@ -44,6 +44,7 @@ import collections
 import sys
 # from typing import List, Callable, Type, Dict
 
+__all__ = ['repr2', 'FormatterExtensions']
 
 PY2 = sys.version_info[0] == 2
 
@@ -68,9 +69,9 @@ def repr2(data, **kwargs):
     of common nested datatypes. This is an alternative to repr, and
     :func:`pprint.pformat`.
 
-    This output of this function are very configurable. By default it aims to
-    produce strings that are executable and consistent between Python versions.
-    This makes them great for doctests.
+    This output of this function are configurable. By default it aims to
+    produce strings that are consistent, compact, and executable.  This makes
+    them great for doctests.
 
     Notes:
         This function has many keyword arguments that can be used to customize
@@ -78,8 +79,8 @@ def repr2(data, **kwargs):
         used kwargs have short aliases. See "Kwargs" for more details.
 
     Args:
-        data (object): an arbitrary python object
-        **kwargs: see "the Kwargs" section
+        data (object):
+            an arbitrary python object to form the string "representation" of
 
     Kwargs:
         si, stritems, (bool):
@@ -110,6 +111,19 @@ def repr2(data, **kwargs):
         explicit (bool, default=False):
             changes dict representation from ``{k1: v1, ...}`` to
             ``dict(k1=v1, ...)``.
+            Modifies:
+                default kvsep is modified to  ``'='``
+                dict braces from `{}` to `dict()`.
+
+        compact (bool, default=False):
+            Produces values more suitable for space constrianed environments
+            Modifies:
+                default kvsep is modified to ``'='``
+                default itemsep is modified to  ``''``
+                default nobraces is modified to ``1``.
+                default nl is modified to ``0``.
+                default strkeys to ``True``
+                default strvals to ``True``
 
         precision (int, default=None):
             if specified floats are formatted with this precision
@@ -153,8 +167,8 @@ def repr2(data, **kwargs):
             if True, will align multi-line dictionaries by the kvsep
 
         extensions (FormatterExtensions):
-            a custom :class:`FormatterExtensions` instance that can overwrite or
-            define how different types of objects are formatted.
+            a custom :class:`FormatterExtensions` instance that can overwrite
+            or define how different types of objects are formatted.
 
     Returns:
         str: outstr - output string
@@ -221,11 +235,35 @@ def repr2(data, **kwargs):
         >>> result = repr2(dict_, nl=-1, precision=2)
         >>> print('---')
         >>> print(result)
+
+    Example:
+        >>> import ubelt as ub
+        >>> data = {'a': 100, 'b': [1, '2', 3], 'c': {20:30, 40: 'five'}}
+        >>> print(ub.repr2(data, nl=1))
+        {
+            'a': 100,
+            'b': [1, '2', 3],
+            'c': {20: 30, 40: 'five'},
+        }
+        >>> # Compact is useful for things like timerit.Timerit labels
+        >>> print(ub.repr2(data, compact=True))
+        a=100,b=[1,2,3],c={20=30,40=five}
+        >>> print(ub.repr2(data, compact=True, nobr=False))
+        {a=100,b=[1,2,3],c={20=30,40=five}}
     """
     custom_extensions = kwargs.get('extensions', None)
 
     _return_info = kwargs.get('_return_info', False)
     kwargs['_root_info'] = _rectify_root_info(kwargs.get('_root_info', None))
+
+    if kwargs.get('compact', False):
+        # Compact profile defaults
+        kwargs['newlines'] = kwargs.get('newlines', 0)
+        kwargs['strkeys'] = kwargs.get('strkeys', True)
+        kwargs['strvals'] = kwargs.get('strvals', True)
+        kwargs['nobraces'] = kwargs.get('nobraces', 1)
+        kwargs['itemsep'] = kwargs.get('itemsep', '')
+        kwargs['kvsep'] = kwargs.get('kvsep', '=')
 
     outstr = None
     _leaf_info = None
@@ -323,9 +361,9 @@ class FormatterExtensions(object):
     #     return cls.list_types + cls.set_types
 
     def __init__(self):
-        self._type_registry = {}      # type: Dict[Type, Callable]
-        self._typename_registry = {}  # type: Dict[str, Callable]
-        self._lazy_queue = []         # type: List[Callable]
+        self._type_registry = {}      # type: Dict[Type, Callable]  # NOQA
+        self._typename_registry = {}  # type: Dict[str, Callable]  # NOQA
+        self._lazy_queue = []         # type: List[Callable]  # NOQA
         # self._lazy_registrations = [
         #     self._register_numpy_extensions,
         #     self._register_builtin_extensions,
@@ -621,6 +659,7 @@ def _format_list(list_, **kwargs):
     kwargs['nl'] = _rectify_countdown_or_bool(newlines)
 
     nobraces = kwargs.pop('nobr', kwargs.pop('nobraces', False))
+    kwargs['nobraces'] = _rectify_countdown_or_bool(nobraces)
 
     itemsep = kwargs.get('itemsep', ' ')
 
@@ -687,6 +726,7 @@ def _format_dict(dict_, **kwargs):
         Tuple[str, Dict] : retstr, _leaf_info
 
     Example:
+        >>> from ubelt.util_format import *  # NOQA
         >>> dict_ = {'a': 'edf', 'bc': 'ghi'}
         >>> print(_format_dict(dict_)[0])
         {
@@ -720,6 +760,7 @@ def _format_dict(dict_, **kwargs):
     kwargs['nl'] = _rectify_countdown_or_bool(newlines)
 
     nobraces = kwargs.pop('nobr', kwargs.pop('nobraces', False))
+    kwargs['nobraces'] = _rectify_countdown_or_bool(nobraces)
 
     compact_brace = kwargs.get('cbr', kwargs.get('compact_brace', False))
     # kwargs['cbr'] = _rectify_countdown_or_bool(compact_brace)
@@ -731,9 +772,10 @@ def _format_dict(dict_, **kwargs):
 
     align = kwargs.get('align', False)
     if align and not isinstance(align, string_types):
-        kvsep = kwargs.get('kvsep', ': ')
-        if kwargs.get('explicit', False):
-            kvsep = '='
+        default_kvsep = ': '
+        if explicit:
+            default_kvsep = '='
+        kvsep = kwargs.get('kvsep', default_kvsep)
         align = kvsep
 
     if len(dict_) == 0:
@@ -832,12 +874,16 @@ def _dict_itemstrs(dict_, **kwargs):
     explicit = kwargs.get('explicit', False)
     kwargs['explicit'] = _rectify_countdown_or_bool(explicit)
     precision = kwargs.get('precision', None)
-    kvsep = kwargs.get('kvsep', ': ')
+
+    default_kvsep = ': '
+    default_strkeys = False
     if explicit:
-        kvsep = '='
+        default_strkeys = True
+        default_kvsep = '='
+    kvsep = kwargs.get('kvsep', default_kvsep)
 
     def make_item_str(key, val):
-        if explicit or kwargs.get('strkeys', False):
+        if explicit or kwargs.get('strkeys', default_strkeys):
             key_str = text_type(key)
         else:
             key_str = repr2(key, precision=precision, newlines=0)

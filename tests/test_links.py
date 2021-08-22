@@ -366,7 +366,7 @@ def test_cant_overwrite_file_with_symlink():
 def test_overwrite_symlink():
     """
     CommandLine:
-        python -m ubelt.tests.test_links test_overwrite_symlink
+        python ~/code/ubelt/tests/test_links.py test_overwrite_symlink
     """
 
     # TODO: test that we handle broken links
@@ -379,29 +379,48 @@ def test_overwrite_symlink():
     happy_flink = join(dpath, 'happy_flink.txt')
 
     for verbose in [2, 1, 0]:
-        print('=======')
+        print('@==========@')
         print('verbose = {!r}'.format(verbose))
+
+        print('[test] Setup')
         ub.delete(dpath, verbose=verbose)
         ub.ensuredir(dpath, verbose=verbose)
         ub.touch(happy_fpath, verbose=verbose)
         ub.touch(other_fpath, verbose=verbose)
 
+        print('[test] Dirstats dpath')
         util_links._dirstats(dpath)
+
+        print('[test] Create initial link (to happy)')
         ub.symlink(happy_fpath, happy_flink, verbose=verbose)
+
+        print('[test] Dirstats dpath')
+        util_links._dirstats(dpath)
 
         # Creating a duplicate link
-        util_links._dirstats(dpath)
+        print('[test] Create a duplicate link (to happy)')
         ub.symlink(happy_fpath, happy_flink, verbose=verbose)
 
+        print('[test] Dirstats dpath')
         util_links._dirstats(dpath)
-        with pytest.raises(Exception):  # file exists error
-            ub.symlink(other_fpath, happy_flink, verbose=verbose)
 
+        print('[test] Create an unauthorized overwrite link (to other)')
+        with pytest.raises(Exception) as exc_info:  # file exists error
+            ub.symlink(other_fpath, happy_flink, verbose=verbose)
+        print(' * exc_info = {!r}'.format(exc_info))
+
+        print('[test] Create an authorized overwrite link (to other)')
         ub.symlink(other_fpath, happy_flink, verbose=verbose, overwrite=True)
 
+        print('[test] Dirstats dpath')
         ub.delete(other_fpath, verbose=verbose)
-        with pytest.raises(Exception):  # file exists error
+
+        print('[test] Create an unauthorized overwrite link (back to happy)')
+        with pytest.raises(Exception) as exc_info:  # file exists error
             ub.symlink(happy_fpath, happy_flink, verbose=verbose)
+        print(' * exc_info = {!r}'.format(exc_info))
+
+        print('[test] Create an authorized overwrite link (back to happy)')
         ub.symlink(happy_fpath, happy_flink, verbose=verbose, overwrite=True)
 
 

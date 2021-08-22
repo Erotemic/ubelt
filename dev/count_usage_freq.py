@@ -70,15 +70,20 @@ def count_ubelt_usage():
                 usage.pop(k)
 
     if config['hardcoded_ubelt_hack']:
+        blocklist = [
+            'progiter', 'timerit', 'orderedset',
+        ]
         for k in list(usage):
-            if k.startswith('util_'):
-                usage.pop(k)
-            if k.startswith('_util_'):
-                usage.pop(k)
+            if k in blocklist:
+                usage.pop(k, None)
+            elif k.startswith('util_'):
+                usage.pop(k, None)
+            elif k.startswith('_util_'):
+                usage.pop(k, None)
             # ub._util_deprecated
             from ubelt import _util_deprecated
             if k in dir(_util_deprecated):
-                usage.pop(k)
+                usage.pop(k, None)
 
     print(ub.repr2(usage, nl=1))
     return usage
@@ -91,6 +96,6 @@ if __name__ == '__main__':
 
     CommandLine:
         python ~/code/ubelt/dev/count_usage_freq.py --help
-        python ~/code/ubelt/dev/count_usage_freq.py
+        python ~/code/ubelt/dev/count_usage_freq.py --remove_zeros=False
     """
     count_ubelt_usage()

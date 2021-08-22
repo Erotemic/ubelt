@@ -26,13 +26,19 @@ def parse_version(fpath):
     with open(fpath, 'r') as file_:
         sourcecode = file_.read()
     pt = ast.parse(sourcecode)
+    class Finished(Exception):
+        pass
     class VersionVisitor(ast.NodeVisitor):
         def visit_Assign(self, node):
             for target in node.targets:
                 if getattr(target, 'id', None) == '__version__':
                     self.version = node.value.s
+                    raise Finished
     visitor = VersionVisitor()
-    visitor.visit(pt)
+    try:
+        visitor.visit(pt)
+    except Finished:
+        pass
     return visitor.version
 
 
@@ -230,5 +236,6 @@ if __name__ == '__main__':
             'Programming Language :: Python :: 3.6',
             'Programming Language :: Python :: 3.7',
             'Programming Language :: Python :: 3.8',
+            'Programming Language :: Python :: 3.9',
         ],
     )

@@ -13,6 +13,12 @@ from __future__ import print_function, division, absolute_import, unicode_litera
 import sys
 import io
 
+__all__ = [
+    'TeeStringIO',
+    'CaptureStdout',
+    'CaptureStream',
+]
+
 
 PY2 = sys.version_info[0] == 2
 

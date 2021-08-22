@@ -66,6 +66,12 @@ _ALPHABET_26 = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j',
                 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't',
                 'u', 'v', 'w', 'x', 'y', 'z']
 
+_ALPHABET_36 = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+                'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j',
+                'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't',
+                'u', 'v', 'w', 'x', 'y', 'z']
+
+DEFAULT_ALPHABET = _ALPHABET_16
 
 PY2 = sys.version_info[0] == 2
 
@@ -88,10 +94,6 @@ else:
     string_types = (str,)
     _stringlike = (str, bytes)  # NOQA
     _intlike = (int,)
-
-
-# DEFAULT_ALPHABET = _ALPHABET_26
-DEFAULT_ALPHABET = _ALPHABET_16
 
 # Sensible choices for default hashers are sha1, sha512, and xxh64.
 
@@ -311,6 +313,7 @@ def _rectify_base(base):
         >>> assert _rectify_base(NoParam) is DEFAULT_ALPHABET
         >>> assert _rectify_base('hex') is _ALPHABET_16
         >>> assert _rectify_base('abc') is _ALPHABET_26
+        >>> assert _rectify_base('alphanum') is _ALPHABET_36
         >>> assert _rectify_base(10) is _ALPHABET_10
         >>> assert _rectify_base(['1', '2']) == ['1', '2']
         >>> import pytest
@@ -318,6 +321,8 @@ def _rectify_base(base):
     """
     if base is NoParam or base == 'default':
         return DEFAULT_ALPHABET
+    elif base in [36, 'abc123', 'alphanum']:
+        return _ALPHABET_36
     elif base in [26, 'abc', 'alpha']:
         return _ALPHABET_26
     elif base in [16, 'hex']:
@@ -551,8 +556,8 @@ class HashableExtensions(object):
             prefix = b'NDARR'
             return prefix, hashable
 
-        @self.register((np.int64, np.int32, np.int16, np.int8) +
-                       (np.uint64, np.uint32, np.uint16, np.uint8))
+        @self.register((np.int64, np.int32, np.int16, np.int8,
+                        np.uint64, np.uint32, np.uint16, np.uint8))
         def _convert_numpy_int(data):
             return _convert_to_hashable(int(data), extensions=self)
 
