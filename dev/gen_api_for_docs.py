@@ -45,8 +45,10 @@ def count_ubelt_usage():
     import kwarray
     import ubelt as ub
 
-    ref_key = 'rst_ref'
-    ref_key = 'url_ref'
+    if ub.argflag('--url-mode'):
+        ref_key = 'url_ref'
+    else:
+        ref_key = 'rst_ref'
 
     name_len = max(len(row[ref_key]) for row in rows) + 1
     num_len = 16
