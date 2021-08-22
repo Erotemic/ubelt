@@ -30,7 +30,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 * Modified corner cases in `ub.repr2` to move towards behavior that is easier
   to reason about.
 
-* DEPRECATE Python 2.7 - Python 3.4
+* Remove support for Python 3.4
 
 
 ## Version 0.9.5 - Released 2021-02-05

@@ -508,10 +508,10 @@ jobs:
   #  docker:
   #    - image: circleci/python:3.4
 
-  #test_full/cp27-27mu-linux:
-  #  <<: *test_full_template
-  #  docker:
-  #    - image: circleci/python:2.7
+  test_full/cp27-27mu-linux:
+    <<: *test_full_template
+    docker:
+      - image: circleci/python:2.7
 
   # ------------
   
@@ -550,10 +550,10 @@ jobs:
   #  docker:
   #    - image: circleci/python:3.4
 
-  #test_minimal/cp27-27mu-linux:
-  #  <<: *test_minimal_template
-  #  docker:
-  #    - image: circleci/python:2.7
+  test_minimal/cp27-27mu-linux:
+    <<: *test_minimal_template
+    docker:
+      - image: circleci/python:2.7
 
   # --- pypy ----
 

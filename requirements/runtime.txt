@@ -5,3 +5,5 @@ typing >= 3.7.4;python_version < '3.0'
 # Now included by default
 # progiter >= 0.1.0
 # timerit >= 0.2.1
+
+future >= 0.18.2;python_version<='2.7' 
