@@ -11,7 +11,7 @@ The ubelt API is organized by submodules containing related functionality.
 Each submodule contains top level overview documentation, and each function
 contains a docstring with at least one example.
 
-NOTE: The `README <https://github.com/Erotemic/ubelt#readme>` on github
+NOTE: The `README <https://github.com/Erotemic/ubelt#readme>`_ on github
 contains information and examples complementary to these docs.
 """
 # flake8: noqa
