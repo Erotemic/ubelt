@@ -8,6 +8,9 @@ disable if if you need to.
 
 
 Example:
+    >>> # xdoctest: +SKIP
+    >>> # Note: while this works in IPython, this does not work when running
+    >>> # in xdoctest. https://github.com/Erotemic/xdoctest/issues/101
     >>> # xdoctest: +REQUIRES(module:timerit)
     >>> # Does my function benefit from parallelism?
     >>> def my_function(arg1, arg2):
@@ -36,10 +39,6 @@ Example:
     >>>         with timer:
     >>>             run_process(inputs, mode=mode, max_workers=max_workers)
     >>> print(ub.repr2(ti))
-
-
-
-
 
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
