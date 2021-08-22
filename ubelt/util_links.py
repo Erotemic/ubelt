@@ -164,7 +164,7 @@ def _readlink(link):
             return _win32_links._win32_read_junction(link)
     try:
         path = os.readlink(link)
-        if util_platform.WIN32:
+        if util_platform.WIN32:  # nocover
             junction_prefix = '\\\\?\\'
             if path.startswith(junction_prefix):
                 path = path[len(junction_prefix):]

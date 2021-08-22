@@ -364,9 +364,9 @@ def indexable_allclose(dct1, dct2, return_info=False):
 
 
 # Define isclose for Python 2.7
-if sys.version_info[0] == 2:
+if sys.version_info[0] == 2:  # nocover
     def _isclose(a, b, rel_tol=1e-9, abs_tol=0.0):
         return abs(a - b) <= max(rel_tol * max(abs(a), abs(b)), abs_tol)
-else:
+else:  # nocover
     import math
     _isclose = math.isclose

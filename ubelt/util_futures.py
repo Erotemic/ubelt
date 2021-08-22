@@ -111,8 +111,11 @@ class Executor(object):
 
 
     Example:
-        >>> # xdoctest: +REQUIRES(CPYTHON)
-        >>> # Only run on CPython, process breaks pyp3 when using coverage
+        >>> import platform
+        >>> # The process backend breaks pyp3 when using coverage
+        >>> if 'pypy' in platform.python_implementation().lower():
+        ...     import pytest
+        ...     pytest.skip('not testing process on pypy')
         >>> import ubelt as ub
         >>> # Fork before threading!
         >>> # https://pybay.com/site_media/slides/raymond2017-keynote/combo.html
