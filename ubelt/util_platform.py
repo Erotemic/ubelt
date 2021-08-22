@@ -43,6 +43,14 @@ import itertools as it
 from os.path import exists, join, isdir, expanduser, normpath
 
 
+__all__ = [
+    'WIN32', 'LINUX', 'DARWIN', 'POSIX',
+    'find_exe', 'find_path',
+    'ensure_app_cache_dir', 'ensure_app_config_dir', 'ensure_app_data_dir',
+    'get_app_cache_dir', 'get_app_config_dir', 'get_app_data_dir',
+    'platform_cache_dir', 'platform_config_dir', 'platform_data_dir'
+]
+
 # References:
 # https://stackoverflow.com/questions/446209/possible-values-from-sys-platform
 WIN32  = sys.platform == 'win32'

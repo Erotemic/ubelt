@@ -26,11 +26,12 @@ import warnings
 from ubelt import util_io
 from ubelt import util_platform
 
+__all__ = ['symlink']
+
 if sys.platform.startswith('win32'):  # nocover
     from ubelt import _win32_links
 else:
     _win32_links = None
-
 
 PY2 = sys.version_info[0] == 2
 if PY2:

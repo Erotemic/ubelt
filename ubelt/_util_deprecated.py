@@ -10,6 +10,12 @@ from .util_platform import (
     get_app_cache_dir, platform_cache_dir, ensure_app_cache_dir, WIN32, LINUX,
     DARWIN)
 
+__all__ = [
+    'dict_take', 'editfile', 'compressuser', 'dict_take', 'editfile',
+    'ensure_app_resource_dir', 'get_app_resource_dir', 'platform_resource_dir',
+    'schedule_deprecation', 'startfile', 'truepath'
+]
+
 
 PY2 = sys.version_info[0] == 2
 

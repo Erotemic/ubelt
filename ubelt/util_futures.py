@@ -1,4 +1,47 @@
 # -*- coding: utf-8 -*-
+"""
+Introduces the Executor class that wraps the standard ThreadPoolExecutor,
+ProcessPoolExecutor, and the new SerialExecutor with a common interface and a
+backend that changes dynamically. This makes is easy to test if your code
+benefits from parallism, how much it benefits, and gives you the ability to
+disable if if you need to.
+
+
+Example:
+    >>> # xdoctest: +REQUIRES(module:timerit)
+    >>> # Does my function benefit from parallelism?
+    >>> def my_function(arg1, arg2):
+    ...     return (arg1 + arg2) * 3
+    >>> #
+    >>> def run_process(inputs, mode='serial', max_workers=0):
+    ...     from concurrent.futures import as_completed
+    ...     import ubelt as ub
+    ...     # The executor interface is the same regardless of modes
+    ...     executor = ub.Executor(mode=mode, max_workers=max_workers)
+    ...     # submit returns a Future object
+    ...     jobs = [executor.submit(my_function, *args) for args in inputs]
+    ...     # future objects will contain results when they are done
+    ...     results = [job.result() for job in as_completed(jobs)]
+    ...     return results
+    >>> # The same code tests our method in serial, thread, or process mode
+    >>> import timerit
+    >>> ti = timerit.Timerit(100, bestof=10, verbose=2)
+    >>> # Setup test data
+    >>> import random
+    >>> rng = random.Random(0)
+    >>> max_workers = 4
+    >>> inputs = [(rng.random(), rng.random()) for _ in range(100)]
+    >>> for mode in ['serial', 'process', 'thread']:
+    >>>     for timer in ti.reset('mode={} max_workers={}'.format(mode, max_workers)):
+    >>>         with timer:
+    >>>             run_process(inputs, mode=mode, max_workers=max_workers)
+    >>> print(ub.repr2(ti))
+
+
+
+
+
+"""
 from __future__ import absolute_import, division, print_function, unicode_literals
 import concurrent.futures
 from concurrent.futures import as_completed
@@ -108,7 +151,6 @@ class Executor(object):
     Args:
         mode (str, default='thread'): either thread, serial, or process
         max_workers (int, default=0): number of workers. If 0, serial is forced.
-
 
     Example:
         >>> import platform

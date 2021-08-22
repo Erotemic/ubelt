@@ -44,6 +44,7 @@ import collections
 import sys
 # from typing import List, Callable, Type, Dict
 
+__all__ = ['repr2', 'FormatterExtensions']
 
 PY2 = sys.version_info[0] == 2
 

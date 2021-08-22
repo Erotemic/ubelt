@@ -27,6 +27,11 @@ import math
 import operator
 from ubelt import util_const
 
+__all__ = [
+    'allsame', 'argmax', 'argmin', 'argsort', 'argunique', 'boolmask',
+    'chunks', 'compress', 'flatten', 'iter_window', 'iterable', 'peek', 'take',
+    'unique', 'unique_flags',
+]
 
 PY2 = sys.version_info[0] == 2
 

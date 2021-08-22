@@ -91,17 +91,19 @@ Ubelt is small. Its top-level API is defined using roughly 40 lines:
 
     from ubelt.util_arg import (argflag, argval,)
     from ubelt.util_cache import (CacheStamp, Cacher,)
-    from ubelt.util_colors import (color_text, highlight_code,)
+    from ubelt.util_colors import (NO_COLOR, color_text, highlight_code,)
     from ubelt.util_const import (NoParam,)
     from ubelt.util_cmd import (cmd,)
     from ubelt.util_dict import (AutoDict, AutoOrderedDict, ddict, dict_diff,
                                  dict_hist, dict_isect, dict_subset, dict_union,
                                  dzip, find_duplicates, group_items, invert_dict,
-                                 map_keys, map_vals, odict, sorted_keys,
-                                 sorted_vals,)
+                                 map_keys, map_vals, named_product, odict,
+                                 sorted_keys, sorted_vals, varied_values,)
     from ubelt.util_download import (download, grabdata,)
-    from ubelt.util_func import (identity, inject_method,)
+    from ubelt.util_download_manager import (DownloadManager,)
+    from ubelt.util_func import (compatible, identity, inject_method,)
     from ubelt.util_format import (FormatterExtensions, repr2,)
+    from ubelt.util_futures import (Executor, JobPool,)
     from ubelt.util_io import (delete, readfrom, touch, writeto,)
     from ubelt.util_links import (symlink,)
     from ubelt.util_list import (allsame, argmax, argmin, argsort, argunique,
@@ -111,6 +113,7 @@ Ubelt is small. Its top-level API is defined using roughly 40 lines:
     from ubelt.util_import import (import_module_from_name,
                                    import_module_from_path, modname_to_modpath,
                                    modpath_to_modname, split_modpath,)
+    from ubelt.util_indexable import (IndexableWalker, indexable_allclose,)
     from ubelt.util_memoize import (memoize, memoize_method, memoize_property,)
     from ubelt.util_mixins import (NiceRepr,)
     from ubelt.util_path import (TempDir, augpath, ensuredir, expandpath,
@@ -128,13 +131,19 @@ Ubelt is small. Its top-level API is defined using roughly 40 lines:
     from ubelt.orderedset import (OrderedSet, oset,)
     from ubelt.progiter import (ProgIter,)
     from ubelt.timerit import (Timer, Timerit,)
+    from ubelt._util_deprecated import (compressuser, dict_take, dict_take,
+                                        editfile, editfile,
+                                        ensure_app_resource_dir,
+                                        get_app_resource_dir,
+                                        platform_resource_dir,
+                                        schedule_deprecation, startfile, truepath,)
 
 
 Installation:
 =============
 
 Ubelt is distributed on pypi as a universal wheel and can be pip installed on
-Python 2.7, Python 3.4+. Installations are tested on CPython and PyPy
+Python 2.7, Python 3.5+. Installations are tested on CPython and PyPy
 implementations.
 
 ::
@@ -187,10 +196,11 @@ I chose these and provided some comment on why:
     ub.Timerit  # powerful multiline alternative to timeit
     ub.Cacher  # configuration based on-disk cachine
     ub.cmd  # combines the best of subprocess.Popen and os.system
-    ub.hash_data  # extremely useful with Cacher to config strings
+    ub.hash_data  # hash mutable python containers, useful with Cacher to config strings
     ub.repr2  # readable representations of nested data structures
     ub.download  # why is this not a one liner --- also see grabdata for the same thing, but builtin caching.
-    ub.AutoDict  # one of the most useful tools in Perl, 
+    ub.AutoDict  # one of the most useful tools in Perl, recursive default dicts of dicts
+    ub.JobPool   # easy multi-threading / multi-procesing / or single-threaded processing
     ub.modname_to_modpath  # (works via static analysis)
     ub.modpath_to_modname  # (works via static analysis)
     ub.import_module_from_path  # (Unlike importlib, this does not break pytest)
@@ -203,85 +213,87 @@ a histogram of usefulness. I generated this histogram using ``python dev/count_u
 .. code:: python
 
     {
-    'repr2': 1598,
-    'ProgIter': 610,
-    'expandpath': 610,
-    'ensuredir': 482,
-    'take': 337,
-    'odict': 311,
-    'map_vals': 272,
-    'dzip': 246,
-    'augpath': 209,
-    'NiceRepr': 197,
-    'ddict': 191,
-    'argval': 184,
-    'cmd': 176,
-    'argflag': 171,
-    'flatten': 168,
-    'codeblock': 159,
-    'Timerit': 158,
-    'NoParam': 149,
-    'dict_hist': 146,
-    'group_items': 138,
-    'peek': 134,
-    'iterable': 124,
-    'hash_data': 116,
-    'grabdata': 93,
-    'delete': 82,
-    'compress': 76,
-    'color_text': 76,
-    'dict_subset': 72,
-    'Cacher': 68,
-    'allsame': 66,
-    'Timer': 57,
-    'argsort': 53,
-    'oset': 51,
-    'invert_dict': 50,
-    'indent': 47,
-    'chunks': 45,
-    'memoize': 44,
-    'dict_isect': 42,
-    'timestamp': 40,
-    'import_module_from_path': 39,
-    'unique': 36,
-    'map_keys': 35,
-    'hzcat': 35,
-    'find_duplicates': 35,
-    'writeto': 35,
-    'dict_union': 34,
-    'ensure_unicode': 30,
-    'readfrom': 30,
-    'iter_window': 29,
-    'sorted_vals': 29,
-    'argmax': 26,
-    'memoize_property': 26,
-    'modname_to_modpath': 25,
-    'symlink': 25,
-    'memoize_method': 23,
-    'dict_diff': 23,
-    'identity': 22,
-    'hash_file': 21,
-    'touch': 19,
-    'import_module_from_name': 17,
-    'highlight_code': 16,
-    'find_exe': 15,
-    'CacheStamp': 13,
-    'find_path': 9,
-    'AutoDict': 8,
-    'split_modpath': 7,
-    'shrinkuser': 7,
-    'argmin': 6,
-    'inject_method': 6,
-    'download': 5,
-    'modpath_to_modname': 5,
-    'paragraph': 5,
-    'CaptureStdout': 4,
-    'sorted_keys': 3,
-    'userhome': 2,
-    'AutoOrderedDict': 2,
-    'argunique': 2,
-    'unique_flags': 2,
+        'repr2': 2001,
+        'expandpath': 728,
+        'ProgIter': 694,
+        'ensuredir': 539,
+        'take': 383,
+        'odict': 338,
+        'map_vals': 305,
+        'dzip': 272,
+        'augpath': 250,
+        'ddict': 227,
+        'NiceRepr': 220,
+        'cmd': 209,
+        'flatten': 206,
+        'peek': 189,
+        'NoParam': 184,
+        'argval': 179,
+        'group_items': 173,
+        'argflag': 173,
+        'codeblock': 171,
+        'Timerit': 164,
+        'dict_hist': 161,
+        'iterable': 144,
+        'hash_data': 124,
+        'grabdata': 106,
+        'oset': 103,
+        'paragraph': 100,
+        'delete': 97,
+        'allsame': 90,
+        'compress': 87,
+        'color_text': 84,
+        'dict_subset': 76,
+        'dict_isect': 75,
+        'Cacher': 70,
+        'dict_diff': 65,
+        'memoize': 54,
+        'indent': 54,
+        'argsort': 53,
+        'Timer': 52,
+        'dict_union': 50,
+        'invert_dict': 49,
+        'identity': 49,
+        'find_duplicates': 43,
+        'map_keys': 43,
+        'timestamp': 42,
+        'unique': 40,
+        'chunks': 38,
+        'hzcat': 37,
+        'argmax': 35,
+        'import_module_from_path': 35,
+        'memoize_property': 34,
+        'iter_window': 33,
+        'readfrom': 31,
+        'sorted_vals': 30,
+        'hash_file': 30,
+        'writeto': 30,
+        'memoize_method': 29,
+        'symlink': 28,
+        'ensure_unicode': 25,
+        'CacheStamp': 23,
+        'touch': 22,
+        'modname_to_modpath': 21,
+        'find_exe': 17,
+        'import_module_from_name': 17,
+        'highlight_code': 17,
+        'AutoDict': 13,
+        'inject_method': 11,
+        'argmin': 8,
+        'shrinkuser': 8,
+        'split_modpath': 6,
+        'find_path': 5,
+        'download': 5,
+        'sorted_keys': 5,
+        'CaptureStdout': 4,
+        'modpath_to_modname': 4,
+        'orderedset': 4,
+        'userhome': 3,
+        'argunique': 2,
+        'AutoOrderedDict': 1,
+        'unique_flags': 1,
     }
+
     
    
 

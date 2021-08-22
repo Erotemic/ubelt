@@ -9,16 +9,61 @@ def count_ubelt_usage():
     from count_usage_freq import count_ubelt_usage
     usage = count_ubelt_usage()
 
+    # Reorgnaize data to contain more information
+    rows = []
+    unseen = usage.copy()
+    import ubelt as ub
+    for attrname in ub.__all__:
+        member = getattr(ub, attrname)
+        submembers = getattr(member, '__all__', None)
+        if attrname.startswith('util_'):
+            if not submembers:
+                from mkinit.static_mkinit import _extract_attributes
+                submembers = _extract_attributes(member.__file__)
+        if submembers:
+            for subname in submembers:
+                parent_module = 'ubelt.{}'.format(attrname)
+                short_name = 'ubelt.{subname}'.format(**locals())
+                full_name = '{parent_module}.{subname}'.format(**locals())
+                url = 'https://ubelt.readthedocs.io/en/latest/{parent_module}.html#{full_name}'.format(**locals())
+                rst_ref = ':func:`{short_name}<{full_name}>`'.format(**locals())
+                url_ref = '`{short_name} <{url}>`__'.format(**locals())
+                rows.append({
+                    'attr': subname,
+                    'parent_module': parent_module,
+                    'usage': unseen.pop(subname, 0),
+                    'short_name': short_name,
+                    'full_name': full_name,
+                    'url': url,
+                    'rst_ref': rst_ref,
+                    'url_ref': url_ref,
+                })
+
+    attr_to_infos = ub.group_items(rows, lambda x: x['attr'])
+
     import numpy as np
     import kwarray
     import ubelt as ub
 
-    gaurd = ('=' * 64 + ' ' + '=' * 16)
+    ref_key = 'rst_ref'
+    ref_key = 'url_ref'
+
+    name_len = max(len(row[ref_key]) for row in rows) + 1
+    num_len = 16
+
+    gaurd = ('=' * name_len + ' ' + '=' * num_len)
     print(gaurd)
-    print('{:<64} {:>8}'.format(' Function name ', 'Usefulness'))
+    column_fmt = '{:<' + str(name_len) + '} {:>' + str(num_len) + '}'
+    print(column_fmt.format(' Function name ', 'Usefulness'))
     print(gaurd)
     for key, value in usage.items():
-        print('{:<64} {:>16}'.format(':func:`ubelt.' + key + '`', value))
+        infos = attr_to_infos[key]
+        if len(infos) == 0:
+            print(column_fmt.format(':func:`ubelt.' + key + '`', value))
+        else:
+            assert len(infos) == 1
+            info = infos[0]
+            print(column_fmt.format(info[ref_key], value))
     print(gaurd)
 
     raw_scores = np.array(list(usage.values()))
@@ -38,11 +83,17 @@ def count_ubelt_usage():
                 submembers = _extract_attributes(member.__file__)
 
         if submembers:
-            print('\n:mod:`ubelt.{}`'.format(attrname))
-            print('-------------')
+            parent_module = 'ubelt.{}'.format(attrname)
+
+            title = ':mod:`{}`'.format(parent_module)
+            print('\n' + title)
+            print('-' * len(title))
             for subname in submembers:
                 if not subname.startswith('_'):
-                    print(':func:`ubelt.{}`'.format(subname))
+                    rst_ref = (
+                        ':func:`<ubelt.{subname}><{parent_module}.{subname}>`'
+                    ).format(subname=subname, parent_module=parent_module)
+                    print(rst_ref)
             submembers = dir(member)
 
 

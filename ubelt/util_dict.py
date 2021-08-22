@@ -37,22 +37,6 @@ from ubelt import util_const
 from ubelt import util_list
 from ubelt.util_const import NoParam
 
-
-PY2 = sys.version_info[0] == 2
-
-if PY2:
-    import six
-    from six.moves import zip
-    iteritems = six.iteritems
-else:
-    def iteritems(d, **kw):
-        return d.items(**kw)
-
-
-# Expose for convenience
-odict = OrderedDict
-ddict = defaultdict
-
 __all__ = [
     'AutoDict',
     'AutoOrderedDict',
@@ -70,8 +54,26 @@ __all__ = [
     'map_vals',
     'sorted_keys',
     'sorted_vals',
-    'odict'
+    'odict',
+    'named_product',
+    'varied_values',
 ]
+
+
+PY2 = sys.version_info[0] == 2
+
+if PY2:
+    import six
+    from six.moves import zip
+    iteritems = six.iteritems
+else:
+    def iteritems(d, **kw):
+        return d.items(**kw)
+
+
+# Expose for convenience
+odict = OrderedDict
+ddict = defaultdict
 
 
 class AutoDict(dict):
@@ -719,7 +721,7 @@ def invert_dict(dict_, unique_vals=True):
     return inverted
 
 
-def basis_product(basis):
+def named_product(**basis):
     """
     Generates the Cartesian product of the ``basis.values()``, where each
     generated item labeled by ``basis.keys()``.
@@ -746,12 +748,19 @@ def basis_product(basis):
         difference is that the generated items are a dictionary that retains
         the input keys instead of an tuple.
 
-    TODO:
-        - [ ] Does this go in util_dict?
+        I used to call this function "basis_product", but "named_product" might
+        be more appropriate. This function exists in other places ([1], [2],
+        and [3]).
+
+    References:
+        .. [1] https://gist.github.com/minstrel271/d51654af3fa4e6411267
+        .. [2] https://py-toolbox.readthedocs.io/en/latest/modules/itertools.html#
+        .. [3] https://twitter.com/raymondh/status/970380630822305792
 
     Example:
         >>> # An example use case is looping over all possible settings in a
         >>> # configuration dictionary for a grid search over parameters.
+        >>> import ubelt as ub
         >>> basis = {
         >>>     'arg1': [1, 2, 3],
         >>>     'arg2': ['A1', 'B1'],
@@ -761,7 +770,7 @@ def basis_product(basis):
         >>> import ubelt as ub
         >>> # sort input data for older python versions
         >>> basis = ub.odict(sorted(basis.items()))
-        >>> got = list(basis_product(basis))
+        >>> got = list(ub.named_product(**basis))
         >>> print(ub.repr2(got, nl=-1))
         [
             {'arg1': 1, 'arg2': 'A1', 'arg3': 9999, 'arg4': 'always'},
@@ -817,17 +826,10 @@ def varied_values(longform, min_variations=0, default=NoParam):
     References:
         .. [1] https://seaborn.pydata.org/tutorial/data_structure.html#long-form-data
 
-    CommandLine:
-        xdoctest -m /home/joncrall/code/ubelt/ubelt/util_candidate.py varied_values
-
-    TODO:
-        - [ ] Does this go in util_dict?
-
     Example:
         >>> # An example use case is to determine what values of a
         >>> # configuration dictionary were tried in a random search
         >>> # over a parameter grid.
-        >>> from ubelt.util_candidate import *  # NOQA
         >>> import ubelt as ub
         >>> longform = [
         >>>     {'col1': 1, 'col2': 'foo', 'col3': None},
@@ -837,7 +839,7 @@ def varied_values(longform, min_variations=0, default=NoParam):
         >>>     {'col1': 9, 'col2': 'bar', 'col3': None},
         >>>     {'col1': 1, 'col2': 'bar', 'col3': None},
         >>> ]
-        >>> varied = varied_values(longform)
+        >>> varied = ub.varied_values(longform)
         >>> print('varied = {}'.format(ub.repr2(varied, nl=1)))
         varied = {
             'col1': {1, 2, 3, 9},
@@ -846,7 +848,6 @@ def varied_values(longform, min_variations=0, default=NoParam):
         }
 
     Example:
-        >>> from ubelt.util_candidate import *  # NOQA
         >>> import ubelt as ub
         >>> import random
         >>> longform = [
@@ -860,10 +861,10 @@ def varied_values(longform, min_variations=0, default=NoParam):
         >>> # Operation fails without a default
         >>> import pytest
         >>> with pytest.raises(KeyError):
-        >>>     varied = varied_values(longform)
+        >>>     varied = ub.varied_values(longform)
         >>> #
         >>> # Operation works with a default
-        >>> varied = varied_values(longform, default='<unset>')
+        >>> varied = ub.varied_values(longform, default='<unset>')
         >>> expected = {
         >>>     'col1': {1, 2, 3, 9},
         >>>     'col2': {'bar', 'foo', (1, 2)},
@@ -876,7 +877,6 @@ def varied_values(longform, min_variations=0, default=NoParam):
     Example:
         >>> # xdoctest: +REQUIRES(PY3)
         >>> # Random numbers are different in Python2, so skip in that case
-        >>> from ubelt.util_candidate import *  # NOQA
         >>> import ubelt as ub
         >>> import random
         >>> num_cols = 11
@@ -895,7 +895,7 @@ def varied_values(longform, min_variations=0, default=NoParam):
         >>>         for key in sorted(row.keys()):
         >>>             if rng.random() > 0.95:
         >>>                 row[key] = 'special-' + str(rng.randint(1, 32))
-        >>> varied = varied_values(longform, min_variations=1)
+        >>> varied = ub.varied_values(longform, min_variations=1)
         >>> print('varied = {}'.format(ub.repr2(varied, nl=1, sort=True)))
         varied = {
             '095f3e44': {'8fb4d4c9', 'special-23'},
