@@ -131,12 +131,6 @@ Ubelt is small. Its top-level API is defined using roughly 40 lines:
     from ubelt.orderedset import (OrderedSet, oset,)
     from ubelt.progiter import (ProgIter,)
     from ubelt.timerit import (Timer, Timerit,)
-    from ubelt._util_deprecated import (compressuser, dict_take, dict_take,
-                                        editfile, editfile,
-                                        ensure_app_resource_dir,
-                                        get_app_resource_dir,
-                                        platform_resource_dir,
-                                        schedule_deprecation, startfile, truepath,)
 
 
 Installation:
@@ -754,8 +748,8 @@ text.
     A = [[1, 2], * [[5, 6],
          [3, 4]]    [7, 8]]
 
-External tools.
----------------
+External tools
+--------------
 
 Some of the tools in ``ubelt`` also exist as standalone modules. I haven't
 decided if its best to statically copy them into ubelt or require on pypi to
@@ -779,16 +773,24 @@ Code that is completely optional, and only used in specific cases:
 - Pygments - used by the ``util_color`` module.
 
 
-Also, in the future some of the functionality in ubelt may be ported and integrated
-into the ``boltons`` project: https://github.com/mahmoud/boltons.
+Similar Tools
+-------------
+
+UBelt is one of many Python utility libraries. Other similar libraries are
+listed here:
+
+* Boltons: https://github.com/mahmoud/boltons
+* More-Itertools: https://pypi.org/project/more-itertools/
+* Toolz: https://github.com/pytoolz/toolz
+* CyToolz: https://github.com/pytoolz/cytoolz/
+* Funcy: https://github.com/Suor/funcy
 
 
 Notes.
 ------
 Ubelt will support Python 2.7 and 3.5 until the 1.0 release.
 
-PRs are welcome. If you have a utility function that you think is useful then
-write a PR. I'm likely to respond promptly.
+PRs are welcome. 
 
 Also check out my other projects (many of which are powered by ubelt):
 
