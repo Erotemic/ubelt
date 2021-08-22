@@ -721,7 +721,7 @@ def invert_dict(dict_, unique_vals=True):
     return inverted
 
 
-def named_product(**basis):
+def named_product(_=None, **basis):
     """
     Generates the Cartesian product of the ``basis.values()``, where each
     generated item labeled by ``basis.keys()``.
@@ -732,6 +732,14 @@ def named_product(**basis):
     variables to values).
 
     Args:
+        _ (dict | None, default=None):
+            Use of this positional argument is not recommend. Instead specify
+            all arguments as keyword args.
+
+            If specified, this should be a dictionary is unioned with the
+            keyword args.  This exists to support ordered dictionaries before
+            Python 3.6, and may eventually be removed.
+
         basis (Dict[K, List[T]]):
             A dictionary where the keys correspond to "columns" and the values
             are a list of possible values that "column" can take.
@@ -748,9 +756,9 @@ def named_product(**basis):
         difference is that the generated items are a dictionary that retains
         the input keys instead of an tuple.
 
-        I used to call this function "basis_product", but "named_product" might
-        be more appropriate. This function exists in other places ([1], [2],
-        and [3]).
+        This function used to be called "basis_product", but "named_product"
+        might be more appropriate. This function exists in other places ([1],
+        [2], and [3]).
 
     References:
         .. [1] https://gist.github.com/minstrel271/d51654af3fa4e6411267
@@ -770,7 +778,7 @@ def named_product(**basis):
         >>> import ubelt as ub
         >>> # sort input data for older python versions
         >>> basis = ub.odict(sorted(basis.items()))
-        >>> got = list(ub.named_product(**basis))
+        >>> got = list(ub.named_product(basis))
         >>> print(ub.repr2(got, nl=-1))
         [
             {'arg1': 1, 'arg2': 'A1', 'arg3': 9999, 'arg4': 'always'},
@@ -787,6 +795,11 @@ def named_product(**basis):
             {'arg1': 3, 'arg2': 'B1', 'arg3': 'Z2', 'arg4': 'always'}
         ]
     """
+    # Handle one positional argument.
+    if _ is not None:
+        _basis = _
+        _basis.update(basis)
+        basis = _basis
     keys = list(basis.keys())
     for vals in it.product(*basis.values()):
         kw = dict(zip(keys, vals))
