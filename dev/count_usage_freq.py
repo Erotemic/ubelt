@@ -71,7 +71,7 @@ def count_ubelt_usage():
 
     if config['hardcoded_ubelt_hack']:
         blocklist = [
-            'progiter', 'timerit',
+            'progiter', 'timerit', 'orderedset',
         ]
         for k in list(usage):
             if k in blocklist:
@@ -96,6 +96,6 @@ if __name__ == '__main__':
 
     CommandLine:
         python ~/code/ubelt/dev/count_usage_freq.py --help
-        python ~/code/ubelt/dev/count_usage_freq.py
+        python ~/code/ubelt/dev/count_usage_freq.py --remove_zeros=False
     """
     count_ubelt_usage()
