@@ -261,32 +261,47 @@ class JobPool(object):
         self.executor.__exit__(a, b, c)
 
     def as_completed(self):
-        for job in as_completed(self.jobs):
-            yield job
-
-    def __iter__(self):
         """
+        Generates completed jobs in an arbitrary order
+
+        Yields:
+            concurrent.futures.Future
+
         CommandLine:
-            xdoctest -m /home/joncrall/code/ubelt/ubelt/util_futures.py JobPool.__iter__
+            xdoctest -m ubelt.util_futures JobPool.as_completed
 
         Example:
             >>> import ubelt as ub
             >>> pool = ub.JobPool('thread', max_workers=8)
             >>> text = ub.paragraph(
-                '''
-                UDP is a cool protocol, check out the wiki:
-
-                UDP-based Data Transfer Protocol (UDT), is a high-performance
-                data transfer protocol designed for transferring large
-                volumetric datasets over high-speed wide area networks. Such
-                settings are typically disadvantageous for the more common TCP
-                protocol.
-                ''')
+            ...     '''
+            ...     UDP is a cool protocol, check out the wiki:
+            ...
+            ...     UDP-based Data Transfer Protocol (UDT), is a high-performance
+            ...     data transfer protocol designed for transferring large
+            ...     volumetric datasets over high-speed wide area networks. Such
+            ...     settings are typically disadvantageous for the more common TCP
+            ...     protocol.
+            ...     ''')
             >>> for word in text.split(' '):
             ...     pool.submit(print, word)
-            >>> for _ in pool:
+            >>> for _ in pool.as_completed():
             ...     pass
             >>> pool.shutdown()
+        """
+        for job in as_completed(self.jobs):
+            yield job
+
+    def __iter__(self):
+        """
+        An alternative to as completed
+
+        Example:
+            >>> import ubelt as ub
+            >>> pool = ub.JobPool('serial')
+            >>> assert len(list(iter(pool))) == 0
+            >>> pool.submit(print, 'hi')
+            >>> assert len(list(iter(pool))) == 1
         """
         for job in self.as_completed():
             yield job

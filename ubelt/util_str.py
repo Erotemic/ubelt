@@ -2,7 +2,7 @@
 """
 Functions for working with text and strings.
 
-The :func:`ensure_unicode` function does its best to coerce python 2/3 bytes
+The :func:`ensure_unicode` function does its best to coerce Python 2/3 bytes
 and text into a consistent unicode text representation.
 
 The :func:`codeblock` and :func:`paragraph` wrap multiline strings to help
@@ -47,11 +47,11 @@ def indent(text, prefix='    '):
         str: indented text
 
     Example:
-        >>> from ubelt.util_str import *  # NOQA
+        >>> import ubelt as ub
         >>> NL = chr(10)  # newline character
         >>> text = 'Lorem ipsum' + NL + 'dolor sit amet'
         >>> prefix = '    '
-        >>> result = indent(text, prefix)
+        >>> result = ub.indent(text, prefix)
         >>> assert all(t.startswith(prefix) for t in result.split(NL))
     """
     return prefix + text.replace('\n', '\n' + prefix)
@@ -71,11 +71,11 @@ def codeblock(text):
         str: the unindented string
 
     Example:
-        >>> from ubelt.util_str import *  # NOQA
+        >>> import ubelt as ub
         >>> # Simulate an indented part of code
         >>> if True:
         >>>     # notice the indentation on this will be normal
-        >>>     codeblock_version = codeblock(
+        >>>     codeblock_version = ub.codeblock(
         ...             '''
         ...             def foo():
         ...                 return 'bar'
@@ -110,14 +110,14 @@ def paragraph(text):
         str: the reduced text block
 
     Example:
-        >>> from ubelt.util_str import *  # NOQA
+        >>> import ubelt as ub
         >>> text = (
         >>>     '''
         >>>     Lorem ipsum dolor sit amet, consectetur adipiscing
         >>>     elit, sed do eiusmod tempor incididunt ut labore et
         >>>     dolore magna aliqua.
         >>>     ''')
-        >>> out = paragraph(text)
+        >>> out = ub.paragraph(text)
         >>> assert chr(10) in text
         >>> assert chr(10) not in out
         >>> print('text = {!r}'.format(text))
@@ -149,7 +149,6 @@ def hzcat(args, sep=''):
              [3, 457]]    [7, 8]]
 
     Example2:
-        >>> from ubelt.util_str import *
         >>> import ubelt as ub
         >>> import unicodedata
         >>> aa = unicodedata.normalize('NFD', 'á')  # a unicode char with len2

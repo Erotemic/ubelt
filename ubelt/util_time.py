@@ -27,7 +27,8 @@ def timestamp(method='iso8601'):
         method (str, default='iso8601'): type of timestamp
 
     Example:
-        >>> stamp = timestamp()
+        >>> import ubelt as ub
+        >>> stamp = ub.timestamp()
         >>> print('stamp = {!r}'.format(stamp))
         stamp = ...-...-...T...
     """

@@ -6,14 +6,15 @@ ProgIter lets you measure and print the progress of an iterative process. This
 can be done either via an iterable interface or using the manual API. Using the
 iterable inferface is most common.
 
-ProgIter was originally developed independantly of ``tqdm``, but the newer
-versions of this library have been designed to be compatible with tqdm-API.
-``ProgIter`` is now a (mostly) drop-in alternative to tqdm_. The ``tqdm``
-library may be more appropriate in some cases. *The main advantage of ``ProgIter``
-is that it does not use any python threading*, and therefore can be safer with
-code that makes heavy use of multiprocessing. `The reason`_ for this is that
-threading before forking may cause locks to be duplicated across processes,
-which may lead to deadlocks.
+ProgIter was originally developed independantly of tqdm, but the newer versions
+of this library have been designed to be compatible with tqdm-API.
+:class:`ProgIter` is now a (mostly) drop-in alternative to :func:`tqdm.tqdm`. The
+:mod:`tqdm` library may be more appropriate in some cases. *The main advantage of
+:class:`ProgIter` is that it does not use any python threading*, and therefore can
+be safer with code that makes heavy use of multiprocessing.
+`The reason <https://pybay.com/site_media/slides/raymond2017-keynote/combo.html>`_
+for this is that threading before forking may cause locks to be duplicated
+across processes, which may lead to deadlocks.
 
 ProgIter is simpler than tqdm, which may be desirable for some applications.
 However, this also means ProgIter is not as extensible as tqdm.

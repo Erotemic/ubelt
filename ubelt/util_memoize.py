@@ -70,6 +70,7 @@ def _make_signature_key(args, kwargs):
     Transforms function args into a key that can be used by the cache
 
     Example:
+        >>> from ubelt.util_memoize import _make_signature_key
         >>> args = (4, [1, 2])
         >>> kwargs = {'a': 'b'}
         >>> key = _make_signature_key(args, kwargs)
@@ -119,7 +120,7 @@ def memoize(func):
         Callable: memoized wrapper
 
     References:
-        https://wiki.python.org/moin/PythonDecoratorLibrary#Memoize
+        .. [1] https://wiki.python.org/moin/PythonDecoratorLibrary#Memoize
 
     Example:
         >>> import ubelt as ub
@@ -160,7 +161,7 @@ class memoize_method(object):
     memoization decorator for a method that respects args and kwargs
 
     References:
-        http://code.activestate.com/recipes/577452-a-memoize-decorator-for-instance-methods/
+        .. [2] http://code.activestate.com/recipes/577452-a-memoize-decorator-for-instance-methods
 
     Example:
         >>> import ubelt as ub
@@ -240,21 +241,22 @@ def memoize_property(fget):
     This decorator can either be used by itself or by decorating another
     property. In either case the method will always become a property.
 
-    Notes:
-        implementation is a modified version of [1].
+    Note:
+        implementation is a modified version of [3]_.
 
     References:
-        ..[1] https://github.com/estebistec/python-memoized-property
+        .. [3] https://github.com/estebistec/python-memoized-property
 
     Example:
+        >>> import ubelt as ub
         >>> class C(object):
         ...     load_name_count = 0
-        ...     @memoize_property
+        ...     @ub.memoize_property
         ...     def name(self):
         ...         "name's docstring"
         ...         self.load_name_count += 1
         ...         return "the name"
-        ...     @memoize_property
+        ...     @ub.memoize_property
         ...     @property
         ...     def another_name(self):
         ...         "name's docstring"

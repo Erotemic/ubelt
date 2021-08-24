@@ -17,10 +17,13 @@ Submodules
    ubelt.util_const
    ubelt.util_dict
    ubelt.util_download
+   ubelt.util_download_manager
    ubelt.util_format
    ubelt.util_func
+   ubelt.util_futures
    ubelt.util_hash
    ubelt.util_import
+   ubelt.util_indexable
    ubelt.util_io
    ubelt.util_links
    ubelt.util_list

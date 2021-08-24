@@ -11,7 +11,7 @@ class DownloadManager:
 
     Attributes:
         download_root (PathLike): default download location
-        jobs (List[DownloadFuture]): list of jobs
+        jobs (List[concurrent.futures.Future]): list of jobs
 
     Example:
         >>> # xdoctest: +REQUIRES(--network)
@@ -93,6 +93,10 @@ class DownloadManager:
                If specified, verifies that the hash of the downloaded file starts with this.
             hasher (str, default='sha256'):
                 hashing algorithm to use if hash_prefix is specified.
+
+        Returns:
+            concurrent.futures.Future :
+                a Future object that will point to the downloaded location.
         """
         job = self.pool.submit(
             self.dl_func, url, fname=dst, dpath=self.download_root,

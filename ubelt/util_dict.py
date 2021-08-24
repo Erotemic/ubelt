@@ -164,9 +164,10 @@ def dzip(items1, items2, cls=dict):
         Dict[A, B]: similar to ``dict(zip(items1, items2))``.
 
     Example:
-        >>> assert dzip([1, 2, 3], [4]) == {1: 4, 2: 4, 3: 4}
-        >>> assert dzip([1, 2, 3], [4, 4, 4]) == {1: 4, 2: 4, 3: 4}
-        >>> assert dzip([], [4]) == {}
+        >>> import ubelt as ub
+        >>> assert ub.dzip([1, 2, 3], [4]) == {1: 4, 2: 4, 3: 4}
+        >>> assert ub.dzip([1, 2, 3], [4, 4, 4]) == {1: 4, 2: 4, 3: 4}
+        >>> assert ub.dzip([], [4]) == {}
     """
     try:
         len(items1)
@@ -319,7 +320,7 @@ def find_duplicates(items, k=2, key=None):
             least k times.
 
     Returns:
-        dict[T: List[int]]:
+        dict[T, List[int]] :
             maps each duplicate item to the indices at which it appears
 
     Example:
@@ -414,14 +415,17 @@ def dict_union(*args):
     SeeAlso:
         :func:`collections.ChainMap` - a standard python builtin data structure
         that provides a view that treats multiple dicts as a single dict.
-        `https://docs.python.org/3/library/collections.html#chainmap-objects`
+        `<https://docs.python.org/3/library/collections.html#chainmap-objects>`_
 
     Example:
-        >>> result = dict_union({'a': 1, 'b': 1}, {'b': 2, 'c': 2})
+        >>> import ubelt as ub
+        >>> result = ub.dict_union({'a': 1, 'b': 1}, {'b': 2, 'c': 2})
         >>> assert result == {'a': 1, 'b': 2, 'c': 2}
-        >>> dict_union(odict([('a', 1), ('b', 2)]), odict([('c', 3), ('d', 4)]))
+        >>> ub.dict_union(
+        >>>     ub.odict([('a', 1), ('b', 2)]),
+        >>>     ub.odict([('c', 3), ('d', 4)]))
         OrderedDict([('a', 1), ('b', 2), ('c', 3), ('d', 4)])
-        >>> dict_union()
+        >>> ub.dict_union()
         {}
     """
     if not args:
@@ -433,7 +437,7 @@ def dict_union(*args):
 
 def dict_diff(*args):
     """
-    Dictionary set extension for ``set.difference``
+    Dictionary set extension for :func:`set.difference`
 
     Constructs a dictionary that contains any of the keys in the first arg,
     which are not in any of the following args.
@@ -450,13 +454,14 @@ def dict_diff(*args):
           inplace.
 
     Example:
-        >>> dict_diff({'a': 1, 'b': 1}, {'a'}, {'c'})
+        >>> import ubelt as ub
+        >>> ub.dict_diff({'a': 1, 'b': 1}, {'a'}, {'c'})
         {'b': 1}
-        >>> dict_diff(odict([('a', 1), ('b', 2)]), odict([('c', 3)]))
+        >>> ub.dict_diff(odict([('a', 1), ('b', 2)]), odict([('c', 3)]))
         OrderedDict([('a', 1), ('b', 2)])
-        >>> dict_diff()
+        >>> ub.dict_diff()
         {}
-        >>> dict_diff({'a': 1, 'b': 2}, {'c'})
+        >>> ub.dict_diff({'a': 1, 'b': 2}, {'c'})
     """
     if not args:
         return {}
@@ -475,7 +480,7 @@ def dict_diff(*args):
 
 def dict_isect(*args):
     """
-    Dictionary set extension for ``set.intersection``
+    Dictionary set extension for :func:`set.intersection`
 
     Constructs a dictionary that contains keys common between all inputs.
     The returned values will only belong to the first dictionary.
@@ -487,20 +492,22 @@ def dict_isect(*args):
         Dict | OrderedDict :
             OrderedDict if the first argument is an OrderedDict, otherwise dict
 
-    Notes:
+    Note:
         This function can be used as an alternative to :func:`dict_subset`
         where any key not in the dictionary is ignored. See the following
         example:
 
-        >>> dict_isect({'a': 1, 'b': 2, 'c': 3}, ['a', 'c', 'd'])
+        >>> import ubelt as ub
+        >>> ub.dict_isect({'a': 1, 'b': 2, 'c': 3}, ['a', 'c', 'd'])
         {'a': 1, 'c': 3}
 
     Example:
-        >>> dict_isect({'a': 1, 'b': 1}, {'b': 2, 'c': 2})
+        >>> import ubelt as ub
+        >>> ub.dict_isect({'a': 1, 'b': 1}, {'b': 2, 'c': 2})
         {'b': 1}
-        >>> dict_isect(odict([('a', 1), ('b', 2)]), odict([('c', 3)]))
+        >>> ub.dict_isect(odict([('a', 1), ('b', 2)]), odict([('c', 3)]))
         OrderedDict()
-        >>> dict_isect()
+        >>> ub.dict_isect()
         {}
     """
     if not args:
@@ -527,15 +534,17 @@ def map_vals(func, dict_):
         Dict[A, C]: transformed dictionary
 
     Example:
+        >>> import ubelt as ub
         >>> dict_ = {'a': [1, 2, 3], 'b': []}
-        >>> newdict = map_vals(len, dict_)
+        >>> newdict = ub.map_vals(len, dict_)
         >>> assert newdict ==  {'a': 3, 'b': 0}
 
     Example:
         >>> # Can also use an indexable as ``func``
+        >>> import ubelt as ub
         >>> dict_ = {'a': 0, 'b': 1}
         >>> func = [42, 21]
-        >>> newdict = map_vals(func, dict_)
+        >>> newdict = ub.map_vals(func, dict_)
         >>> assert newdict ==  {'a': 42, 'b': 21}
         >>> print(newdict)
     """
@@ -565,14 +574,15 @@ def map_keys(func, dict_):
         Exception : if multiple keys map to the same value
 
     Example:
+        >>> import ubelt as ub
         >>> dict_ = {'a': [1, 2, 3], 'b': []}
         >>> func = ord
-        >>> newdict = map_keys(func, dict_)
+        >>> newdict = ub.map_keys(func, dict_)
         >>> print(newdict)
         >>> assert newdict == {97: [1, 2, 3], 98: []}
         >>> dict_ = {0: [1, 2, 3], 1: []}
         >>> func = ['a', 'b']
-        >>> newdict = map_keys(func, dict_)
+        >>> newdict = ub.map_keys(func, dict_)
         >>> print(newdict)
         >>> assert newdict == {'a': [1, 2, 3], 'b': []}
     """
@@ -681,7 +691,7 @@ def invert_dict(dict_, unique_vals=True):
         Dict[B, A] | Dict[B, Set[A]]:
             the inverted dictionary
 
-    Notes:
+    Note:
         The must values be hashable.
 
         If the original dictionary contains duplicate values, then only one of
@@ -748,10 +758,11 @@ def named_product(_=None, **basis):
             possible values for that "axes".
 
     Yields:
-        Dict[K, T] - a "row" in the "longform" data containing a point in the
-            Cartesian product.
+        Dict[K, T] -
+            a "row" in the "longform" data containing a point in the Cartesian
+            product.
 
-    Notes:
+    Note:
         This function is similar to :func:`itertools.product`, the only
         difference is that the generated items are a dictionary that retains
         the input keys instead of an tuple.

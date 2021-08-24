@@ -116,10 +116,14 @@ autodoc_inherit_docstrings = False
 
 autodoc_member_order = 'bysource'
 # autodoc_mock_imports = ['torch', 'torchvision', 'visdom']
-# intersphinx_mapping = {
-#     # 'pytorch': ('http://pytorch.org/docs/master/', None),
-#     'python': ('https://docs.python.org/3.6', None),
-#     }
+intersphinx_mapping = {
+    # 'pytorch': ('http://pytorch.org/docs/master/', None),
+    'python': ('https://docs.python.org/3.6', None),
+    'click': ('https://click.palletsprojects.com/', None),
+    # 'xxhash': ('https://pypi.org/project/xxhash/', None),
+    # 'pygments': ('https://pygments.org/docs/', None),
+    # 'tqdm': ('https://tqdm.github.io/', None),
+}
 
 
 # Add any paths that contain templates here, relative to this directory.
@@ -243,3 +247,94 @@ texinfo_documents = [
 
 
 # -- Extension configuration -------------------------------------------------
+
+
+from sphinx.domains.python import PythonDomain  # NOQA
+
+
+class PatchedPythonDomain(PythonDomain):
+    """
+    References:
+        https://github.com/sphinx-doc/sphinx/issues/3866
+    """
+    def resolve_xref(self, env, fromdocname, builder, typ, target, node, contnode):
+        # TODO: can use this to resolve references nicely
+        if target.startswith('ub.'):
+            target = 'ubelt.' + target[3]
+        return_value = super(PatchedPythonDomain, self).resolve_xref(
+            env, fromdocname, builder, typ, target, node, contnode)
+        return return_value
+
+
+def setup(app):
+    app.add_domain(PatchedPythonDomain, override=True)
+
+    if 1:
+        # https://www.sphinx-doc.org/en/master/usage/extensions/autodoc.html
+        from sphinx.application import Sphinx
+        from typing import Any, List
+
+        what = None
+        # Custom process to transform docstring lines
+        # Remove "Ignore" blocks
+        def process(app: Sphinx, what_: str, name: str, obj: Any, options: Any, lines: List[str]
+                    ) -> None:
+            if what and what_ not in what:
+                return
+            orig_lines = lines[:]
+
+            # text = '\n'.join(lines)
+            # if 'Example' in text and 'CommandLine' in text:
+            #     import xdev
+            #     xdev.embed()
+
+            ignore_tags = tuple(['Ignore'])
+
+            mode = None
+            # buffer = None
+            new_lines = []
+            for i, line in enumerate(orig_lines):
+
+                # See if the line triggers a mode change
+                if line.startswith(ignore_tags):
+                    mode = 'ignore'
+                elif line.startswith('CommandLine'):
+                    mode = 'cmdline'
+                elif line and not line.startswith(' '):
+                    # if the line startswith anything but a space, we are no
+                    # longer in the previous nested scope
+                    mode = None
+
+                if mode is None:
+                    new_lines.append(line)
+                elif mode == 'ignore':
+                    # print('IGNORE line = {!r}'.format(line))
+                    pass
+                elif mode == 'cmdline':
+                    if line.startswith('CommandLine'):
+                        new_lines.append('.. rubric:: CommandLine')
+                        new_lines.append('')
+                        new_lines.append('.. code-block:: bash')
+                        new_lines.append('')
+                        # new_lines.append('    # CommandLine')
+                    else:
+                        # new_lines.append(line.strip())
+                        new_lines.append(line)
+                else:
+                    raise KeyError(mode)
+
+            lines[:] = new_lines
+            # make sure there is a blank line at the end
+            if lines and lines[-1]:
+                lines.append('')
+
+        app.connect('autodoc-process-docstring', process)
+    else:
+        # https://stackoverflow.com/questions/26534184/can-sphinx-ignore-certain-tags-in-python-docstrings
+        # Register a sphinx.ext.autodoc.between listener to ignore everything
+        # between lines that contain the word IGNORE
+        # from sphinx.ext.autodoc import between
+        # app.connect('autodoc-process-docstring', between('^ *Ignore:$', exclude=True))
+        pass
+
+    return app

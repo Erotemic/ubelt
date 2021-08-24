@@ -43,8 +43,9 @@ def argval(key, default=util_const.NoParam, argv=None):
             uses ``sys.argv`` if unspecified
 
     Returns:
-        str: value - the value specified after the key. It they key is
-            specified multiple times, then the first value is returned.
+        str:
+            value - the value specified after the key. It they key is specified
+            multiple times, then the first value is returned.
 
     TODO:
         - [ ] Can we handle the case where the value is a list of long paths?

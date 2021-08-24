@@ -2,15 +2,15 @@
 r"""
 Expose functions to simplify importing from module names and paths.
 
-The :func:`ub.import_module_from_path` function does its best to load a python file
-into th current set of global modules.
+The :func:`ubelt.import_module_from_path` function does its best to load a
+python file into th current set of global modules.
 
-The :func:`ub.import_module_from_name` works similarly.
+The :func:`ubelt.import_module_from_name` works similarly.
 
-The :func:`ub.modname_to_modpath` and :func:`ub.modname_to_modpath` work
+The :func:`ubelt.modname_to_modpath` and :func:`ubelt.modname_to_modpath` work
 statically and convert between module names and file paths on disk.
 
-The :func:`ub.split_modpath` function separates modules into a root and base
+The :func:`ubelt.split_modpath` function separates modules into a root and base
 path depending on where the first ``__init__.py`` file is.
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
@@ -152,12 +152,15 @@ def import_module_from_path(modpath, index=-1):
 
         For example if you try to import '/foo/bar/pkg/mod.py' from the folder
         structure:
-          - foo/
-            +- bar/
-               +- pkg/
-                  +  __init__.py
-                  |- mod.py
-                  |- helper.py
+
+        .. code::
+
+            - foo/
+              +- bar/
+                 +- pkg/
+                    +  __init__.py
+                    |- mod.py
+                    |- helper.py
 
        If there exists another module named ``pkg`` already in sys.modules
        and mod.py does something like ``from . import helper``, Python will
@@ -231,7 +234,7 @@ def import_module_from_path(modpath, index=-1):
 
 def import_module_from_name(modname):
     """
-    Imports a module from its string name (__name__)
+    Imports a module from its string name (i.e. ``__name__``)
 
     Args:
         modname (str):  module name
