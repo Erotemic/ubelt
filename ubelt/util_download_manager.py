@@ -11,7 +11,7 @@ class DownloadManager:
 
     Attributes:
         download_root (PathLike): default download location
-        jobs (List[Future]): list of jobs
+        jobs (List[concurrent.futures.Future]): list of jobs
 
     Example:
         >>> # xdoctest: +REQUIRES(--network)
@@ -95,7 +95,7 @@ class DownloadManager:
                 hashing algorithm to use if hash_prefix is specified.
 
         Returns:
-            Future:
+            concurrent.futures.Future :
                 a Future object that will point to the downloaded location.
         """
         job = self.pool.submit(

@@ -265,7 +265,7 @@ class JobPool(object):
         Generates completed jobs in an arbitrary order
 
         Yields:
-            Future
+            concurrent.futures.Future
 
         CommandLine:
             xdoctest -m ubelt.util_futures JobPool.as_completed
@@ -277,12 +277,12 @@ class JobPool(object):
             ...     '''
             ...     UDP is a cool protocol, check out the wiki:
             ...
-            ...    UDP-based Data Transfer Protocol (UDT), is a high-performance
-            ...    data transfer protocol designed for transferring large
-            ...    volumetric datasets over high-speed wide area networks. Such
-            ...    settings are typically disadvantageous for the more common TCP
-            ...    protocol.
-            ...    ''')
+            ...     UDP-based Data Transfer Protocol (UDT), is a high-performance
+            ...     data transfer protocol designed for transferring large
+            ...     volumetric datasets over high-speed wide area networks. Such
+            ...     settings are typically disadvantageous for the more common TCP
+            ...     protocol.
+            ...     ''')
             >>> for word in text.split(' '):
             ...     pool.submit(print, word)
             >>> for _ in pool:
