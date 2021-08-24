@@ -73,7 +73,7 @@ def repr2(data, **kwargs):
     produce strings that are consistent, compact, and executable.  This makes
     them great for doctests.
 
-    Notes:
+    Note:
         This function has many keyword arguments that can be used to customize
         the final representation. For convinience some of the more frequently
         used kwargs have short aliases. See "Kwargs" for more details.
@@ -173,7 +173,7 @@ def repr2(data, **kwargs):
     Returns:
         str: outstr - output string
 
-    Notes:
+    Note:
         There are also internal kwargs, which should not be used:
 
             _return_info (bool):  return information about child context

@@ -35,12 +35,12 @@ def writeto(fpath, to_write, aslines=False, verbose=None):
         verbose (bool): verbosity flag
 
     Note:
-        You probably should use `open(<fpath>).write(<to_write>)` instead.
-        This function exists as a convenience for writing in Python2. After
-        2020-01-01, we may consider deprecating the function.
+        In CPython you may wan to use `open(<fpath>).write(<to_write>)`
+        instead.  This function exists as a convenience for writing in Python2.
+        After 2020-01-01, we may consider deprecating the function.
 
-        NOTE: It turns out that `open(<fpath>).write(<to_write>)` does not work
-        in pypy. See `https://pypy.org/compat.html`. This is a strong argument
+        NOTE: In PyPy `open(<fpath>).write(<to_write>)` does not work. See
+        `https://pypy.org/compat.html`. This is a strong argument
         for keeping this function.
 
     Example:
@@ -182,9 +182,9 @@ def delete(path, verbose=False):
         verbose (bool): if True prints what is being done
 
     SeeAlso:
-        :mod:`send2trash` - A cross-platform Python package for sending files
-            to the trash instead of irreversibly deleting them.
-            https://github.com/hsoft/send2trash
+        `send2trash <https://github.com/hsoft/send2trash>`_ -
+            A cross-platform Python package for sending files to the trash
+            instead of irreversibly deleting them.
 
     Example:
         >>> import ubelt as ub

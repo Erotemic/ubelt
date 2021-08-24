@@ -8,17 +8,17 @@ greater, and on 32 and 64 bit versions.
 
 Use Case #1: You have data that you want to hash. If we assume the data is in
 standard python scalars or ordered sequences: e.g.  tuple, list, odict, oset,
-int, str, etc..., then the solution is `:func:hash_data`.
+int, str, etc..., then the solution is :func:`hash_data`.
 
 Use Case #2: You have a file you want to hash, but your system doesn't have a
 sha1sum executable (or you dont want to use Popen). The solution is
-`:func:hash_file`
+:func:`hash_file`
 
-The :func:`ub.hash_data` function recursively hashes most builtin python data
-structures.
+The :func:`ubelt.util_hash.hash_data` function recursively hashes most builtin
+python data structures.
 
-The :func:`ub.hash_file` function hashes data on disk.  Both of the
-aformentioned functions have options for different hashers and alphabets.
+The :func:`ubelt.util_hash.hash_file` function hashes data on disk.  Both of
+the aformentioned functions have options for different hashers and alphabets.
 
 
 Example:
@@ -273,7 +273,7 @@ def _rectify_hasher(hasher):
     """
     Convert a string-based key into a hasher class
 
-    Notes:
+    Note:
         In terms of speed on 64bit systems, sha1 is the fastest followed by md5
         and sha512. The slowest algorithm is sha256. If xxhash is installed
         the fastest algorithm is xxh64.
@@ -366,7 +366,7 @@ class HashableExtensions(object):
     def __init__(self):
         self.keyed_extensions = {}
         self.iterable_checks = []
-        self._lazy_queue = []         # type: List[Callable]
+        self._lazy_queue = []  # type: List[Callable]  # NOQA
 
     def register(self, hash_types):
         """
@@ -961,7 +961,7 @@ def hash_data(data, hasher=NoParam, base=NoParam, types=False,
 
         hasher (str | hashlib.HASH, default='sha512'):
             string code or a hash algorithm from hashlib. Valid hashing
-            algorithms are defined by ``hashlib.algorithms_guaranteed`` (e.g.
+            algorithms are defined by :ref:`hashlib.algorithms_guaranteed` (e.g.
             'sha1', 'sha512', 'md5') as well as 'xxh32' and 'xxh64' if
             :mod:`xxhash` is installed.
 
@@ -986,7 +986,7 @@ def hash_data(data, hasher=NoParam, base=NoParam, types=False,
             a custom :class:`HashableExtensions` instance that can overwrite or
             define how different types of objects are hashed.
 
-    Notes:
+    Note:
         The types allowed are specified by the  HashableExtensions object. By
         default ubelt will register:
 
@@ -998,7 +998,7 @@ def hash_data(data, hasher=NoParam, base=NoParam, types=False,
     Returns:
         str: text representing the hashed data
 
-    Notes:
+    Note:
         The alphabet26 base is a pretty nice base, I recommend it.
         However we default to ``base='hex'`` because it is standard.
         You can try the alphabet26 base by setting ``base='abc'``.
@@ -1057,7 +1057,7 @@ def hash_file(fpath, blocksize=1048576, stride=1, maxbytes=None, hasher=NoParam,
 
         hasher (str | hashlib.HASH, default='sha512'):
             string code or a hash algorithm from hashlib. Valid hashing
-            algorithms are defined by ``hashlib.algorithms_guaranteed`` (e.g.
+            algorithms are defined by :ref:`hashlib.algorithms_guaranteed` (e.g.
             'sha1', 'sha512', 'md5') as well as 'xxh32' and 'xxh64' if
             :mod:`xxhash` is installed.
 
@@ -1071,10 +1071,10 @@ def hash_file(fpath, blocksize=1048576, stride=1, maxbytes=None, hasher=NoParam,
             list of symbols or shorthand key.
             Valid keys are 'abc', 'hex', and 'dec'.
 
-    Notes:
-        For better hashes keep stride = 1
-        For faster hashes set stride > 1
-        blocksize matters when stride > 1
+    Note:
+        For better hashes keep stride = 1.
+        For faster hashes set stride > 1.
+        Blocksize matters when stride > 1.
 
     References:
         http://stackoverflow.com/questions/3431825/md5-checksum-of-a-file

@@ -26,7 +26,7 @@ value of the ``bool(os.environ.get('NO_COLOR'))`` flag, which is complient with
 References:
     .. [1] https://no-color.org/
 
-Notes:
+Note:
     In the future we may rename this module to ``util_ansi``.
 
 Requirements:
@@ -54,8 +54,9 @@ def highlight_code(text, lexer_name='python', **kwargs):
         **kwargs: passed to pygments.lexers.get_lexer_by_name
 
     Returns:
-        str: text - highlighted text
-            If pygments is not installed, the plain text is returned.
+        str:
+            text - highlighted text If pygments is not installed, the plain
+            text is returned.
 
     Example:
         >>> import ubelt as ub
@@ -113,8 +114,9 @@ def color_text(text, color):
             'blue', 'black', and 'white'.
 
     Returns:
-        str: text - colorized text.
-            If pygments is not installed plain text is returned.
+        str:
+            text - colorized text.  If pygments is not installed plain text is
+            returned.
 
     Example:
         >>> text = 'raw text'

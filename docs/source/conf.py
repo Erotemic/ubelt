@@ -116,10 +116,14 @@ autodoc_inherit_docstrings = False
 
 autodoc_member_order = 'bysource'
 # autodoc_mock_imports = ['torch', 'torchvision', 'visdom']
-# intersphinx_mapping = {
-#     # 'pytorch': ('http://pytorch.org/docs/master/', None),
-#     'python': ('https://docs.python.org/3.6', None),
-#     }
+intersphinx_mapping = {
+    # 'pytorch': ('http://pytorch.org/docs/master/', None),
+    'python': ('https://docs.python.org/3.6', None),
+    'click': ('https://click.palletsprojects.com/', None),
+    'xxhash': ('https://pypi.org/project/xxhash/', None),
+    'pygments': ('https://pygments.org/docs/', None),
+    'tqdm': ('https://tqdm.github.io/', None),
+}
 
 
 # Add any paths that contain templates here, relative to this directory.

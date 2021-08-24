@@ -119,7 +119,7 @@ def memoize(func):
         Callable: memoized wrapper
 
     References:
-        https://wiki.python.org/moin/PythonDecoratorLibrary#Memoize
+        .. [1] https://wiki.python.org/moin/PythonDecoratorLibrary#Memoize
 
     Example:
         >>> import ubelt as ub
@@ -160,7 +160,7 @@ class memoize_method(object):
     memoization decorator for a method that respects args and kwargs
 
     References:
-        http://code.activestate.com/recipes/577452-a-memoize-decorator-for-instance-methods/
+        .. [2] http://code.activestate.com/recipes/577452-a-memoize-decorator-for-instance-methods
 
     Example:
         >>> import ubelt as ub
@@ -240,11 +240,11 @@ def memoize_property(fget):
     This decorator can either be used by itself or by decorating another
     property. In either case the method will always become a property.
 
-    Notes:
-        implementation is a modified version of [1].
+    Note:
+        implementation is a modified version of [3]_.
 
     References:
-        ..[1] https://github.com/estebistec/python-memoized-property
+        .. [3] https://github.com/estebistec/python-memoized-property
 
     Example:
         >>> class C(object):

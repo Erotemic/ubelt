@@ -238,7 +238,7 @@ def take(items, indices, default=util_const.NoParam):
         V: a selected item within the list
 
     SeeAlso:
-        :func:`ub.dict_subset`
+        :func:`ubelt.dict_subset`
 
     Notes:
         ``ub.take(items, indices)`` is equivalent to

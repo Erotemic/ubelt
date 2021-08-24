@@ -319,7 +319,7 @@ def find_duplicates(items, k=2, key=None):
             least k times.
 
     Returns:
-        dict[T: List[int]]:
+        dict[T, List[int]] :
             maps each duplicate item to the indices at which it appears
 
     Example:
@@ -414,7 +414,7 @@ def dict_union(*args):
     SeeAlso:
         :func:`collections.ChainMap` - a standard python builtin data structure
         that provides a view that treats multiple dicts as a single dict.
-        `https://docs.python.org/3/library/collections.html#chainmap-objects`
+        `<https://docs.python.org/3/library/collections.html#chainmap-objects>`_
 
     Example:
         >>> result = dict_union({'a': 1, 'b': 1}, {'b': 2, 'c': 2})
@@ -433,7 +433,7 @@ def dict_union(*args):
 
 def dict_diff(*args):
     """
-    Dictionary set extension for ``set.difference``
+    Dictionary set extension for :func:`set.difference`
 
     Constructs a dictionary that contains any of the keys in the first arg,
     which are not in any of the following args.
@@ -475,7 +475,7 @@ def dict_diff(*args):
 
 def dict_isect(*args):
     """
-    Dictionary set extension for ``set.intersection``
+    Dictionary set extension for :func:`set.intersection`
 
     Constructs a dictionary that contains keys common between all inputs.
     The returned values will only belong to the first dictionary.
@@ -487,7 +487,7 @@ def dict_isect(*args):
         Dict | OrderedDict :
             OrderedDict if the first argument is an OrderedDict, otherwise dict
 
-    Notes:
+    Note:
         This function can be used as an alternative to :func:`dict_subset`
         where any key not in the dictionary is ignored. See the following
         example:
@@ -681,7 +681,7 @@ def invert_dict(dict_, unique_vals=True):
         Dict[B, A] | Dict[B, Set[A]]:
             the inverted dictionary
 
-    Notes:
+    Note:
         The must values be hashable.
 
         If the original dictionary contains duplicate values, then only one of
@@ -748,10 +748,11 @@ def named_product(_=None, **basis):
             possible values for that "axes".
 
     Yields:
-        Dict[K, T] - a "row" in the "longform" data containing a point in the
-            Cartesian product.
+        Dict[K, T] -
+            a "row" in the "longform" data containing a point in the Cartesian
+            product.
 
-    Notes:
+    Note:
         This function is similar to :func:`itertools.product`, the only
         difference is that the generated items are a dictionary that retains
         the input keys instead of an tuple.

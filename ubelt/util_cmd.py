@@ -237,12 +237,13 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
         **kwargs: only used to support deprecated arguments
 
     Returns:
-        dict: info - information about command status.
+        dict:
+            info - information about command status.
             if detach is False ``info`` contains captured standard out,
             standard error, and the return code
             if detach is False ``info`` contains a reference to the process.
 
-    Notes:
+    Note:
         Inputs can either be text or tuple based. On UNIX we ensure conversion
         to text if shell=True, and to tuple if shell=False. On windows, the
         input is always text based.  See [3]_ for a potential cross-platform
