@@ -12,7 +12,6 @@ Submodules
    ubelt.timerit
    ubelt.util_arg
    ubelt.util_cache
-   ubelt.util_candidate
    ubelt.util_cmd
    ubelt.util_colors
    ubelt.util_const

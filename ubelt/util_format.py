@@ -6,14 +6,15 @@ than :func:`repr` or :func:`pprint`. See the docstring for more details.
 
 Two main goals of repr2 are to provide nice string representations of nested
 data structures and make those "eval-able" whenever possible. As an example
-take the value `float('inf')`, which normaly has a non-evalable repr of `inf`:
+take the value ``float('inf')``, which normaly has a non-evalable repr of
+``inf``:
 
 >>> import ubelt as ub
 >>> ub.repr2(float('inf'))
 "float('inf')"
 
-The `newline` (or `nl`) keyword argument can control how deep in the nesting
-newlines are allowed.
+The ``newline`` (or ``nl``) keyword argument can control how deep in the
+nesting newlines are allowed.
 
 >>> print(ub.repr2({1: float('nan'), 2: float('inf'), 3: 3.0}))
 {

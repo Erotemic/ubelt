@@ -961,8 +961,8 @@ def hash_data(data, hasher=NoParam, base=NoParam, types=False,
 
         hasher (str | hashlib.HASH, default='sha512'):
             string code or a hash algorithm from hashlib. Valid hashing
-            algorithms are defined by :ref:`hashlib.algorithms_guaranteed` (e.g.
-            'sha1', 'sha512', 'md5') as well as 'xxh32' and 'xxh64' if
+            algorithms are defined by :py:obj:`hashlib.algorithms_guaranteed`
+            (e.g.  'sha1', 'sha512', 'md5') as well as 'xxh32' and 'xxh64' if
             :mod:`xxhash` is installed.
 
         base (List[str] | str, default='hex'):
@@ -1057,8 +1057,8 @@ def hash_file(fpath, blocksize=1048576, stride=1, maxbytes=None, hasher=NoParam,
 
         hasher (str | hashlib.HASH, default='sha512'):
             string code or a hash algorithm from hashlib. Valid hashing
-            algorithms are defined by :ref:`hashlib.algorithms_guaranteed` (e.g.
-            'sha1', 'sha512', 'md5') as well as 'xxh32' and 'xxh64' if
+            algorithms are defined by :py:obj:`hashlib.algorithms_guaranteed`
+            (e.g.  'sha1', 'sha512', 'md5') as well as 'xxh32' and 'xxh64' if
             :mod:`xxhash` is installed.
 
             TODO: add logic such that you can update an existing hasher

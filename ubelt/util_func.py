@@ -4,10 +4,10 @@ Helpers for functional programming.
 
 The :func:`identity` function simply returns its own inputs. This is useful for
 bypassing print statements and many other cases. I also think it looks a little
-nicer than `lambda x: x`.
+nicer than ``lambda x: x``.
 
-The :func:`inject` function "injects" another function into a class instance as a
-method. This is useful for monkey patching.
+The :func:`inject_method` function "injects" another function into a class
+instance as a method. This is useful for monkey patching.
 """
 
 
