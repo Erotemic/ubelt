@@ -285,7 +285,7 @@ class JobPool(object):
             ...     ''')
             >>> for word in text.split(' '):
             ...     pool.submit(print, word)
-            >>> for _ in pool:
+            >>> for _ in pool.as_completed():
             ...     pass
             >>> pool.shutdown()
         """
@@ -300,6 +300,8 @@ class JobPool(object):
             >>> import ubelt as ub
             >>> pool = ub.JobPool('serial')
             >>> assert len(list(iter(pool))) == 0
+            >>> pool.submit(print, 'hi')
+            >>> assert len(list(iter(pool))) == 1
         """
         for job in self.as_completed():
             yield job
