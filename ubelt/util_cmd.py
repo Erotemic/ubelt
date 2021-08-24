@@ -260,36 +260,42 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
         .. [3] https://stackoverflow.com/questions/33560364/python-windows-parsing-command-lines-with-shlex
 
     Example:
-        >>> info = cmd(('echo', 'simple cmdline interface'), verbose=1)
+        >>> import ubelt as ub
+        >>> info = ub.cmd(('echo', 'simple cmdline interface'), verbose=1)
         simple cmdline interface
         >>> assert info['ret'] == 0
         >>> assert info['out'].strip() == 'simple cmdline interface'
         >>> assert info['err'].strip() == ''
 
     Example:
-        >>> info = cmd('echo str noshell', verbose=0)
+        >>> import ubelt as ub
+        >>> info = ub.cmd('echo str noshell', verbose=0)
         >>> assert info['out'].strip() == 'str noshell'
 
     Example:
         >>> # windows echo will output extra single quotes
-        >>> info = cmd(('echo', 'tuple noshell'), verbose=0)
+        >>> import ubelt as ub
+        >>> info = ub.cmd(('echo', 'tuple noshell'), verbose=0)
         >>> assert info['out'].strip().strip("'") == 'tuple noshell'
 
     Example:
         >>> # Note this command is formatted to work on win32 and unix
-        >>> info = cmd('echo str&&echo shell', verbose=0, shell=True)
+        >>> import ubelt as ub
+        >>> info = ub.cmd('echo str&&echo shell', verbose=0, shell=True)
         >>> assert info['out'].strip() == 'str' + chr(10) + 'shell'
 
     Example:
-        >>> info = cmd(('echo', 'tuple shell'), verbose=0, shell=True)
+        >>> import ubelt as ub
+        >>> info = ub.cmd(('echo', 'tuple shell'), verbose=0, shell=True)
         >>> assert info['out'].strip().strip("'") == 'tuple shell'
 
     Example:
         >>> import pytest
-        >>> info = cmd('echo hi', check=True)
+        >>> import ubelt as ub
+        >>> info = ub.cmd('echo hi', check=True)
         >>> import subprocess
         >>> with pytest.raises(subprocess.CalledProcessError):
-        >>>     cmd('exit 1', check=True, shell=True)
+        >>>     ub.cmd('exit 1', check=True, shell=True)
 
     Example:
         >>> import ubelt as ub

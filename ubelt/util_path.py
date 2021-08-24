@@ -86,6 +86,7 @@ def augpath(path, suffix='', prefix='', ext=None, base=None, dpath=None,
         newpath = pref_bar_suff.baz
 
     Example:
+        >>> from ubelt.util_path import *  # NOQA
         >>> augpath('foo.bar')
         'foo.bar'
         >>> augpath('foo.bar', ext='.BAZ')
@@ -153,6 +154,7 @@ def userhome(username=None):
             inferred
 
     Example:
+        >>> from ubelt.util_path import *  # NOQA
         >>> import getpass
         >>> username = getpass.getuser()
         >>> assert userhome() == expanduser('~')
@@ -208,6 +210,7 @@ def shrinkuser(path, home='~'):
         str: path - shortened path replacing the home directory with a tilde
 
     Example:
+        >>> from ubelt.util_path import *  # NOQA
         >>> path = expanduser('~')
         >>> assert path != '~'
         >>> assert shrinkuser(path) == '~'
@@ -240,6 +243,7 @@ def expandpath(path):
         str : expanded path
 
     Example:
+        >>> from ubelt.util_path import *  # NOQA
         >>> import ubelt as ub
         >>> assert normpath(ub.expandpath('~/foo')) == join(ub.userhome(), 'foo')
         >>> assert ub.expandpath('foo') == 'foo'
@@ -270,7 +274,7 @@ def ensuredir(dpath, mode=0o1777, verbose=None, recreate=False):
         This function is not thread-safe in Python2
 
     Example:
-        >>> from ubelt.util_platform import *  # NOQA
+        >>> from ubelt.util_path import *  # NOQA
         >>> import ubelt as ub
         >>> cache_dpath = ub.ensure_app_cache_dir('ubelt')
         >>> dpath = join(cache_dpath, 'ensuredir')
@@ -308,12 +312,14 @@ class TempDir(object):
     Context for creating and cleaning up temporary directories.
 
     Example:
+        >>> from ubelt.util_path import *  # NOQA
         >>> with TempDir() as self:
         >>>     dpath = self.dpath
         >>>     assert exists(dpath)
         >>> assert not exists(dpath)
 
     Example:
+        >>> from ubelt.util_path import *  # NOQA
         >>> self = TempDir()
         >>> dpath = self.ensure()
         >>> assert exists(dpath)

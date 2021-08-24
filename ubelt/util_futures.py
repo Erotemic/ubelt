@@ -261,13 +261,14 @@ class JobPool(object):
         self.executor.__exit__(a, b, c)
 
     def as_completed(self):
-        for job in as_completed(self.jobs):
-            yield job
-
-    def __iter__(self):
         """
+        Generates completed jobs in an arbitrary order
+
+        Yields:
+            Future
+
         CommandLine:
-            xdoctest -m /home/joncrall/code/ubelt/ubelt/util_futures.py JobPool.__iter__
+            xdoctest -m ubelt.util_futures JobPool.as_completed
 
         Example:
             >>> import ubelt as ub
@@ -287,6 +288,18 @@ class JobPool(object):
             >>> for _ in pool:
             ...     pass
             >>> pool.shutdown()
+        """
+        for job in as_completed(self.jobs):
+            yield job
+
+    def __iter__(self):
+        """
+        An alternative to as completed
+
+        Example:
+            >>> import ubelt as ub
+            >>> pool = ub.JobPool('serial')
+            >>> assert len(list(iter(pool))) == 0
         """
         for job in self.as_completed():
             yield job

@@ -55,6 +55,7 @@ def inject_method(self, func, name=None):
             specified the name of the function is used.
 
     Example:
+        >>> import ubelt as ub
         >>> class Foo(object):
         >>>     def bar(self):
         >>>         return 'bar'
@@ -63,10 +64,10 @@ def inject_method(self, func, name=None):
         >>> self = Foo()
         >>> assert self.bar() == 'bar'
         >>> assert not hasattr(self, 'baz')
-        >>> inject_method(self, baz)
+        >>> ub.inject_method(self, baz)
         >>> assert not hasattr(Foo, 'baz'), 'should only change one instance'
         >>> assert self.baz() == 'baz'
-        >>> inject_method(self, baz, 'bar')
+        >>> ub.inject_method(self, baz, 'bar')
         >>> assert self.bar() == 'baz'
     """
     # TODO: if func is a bound method we should probably unbind it
@@ -99,7 +100,7 @@ def compatible(config, func, start=0):
     Example:
         >>> # An example use case is to select a subset of of a config
         >>> # that can be passed to some function as kwargs
-        >>> from ubelt.util_candidate import *  # NOQA
+        >>> import ubelt as ub
         >>> # Define a function with args that match some keys in a config.
         >>> def func(a, e, f):
         >>>     return a * e * f
@@ -109,23 +110,24 @@ def compatible(config, func, start=0):
         ...   'd': 11, 'e': 13, 'f': 17,
         ... }
         >>> # Call the function only with keys that are compatible
-        >>> func(**compatible(config, func))
+        >>> func(**ub.compatible(config, func))
         442
 
     Example:
         >>> # Test case with kwargs
-        >>> from ubelt.util_candidate import *  # NOQA
+        >>> import ubelt as ub
         >>> def func(a, e, f, *args, **kwargs):
         >>>     return a * e * f
         >>> config = {
         ...   'a': 2, 'b': 3, 'c': 7,
         ...   'd': 11, 'e': 13, 'f': 17,
         ... }
-        >>> func(**compatible(config, func))
+        >>> func(**ub.compatible(config, func))
 
     Ignore:
         >>> # xdoctest: +REQUIRES(PY3)
         >>> # Test case with positional only 3.x +
+        >>> import ubelt as ub
         >>> def func(a, e, /,  f):
         >>>     return a * e * f
         >>> config = {
@@ -134,7 +136,7 @@ def compatible(config, func, start=0):
         ... }
         >>> import pytest
         >>> with pytest.raises(ValueError):
-        ...     func(**compatible(config, func))
+        ...     func(**ub.compatible(config, func))
     """
     import inspect
     if hasattr(inspect, 'signature'):  # pragma :nobranch

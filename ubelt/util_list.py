@@ -102,6 +102,7 @@ class chunks(object):
         >>> assert len(list(ub.chunks([], 2, None, 'replicate'))) == 0
 
     Example:
+        >>> from ubelt.util_list import *  # NOQA
         >>> def _check_len(self):
         ...     assert len(self) == len(list(self))
         >>> _check_len(chunks(list(range(3)), nchunks=2))
@@ -109,6 +110,7 @@ class chunks(object):
         >>> _check_len(chunks(list(range(2)), nchunks=3))
 
     Example:
+        >>> from ubelt.util_list import *  # NOQA
         >>> import pytest
         >>> assert pytest.raises(ValueError, chunks, range(9))
         >>> assert pytest.raises(ValueError, chunks, range(9), chunksize=2, nchunks=2)
@@ -203,10 +205,11 @@ def iterable(obj, strok=False):
         bool: True if the input is iterable
 
     Example:
+        >>> import ubelt as ub
         >>> obj_list = [3, [3], '3', (3,), [3, 4, 5], {}]
-        >>> result = [iterable(obj) for obj in obj_list]
+        >>> result = [ub.iterable(obj) for obj in obj_list]
         >>> assert result == [False, True, False, True, True, True]
-        >>> result = [iterable(obj, strok=True) for obj in obj_list]
+        >>> result = [ub.iterable(obj, strok=True) for obj in obj_list]
         >>> assert result == [False, True, True, True, True, True]
     """
     try:
@@ -378,10 +381,11 @@ def argunique(items, key=None):
         Iterator[int] : indices of the unique items
 
     Example:
+        >>> import ubelt as ub
         >>> items = [0, 2, 5, 1, 1, 0, 2, 4]
-        >>> indices = list(argunique(items))
+        >>> indices = list(ub.argunique(items))
         >>> assert indices == [0, 1, 2, 3, 7]
-        >>> indices = list(argunique(items, key=lambda x: x % 2 == 0))
+        >>> indices = list(ub.argunique(items, key=lambda x: x % 2 == 0))
         >>> assert indices == [0, 2]
     """
     if key is None:
@@ -407,9 +411,9 @@ def unique_flags(items, key=None):
     Example:
         >>> import ubelt as ub
         >>> items = [0, 2, 1, 1, 0, 9, 2]
-        >>> flags = unique_flags(items)
+        >>> flags = ub.unique_flags(items)
         >>> assert flags == [True, True, True, False, False, True, False]
-        >>> flags = unique_flags(items, key=lambda x: x % 2 == 0)
+        >>> flags = ub.unique_flags(items, key=lambda x: x % 2 == 0)
         >>> assert flags == [True, False, True, False, False, False, False]
     """
     len_ = len(items)
@@ -475,33 +479,37 @@ def iter_window(iterable, size=2, step=1, wrap=False):
         Iterable[T]: returns a possibly overlaping windows in a sequence
 
     Example:
+        >>> import ubelt as ub
         >>> iterable = [1, 2, 3, 4, 5, 6]
         >>> size, step, wrap = 3, 1, True
-        >>> window_iter = iter_window(iterable, size, step, wrap)
+        >>> window_iter = ub.iter_window(iterable, size, step, wrap)
         >>> window_list = list(window_iter)
         >>> print('window_list = %r' % (window_list,))
         window_list = [(1, 2, 3), (2, 3, 4), (3, 4, 5), (4, 5, 6), (5, 6, 1), (6, 1, 2)]
 
     Example:
+        >>> import ubelt as ub
         >>> iterable = [1, 2, 3, 4, 5, 6]
         >>> size, step, wrap = 3, 2, True
-        >>> window_iter = iter_window(iterable, size, step, wrap)
+        >>> window_iter = ub.iter_window(iterable, size, step, wrap)
         >>> window_list = list(window_iter)
         >>> print('window_list = {!r}'.format(window_list))
         window_list = [(1, 2, 3), (3, 4, 5), (5, 6, 1)]
 
     Example:
+        >>> import ubelt as ub
         >>> iterable = [1, 2, 3, 4, 5, 6]
         >>> size, step, wrap = 3, 2, False
-        >>> window_iter = iter_window(iterable, size, step, wrap)
+        >>> window_iter = ub.iter_window(iterable, size, step, wrap)
         >>> window_list = list(window_iter)
         >>> print('window_list = {!r}'.format(window_list))
         window_list = [(1, 2, 3), (3, 4, 5)]
 
     Example:
+        >>> import ubelt as ub
         >>> iterable = []
         >>> size, step, wrap = 3, 2, False
-        >>> window_iter = iter_window(iterable, size, step, wrap)
+        >>> window_iter = ub.iter_window(iterable, size, step, wrap)
         >>> window_list = list(window_iter)
         >>> print('window_list = {!r}'.format(window_list))
         window_list = []
@@ -540,19 +548,20 @@ def allsame(iterable, eq=operator.eq):
         bool: True if all items are equal, otherwise False
 
     Example:
-        >>> allsame([1, 1, 1, 1])
+        >>> import ubelt as ub
+        >>> ub.allsame([1, 1, 1, 1])
         True
-        >>> allsame([])
+        >>> ub.allsame([])
         True
-        >>> allsame([0, 1])
+        >>> ub.allsame([0, 1])
         False
         >>> iterable = iter([0, 1, 1, 1])
         >>> next(iterable)
-        >>> allsame(iterable)
+        >>> ub.allsame(iterable)
         True
-        >>> allsame(range(10))
+        >>> ub.allsame(range(10))
         False
-        >>> allsame(range(10), lambda a, b: True)
+        >>> ub.allsame(range(10), lambda a, b: True)
         True
     """
     iter_ = iter(iterable)
@@ -636,11 +645,12 @@ def argmax(indexable, key=None):
         int: the index of the item with the maximum value.
 
     Example:
-        >>> assert argmax({'a': 3, 'b': 2, 'c': 100}) == 'c'
-        >>> assert argmax(['a', 'c', 'b', 'z', 'f']) == 3
-        >>> assert argmax([[0, 1], [2, 3, 4], [5]], key=len) == 1
-        >>> assert argmax({'a': 3, 'b': 2, 3: 100, 4: 4}) == 3
-        >>> assert argmax(iter(['a', 'c', 'b', 'z', 'f'])) == 3
+        >>> import ubelt as ub
+        >>> assert ub.argmax({'a': 3, 'b': 2, 'c': 100}) == 'c'
+        >>> assert ub.argmax(['a', 'c', 'b', 'z', 'f']) == 3
+        >>> assert ub.argmax([[0, 1], [2, 3, 4], [5]], key=len) == 1
+        >>> assert ub.argmax({'a': 3, 'b': 2, 3: 100, 4: 4}) == 3
+        >>> assert ub.argmax(iter(['a', 'c', 'b', 'z', 'f'])) == 3
     """
     if key is None and isinstance(indexable, collections_abc.Mapping):
         return max(indexable.items(), key=operator.itemgetter(1))[0]
@@ -671,11 +681,12 @@ def argmin(indexable, key=None):
         int: the index of the item with the minimum value.
 
     Example:
-        >>> assert argmin({'a': 3, 'b': 2, 'c': 100}) == 'b'
-        >>> assert argmin(['a', 'c', 'b', 'z', 'f']) == 0
-        >>> assert argmin([[0, 1], [2, 3, 4], [5]], key=len) == 2
-        >>> assert argmin({'a': 3, 'b': 2, 3: 100, 4: 4}) == 'b'
-        >>> assert argmin(iter(['a', 'c', 'A', 'z', 'f'])) == 2
+        >>> import ubelt as ub
+        >>> assert ub.argmin({'a': 3, 'b': 2, 'c': 100}) == 'b'
+        >>> assert ub.argmin(['a', 'c', 'b', 'z', 'f']) == 0
+        >>> assert ub.argmin([[0, 1], [2, 3, 4], [5]], key=len) == 2
+        >>> assert ub.argmin({'a': 3, 'b': 2, 3: 100, 4: 4}) == 'b'
+        >>> assert ub.argmin(iter(['a', 'c', 'A', 'z', 'f'])) == 2
     """
     if key is None and isinstance(indexable, collections_abc.Mapping):
         return min(indexable.items(), key=operator.itemgetter(1))[0]

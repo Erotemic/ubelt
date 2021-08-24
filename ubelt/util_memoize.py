@@ -70,6 +70,7 @@ def _make_signature_key(args, kwargs):
     Transforms function args into a key that can be used by the cache
 
     Example:
+        >>> from ubelt.util_memoize import _make_signature_key
         >>> args = (4, [1, 2])
         >>> kwargs = {'a': 'b'}
         >>> key = _make_signature_key(args, kwargs)
@@ -247,14 +248,15 @@ def memoize_property(fget):
         .. [3] https://github.com/estebistec/python-memoized-property
 
     Example:
+        >>> import ubelt as ub
         >>> class C(object):
         ...     load_name_count = 0
-        ...     @memoize_property
+        ...     @ub.memoize_property
         ...     def name(self):
         ...         "name's docstring"
         ...         self.load_name_count += 1
         ...         return "the name"
-        ...     @memoize_property
+        ...     @ub.memoize_property
         ...     @property
         ...     def another_name(self):
         ...         "name's docstring"

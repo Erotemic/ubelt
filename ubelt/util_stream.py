@@ -31,8 +31,9 @@ class TeeStringIO(io.StringIO):
         redirect (io.IOBase): The other stream to write to.
 
     Example:
+        >>> import ubelt as ub
         >>> redirect = io.StringIO()
-        >>> self = TeeStringIO(redirect)
+        >>> self = ub.TeeStringIO(redirect)
     """
     def __init__(self, redirect=None):
         self.redirect = redirect  # type: io.IOBase
@@ -84,12 +85,13 @@ class TeeStringIO(io.StringIO):
         Gets the encoding of the `redirect` IO object
 
         Example:
+            >>> import ubelt as ub
             >>> redirect = io.StringIO()
-            >>> assert TeeStringIO(redirect).encoding is None
-            >>> assert TeeStringIO(None).encoding is None
-            >>> assert TeeStringIO(sys.stdout).encoding is sys.stdout.encoding
+            >>> assert ub.TeeStringIO(redirect).encoding is None
+            >>> assert ub.TeeStringIO(None).encoding is None
+            >>> assert ub.TeeStringIO(sys.stdout).encoding is sys.stdout.encoding
             >>> redirect = io.TextIOWrapper(io.StringIO())
-            >>> assert TeeStringIO(redirect).encoding is redirect.encoding
+            >>> assert ub.TeeStringIO(redirect).encoding is redirect.encoding
         """
         if self.redirect is not None:
             return self.redirect.encoding
@@ -133,7 +135,8 @@ class CaptureStdout(CaptureStream):
             does nothing if this is False
 
     Example:
-        >>> self = CaptureStdout(supress=True)
+        >>> import ubelt as ub
+        >>> self = ub.CaptureStdout(supress=True)
         >>> print('dont capture the table flip (╯°□°）╯︵ ┻━┻')
         >>> with self:
         ...     text = 'capture the heart ♥'
@@ -144,13 +147,15 @@ class CaptureStdout(CaptureStream):
         >>> assert self.text == text + '\n', 'failed capture text'
 
     Example:
-        >>> self = CaptureStdout(supress=False)
+        >>> import ubelt as ub
+        >>> self = ub.CaptureStdout(supress=False)
         >>> with self:
         ...     print('I am captured and printed in stdout')
         >>> assert self.text.strip() == 'I am captured and printed in stdout'
 
     Example:
-        >>> self = CaptureStdout(supress=True, enabled=False)
+        >>> import ubelt as ub
+        >>> self = ub.CaptureStdout(supress=True, enabled=False)
         >>> with self:
         ...     print('dont capture')
         >>> assert self.text is None
@@ -187,8 +192,9 @@ class CaptureStdout(CaptureStream):
     def stop(self):
         """
         Example:
-            >>> CaptureStdout(enabled=False).stop()
-            >>> CaptureStdout(enabled=True).stop()
+            >>> import ubelt as ub
+            >>> ub.CaptureStdout(enabled=False).stop()
+            >>> ub.CaptureStdout(enabled=True).stop()
         """
         if self.enabled:
             self.started = False
