@@ -274,15 +274,15 @@ class JobPool(object):
             >>> import ubelt as ub
             >>> pool = ub.JobPool('thread', max_workers=8)
             >>> text = ub.paragraph(
-                '''
-                UDP is a cool protocol, check out the wiki:
-
-                UDP-based Data Transfer Protocol (UDT), is a high-performance
-                data transfer protocol designed for transferring large
-                volumetric datasets over high-speed wide area networks. Such
-                settings are typically disadvantageous for the more common TCP
-                protocol.
-                ''')
+            ...     '''
+            ...     UDP is a cool protocol, check out the wiki:
+            ...
+            ...    UDP-based Data Transfer Protocol (UDT), is a high-performance
+            ...    data transfer protocol designed for transferring large
+            ...    volumetric datasets over high-speed wide area networks. Such
+            ...    settings are typically disadvantageous for the more common TCP
+            ...    protocol.
+            ...    ''')
             >>> for word in text.split(' '):
             ...     pool.submit(print, word)
             >>> for _ in pool:
