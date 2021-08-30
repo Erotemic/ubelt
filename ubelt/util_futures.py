@@ -135,10 +135,46 @@ class SerialExecutor(object):
         pass
 
     def submit(self, func, *args, **kw):
+        """ Submit a job to be executed later """
         return SerialFuture(func, *args, **kw)
 
     def shutdown(self):
+        """
+        Ignored for the serial executor
+        """
         pass
+
+    def map(self, fn, *iterables, timeout=None, chunksize=1):
+        """Returns an iterator equivalent to map(fn, iter).
+
+        Args:
+            fn: A callable that will take as many arguments as there are
+                passed iterables.
+            timeout:
+                This argument is ignored for SerialExecutor
+            chunksize:
+                This argument is ignored for SerialExecutor
+
+        Returns:
+            An iterator equivalent to: map(func, *iterables) but the calls may
+            be evaluated out-of-order.
+
+        Raises:
+            Exception: If fn(*args) raises for any values.
+
+        Example:
+            >>> from ubelt.util_futures import SerialExecutor  # NOQA
+            >>> import concurrent.futures
+            >>> import string
+            >>> with SerialExecutor() as executor:
+            ...     result_iter = executor.map(int, string.digits)
+            ...     results = list(result_iter)
+            >>> print('results = {!r}'.format(results))
+            results = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+        """
+        fs = [self.submit(fn, *args) for args in zip(*iterables)]
+        for f in fs:
+            yield f.result()
 
 
 class Executor(object):
@@ -212,10 +248,39 @@ class Executor(object):
         return self.backend.__exit__(ex_type, ex_value, tb)
 
     def submit(self, func, *args, **kw):
+        """
+        Calls the submit function of the underlying backend.
+        """
         return self.backend.submit(func, *args, **kw)
 
     def shutdown(self):
+        """
+        Calls the shutdown function of the underlying backend.
+        """
         return self.backend.shutdown()
+
+    def map(self, fn, *iterables, timeout=None, chunksize=1):
+        """
+        Calls the map function of the underlying backend.
+
+        Example:
+            >>> from ubelt.util_futures import SerialExecutor  # NOQA
+            >>> import concurrent.futures
+            >>> import string
+            >>> with Executor(mode='serial') as executor:
+            ...     result_iter = executor.map(int, string.digits)
+            ...     results = list(result_iter)
+            >>> print('results = {!r}'.format(results))
+            results = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+            >>> with Executor(mode='process', max_workers=2) as executor:
+            ...     result_iter = executor.map(int, string.digits)
+            ...     results = list(result_iter)
+            >>> # xdoctest: +IGNORE_WANT
+            >>> print('results = {!r}'.format(results))
+            results = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+        """
+        return self.backend.map(fn, *iterables, timeout=timeout,
+                                chunksize=chunksize)
 
 
 class JobPool(object):

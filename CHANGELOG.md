@@ -5,6 +5,18 @@ We are currently working on porting this changelog to the specifications in
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## Version 0.10.2 - Unreleased
+
+### Fixed
+
+* Added `map` function to the executor classes.
+
+
+## Version 0.10.1 - Released 2021-08-23
+
+### Changed
+* Documentation fixes
+
 ## Version 0.10.0 - Released 2021-08-22
 
 ### Added
