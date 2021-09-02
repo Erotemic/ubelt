@@ -24,6 +24,10 @@ class IndexableWalker(Generator):
     When generating values, you can use "send" to prevent traversal of a
     particular branch.
 
+    RelatedWork:
+        * https://pypi.org/project/python-benedict/ - implements a dictionary
+            subclass with similar nested indexing abilities.
+
     Example:
         >>> # Given Nested Data
         >>> data = {

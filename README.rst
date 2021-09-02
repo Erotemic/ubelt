@@ -777,13 +777,25 @@ Similar Tools
 -------------
 
 UBelt is one of many Python utility libraries. Other similar libraries are
-listed here:
+listed here.
+
+Libraries that contain a broad scope of utilities:
 
 * Boltons: https://github.com/mahmoud/boltons
+
+
+Libraries that contain a specific scope of utilities:
+
 * More-Itertools: https://pypi.org/project/more-itertools/
 * Toolz: https://github.com/pytoolz/toolz
 * CyToolz: https://github.com/pytoolz/cytoolz/
 * Funcy: https://github.com/Suor/funcy
+* Rich: https://github.com/willmcgugan/rich
+
+
+Libraries that contain one specific data structure or utility:
+
+* Benedict: https://pypi.org/project/python-benedict/
 
 
 Notes.

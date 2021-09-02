@@ -181,6 +181,10 @@ def repr2(data, **kwargs):
 
             _root_info (depth): information about parent context
 
+    RelatedWork:
+        :func:`rich.pretty.pretty_repr`
+        :func:`pprint.pformat`
+
     Example:
         >>> from ubelt.util_format import *
         >>> import ubelt as ub
