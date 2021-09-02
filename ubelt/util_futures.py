@@ -174,7 +174,7 @@ class SerialExecutor(object):
         """
         kwargs.pop('chunksize', None)
         kwargs.pop('timeout', None)
-        if len(kwargs) != 0:
+        if len(kwargs) != 0:  # nocover
             raise ValueError('Unknown arguments {}'.format(kwargs))
 
         fs = [self.submit(fn, *args) for args in zip(*iterables)]
@@ -247,7 +247,8 @@ class Executor(object):
         self.backend = backend
 
     def __enter__(self):
-        return self.backend.__enter__()
+        self.backend.__enter__()
+        return self
 
     def __exit__(self, ex_type, ex_value, tb):
         return self.backend.__exit__(ex_type, ex_value, tb)
@@ -268,16 +269,19 @@ class Executor(object):
         """
         Calls the map function of the underlying backend.
 
+        CommandLine:
+            xdoctest -m /home/joncrall/code/ubelt/ubelt/util_futures.py Executor.map
+
         Example:
-            >>> from ubelt.util_futures import SerialExecutor  # NOQA
+            >>> import ubelt as ub
             >>> import concurrent.futures
             >>> import string
-            >>> with Executor(mode='serial') as executor:
+            >>> with ub.Executor(mode='serial') as executor:
             ...     result_iter = executor.map(int, string.digits)
             ...     results = list(result_iter)
             >>> print('results = {!r}'.format(results))
             results = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-            >>> with Executor(mode='thread', max_workers=2) as executor:
+            >>> with ub.Executor(mode='thread', max_workers=2) as executor:
             ...     result_iter = executor.map(int, string.digits)
             ...     results = list(result_iter)
             >>> # xdoctest: +IGNORE_WANT
@@ -287,7 +291,7 @@ class Executor(object):
         # Hack for python2
         chunksize = kwargs.pop('chunksize', 1)
         timeout = kwargs.pop('timeout', None)
-        if len(kwargs) != 0:
+        if len(kwargs) != 0:  # nocover
             raise ValueError('Unknown arguments {}'.format(kwargs))
         return self.backend.map(fn, *iterables, timeout=timeout,
                                 chunksize=chunksize)
