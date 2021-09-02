@@ -10,6 +10,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ### Fixed
 
 * Added `map` function to the executor classes.
+* `ub.Executor` now correctly returns itself from `__enter__`
 
 
 ## Version 0.10.1 - Released 2021-08-23
