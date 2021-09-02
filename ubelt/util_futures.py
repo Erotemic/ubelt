@@ -277,7 +277,7 @@ class Executor(object):
             ...     results = list(result_iter)
             >>> print('results = {!r}'.format(results))
             results = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-            >>> with Executor(mode='process', max_workers=2) as executor:
+            >>> with Executor(mode='thread', max_workers=2) as executor:
             ...     result_iter = executor.map(int, string.digits)
             ...     results = list(result_iter)
             >>> # xdoctest: +IGNORE_WANT
