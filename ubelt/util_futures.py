@@ -144,7 +144,7 @@ class SerialExecutor(object):
         """
         pass
 
-    def map(self, fn, *iterables, timeout=None, chunksize=1):
+    def map(self, fn, *iterables, **kwargs):
         """Returns an iterator equivalent to map(fn, iter).
 
         Args:
@@ -172,6 +172,11 @@ class SerialExecutor(object):
             >>> print('results = {!r}'.format(results))
             results = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
         """
+        kwargs.pop('chunksize', None)
+        kwargs.pop('timeout', None)
+        if len(kwargs) != 0:
+            raise ValueError('Unknown arguments {}'.format(kwargs))
+
         fs = [self.submit(fn, *args) for args in zip(*iterables)]
         for f in fs:
             yield f.result()
@@ -259,7 +264,7 @@ class Executor(object):
         """
         return self.backend.shutdown()
 
-    def map(self, fn, *iterables, timeout=None, chunksize=1):
+    def map(self, fn, *iterables, **kwargs):
         """
         Calls the map function of the underlying backend.
 
@@ -279,6 +284,11 @@ class Executor(object):
             >>> print('results = {!r}'.format(results))
             results = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
         """
+        # Hack for python2
+        chunksize = kwargs.pop('chunksize', 1)
+        timeout = kwargs.pop('timeout', None)
+        if len(kwargs) != 0:
+            raise ValueError('Unknown arguments {}'.format(kwargs))
         return self.backend.map(fn, *iterables, timeout=timeout,
                                 chunksize=chunksize)
 
