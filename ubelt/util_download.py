@@ -83,7 +83,7 @@ def download(url, fpath=None, dpath=None, fname=None, hash_prefix=None,
         URLError - if there is problem downloading the url
         RuntimeError - if the hash does not match the hash_prefix
 
-    Notes:
+    Note:
         Based largely on code in pytorch [4]_ with modifications influenced by
         other resources [1]_ [2]_ [3]_.
 

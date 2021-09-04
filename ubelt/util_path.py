@@ -274,7 +274,7 @@ def ensuredir(dpath, mode=0o1777, verbose=0, recreate=False):
     Returns:
         str: path - the ensured directory
 
-    Notes:
+    Note:
         This function is not thread-safe in Python2
 
     Example:

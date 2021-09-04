@@ -7,7 +7,7 @@ Standard application directory structure: cache, config, and other XDG
 standards [1]_. This is similar to the more focused :mod:`appdirs` module [5]_.
 In the future ubelt may directly use :mod:`appdirs`.
 
-Notes:
+Note:
     Table mapping the type of directory to the system default environment
     variable.  Inspired by [2]_, [3]_, and [4]_.
 
@@ -286,7 +286,7 @@ def find_exe(name, multi=False, path=None):
     SeeAlso:
         :func:`shutil.which` - which is available in Python 3.3+.
 
-    Notes:
+    Note:
         This is essentially the ``which`` UNIX command
 
     References:
@@ -338,7 +338,7 @@ def find_path(name, path=None, exact=False):
     (file must be in a directory specified in a PATH environment variable)
 
     Args:
-        fname (str | PathLike): file name to match.
+        name (str | PathLike): file name to match.
             If exact is False this may be a glob pattern
 
         path (str | Iterable[str | PathLike], default=None):
@@ -351,11 +351,11 @@ def find_path(name, path=None, exact=False):
     Yields:
         str: candidate - a path that matches ``name``
 
-    Notes:
+    Note:
         Running with ``name=''`` (i.e. ``ub.find_path('')``) will simply yield all
         directories in your PATH.
 
-    Notes:
+    Note:
         For recursive behavior set ``path=(d for d, _, _ in os.walk('.'))``,
         where '.' might be replaced by the root directory of interest.
 

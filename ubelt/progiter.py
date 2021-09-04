@@ -355,7 +355,7 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
                  enabled=True, verbose=None, stream=None, chunksize=None,
                  **kwargs):
         """
-        Notes:
+        Note:
             See attributes for arg information
             **kwargs accepts most of the tqdm api
         """
