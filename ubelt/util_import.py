@@ -128,7 +128,7 @@ def import_module_from_path(modpath, index=-1):
             The default may change to 0 in the future.
 
     Returns:
-        module: the imported module
+        ModuleType: the imported module
 
     References:
         https://stackoverflow.com/questions/67631/import-module-given-path
@@ -240,7 +240,7 @@ def import_module_from_name(modname):
         modname (str):  module name
 
     Returns:
-        module: module
+        ModuleType: module
 
     Example:
         >>> # test with modules that wont be imported in normal circumstances

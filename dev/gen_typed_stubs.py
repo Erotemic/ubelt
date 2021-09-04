@@ -80,11 +80,19 @@ def generate_typed_stubs():
     from mypy import stubgen
     from mypy import defaults
     import ubelt
+    import ubelt as ub
 
     # files = [ubelt.util_hash.__file__]
     from xdoctest import static_analysis
-    from os.path import dirname
-    files = list(static_analysis.package_modpaths(dirname(ubelt.__file__), recursive=True, with_libs=1, with_pkg=0))
+    from os.path import dirname, join
+    ubelt_dpath = dirname(ubelt.__file__)
+
+    import pathlib
+    for p in pathlib.Path(ubelt_dpath).glob('*.pyi'):
+        p.unlink()
+    files = list(static_analysis.package_modpaths(ubelt_dpath, recursive=True, with_libs=1, with_pkg=0))
+    files = [f for f in files if 'deprecated' not in f]
+    # files = [join(ubelt_dpath, 'util_dict.py')]
 
     options = stubgen.Options(
         pyversion=defaults.PYTHON3_VERSION,
@@ -95,7 +103,7 @@ def generate_typed_stubs():
         ignore_errors=False,
         parse_only=True,
         include_private=False,
-        output_dir='./mypy_out',
+        output_dir=dirname(ubelt_dpath),
         modules=[],
         packages=[],
         files=files,
@@ -137,14 +145,36 @@ def generate_typed_stubs():
                                         export_less=options.export_less)
             assert mod.ast is not None, "This function must be used only with analyzed modules"
             mod.ast.accept(gen)
-            print(gen.output())
+            print('gen.import_tracker.required_names = {!r}'.format(gen.import_tracker.required_names))
+            print(gen.import_tracker.import_lines())
+
+            known_one_letter_types = {
+                # 'T', 'K', 'A', 'B', 'C', 'V',
+                'DT', 'KT', 'VT', 'T'
+            }
+            for type_var_name in set(gen.import_tracker.required_names) & set(known_one_letter_types):
+                gen.add_typing_import('TypeVar')
+                gen.add_import_line('from typing import {}\n'.format('TypeVar'))
+                gen._output = ['{} = TypeVar("{}")\n'.format(type_var_name, type_var_name)] + gen._output
+
+            custom_types = {'Hasher'}
+            for type_var_name in set(gen.import_tracker.required_names) & set(custom_types):
+                gen.add_typing_import('TypeVar')
+                gen.add_import_line('from typing import {}\n'.format('TypeVar'))
+                gen._output = ['{} = TypeVar("{}")\n'.format(type_var_name, type_var_name)] + gen._output
+
+            text = ''.join(gen.output())
+            # Hack to remove lines caused by Py2 compat
+            text = text.replace('Generator = object\n', '')
+            text = text.replace('select = NotImplemented\n', '')
+            print(text)
 
             # Write output to file.
             subdir = os.path.dirname(target)
             if subdir and not os.path.isdir(subdir):
                 os.makedirs(subdir)
             with open(target, 'w') as file:
-                file.write(''.join(gen.output()))
+                file.write(text)
 
 
 
@@ -183,6 +213,32 @@ class ExtendedStubGenerator(StubGenerator):
         #     import xdev
         #     xdev.embed()
 
+        def _hack_for_info(info):
+            for typing_arg in ['Iterable', 'Callable', 'Dict',
+                               'List', 'Union', 'Type', 'Mapping',
+                               'Tuple', 'Optional', 'Sequence',
+                               'Iterator', 'Set', 'Dict']:
+                if typing_arg in info['type']:
+                    self.add_typing_import(typing_arg)
+                    self.add_import_line('from typing import {}\n'.format(typing_arg))
+
+            if 'io.' in info['type']:
+                self.add_import_line('import io\n')
+
+            if '|' in info['type']:
+                self.add_typing_import('Union')
+                self.add_import_line('from typing import {}\n'.format('Union'))
+
+            if 'ModuleType' in info['type']:
+                self.add_import_line('from types import {}\n'.format('ModuleType'))
+                # types.ModuleType
+
+            if 'hashlib._hashlib' in info['type']:
+                self.add_import_line('import hashlib._hashlib\n')
+
+            if 'PathLike' in info['type']:
+                self.add_import_line('from os import {}\n'.format('PathLike'))
+
         name_to_parsed_docstr_info = {}
         return_parsed_docstr_info = None
         if hasattr(ub, o.name):
@@ -190,20 +246,23 @@ class ExtendedStubGenerator(StubGenerator):
             from mypy import fastparse
             from xdoctest.docstr import docscrape_google
             parsed_args = None
-            parsed_ret = None
+            # parsed_ret = None
 
             blocks = docscrape_google.split_google_docblocks(real_func.__doc__)
             for key, block in blocks:
                 lines = block[0]
                 if key == 'Returns':
                     for retdict in docscrape_google.parse_google_retblock(lines):
+                        _hack_for_info(retdict)
                         return_parsed_docstr_info = (key, retdict['type'])
                 if key == 'Yields':
                     for retdict in docscrape_google.parse_google_retblock(lines):
+                        _hack_for_info(retdict)
                         return_parsed_docstr_info = (key, retdict['type'])
                 if key == 'Args':
                     parsed_args = list(docscrape_google.parse_google_argblock(lines))
                     for info in parsed_args:
+                        _hack_for_info(info)
                         name_to_parsed_docstr_info[info['name']] = info
 
             parsed_rets = list(docscrape_google.parse_google_returns(real_func.__doc__))
@@ -211,6 +270,7 @@ class ExtendedStubGenerator(StubGenerator):
             for info in parsed_rets:
                 try:
                     got = fastparse.parse_type_string(info['type'], 'Any', 0, 0)
+
                     ret_infos.append(got)
                 except Exception:
                     pass
@@ -325,3 +385,11 @@ class ExtendedStubGenerator(StubGenerator):
         self.add(', '.join(args))
         self.add("){}: ...\n".format(retfield))
         self._state = FUNC
+
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python ~/code/ubelt/dev/gen_typed_stubs.py
+    """
+    generate_typed_stubs()

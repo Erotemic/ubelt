@@ -107,7 +107,7 @@ class TeeStringIO(io.StringIO):
         if PY2:
             from xdoctest.utils.util_str import ensure_unicode
             msg = ensure_unicode(msg)
-        super(TeeStringIO, self).write(msg)
+        return super(TeeStringIO, self).write(msg)
 
     def flush(self):  # nocover
         """
@@ -115,7 +115,7 @@ class TeeStringIO(io.StringIO):
         """
         if self.redirect is not None:
             self.redirect.flush()
-        super(TeeStringIO, self).flush()
+        return super(TeeStringIO, self).flush()
 
 
 class CaptureStream(object):

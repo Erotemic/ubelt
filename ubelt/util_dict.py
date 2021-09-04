@@ -152,16 +152,16 @@ def dzip(items1, items2, cls=dict):
     Values from items2 can be broadcast onto items1.
 
     Args:
-        items1 (Iterable[A]): full sequence
+        items1 (Iterable[KT]): full sequence
 
-        items2 (Iterable[B]):
+        items2 (Iterable[VT]):
             can either be a sequence of one item or a sequence of equal length
             to ``items1``
 
         cls (Type[dict], default=dict): dictionary type to use.
 
     Returns:
-        Dict[A, B]: similar to ``dict(zip(items1, items2))``.
+        Dict[KT, VT]: similar to ``dict(zip(items1, items2))``.
 
     Example:
         >>> import ubelt as ub
@@ -197,14 +197,14 @@ def group_items(items, key):
     Groups a list of items by group id.
 
     Args:
-        items (Iterable[A]): a list of items to group
+        items (Iterable[VT]): a list of items to group
 
-        key (Iterable[B] | Callable[[A], B]):
+        key (Iterable[KT] | Callable[[VT], KT]):
             either a corresponding list of group-ids for each item or
             a function used to map each item to a group-id.
 
     Returns:
-        dict[B, List[A]]:
+        dict[KT, List[VT]]:
             a mapping from each group id to the list of corresponding items
 
     Example:
@@ -370,16 +370,17 @@ def dict_subset(dict_, keys, default=util_const.NoParam, cls=OrderedDict):
     Get a subset of a dictionary
 
     Args:
-        dict_ (Dict[A, B]): superset dictionary
+        dict_ (Dict[KT, VT]): superset dictionary
 
-        keys (Iterable[A]): keys to take from ``dict_``
+        keys (Iterable[KT]): keys to take from ``dict_``
 
-        default (object, optional): if specified uses default if keys are missing
+        default (Optional[object] | util_const._NoParamType):
+            if specified uses default if keys are missing.
 
-        cls (type, default=OrderedDict): type of the returned dictionary.
+        cls (Type[Dict], default=OrderedDict): type of the returned dictionary.
 
     Returns:
-        cls[A, B]: subset dictionary
+        Dict[KT, VT]: subset dictionary
 
     SeeAlso:
         :func:`dict_isect` - similar functionality, but ignores missing keys
@@ -394,7 +395,7 @@ def dict_subset(dict_, keys, default=util_const.NoParam, cls=OrderedDict):
     """
     keys = list(keys)
     items = util_list.take(dict_, keys, default)
-    subdict_ = OrderedDict(list(zip(keys, items)))
+    subdict_ = cls(list(zip(keys, items)))
     return subdict_
 
 
@@ -527,11 +528,11 @@ def map_vals(func, dict_):
     Creates a new dictionary with the same keys and modified values.
 
     Args:
-        func (Callable[[B], C] | Mapping[B, C]): a function or indexable object
-        dict_ (Dict[A, B]): a dictionary
+        func (Callable[[VT], T] | Mapping[VT, T]): a function or indexable object
+        dict_ (Dict[KT, VT]): a dictionary
 
     Returns:
-        Dict[A, C]: transformed dictionary
+        Dict[KT, T]: transformed dictionary
 
     Example:
         >>> import ubelt as ub
@@ -564,11 +565,11 @@ def map_keys(func, dict_):
     is raised if the new keys are not unique.
 
     Args:
-        func (Callable[[A], C] | Mapping[A, C]): a function or indexable object
-        dict_ (Dict[A, B]): a dictionary
+        func (Callable[[KT], T] | Mapping[KT, T]): a function or indexable object
+        dict_ (Dict[KT, VT]): a dictionary
 
     Returns:
-        Dict[C, B]: transformed dictionary
+        Dict[T, VT]: transformed dictionary
 
     Raises:
         Exception : if multiple keys map to the same value
@@ -601,17 +602,18 @@ def sorted_vals(dict_, key=None, reverse=False):
     Return an ordered dictionary sorted by its values
 
     Args:
-        dict_ (Dict[A, B]):
+        dict_ (Dict[KT, VT]):
             dictionary to sort. The values must be of comparable types.
 
-        key (Callable[[B], Any], optional):
-            customizes the sorting by ordering using transformed values
+        key (Callable[[VT], Any] | None):
+            If given as a callable, customizes the sorting by ordering using
+            transformed values.
 
         reverse (bool, default=False):
             if True returns in descending order
 
     Returns:
-        OrderedDict[A, B]: new dictionary where the values are ordered
+        OrderedDict[KT, VT]: new dictionary where the values are ordered
 
     Example:
         >>> import ubelt as ub
@@ -643,17 +645,18 @@ def sorted_keys(dict_, key=None, reverse=False):
     Return an ordered dictionary sorted by its keys
 
     Args:
-        dict_ (Dict[A, B]):
+        dict_ (Dict[KT, VT]):
             dictionary to sort. The keys must be of comparable types.
 
-        key (Callable[[A], Any], optional):
-            customizes the sorting by ordering using transformed keys
+        key (Callable[[KT], Any] | None):
+            If given as a callable, customizes the sorting by ordering using
+            transformed keys.
 
         reverse (bool, default=False):
             if True returns in descending order
 
     Returns:
-        OrderedDict[A, B]: new dictionary where the keys are ordered
+        OrderedDict[KT, VT]: new dictionary where the keys are ordered
 
     Example:
         >>> import ubelt as ub
@@ -682,13 +685,13 @@ def invert_dict(dict_, unique_vals=True):
     Swaps the keys and values in a dictionary.
 
     Args:
-        dict_ (Dict[A, B]): dictionary to invert
+        dict_ (Dict[KT, VT]): dictionary to invert
 
         unique_vals (bool, default=True): if False, the values of the new
             dictionary are sets of the original keys.
 
     Returns:
-        Dict[B, A] | Dict[B, Set[A]]:
+        Dict[VT, KT] | Dict[VT, Set[KT]]:
             the inverted dictionary
 
     Note:
@@ -750,7 +753,7 @@ def named_product(_=None, **basis):
             keyword args.  This exists to support ordered dictionaries before
             Python 3.6, and may eventually be removed.
 
-        basis (Dict[K, List[T]]):
+        basis (Dict[KT, List[VT]]):
             A dictionary where the keys correspond to "columns" and the values
             are a list of possible values that "column" can take.
 
@@ -758,7 +761,7 @@ def named_product(_=None, **basis):
             possible values for that "axes".
 
     Yields:
-        Dict[K, T] :
+        Dict[KT, VT] :
             a "row" in the "longform" data containing a point in the Cartesian
             product.
 

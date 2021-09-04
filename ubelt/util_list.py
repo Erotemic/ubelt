@@ -229,17 +229,17 @@ def take(items, indices, default=util_const.NoParam):
     specifying a default element if ``items`` is an iterable of dictionaries.
 
     Args:
-        items (Sequence[V] | Mapping[K, V]):
+        items (Sequence[VT] | Mapping[KT, VT]):
             An indexable object to select items from
 
-        indices (Iterable[int | K]):
+        indices (Iterable[int | KT]):
             sequence of indexes into ``items``
 
         default (Any, default=NoParam):
             if specified ``items`` must support the ``get`` method.
 
     Yeilds:
-        V: a selected item within the list
+        VT: a selected item within the list
 
     SeeAlso:
         :func:`ubelt.dict_subset`
@@ -331,13 +331,13 @@ def unique(items, key=None):
     Generates unique items in the order they appear.
 
     Args:
-        items (Iterable[A]): list of items
+        items (Iterable[T]): list of items
 
-        key (Callable[[A], B], default=None): custom normalization function.
+        key (Callable[[T], Any], default=None): custom normalization function.
             If specified returns items where ``key(item)`` is unique.
 
     Yields:
-        A:
+        T:
             a unique item from the input sequence
 
     Example:
@@ -374,9 +374,9 @@ def argunique(items, key=None):
     Returns indices corresponding to the first instance of each unique item.
 
     Args:
-        items (Sequence[V]): indexable collection of items
+        items (Sequence[VT]): indexable collection of items
 
-        key (Callable[[V], Any], default=None): custom normalization function.
+        key (Callable[[VT], Any], default=None): custom normalization function.
             If specified returns items where ``key(item)`` is unique.
 
     Returns:
@@ -402,10 +402,11 @@ def unique_flags(items, key=None):
     unique item.
 
     Args:
-        items (Sequence): indexable collection of items
+        items (Sequence[VT]): indexable collection of items
 
-        key (Callable[[V], Any], default=None): custom normalization function.
-            If specified returns items where ``key(item)`` is unique.
+        key (Callable[[VT], Any] | None, default=None): custom normalization
+            function.  If specified returns items where ``key(item)`` is
+            unique.
 
     Returns:
         List[bool] : flags the items that are unique
@@ -540,10 +541,10 @@ def allsame(iterable, eq=operator.eq):
     Determine if all items in a sequence are the same
 
     Args:
-        iterable (Iterable[A]):
+        iterable (Iterable[T]):
             items to determine if they are all the same
 
-        eq (Callable[[A, A], bool], default=operator.eq):
+        eq (Callable[[T, T], bool], default=operator.eq):
             function used to test for equality
 
     Returns:
@@ -582,15 +583,16 @@ def argsort(indexable, key=None, reverse=False):
     and works on both lists and dictionaries.
 
     Args:
-        indexable (Iterable[B] | Mapping[A, B]): indexable to sort by
+        indexable (Iterable[VT] | Mapping[KT, VT]): indexable to sort by
 
-        key (Callable[[A], B], default=None):
+        key (Callable[[VT], VT] | None, default=None):
             customizes the ordering of the indexable
 
         reverse (bool, default=False): if True returns in descending order
 
     Returns:
-        List[int]: indices - list of indices such that sorts the indexable
+        List[int] | List[KT]:
+            indices - list of indices that sorts the indexable
 
     Example:
         >>> import ubelt as ub
@@ -638,13 +640,13 @@ def argmax(indexable, key=None):
     and works on both lists and dictionaries.
 
     Args:
-        indexable (Iterable[B] | Mapping[A, B]): indexable to sort by
+        indexable (Iterable[VT] | Mapping[KT, VT]): indexable to sort by
 
-        key (Callable[[A], B], default=None):
+        key (Callable[[VT], Any], default=None):
             customizes the ordering of the indexable
 
     Returns:
-        int: the index of the item with the maximum value.
+        int | KT: the index of the item with the maximum value.
 
     Example:
         >>> import ubelt as ub
@@ -674,13 +676,13 @@ def argmin(indexable, key=None):
     and works on both lists and dictionaries.
 
     Args:
-        indexable (Iterable[B] | Mapping[A, B]): indexable to sort by
+        indexable (Iterable[VT] | Mapping[KT, VT]): indexable to sort by
 
-        key (Callable[[A], B], default=None):
+        key (Callable[[VT], VT], default=None):
             customizes the ordering of the indexable
 
     Returns:
-        int: the index of the item with the minimum value.
+        int | KT: the index of the item with the minimum value.
 
     Example:
         >>> import ubelt as ub
@@ -708,7 +710,7 @@ def peek(iterable):
     the next element is exhausted (i.e. a pop operation).
 
     Args:
-        iterable (List[T]): an iterable
+        iterable (Iterable[T]): an iterable
 
     Returns:
         T: item - the first item of ordered sequence, a popped item from an
