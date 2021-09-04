@@ -111,9 +111,9 @@ if sys.version_info.major > 2:  # nocover
 else:   # nocover
     # text_type = unicode
     # string_types = basestring,
-    text_type = eval('unicode', {}, {})
-    string_types = (eval('basestring', {}, {}),)
-    default_timer = time.clock if sys.platform.startswith('win32') else time.time
+    text_type = eval('unicode', {}, {})  # type: ignore
+    string_types = (eval('basestring', {}, {}),)  # type: ignore
+    default_timer = time.clock if sys.platform.startswith('win32') else time.time  # type: ignore
 
 
 CLEAR_BEFORE = '\r'
@@ -848,8 +848,3 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
     def _write(self, msg):
         """ write to the internal stream """
         self.stream.write(msg)
-
-
-if __name__ == '__main__':
-    import xdoctest as xdoc
-    xdoc.doctest_module()

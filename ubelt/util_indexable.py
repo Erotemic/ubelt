@@ -8,7 +8,8 @@ import sys
 try:
     from collections.abc import Generator
 except Exception:
-    Generator = object  # Python <3.4 doesnt have Generator ABC
+    # Python <3.4 doesnt have Generator ABC
+    Generator = object  # type: ignore
 
 
 class IndexableWalker(Generator):

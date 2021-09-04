@@ -11,5 +11,5 @@ CommandLine:
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 if __name__ == '__main__':
-    import xdoctest
+    import xdoctest  # type: ignore
     xdoctest.doctest_module('ubelt')

@@ -58,7 +58,7 @@ __all__ = ['Timer', 'Timerit']
 
 
 if sys.version_info.major == 2:  # nocover
-    default_time = time.clock if sys.platform.startswith('win32') else time.time
+    default_time = time.clock if sys.platform.startswith('win32') else time.time  # type: ignore
 else:
     # TODO: If sys.version >= 3.7, then use time.perf_counter_ns
     default_time = time.perf_counter

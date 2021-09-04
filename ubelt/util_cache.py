@@ -807,12 +807,3 @@ def _byte_str(num, unit='auto', precision=2):
     fmtstr = ('{:.' + str(precision) + 'f}{}')
     res = fmtstr.format(num_unit, unit)
     return res
-
-
-if __name__ == '__main__':
-    """
-    CommandLine:
-        python ~/code/ubelt/ubelt/util_cache.py Cacher
-    """
-    import xdoctest
-    xdoctest.doctest_module(__file__)

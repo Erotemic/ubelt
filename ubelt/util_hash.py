@@ -224,7 +224,7 @@ class _Hashers(object):
         return key in self.algos
 
     def _register_xxhash(self):  # nocover
-        import xxhash
+        import xxhash  # type: ignore
         self.algos['xxh32'] = xxhash.xxh32
         self.algos['xx32'] = xxhash.xxh32
         self.algos['xxh64'] = xxhash.xxh64
@@ -232,7 +232,7 @@ class _Hashers(object):
         self.algos['xxhash'] = xxhash.xxh32
 
     def _register_blake3(self):  # nocover
-        import blake3
+        import blake3  # type: ignore
         self.algos['blake3'] = blake3.blake3
         self.algos['b3'] = blake3.blake3
 

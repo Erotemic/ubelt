@@ -108,4 +108,4 @@ except NameError:  # pragma: no cover
     # When the module is first loaded, globals() will not contain NoParam. A
     # NameError will be thrown, causing the first instance of NoParam to be
     # instantiated.
-    NoParam = object.__new__(_NoParamType)  # pragma: no cover
+    NoParam = object.__new__(_NoParamType)  # type: _NoParamType

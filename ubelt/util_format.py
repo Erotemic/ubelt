@@ -1179,11 +1179,3 @@ def _align_lines(line_list, character='=', replchar=None, pos=0):
         else:
             new_lines.append(replchar.join(tup))
     return new_lines
-
-if __name__ == '__main__':
-    """
-    CommandLine:
-        python ~/code/ubelt/ubelt/util_format.py all
-    """
-    import xdoctest
-    xdoctest.doctest_module(__file__)
