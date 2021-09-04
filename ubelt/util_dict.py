@@ -758,7 +758,7 @@ def named_product(_=None, **basis):
             possible values for that "axes".
 
     Yields:
-        Dict[K, T] -
+        Dict[K, T] :
             a "row" in the "longform" data containing a point in the Cartesian
             product.
 

@@ -246,18 +246,33 @@ class IndexableWalker(Generator):
                         stack.append((value, path))
 
 
-def indexable_allclose(dct1, dct2, return_info=False):
+def indexable_allclose(dct1, dct2, rel_tol=1e-9, abs_tol=0.0, return_info=False):
     """
     Walks through two nested data structures and ensures that everything is
     roughly the same.
 
     Args:
-        dct1 (dict): a nested indexable item
-        dct2 (dict): a nested indexable item
+        dct1 (dict):
+            a nested indexable item
+
+        dct2 (dict):
+            a nested indexable item
+
+        rel_tol (float):
+            maximum difference for being considered "close", relative to the
+            magnitude of the input values
+
+        abs_tol (float):
+            maximum difference for being considered "close", regardless of the
+            magnitude of the input values
+
         return_info (bool, default=False): if true, return extra info
 
     Returns:
-        bool | Tuple[bool, Dict]
+        bool | Tuple[bool, Dict] :
+            A boolean result if ``return_info`` is false, otherwise a tuple of
+            the boolean result and an "info" dict containing detailed results
+            indicating what matched and what did not.
 
     Example:
         >>> import ubelt as ub

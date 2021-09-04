@@ -69,7 +69,8 @@ class chunks(object):
         total (int): hints about the length of the input
 
     Yields:
-        List[T]: subsequent non-overlapping chunks of the input items
+        List[T]:
+            subsequent non-overlapping chunks of the input items
 
     References:
         http://stackoverflow.com/questions/434287/iterate-over-a-list-in-chunks
@@ -243,7 +244,7 @@ def take(items, indices, default=util_const.NoParam):
     SeeAlso:
         :func:`ubelt.dict_subset`
 
-    Notes:
+    Note:
         ``ub.take(items, indices)`` is equivalent to
         ``(items[i] for i in indices)`` when ``default`` is unspecified.
 
@@ -336,7 +337,8 @@ def unique(items, key=None):
             If specified returns items where ``key(item)`` is unique.
 
     Yields:
-        A: a unique item from the input sequence
+        A:
+            a unique item from the input sequence
 
     Example:
         >>> import ubelt as ub
