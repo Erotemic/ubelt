@@ -797,6 +797,7 @@ Libraries that contain one specific data structure or utility:
 
 * Benedict: https://pypi.org/project/python-benedict/
 * tqdm: https://pypi.org/project/tqdm/
+* pooch: https://pypi.org/project/pooch/
 
 
 Notes.
