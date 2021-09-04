@@ -48,17 +48,19 @@ def download(url, fpath=None, dpath=None, fname=None, hash_prefix=None,
         url (str):
             The url to download.
 
-        fpath (PathLike | io.BytesIO):
+        fpath (Optional[str | PathLike | io.BytesIO]):
             The path to download to. Defaults to basename of url and ubelt's
             application cache. If this is a io.BytesIO object then information
             is directly written to this object (note this prevents the use of
             temporary files).
 
-        dpath (PathLike): where to download the file. If unspecified `appname`
-            is used to determine this. Mutually exclusive with fpath.
+        dpath (Optional[PathLike]):
+            where to download the file. If unspecified `appname` is used to
+            determine this. Mutually exclusive with fpath.
 
-        fname (str): What to name the downloaded file. Defaults to the url
-            basename. Mutually exclusive with fpath.
+        fname (Optional[str]):
+            What to name the downloaded file. Defaults to the url basename.
+            Mutually exclusive with fpath.
 
         hash_prefix (None | str):
             If specified, download will retry / error if the file hash
@@ -75,7 +77,7 @@ def download(url, fpath=None, dpath=None, fname=None, hash_prefix=None,
             Verbosity level 0 or 1.
 
     Returns:
-        PathLike: fpath - path to the downloaded file.
+        str | PathLike: fpath - path to the downloaded file.
 
     Raises:
         URLError - if there is problem downloading the url
@@ -267,15 +269,17 @@ def grabdata(url, fpath=None, dpath=None, fname=None, redo=False,
     Args:
         url (str): url to the file to download
 
-        fpath (PathLike): The full path to download the file to. If
-            unspecified, the arguments `dpath` and `fname` are used to
-            determine this.
+        fpath (Optional[str | PathLike]):
+            The full path to download the file to. If unspecified, the
+            arguments `dpath` and `fname` are used to determine this.
 
-        dpath (PathLike): where to download the file. If unspecified `appname`
-            is used to determine this. Mutually exclusive with fpath.
+        dpath (Optional[str | PathLike]):
+            where to download the file. If unspecified `appname` is used to
+            determine this. Mutually exclusive with fpath.
 
-        fname (str): What to name the downloaded file. Defaults to the url
-            basename. Mutually exclusive with fpath.
+        fname (Optional[str]):
+            What to name the downloaded file. Defaults to the url basename.
+            Mutually exclusive with fpath.
 
         redo (bool, default=False): if True forces redownload of the file
 
@@ -296,7 +300,7 @@ def grabdata(url, fpath=None, dpath=None, fname=None, redo=False,
         **download_kw: additional kwargs to pass to ub.download
 
     Returns:
-        PathLike: fpath - path to downloaded or cached file.
+        str | PathLike: fpath - path to downloaded or cached file.
 
     CommandLine:
         xdoctest -m ubelt.util_download grabdata --network

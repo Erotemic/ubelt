@@ -109,7 +109,7 @@ def generate_typed_stubs():
         files=files,
         verbose=0,
         quiet=False,
-        export_less=False)
+        export_less=True)
     # generate_stubs(options)
 
     mypy_opts = stubgen.mypy_options(options)
@@ -145,8 +145,8 @@ def generate_typed_stubs():
                                         export_less=options.export_less)
             assert mod.ast is not None, "This function must be used only with analyzed modules"
             mod.ast.accept(gen)
-            print('gen.import_tracker.required_names = {!r}'.format(gen.import_tracker.required_names))
-            print(gen.import_tracker.import_lines())
+            # print('gen.import_tracker.required_names = {!r}'.format(gen.import_tracker.required_names))
+            # print(gen.import_tracker.import_lines())
 
             known_one_letter_types = {
                 # 'T', 'K', 'A', 'B', 'C', 'V',
@@ -154,19 +154,48 @@ def generate_typed_stubs():
             }
             for type_var_name in set(gen.import_tracker.required_names) & set(known_one_letter_types):
                 gen.add_typing_import('TypeVar')
-                gen.add_import_line('from typing import {}\n'.format('TypeVar'))
+                # gen.add_import_line('from typing import {}\n'.format('TypeVar'))
                 gen._output = ['{} = TypeVar("{}")\n'.format(type_var_name, type_var_name)] + gen._output
 
             custom_types = {'Hasher'}
             for type_var_name in set(gen.import_tracker.required_names) & set(custom_types):
                 gen.add_typing_import('TypeVar')
-                gen.add_import_line('from typing import {}\n'.format('TypeVar'))
+                # gen.add_import_line('from typing import {}\n'.format('TypeVar'))
                 gen._output = ['{} = TypeVar("{}")\n'.format(type_var_name, type_var_name)] + gen._output
 
             text = ''.join(gen.output())
             # Hack to remove lines caused by Py2 compat
             text = text.replace('Generator = object\n', '')
             text = text.replace('select = NotImplemented\n', '')
+            text = text.replace('iteritems: Any\n', '')
+            text = text.replace('text_type = str\n', '')
+            text = text.replace('text_type: Any\n', '')
+            text = text.replace('string_types: Any\n', '')
+            text = text.replace('PY2: Any\n', '')
+            text = text.replace('__win32_can_symlink__: Any\n', '')
+            # text = text.replace('odict = OrderedDict', '')
+            # text = text.replace('ddict = defaultdict', '')
+
+            # Format the PYI file nicely
+            import autoflake
+            text = autoflake.fix_code(text, remove_unused_variables=True,
+                                      remove_all_unused_imports=True)
+
+            # import autopep8
+            # text = autopep8.fix_code(text, options={
+            #     'aggressive': 0,
+            #     'experimental': 0,
+            # })
+
+            import yapf
+            style = yapf.yapf_api.style.CreatePEP8Style()
+            text, _ = yapf.yapf_api.FormatCode(
+                text,
+                filename='<stdin>',
+                style_config=style,
+                lines=None,
+                verify=False)
+
             print(text)
 
             # Write output to file.
@@ -175,7 +204,6 @@ def generate_typed_stubs():
                 os.makedirs(subdir)
             with open(target, 'w') as file:
                 file.write(text)
-
 
 
 def hack_annotated_type_from_docstring():
@@ -214,6 +242,8 @@ class ExtendedStubGenerator(StubGenerator):
         #     xdev.embed()
 
         def _hack_for_info(info):
+            if info['type'] is None:
+                return
             for typing_arg in ['Iterable', 'Callable', 'Dict',
                                'List', 'Union', 'Type', 'Mapping',
                                'Tuple', 'Optional', 'Sequence',
@@ -239,10 +269,27 @@ class ExtendedStubGenerator(StubGenerator):
             if 'PathLike' in info['type']:
                 self.add_import_line('from os import {}\n'.format('PathLike'))
 
+            if 'concurrent.futures.Future' in info['type']:
+                self.add_import_line('import concurrent.futures\n')
+
         name_to_parsed_docstr_info = {}
         return_parsed_docstr_info = None
-        if hasattr(ub, o.name):
-            real_func = getattr(ub, o.name)
+        fullname = o.name
+        if getattr(self, '_IN_CLASS', None) is not None:
+            fullname = self._IN_CLASS + '.' + o.name
+
+        from ubelt import util_import
+        util_import.import_module_from_name(self.module)
+        curr = sys.modules.get(self.module)
+        for part in fullname.split('.'):
+            curr = getattr(curr, part, None)
+        real_func = curr
+
+        # print('o.name = {!r}'.format(o.name))
+        # if o.name == 'to_dict':
+        #     import xdev
+        #     xdev.embed()
+        if real_func is not None and real_func.__doc__ is not None:
             from mypy import fastparse
             from xdoctest.docstr import docscrape_google
             parsed_args = None
@@ -386,6 +433,11 @@ class ExtendedStubGenerator(StubGenerator):
         self.add("){}: ...\n".format(retfield))
         self._state = FUNC
 
+    def visit_class_def(self, o) -> None:
+        self._IN_CLASS = o.name
+        print('o.name = {!r}'.format(o.name))
+        return super().visit_class_def(o)
+        self._IN_CLASS = None
 
 if __name__ == '__main__':
     """

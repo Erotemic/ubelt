@@ -223,7 +223,9 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
             True if verbose > 0.  If detach is True, then this argument is
             ignored.
 
-        cwd (PathLike | None): path to run command
+        cwd (str | PathLike | None):
+            Path to run command. Defaults to current working directory if
+            unspecified.
 
         env (Dict[str, str] | None): environment passed to Popen
 

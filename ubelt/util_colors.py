@@ -41,7 +41,7 @@ import os
 # Global state that determines if ANSI-coloring text is allowed
 # (which is mainly to address non-ANSI complient windows consoles)
 # complient with https://no-color.org/
-NO_COLOR = bool(os.environ.get('NO_COLOR'))
+NO_COLOR = bool(os.environ.get('NO_COLOR'))  # type: bool
 
 
 def highlight_code(text, lexer_name='python', **kwargs):

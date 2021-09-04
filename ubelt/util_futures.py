@@ -135,7 +135,13 @@ class SerialExecutor(object):
         pass
 
     def submit(self, func, *args, **kw):
-        """ Submit a job to be executed later """
+        """
+        Submit a job to be executed later
+
+        Returns:
+            concurrent.futures.Future:
+                a future representing the job
+        """
         return SerialFuture(func, *args, **kw)
 
     def shutdown(self):
@@ -148,16 +154,20 @@ class SerialExecutor(object):
         """Returns an iterator equivalent to map(fn, iter).
 
         Args:
-            fn: A callable that will take as many arguments as there are
-                passed iterables.
+            fn (Callable[..., Any]):
+                A callable that will take as many arguments as there are passed
+                iterables.
+
             timeout:
                 This argument is ignored for SerialExecutor
+
             chunksize:
                 This argument is ignored for SerialExecutor
 
-        Returns:
-            An iterator equivalent to: map(func, *iterables) but the calls may
-            be evaluated out-of-order.
+        Yields:
+            Any:
+                equivalent to: map(func, *iterables) but the calls may be
+                evaluated out-of-order.
 
         Raises:
             Exception: If fn(*args) raises for any values.
@@ -256,6 +266,10 @@ class Executor(object):
     def submit(self, func, *args, **kw):
         """
         Calls the submit function of the underlying backend.
+
+        Returns:
+            concurrent.futures.Future:
+                a future representing the job
         """
         return self.backend.submit(func, *args, **kw)
 
@@ -324,6 +338,13 @@ class JobPool(object):
         return len(self.jobs)
 
     def submit(self, func, *args, **kwargs):
+        """
+        Submit a job managed by the pool
+
+        Returns:
+            concurrent.futures.Future:
+                a future representing the job
+        """
         job = self.executor.submit(func, *args, **kwargs)
         self.jobs.append(job)
         return job

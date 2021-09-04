@@ -385,7 +385,7 @@ class HashableExtensions(object):
             hash_types (type | Tuple[type]):
 
         Returns:
-            func: closure to be used as the decorator
+            Callable: closure to be used as the decorator
 
         Example:
             >>> import ubelt as ub

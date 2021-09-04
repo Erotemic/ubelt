@@ -53,13 +53,13 @@ __all__ = [
 
 # References:
 # https://stackoverflow.com/questions/446209/possible-values-from-sys-platform
-WIN32  = sys.platform == 'win32'
-LINUX  = sys.platform.startswith('linux')
-DARWIN = sys.platform == 'darwin'
-POSIX = 'posix' in sys.builtin_module_names
+WIN32  = sys.platform == 'win32'  # type: bool
+LINUX  = sys.platform.startswith('linux')  # type: bool
+DARWIN = sys.platform == 'darwin'  # type: bool
+POSIX = 'posix' in sys.builtin_module_names  # type: bool
 
 
-PY2 = sys.version_info[0] == 2
+PY2 = sys.version_info[0] == 2  # type: bool
 
 if PY2:
     import six
@@ -277,7 +277,7 @@ def find_exe(name, multi=False, path=None):
         multi (bool, default=False):
             if True return all matches instead of just the first.
 
-        path (str | PathLike | Iterable[str | PathLike], default=None):
+        path (str | PathLike | Iterable[str | PathLike] | None, default=None):
             overrides the system PATH variable.
 
     Returns:

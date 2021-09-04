@@ -7,10 +7,13 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## Version 0.10.2 - Unreleased
 
-### Fixed
+### Added
+* Added pyi type annotation files. (Used a custom script to export docstring type annotations)
 
+### Fixed
 * Added `map` function to the executor classes.
 * `ub.Executor` now correctly returns itself from `__enter__`
+* Docstrings now have better type annotations
 
 
 ## Version 0.10.1 - Released 2021-08-23

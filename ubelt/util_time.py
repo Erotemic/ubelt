@@ -26,6 +26,9 @@ def timestamp(method='iso8601'):
     Args:
         method (str, default='iso8601'): type of timestamp
 
+    Returns:
+        str: stamp
+
     Example:
         >>> import ubelt as ub
         >>> stamp = ub.timestamp()

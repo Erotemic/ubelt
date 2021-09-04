@@ -48,20 +48,23 @@ def augpath(path, suffix='', prefix='', ext=None, base=None, dpath=None,
     Args:
         path (str | PathLike): a path to augment
 
-        suffix (str, default=''): placed between the basename and extension
+        suffix (str, default=''):
+            placed between the basename and extension
 
-        prefix (str, default=''): placed in front of the basename
+        prefix (str, default=''):
+            placed in front of the basename
 
-        ext (str, default=None): if specified, replaces the extension
+        ext (str | None, default=None):
+            if specified, replaces the extension
 
-        base (str, default=None): if specified, replaces the basename without
-            extension
+        base (str | None, default=None):
+            if specified, replaces the basename without extension
 
-        dpath (str | PathLike, default=None): if specified, replaces the
-            specified "relative" directory, which by default is the parent
-            directory.
+        dpath (str | PathLike | None, default=None):
+            if specified, replaces the specified "relative" directory, which by
+            default is the parent directory.
 
-        relative (str | PathLike, default=None):
+        relative (str | PathLike | None, default=None):
             Replaces ``relative`` with ``dpath`` in ``path``.
             Has no effect if ``dpath`` is not specified.
             Defaults to the dirname of the input ``path``.
@@ -141,8 +144,9 @@ def userhome(username=None):
     Returns the path to some user's home directory.
 
     Args:
-        username (str, default=None): name of a user on the system. If not
-            specified, the current user is inferred.
+        username (str | None, default=None):
+            name of a user on the system. If not specified, the current user is
+            inferred.
 
     Returns:
         str: userhome_dpath - path to the specified home directory
@@ -253,7 +257,7 @@ def expandpath(path):
     return path
 
 
-def ensuredir(dpath, mode=0o1777, verbose=None, recreate=False):
+def ensuredir(dpath, mode=0o1777, verbose=0, recreate=False):
     r"""
     Ensures that directory will exist. Creates new dir with sticky bits by
     default
@@ -285,8 +289,6 @@ def ensuredir(dpath, mode=0o1777, verbose=None, recreate=False):
         >>> assert exists(dpath)
         >>> os.rmdir(dpath)
     """
-    if verbose is None:
-        verbose = 0
     if isinstance(dpath, (list, tuple)):
         dpath = join(*dpath)
 

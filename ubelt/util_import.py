@@ -121,11 +121,14 @@ def import_module_from_path(modpath, index=-1):
     Imports a module via its path
 
     Args:
-        modpath (PathLike): path to the module on disk or within a zipfile.
-        index (int): location at which we modify PYTHONPATH if necessary.
-            If your module name does not conflict, the safest value is -1,
-            However, if there is a conflict, then use an index of 0.
-            The default may change to 0 in the future.
+        modpath (str | PathLike):
+            Path to the module on disk or within a zipfile.
+
+        index (int):
+            Location at which we modify PYTHONPATH if necessary.  If your
+            module name does not conflict, the safest value is -1, However, if
+            there is a conflict, then use an index of 0.  The default may
+            change to 0 in the future.
 
     Returns:
         ModuleType: the imported module
@@ -320,9 +323,11 @@ def _syspath_modname_to_modpath(modname, sys_path=None, exclude=None):
 
     Args:
         modname (str): name of module to find
-        sys_path (List[PathLike], default=None):
+
+        sys_path (List[str | PathLike] | None, default=None):
             if specified overrides ``sys.path``
-        exclude (List[PathLike], default=None):
+
+        exclude (List[str | PathLike] | None, default=None):
             list of directory paths. if specified prevents these directories
             from being searched.
 
@@ -537,14 +542,14 @@ def normalize_modpath(modpath, hide_init=True, hide_main=False):
     Normalizes __init__ and __main__ paths.
 
     Args:
-        modpath (PathLike): path to a module
+        modpath (str | PathLike): path to a module
         hide_init (bool, default=True): if True, always return package modules
            as __init__.py files otherwise always return the dpath.
         hide_main (bool, default=False): if True, always strip away main files
             otherwise ignore __main__.py.
 
     Returns:
-        PathLike: a normalized path to the module
+        str | PathLike: a normalized path to the module
 
     Note:
         Adds __init__ if reasonable, but only removes __main__ by default

@@ -120,8 +120,8 @@ class IndexableWalker(Generator):
 
         Can send a False flag to prevent a branch from being traversed
 
-        Yields:
-            Tuple[List, Any] :
+        Returns:
+            Generator[Tuple[List, Any], Any, Any]:
                 path (List): list of index operations to arrive at the value
                 value (object): the value at the path
         """
