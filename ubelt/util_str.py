@@ -195,6 +195,13 @@ def ensure_unicode(text):
     r"""
     Casts bytes into utf8 (mostly for python2 compatibility)
 
+    Args:
+        text (str | bytes):
+            text to ensure is decoded as unicode
+
+    Returns:
+        str
+
     References:
         http://stackoverflow.com/questions/12561063/extract-data-from-file
 

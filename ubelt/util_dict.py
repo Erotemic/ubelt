@@ -407,7 +407,7 @@ def dict_union(*args):
     dictionaries towards the end of the sequence are given precedence.
 
     Args:
-        *args : a sequence of dictionaries
+        *args (List[Dict]) : a sequence of dictionaries
 
     Returns:
         Dict | OrderedDict :
@@ -444,10 +444,13 @@ def dict_diff(*args):
     which are not in any of the following args.
 
     Args:
-        *args : a sequence of dictionaries (or sets of keys)
+        *args (List[Dict[KT, VT] | Iterable[KT]]) :
+            A sequence of dictionaries (or sets of keys). The first argument
+            should always be a dictionary, but the subsequent arguments can
+            just be sets of keys.
 
     Returns:
-        Dict | OrderedDict :
+        Dict[KT, VT] | OrderedDict[KT, VT] :
             OrderedDict if the first argument is an OrderedDict, otherwise dict
 
     TODO:
@@ -487,10 +490,13 @@ def dict_isect(*args):
     The returned values will only belong to the first dictionary.
 
     Args:
-        *args : a sequence of dictionaries (or sets of keys)
+        *args (List[Dict[KT, VT] | Iterable[KT]]) :
+            A sequence of dictionaries (or sets of keys). The first argument
+            should always be a dictionary, but the subsequent arguments can
+            just be sets of keys.
 
     Returns:
-        Dict | OrderedDict :
+        Dict[KT, VT] | OrderedDict[KT, VT] :
             OrderedDict if the first argument is an OrderedDict, otherwise dict
 
     Note:
@@ -745,7 +751,7 @@ def named_product(_=None, **basis):
     variables to values).
 
     Args:
-        _ (dict | None, default=None):
+        _ (Dict[str, List[VT]] | None, default=None):
             Use of this positional argument is not recommend. Instead specify
             all arguments as keyword args.
 
@@ -753,7 +759,7 @@ def named_product(_=None, **basis):
             keyword args.  This exists to support ordered dictionaries before
             Python 3.6, and may eventually be removed.
 
-        basis (Dict[KT, List[VT]]):
+        basis (Dict[str, List[VT]]):
             A dictionary where the keys correspond to "columns" and the values
             are a list of possible values that "column" can take.
 
@@ -761,7 +767,7 @@ def named_product(_=None, **basis):
             possible values for that "axes".
 
     Yields:
-        Dict[KT, VT] :
+        Dict[str, VT] :
             a "row" in the "longform" data containing a point in the Cartesian
             product.
 

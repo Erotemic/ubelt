@@ -1,5 +1,6 @@
 from typing import List
 from typing import Tuple
+from typing import Dict
 from collections.abc import Generator
 from typing import Any
 
@@ -41,9 +42,9 @@ class IndexableWalker(Generator):
         ...
 
 
-def indexable_allclose(dct1,
-                       dct2,
+def indexable_allclose(dct1: dict,
+                       dct2: dict,
                        rel_tol: float = ...,
                        abs_tol: float = ...,
-                       return_info: bool = ...):
+                       return_info: bool = ...) -> bool | Tuple[bool, Dict]:
     ...

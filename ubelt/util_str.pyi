@@ -1,4 +1,5 @@
 from typing import List
+from typing import Union
 from typing import Any
 
 binary_type: Any
@@ -21,5 +22,5 @@ def hzcat(args: List[str], sep: str = ...):
     ...
 
 
-def ensure_unicode(text):
+def ensure_unicode(text: Union[str, bytes]):
     ...

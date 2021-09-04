@@ -1,3 +1,7 @@
+from typing import Union
+from os import PathLike
+from types import ModuleType
+from typing import Tuple
 from typing import Any
 
 
@@ -15,38 +19,41 @@ class PythonPathContext:
         ...
 
 
-def import_module_from_path(modpath, index: int = ...):
+def import_module_from_path(modpath: Union[str, PathLike],
+                            index: int = ...) -> ModuleType:
     ...
 
 
-def import_module_from_name(modname):
+def import_module_from_name(modname: str) -> ModuleType:
     ...
 
 
-def modname_to_modpath(modname,
+def modname_to_modpath(modname: str,
                        hide_init: bool = ...,
                        hide_main: bool = ...,
-                       sys_path: Any | None = ...):
+                       sys_path: list = ...) -> str:
     ...
 
 
-def normalize_modpath(modpath, hide_init: bool = ..., hide_main: bool = ...):
+def normalize_modpath(modpath: Union[str, PathLike],
+                      hide_init: bool = ...,
+                      hide_main: bool = ...) -> str | PathLike:
     ...
 
 
-def modpath_to_modname(modpath,
+def modpath_to_modname(modpath: str,
                        hide_init: bool = ...,
                        hide_main: bool = ...,
                        check: bool = ...,
-                       relativeto: Any | None = ...):
+                       relativeto: str = ...) -> str:
     ...
 
 
-def split_modpath(modpath, check: bool = ...):
+def split_modpath(modpath: str, check: bool = ...) -> Tuple[str, str]:
     ...
 
 
-def is_modname_importable(modname,
-                          sys_path: Any | None = ...,
-                          exclude: Any | None = ...):
+def is_modname_importable(modname: str,
+                          sys_path: list = ...,
+                          exclude: list = ...) -> bool:
     ...

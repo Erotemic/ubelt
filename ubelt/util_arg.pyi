@@ -1,12 +1,16 @@
 from typing import Tuple
 from typing import Union
-from typing import Optional
 from typing import List
+from typing import Optional
+from typing import TypeVar
+from ubelt import util_const
+
+T = TypeVar("T")
 
 
 def argval(key: Union[str, Tuple[str, ...]],
-           default: object = ...,
-           argv: Optional[list] = ...) -> str:
+           default: Union[T, util_const._NoParamType] = ...,
+           argv: Optional[List[str]] = ...) -> str | T:
     ...
 
 

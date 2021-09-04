@@ -1,8 +1,11 @@
 from typing import Tuple
 from typing import Union
 from typing import Callable
-from typing import Any
+from typing import List
+from os import PathLike
+from typing import Any, TypeVar
 
+Hasher = TypeVar("Hasher")
 HASH_VERSION: int
 DEFAULT_ALPHABET: Any
 PY2: bool
@@ -52,21 +55,21 @@ class _HashTracer:
         ...
 
 
-def hash_data(data,
-              hasher=...,
-              base=...,
+def hash_data(data: object,
+              hasher: Union[str, Hasher] = ...,
+              base: Union[List[str], str] = ...,
               types: bool = ...,
-              hashlen=...,
+              hashlen: int = ...,
               convert: bool = ...,
-              extensions: Any | None = ...):
+              extensions: HashableExtensions = ...) -> str:
     ...
 
 
-def hash_file(fpath,
+def hash_file(fpath: PathLike,
               blocksize: int = ...,
               stride: int = ...,
-              maxbytes: Any | None = ...,
-              hasher=...,
-              hashlen=...,
-              base=...):
+              maxbytes: Union[int, None] = ...,
+              hasher: Union[str, Hasher] = ...,
+              hashlen: int = ...,
+              base: Union[List[str], str] = ...):
     ...

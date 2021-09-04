@@ -236,7 +236,7 @@ class ExtendedStubGenerator(StubGenerator):
         self.clear_decorators()
         self.add("%s%sdef %s(" % (self._indent, 'async ' if o.is_coroutine else '', o.name))
         self.record_name(o.name)
-        import ubelt as ub
+        # import ubelt as ub
         # if o.name == 'dzip':
         #     import xdev
         #     xdev.embed()
@@ -279,14 +279,19 @@ class ExtendedStubGenerator(StubGenerator):
             fullname = self._IN_CLASS + '.' + o.name
 
         from ubelt import util_import
-        util_import.import_module_from_name(self.module)
-        curr = sys.modules.get(self.module)
+        curr = util_import.import_module_from_name(self.module)
+        # curr = sys.modules.get(self.module)
+        # print('o.name = {!r}'.format(o.name))
+        # print('fullname = {!r}'.format(fullname))
         for part in fullname.split('.'):
+            # print('part = {!r}'.format(part))
+            # print('curr = {!r}'.format(curr))
             curr = getattr(curr, part, None)
+        # print('curr = {!r}'.format(curr))
         real_func = curr
 
-        # print('o.name = {!r}'.format(o.name))
-        # if o.name == 'to_dict':
+        # print('real_func = {!r}'.format(real_func))
+        # if o.name == 'dict_union':
         #     import xdev
         #     xdev.embed()
         if real_func is not None and real_func.__doc__ is not None:
@@ -307,10 +312,14 @@ class ExtendedStubGenerator(StubGenerator):
                         _hack_for_info(retdict)
                         return_parsed_docstr_info = (key, retdict['type'])
                 if key == 'Args':
+                    # hack for *args
+                    lines = '\n'.join([line.lstrip('*') for line in lines.split('\n')])
+                    print('lines = {!r}'.format(lines))
                     parsed_args = list(docscrape_google.parse_google_argblock(lines))
                     for info in parsed_args:
                         _hack_for_info(info)
-                        name_to_parsed_docstr_info[info['name']] = info
+                        name = info['name'].replace('*', '')
+                        name_to_parsed_docstr_info[name] = info
 
             parsed_rets = list(docscrape_google.parse_google_returns(real_func.__doc__))
             ret_infos = []
@@ -334,6 +343,7 @@ class ExtendedStubGenerator(StubGenerator):
 
             if annotated_type is None:
                 if name in name_to_parsed_docstr_info:
+                    name = name.replace('*', '')
                     doc_type_str = name_to_parsed_docstr_info[name].get('type', None)
                     if doc_type_str is not None:
                         doc_type_str = doc_type_str.split(', default')[0]
@@ -436,8 +446,9 @@ class ExtendedStubGenerator(StubGenerator):
     def visit_class_def(self, o) -> None:
         self._IN_CLASS = o.name
         print('o.name = {!r}'.format(o.name))
-        return super().visit_class_def(o)
+        ret = super().visit_class_def(o)
         self._IN_CLASS = None
+        return ret
 
 if __name__ == '__main__':
     """

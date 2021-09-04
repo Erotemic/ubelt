@@ -676,7 +676,7 @@ def split_modpath(modpath, check=True):
             directory and does not contain an ``__init__.py`` file.
 
     Returns:
-        tuple: (directory, rel_modpath)
+        Tuple[str, str]: (directory, rel_modpath)
 
     Raises:
         ValueError: if modpath does not exist or is not a package
