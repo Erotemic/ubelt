@@ -116,15 +116,31 @@ setup_package_environs(){
     "
 
     echo '
-    export VARNAME_CI_SECRET="CI_KITWARE_SECRET"
+    export VARNAME_CI_SECRET="EROTEMIC_CI_SECRET"
+    export VARNAME_TWINE_USERNAME="TWINE_USERNAME"
+    export VARNAME_TWINE_PASSWORD="TWINE_PASSWORD"
     export GPG_IDENTIFIER="=Erotemic-CI <erotemic@gmail.com>"
     ' | python -c "import sys; from textwrap import dedent; print(dedent(sys.stdin.read()).strip(chr(10)))" > dev/secrets_configuration.sh
+    git add dev/secrets_configuration.sh
+
 
     #echo '
     #export VARNAME_CI_SECRET="PYUTILS_CI_SECRET"
     #export GPG_IDENTIFIER="=PyUtils-CI <openpyutils@gmail.com>"
     #' | python -c "import sys; from textwrap import dedent; print(dedent(sys.stdin.read()).strip(chr(10)))" > dev/secrets_configuration.sh
 }
+
+upload_github_secrets(){
+    load_secrets
+    unset GITHUB_TOKEN
+    gh auth login
+    source dev/secrets_configuration.sh
+    gh secret set $VARNAME_CI_SECRET -b"${!VARNAME_CI_SECRET}"
+    gh secret set $VARNAME_TWINE_USERNAME -b"${!VARNAME_TWINE_USERNAME}"
+    gh secret set $VARNAME_TWINE_PASSWORD -b"${!VARNAME_TWINE_PASSWORD}"
+
+}
+
 
 
 export_encrypted_code_signing_keys(){
@@ -136,6 +152,7 @@ export_encrypted_code_signing_keys(){
     source dev/secrets_configuration.sh
 
     CI_SECRET="${!VARNAME_CI_SECRET}"
+    echo "VARNAME_CI_SECRET = $VARNAME_CI_SECRET"
     echo "CI_SECRET=$CI_SECRET"
     echo "GPG_IDENTIFIER=$GPG_IDENTIFIER"
 
