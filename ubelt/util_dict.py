@@ -505,6 +505,7 @@ def dict_isect(*args):
         example:
 
         >>> import ubelt as ub
+        >>> # xdoctest: +IGNORE_WANT
         >>> ub.dict_isect({'a': 1, 'b': 2, 'c': 3}, ['a', 'c', 'd'])
         {'a': 1, 'c': 3}
 
