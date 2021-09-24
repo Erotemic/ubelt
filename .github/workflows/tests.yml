@@ -266,10 +266,8 @@ jobs:
           $GPG_EXECUTABLE --list-keys
           echo "Decrypting Keys"
           GLKWS=$EROTEMIC_CI_SECRET openssl enc -aes-256-cbc -pbkdf2 -md SHA512 -pass env:GLKWS -d -a -in dev/ci_public_gpg_key.pgp.enc | $GPG_EXECUTABLE --import 
-          $GPG_EXECUTABLE --list-keys || true
-          GLKWS=$EROTEMIC_CI_SECRET openssl enc -aes-256-cbc -pbkdf2 -md SHA512 -pass env:GLKWS -d -a -in dev/ci_secret_gpg_subkeys.pgp.enc | $GPG_EXECUTABLE --import-ownertrust
-          $GPG_EXECUTABLE --list-keys || true
-          GLKWS=$EROTEMIC_CI_SECRET openssl enc -aes-256-cbc -pbkdf2 -md SHA512 -pass env:GLKWS -d -a -in dev/gpg_owner_trust.enc | $GPG_EXECUTABLE --import 
+          GLKWS=$EROTEMIC_CI_SECRET openssl enc -aes-256-cbc -pbkdf2 -md SHA512 -pass env:GLKWS -d -a -in dev/gpg_owner_trust.enc | $GPG_EXECUTABLE --import-ownertrust
+          GLKWS=$EROTEMIC_CI_SECRET openssl enc -aes-256-cbc -pbkdf2 -md SHA512 -pass env:GLKWS -d -a -in dev/ci_secret_gpg_subkeys.pgp.enc | $GPG_EXECUTABLE --import
           echo "Finish Decrypt Keys"
           $GPG_EXECUTABLE --list-keys || true
           $GPG_EXECUTABLE --list-keys  || echo "first invocation of gpg creates directories and returns 1"
@@ -329,11 +327,8 @@ jobs:
           $GPG_EXECUTABLE --list-keys
           echo "Decrypting Keys"
           GLKWS=$EROTEMIC_CI_SECRET openssl enc -aes-256-cbc -pbkdf2 -md SHA512 -pass env:GLKWS -d -a -in dev/ci_public_gpg_key.pgp.enc | $GPG_EXECUTABLE --import 
-          $GPG_EXECUTABLE --list-keys || true
-          GLKWS=$EROTEMIC_CI_SECRET openssl enc -aes-256-cbc -pbkdf2 -md SHA512 -pass env:GLKWS -d -a -in dev/ci_gpg_owner_trust.enc | $GPG_EXECUTABLE --import-ownertrust
-          $GPG_EXECUTABLE --list-keys || true
-          GLKWS=$EROTEMIC_CI_SECRET openssl enc -aes-256-cbc -pbkdf2 -md SHA512 -pass env:GLKWS -d -a -in dev/ci_secret_gpg_key.pgp.enc | $GPG_EXECUTABLE --import 
-          $GPG_EXECUTABLE --list-keys || true
+          GLKWS=$EROTEMIC_CI_SECRET openssl enc -aes-256-cbc -pbkdf2 -md SHA512 -pass env:GLKWS -d -a -in dev/gpg_owner_trust.enc | $GPG_EXECUTABLE --import-ownertrust
+          GLKWS=$EROTEMIC_CI_SECRET openssl enc -aes-256-cbc -pbkdf2 -md SHA512 -pass env:GLKWS -d -a -in dev/ci_secret_gpg_subkeys.pgp.enc | $GPG_EXECUTABLE --import
           echo "Finish Decrypt Keys"
           $GPG_EXECUTABLE --list-keys  || echo "first invocation of gpg creates directories and returns 1"
           $GPG_EXECUTABLE --list-keys  

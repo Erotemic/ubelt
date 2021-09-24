@@ -34,6 +34,7 @@ Usage:
     # Set your variables or load your secrets
     export TWINE_USERNAME=<pypi-username>
     export TWINE_PASSWORD=<pypi-password>
+    TWINE_REPOSITORY_URL="https://test.pypi.org/legacy/" 
 
     source $(secret_loader.sh)
 
@@ -107,6 +108,13 @@ DO_TAG=$(normalize_boolean "$DO_TAG")
 TWINE_USERNAME=${TWINE_USERNAME:=""}
 TWINE_PASSWORD=${TWINE_PASSWORD:=""}
 
+if [[ "$(cat .git/HEAD)" != "ref: refs/heads/release" ]]; then 
+    # If we are not on release, then default to the test pypi upload repo
+    TWINE_REPOSITORY_URL=${TWINE_REPOSITORY_URL:="https://test.pypi.org/legacy/"}
+else
+    TWINE_REPOSITORY_URL=${TWINE_REPOSITORY_URL:="https://upload.pypi.org/legacy/"}
+fi
+
 if [[ "$(which gpg2)" != "" ]]; then
     GPG_EXECUTABLE=${GPG_EXECUTABLE:=gpg2}
 else
@@ -121,6 +129,7 @@ echo "
 === PYPI BUILDING SCRIPT ==
 VERSION='$VERSION'
 TWINE_USERNAME='$TWINE_USERNAME'
+TWINE_REPOSITORY_URL = $TWINE_REPOSITORY_URL
 GPG_KEYID = '$GPG_KEYID'
 MB_PYTHON_TAG = '$MB_PYTHON_TAG'
 
@@ -305,9 +314,13 @@ if [[ "$DO_UPLOAD" == "True" ]]; then
     for WHEEL_PATH in "${WHEEL_PATHS[@]}"
     do
         if [ "$DO_GPG" == "True" ]; then
-            twine upload --username $TWINE_USERNAME --password=$TWINE_PASSWORD --sign $WHEEL_PATH.asc $WHEEL_PATH  || { echo 'failed to twine upload' ; exit 1; }
+            twine upload --username $TWINE_USERNAME --password=$TWINE_PASSWORD  \
+                --repository-url $TWINE_REPOSITORY_URL \
+                --sign $WHEEL_PATH.asc $WHEEL_PATH --skip-existing --verbose || { echo 'failed to twine upload' ; exit 1; }
         else
-            twine upload --username $TWINE_USERNAME --password=$TWINE_PASSWORD $WHEEL_PATH  || { echo 'failed to twine upload' ; exit 1; }
+            twine upload --username $TWINE_USERNAME --password=$TWINE_PASSWORD \
+                --repository-url $TWINE_REPOSITORY_URL \
+                $WHEEL_PATH --skip-existing --verbose || { echo 'failed to twine upload' ; exit 1; }
         fi
     done
     echo """
