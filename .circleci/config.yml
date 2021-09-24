@@ -29,7 +29,7 @@ __doc__: &__doc__
         ```bash
         cat .circleci/config.yml | \
             sed 's|GITHUB_USER|Erotemic|g' | \
-            sed 's|PYPKG|xdoctest|g' | \
+            sed 's|ubelt|xdoctest|g' | \
             sed 's|GPG_ID|travis-ci-Erotemic|g' | \
             sed 's|CIRCLE_CI_SECRET|CIRCLE_CI_SECRET|g' | \
         tee /tmp/repl && colordiff .circleci/config.yml /tmp/repl
