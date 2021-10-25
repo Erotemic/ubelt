@@ -704,17 +704,20 @@ def argmin(indexable, key=None):
         return argsort(indexable, key=key)[0]
 
 
-def peek(iterable):
+def peek(iterable, default=util_const.NoParam):
     """
     Look at the first item of an iterable. If the input is an iterator, then
     the next element is exhausted (i.e. a pop operation).
 
     Args:
         iterable (Iterable[T]): an iterable
+        default (T): default item to return if the iterable is empty,
+            otherwise a StopIteration error is raised
 
     Returns:
         T: item - the first item of ordered sequence, a popped item from an
                  iterator, or an arbitrary item from an unordered collection.
+
 
     Example:
         >>> import ubelt as ub
@@ -731,4 +734,7 @@ def peek(iterable):
         >>> ub.peek(range(3))
         0
     """
-    return next(iter(iterable))
+    if default is util_const.NoParam:
+        return next(iter(iterable))
+    else:
+        return next(iter(iterable), default)
