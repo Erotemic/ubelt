@@ -202,7 +202,7 @@ def download(url, fpath=None, dpath=None, fname=None, hash_prefix=None,
     _urldata_read = urldata.read
     try:
         pbar = Progress(total=file_size, disable=not verbose,
-                        freq=chunksize)
+                        freq=chunksize, time_thresh=1)
         with pbar:
             _pbar_update = pbar.update
 

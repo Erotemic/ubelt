@@ -15,6 +15,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 * `ub.Executor` now correctly returns itself from `__enter__`
 * Docstrings now have better type annotations
 * ProgIter had a bug in `time_thresh`, where it was never used (modified adjustment rules).
+* Fixed performance regression in ProgIter
 
 ### Changed
 * New CI GPG Keys: Erotemic-CI: 70858F4D01314BF21427676F3D568E6559A34380 for

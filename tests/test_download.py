@@ -369,10 +369,16 @@ def _demodata_simple_server(filebytes=1000, num_files=1):
 
 
 def test_local_download():
+    import pytest
+    pytest.skip('not robust yet')
     int(10 * 2 ** 20)
-    server_info = _demodata_simple_server(filebytes=int(10 * 2 ** 20))
+    server_info = _demodata_simple_server(filebytes=int(1000 * 2 ** 20))
     url = server_info['urls'][0]
+    proc = server_info['proc']
+    print(proc.poll())
     ub.download(url)
+    if proc.returncode is None:
+        proc.terminate()
 
 
 if __name__ == '__main__':
