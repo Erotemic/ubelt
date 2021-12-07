@@ -127,18 +127,18 @@ def compatible(config, func, start=0):
         >>> func(**ub.compatible(config, func))
 
     Ignore:
-        >>> # xdoctest: +REQUIRES(PY3)
-        >>> # Test case with positional only 3.x +
-        >>> import ubelt as ub
-        >>> def func(a, e, /,  f):
-        >>>     return a * e * f
-        >>> config = {
-        ...   'a': 2, 'b': 3, 'c': 7,
-        ...   'd': 11, 'e': 13, 'f': 17,
-        ... }
-        >>> import pytest
-        >>> with pytest.raises(ValueError):
-        ...     func(**ub.compatible(config, func))
+        # xdoctest: +REQUIRES(PY3)
+        # Test case with positional only 3.6 +
+        import ubelt as ub
+        def func(a, e, /,  f):
+            return a * e * f
+        config = {
+          'a': 2, 'b': 3, 'c': 7,
+          'd': 11, 'e': 13, 'f': 17,
+        }
+        import pytest
+        with pytest.raises(ValueError):
+            func(**ub.compatible(config, func))
     """
     import inspect
     if hasattr(inspect, 'signature'):  # pragma :nobranch
