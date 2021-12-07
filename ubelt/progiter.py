@@ -409,7 +409,7 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
         self.show_times = show_times
         self.show_wall = show_wall
         self.eta_window = eta_window
-        self.time_thresh = 1.0
+        self.time_thresh = time_thresh
         self.clearline = clearline
         self.chunksize = chunksize
         self.extra = ''
@@ -607,9 +607,10 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
         # (i.e. how many iterations) we wait before we report progress We
         # don't want to incrase the interval by too much, but decreasing
         # (down to a minimum of 1) is usually ok.
-        rel_limit = 4.0
-        abs_limit = 256
-        max_freq = min(self.freq + abs_limit, int(self.freq * rel_limit))
+        rel_limit = 3.0
+        # abs_limit = 256  # removed, prevented adjustment from working well
+        # max_freq = min(self.freq + abs_limit, int(self.freq * rel_limit))
+        max_freq = int(self.freq * rel_limit)
         self.freq = min(max_freq, new_freq)
 
     def _update_measurements(self):
