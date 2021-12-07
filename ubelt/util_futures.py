@@ -204,6 +204,7 @@ class Executor(object):
 
     Example:
         >>> import platform
+        >>> import sys
         >>> # The process backend breaks pyp3 when using coverage
         >>> if 'pypy' in platform.python_implementation().lower():
         ...     import pytest
