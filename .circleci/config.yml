@@ -109,10 +109,10 @@ jobs:
     steps:
       - checkout
       # ### INITIALIZE AND CACHE REQUIREMENTS ###
-      - restore_cache:
-          # NOTE: cache keys should contain the Python Version
-          keys:
-          - v3-dependencies-{{ checksum "requirements/runtime.txt" }}-{{ checksum "requirements/tests.txt" }}-{{ .Environment.CIRCLE_JOB }}
+      #- restore_cache:
+      #    # NOTE: cache keys should contain the Python Version
+      #    keys:
+      #    - v3-dependencies-{{ checksum "requirements/runtime.txt" }}-{{ checksum "requirements/tests.txt" }}-{{ .Environment.CIRCLE_JOB }}
       - run:
           name: install dependencies
           command: |
@@ -122,10 +122,10 @@ jobs:
             pip install -r requirements/tests.txt
             pip install -r requirements/runtime.txt 
             pip install .
-      - save_cache:
-          paths:
-            - ./venv
-          key: v3-dependencies-{{ checksum "requirements/runtime.txt" }}-{{ checksum "requirements/tests.txt" }}-{{ .Environment.CIRCLE_JOB }}
+      #- save_cache:
+      #    paths:
+      #      - ./venv
+      #    key: v3-dependencies-{{ checksum "requirements/runtime.txt" }}-{{ checksum "requirements/tests.txt" }}-{{ .Environment.CIRCLE_JOB }}
       # ### RUN TESTS ###
       - run:
           name: run tests
@@ -145,9 +145,9 @@ jobs:
     steps:
       - checkout
       # ### INITIALIZE AND CACHE REQUIREMENTS ###
-      - restore_cache:
-          keys:
-          - v2-dependencies-{{ checksum "requirements/runtime.txt" }}-{{ checksum "requirements/optional.txt" }}-{{ checksum "requirements/tests.txt" }}-{{ .Environment.CIRCLE_JOB }}
+      #- restore_cache:
+      #    keys:
+      #    - v2-dependencies-{{ checksum "requirements/runtime.txt" }}-{{ checksum "requirements/optional.txt" }}-{{ checksum "requirements/tests.txt" }}-{{ .Environment.CIRCLE_JOB }}
       - run:
           name: install dependencies
           command: |
@@ -156,10 +156,10 @@ jobs:
             # The "full" dependency install
             pip install -r requirements.txt
             pip install .
-      - save_cache:
-          paths:
-            - ./venv
-          key: v2-dependencies-{{ checksum "requirements/runtime.txt" }}-{{ checksum "requirements/optional.txt" }}-{{ checksum "requirements/tests.txt" }}-{{ .Environment.CIRCLE_JOB }}
+      #- save_cache:
+      #    paths:
+      #      - ./venv
+      #    key: v2-dependencies-{{ checksum "requirements/runtime.txt" }}-{{ checksum "requirements/optional.txt" }}-{{ checksum "requirements/tests.txt" }}-{{ .Environment.CIRCLE_JOB }}
       # ### RUN TESTS ###
       - run:
           name: run tests
