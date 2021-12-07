@@ -90,10 +90,14 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest, macOS-latest]
         python-version: 
+          - '2.7'
           - '3.5'
           - '3.6'
           - '3.7'
           - '3.8'
+          - '3.9'
+          - '3.10'
+          - 'pypy-3.7'
         arch: [auto]
         #cibw_build: [cp3*-*]
         #cibw_skip: ["*-win32"]
