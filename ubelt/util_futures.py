@@ -208,6 +208,9 @@ class Executor(object):
         >>> if 'pypy' in platform.python_implementation().lower():
         ...     import pytest
         ...     pytest.skip('not testing process on pypy')
+        >>> if sys.platform.startswith('win32'):
+        ...     import pytest
+        ...     pytest.skip('not running this test on win32 for now')
         >>> import ubelt as ub
         >>> # Fork before threading!
         >>> # https://pybay.com/site_media/slides/raymond2017-keynote/combo.html
