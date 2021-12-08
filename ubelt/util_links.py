@@ -46,9 +46,9 @@ def symlink(real_path, link_path, overwrite=False, verbose=0):
     cases. For more details see notes in :mod:`ubelt._win32_links`.
 
     Args:
-        path (PathLike): path to real file or directory
+        path (str | PathLike): path to real file or directory
 
-        link_path (PathLike): path to desired location for symlink
+        link_path (str | PathLike): path to desired location for symlink
 
         overwrite (bool, default=False): overwrite existing symlinks.
             This will not overwrite real files on systems with proper symlinks.
@@ -59,7 +59,7 @@ def symlink(real_path, link_path, overwrite=False, verbose=0):
         verbose (int, default=0): verbosity level
 
     Returns:
-        PathLike: link path
+        str | PathLike: link path
 
     Example:
         >>> import ubelt as ub
@@ -116,7 +116,7 @@ def symlink(real_path, link_path, overwrite=False, verbose=0):
             path = os.path.abspath(path)
 
     if verbose:
-        print('Symlink: {path} -> {link}'.format(path=path, link=link))
+        print('Symlink: {link} -> {path}'.format(path=path, link=link))
     if islink(link):
         if verbose:
             print('... already exists')

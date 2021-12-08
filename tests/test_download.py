@@ -326,6 +326,61 @@ def test_grabdata_hash_typo():
         assert exists(fpath + '.md5.hash')
 
 
+def _demodata_simple_server(filebytes=1000, num_files=1):
+    """
+    Start or connect to an existing simple fileserver so we
+    can test downloads locally.
+    """
+    # import string
+    import ubelt as ub
+    from os.path import join
+    # import random
+    # from random import randbytes
+    dpath = ub.ensure_app_cache_dir('ubelt/simple_server')
+    server_cmd = ['python', '-m', 'http.server', '--directory', dpath]
+    info = ub.cmd(server_cmd, detatch=True)
+    proc = info['proc']
+    # proc.poll()
+    # print(proc.communicate())
+    # print('proc.returncode = {!r}'.format(proc.returncode))
+    # if proc.returncode == 1:
+    #     # todo: return a pointer to the real proc?
+    #     import psutil
+    #     for cand in psutil.process_iter():
+    #         if 'python' in cand.name():
+    #             if cand.cmdline() == server_cmd:
+    #                 proc = cand
+    #         pass
+
+    fnames = ['file_{}_{}.txt'.format(filebytes, i) for i in range(num_files)]
+    for fname in fnames:
+        # data = ''.join(random.choices(string.ascii_letters, k=filebytes))
+        data = 'a' * filebytes
+        fpath = join(dpath, fname)
+        with open(fpath, 'w') as file:
+            file.write(data)
+    urls = ['http://localhost:8000/{}'.format(fname) for fname in fnames]
+    server_info = {
+        'proc': proc,
+        'fnames': fnames,
+        'urls': urls,
+    }
+    return server_info
+
+
+def test_local_download():
+    import pytest
+    pytest.skip('not robust yet')
+    int(10 * 2 ** 20)
+    server_info = _demodata_simple_server(filebytes=int(1000 * 2 ** 20))
+    url = server_info['urls'][0]
+    proc = server_info['proc']
+    print(proc.poll())
+    ub.download(url)
+    if proc.returncode is None:
+        proc.terminate()
+
+
 if __name__ == '__main__':
     """
     CommandLine:

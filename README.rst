@@ -1,4 +1,4 @@
-|ReadTheDocs| |Pypi| |Downloads| |Codecov| |CircleCI| |Travis| |Appveyor| |CodeQuality|
+|GithubActions| |ReadTheDocs| |Pypi| |Downloads| |Codecov| |CircleCI| |Appveyor| |CodeQuality|
 
 
 .. The large version wont work because github strips rst image rescaling. https://i.imgur.com/AcWVroL.png
@@ -777,13 +777,27 @@ Similar Tools
 -------------
 
 UBelt is one of many Python utility libraries. Other similar libraries are
-listed here:
+listed here.
+
+Libraries that contain a broad scope of utilities:
 
 * Boltons: https://github.com/mahmoud/boltons
+
+
+Libraries that contain a specific scope of utilities:
+
 * More-Itertools: https://pypi.org/project/more-itertools/
 * Toolz: https://github.com/pytoolz/toolz
 * CyToolz: https://github.com/pytoolz/cytoolz/
 * Funcy: https://github.com/Suor/funcy
+* Rich: https://github.com/willmcgugan/rich
+
+
+Libraries that contain one specific data structure or utility:
+
+* Benedict: https://pypi.org/project/python-benedict/
+* tqdm: https://pypi.org/project/tqdm/
+* pooch: https://pypi.org/project/pooch/
 
 
 Notes.
@@ -824,3 +838,5 @@ Also check out my other projects (many of which are powered by ubelt):
     :target: http://ubelt.readthedocs.io/en/latest/
 .. |CodeQuality| image:: https://api.codacy.com/project/badge/Grade/4d815305fc014202ba7dea09c4676343   
     :target: https://www.codacy.com/manual/Erotemic/ubelt?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=Erotemic/ubelt&amp;utm_campaign=Badge_Grade
+.. |GithubActions| image:: https://github.com/Erotemic/ubelt/actions/workflows/tests.yml/badge.svg?branch=main
+    :target: https://github.com/Erotemic/ubelt/actions?query=branch%3Amain

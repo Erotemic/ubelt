@@ -181,6 +181,10 @@ def repr2(data, **kwargs):
 
             _root_info (depth): information about parent context
 
+    RelatedWork:
+        :func:`rich.pretty.pretty_repr`
+        :func:`pprint.pformat`
+
     Example:
         >>> from ubelt.util_format import *
         >>> import ubelt as ub
@@ -1175,11 +1179,3 @@ def _align_lines(line_list, character='=', replchar=None, pos=0):
         else:
             new_lines.append(replchar.join(tup))
     return new_lines
-
-if __name__ == '__main__':
-    """
-    CommandLine:
-        python ~/code/ubelt/ubelt/util_format.py all
-    """
-    import xdoctest
-    xdoctest.doctest_module(__file__)

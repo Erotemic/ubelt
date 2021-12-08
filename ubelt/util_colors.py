@@ -41,7 +41,7 @@ import os
 # Global state that determines if ANSI-coloring text is allowed
 # (which is mainly to address non-ANSI complient windows consoles)
 # complient with https://no-color.org/
-NO_COLOR = bool(os.environ.get('NO_COLOR'))
+NO_COLOR = bool(os.environ.get('NO_COLOR'))  # type: bool
 
 
 def highlight_code(text, lexer_name='python', **kwargs):
@@ -87,10 +87,10 @@ def highlight_code(text, lexer_name='python', **kwargs):
                 warnings.warn(
                     'colorama is not installed, ansi colors may not work')
 
-        import pygments
-        import pygments.lexers
-        import pygments.formatters
-        import pygments.formatters.terminal
+        import pygments  # type: ignore
+        import pygments.lexers  # type: ignore
+        import pygments.formatters  # type: ignore
+        import pygments.formatters.terminal  # type: ignore
 
         formater = pygments.formatters.terminal.TerminalFormatter(bg='dark')
         lexer = pygments.lexers.get_lexer_by_name(lexer_name, **kwargs)
@@ -150,8 +150,8 @@ def color_text(text, color):
                 warnings.warn(
                     'colorama is not installed, ansi colors may not work')
 
-        import pygments
-        import pygments.console
+        import pygments  # type: ignore
+        import pygments.console  # type: ignore
         try:
             ansi_text = pygments.console.colorize(color, text)
         except KeyError:

@@ -52,7 +52,14 @@ def _win32_can_symlink(verbose=0, force=0, testing=0):
     from ubelt import util_platform
     tempdir = util_platform.ensure_app_cache_dir('ubelt', '_win32_can_symlink')
 
-    util_io.delete(tempdir)
+    try:
+        util_io.delete(tempdir)
+    except Exception:
+        print('ERROR IN DELETE: sys.platform={}'.format(sys.platform))
+        from ubelt import util_links
+        util_links._dirstats(tempdir)
+        raise
+
     util_path.ensuredir(tempdir)
 
     dpath = join(tempdir, 'dpath')
@@ -432,18 +439,50 @@ def _win32_rmtree(path, verbose=0):
     #         _rmjunctions(join(root, name))
 
     def _rmjunctions(root):
-        subdirs = []
-        for name in os.listdir(root):
-            current = join(root, name)
-            if os.path.isdir(current):
-                if _win32_is_junction(current):
-                    # remove any junctions as we encounter them
-                    os.rmdir(current)
-                elif not os.path.islink(current):
-                    subdirs.append(current)
-        # recurse in all real directories
-        for subdir in subdirs:
-            _rmjunctions(subdir)
+        from os.path import join, isdir, islink
+
+        for r, ds, fs in os.walk(root):
+            subdirs = []
+            for d in ds:
+                path = join(r, d)
+                if isdir(path):
+                    if _win32_is_junction(path):
+                        # remove any junctions as we encounter them
+                        os.rmdir(path)
+                    elif not islink(path):
+                        subdirs.append(d)
+            if 1:
+                # Not sure if necessary, double check, junctions are odd
+                for name in os.listdir(r):
+                    current = join(r, name)
+                    if os.path.isdir(current):
+                        if _win32_is_junction(current):
+                            # remove any junctions as we encounter them
+                            os.rmdir(current)
+
+            # only recurse into real directories
+            ds[:] = subdirs
+
+            # Probably dont need this?
+            # for f in fs:
+            #     fpath = join(r, f)
+            #     if os.path.isdir(fpath):
+            #         if _win32_is_junction(fpath):
+            #             # remove any junctions as we encounter them
+            #             os.rmdir(fpath)
+
+        # subdirs = []
+        # for name in os.listdir(root):
+        #     current = join(root, name)
+        #     if os.path.isdir(current):
+        #         if _win32_is_junction(current):
+        #             # remove any junctions as we encounter them
+        #             os.rmdir(current)
+        #         elif not os.path.islink(current):
+        #             subdirs.append(current)
+        # # recurse in all real directories
+        # for subdir in subdirs:
+        #     _rmjunctions(subdir)
 
     if _win32_is_junction(path):
         if verbose:
@@ -456,7 +495,13 @@ def _win32_rmtree(path, verbose=0):
         _rmjunctions(path)
         # now we can rmtree as normal
         import shutil
-        shutil.rmtree(path)
+        def onerror(func, path, exc_info):
+            print('Error')
+            print('func = {!r}'.format(func))
+            print('path = {!r}'.format(path))
+            print('exc_info = {!r}'.format(exc_info))
+
+        shutil.rmtree(path, onerror=onerror)
 
 
 def _win32_is_hardlinked(fpath1, fpath2):

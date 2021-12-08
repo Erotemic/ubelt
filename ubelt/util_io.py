@@ -35,11 +35,11 @@ def writeto(fpath, to_write, aslines=False, verbose=None):
         verbose (bool): verbosity flag
 
     Note:
-        In CPython you may wan to use `open(<fpath>).write(<to_write>)`
+        In CPython you may wan to use ``open(<fpath>).write(<to_write>)``
         instead.  This function exists as a convenience for writing in Python2.
         After 2020-01-01, we may consider deprecating the function.
 
-        NOTE: In PyPy `open(<fpath>).write(<to_write>)` does not work. See
+        NOTE: In PyPy ``open(<fpath>).write(<to_write>)`` does not work. See
         `https://pypy.org/compat.html`. This is a strong argument
         for keeping this function.
 
@@ -98,7 +98,7 @@ def readfrom(fpath, aslines=False, errors='replace', verbose=None):
     Reads (utf8) text from a file.
 
     Note:
-        You probably should use `open(<fpath>).read()` instead.
+        You probably should use ``open(<fpath>).read()`` instead.
         This function exists as a convenience for writing in Python2. After
         2020-01-01, we may consider deprecating the function.
 
@@ -138,10 +138,11 @@ def touch(fpath, mode=0o666, dir_fd=None, verbose=0, **kwargs):
     Args:
         fpath (str | PathLike): name of the file
         mode (int): file permissions (python3 and unix only)
-        dir_fd (file): optional directory file descriptor. If specified, fpath
-            is interpreted as relative to this descriptor (python 3 only).
+        dir_fd (io.IOBase): optional directory file descriptor. If specified,
+            fpath is interpreted as relative to this descriptor
+            (python 3 only).
         verbose (int): verbosity
-        **kwargs : extra args passed to ``os.utime`` (python 3 only).
+        **kwargs : extra args passed to :func:`os.utime` (python 3 only).
 
     Returns:
         str: path to the file

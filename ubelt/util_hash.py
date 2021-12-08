@@ -55,7 +55,8 @@ from ubelt.util_const import NoParam
 
 __all__ = ['hash_data', 'hash_file']
 
-HASH_VERSION = 2  # incremented when we make a change that modifies hashes
+# incremented when we make a change that modifies hashes
+HASH_VERSION = 2  # type: int
 
 _ALPHABET_10 = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
 
@@ -73,7 +74,7 @@ _ALPHABET_36 = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
 
 DEFAULT_ALPHABET = _ALPHABET_16
 
-PY2 = sys.version_info[0] == 2
+PY2 = sys.version_info[0] == 2  # type: bool
 
 if PY2:
     import six
@@ -154,6 +155,8 @@ if PY2:
             int_ = comp
         return int_
 else:
+    # Note: the Hasher refers to hashlib._hashlib.HASH
+    # but this does not play well with type annotations
     # try:
     #     HASH = hashlib._hashlib.HASH
     # except AttributeError:  # nocover
@@ -221,7 +224,7 @@ class _Hashers(object):
         return key in self.algos
 
     def _register_xxhash(self):  # nocover
-        import xxhash
+        import xxhash  # type: ignore
         self.algos['xxh32'] = xxhash.xxh32
         self.algos['xx32'] = xxhash.xxh32
         self.algos['xxh64'] = xxhash.xxh64
@@ -229,7 +232,7 @@ class _Hashers(object):
         self.algos['xxhash'] = xxhash.xxh32
 
     def _register_blake3(self):  # nocover
-        import blake3
+        import blake3  # type: ignore
         self.algos['blake3'] = blake3.blake3
         self.algos['b3'] = blake3.blake3
 
@@ -382,7 +385,7 @@ class HashableExtensions(object):
             hash_types (type | Tuple[type]):
 
         Returns:
-            func: closure to be used as the decorator
+            Callable: closure to be used as the decorator
 
         Example:
             >>> import ubelt as ub
@@ -823,10 +826,10 @@ def _convert_to_hashable(data, types=True, extensions=None):
 def _update_hasher(hasher, data, types=True, extensions=None):
     """
     Converts ``data`` into a byte representation and calls update on the hasher
-    :class:`hashlib.HASH` algorithm.
+    :class:`hashlib._hashlib.HASH` algorithm.
 
     Args:
-        hasher (hashlib.HASH): instance of a hashlib algorithm
+        hasher (Hasher): instance of a hashlib algorithm
         data (object): ordered data with structure
         types (bool): include type prefixes in the hash
 
@@ -959,7 +962,7 @@ def hash_data(data, hasher=NoParam, base=NoParam, types=False,
         data (object):
             Any sort of loosely organized data
 
-        hasher (str | hashlib.HASH, default='sha512'):
+        hasher (str | Hasher, default='sha512'):
             string code or a hash algorithm from hashlib. Valid hashing
             algorithms are defined by :py:obj:`hashlib.algorithms_guaranteed`
             (e.g.  'sha1', 'sha512', 'md5') as well as 'xxh32' and 'xxh64' if
@@ -1055,7 +1058,7 @@ def hash_file(fpath, blocksize=1048576, stride=1, maxbytes=None, hasher=NoParam,
         maxbytes (int | None):
             if specified, only hash the leading `maxbytes` of data in the file.
 
-        hasher (str | hashlib.HASH, default='sha512'):
+        hasher (str | Hasher, default='sha512'):
             string code or a hash algorithm from hashlib. Valid hashing
             algorithms are defined by :py:obj:`hashlib.algorithms_guaranteed`
             (e.g.  'sha1', 'sha512', 'md5') as well as 'xxh32' and 'xxh64' if

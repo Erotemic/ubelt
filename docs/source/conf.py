@@ -118,12 +118,17 @@ autodoc_member_order = 'bysource'
 # autodoc_mock_imports = ['torch', 'torchvision', 'visdom']
 intersphinx_mapping = {
     # 'pytorch': ('http://pytorch.org/docs/master/', None),
-    'python': ('https://docs.python.org/3.6', None),
+    'python': ('https://docs.python.org/3', None),
     'click': ('https://click.palletsprojects.com/', None),
     # 'xxhash': ('https://pypi.org/project/xxhash/', None),
     # 'pygments': ('https://pygments.org/docs/', None),
     # 'tqdm': ('https://tqdm.github.io/', None),
 }
+__dev_note__ = """
+python -m sphinx.ext.intersphinx https://docs.python.org/3/objects.inv
+python -m sphinx.ext.intersphinx https://ubelt.readthedocs.io/en/latest/objects.inv
+python -m sphinx.ext.intersphinx https://networkx.org/documentation/stable/objects.inv
+"""
 
 
 # Add any paths that contain templates here, relative to this directory.

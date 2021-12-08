@@ -46,13 +46,15 @@ def inject_method(self, func, name=None):
     simply remind the developer that there might be a better way.
 
     Args:
-        self (T): instance to inject a function into
+        self (T):
+            Instance to inject a function into.
 
-        func (Callable[[T, ...], Any]):
-            the function to inject (must contain an arg for self)
+        func (Callable[..., Any]):
+            The function to inject (must contain an arg for self).
 
-        name (str, default=None): name of the method. optional. If not
-            specified the name of the function is used.
+        name (str, default=None):
+            Name of the method. optional. If not specified the name of the
+            function is used.
 
     Example:
         >>> import ubelt as ub
@@ -82,7 +84,7 @@ def compatible(config, func, start=0):
     Take the subset of dict items that can be passed to function as kwargs
 
     Args:
-        config (dict):
+        config (Dict[str, Any]):
             a flat configuration dictionary
 
         func (Callable):
@@ -93,7 +95,7 @@ def compatible(config, func, start=0):
             unbound method to avoid the ``self`` argument.
 
     Returns:
-        dict :
+        Dict[str, Any] :
             a subset of ``config`` that only contains items compatible with the
             signature of ``func``.
 
@@ -125,18 +127,18 @@ def compatible(config, func, start=0):
         >>> func(**ub.compatible(config, func))
 
     Ignore:
-        >>> # xdoctest: +REQUIRES(PY3)
-        >>> # Test case with positional only 3.x +
-        >>> import ubelt as ub
-        >>> def func(a, e, /,  f):
-        >>>     return a * e * f
-        >>> config = {
-        ...   'a': 2, 'b': 3, 'c': 7,
-        ...   'd': 11, 'e': 13, 'f': 17,
-        ... }
-        >>> import pytest
-        >>> with pytest.raises(ValueError):
-        ...     func(**ub.compatible(config, func))
+        # xdoctest: +REQUIRES(PY3)
+        # Test case with positional only 3.6 +
+        import ubelt as ub
+        def func(a, e, /,  f):
+            return a * e * f
+        config = {
+          'a': 2, 'b': 3, 'c': 7,
+          'd': 11, 'e': 13, 'f': 17,
+        }
+        import pytest
+        with pytest.raises(ValueError):
+            func(**ub.compatible(config, func))
     """
     import inspect
     if hasattr(inspect, 'signature'):  # pragma :nobranch

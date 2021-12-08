@@ -58,7 +58,7 @@ __all__ = ['Timer', 'Timerit']
 
 
 if sys.version_info.major == 2:  # nocover
-    default_time = time.clock if sys.platform.startswith('win32') else time.time
+    default_time = time.clock if sys.platform.startswith('win32') else time.time  # type: ignore
 else:
     # TODO: If sys.version >= 3.7, then use time.perf_counter_ns
     default_time = time.perf_counter
@@ -233,7 +233,7 @@ class Timerit(object):
         clears all measurements, allowing the object to be reused
 
         Args:
-            label (str, optional) : change the label if specified
+            label (str | None) : change the label if specified
             measures (bool, default=False): if True reset measures
 
         Example:
@@ -261,8 +261,9 @@ class Timerit(object):
         Alternative way to time a simple function call using condensed syntax.
 
         Returns:
-            self (Timerit): Use `min`, or `mean` to get a scalar. Use
-                `print` to output a report to stdout.
+            'Timerit': self :
+                Use `min`, or `mean` to get a scalar. Use `print` to output a
+                report to stdout.
 
         Example:
             >>> import math

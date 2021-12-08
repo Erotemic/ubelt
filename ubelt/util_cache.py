@@ -95,15 +95,18 @@ class Cacher(object):
     changes to an unseen value. The location
 
     Args:
-        fname (str): A file name. This is the prefix that will be used by the
-            cache. It will always be used as-is.
+        fname (str):
+            A file name. This is the prefix that will be used by the cache. It
+            will always be used as-is.
 
-        depends (str | List[str]): Indicate dependencies of this cache.
-            If the dependencies change, then the cache is recomputed.
-            New in version 0.8.9, replaces `cfgstr`.
+        depends (str | List[str] | None):
+            Indicate dependencies of this cache.  If the dependencies change,
+            then the cache is recomputed.  New in version 0.8.9, replaces
+            `cfgstr`.
 
-        dpath (PathLike): Specifies where to save the cache. If unspecified,
-            Cacher defaults to an application resource dir as given by appname.
+        dpath (str | PathLike | None):
+            Specifies where to save the cache. If unspecified, Cacher defaults
+            to an application resource dir as given by appname.
 
         appname (str, default='ubelt'): Application name
             Specifies a folder in the application resource directory where to
@@ -111,30 +114,33 @@ class Cacher(object):
 
         ext (str, default='.pkl'): File extension for the cache format
 
-        meta (object): Metadata that is also saved with the ``cfgstr``.
-            This can be useful to indicate how the ``cfgstr`` was constructed.
+        meta (object | None):
+            Metadata that is also saved with the ``cfgstr``.  This can be
+            useful to indicate how the ``cfgstr`` was constructed.
 
         verbose (int, default=1): Level of verbosity. Can be 1, 2 or 3.
 
         enabled (bool, default=True): If set to False, then the load and save
             methods will do nothing.
 
-        log (func): Overloads the print function. Useful for sending output to
-            loggers (e.g. logging.info, tqdm.tqdm.write, ...)
+        log (Callable[[str], Any]):
+            Overloads the print function. Useful for sending output to loggers
+            (e.g. logging.info, tqdm.tqdm.write, ...)
 
-        hasher (str): Type of hashing algorithm to use if ``cfgstr`` needs to
-            be condensed to less than 49 characters.
+        hasher (str, default='sha1'):
+            Type of hashing algorithm to use if ``cfgstr`` needs to be
+            condensed to less than 49 characters.
 
         protocol (int, default=-1): Protocol version used by pickle.
             Defaults to the -1 which is the latest protocol.
             If python 2 compatibility is not required, set to 2.
 
-        cfgstr (str): Deprecated in favor of depends. Indicates the state.
-            Either this string or a hash of this string will be used to
-            identify the cache. A cfgstr should always be reasonably readable,
-            thus it is good practice to hash extremely detailed cfgstrs to a
-            reasonable readable level. Use meta to store make original details
-            persist.
+        cfgstr (str | None):
+            Deprecated in favor of depends. Indicates the state.  Either this
+            string or a hash of this string will be used to identify the cache.
+            A cfgstr should always be reasonably readable, thus it is good
+            practice to hash extremely detailed cfgstrs to a reasonable
+            readable level. Use meta to store make original details persist.
 
     Example:
         >>> import ubelt as ub
@@ -253,10 +259,10 @@ class Cacher(object):
         Then cfgstr will be hashed.
 
         Args:
-            cfgstr (str, optional): overrides the instance-level cfgstr
+            cfgstr (str | None): overrides the instance-level cfgstr
 
         Returns:
-            PathLike
+            str | PathLike
 
         Example:
             >>> # xdoctest: +REQUIRES(module:pytest)
@@ -281,7 +287,7 @@ class Cacher(object):
         Check to see if the cache exists
 
         Args:
-            cfgstr (str, optional): overrides the instance-level cfgstr
+            cfgstr (str | None): overrides the instance-level cfgstr
 
         Returns:
             bool
@@ -329,7 +335,7 @@ class Cacher(object):
         Removes the saved cache and metadata from disk
 
         Args:
-            cfgstr (str, optional): overrides the instance-level cfgstr
+            cfgstr (str | None): overrides the instance-level cfgstr
         """
         data_fpath = self.get_fpath(cfgstr)
         if self.verbose > 0:
@@ -352,7 +358,7 @@ class Cacher(object):
         Like load, but returns None if the load fails due to a cache miss.
 
         Args:
-            cfgstr (str, optional): overrides the instance-level cfgstr
+            cfgstr (str | None): overrides the instance-level cfgstr
 
             on_error (str, default='raise'):
                 How to handle non-io errors errors. Either 'raise', which
@@ -394,7 +400,7 @@ class Cacher(object):
         Load the data cached and raise an error if something goes wrong.
 
         Args:
-            cfgstr (str, optional): overrides the instance-level cfgstr
+            cfgstr (str | None): overrides the instance-level cfgstr
 
         Returns:
             object: the cached data
@@ -470,7 +476,7 @@ class Cacher(object):
 
         Args:
             data (object): arbitrary pickleable object to be cached
-            cfgstr (str, optional): overrides the instance-level cfgstr
+            cfgstr (str | None): overrides the instance-level cfgstr
 
         Example:
             >>> from ubelt.util_cache import *  # NOQA
@@ -524,7 +530,7 @@ class Cacher(object):
         Wraps around a function. A cfgstr must be stored in the base cacher.
 
         Args:
-            func (callable): function that will compute data on cache miss
+            func (Callable): function that will compute data on cache miss
             *args: passed to func
             **kwargs: passed to func
 
@@ -592,21 +598,10 @@ class CacheStamp(object):
         fname (str):
             Name of the stamp file
 
-        cfgstr (str):
-            Configuration associated with the stamped computation.  A common
-            pattern is to call :func:`ubelt.hash_data` on a dependency list.
-
-            Deprecated in favor of depends. Indicates the state.
-            Either this string or a hash of this string will be used to
-            identify the cache. A cfgstr should always be reasonably readable,
-            thus it is good practice to hash extremely detailed cfgstrs to a
-            reasonable readable level. Use meta to store make original details
-            persist.
-
-        dpath (PathLike):
+        dpath (str | PathLike | None):
             Where to store the cached stamp file
 
-        product (PathLike or Sequence[PathLike], optional):
+        product (str | PathLike | Sequence[str | PathLike] | None):
             Path or paths that we expect the computation to produce. If
             specified the hash of the paths are stored.
 
@@ -621,13 +616,27 @@ class CacheStamp(object):
         enabled (bool, default=True):
             if False, expired always returns True
 
-        depends (str | List[str]): Indicate dependencies of this cache.
-            If the dependencies change, then the cache is recomputed.
-            New to CacheStamp in version 0.9.2, replaces `cfgstr`.
+        depends (str | List[str] | None):
+            Indicate dependencies of this cache.  If the dependencies change,
+            then the cache is recomputed.  New to CacheStamp in version 0.9.2,
+            replaces `cfgstr`.
 
-        meta (object): Metadata that is also saved with the ``cfgstr``.
-            This can be useful to indicate how the ``cfgstr`` was constructed.
-            New to CacheStamp in version 0.9.2.
+        meta (object | None):
+            Metadata that is also saved with the ``cfgstr``.  This can be
+            useful to indicate how the ``cfgstr`` was constructed.  New to
+            CacheStamp in version 0.9.2.
+
+        cfgstr (str | None):
+            DEPRECATED in favor or depends.
+            Configuration associated with the stamped computation.  A common
+            pattern is to call :func:`ubelt.hash_data` on a dependency list.
+
+            Deprecated in favor of depends. Indicates the state.
+            Either this string or a hash of this string will be used to
+            identify the cache. A cfgstr should always be reasonably readable,
+            thus it is good practice to hash extremely detailed cfgstrs to a
+            reasonable readable level. Use meta to store make original details
+            persist.
 
     TODO:
         - [ ] expiration time delta or date time (also remember when renewed)
@@ -703,10 +712,10 @@ class CacheStamp(object):
         expected result of that computation still exists.
 
         Args:
-            cfgstr (str, optional): overrides the instance-level cfgstr
+            cfgstr (str | None): overrides the instance-level cfgstr
 
-            product (PathLike or Sequence[PathLike], optional): override the
-                default product if specified
+            product (str | PathLike | Sequence[str | PathLike] | None):
+                override the default product if specified
 
         Returns:
             bool: True if the stamp is invalid or does not exist.
@@ -807,12 +816,3 @@ def _byte_str(num, unit='auto', precision=2):
     fmtstr = ('{:.' + str(precision) + 'f}{}')
     res = fmtstr.format(num_unit, unit)
     return res
-
-
-if __name__ == '__main__':
-    """
-    CommandLine:
-        python ~/code/ubelt/ubelt/util_cache.py Cacher
-    """
-    import xdoctest
-    xdoctest.doctest_module(__file__)

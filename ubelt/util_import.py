@@ -33,7 +33,16 @@ PY2 = sys.version_info[0] == 2
 
 class PythonPathContext(object):
     """
-    Context for temporarily adding a dir to the PYTHONPATH. Used in testing
+    Context for temporarily adding a dir to the PYTHONPATH.
+
+    Used in testing, and used as a helper in certain ubelt functions.
+
+    Warning:
+        Even though this context manager takes precautions, this modifies the
+        python path, and things can go wrong when that happens.  This is
+        generally safe as long as nothing else you do inside of this context
+        modifies the path. If the path is modified in this context, we will try
+        to detect it and warn.
 
     Args:
         dpath (str): directory to insert into the PYTHONPATH
@@ -121,19 +130,22 @@ def import_module_from_path(modpath, index=-1):
     Imports a module via its path
 
     Args:
-        modpath (PathLike): path to the module on disk or within a zipfile.
-        index (int): location at which we modify PYTHONPATH if necessary.
-            If your module name does not conflict, the safest value is -1,
-            However, if there is a conflict, then use an index of 0.
-            The default may change to 0 in the future.
+        modpath (str | PathLike):
+            Path to the module on disk or within a zipfile.
+
+        index (int):
+            Location at which we modify PYTHONPATH if necessary.  If your
+            module name does not conflict, the safest value is -1, However, if
+            there is a conflict, then use an index of 0.  The default may
+            change to 0 in the future.
 
     Returns:
-        module: the imported module
+        ModuleType: the imported module
 
     References:
         https://stackoverflow.com/questions/67631/import-module-given-path
 
-    Notes:
+    Note:
         If the module is part of a package, the package will be imported first.
         These modules may cause problems when reloading via IPython magic
 
@@ -167,6 +179,9 @@ def import_module_from_path(modpath, index=-1):
        assume helper belongs to the ``pkg`` module already in sys.modules.
        This can cause a NameError or worse --- a incorrect helper module.
 
+    SeeAlso:
+        :func:`import_module_from_name`
+
     Example:
         >>> import xdoctest
         >>> modpath = xdoctest.__file__
@@ -177,7 +192,7 @@ def import_module_from_path(modpath, index=-1):
         >>> # Test importing a module from within a zipfile
         >>> import zipfile
         >>> from xdoctest import utils
-        >>> from os.path import join, expanduser
+        >>> from os.path import join, expanduser, normpath
         >>> dpath = expanduser('~/.cache/xdoctest')
         >>> dpath = utils.ensuredir(dpath)
         >>> #dpath = utils.TempDir().ensure()
@@ -195,7 +210,7 @@ def import_module_from_path(modpath, index=-1):
         >>> modpath = zippath + ':' + internal
         >>> modpath = zippath + os.path.sep + internal
         >>> module = import_module_from_path(modpath)
-        >>> assert module.__name__ == os.path.normpath('folder/bar')
+        >>> assert normpath(module.__name__) == normpath('folder/bar')
         >>> assert module.testvar == 1
 
     Example:
@@ -221,7 +236,30 @@ def import_module_from_path(modpath, index=-1):
             modname = os.path.normpath(modname)
             if os.path.exists(archivepath):
                 zimp_file = zipimport.zipimporter(archivepath)
-                module = zimp_file.load_module(modname)
+                try:
+                    try:
+                        module = zimp_file.load_module(modname)
+                    except Exception:  # nocover
+                        module = zimp_file.load_module(modname.replace('\\', '/'))  # hack
+                except Exception as ex:  # nocover
+                    text = (
+                        'Encountered error in import_module_from_path '
+                        'while calling load_module: '
+                        'modpath={modpath!r}, '
+                        'internal={internal!r}, '
+                        'modname={modname!r}, '
+                        'archivepath={archivepath!r}, '
+                        'ex={ex!r}'
+                    ).format(
+                        modpath=modpath,
+                        internal=internal,
+                        modname=modname,
+                        archivepath=archivepath,
+                        ex=ex)
+                    print(text)
+                    # raise
+                    raise Exception(text)
+
                 return module
         raise IOError('modpath={} does not exist'.format(modpath))
     else:
@@ -240,7 +278,10 @@ def import_module_from_name(modname):
         modname (str):  module name
 
     Returns:
-        module: module
+        ModuleType: module
+
+    SeeAlso:
+        :func:`import_module_from_path`
 
     Example:
         >>> # test with modules that wont be imported in normal circumstances
@@ -320,13 +361,15 @@ def _syspath_modname_to_modpath(modname, sys_path=None, exclude=None):
 
     Args:
         modname (str): name of module to find
-        sys_path (List[PathLike], default=None):
+
+        sys_path (List[str | PathLike] | None, default=None):
             if specified overrides ``sys.path``
-        exclude (List[PathLike], default=None):
+
+        exclude (List[str | PathLike] | None, default=None):
             list of directory paths. if specified prevents these directories
             from being searched.
 
-    Notes:
+    Note:
         This is much slower than the pkgutil mechanisms.
 
     Example:
@@ -537,16 +580,16 @@ def normalize_modpath(modpath, hide_init=True, hide_main=False):
     Normalizes __init__ and __main__ paths.
 
     Args:
-        modpath (PathLike): path to a module
+        modpath (str | PathLike): path to a module
         hide_init (bool, default=True): if True, always return package modules
            as __init__.py files otherwise always return the dpath.
         hide_main (bool, default=False): if True, always strip away main files
             otherwise ignore __main__.py.
 
     Returns:
-        PathLike: a normalized path to the module
+        str | PathLike: a normalized path to the module
 
-    Notes:
+    Note:
         Adds __init__ if reasonable, but only removes __main__ by default
 
     Example:
@@ -671,7 +714,7 @@ def split_modpath(modpath, check=True):
             directory and does not contain an ``__init__.py`` file.
 
     Returns:
-        tuple: (directory, rel_modpath)
+        Tuple[str, str]: (directory, rel_modpath)
 
     Raises:
         ValueError: if modpath does not exist or is not a package

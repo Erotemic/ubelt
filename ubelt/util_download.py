@@ -48,17 +48,19 @@ def download(url, fpath=None, dpath=None, fname=None, hash_prefix=None,
         url (str):
             The url to download.
 
-        fpath (PathLike | io.BytesIO):
+        fpath (Optional[str | PathLike | io.BytesIO]):
             The path to download to. Defaults to basename of url and ubelt's
             application cache. If this is a io.BytesIO object then information
             is directly written to this object (note this prevents the use of
             temporary files).
 
-        dpath (PathLike): where to download the file. If unspecified `appname`
-            is used to determine this. Mutually exclusive with fpath.
+        dpath (Optional[PathLike]):
+            where to download the file. If unspecified `appname` is used to
+            determine this. Mutually exclusive with fpath.
 
-        fname (str): What to name the downloaded file. Defaults to the url
-            basename. Mutually exclusive with fpath.
+        fname (Optional[str]):
+            What to name the downloaded file. Defaults to the url basename.
+            Mutually exclusive with fpath.
 
         hash_prefix (None | str):
             If specified, download will retry / error if the file hash
@@ -75,13 +77,13 @@ def download(url, fpath=None, dpath=None, fname=None, hash_prefix=None,
             Verbosity level 0 or 1.
 
     Returns:
-        PathLike: fpath - path to the downloaded file.
+        str | PathLike: fpath - path to the downloaded file.
 
     Raises:
         URLError - if there is problem downloading the url
         RuntimeError - if the hash does not match the hash_prefix
 
-    Notes:
+    Note:
         Based largely on code in pytorch [4]_ with modifications influenced by
         other resources [1]_ [2]_ [3]_.
 
@@ -123,11 +125,13 @@ def download(url, fpath=None, dpath=None, fname=None, hash_prefix=None,
 
     Example:
         >>> # xdoctest: +REQUIRES(--network)
-        >>> # test download from girder
         >>> import pytest
         >>> import ubelt as ub
-        >>> url = 'https://data.kitware.com/api/v1/item/5b4039308d777f2e6225994c/download'
-        >>> ub.download(url, hasher='sha512', hash_prefix='c98a46cb31205cf')
+        >>> url = 'http://i.imgur.com/rqwaDag.png'
+        >>> #fpath = download(url, hasher='sha1', hash_prefix='f79ea24571da6ddd2ba12e3d57b515249ecb8a35')
+        >>> # test download from girder
+        >>> #url = 'https://data.kitware.com/api/v1/item/5b4039308d777f2e6225994c/download'
+        >>> #ub.download(url, hasher='sha512', hash_prefix='c98a46cb31205cf')
         >>> with pytest.raises(RuntimeError):
         >>>     ub.download(url, hasher='sha512', hash_prefix='BAD_HASH')
     """
@@ -200,7 +204,7 @@ def download(url, fpath=None, dpath=None, fname=None, hash_prefix=None,
     _urldata_read = urldata.read
     try:
         pbar = Progress(total=file_size, disable=not verbose,
-                        freq=chunksize)
+                        freq=chunksize, time_thresh=1)
         with pbar:
             _pbar_update = pbar.update
 
@@ -267,15 +271,17 @@ def grabdata(url, fpath=None, dpath=None, fname=None, redo=False,
     Args:
         url (str): url to the file to download
 
-        fpath (PathLike): The full path to download the file to. If
-            unspecified, the arguments `dpath` and `fname` are used to
-            determine this.
+        fpath (Optional[str | PathLike]):
+            The full path to download the file to. If unspecified, the
+            arguments `dpath` and `fname` are used to determine this.
 
-        dpath (PathLike): where to download the file. If unspecified `appname`
-            is used to determine this. Mutually exclusive with fpath.
+        dpath (Optional[str | PathLike]):
+            where to download the file. If unspecified `appname` is used to
+            determine this. Mutually exclusive with fpath.
 
-        fname (str): What to name the downloaded file. Defaults to the url
-            basename. Mutually exclusive with fpath.
+        fname (Optional[str]):
+            What to name the downloaded file. Defaults to the url basename.
+            Mutually exclusive with fpath.
 
         redo (bool, default=False): if True forces redownload of the file
 
@@ -296,7 +302,7 @@ def grabdata(url, fpath=None, dpath=None, fname=None, redo=False,
         **download_kw: additional kwargs to pass to ub.download
 
     Returns:
-        PathLike: fpath - path to downloaded or cached file.
+        str | PathLike: fpath - path to downloaded or cached file.
 
     CommandLine:
         xdoctest -m ubelt.util_download grabdata --network
@@ -340,8 +346,10 @@ def grabdata(url, fpath=None, dpath=None, fname=None, redo=False,
         >>> assert ub.hash_file(fpath, base='hex', hasher='sha512').startswith(prefix1)
         >>> #
         >>> # Check that requesting new data causes redownload
-        >>> url2 = 'https://data.kitware.com/api/v1/item/5b4039308d777f2e6225994c/download'
-        >>> prefix2 = 'c98a46cb31205cf'
+        >>> #url2 = 'https://data.kitware.com/api/v1/item/5b4039308d777f2e6225994c/download'
+        >>> #prefix2 = 'c98a46cb31205cf'  # hack SSL
+        >>> url2 = 'http://i.imgur.com/rqwaDag.png'
+        >>> prefix2 = '944389a39dfb8fa9'
         >>> fpath = ub.grabdata(url2, fname=fname, hash_prefix=prefix2)
         >>> assert ub.readfrom(stamp_fpath) == prefix2
     """

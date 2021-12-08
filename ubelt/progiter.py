@@ -111,9 +111,9 @@ if sys.version_info.major > 2:  # nocover
 else:   # nocover
     # text_type = unicode
     # string_types = basestring,
-    text_type = eval('unicode', {}, {})
-    string_types = (eval('basestring', {}, {}),)
-    default_timer = time.clock if sys.platform.startswith('win32') else time.time
+    text_type = eval('unicode', {}, {})  # type: ignore
+    string_types = (eval('basestring', {}, {}),)  # type: ignore
+    default_timer = time.clock if sys.platform.startswith('win32') else time.time  # type: ignore
 
 
 CLEAR_BEFORE = '\r'
@@ -315,6 +315,10 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
             indicates that each iteration processes a batch of this size.
             Iteration rate is displayed in terms of single-items.
 
+        rel_adjust_limit (float, default=4.0):
+            Maximum factor update frequency can be adjusted by in a single
+            step.
+
         verbose (int):
             verbosity mode, which controls clearline, adjust, and enabled. The
             following maps the value of `verbose` to its effect.
@@ -353,9 +357,9 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
                  initial=0, eta_window=64, clearline=True, adjust=True,
                  time_thresh=2.0, show_times=True, show_wall=False,
                  enabled=True, verbose=None, stream=None, chunksize=None,
-                 **kwargs):
+                 rel_adjust_limit=4.0, **kwargs):
         """
-        Notes:
+        Note:
             See attributes for arg information
             **kwargs accepts most of the tqdm api
         """
@@ -391,6 +395,7 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
             total = kwargs.pop('length', total)
             enabled = kwargs.pop('enabled', enabled)
             initial = kwargs.pop('start', initial)
+            time_thresh = kwargs.pop('mininterval', time_thresh)
         if kwargs:
             raise ValueError('ProgIter given unknown kwargs {}'.format(kwargs))
         # ----------------------------
@@ -409,9 +414,10 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
         self.show_times = show_times
         self.show_wall = show_wall
         self.eta_window = eta_window
-        self.time_thresh = 1.0
+        self.time_thresh = time_thresh
         self.clearline = clearline
         self.chunksize = chunksize
+        self.rel_adjust_limit = rel_adjust_limit
         self.extra = ''
         self.started = False
         self.finished = False
@@ -473,7 +479,13 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
         # Wrap input sequence in a generator
         for self._iter_idx, item in enumerate(self.iterable, start=self.initial + 1):
             yield item
-            self.step(0)  # inc is 0 because we already updated
+            # Call the body of step to reduce overyead
+            # self.step(0)  # inc is 0 because we already updated
+            if (self._iter_idx) % self.freq == 0:
+                # update progress information every so often
+                self._update_measurements()
+                self._update_estimates()
+                self.display_message()
         self.end()
 
     def step(self, inc=1, force=False):
@@ -504,7 +516,7 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
             return
         self._iter_idx += inc
         _between_idx = (self._iter_idx - self._now_idx)
-        if force or (self._iter_idx) % self.freq == 0 or _between_idx > self.freq:
+        if force or _between_idx >= self.freq:
             self._update_measurements()
             self._update_estimates()
             self.display_message()
@@ -600,17 +612,11 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
         # perfect this would be the new freq to achieve self.time_thresh
         new_freq = int(self.time_thresh * self._max_between_count /
                        self._max_between_time)
-        new_freq = max(new_freq, 1)
         # But things are not perfect. So, don't make drastic changes
-
-        # freq is actually a bad name here. It is really the interval
-        # (i.e. how many iterations) we wait before we report progress We
-        # don't want to incrase the interval by too much, but decreasing
-        # (down to a minimum of 1) is usually ok.
-        rel_limit = 4.0
-        abs_limit = 256
-        max_freq = min(self.freq + abs_limit, int(self.freq * rel_limit))
-        self.freq = min(max_freq, new_freq)
+        rel_limit = self.rel_adjust_limit
+        max_freq = int(self.freq * rel_limit)
+        min_freq = int(self.freq // rel_limit)
+        self.freq = max(min(new_freq, max_freq), min_freq, 1)
 
     def _update_measurements(self):
         """
@@ -629,20 +635,6 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
         # Record that measures were updated
 
     def _update_estimates(self):
-        """
-        Ignore:
-            import random
-            import time
-            total = 1000
-            _iter = (time.sleep(abs(random.gauss(0, 0.5)) * 0.01)
-                     for _ in range(total))
-            self = ProgIter(_iter, total=total)
-            list(self)
-            self._measured_times
-
-            self._now_idx / self._total_seconds
-            self._iters_per_second
-        """
         # Estimate rate of progress
         if self.eta_window is None:
             self._iters_per_second = self._now_idx / self._total_seconds
@@ -848,8 +840,3 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
     def _write(self, msg):
         """ write to the internal stream """
         self.stream.write(msg)
-
-
-if __name__ == '__main__':
-    import xdoctest as xdoc
-    xdoc.doctest_module()

@@ -208,7 +208,7 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
     run in the background (eventually we may return a Future object instead).
 
     Args:
-        command (str or Sequence): bash-like command string or tuple of
+        command (str | List[str]): bash-like command string or tuple of
             executable and args
 
         shell (bool, default=False): if True, process is run in shell.
@@ -218,16 +218,18 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
 
         verbose (int, default=0): verbosity mode. Can be 0, 1, 2, or 3.
 
-        tee (bool, optional): if True, simultaneously writes to stdout while
+        tee (bool | None): if True, simultaneously writes to stdout while
             capturing output from the command. If not specified, defaults to
             True if verbose > 0.  If detach is True, then this argument is
             ignored.
 
-        cwd (PathLike, optional): path to run command
+        cwd (str | PathLike | None):
+            Path to run command. Defaults to current working directory if
+            unspecified.
 
-        env (str, optional): environment passed to Popen
+        env (Dict[str, str] | None): environment passed to Popen
 
-        tee_backend (str, optional): backend for tee output.
+        tee_backend (str, default='auto'): backend for tee output.
             Valid choices are: "auto", "select" (POSIX only), and "thread".
 
         check (bool, default=False): if True, check that the return code was

@@ -8,7 +8,8 @@ import sys
 try:
     from collections.abc import Generator
 except Exception:
-    Generator = object  # Python <3.4 doesnt have Generator ABC
+    # Python <3.4 doesnt have Generator ABC
+    Generator = object  # type: ignore
 
 
 class IndexableWalker(Generator):
@@ -23,6 +24,10 @@ class IndexableWalker(Generator):
 
     When generating values, you can use "send" to prevent traversal of a
     particular branch.
+
+    RelatedWork:
+        * https://pypi.org/project/python-benedict/ - implements a dictionary
+            subclass with similar nested indexing abilities.
 
     Example:
         >>> # Given Nested Data
@@ -115,8 +120,8 @@ class IndexableWalker(Generator):
 
         Can send a False flag to prevent a branch from being traversed
 
-        Yields:
-            Tuple[List, Any] :
+        Returns:
+            Generator[Tuple[List, Any], Any, Any]:
                 path (List): list of index operations to arrive at the value
                 value (object): the value at the path
         """
@@ -242,18 +247,33 @@ class IndexableWalker(Generator):
                         stack.append((value, path))
 
 
-def indexable_allclose(dct1, dct2, return_info=False):
+def indexable_allclose(dct1, dct2, rel_tol=1e-9, abs_tol=0.0, return_info=False):
     """
     Walks through two nested data structures and ensures that everything is
     roughly the same.
 
     Args:
-        dct1 (dict): a nested indexable item
-        dct2 (dict): a nested indexable item
+        dct1 (dict):
+            a nested indexable item
+
+        dct2 (dict):
+            a nested indexable item
+
+        rel_tol (float):
+            maximum difference for being considered "close", relative to the
+            magnitude of the input values
+
+        abs_tol (float):
+            maximum difference for being considered "close", regardless of the
+            magnitude of the input values
+
         return_info (bool, default=False): if true, return extra info
 
     Returns:
-        bool | Tuple[bool, Dict]
+        bool | Tuple[bool, Dict] :
+            A boolean result if ``return_info`` is false, otherwise a tuple of
+            the boolean result and an "info" dict containing detailed results
+            indicating what matched and what did not.
 
     Example:
         >>> import ubelt as ub

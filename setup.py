@@ -198,6 +198,11 @@ def native_mb_python_tag(plat_impl=None, version_info=None):
     return mb_tag
 
 
+try:
+    MB_PYTHON_TAG = native_mb_python_tag()
+except Exception:
+    MB_PYTHON_TAG = '???'
+
 NAME = 'ubelt'
 VERSION = parse_version('ubelt/__init__.py')
 
@@ -237,5 +242,6 @@ if __name__ == '__main__':
             'Programming Language :: Python :: 3.7',
             'Programming Language :: Python :: 3.8',
             'Programming Language :: Python :: 3.9',
+            'Programming Language :: Python :: 3.10',
         ],
     )

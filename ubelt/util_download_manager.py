@@ -10,7 +10,7 @@ class DownloadManager:
     Simple implementation of the download manager
 
     Attributes:
-        download_root (PathLike): default download location
+        download_root (str | PathLike): default download location
         jobs (List[concurrent.futures.Future]): list of jobs
 
     Example:
@@ -56,6 +56,7 @@ class DownloadManager:
         >>>     'hash_prefix': 'f79ea24571da6ddd2ba12e3d57b515249ecb8a35',
         >>>     'hasher': 'sha1',
         >>> }
+        >>> item1 = item2  # hack around SSL error
         >>> manager.submit(**item1)
         >>> manager.submit(**item2)
         >>> for job in manager.as_completed(prog=True, verbose=3):
@@ -86,7 +87,7 @@ class DownloadManager:
         Add a job to the download Queue
 
         Args:
-            url (PathLike): pointer to the data to download
+            url (str | PathLike): pointer to the data to download
             dst (str | None): The relative or absolute path to download to.
                 If unspecified, the destination name is derived from the url.
             hash_prefix (str | None):

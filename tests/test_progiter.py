@@ -334,7 +334,7 @@ def test_eta_window_None():
 
 def test_adjust_freq():
     # nothing to check (that I can think of) run test for coverage
-    prog = ProgIter(range(20), enabled=True, eta_window=None)
+    prog = ProgIter(range(20), enabled=True, eta_window=None, rel_adjust_limit=4.0)
 
     # Adjust frequency up to have each update happen every 1sec or so
     prog.freq = 1
@@ -354,7 +354,7 @@ def test_adjust_freq():
     prog._between_time = 1
     prog._between_count = 1
     prog._adjust_frequency()
-    assert prog.freq == 1
+    assert prog.freq == 250
 
     # No need to adjust frequency to have each update happen every 1sec or so
     prog.freq = 1

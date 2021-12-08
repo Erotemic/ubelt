@@ -36,14 +36,14 @@ def argval(key, default=util_const.NoParam, argv=None):
             string or tuple of strings. Each key should be prefixed with two
             hyphens (i.e. ``--``)
 
-        default (object, default=NoParam):
+        default (T | util_const._NoParamType, default=NoParam):
             a value to return if not specified.
 
-        argv (Optional[list], default=None):
+        argv (Optional[List[str]], default=None):
             uses ``sys.argv`` if unspecified
 
     Returns:
-        str:
+        str | T:
             value - the value specified after the key. It they key is specified
             multiple times, then the first value is returned.
 

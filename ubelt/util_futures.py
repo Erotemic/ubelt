@@ -135,10 +135,61 @@ class SerialExecutor(object):
         pass
 
     def submit(self, func, *args, **kw):
+        """
+        Submit a job to be executed later
+
+        Returns:
+            concurrent.futures.Future:
+                a future representing the job
+        """
         return SerialFuture(func, *args, **kw)
 
     def shutdown(self):
+        """
+        Ignored for the serial executor
+        """
         pass
+
+    def map(self, fn, *iterables, **kwargs):
+        """Returns an iterator equivalent to map(fn, iter).
+
+        Args:
+            fn (Callable[..., Any]):
+                A callable that will take as many arguments as there are passed
+                iterables.
+
+            timeout:
+                This argument is ignored for SerialExecutor
+
+            chunksize:
+                This argument is ignored for SerialExecutor
+
+        Yields:
+            Any:
+                equivalent to: map(func, *iterables) but the calls may be
+                evaluated out-of-order.
+
+        Raises:
+            Exception: If fn(*args) raises for any values.
+
+        Example:
+            >>> from ubelt.util_futures import SerialExecutor  # NOQA
+            >>> import concurrent.futures
+            >>> import string
+            >>> with SerialExecutor() as executor:
+            ...     result_iter = executor.map(int, string.digits)
+            ...     results = list(result_iter)
+            >>> print('results = {!r}'.format(results))
+            results = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+        """
+        kwargs.pop('chunksize', None)
+        kwargs.pop('timeout', None)
+        if len(kwargs) != 0:  # nocover
+            raise ValueError('Unknown arguments {}'.format(kwargs))
+
+        fs = [self.submit(fn, *args) for args in zip(*iterables)]
+        for f in fs:
+            yield f.result()
 
 
 class Executor(object):
@@ -153,10 +204,14 @@ class Executor(object):
 
     Example:
         >>> import platform
+        >>> import sys
         >>> # The process backend breaks pyp3 when using coverage
         >>> if 'pypy' in platform.python_implementation().lower():
         ...     import pytest
         ...     pytest.skip('not testing process on pypy')
+        >>> if sys.platform.startswith('win32'):
+        ...     import pytest
+        ...     pytest.skip('not running this test on win32 for now')
         >>> import ubelt as ub
         >>> # Fork before threading!
         >>> # https://pybay.com/site_media/slides/raymond2017-keynote/combo.html
@@ -206,16 +261,58 @@ class Executor(object):
         self.backend = backend
 
     def __enter__(self):
-        return self.backend.__enter__()
+        self.backend.__enter__()
+        return self
 
     def __exit__(self, ex_type, ex_value, tb):
         return self.backend.__exit__(ex_type, ex_value, tb)
 
     def submit(self, func, *args, **kw):
+        """
+        Calls the submit function of the underlying backend.
+
+        Returns:
+            concurrent.futures.Future:
+                a future representing the job
+        """
         return self.backend.submit(func, *args, **kw)
 
     def shutdown(self):
+        """
+        Calls the shutdown function of the underlying backend.
+        """
         return self.backend.shutdown()
+
+    def map(self, fn, *iterables, **kwargs):
+        """
+        Calls the map function of the underlying backend.
+
+        CommandLine:
+            xdoctest -m /home/joncrall/code/ubelt/ubelt/util_futures.py Executor.map
+
+        Example:
+            >>> import ubelt as ub
+            >>> import concurrent.futures
+            >>> import string
+            >>> with ub.Executor(mode='serial') as executor:
+            ...     result_iter = executor.map(int, string.digits)
+            ...     results = list(result_iter)
+            >>> print('results = {!r}'.format(results))
+            results = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+            >>> with ub.Executor(mode='thread', max_workers=2) as executor:
+            ...     result_iter = executor.map(int, string.digits)
+            ...     results = list(result_iter)
+            >>> # xdoctest: +IGNORE_WANT
+            >>> print('results = {!r}'.format(results))
+            results = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+        """
+        # Hack for python2
+        chunksize = kwargs.pop('chunksize', 1)
+        timeout = kwargs.pop('timeout', None)
+        if len(kwargs) != 0:  # nocover
+            raise ValueError('Unknown arguments {}'.format(kwargs))
+        return self.backend.map(fn, *iterables, timeout=timeout,
+                                chunksize=chunksize)
 
 
 class JobPool(object):
@@ -245,6 +342,13 @@ class JobPool(object):
         return len(self.jobs)
 
     def submit(self, func, *args, **kwargs):
+        """
+        Submit a job managed by the pool
+
+        Returns:
+            concurrent.futures.Future:
+                a future representing the job
+        """
         job = self.executor.submit(func, *args, **kwargs)
         self.jobs.append(job)
         return job

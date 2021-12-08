@@ -5,6 +5,30 @@ We are currently working on porting this changelog to the specifications in
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## Version 0.10.2 - Unreleased
+
+### Added
+* Added pyi type annotation files. (Used a custom script to export docstring type annotations)
+
+### Fixed
+* Added `map` function to the executor classes.
+* `ub.Executor` now correctly returns itself from `__enter__`
+* Docstrings now have better type annotations
+* ProgIter had a bug in `time_thresh`, where it was never used (modified adjustment rules).
+* Fixed performance regression in ProgIter
+
+### Changed
+* New CI GPG Keys: Erotemic-CI: 70858F4D01314BF21427676F3D568E6559A34380 for
+  reference the old signing key was 98007794ED130347559354B1109AC852D297D757.
+* Verbose test from symlink previously showed "real -> link" which makes no
+  sense because a link should be the object that "is pointing". Thus it now
+  shows "link -> real"
+
+## Version 0.10.1 - Released 2021-08-23
+
+### Changed
+* Documentation fixes
+
 ## Version 0.10.0 - Released 2021-08-22
 
 ### Added
