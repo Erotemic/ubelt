@@ -237,16 +237,19 @@ def import_module_from_path(modpath, index=-1):
             if os.path.exists(archivepath):
                 zimp_file = zipimport.zipimporter(archivepath)
                 try:
-                    module = zimp_file.load_module(modname)
+                    try:
+                        module = zimp_file.load_module(modname)
+                    except Exception:
+                        module = zimp_file.load_module(modname.replace('\\', '/'))  # hack
                 except Exception as ex:
                     text = (
                         'Encountered error in import_module_from_path '
                         'while calling load_module: '
-                        'modpath={modpath}, '
-                        'internal={internal}, '
-                        'modname={modname}, '
-                        'archivepath={archivepath}, '
-                        'ex={ex}'
+                        'modpath={modpath!r}, '
+                        'internal={internal!r}, '
+                        'modname={modname!r}, '
+                        'archivepath={archivepath!r}, '
+                        'ex={ex!r}'
                     ).format(
                         modpath=modpath,
                         internal=internal,
