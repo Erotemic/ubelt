@@ -125,11 +125,13 @@ def download(url, fpath=None, dpath=None, fname=None, hash_prefix=None,
 
     Example:
         >>> # xdoctest: +REQUIRES(--network)
-        >>> # test download from girder
         >>> import pytest
         >>> import ubelt as ub
-        >>> url = 'https://data.kitware.com/api/v1/item/5b4039308d777f2e6225994c/download'
-        >>> ub.download(url, hasher='sha512', hash_prefix='c98a46cb31205cf')
+        >>> url = 'http://i.imgur.com/rqwaDag.png'
+        >>> #fpath = download(url, hasher='sha1', hash_prefix='f79ea24571da6ddd2ba12e3d57b515249ecb8a35')
+        >>> # test download from girder
+        >>> #url = 'https://data.kitware.com/api/v1/item/5b4039308d777f2e6225994c/download'
+        >>> #ub.download(url, hasher='sha512', hash_prefix='c98a46cb31205cf')
         >>> with pytest.raises(RuntimeError):
         >>>     ub.download(url, hasher='sha512', hash_prefix='BAD_HASH')
     """
@@ -344,8 +346,10 @@ def grabdata(url, fpath=None, dpath=None, fname=None, redo=False,
         >>> assert ub.hash_file(fpath, base='hex', hasher='sha512').startswith(prefix1)
         >>> #
         >>> # Check that requesting new data causes redownload
-        >>> url2 = 'https://data.kitware.com/api/v1/item/5b4039308d777f2e6225994c/download'
-        >>> prefix2 = 'c98a46cb31205cf'
+        >>> #url2 = 'https://data.kitware.com/api/v1/item/5b4039308d777f2e6225994c/download'
+        >>> #prefix2 = 'c98a46cb31205cf'  # hack SSL
+        >>> ur2 = 'http://i.imgur.com/rqwaDag.png'
+        >>> prefix2 = '944389a39dfb8fa9'
         >>> fpath = ub.grabdata(url2, fname=fname, hash_prefix=prefix2)
         >>> assert ub.readfrom(stamp_fpath) == prefix2
     """
