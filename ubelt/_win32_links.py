@@ -495,7 +495,13 @@ def _win32_rmtree(path, verbose=0):
         _rmjunctions(path)
         # now we can rmtree as normal
         import shutil
-        shutil.rmtree(path)
+        def onerror(func, path, exc_info):
+            print('Error')
+            print('func = {!r}'.format(func))
+            print('path = {!r}'.format(path))
+            print('exc_info = {!r}'.format(exc_info))
+
+        shutil.rmtree(path, onerror=onerror)
 
 
 def _win32_is_hardlinked(fpath1, fpath2):
