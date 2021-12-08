@@ -33,7 +33,16 @@ PY2 = sys.version_info[0] == 2
 
 class PythonPathContext(object):
     """
-    Context for temporarily adding a dir to the PYTHONPATH. Used in testing
+    Context for temporarily adding a dir to the PYTHONPATH.
+
+    Used in testing, and used as a helper in certain ubelt functions.
+
+    Warning:
+        Even though this context manager takes precautions, this modifies the
+        python path, and things can go wrong when that happens.  This is
+        generally safe as long as nothing else you do inside of this context
+        modifies the path. If the path is modified in this context, we will try
+        to detect it and warn.
 
     Args:
         dpath (str): directory to insert into the PYTHONPATH
@@ -170,6 +179,9 @@ def import_module_from_path(modpath, index=-1):
        assume helper belongs to the ``pkg`` module already in sys.modules.
        This can cause a NameError or worse --- a incorrect helper module.
 
+    SeeAlso:
+        :func:`import_module_from_name`
+
     Example:
         >>> import xdoctest
         >>> modpath = xdoctest.__file__
@@ -224,7 +236,27 @@ def import_module_from_path(modpath, index=-1):
             modname = os.path.normpath(modname)
             if os.path.exists(archivepath):
                 zimp_file = zipimport.zipimporter(archivepath)
-                module = zimp_file.load_module(modname)
+                try:
+                    module = zimp_file.load_module(modname)
+                except Exception as ex:
+                    text = (
+                        'Encountered error in import_module_from_path '
+                        'while calling load_module: '
+                        'modpath={modpath:!r}, '
+                        'internal={internal:!r}, '
+                        'modname={modname:!r}, '
+                        'archivepath={archivepath:!r}, '
+                        'ex={ex:!r}'
+                    ).format(
+                        modpath=modpath,
+                        internal=internal,
+                        modname=modname,
+                        archivepath=archivepath,
+                        ex=ex)
+                    print(text)
+                    # raise
+                    raise Exception(text)
+
                 return module
         raise IOError('modpath={} does not exist'.format(modpath))
     else:
@@ -244,6 +276,9 @@ def import_module_from_name(modname):
 
     Returns:
         ModuleType: module
+
+    SeeAlso:
+        :func:`import_module_from_path`
 
     Example:
         >>> # test with modules that wont be imported in normal circumstances
