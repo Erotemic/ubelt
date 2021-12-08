@@ -192,7 +192,7 @@ def import_module_from_path(modpath, index=-1):
         >>> # Test importing a module from within a zipfile
         >>> import zipfile
         >>> from xdoctest import utils
-        >>> from os.path import join, expanduser
+        >>> from os.path import join, expanduser, normpath
         >>> dpath = expanduser('~/.cache/xdoctest')
         >>> dpath = utils.ensuredir(dpath)
         >>> #dpath = utils.TempDir().ensure()
@@ -210,7 +210,7 @@ def import_module_from_path(modpath, index=-1):
         >>> modpath = zippath + ':' + internal
         >>> modpath = zippath + os.path.sep + internal
         >>> module = import_module_from_path(modpath)
-        >>> assert module.__name__ == os.path.normpath('folder/bar')
+        >>> assert normpath(module.__name__) == normpath('folder/bar')
         >>> assert module.testvar == 1
 
     Example:
