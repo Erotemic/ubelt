@@ -242,11 +242,11 @@ def import_module_from_path(modpath, index=-1):
                     text = (
                         'Encountered error in import_module_from_path '
                         'while calling load_module: '
-                        'modpath={modpath:!r}, '
-                        'internal={internal:!r}, '
-                        'modname={modname:!r}, '
-                        'archivepath={archivepath:!r}, '
-                        'ex={ex:!r}'
+                        'modpath={modpath}, '
+                        'internal={internal}, '
+                        'modname={modname}, '
+                        'archivepath={archivepath}, '
+                        'ex={ex}'
                     ).format(
                         modpath=modpath,
                         internal=internal,
