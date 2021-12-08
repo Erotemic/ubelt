@@ -52,7 +52,14 @@ def _win32_can_symlink(verbose=0, force=0, testing=0):
     from ubelt import util_platform
     tempdir = util_platform.ensure_app_cache_dir('ubelt', '_win32_can_symlink')
 
-    util_io.delete(tempdir)
+    try:
+        util_io.delete(tempdir)
+    except Exception:
+        print('ERROR IN DELETE')
+        from ubelt import util_links
+        util_links._dirstats(tempdir)
+        raise
+
     util_path.ensuredir(tempdir)
 
     dpath = join(tempdir, 'dpath')
