@@ -56,6 +56,7 @@ class DownloadManager:
         >>>     'hash_prefix': 'f79ea24571da6ddd2ba12e3d57b515249ecb8a35',
         >>>     'hasher': 'sha1',
         >>> }
+        >>> item1 = item2  # hack around SSL error
         >>> manager.submit(**item1)
         >>> manager.submit(**item2)
         >>> for job in manager.as_completed(prog=True, verbose=3):
