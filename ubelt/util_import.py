@@ -239,9 +239,9 @@ def import_module_from_path(modpath, index=-1):
                 try:
                     try:
                         module = zimp_file.load_module(modname)
-                    except Exception:
+                    except Exception:  # nocover
                         module = zimp_file.load_module(modname.replace('\\', '/'))  # hack
-                except Exception as ex:
+                except Exception as ex:  # nocover
                     text = (
                         'Encountered error in import_module_from_path '
                         'while calling load_module: '

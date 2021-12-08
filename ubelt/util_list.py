@@ -733,6 +733,8 @@ def peek(iterable, default=util_const.NoParam):
         2
         >>> ub.peek(range(3))
         0
+        >>> ub.peek([], 3)
+        3
     """
     if default is util_const.NoParam:
         return next(iter(iterable))
