@@ -315,7 +315,7 @@ def test_broken_link():
 
     ub.touch(broken_fpath, verbose=2)
     util_links._dirstats(dpath)
-    ub.symlink(broken_fpath, broken_flink, verbose=2)
+    ub.symlink(real_path=broken_fpath, link_path=broken_flink, verbose=2)
 
     util_links._dirstats(dpath)
     ub.delete(broken_fpath, verbose=2)

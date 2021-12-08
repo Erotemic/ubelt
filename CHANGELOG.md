@@ -20,6 +20,9 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ### Changed
 * New CI GPG Keys: Erotemic-CI: 70858F4D01314BF21427676F3D568E6559A34380 for
   reference the old signing key was 98007794ED130347559354B1109AC852D297D757.
+* Verbose test from symlink previously showed "real -> link" which makes no
+  sense because a link should be the object that "is pointing". Thus it now
+  shows "link -> real"
 
 ## Version 0.10.1 - Released 2021-08-23
 
