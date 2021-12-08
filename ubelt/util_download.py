@@ -348,7 +348,7 @@ def grabdata(url, fpath=None, dpath=None, fname=None, redo=False,
         >>> # Check that requesting new data causes redownload
         >>> #url2 = 'https://data.kitware.com/api/v1/item/5b4039308d777f2e6225994c/download'
         >>> #prefix2 = 'c98a46cb31205cf'  # hack SSL
-        >>> ur2 = 'http://i.imgur.com/rqwaDag.png'
+        >>> url2 = 'http://i.imgur.com/rqwaDag.png'
         >>> prefix2 = '944389a39dfb8fa9'
         >>> fpath = ub.grabdata(url2, fname=fname, hash_prefix=prefix2)
         >>> assert ub.readfrom(stamp_fpath) == prefix2
