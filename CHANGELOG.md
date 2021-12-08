@@ -12,6 +12,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### Added
 * Added pyi type annotation files. (Used a custom script to export docstring type annotations)
+* Added `default` keyword argument to signature of `ub.peek`
 
 ### Fixed
 * Added `map` function to the executor classes.
@@ -26,6 +27,8 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 * Verbose test from symlink previously showed "real -> link" which makes no
   sense because a link should be the object that "is pointing". Thus it now
   shows "link -> real"
+* `ub.download` should now generate less stdout text
+* New in-repo "dev" benchmarks
 
 ## Version 0.10.1 - Released 2021-08-23
 
