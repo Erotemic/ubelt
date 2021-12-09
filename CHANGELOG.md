@@ -8,6 +8,18 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ## Version 0.10.3 - Unreleased
 
 
+### Fixed
+* `ubelt.hash_data` now handles non-numeric float values.
+
+### Changed
+* Added progress bar keyword arguments to `JobPool.as_completed`
+
+* Changed default of `_hashable_sequence` `types` arg from True to False to be
+  consistent, but kept existing types=True behavior in hashable extensions. Changes
+  should be backwards compatible, but in the future we may introduce a breaking
+  change to make hash behavior more consistent.
+
+
 ## Version 0.10.2 - Released 2021-12-07
 
 ### Added
