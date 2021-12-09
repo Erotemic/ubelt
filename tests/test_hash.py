@@ -424,13 +424,18 @@ def _test_int_bytes():
     assert ub.util_hash._int_to_bytes(-2 ** 256) == b'\xff\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
 
 
-def _test_xxhash():
-    try:
-        import xxhash  # NOQA
-    except ImportError:
-        pass
-    else:
+def test_xxhash():
+    if 'xxh64' in ub.util_hash._HASHERS.available():
         assert ub.hash_data('foo', hasher='xxh64') == '33bf00a859c4ba3f'
+    else:
+        pytest.skip('xxhash is not available')
+
+
+def test_blake3():
+    if 'blake3' in ub.util_hash._HASHERS.available():
+        assert ub.hash_data('foo', hasher='b3') == '04e0bb39f30b1a3feb89f536c93be15055482df748674b00d26e5a75777702e9'
+    else:
+        pytest.skip('blake3 is not available')
 
 
 if __name__ == '__main__':

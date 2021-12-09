@@ -242,7 +242,7 @@ class _Hashers(object):
     def __contains__(self, key):  # nocover
         if self._lazy_queue:
             self._evaluate_registration_queue()
-        return key in self.algos
+        return key in self.algos or key in self.aliases
 
     def _register_xxhash(self):  # nocover
         import xxhash  # type: ignore
@@ -257,7 +257,7 @@ class _Hashers(object):
     def _register_blake3(self):  # nocover
         import blake3  # type: ignore
         self.algos['blake3'] = blake3.blake3
-        self.algos['b3'] = blake3.blake3
+        self.aliases['b3'] = 'blake3'
 
     def _register_hashlib(self):
         guaranteed = set(hashlib.algorithms_guaranteed)
