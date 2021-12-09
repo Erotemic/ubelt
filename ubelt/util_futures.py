@@ -364,12 +364,24 @@ class JobPool(object):
     def __exit__(self, a, b, c):
         self.executor.__exit__(a, b, c)
 
-    def as_completed(self):
+    def as_completed(self, timeout=None, desc=None, progkw=None):
         """
         Generates completed jobs in an arbitrary order
 
+        Args:
+            timeout (float | None):
+                Specify the the maximum number of seconds to wait for a job.
+
+            desc (str | None):
+                if specified, reports progress with a
+                :class:`ubelt.progiter.ProgIter` object.
+
+            progkw (dict | None):
+                extra keyword arguments to :class:`ubelt.progiter.ProgIter`.
+
         Yields:
-            concurrent.futures.Future
+            concurrent.futures.Future:
+                The completed future object containing the results of a job.
 
         CommandLine:
             xdoctest -m ubelt.util_futures JobPool.as_completed
@@ -393,7 +405,14 @@ class JobPool(object):
             ...     pass
             >>> pool.shutdown()
         """
-        for job in as_completed(self.jobs):
+        import ubelt as ub
+        job_iter = as_completed(self.jobs)
+        if desc is not None:
+            if progkw is None:
+                progkw = {}
+            job_iter = ub.ProgIter(
+                job_iter, desc=desc, total=len(self.jobs), **progkw)
+        for job in job_iter:
             yield job
 
     def __iter__(self):
