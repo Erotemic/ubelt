@@ -381,6 +381,22 @@ def test_local_download():
         proc.terminate()
 
 
+@pytest.mark.timeout(5)
+def test_download_with_progkw():
+    """
+    Test that progkw is properly passed through to ub.download
+    """
+    url = 'http://i.imgur.com/rqwaDag.png'
+    if not ub.argflag('--network'):
+        pytest.skip('not running network tests')
+    dpath = ub.ensure_app_cache_dir('ubelt', 'tests')
+    fname = basename(url)
+    fpath = join(dpath, fname)
+    with ub.CaptureStdout() as cap:
+        ub.download(url, fpath=fpath, progkw={'verbose': 3, 'freq': 1, 'adjust': False}, chunksize=128)
+    assert len(cap.text.split('\n')) > 10
+
+
 if __name__ == '__main__':
     """
     CommandLine:

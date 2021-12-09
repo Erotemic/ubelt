@@ -227,7 +227,7 @@ class _Hashers(object):
         ]
 
     def available(self):
-        if self._lazy_queue:
+        if self._lazy_queue:  # nocover
             self._evaluate_registration_queue()
         return list(self.algos.keys())
 
@@ -239,8 +239,8 @@ class _Hashers(object):
                 pass
         self._lazy_queue = []
 
-    def __contains__(self, key):  # nocover
-        if self._lazy_queue:
+    def __contains__(self, key):
+        if self._lazy_queue:  # nocover
             self._evaluate_registration_queue()
         return key in self.algos or key in self.aliases
 
@@ -1183,7 +1183,7 @@ def hash_file(fpath, blocksize=1048576, stride=1, maxbytes=None, hasher=NoParam,
         >>> import ubelt as ub
         >>> from os.path import join
         >>> fpath = ub.touch(join(ub.ensure_app_cache_dir('ubelt'), 'empty_file'))
-        >>> # Test that the output is the same as sha1sum
+        >>> # Test that the output is the same as sha1sum executable
         >>> if ub.find_exe('sha1sum'):
         >>>     want = ub.cmd(['sha1sum', fpath], verbose=2)['out'].split(' ')[0]
         >>>     got = ub.hash_file(fpath, hasher='sha1')

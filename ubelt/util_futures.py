@@ -319,20 +319,21 @@ class JobPool(object):
     """
     Abstracts away boilerplate of submitting and collecting jobs
 
+    This is a basic wrapper around :class:`ubelt.util_futures.Executor` that
+    simplifies the most basic case.
+
     Example:
         >>> import ubelt as ub
         >>> def worker(data):
         >>>     return data + 1
         >>> pool = ub.JobPool('thread', max_workers=16)
-        >>> with pool:
-        >>>     for data in ub.ProgIter(range(10), desc='submit jobs'):
-        >>>         job = pool.submit(worker, data)
-        >>>     final = []
-        >>>     for job in ub.ProgIter(pool.as_completed(), total=len(pool), desc='collect jobs'):
-        >>>         info = job.result()
-        >>>         final.append(info)
+        >>> for data in ub.ProgIter(range(10), desc='submit jobs'):
+        >>>     pool.submit(worker, data)
+        >>> final = []
+        >>> for job in pool.as_completed(desc='collect jobs'):
+        >>>     info = job.result()
+        >>>     final.append(info)
         >>> print('final = {!r}'.format(final))
-        >>> pool.shutdown()
     """
     def __init__(self, mode='thread', max_workers=0):
         self.executor = Executor(mode=mode, max_workers=max_workers)
@@ -344,6 +345,15 @@ class JobPool(object):
     def submit(self, func, *args, **kwargs):
         """
         Submit a job managed by the pool
+
+        Args:
+            func (Callable[..., Any]):
+                A callable that will take as many arguments as there are passed
+                iterables.
+
+            *args : positional arguments to pass to the function
+
+            *kwargs : keyword arguments to pass to the function
 
         Returns:
             concurrent.futures.Future:
@@ -363,6 +373,9 @@ class JobPool(object):
 
     def __exit__(self, a, b, c):
         self.executor.__exit__(a, b, c)
+
+    # TODO: add some way to clear completed jobs?
+    # def clear_completed
 
     def as_completed(self, timeout=None, desc=None, progkw=None):
         """
