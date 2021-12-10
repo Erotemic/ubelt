@@ -368,6 +368,7 @@ class SingletonTestServer(ub.NiceRepr):
     def __init__(self):
         import requests
         import time
+        import sys
         import ubelt as ub
         import socket
         from contextlib import closing
@@ -386,9 +387,15 @@ class SingletonTestServer(ub.NiceRepr):
         print('port = {!r}'.format(port))
 
         dpath = ub.ensure_app_cache_dir('ubelt/simple_server')
-        server_cmd = [
-            'python', '-m', 'http.server', str(port)
-        ]
+
+        if sys.version_info[0] == 2:
+            server_cmd = [
+                'python', '-m', 'SimpleHTTPServer', str(port)
+            ]
+        else:
+            server_cmd = [
+                'python', '-m', 'http.server', str(port)
+            ]
         info = ub.cmd(server_cmd, detatch=True, cwd=dpath)
         proc = info['proc']
         self.proc = proc
