@@ -340,10 +340,11 @@ class SingletonTestServer(ub.NiceRepr):
     CommandLine:
         xdoctest -m /home/joncrall/code/ubelt/tests/test_download.py SingletonTestServer
 
-    Example:
-        >>> import sys, ubelt
-        >>> sys.path.append(ubelt.expandpath('~/code/ubelt/tests'))
-        >>> from test_download import *  # NOQA
+    Note:
+        We rely on python process close mechanisms to clean this server up.
+        Might need to re-investigate this in the future.
+
+    Ignore:
         >>> self = SingletonTestServer.instance()
         >>> print('self = {!r}'.format(self))
         >>> url = self.urls[0]
@@ -472,6 +473,78 @@ def test_download_with_progkw():
     with ub.CaptureStdout() as cap:
         ub.download(url, fpath=fpath, progkw={'verbose': 3, 'freq': 1, 'adjust': False}, chunksize=128)
     assert len(cap.text.split('\n')) > 10
+
+
+def test_grabdata():
+    # xdoctest: +REQUIRES(--network)
+    import ubelt as ub
+    # fname = 'foo.bar'
+    # url = 'http://i.imgur.com/rqwaDag.png'
+    # prefix1 = '944389a39dfb8fa9'
+    fname = 'foo2.bar'
+    url = _demo_url(128 * 11)
+    prefix1 = 'b7fa848cd088ae842a89ef'
+    fpath = ub.grabdata(url, fname=fname, hash_prefix=prefix1)
+    stamp_fpath = fpath + '.sha512.hash'
+    assert ub.readfrom(stamp_fpath) == prefix1
+    # Check that the download doesn't happen again
+    fpath = ub.grabdata(url, fname=fname, hash_prefix=prefix1)
+    # todo: check file timestamps have not changed
+    #
+    # Check redo works with hash
+    fpath = ub.grabdata(url, fname=fname, hash_prefix=prefix1, redo=True)
+    # todo: check file timestamps have changed
+    #
+    # Check that a redownload occurs when the stamp is changed
+    open(stamp_fpath, 'w').write('corrupt-stamp')
+    fpath = ub.grabdata(url, fname=fname, hash_prefix=prefix1)
+    assert ub.readfrom(stamp_fpath) == prefix1
+    #
+    # Check that a redownload occurs when the stamp is removed
+    ub.delete(stamp_fpath)
+    open(fpath, 'w').write('corrupt-data')
+    assert not ub.hash_file(fpath, base='hex', hasher='sha512').startswith(prefix1)
+    fpath = ub.grabdata(url, fname=fname, hash_prefix=prefix1)
+    assert ub.hash_file(fpath, base='hex', hasher='sha512').startswith(prefix1)
+    #
+    # Check that requesting new data causes redownload
+    #url2 = 'https://data.kitware.com/api/v1/item/5b4039308d777f2e6225994c/download'
+    #prefix2 = 'c98a46cb31205cf'  # hack SSL
+    # url2 = 'http://i.imgur.com/rqwaDag.png'
+    # prefix2 = '944389a39dfb8fa9'
+    url2, prefix2 = url, prefix1
+    fpath = ub.grabdata(url2, fname=fname, hash_prefix=prefix2)
+    assert ub.readfrom(stamp_fpath) == prefix2
+
+
+def test_grabdata_delete_hash_stamp():
+    import ubelt as ub
+    fname = 'foo3.bar'
+    url = _demo_url(128 * 12)
+    prefix1 = '43f92597d7eb08b57c88b636'
+    fpath = ub.grabdata(url, fname=fname, hash_prefix=prefix1)
+    stamp_fpath = fpath + '.sha512.hash'
+    ub.delete(stamp_fpath)
+    fpath = ub.grabdata(url, fname=fname, hash_prefix=prefix1)
+
+
+def test_download_with_io():
+    import ubelt as ub
+    import io
+    url = _demo_url(128 * 3)
+    file = io.BytesIO()
+    fpath = ub.download(url, file)
+    assert fpath is file
+    file.seek(0)
+    data = file.read()
+    hashstr = ub.hash_data(data, hasher='sha1')
+    assert hashstr.startswith('45a5c851bf12d1')
+
+
+def test_download_with_sha1_hasher():
+    import ubelt as ub
+    url = _demo_url(128 * 4)
+    ub.download(url, hasher='sha1', hash_prefix='164557facb7392')
 
 
 if __name__ == '__main__':
