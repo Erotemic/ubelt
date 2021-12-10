@@ -387,9 +387,9 @@ class SingletonTestServer(ub.NiceRepr):
 
         dpath = ub.ensure_app_cache_dir('ubelt/simple_server')
         server_cmd = [
-            'python', '-m', 'http.server', '--directory', dpath, str(port)
+            'python', '-m', 'http.server', str(port)
         ]
-        info = ub.cmd(server_cmd, detatch=True)
+        info = ub.cmd(server_cmd, detatch=True, cwd=dpath)
         proc = info['proc']
         self.proc = proc
         self.dpath = dpath
@@ -410,7 +410,12 @@ class SingletonTestServer(ub.NiceRepr):
             if status_code == 200:
                 break
 
-        assert self.proc.poll() is None
+        poll_ret = self.proc.poll()
+
+        if poll_ret is not None:
+            print('poll_ret = {!r}'.format(poll_ret))
+            print(self.proc.communicate())
+            raise AssertionError('Simple server did not start {}'.format(poll_ret))
 
         self.urls = []
         self.write_file()
