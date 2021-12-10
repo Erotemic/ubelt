@@ -5,10 +5,10 @@ from os.path import basename, join, exists
 
 @pytest.mark.timeout(5)
 def test_download_no_fpath():
-    url = 'http://i.imgur.com/rqwaDag.png'
-
-    if not ub.argflag('--network'):
-        pytest.skip('not running network tests')
+    # url = 'http://i.imgur.com/rqwaDag.png'
+    # if not ub.argflag('--network'):
+    #     pytest.skip('not running network tests')
+    url = _demo_url()
 
     dpath = ub.ensure_app_cache_dir('ubelt')
     fname = basename(url)
@@ -25,10 +25,10 @@ def test_download_no_fpath():
 
 @pytest.mark.timeout(5)
 def test_download_with_fpath():
-    url = 'http://i.imgur.com/rqwaDag.png'
-
-    if not ub.argflag('--network'):
-        pytest.skip('not running network tests')
+    # url = 'http://i.imgur.com/rqwaDag.png'
+    # if not ub.argflag('--network'):
+    #     pytest.skip('not running network tests')
+    url = _demo_url(1201)
 
     dpath = ub.ensure_app_cache_dir('ubelt', 'tests')
     fname = basename(url)
@@ -49,10 +49,10 @@ def test_download_with_fpath():
 @pytest.mark.timeout(5)
 def test_download_chunksize():
     # url = 'https://www.dropbox.com/s/jl506apezj42zjz/ibeis-win32-setup-ymd_hm-2015-08-01_16-28.exe?dl=1'
-    url = 'http://i.imgur.com/rqwaDag.png'
-
-    if not ub.argflag('--network'):
-        pytest.skip('not running network tests')
+    # url = 'http://i.imgur.com/rqwaDag.png'
+    # if not ub.argflag('--network'):
+    #     pytest.skip('not running network tests')
+    url = _demo_url()
 
     dpath = ub.ensure_app_cache_dir('ubelt')
     fname = basename(url)
@@ -70,18 +70,18 @@ def test_download_chunksize():
 @pytest.mark.timeout(5)
 def test_download_cover_hashers():
     # url = 'https://www.dropbox.com/s/jl506apezj42zjz/ibeis-win32-setup-ymd_hm-2015-08-01_16-28.exe?dl=1'
-    url = 'http://i.imgur.com/rqwaDag.png'
-
-    if not ub.argflag('--network'):
-        pytest.skip('not running network tests')
+    # url = 'http://i.imgur.com/rqwaDag.png'
+    # if not ub.argflag('--network'):
+    #     pytest.skip('not running network tests')
+    url = _demo_url()
 
     dpath = ub.ensure_app_cache_dir('ubelt')
     fname = basename(url)
 
     # add coverage for different hashers
-    ub.download(url, hasher='md5', hash_prefix='545e3a51404f664e46aa65',
+    ub.download(url, hasher='md5', hash_prefix='e09c80c42fda55f9d992e59ca6b33',
                 dpath=dpath, fname=fname)
-    ub.download(url, hasher='sha256', hash_prefix='31a129618c87dd667103',
+    ub.download(url, hasher='sha256', hash_prefix='bf2cb58a68f684d95a3b78ef8f',
                 dpath=dpath, fname=fname)
 
 
@@ -89,10 +89,11 @@ def test_download_cover_hashers():
 def test_download_hashalgo():
     # url = 'https://www.dropbox.com/s/jl506apezj42zjz/ibeis-win32-setup-ymd_hm-2015-08-01_16-28.exe?dl=1'
     import hashlib
-    url = 'http://i.imgur.com/rqwaDag.png'
 
-    if not ub.argflag('--network'):
-        pytest.skip('not running network tests')
+    # url = 'http://i.imgur.com/rqwaDag.png'
+    # if not ub.argflag('--network'):
+    #     pytest.skip('not running network tests')
+    url = _demo_url()
 
     dpath = ub.ensure_app_cache_dir('ubelt')
     fname = basename(url)
@@ -102,7 +103,7 @@ def test_download_hashalgo():
     assert not exists(fpath)
 
     got_fpath = ub.download(url,
-                            hash_prefix='545e3a51404f664e46aa65a70948e126',
+                            hash_prefix='e09c80c42fda55f9d992e59ca6b3307d',
                             hasher=hashlib.md5())
 
     assert got_fpath == fpath
@@ -114,10 +115,10 @@ def test_grabdata_cache():
     """
     Check where the url is downloaded to when fpath is not specified.
     """
-    url = 'http://i.imgur.com/rqwaDag.png'
-
-    if not ub.argflag('--network'):
-        pytest.skip('not running network tests')
+    # url = 'http://i.imgur.com/rqwaDag.png'
+    # if not ub.argflag('--network'):
+    #     pytest.skip('not running network tests')
+    url = _demo_url()
 
     dpath = ub.ensure_app_cache_dir('ubelt')
     fname = basename(url)
@@ -139,10 +140,10 @@ def test_grabdata_url_only():
     """
     Check where the url is downloaded to when fpath is not specified.
     """
-    url = 'http://i.imgur.com/rqwaDag.png'
-
-    if not ub.argflag('--network'):
-        pytest.skip('not running network tests')
+    # url = 'http://i.imgur.com/rqwaDag.png'
+    # if not ub.argflag('--network'):
+    #     pytest.skip('not running network tests')
+    url = _demo_url()
 
     dpath = ub.ensure_app_cache_dir('ubelt')
     fname = basename(url)
@@ -158,10 +159,10 @@ def test_grabdata_with_fpath():
     """
     Check where the url is downloaded to when fpath is not specified.
     """
-    url = 'http://i.imgur.com/rqwaDag.png'
-
-    if not ub.argflag('--network'):
-        pytest.skip('not running network tests')
+    # url = 'http://i.imgur.com/rqwaDag.png'
+    # if not ub.argflag('--network'):
+    #     pytest.skip('not running network tests')
+    url = _demo_url()
 
     dpath = ub.ensure_app_cache_dir('ubelt')
     fname = basename(url)
@@ -182,10 +183,10 @@ def test_grabdata_value_error():
     """
     Check where the url is downloaded to when fpath is not specified.
     """
-    url = 'http://i.imgur.com/rqwaDag.png'
-
-    if not ub.argflag('--network'):
-        pytest.skip('not running network tests')
+    # url = 'http://i.imgur.com/rqwaDag.png'
+    # if not ub.argflag('--network'):
+    #     pytest.skip('not running network tests')
+    url = _demo_url()
 
     dpath = ub.ensure_app_cache_dir('ubelt')
     fname = basename(url)
@@ -216,9 +217,8 @@ def test_download_bad_url():
         python -m ubelt.tests.test_download test_download_bad_url --verbose
     """
     url = 'http://a-very-incorrect-url'
-
-    if not ub.argflag('--network'):
-        pytest.skip('not running network tests')
+    # if not ub.argflag('--network'):
+    #     pytest.skip('not running network tests')
 
     dpath = ub.ensure_app_cache_dir('ubelt', 'tests')
     fname = basename(url)
@@ -239,13 +239,15 @@ def test_download_bad_url():
 
 @pytest.mark.timeout(5)
 def test_grabdata_fname_only():
-    url = 'http://i.imgur.com/rqwaDag.png'
+    # url = 'http://i.imgur.com/rqwaDag.png'
+    # if not ub.argflag('--network'):
+    #     pytest.skip('not running network tests')
+    # fname = 'mario.png'
 
-    if not ub.argflag('--network'):
-        pytest.skip('not running network tests')
+    url = _demo_url()
 
     dpath = ub.ensure_app_cache_dir('ubelt')
-    fname = 'mario.png'
+    fname = 'custom_text.txt'
     fpath = join(dpath, fname)
 
     got_fpath = ub.grabdata(url, fname=fname)
@@ -255,10 +257,10 @@ def test_grabdata_fname_only():
 
 @pytest.mark.timeout(5)
 def test_grabdata_dpath_only():
-    url = 'http://i.imgur.com/rqwaDag.png'
-
-    if not ub.argflag('--network'):
-        pytest.skip('not running network tests')
+    # url = 'http://i.imgur.com/rqwaDag.png'
+    # if not ub.argflag('--network'):
+    #     pytest.skip('not running network tests')
+    url = _demo_url()
 
     dpath = ub.ensure_app_cache_dir('ubelt', 'test')
     fname = basename(url)
@@ -271,10 +273,10 @@ def test_grabdata_dpath_only():
 
 @pytest.mark.timeout(5)
 def test_grabdata_fpath_and_dpath():
-    url = 'http://i.imgur.com/rqwaDag.png'
-
-    if not ub.argflag('--network'):
-        pytest.skip('not running network tests')
+    # url = 'http://i.imgur.com/rqwaDag.png'
+    # if not ub.argflag('--network'):
+    #     pytest.skip('not running network tests')
+    url = _demo_url()
 
     with pytest.raises(ValueError):
         ub.grabdata(url, fpath='foo', dpath='bar')
@@ -289,10 +291,11 @@ def test_grabdata_hash_typo():
     """
     # url = 'https://www.dropbox.com/s/jl506apezj42zjz/ibeis-win32-setup-ymd_hm-2015-08-01_16-28.exe?dl=1'
     import hashlib
-    url = 'http://i.imgur.com/rqwaDag.png'
+    # url = 'http://i.imgur.com/rqwaDag.png'
+    # if not ub.argflag('--network'):
+    #     pytest.skip('not running network tests')
 
-    if not ub.argflag('--network'):
-        pytest.skip('not running network tests')
+    url = _demo_url()
 
     dpath = ub.ensure_app_cache_dir('ubelt')
     fname = basename(url)
@@ -312,7 +315,7 @@ def test_grabdata_hash_typo():
 
         print('[STEP2] Fixing the typo recomputes the hash, but does not redownload the file')
         got_fpath = ub.grabdata(url,
-                                hash_prefix='545e3a51404f664e46aa65a70948e126',
+                                hash_prefix='22d42eb002cefa81e9ad604ea57bc01d',
                                 hasher=hashlib.md5(), verbose=verbose)
         assert got_fpath == fpath
         assert exists(fpath)
@@ -321,64 +324,128 @@ def test_grabdata_hash_typo():
         ub.delete(fpath + '.md5.hash')
         print('[STEP3] Deleting the hash file recomputes the hash')
         got_fpath = ub.grabdata(url, fpath=fpath,
-                                hash_prefix='545e3a51404f664e46aa65a70948e126',
+                                hash_prefix='22d42eb002cefa81e9ad604ea57bc01d',
                                 hasher=hashlib.md5(), verbose=verbose)
         assert exists(fpath + '.md5.hash')
 
 
-def _demodata_simple_server(filebytes=1000, num_files=1):
+class SingletonTestServer(ub.NiceRepr):
     """
-    Start or connect to an existing simple fileserver so we
-    can test downloads locally.
-    """
-    # import string
-    import ubelt as ub
-    from os.path import join
-    # import random
-    # from random import randbytes
-    dpath = ub.ensure_app_cache_dir('ubelt/simple_server')
-    server_cmd = ['python', '-m', 'http.server', '--directory', dpath]
-    info = ub.cmd(server_cmd, detatch=True)
-    proc = info['proc']
-    # proc.poll()
-    # print(proc.communicate())
-    # print('proc.returncode = {!r}'.format(proc.returncode))
-    # if proc.returncode == 1:
-    #     # todo: return a pointer to the real proc?
-    #     import psutil
-    #     for cand in psutil.process_iter():
-    #         if 'python' in cand.name():
-    #             if cand.cmdline() == server_cmd:
-    #                 proc = cand
-    #         pass
+    A singleton class used for testing.
 
-    fnames = ['file_{}_{}.txt'.format(filebytes, i) for i in range(num_files)]
-    for fname in fnames:
-        # data = ''.join(random.choices(string.ascii_letters, k=filebytes))
-        data = 'a' * filebytes
-        fpath = join(dpath, fname)
-        with open(fpath, 'w') as file:
-            file.write(data)
-    urls = ['http://localhost:8000/{}'.format(fname) for fname in fnames]
-    server_info = {
-        'proc': proc,
-        'fnames': fnames,
-        'urls': urls,
-    }
-    return server_info
+    This could be done via a pytest fixture, but... I don't want to use
+    fixtures until its easy and clear how to make an instance of them in an
+    independent IPython session.
+
+    CommandLine:
+        xdoctest -m /home/joncrall/code/ubelt/tests/test_download.py SingletonTestServer
+
+    Example:
+        >>> import sys, ubelt
+        >>> sys.path.append(ubelt.expandpath('~/code/ubelt/tests'))
+        >>> from test_download import *  # NOQA
+        >>> self = SingletonTestServer.instance()
+        >>> print('self = {!r}'.format(self))
+        >>> url = self.urls[0]
+        >>> print('url = {!r}'.format(url))
+        >>> dl_file = ub.download(url)
+    """
+
+    _instance = None
+
+    @classmethod
+    def instance(cls):
+        if cls._instance is not None:
+            self = cls._instance
+        else:
+            self = cls()
+            cls._instance = self
+        return self
+
+    def __nice__(self):
+        return '{} - {}'.format(self.root_url, self.proc.returncode)
+
+    def __init__(self):
+        import requests
+        import time
+        import ubelt as ub
+        import socket
+        from contextlib import closing
+        def find_free_port():
+            """
+            References:
+                https://stackoverflow.com/questions/1365265/on-localhost-how-do-i-pick-a-free-port-number
+            """
+            with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as s:
+                s.bind(('', 0))
+                s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+                return s.getsockname()[1]
+
+        # Find an open port
+        port = find_free_port()
+        print('port = {!r}'.format(port))
+
+        dpath = ub.ensure_app_cache_dir('ubelt/simple_server')
+        server_cmd = [
+            'python', '-m', 'http.server', '--directory', dpath, str(port)
+        ]
+        info = ub.cmd(server_cmd, detatch=True)
+        proc = info['proc']
+        self.proc = proc
+        self.dpath = dpath
+        self.root_url = 'http://localhost:{}'.format(port)
+
+        time.sleep(.002)
+
+        # Wait for the server to be alive
+        status_code = None
+        max_tries = 100
+        for _ in range(max_tries):
+            try:
+                resp = requests.get(self.root_url, timeout=1)
+            except requests.exceptions.ConnectionError:
+                time.sleep(0.01)
+            else:
+                status_code = resp.status_code
+            if status_code == 200:
+                break
+
+        assert self.proc.poll() is None
+
+        self.urls = []
+        self.write_file()
+
+    def write_file(self, filebytes=10, num_files=1):
+        fnames = ['file_{}_{}.txt'.format(filebytes, i) for i in range(num_files)]
+        for fname in fnames:
+            # data = ''.join(random.choices(string.ascii_letters, k=filebytes))
+            data = 'a' * filebytes
+            fpath = join(self.dpath, fname)
+            with open(fpath, 'w') as file:
+                file.write(data)
+        urls = ['{}/{}'.format(self.root_url, fname) for fname in fnames]
+        self.urls.extend(urls)
+        return urls
 
 
 def test_local_download():
-    import pytest
-    pytest.skip('not robust yet')
-    int(10 * 2 ** 20)
-    server_info = _demodata_simple_server(filebytes=int(1000 * 2 ** 20))
-    url = server_info['urls'][0]
-    proc = server_info['proc']
-    print(proc.poll())
+    server = SingletonTestServer.instance()
+    url = server.write_file(filebytes=int(10 * 2 ** 20))[0]
     ub.download(url)
-    if proc.returncode is None:
-        proc.terminate()
+
+
+def _demo_url(num_bytes=None):
+    REAL_URL = False
+    if REAL_URL:
+        url = 'http://i.imgur.com/rqwaDag.png'
+        if not ub.argflag('--network'):
+            pytest.skip('not running network tests')
+    else:
+        if num_bytes is None:
+            url = SingletonTestServer.instance().urls[0]
+        else:
+            url = SingletonTestServer.instance().write_file(num_bytes)[0]
+    return url
 
 
 @pytest.mark.timeout(5)
@@ -386,9 +453,7 @@ def test_download_with_progkw():
     """
     Test that progkw is properly passed through to ub.download
     """
-    url = 'http://i.imgur.com/rqwaDag.png'
-    if not ub.argflag('--network'):
-        pytest.skip('not running network tests')
+    url = _demo_url(128 * 10)
     dpath = ub.ensure_app_cache_dir('ubelt', 'tests')
     fname = basename(url)
     fpath = join(dpath, fname)
