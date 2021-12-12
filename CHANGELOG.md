@@ -10,6 +10,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ### Added
 * Added `progkw` as argument to `JobPool.as_completed` to control progress reporting
 * Added `progkw` as argument to `ub.download` / `ub.grabdat` to control progress reporting
+* Added `util_zip` with the `zopen` function. Access a file inside a zipfile with a standard `open` like interface. 
 
 
 ### Fixed

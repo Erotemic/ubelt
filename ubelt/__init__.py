@@ -56,6 +56,7 @@ __submodules__ = [
     'util_str',
     'util_stream',
     'util_time',
+    'util_zip',
     'orderedset',
     'progiter',
     'timerit',
@@ -91,6 +92,7 @@ from ubelt import util_platform
 from ubelt import util_str
 from ubelt import util_stream
 from ubelt import util_time
+from ubelt import util_zip
 
 from ubelt.util_arg import (argflag, argval,)
 from ubelt.util_cache import (CacheStamp, Cacher,)
@@ -131,6 +133,7 @@ from ubelt.util_str import (codeblock, ensure_unicode, hzcat, indent,
                             paragraph,)
 from ubelt.util_stream import (CaptureStdout, CaptureStream, TeeStringIO,)
 from ubelt.util_time import (timestamp,)
+from ubelt.util_zip import (split_archive, zopen,)
 from ubelt.orderedset import (OrderedSet, oset,)
 from ubelt.progiter import (ProgIter,)
 from ubelt.timerit import (Timer, Timerit,)
@@ -165,13 +168,14 @@ __all__ = ['AutoDict', 'AutoOrderedDict', 'CacheStamp', 'Cacher',
            'oset', 'paragraph', 'peek', 'platform_cache_dir',
            'platform_config_dir', 'platform_data_dir', 'platform_resource_dir',
            'progiter', 'readfrom', 'repr2', 'schedule_deprecation',
-           'shrinkuser', 'sorted_keys', 'sorted_vals', 'split_modpath',
-           'startfile', 'symlink', 'take', 'timerit', 'timestamp', 'touch',
-           'truepath', 'unique', 'unique_flags', 'userhome', 'util_arg',
-           'util_cache', 'util_cmd', 'util_colors', 'util_const', 'util_dict',
-           'util_download', 'util_download_manager', 'util_format',
-           'util_func', 'util_futures', 'util_hash', 'util_import',
-           'util_indexable', 'util_io', 'util_links', 'util_list',
-           'util_memoize', 'util_mixins', 'util_path', 'util_platform',
-           'util_str', 'util_stream', 'util_time', 'varied_values', 'writeto']
+           'shrinkuser', 'sorted_keys', 'sorted_vals', 'split_archive',
+           'split_modpath', 'startfile', 'symlink', 'take', 'timerit',
+           'timestamp', 'touch', 'truepath', 'unique', 'unique_flags',
+           'userhome', 'util_arg', 'util_cache', 'util_cmd', 'util_colors',
+           'util_const', 'util_dict', 'util_download', 'util_download_manager',
+           'util_format', 'util_func', 'util_futures', 'util_hash',
+           'util_import', 'util_indexable', 'util_io', 'util_links',
+           'util_list', 'util_memoize', 'util_mixins', 'util_path',
+           'util_platform', 'util_str', 'util_stream', 'util_time', 'util_zip',
+           'varied_values', 'writeto', 'zopen']
 # </AUTOGEN_INIT>
