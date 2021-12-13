@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+"""
+Abstractions for working with zipfiles and archives
+"""
 from __future__ import absolute_import, division, print_function, unicode_literals
 import os
 import io
@@ -19,14 +22,14 @@ def split_archive(fpath, ext='.zip'):
         (None, None)
         >>> split_archive('/a/b/foo.zip/bar.txt')
         ('/a/b/foo.zip', 'bar.txt')
-        >>> split_archive('/a/b/foo.zip/baz/bar.txt')
-        >>> split_archive('/a/b/foo.zip/baz/biz.zip/bar.txt')
         >>> split_archive('/a/b/foo.zip/baz/biz.zip/bar.py')
+        ('/a/b/foo.zip/baz/biz.zip', 'bar.py')
+        >>> split_archive('archive.zip')
+        ('archive.zip', None)
         >>> # xdoctest: +REQUIRES(module:pathlib)
         >>> import pathlib
         >>> split_archive(pathlib.Path('/a/b/foo.zip/baz/biz.zip/bar.py'))
-        >>> split_archive('/a/b/foo.zip')
-        >>> split_archive('/a/b/foo.zip/baz.zip/bar.zip')
+        ('/a/b/foo.zip/baz/biz.zip', 'bar.py')
         >>> split_archive('/a/b/foo.zip/baz.pt/bar.zip/bar.zip', '.pt')
         ('/a/b/foo.zip/baz.pt', 'bar.zip/bar.zip')
 
@@ -45,30 +48,60 @@ def split_archive(fpath, ext='.zip'):
         if not archivepath.endswith(ext):
             archivepath = None
         internal = None
-    else:
-        archivepath = None
-        internal = None
+    else:  # nocover
+        raise AssertionError('impossible state')
     return archivepath, internal
 
 
 class zopen(NiceRepr):
     """
-    Can open a file normally or open a file within a zip file (readonly). Tries
-    to read from memory only, but will extract to a tempfile if necessary.
+    An abstraction of the normal :func:`open` function that can also handle
+    reading data directly inside of zipfiles.
+
+    This is a file-object like interface [FileObj] --- i.e. it supports the
+    read and write methods to an underlying resource.
+
+    Can open a file normally or open a file within a zip file (readonly).
+    Tries to read from memory only, but will extract to a tempfile if necessary.
 
     Just treat the zipfile like a directory,
     e.g. /path/to/myzip.zip/compressed/path.txt OR?
     e.g. /path/to/myzip.zip:compressed/path.txt
 
+    References:
+        .. [FileObj] https://docs.python.org/3/glossary.html#term-file-object
+
     TODO:
         - [ ] Fast way to open a base zipfile, query what is inside, and
               then choose a file to further zopen (and passing along the same
               open zipfile refernce maybe?).
+        - [ ] Write mode in some restricted setting?
+
+    Args:
+        fpath (str | PathLike):
+            path to a file, or a special path that denotes both a
+            path to a zipfile and a path to a archived file inside of
+            the zipfile.
+
+        mode (str):
+            Currently only "r" - readonly mode is supported
+
+        seekable (bool):
+            If True, attempts to force "seekability" of the underlying
+            file-object, for compressed files this will first extract
+            the file to a temporary location on disk.  If False, any underlying
+            compressed file will be opened directly which may result in the
+            object being non-seekable.
+
+        ext (str):
+            The extension of the zipfile. Modify this is a non-standard
+            extension is used (e.g. for torch packages).
 
     Example:
         >>> from ubelt.util_zip import *  # NOQA
         >>> import pathlib
         >>> import pickle
+        >>> import ubelt as ub
         >>> dpath = ub.ensure_app_cache_dir('ubelt/tests/util_zip')
         >>> dpath = pathlib.Path(dpath)
         >>> data_fpath = dpath / 'test.pkl'
@@ -98,19 +131,96 @@ class zopen(NiceRepr):
     Example:
         >>> # Test we can load json data from a zipfile
         >>> from ubelt.util_zip import *  # NOQA
+        >>> import ubelt as ub
+        >>> import json
         >>> dpath = ub.ensure_app_cache_dir('ubelt/tests/util_zip')
         >>> infopath = join(dpath, 'info.json')
-        >>> open(infopath, 'w').write('{"x": "1"}')
+        >>> ub.writeto(infopath, '{"x": "1"}')
         >>> zippath = join(dpath, 'infozip.zip')
         >>> internal = 'folder/info.json'
         >>> with zipfile.ZipFile(zippath, 'w') as myzip:
         >>>     myzip.write(infopath, internal)
         >>> fpath = zippath + '/' + internal
+        >>> # Test context manager
+        >>> with zopen(fpath, 'r') as self:
+        >>>     info2 = json.load(self)
+        >>>     assert info2['x'] == '1'
+        >>> # Test outside of context manager
         >>> self = zopen(fpath, 'r')
         >>> print(self._split_archive())
-        >>> import json
         >>> info2 = json.load(self)
         >>> assert info2['x'] == '1'
+        >>> # Test nice repr (with zfile)
+        >>> print('self = {!r}'.format(self))
+
+    Example:
+        >>> # Coverage tests --- move to unit-test
+        >>> from ubelt.util_zip import *  # NOQA
+        >>> import ubelt as ub
+        >>> import json
+        >>> dpath = ub.ensure_app_cache_dir('ubelt/tests/util_zip')
+        >>> textpath = join(dpath, 'seekable_test.txt')
+        >>> text = chr(10).join(['line{}'.format(i) for i in range(10)])
+        >>> ub.writeto(textpath, text)
+        >>> zippath = join(dpath, 'seekable_test.zip')
+        >>> internal = 'folder/seekable_test.txt'
+        >>> with zipfile.ZipFile(zippath, 'w') as myzip:
+        >>>     myzip.write(textpath, internal)
+        >>> ub.delete(textpath)
+        >>> fpath = zippath + '/' + internal
+        >>> # Test seekable
+        >>> self_seekable = zopen(fpath, 'r', seekable=True)
+        >>> assert self_seekable.seekable()
+        >>> self_seekable.seek(8)
+        >>> assert self_seekable.readline() == 'ne1' + chr(10)
+        >>> assert self_seekable.readline() == 'line2' + chr(10)
+        >>> self_seekable.seek(8)
+        >>> assert self_seekable.readline() == 'ne1' + chr(10)
+        >>> assert self_seekable.readline() == 'line2' + chr(10)
+        >>> # Test non-seekable?
+        >>> # Sometimes non-seekable files are still seekable
+        >>> maybe_seekable = zopen(fpath, 'r', seekable=False)
+        >>> if maybe_seekable.seekable():
+        >>>     maybe_seekable.seek(8)
+        >>>     assert maybe_seekable.readline() == 'ne1' + chr(10)
+        >>>     assert maybe_seekable.readline() == 'line2' + chr(10)
+        >>>     maybe_seekable.seek(8)
+        >>>     assert maybe_seekable.readline() == 'ne1' + chr(10)
+        >>>     assert maybe_seekable.readline() == 'line2' + chr(10)
+
+
+    Example:
+        >>> # More coverage tests --- move to unit-test
+        >>> from ubelt.util_zip import *  # NOQA
+        >>> import ubelt as ub
+        >>> import pytest
+        >>> dpath = ub.ensure_app_cache_dir('ubelt/tests/util_zip')
+        >>> with pytest.raises(OSError):
+        >>>     self = zopen('', 'r')
+        >>> # Test open non-zip exsting file
+        >>> existing_fpath = join(dpath, 'exists.json')
+        >>> ub.writeto(existing_fpath, '{"x": "1"}')
+        >>> self = zopen(existing_fpath, 'r')
+        >>> assert self.read() == '{"x": "1"}'
+        >>> # Test dir
+        >>> dir(self)
+        >>> # Test nice
+        >>> print(self)
+        >>> print('self = {!r}'.format(self))
+        >>> # Test open non-zip non-existing file
+        >>> nonexisting_fpath = join(dpath, 'does-not-exist.txt')
+        >>> ub.delete(nonexisting_fpath)
+        >>> with pytest.raises(OSError):
+        >>>     self = zopen(nonexisting_fpath, 'r')
+        >>> with pytest.raises(NotImplementedError):
+        >>>     self = zopen(nonexisting_fpath, 'w')
+        >>> # Test nice-repr
+        >>> self = zopen(existing_fpath, 'r')
+        >>> print('self = {!r}'.format(self))
+        >>> # pathological
+        >>> self = zopen(existing_fpath, 'r')
+        >>> self._handle = None
+        >>> dir(self)
     """
     def __init__(self, fpath, mode='r', seekable=False, ext='.zip'):
         self.fpath = fpath
@@ -118,12 +228,12 @@ class zopen(NiceRepr):
         self.name = fpath
         self.mode = mode
         self._seekable = seekable
-        assert 'r' in self.mode
+        self._zfpath = None  # points to the base zipfile (if appropriate)
+        self._temp_dpath = None  # for temporary extraction
+        self._zfile_read = None  # underlying opened zipfile object
+        # The _handle pointer should be a file-like object that this zopen
+        # object impersonate, by forwarding most every getattr call to it.
         self._handle = None
-        self._zfpath = None
-        self._temp_dpath = None
-        self._temp_fpath = None
-        self._zfile_read = None
         self._open()
 
     @property
@@ -144,13 +254,14 @@ class zopen(NiceRepr):
 
     def __nice__(self):
         if self._zfpath is None:
-            return str(self._handle) + ' mode=' + self.mode
+            return 'handle={}, mode={}'.format(str(self._handle), self.mode)
         else:
-            return '{} in zipfile {}, mode={}'.format(self._handle, self._zfpath, self.mode)
+            return 'handle={} in zipfpath={}, mode={}'.format(self._handle, self._zfpath, self.mode)
 
     def __getattr__(self, key):
         # Expose attributes of wrapped handle
         if hasattr(self._handle, key):
+            assert self._handle is not self
             return getattr(self._handle, key)
         raise AttributeError(key)
 
@@ -169,8 +280,11 @@ class zopen(NiceRepr):
     def _cleanup(self):
         # print('self._cleanup = {!r}'.format(self._cleanup))
         if not getattr(self, 'closed', True):
-            getattr(self, 'close', lambda: None)()
+            closemethod = getattr(self, 'close', None)
+            if closemethod is not None:  # nocover
+                closemethod()
         if self._temp_dpath and exists(self._temp_dpath):
+            # os.unlink(self._temp_dpath)
             import ubelt as ub
             ub.delete(self._temp_dpath)
 
@@ -181,18 +295,24 @@ class zopen(NiceRepr):
         archivefile, internal = split_archive(self.fpath, self.ext)
         return archivefile, internal
 
-    @property
-    def _temporary_extract(self):
-        # If we need data to be seekable, then we must extract it to a
-        # temporary file first.
-        archivefile, internal = self._split_archive()
-        self._temp_dpath = tempfile.mkdtemp()
-        myzip = self.zfile
-        temp_fpath = join(self._temp_dpath, internal)
-        myzip.extract(internal, self._temp_dpath)
-        return temp_fpath
-
     def _open(self):
+        """
+        This logic sets the "_handle" to the appropriate backend object
+        such that zopen can behave like a standard IO object.
+
+        In read-only mode:
+            * If fpath is a normal file, _handle is the standard `open` object
+            * If fpath is a seekable zipfile, _handle is an IOWrapper pointing
+                to the internal data
+            * If fpath is a non-seekable zipfile, the data is extracted behind
+                the scenes and a standard `open` object to the extracted file
+                is given.
+
+        In write mode:
+            * NotImpelemented
+        """
+        if 'r' not in self.mode:
+            raise NotImplementedError('Only read mode is supported for now')
         _handle = None
         fpath = os.fspath(self.fpath)
         if exists(fpath):
@@ -203,7 +323,7 @@ class zopen(NiceRepr):
             if self._seekable:
                 # If we need data to be seekable, then we must extract it to a
                 # temporary file first.
-                self._temp_dpath = tempfile.mkdtemp()
+                self._temp_dpath = tempfile.mkdtemp(prefix='zopen_')
                 temp_fpath = join(self._temp_dpath, internal)
                 myzip.extract(internal, self._temp_dpath)
                 _handle = open(temp_fpath, self.mode)
