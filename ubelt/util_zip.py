@@ -5,11 +5,11 @@ import io
 import re
 import tempfile
 import zipfile
-import ubelt as ub
 from os.path import exists, join
+from ubelt.util_mixins import NiceRepr
 
 
-def split_archive(fpath, zipext='.zip'):
+def split_archive(fpath, ext='.zip'):
     """
     If fpath specifies a file inside a zipfile, it breaks it into two parts the
     path to the zipfile and the internal path in the zipfile.
@@ -34,15 +34,15 @@ def split_archive(fpath, zipext='.zip'):
         should this work for the case where there is nothing after the zip?
     """
     fpath = os.fspath(fpath)
-    pat = '({}[{}/:])'.format(re.escape(zipext), re.escape(os.path.sep))
-    # pat = r'(\'' + zipext + '[' + re.escape(os.path.sep) + '/:])'
+    pat = '({}[{}/:])'.format(re.escape(ext), re.escape(os.path.sep))
+    # pat = r'(\'' + ext + '[' + re.escape(os.path.sep) + '/:])'
     parts = re.split(pat, fpath, flags=re.IGNORECASE)
     if len(parts) > 2:
         archivepath = ''.join(parts[:-1])[:-1]
         internal = parts[-1]
     elif len(parts) == 1:
         archivepath = parts[0]
-        if not archivepath.endswith(zipext):
+        if not archivepath.endswith(ext):
             archivepath = None
         internal = None
     else:
@@ -51,7 +51,7 @@ def split_archive(fpath, zipext='.zip'):
     return archivepath, internal
 
 
-class zopen(ub.NiceRepr):
+class zopen(NiceRepr):
     """
     Can open a file normally or open a file within a zip file (readonly). Tries
     to read from memory only, but will extract to a tempfile if necessary.
@@ -85,12 +85,12 @@ class zopen(ub.NiceRepr):
         >>> stl_r_zfile.namelist()
         >>> stl_r_zfile.close()
         >>> # Test zopen
-        >>> self = zopen(zip_fpath / 'test.pkl', mode='rb', zipext='.archive')
+        >>> self = zopen(zip_fpath / 'test.pkl', mode='rb', ext='.archive')
         >>> print(self._split_archive())
         >>> print(self.namelist())
-        >>> self = zopen(zip_fpath / 'test.pkl', mode='rb', zipext='.archive')
+        >>> self = zopen(zip_fpath / 'test.pkl', mode='rb', ext='.archive')
         >>> recon1 = pickle.loads(self.read())
-        >>> self = zopen(zip_fpath / 'test.pkl', mode='rb', zipext='.archive')
+        >>> self = zopen(zip_fpath / 'test.pkl', mode='rb', ext='.archive')
         >>> recon2 = pickle.load(self)
         >>> assert recon1 == recon2
         >>> assert recon1 is not recon2
@@ -112,9 +112,9 @@ class zopen(ub.NiceRepr):
         >>> info2 = json.load(self)
         >>> assert info2['x'] == '1'
     """
-    def __init__(self, fpath, mode='r', seekable=False, zipext='.zip'):
+    def __init__(self, fpath, mode='r', seekable=False, ext='.zip'):
         self.fpath = fpath
-        self.zipext = zipext
+        self.ext = ext
         self.name = fpath
         self.mode = mode
         self._seekable = seekable
@@ -171,14 +171,14 @@ class zopen(ub.NiceRepr):
         if not getattr(self, 'closed', True):
             getattr(self, 'close', lambda: None)()
         if self._temp_dpath and exists(self._temp_dpath):
+            import ubelt as ub
             ub.delete(self._temp_dpath)
 
     def __del__(self):
         self._cleanup()
 
-    @ub.memoize_method
     def _split_archive(self):
-        archivefile, internal = split_archive(self.fpath, self.zipext)
+        archivefile, internal = split_archive(self.fpath, self.ext)
         return archivefile, internal
 
     @property
@@ -197,7 +197,7 @@ class zopen(ub.NiceRepr):
         fpath = os.fspath(self.fpath)
         if exists(fpath):
             _handle = open(fpath, self.mode)
-        elif self.zipext + '/' in fpath or self.zipext + os.path.sep in fpath:
+        elif self.ext + '/' in fpath or self.ext + os.path.sep in fpath:
             archivefile, internal = self._split_archive()
             myzip = self.zfile
             if self._seekable:
