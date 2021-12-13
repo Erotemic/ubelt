@@ -68,6 +68,17 @@ class chunks(object):
 
         total (int): hints about the length of the input
 
+    Note:
+        FIXME:
+            When nchunks is given, thats how many chunks we should get
+            but the issue is that chunksize is not well defined in that instance
+            For instance how do we turn a list with 4 elements into 3 chunks
+            where does the extra item go?
+
+        In ubelt <= 0.10.1 there is a bug when specifying nchunks,
+        where it chooses a chunksize that is too large. Specify
+        ``old_method=True`` to get the old buggy behavior if needed.
+
     Yields:
         List[T]:
             subsequent non-overlapping chunks of the input items
@@ -119,7 +130,7 @@ class chunks(object):
 
     """
     def __init__(self, items, chunksize=None, nchunks=None, total=None,
-                 bordermode='none'):
+                 bordermode='none', old_method=False):
         if nchunks is not None and chunksize is not None:  # nocover
             raise ValueError('Cannot specify both chunksize and nchunks')
         if nchunks is None and chunksize is None:  # nocover
@@ -127,7 +138,12 @@ class chunks(object):
         if nchunks is not None:
             if total is None:
                 total = len(items)
-            chunksize = int(math.ceil(total / nchunks))
+
+            if old_method:
+                chunksize = int(math.ceil(total / nchunks))
+            else:
+                chunksize = int(math.floor(total / nchunks))
+                remainder = total % nchunks
 
         self.bordermode = bordermode
         self.items = items
