@@ -50,9 +50,6 @@ def split_archive(fpath, ext='.zip'):
         ('/a/b/foo.zip/baz/biz.zip', 'bar.py')
         >>> split_archive('/a/b/foo.zip/baz.pt/bar.zip/bar.zip', '.pt')
         ('/a/b/foo.zip/baz.pt', 'bar.zip/bar.zip')
-
-    TODO:
-        should this work for the case where there is nothing after the zip?
     """
     fpath = _fspath(fpath)
     # fpath = os.fspath(fpath)
@@ -370,8 +367,3 @@ class zopen(NiceRepr):
 
     def __exit__(self, *args):
         self.close()
-
-
-if __name__ == '__main__':
-    import xdoctest
-    xdoctest.doctest_module(__file__)
