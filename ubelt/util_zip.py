@@ -16,13 +16,20 @@ PY2 = (sys.version_info[0] == 2)
 
 if PY2:
     OSError = IOError
-
-if sys.version_info[0:2] >= (3, 6):  # nocover
+    def _fspath(p):
+        import pathlib
+        if isinstance(p, (str, unicode)):  # NOQA
+            return p
+        elif isinstance(p, pathlib.Path):
+            return str(p)
+        else:
+            raise TypeError
+elif sys.version_info[0:2] >= (3, 6):  # nocover
     _fspath = os.fspath
 else:  # nocover
     def _fspath(p):
         import pathlib
-        if isinstance(p, (str, unicode)):  # NOQA
+        if isinstance(p, (str, bytes)):  # NOQA
             return p
         elif isinstance(p, pathlib.Path):
             return str(p)
