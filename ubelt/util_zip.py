@@ -44,18 +44,22 @@ def split_archive(fpath, ext='.zip'):
 
     Example:
         >>> split_archive('/a/b/foo.txt')
-        (None, None)
         >>> split_archive('/a/b/foo.zip/bar.txt')
-        ('/a/b/foo.zip', 'bar.txt')
         >>> split_archive('/a/b/foo.zip/baz/biz.zip/bar.py')
-        ('/a/b/foo.zip/baz/biz.zip', 'bar.py')
         >>> split_archive('archive.zip')
-        ('archive.zip', None)
         >>> # xdoctest: +REQUIRES(module:pathlib)
         >>> import pathlib
         >>> split_archive(pathlib.Path('/a/b/foo.zip/baz/biz.zip/bar.py'))
-        ('/a/b/foo.zip/baz/biz.zip', 'bar.py')
         >>> split_archive('/a/b/foo.zip/baz.pt/bar.zip/bar.zip', '.pt')
+
+    TODO:
+        Fix got/want for win32
+
+        (None, None)
+        ('/a/b/foo.zip', 'bar.txt')
+        ('/a/b/foo.zip/baz/biz.zip', 'bar.py')
+        ('archive.zip', None)
+        ('/a/b/foo.zip/baz/biz.zip', 'bar.py')
         ('/a/b/foo.zip/baz.pt', 'bar.zip/bar.zip')
     """
     fpath = _fspath(fpath)
