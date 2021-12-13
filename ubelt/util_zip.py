@@ -17,9 +17,9 @@ PY2 = (sys.version_info[0] == 2)
 if PY2:
     OSError = IOError
 
-if sys.version_info[0:2] >= (3, 6):
+if sys.version_info[0:2] >= (3, 6):  # nocover
     _fspath = os.fspath
-else:
+else:  # nocover
     def _fspath(p):
         import pathlib
         if isinstance(p, (str, unicode)):  # NOQA
@@ -54,10 +54,6 @@ def split_archive(fpath, ext='.zip'):
     TODO:
         should this work for the case where there is nothing after the zip?
     """
-    if sys.version_info[0:2] >= (3, 6):
-        fpath = os.fspath(fpath)
-    else:
-        fpath = fpath
     fpath = _fspath(fpath)
     # fpath = os.fspath(fpath)
     pat = '({}[{}/:])'.format(re.escape(ext), re.escape(os.path.sep))
