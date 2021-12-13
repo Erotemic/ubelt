@@ -8,3 +8,4 @@ typing >= 3.7.4;python_version < '3.0'
 
 future >= 0.18.2;python_version<='2.7' 
 futures >= 3.3.0;python_version<='2.7'
+pathlib >= 1.0.1;python_version<='2.7'

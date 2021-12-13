@@ -4,12 +4,30 @@ Abstractions for working with zipfiles and archives
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import os
+import sys
 import io
 import re
 import tempfile
 import zipfile
 from os.path import exists, join
 from ubelt.util_mixins import NiceRepr
+
+PY2 = (sys.version_info[0] == 2)
+
+if PY2:
+    OSError = IOError
+
+if sys.version_info[0:2] >= (3, 6):
+    _fspath = os.fspath
+else:
+    def _fspath(p):
+        import pathlib
+        if isinstance(p, (str, unicode)):  # NOQA
+            return p
+        elif isinstance(p, pathlib.Path):
+            return str(p)
+        else:
+            raise TypeError
 
 
 def split_archive(fpath, ext='.zip'):
@@ -36,7 +54,12 @@ def split_archive(fpath, ext='.zip'):
     TODO:
         should this work for the case where there is nothing after the zip?
     """
-    fpath = os.fspath(fpath)
+    if sys.version_info[0:2] >= (3, 6):
+        fpath = os.fspath(fpath)
+    else:
+        fpath = fpath
+    fpath = _fspath(fpath)
+    # fpath = os.fspath(fpath)
     pat = '({}[{}/:])'.format(re.escape(ext), re.escape(os.path.sep))
     # pat = r'(\'' + ext + '[' + re.escape(os.path.sep) + '/:])'
     parts = re.split(pat, fpath, flags=re.IGNORECASE)
@@ -106,15 +129,15 @@ class zopen(NiceRepr):
         >>> dpath = pathlib.Path(dpath)
         >>> data_fpath = dpath / 'test.pkl'
         >>> data = {'demo': 'data'}
-        >>> with open(data_fpath, 'wb') as file:
+        >>> with open(str(data_fpath), 'wb') as file:
         >>>     pickle.dump(data, file)
         >>> # Write data
         >>> import zipfile
         >>> zip_fpath = dpath / 'test_zip.archive'
-        >>> stl_w_zfile = zipfile.ZipFile(zip_fpath, mode='w')
-        >>> stl_w_zfile.write(data_fpath, data_fpath.relative_to(dpath))
+        >>> stl_w_zfile = zipfile.ZipFile(_fspath(zip_fpath), mode='w')
+        >>> stl_w_zfile.write(_fspath(data_fpath), _fspath(data_fpath.relative_to(dpath)))
         >>> stl_w_zfile.close()
-        >>> stl_r_zfile = zipfile.ZipFile(zip_fpath, mode='r')
+        >>> stl_r_zfile = zipfile.ZipFile(_fspath(zip_fpath), mode='r')
         >>> stl_r_zfile.namelist()
         >>> stl_r_zfile.close()
         >>> # Test zopen
@@ -170,7 +193,8 @@ class zopen(NiceRepr):
         >>> fpath = zippath + '/' + internal
         >>> # Test seekable
         >>> self_seekable = zopen(fpath, 'r', seekable=True)
-        >>> assert self_seekable.seekable()
+        >>> if not PY2:
+        >>>     assert self_seekable.seekable()
         >>> self_seekable.seek(8)
         >>> assert self_seekable.readline() == 'ne1' + chr(10)
         >>> assert self_seekable.readline() == 'line2' + chr(10)
@@ -180,7 +204,8 @@ class zopen(NiceRepr):
         >>> # Test non-seekable?
         >>> # Sometimes non-seekable files are still seekable
         >>> maybe_seekable = zopen(fpath, 'r', seekable=False)
-        >>> if maybe_seekable.seekable():
+        >>> print('PY2 = {!r}'.format(PY2))
+        >>> if not PY2 and maybe_seekable.seekable():
         >>>     maybe_seekable.seek(8)
         >>>     assert maybe_seekable.readline() == 'ne1' + chr(10)
         >>>     assert maybe_seekable.readline() == 'line2' + chr(10)
@@ -314,7 +339,7 @@ class zopen(NiceRepr):
         if 'r' not in self.mode:
             raise NotImplementedError('Only read mode is supported for now')
         _handle = None
-        fpath = os.fspath(self.fpath)
+        fpath = _fspath(self.fpath)
         if exists(fpath):
             _handle = open(fpath, self.mode)
         elif self.ext + '/' in fpath or self.ext + os.path.sep in fpath:
