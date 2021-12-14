@@ -255,7 +255,6 @@ class zopen(NiceRepr):
         >>> self = zopen(existing_fpath, 'r')
         >>> self._handle = None
         >>> dir(self)
-        >>> self.close()
     """
     def __init__(self, fpath, mode='r', seekable=False, ext='.zip'):
         self.fpath = fpath
@@ -273,6 +272,9 @@ class zopen(NiceRepr):
 
     @property
     def zfile(self):
+        """
+        Access the underlying archive file
+        """
         if self._zfile_read is None:
             archivefile, internal = self._split_archive()
             myzip = zipfile.ZipFile(archivefile, 'r')
@@ -314,11 +316,12 @@ class zopen(NiceRepr):
 
     def _cleanup(self):
         # print('self._cleanup = {!r}'.format(self._cleanup))
-        if not getattr(self, 'closed', True):
-            closemethod = getattr(self, 'close', None)
-            if closemethod is not None:  # nocover
-                closemethod()
-            closemethod = None
+        if self._handle is not None:
+            if not getattr(self, 'closed', True):
+                closemethod = getattr(self, 'close', None)
+                if closemethod is not None:  # nocover
+                    closemethod()
+                closemethod = None
         self._handle = None
         if self._temp_dpath and exists(self._temp_dpath):
             # os.unlink(self._temp_dpath)
