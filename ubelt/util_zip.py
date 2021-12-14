@@ -148,10 +148,13 @@ class zopen(NiceRepr):
         >>> self = zopen(zip_fpath / 'test.pkl', mode='rb', ext='.archive')
         >>> print(self._split_archive())
         >>> print(self.namelist())
+        >>> self.close()
         >>> self = zopen(zip_fpath / 'test.pkl', mode='rb', ext='.archive')
         >>> recon1 = pickle.loads(self.read())
+        >>> self.close()
         >>> self = zopen(zip_fpath / 'test.pkl', mode='rb', ext='.archive')
         >>> recon2 = pickle.load(self)
+        >>> self.close()
         >>> assert recon1 == recon2
         >>> assert recon1 is not recon2
 
@@ -179,6 +182,7 @@ class zopen(NiceRepr):
         >>> assert info2['x'] == '1'
         >>> # Test nice repr (with zfile)
         >>> print('self = {!r}'.format(self))
+        >>> self.close()
 
     Example:
         >>> # Coverage tests --- move to unit-test
@@ -236,6 +240,7 @@ class zopen(NiceRepr):
         >>> # Test nice
         >>> print(self)
         >>> print('self = {!r}'.format(self))
+        >>> self.close()
         >>> # Test open non-zip non-existing file
         >>> nonexisting_fpath = join(dpath, 'does-not-exist.txt')
         >>> ub.delete(nonexisting_fpath)
@@ -250,6 +255,7 @@ class zopen(NiceRepr):
         >>> self = zopen(existing_fpath, 'r')
         >>> self._handle = None
         >>> dir(self)
+        >>> self.close()
     """
     def __init__(self, fpath, mode='r', seekable=False, ext='.zip'):
         self.fpath = fpath
@@ -312,6 +318,8 @@ class zopen(NiceRepr):
             closemethod = getattr(self, 'close', None)
             if closemethod is not None:  # nocover
                 closemethod()
+            closemethod = None
+        self._handle = None
         if self._temp_dpath and exists(self._temp_dpath):
             # os.unlink(self._temp_dpath)
             import ubelt as ub

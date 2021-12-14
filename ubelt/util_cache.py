@@ -63,7 +63,8 @@ Example:
     >>> def compute_many_files(dpath):
     ...     for i in range(0):
     ...         fpath = '{}/file{}.txt'.format(dpath, i)
-    ...         open(fpath).write('foo' + str(i))
+    ...         with open(fpath, 'w') as file:
+    ...             file.write('foo' + str(i))
     >>> #
     >>> import ubelt as ub
     >>> dpath = ub.ensure_app_cache_dir('ubelt/demo/cache')

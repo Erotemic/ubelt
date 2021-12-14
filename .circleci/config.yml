@@ -165,7 +165,7 @@ jobs:
           name: run tests
           command: |
             . venv/bin/activate
-            $PYTHON_EXE run_tests.py --network
+            $PYTHON_EXE run_tests.py  # --network
             codecov
       - store_artifacts:
           path: .coverage

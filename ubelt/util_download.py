@@ -342,13 +342,15 @@ def grabdata(url, fpath=None, dpath=None, fname=None, redo=False,
         >>> # todo: check file timestamps have changed
         >>> #
         >>> # Check that a redownload occurs when the stamp is changed
-        >>> open(stamp_fpath, 'w').write('corrupt-stamp')
+        >>> with open(stamp_fpath, 'w') as file:
+        >>>     file.write('corrupt-stamp')
         >>> fpath = ub.grabdata(url, fname=fname, hash_prefix=prefix1)
         >>> assert ub.readfrom(stamp_fpath) == prefix1
         >>> #
         >>> # Check that a redownload occurs when the stamp is removed
         >>> ub.delete(stamp_fpath)
-        >>> open(fpath, 'w').write('corrupt-data')
+        >>> with open(fpath, 'w') as file:
+        >>>     file.write('corrupt-data')
         >>> assert not ub.hash_file(fpath, base='hex', hasher='sha512').startswith(prefix1)
         >>> fpath = ub.grabdata(url, fname=fname, hash_prefix=prefix1)
         >>> assert ub.hash_file(fpath, base='hex', hasher='sha512').startswith(prefix1)
