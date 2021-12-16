@@ -8,8 +8,8 @@ from typing import List
 from collections.abc import Generator
 from typing import Any, TypeVar
 
-T = TypeVar("T")
 VT = TypeVar("VT")
+T = TypeVar("T")
 KT = TypeVar("KT")
 
 
@@ -110,5 +110,5 @@ def argmin(indexable: Union[Iterable[VT], Mapping[KT, VT]],
     ...
 
 
-def peek(iterable: Iterable[T]) -> T:
+def peek(iterable: Iterable[T], default: T = ...) -> T:
     ...

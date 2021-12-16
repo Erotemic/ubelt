@@ -1,5 +1,6 @@
 import concurrent.futures
 from typing import Callable
+from typing import Union
 import concurrent.futures
 from collections.abc import Generator
 from typing import Any
@@ -69,7 +70,8 @@ class JobPool:
     def __len__(self):
         ...
 
-    def submit(self, func, *args, **kwargs) -> concurrent.futures.Future:
+    def submit(self, func: Callable[..., Any], *args,
+               **kwargs) -> concurrent.futures.Future:
         ...
 
     def shutdown(self):
@@ -81,7 +83,12 @@ class JobPool:
     def __exit__(self, a, b, c) -> None:
         ...
 
-    def as_completed(self) -> Generator[Any, None, None]:
+    def as_completed(
+        self,
+        timeout: Union[float, None] = ...,
+        desc: Union[str, None] = ...,
+        progkw: Union[dict, None] = ...
+    ) -> Generator[concurrent.futures.Future, None, None]:
         ...
 
     def __iter__(self):

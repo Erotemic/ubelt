@@ -55,7 +55,7 @@ def find_exe(
     ...
 
 
-def find_path(name,
+def find_path(name: Union[str, PathLike],
               path: Union[str, Iterable[Union[str, PathLike]]] = ...,
               exact: bool = ...) -> Generator[str, None, None]:
     ...

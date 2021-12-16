@@ -1,3 +1,14 @@
+"""
+Script for auto-generating pyi type extension files from google-style
+docstrings
+
+CommandLine:
+    # Run script to parse google-style docstrings and write pyi files
+    python ~/code/ubelt/dev/gen_typed_stubs.py
+
+    # Run mypy to check that type annotations are correct
+    mypy ubelt
+"""
 from mypy.stubgen import (StubGenerator, find_self_initializers, FUNC, EMPTY, METHODS_WITH_RETURN_VALUE,)
 import sys
 
@@ -77,17 +88,17 @@ def generate_typed_stubs():
     get_proper_type(z)
 
     """
+    import pathlib
+    import ubelt
+    import os
+    import autoflake
+    import yapf
     from mypy import stubgen
     from mypy import defaults
-    import ubelt
-    import ubelt as ub
-
-    # files = [ubelt.util_hash.__file__]
     from xdoctest import static_analysis
     from os.path import dirname, join
     ubelt_dpath = dirname(ubelt.__file__)
 
-    import pathlib
     for p in pathlib.Path(ubelt_dpath).glob('*.pyi'):
         p.unlink()
     files = list(static_analysis.package_modpaths(ubelt_dpath, recursive=True, with_libs=1, with_pkg=0))
@@ -123,7 +134,6 @@ def generate_typed_stubs():
     # Use parsed sources to generate stubs for Python modules.
     stubgen.generate_asts_for_modules(py_modules, options.parse_only, mypy_opts, options.verbose)
 
-    import os
     for mod in py_modules:
         assert mod.path is not None, "Not found module was not skipped"
         target = mod.module.replace('.', '/')
@@ -131,7 +141,7 @@ def generate_typed_stubs():
             target += '/__init__.pyi'
         else:
             target += '.pyi'
-        target = os.path.join(options.output_dir, target)
+        target = join(options.output_dir, target)
         files.append(target)
         with stubgen.generate_guarded(mod.module, target, options.ignore_errors, options.verbose):
             stubgen.generate_stub_from_ast(mod, target, options.parse_only,
@@ -177,7 +187,6 @@ def generate_typed_stubs():
             # text = text.replace('ddict = defaultdict', '')
 
             # Format the PYI file nicely
-            import autoflake
             text = autoflake.fix_code(text, remove_unused_variables=True,
                                       remove_all_unused_imports=True)
 
@@ -187,7 +196,6 @@ def generate_typed_stubs():
             #     'experimental': 0,
             # })
 
-            import yapf
             style = yapf.yapf_api.style.CreatePEP8Style()
             text, _ = yapf.yapf_api.FormatCode(
                 text,
@@ -199,7 +207,7 @@ def generate_typed_stubs():
             print(text)
 
             # Write output to file.
-            subdir = os.path.dirname(target)
+            subdir = dirname(target)
             if subdir and not os.path.isdir(subdir):
                 os.makedirs(subdir)
             with open(target, 'w') as file:
