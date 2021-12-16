@@ -313,4 +313,39 @@ jobs:
 
         ./run_doctests.sh || echo "pypy failed, but this is allowed"
         ./run_tests.sh || echo "pypy failed, but this is allowed"
+
+        # New
+        IMAGE_NAME=pypy:3.7
+        docker run -v $PWD:/io:ro -v $HOME/.cache/pip:/pip_cache -it $IMAGE_NAME bash
+        # Will need to chmod things afterwords
+        export PIP_CACHE_DIR=/pip_cache
+        echo $PIP_CACHE_DIR
+        chmod -R o+rw $PIP_CACHE_DIR
+        chmod -R o+rw $PIP_CACHE_DIR
+        chmod -R g+rw $PIP_CACHE_DIR
+        USER=$(whoami)
+        chown -R $USER $PIP_CACHE_DIR
+        cd $HOME
+        git clone /io ./repo
+
+        cd $HOME/repo
+
+        # Make a virtualenv
+        export PYVER=$(python -c "import sys; print('{}{}'.format(*sys.version_info[0:2]))")
+        pip install virtualenv
+        virtualenv venv$PYVER
+        source venv$PYVER/bin/activate
+        #pip install pip -U
+        #pip install pip setuptools -U
+
+        # STRICT VARIANT
+        ./dev/make_strict_req.sh
+        pip install -r requirements-strict.txt 
+        pip install -e .
+        ./run_tests.py
+
+        # LOOSE VARIANT
+        pip install -r requirements.txt
+        pip install -e .[tests]
+        ./run_tests.py
         "

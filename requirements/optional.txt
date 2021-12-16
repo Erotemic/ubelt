@@ -1,4 +1,4 @@
-numpy
-xxhash >= 1.0.1
-Pygments >= 2.2.0
+numpy>=1.19.2   # tensorflow minimum
+xxhash>=1.0.1
+Pygments>=2.2.0
 colorama;platform_system=="Windows"

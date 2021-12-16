@@ -1,11 +1,14 @@
-six >= 1.10.0
-ordered-set >= 0.3.1
-jaraco.windows >= 3.9.1;platform_system=="Windows"
-typing >= 3.7.4;python_version < '3.0' 
-# Now included by default
-# progiter >= 0.1.0
-# timerit >= 0.2.1
+# python ~/local/tools/supported_python_versions_pip.py ordered-set
 
-future >= 0.18.2;python_version<='2.7' 
-futures >= 3.3.0;python_version<='2.7'
-pathlib >= 1.0.1;python_version<='2.7'
+six>=1.10.0
+ordered-set>=3.1
+jaraco.windows>=3.9.1;platform_system=="Windows"
+typing>=3.7.4;python_version < '3.0' 
+
+# Now included by default
+# progiter>=0.1.0
+# timerit>=0.2.1
+
+future>=0.18.2;python_version<='2.7' 
+futures>=3.3.0;python_version<='2.7'
+pathlib>=1.0.1;python_version<='2.7'
