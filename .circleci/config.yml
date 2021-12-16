@@ -291,28 +291,28 @@ jobs:
       - | 
         __heredoc__=" 
 
-        # Install CircleCI (todo check hashes)
-        # https://github.com/CircleCI-Public/circleci-cli/releases/download/v0.1.15848/circleci-cli_0.1.15848_linux_amd64.tar.gz
-        # https://github.com/CircleCI-Public/circleci-cli/releases/download/v0.1.15848/circleci-cli_0.1.15848_checksums.txt
-        curl -fLSs https://raw.githubusercontent.com/CircleCI-Public/circleci-cli/master/install.sh | DESTDIR=$HOME/.local/bin bash
+        ## Install CircleCI (todo check hashes)
+        ## https://github.com/CircleCI-Public/circleci-cli/releases/download/v0.1.15848/circleci-cli_0.1.15848_linux_amd64.tar.gz
+        ## https://github.com/CircleCI-Public/circleci-cli/releases/download/v0.1.15848/circleci-cli_0.1.15848_checksums.txt
+        #curl -fLSs https://raw.githubusercontent.com/CircleCI-Public/circleci-cli/master/install.sh | DESTDIR=$HOME/.local/bin bash
 
-        # Run entire script end-to-end
-        circleci local execute --job test_full/pypy3
+        ## Run entire script end-to-end
+        #circleci local execute --job test_full/pypy3
 
-        # Manually drop into docker and run things
-        docker run -v $(pwd):/io -it pypy:3 bash
+        ## Manually drop into docker and run things
+        #docker run -v $(pwd):/io -it pypy:3 bash
 
-        cd /io
+        #cd /io
 
-        pypy3 -m venv venv 
-        . venv/bin/activate
-        # The "minimal" tests install barebones requirements
-        pip install -r requirements/tests.txt
-        pip install -r requirements/runtime.txt 
-        pip install -e .
+        #pypy3 -m venv venv 
+        #. venv/bin/activate
+        ## The "minimal" tests install barebones requirements
+        #pip install -r requirements/tests.txt
+        #pip install -r requirements/runtime.txt 
+        #pip install -e .
 
-        ./run_doctests.sh || echo "pypy failed, but this is allowed"
-        ./run_tests.sh || echo "pypy failed, but this is allowed"
+        #./run_doctests.sh || echo "pypy failed, but this is allowed"
+        #./run_tests.sh || echo "pypy failed, but this is allowed"
 
         # New
         IMAGE_NAME=pypy:3.7
