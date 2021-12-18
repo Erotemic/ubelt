@@ -341,6 +341,7 @@ jobs:
         # STRICT VARIANT
         ./dev/make_strict_req.sh
         pip install -r requirements-strict.txt 
+        pip install -r requirements-strict/tests.txt 
         pip install -e .
         ./run_tests.py
 
