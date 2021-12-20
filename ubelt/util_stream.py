@@ -163,6 +163,7 @@ class CaptureStdout(CaptureStream):
         >>> assert self.text is None
     """
     def __init__(self, suppress=True, enabled=True, **kwargs):
+
         _misspelled_varname = 'supress'
         if _misspelled_varname in kwargs:  # nocover
             from ubelt._util_deprecated import schedule_deprecation2
@@ -174,19 +175,20 @@ class CaptureStdout(CaptureStream):
             if len(kwargs) > 0:
                 raise ValueError('unexpected args: {}'.format(kwargs))
 
+        self.text = None
+        self._pos = 0  # keep track of how much has been logged
+        self.parts = []
+        self.started = False
+        self.cap_stdout = None
         self.enabled = enabled
         self.suppress = suppress
         self.orig_stdout = sys.stdout
+
         if suppress:
             redirect = None
         else:
             redirect = self.orig_stdout
         self.cap_stdout = TeeStringIO(redirect)
-        self.text = None
-
-        self._pos = 0  # keep track of how much has been logged
-        self.parts = []
-        self.started = False
 
     def log_part(self):
         """ Log what has been captured so far """
