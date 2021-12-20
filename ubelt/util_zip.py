@@ -125,7 +125,6 @@ class zopen(NiceRepr):
             extension is used (e.g. for torch packages).
 
     Example:
-        >>> # xdoctest: +SKIP
         >>> from ubelt.util_zip import *  # NOQA
         >>> import pathlib
         >>> import pickle
@@ -160,7 +159,6 @@ class zopen(NiceRepr):
         >>> assert recon1 is not recon2
 
     Example:
-        >>> # xdoctest: +SKIP
         >>> # Test we can load json data from a zipfile
         >>> from ubelt.util_zip import *  # NOQA
         >>> import ubelt as ub
@@ -187,7 +185,6 @@ class zopen(NiceRepr):
         >>> self.close()
 
     Example:
-        >>> # xdoctest: +SKIP
         >>> # Coverage tests --- move to unit-test
         >>> from ubelt.util_zip import *  # NOQA
         >>> import ubelt as ub
@@ -226,7 +223,6 @@ class zopen(NiceRepr):
 
 
     Example:
-        >>> # xdoctest: +SKIP
         >>> # More coverage tests --- move to unit-test
         >>> from ubelt.util_zip import *  # NOQA
         >>> import ubelt as ub
