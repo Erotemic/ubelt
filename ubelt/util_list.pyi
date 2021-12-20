@@ -8,9 +8,9 @@ from typing import List
 from collections.abc import Generator
 from typing import Any, TypeVar
 
-VT = TypeVar("VT")
 T = TypeVar("T")
 KT = TypeVar("KT")
+VT = TypeVar("VT")
 
 
 class chunks:
@@ -52,7 +52,7 @@ def iterable(obj: object, strok: bool = ...) -> bool:
 
 def take(items: Union[Sequence[VT], Mapping[KT, VT]],
          indices: Iterable[Union[int, KT]],
-         default: Any = ...) -> Generator[Any, None, None]:
+         default: Any = ...) -> Generator[VT, None, None]:
     ...
 
 

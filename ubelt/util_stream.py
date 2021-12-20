@@ -167,7 +167,7 @@ class CaptureStdout(CaptureStream):
         if _misspelled_varname in kwargs:  # nocover
             from ubelt._util_deprecated import schedule_deprecation2
             schedule_deprecation2(
-                'Argument of CaptureStdout supress is misspelled and deprecated. Use suppress instead',
+                'Argument of CaptureStdout {} is misspelled and deprecated. Use suppress instead'.format(_misspelled_varname),
                 name=_misspelled_varname, type='kwarg', deprecated='0.10.3',
                 remove='1.0.0')
             suppress = kwargs.pop(_misspelled_varname)

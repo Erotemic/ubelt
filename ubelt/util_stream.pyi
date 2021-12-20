@@ -32,14 +32,17 @@ class CaptureStream:
 
 class CaptureStdout(CaptureStream):
     enabled: Any
-    supress: Any
+    suppress: Any
     orig_stdout: Any
     cap_stdout: Any
     text: Any
     parts: Any
     started: bool
 
-    def __init__(self, supress: bool = ..., enabled: bool = ...) -> None:
+    def __init__(self,
+                 suppress: bool = ...,
+                 enabled: bool = ...,
+                 **kwargs) -> None:
         ...
 
     def log_part(self) -> None:

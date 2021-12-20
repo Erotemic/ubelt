@@ -35,7 +35,7 @@ def writeto(fpath, to_write, aslines=False, verbose=None):
         verbose (bool): verbosity flag
 
     Note:
-        In CPython you may wan to use ``open(<fpath>).write(<to_write>)``
+        In CPython you may want to use ``open(<fpath>).write(<to_write>)``
         instead.  This function exists as a convenience for writing in Python2.
         After 2020-01-01, we may consider deprecating the function.
 
