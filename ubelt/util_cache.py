@@ -485,7 +485,7 @@ class Cacher(object):
             >>> depends = 'long-cfg' * 32
             >>> cacher = Cacher('test_enabled_save', depends=depends)
             >>> cacher.save('data')
-            >>> assert exists(cacher.get_fpath()), 'should be enabeled'
+            >>> assert exists(cacher.get_fpath()), 'should be enabled'
             >>> assert exists(cacher.get_fpath() + '.meta'), 'missing metadata'
             >>> # Setting the cacher as enabled=False turns it off
             >>> cacher2 = Cacher('test_disabled_save', 'params', enabled=False)

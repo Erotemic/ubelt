@@ -856,7 +856,7 @@ def _convert_to_hashable(data, types=True, extensions=None):
         hashable = data.encode('utf-8')
         prefix = b'TXT'
     elif isinstance(data, _intlike):
-        # warnings.warn('Hashing ints is slow, numpy is prefered')
+        # warnings.warn('Hashing ints is slow, numpy is preferred')
         hashable = _int_to_bytes(data)
         # hashable = data.to_bytes(8, byteorder='big')
         prefix = b'INT'

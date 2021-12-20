@@ -306,7 +306,7 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
         >>> fpath2 = join(ub.get_app_cache_dir('ubelt'), 'cmdout2.txt')
         >>> ub.delete(fpath1)
         >>> ub.delete(fpath2)
-        >>> # Start up two processes that run simultaniously in the background
+        >>> # Start up two processes that run simultaneously in the background
         >>> info1 = ub.cmd(('touch', fpath1), detach=True)
         >>> info2 = ub.cmd('echo writing2 > ' + fpath2, shell=True, detach=True)
         >>> # Detached processes are running in the background

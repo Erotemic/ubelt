@@ -93,7 +93,7 @@ def platform_config_dir():
     This should be used for persistent configuration files.
 
     Returns:
-        str : path to the cahce dir used by the current operating system
+        str : path to the cache dir used by the current operating system
     """
     if LINUX:  # nocover
         dpath_ = os.environ.get('XDG_CONFIG_HOME', '~/.config')
