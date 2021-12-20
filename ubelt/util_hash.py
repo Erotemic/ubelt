@@ -18,7 +18,7 @@ The :func:`ubelt.util_hash.hash_data` function recursively hashes most builtin
 python data structures.
 
 The :func:`ubelt.util_hash.hash_file` function hashes data on disk.  Both of
-the aformentioned functions have options for different hashers and alphabets.
+the aforementioned functions have options for different hashers and alphabets.
 
 
 Example:
@@ -50,7 +50,7 @@ Note:
     _hashable_sequence defaulted to types=True setting to True here for
     backwards compat.  This means that extensions using the
     ``_hashable_sequence`` helper will always include types in their hashable
-    encoding regardless of the agument setting.  We may change this in the
+    encoding regardless of the argument setting.  We may change this in the
     future, to be more consistent.  This is a minor detail unless you are
     getting into the weeds of how we coerce technically non-hashable sequences
     into a hashable encoding.
@@ -329,7 +329,7 @@ def _rectify_hasher(hasher):
         >>> if 'whirlpool' in _HASHERS:
         >>>     assert _rectify_hasher('whirlpool') is blake3.blake3
     """
-    # Keeping this function for backwards compatability (even though its not
+    # Keeping this function for backwards compatibility (even though its not
     # part of the public API)
     return _HASHERS.lookup(hasher)
 
@@ -948,7 +948,7 @@ def _convert_hexstr_base(hexstr, base):
     Packs a long hexstr into a shorter length string with a larger base.
 
     Args:
-        hexstr (str): string of hexidecimal symbols to convert
+        hexstr (str): string of hexadecimal symbols to convert
         base (list): symbols of the conversion base
 
     Example:
@@ -1113,7 +1113,7 @@ def hash_file(fpath, blocksize=1048576, stride=1, maxbytes=None, hasher=NoParam,
 
         stride (int, default=1):
             strides > 1 skip data to hash, useful for faster hashing, but less
-            accurate, also makes hash dependant on blocksize.
+            accurate, also makes hash dependent on blocksize.
 
         maxbytes (int | None):
             if specified, only hash the leading `maxbytes` of data in the file.
@@ -1169,7 +1169,7 @@ def hash_file(fpath, blocksize=1048576, stride=1, maxbytes=None, hasher=NoParam,
         >>> assert h1 == h2 == h3 == h4
         >>> assert h1 != h0
 
-        >>> # Using a stride makes the result dependant on the blocksize
+        >>> # Using a stride makes the result dependent on the blocksize
         >>> h0 = ub.hash_file(fpath, hasher='sha1', base='hex', maxbytes=11, blocksize=3, stride=2)
         >>> h1 = ub.hash_file(fpath, hasher='sha1', base='hex', maxbytes=32, blocksize=3, stride=2)
         >>> h2 = ub.hash_file(fpath, hasher='sha1', base='hex', maxbytes=32, blocksize=32, stride=2)

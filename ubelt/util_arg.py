@@ -3,7 +3,7 @@
 Simple ways to interact with the commandline without defining a full blown
 CLI. These are usually used for developer hacks. Any real interface should
 probably be defined using :py:mod:`argparse` or :py:mod:`click`. Be sure to
-ignore unknown arguments if you use them in conjuction with these functions.
+ignore unknown arguments if you use them in conjunction with these functions.
 
 The :func:`argflag` function checks if a boolean ``--flag`` style CLI argument
 exists on the command line.

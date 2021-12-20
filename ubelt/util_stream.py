@@ -129,14 +129,16 @@ class CaptureStdout(CaptureStream):
     Context manager that captures stdout and stores it in an internal stream
 
     Args:
-        supress (bool, default=True):
+        suppress (bool, default=True):
             if True, stdout is not printed while captured
         enabled (bool, default=True):
             does nothing if this is False
+        **kwargs : used for backwards compatibility with misspelled
+            deprecated params.
 
     Example:
         >>> import ubelt as ub
-        >>> self = ub.CaptureStdout(supress=True)
+        >>> self = ub.CaptureStdout(suppress=True)
         >>> print('dont capture the table flip (╯°□°）╯︵ ┻━┻')
         >>> with self:
         ...     text = 'capture the heart ♥'
@@ -148,23 +150,33 @@ class CaptureStdout(CaptureStream):
 
     Example:
         >>> import ubelt as ub
-        >>> self = ub.CaptureStdout(supress=False)
+        >>> self = ub.CaptureStdout(suppress=False)
         >>> with self:
         ...     print('I am captured and printed in stdout')
         >>> assert self.text.strip() == 'I am captured and printed in stdout'
 
     Example:
         >>> import ubelt as ub
-        >>> self = ub.CaptureStdout(supress=True, enabled=False)
+        >>> self = ub.CaptureStdout(suppress=True, enabled=False)
         >>> with self:
         ...     print('dont capture')
         >>> assert self.text is None
     """
-    def __init__(self, supress=True, enabled=True):
+    def __init__(self, supress=True, enabled=True, **kwargs):
+        if 'supress' in kwargs:  # nocover
+            from ubelt._util_deprecated import schedule_deprecation2
+            schedule_deprecation2(
+                'Argument of CaptureStdout supress is misspelled and deprecated. Use suppress instead',
+                name='supress', type='kwarg', deprecated='0.10.3',
+                remove='1.0.0')
+            suppress = kwargs.pop('suppress')
+            if len(kwargs) > 0:
+                raise ValueError('unexpected args: {}'.format(kwargs))
+
         self.enabled = enabled
-        self.supress = supress
+        self.suppress = suppress
         self.orig_stdout = sys.stdout
-        if supress:
+        if suppress:
             redirect = None
         else:
             redirect = self.orig_stdout

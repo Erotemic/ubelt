@@ -6,7 +6,7 @@ than :func:`repr` or :func:`pprint`. See the docstring for more details.
 
 Two main goals of repr2 are to provide nice string representations of nested
 data structures and make those "eval-able" whenever possible. As an example
-take the value ``float('inf')``, which normaly has a non-evalable repr of
+take the value ``float('inf')``, which normally has a non-evalable repr of
 ``inf``:
 
 >>> import ubelt as ub
@@ -76,7 +76,7 @@ def repr2(data, **kwargs):
 
     Note:
         This function has many keyword arguments that can be used to customize
-        the final representation. For convinience some of the more frequently
+        the final representation. For convenience some of the more frequently
         used kwargs have short aliases. See "Kwargs" for more details.
 
     Args:
@@ -137,7 +137,7 @@ def repr2(data, **kwargs):
 
         sort (bool | callable, default=None):
             if None, then sort unordered collections, but keep the ordering of
-            ordered collections. This option attempts to be determenistic in
+            ordered collections. This option attempts to be deterministic in
             most cases.
 
             New in 0.8.0: if ``sort`` is callable, it will be used as a
@@ -322,7 +322,7 @@ class FormatterExtensions(object):
 
     This module (:mod:`ubelt.util_format`) maintains a global set of basic
     extensions, but it is also possible to create a locally scoped set of
-    extensions and explicilty pass it to repr2. The following example
+    extensions and explicitly pass it to repr2. The following example
     demonstrates this.
 
     Example:
@@ -1113,7 +1113,7 @@ def _align_lines(line_list, character='=', replchar=None, pos=0):
     Example:
         >>> line_list = 'foofish:\n a = b = c\n one = two = three\nthree=4= fish'.split('\n')
         >>> character = '='
-        >>> # align the second occurence of a character
+        >>> # align the second occurrence of a character
         >>> new_lines = _align_lines(line_list, character, pos=None)
         >>> print(('\n'.join(line_list)))
         >>> result = ('\n'.join(new_lines))
@@ -1127,7 +1127,7 @@ def _align_lines(line_list, character='=', replchar=None, pos=0):
 
     # FIXME: continue to fix ansi
     if pos is None:
-        # Align all occurences
+        # Align all occurrences
         num_pos = max([line.count(character) for line in line_list])
         pos = list(range(num_pos))
 
@@ -1167,7 +1167,7 @@ def _align_lines(line_list, character='=', replchar=None, pos=0):
             left_len = sum(left_lenlist) + lpos * len(replchar)
             maxlen = max(maxlen, left_len)
 
-    # Pad each line to align the pos-th occurence of the chosen character
+    # Pad each line to align the pos-th occurrence of the chosen character
     new_lines = []
     for tup in tup_list:
         if len(tup) >= rpos + 1:

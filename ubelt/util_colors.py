@@ -7,8 +7,8 @@ which is an optional requirement. Therefore, these functions only work properly
 if Pygments is installed, otherwise these functions will return the unmodified
 text and a warning will be printed.
 
-The :func:`highlight_code` function uses pygments to highlight syntax of a programing
-language.
+The :func:`highlight_code` function uses pygments to highlight syntax of a
+programming language.
 
 The :func:`color_text` function colors text with a solid color.
 
@@ -19,7 +19,7 @@ not installed.
 
 This module contains a global variable ``NO_COLOR``, which if set to True will
 force all ANSI text coloring functions to become no-ops. This defaults to the
-value of the ``bool(os.environ.get('NO_COLOR'))`` flag, which is complient with
+value of the ``bool(os.environ.get('NO_COLOR'))`` flag, which is compliant with
 [1]_.
 
 
@@ -39,8 +39,8 @@ import os
 
 
 # Global state that determines if ANSI-coloring text is allowed
-# (which is mainly to address non-ANSI complient windows consoles)
-# complient with https://no-color.org/
+# (which is mainly to address non-ANSI compliant windows consoles)
+# compliant with https://no-color.org/
 NO_COLOR = bool(os.environ.get('NO_COLOR'))  # type: bool
 
 
@@ -92,9 +92,9 @@ def highlight_code(text, lexer_name='python', **kwargs):
         import pygments.formatters  # type: ignore
         import pygments.formatters.terminal  # type: ignore
 
-        formater = pygments.formatters.terminal.TerminalFormatter(bg='dark')
+        formatter = pygments.formatters.terminal.TerminalFormatter(bg='dark')
         lexer = pygments.lexers.get_lexer_by_name(lexer_name, **kwargs)
-        new_text = pygments.highlight(text, lexer, formater)
+        new_text = pygments.highlight(text, lexer, formatter)
 
     except ImportError:  # nocover
         warnings.warn('pygments is not installed, code will not be highlighted')

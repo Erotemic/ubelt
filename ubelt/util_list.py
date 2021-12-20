@@ -157,32 +157,32 @@ class chunks(object):
     def noborder(items, chunksize):
         # feed the same iter to zip_longest multiple times, this causes it to
         # consume successive values of the same sequence
-        sentinal = object()
+        sentinel = object()
         copied_iters = [iter(items)] * chunksize
-        chunks_with_sentinals = zip_longest(*copied_iters, fillvalue=sentinal)
+        chunks_with_sentinals = zip_longest(*copied_iters, fillvalue=sentinel)
         # Dont fill empty space in the last chunk, just return it as is
         for chunk in chunks_with_sentinals:
-            yield [item for item in chunk if item is not sentinal]
+            yield [item for item in chunk if item is not sentinel]
 
     @staticmethod
     def cycle(items, chunksize):
-        sentinal = object()
+        sentinel = object()
         copied_iters = [iter(items)] * chunksize
-        chunks_with_sentinals = zip_longest(*copied_iters, fillvalue=sentinal)
+        chunks_with_sentinals = zip_longest(*copied_iters, fillvalue=sentinel)
         # Fill empty space in the last chunk with values from the beginning
         bordervalues = it.cycle(iter(items))
         for chunk in chunks_with_sentinals:
-            yield [item if item is not sentinal else next(bordervalues)
+            yield [item if item is not sentinel else next(bordervalues)
                    for item in chunk]
 
     @staticmethod
     def replicate(items, chunksize):
-        sentinal = object()
+        sentinel = object()
         copied_iters = [iter(items)] * chunksize
         # Fill empty space in the last chunk by replicating the last value
-        chunks_with_sentinals = zip_longest(*copied_iters, fillvalue=sentinal)
+        chunks_with_sentinals = zip_longest(*copied_iters, fillvalue=sentinel)
         for chunk in chunks_with_sentinals:
-            filt_chunk = [item for item in chunk if item is not sentinal]
+            filt_chunk = [item for item in chunk if item is not sentinel]
             if len(filt_chunk) == chunksize:
                 yield filt_chunk
             else:
@@ -238,7 +238,7 @@ def take(items, indices, default=util_const.NoParam):
         default (Any, default=NoParam):
             if specified ``items`` must support the ``get`` method.
 
-    Yeilds:
+    Yields:
         VT: a selected item within the list
 
     SeeAlso:
@@ -479,7 +479,7 @@ def iter_window(iterable, size=2, step=1, wrap=False):
         wrap (bool, default=False): wraparound flag
 
     Returns:
-        Iterable[T]: returns a possibly overlaping windows in a sequence
+        Iterable[T]: returns a possibly overlapping windows in a sequence
 
     Example:
         >>> import ubelt as ub

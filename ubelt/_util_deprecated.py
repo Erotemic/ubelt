@@ -94,7 +94,7 @@ def schedule_deprecation2(migration='', name='?', type='?', deprecate=None, erro
             warnings.warn(msg, DeprecationWarning)
 
 
-# DEPRICATED:
+# DEPRECATED:
 
 
 def truepath(path, real=False):
@@ -171,7 +171,7 @@ def compressuser(path, home='~'):  # nocover
 
 def editfile(fpath, verbose=True):  # nocover
     """
-    DEPRICATED: This has been ported to xdev, please use that version.
+    DEPRECATED: This has been ported to xdev, please use that version.
 
     Opens a file or code corresponding to a live python object in your
     preferred visual editor. This function is mainly useful in an interactive
@@ -226,7 +226,7 @@ def editfile(fpath, verbose=True):  # nocover
                 editor = cand
 
     if not exists(fpath):
-        raise IOError('Cannot start nonexistant file: %r' % fpath)
+        raise IOError('Cannot start nonexistent file: %r' % fpath)
     ub.cmd([editor, fpath], fpath, detach=True)
 
 
@@ -234,7 +234,7 @@ def platform_resource_dir():  # nocover
     """
     Alias for platform_cache_dir
 
-    DEPRICATED in favor of platform_config_dir / platform_data_dir
+    DEPRECATED in favor of platform_config_dir / platform_data_dir
 
     Returns a directory which should be writable for any application
     This should be used for persistent configuration files.
@@ -251,7 +251,7 @@ def get_app_resource_dir(appname, *args):  # nocover
     Returns a writable directory for an application
     This should be used for persistent configuration files.
 
-    DEPRICATED in favor of get_app_config_dir / get_app_data_dir
+    DEPRECATED in favor of get_app_config_dir / get_app_data_dir
 
     Args:
         appname (str): the name of the application
@@ -271,7 +271,7 @@ def ensure_app_resource_dir(appname, *args):  # nocover
     """
     Calls `get_app_resource_dir` but ensures the directory exists.
 
-    DEPRICATED in favor of ensure_app_config_dir / ensure_app_data_dir
+    DEPRECATED in favor of ensure_app_config_dir / ensure_app_data_dir
 
     Args:
         appname (str): the name of the application
@@ -313,7 +313,7 @@ def startfile(fpath, verbose=True):  # nocover
         print('[ubelt] startfile("{}")'.format(fpath))
     fpath = normpath(fpath)
     if not exists(fpath):
-        raise Exception('Cannot start nonexistant file: %r' % fpath)
+        raise Exception('Cannot start nonexistent file: %r' % fpath)
     if not WIN32:
         import pipes
         fpath = pipes.quote(fpath)

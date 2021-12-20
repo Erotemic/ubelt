@@ -309,7 +309,7 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
         >>> # Start up two processes that run simultaniously in the background
         >>> info1 = ub.cmd(('touch', fpath1), detach=True)
         >>> info2 = ub.cmd('echo writing2 > ' + fpath2, shell=True, detach=True)
-        >>> # Detatched processes are running in the background
+        >>> # Detached processes are running in the background
         >>> # We can run other code while we wait for them.
         >>> while not exists(fpath1):
         ...     pass

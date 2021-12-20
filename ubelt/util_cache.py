@@ -9,7 +9,7 @@ general and robust way that I (Jon Crall) have achieved, and I don't think its
 possible to do better.  These four lines implement the following necessary and
 sufficient steps for general robust on-disk caching.
 
-    1. Defining the cache dependenies
+    1. Defining the cache dependencies
     2. Checking if the cache missed
     3. Loading the cache on a hit
     4. Executing the process and saving the result on a miss.

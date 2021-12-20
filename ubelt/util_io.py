@@ -233,7 +233,7 @@ def delete(path, verbose=False):
             os.unlink(path)
         else:
             if verbose:  # nocover
-                print('Not deleting non-existant path="{}"'.format(path))
+                print('Not deleting non-existent path="{}"'.format(path))
     else:
         if os.path.islink(path):
             if verbose:  # nocover

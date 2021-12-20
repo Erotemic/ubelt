@@ -284,7 +284,7 @@ class Timerit(object):
         # Create a foreground and background timer
         bg_timer = self._timer_cls(verbose=0)   # (ideally this is unused)
         fg_timer = self._timer_cls(verbose=0)   # (used directly by user)
-        # give the forground timer a reference to this object, so the user can
+        # give the foreground timer a reference to this object, so the user can
         # access this object while still constructing the Timerit object inline
         # with the for loop.
         fg_timer.parent = self

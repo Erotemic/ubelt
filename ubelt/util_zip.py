@@ -101,7 +101,7 @@ class zopen(NiceRepr):
     TODO:
         - [ ] Fast way to open a base zipfile, query what is inside, and
               then choose a file to further zopen (and passing along the same
-              open zipfile refernce maybe?).
+              open zipfile reference maybe?).
         - [ ] Write mode in some restricted setting?
 
     Args:
