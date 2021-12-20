@@ -184,7 +184,7 @@ jobs:
   test_full/cp3_10-3_10-linux:
     <<: *test_full_template
     docker:
-      - image: circleci/python:3.10-rc
+      - image: circleci/python:3.10
   
   test_full/cp39-39-linux:
     <<: *test_full_template
@@ -226,7 +226,7 @@ jobs:
   test_minimal/cp3_10-3_10-linux:
     <<: *test_minimal_template
     docker:
-      - image: circleci/python:3.10-rc
+      - image: circleci/python:3.10
   
   test_minimal/cp39-39-linux:
     <<: *test_minimal_template
@@ -279,9 +279,6 @@ jobs:
     environment:
       - PYTHON_EXE: pypy3
 
- 
-  # -- gpgsign + deploy
-  
         
   __doc__:
     docker:
