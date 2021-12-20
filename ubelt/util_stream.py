@@ -162,14 +162,15 @@ class CaptureStdout(CaptureStream):
         ...     print('dont capture')
         >>> assert self.text is None
     """
-    def __init__(self, supress=True, enabled=True, **kwargs):
-        if 'supress' in kwargs:  # nocover
+    def __init__(self, suppress=True, enabled=True, **kwargs):
+        _misspelled_varname = 'supress'
+        if _misspelled_varname in kwargs:  # nocover
             from ubelt._util_deprecated import schedule_deprecation2
             schedule_deprecation2(
                 'Argument of CaptureStdout supress is misspelled and deprecated. Use suppress instead',
-                name='supress', type='kwarg', deprecated='0.10.3',
+                name=_misspelled_varname, type='kwarg', deprecated='0.10.3',
                 remove='1.0.0')
-            suppress = kwargs.pop('suppress')
+            suppress = kwargs.pop(_misspelled_varname)
             if len(kwargs) > 0:
                 raise ValueError('unexpected args: {}'.format(kwargs))
 

@@ -34,7 +34,7 @@ def test_import_modpath_package():
     if True:
         dpath = temp.dpath
 
-        # Create a dummy package heirachy
+        # Create a dummy package hierarchy
         root = ub.ensuredir((dpath, '_tmproot373'))
         sub1 = ub.ensuredir((root, 'sub1'))
         sub2 = ub.ensuredir((sub1, 'sub2'))
@@ -118,7 +118,7 @@ def test_modname_to_modpath_package():
     with ub.TempDir() as temp:
         dpath = temp.dpath
 
-        # Create a dummy package heirachy
+        # Create a dummy package hierarchy
         root = ub.ensuredir((dpath, '_tmproot927'))
         sub1 = ub.ensuredir((root, 'sub1'))
         sub2 = ub.ensuredir((sub1, 'sub2'))
@@ -147,7 +147,7 @@ def test_modname_to_modpath_package():
             assert _static_modname_to_modpath('_tmproot927.sub1.bad1.b1') is None
             assert _static_modname_to_modpath('_tmproot927.bad1') is None
 
-            # package modules are accessable by the full path
+            # package modules are accessible by the full path
             assert root == _static_modname_to_modpath('_tmproot927')
             assert sub1 == _static_modname_to_modpath('_tmproot927.sub1')
             assert sub2 == _static_modname_to_modpath('_tmproot927.sub1.sub2')
@@ -301,7 +301,7 @@ def test_package_submodules():
     with ub.TempDir() as temp:
         dpath = temp.dpath
 
-        # Create a dummy package heirachy
+        # Create a dummy package hierarchy
         root = ub.ensuredir((dpath, '_tmproot927'))
         sub1 = ub.ensuredir((root, 'sub1'))
         sub2 = ub.ensuredir((sub1, 'sub2'))
@@ -361,7 +361,7 @@ def test_modpath_to_modname():
     with ub.TempDir() as temp:
         dpath = temp.dpath
 
-        # Create a dummy package heirachy
+        # Create a dummy package hierarchy
         root = ub.ensuredir((dpath, '_tmproot927'))
         sub1 = ub.ensuredir((root, 'sub1'))
         sub2 = ub.ensuredir((sub1, 'sub2'))
@@ -427,7 +427,7 @@ def test_modpath_to_modname():
             assert ub.modpath_to_modname(root_main, hide_main=True, hide_init=False) == '_tmproot927'
             assert ub.modpath_to_modname(sub2_main, hide_main=True, hide_init=False) == '_tmproot927.sub1.sub2'
 
-            # Non-existant / invalid modules should always be None
+            # Non-existent / invalid modules should always be None
             for a, b in it.product([True, False], [True, False]):
                 with pytest.raises(ValueError):
                     ub.modpath_to_modname(join(sub1, '__main__.py'), hide_main=a, hide_init=b)

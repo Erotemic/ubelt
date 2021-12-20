@@ -397,7 +397,7 @@ class SingletonTestServer(ub.NiceRepr):
             server_cmd = [
                 'python', '-m', 'http.server', str(port)
             ]
-        info = ub.cmd(server_cmd, detatch=True, cwd=dpath)
+        info = ub.cmd(server_cmd, detach=True, cwd=dpath)
         proc = info['proc']
         self.proc = proc
         self.dpath = dpath
