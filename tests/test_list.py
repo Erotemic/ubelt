@@ -9,7 +9,7 @@ def test_chunk_errors():
     with pytest.raises(ValueError):
         ub.chunks(range(9), chunksize=2, nchunks=2)
 
-    with pytest.raises(TypeError):
+    with pytest.raises(ValueError):
         len(ub.chunks((_ for _ in range(2)), nchunks=2))
 
 
@@ -31,7 +31,7 @@ def test_chunk_len():
 if __name__ == '__main__':
     r"""
     CommandLine:
-        pytest ubelt/tests/test_list.py
+        pytest tests/test_list.py
     """
     import xdoctest
     xdoctest.doctest_module(__file__)

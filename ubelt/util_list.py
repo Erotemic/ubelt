@@ -108,10 +108,10 @@ class chunks(object):
         >>> assert len(list(ub.chunks(range(2), nchunks=2))) == 2
         >>> assert len(list(ub.chunks(range(3), nchunks=2))) == 2
         >>> # Note: ub.chunks will not do the 2,1,1 split
-        >>> assert len(list(ub.chunks(range(4), nchunks=3))) == 2
-        >>> assert len(list(ub.chunks([], 2, None, 'none'))) == 0
-        >>> assert len(list(ub.chunks([], 2, None, 'cycle'))) == 0
-        >>> assert len(list(ub.chunks([], 2, None, 'replicate'))) == 0
+        >>> assert len(list(ub.chunks(range(4), nchunks=3))) == 3
+        >>> assert len(list(ub.chunks([], 2, bordermode='none'))) == 0
+        >>> assert len(list(ub.chunks([], 2, bordermode='cycle'))) == 0
+        >>> assert len(list(ub.chunks([], 2, None, bordermode='replicate'))) == 0
 
     Example:
         >>> from ubelt.util_list import *  # NOQA
@@ -134,7 +134,7 @@ class chunks(object):
         >>> basis = {
         >>>     'legacy': [False, True],
         >>>     'chunker': [{'nchunks': 3}, {'nchunks': 4}, {'nchunks': 5}, {'nchunks': 7}, {'chunksize': 3}],
-        >>>     'items': [range(2), range(4), range(5), range(7), range(11)],
+        >>>     'items': [range(2), range(4), range(5), range(7), range(9)],
         >>>     'bordermode': ['none', 'cycle', 'replicate'],
         >>> }
         >>> grid_items = list(ub.named_product(basis))
@@ -211,7 +211,7 @@ class chunks(object):
 
     def __len__(self):
         if self.nchunks is None:
-            raise Exception('length is unknown')
+            raise TypeError('length is unknown')
         return self.nchunks
 
     def __iter__(self):
