@@ -833,7 +833,6 @@ def peek(iterable, default=util_const.NoParam):
         T: item - the first item of ordered sequence, a popped item from an
                  iterator, or an arbitrary item from an unordered collection.
 
-
     Example:
         >>> import ubelt as ub
         >>> data = [0, 1, 2]

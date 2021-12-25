@@ -357,11 +357,18 @@ class SingletonTestServer(ub.NiceRepr):
     @classmethod
     def instance(cls):
         import sys
-        if sys.platform.startswith('win32') and sys.version_info[0:2] <= (2, 7):
+        # import platform
+        # is_pypy = platform.python_implementation() == 'PyPy'
+        is_27 = sys.version_info[0:2] <= (2, 7)
+        is_win32 = sys.platform.startswith('win32')
+        if is_win32 and is_27:
             pytest.skip(
                 'skip local server tests for python 2.7 on win32, '
                 'might be causing hang on appveyor')
-
+        # if is_win32 and is_pypy:
+        #     pytest.skip(
+        #         'skip local server tests for pypy on win32, '
+        #         'test of sometimes flaky. Unsure why.')
         if cls._instance is not None:
             self = cls._instance
         else:
@@ -409,16 +416,29 @@ class SingletonTestServer(ub.NiceRepr):
         self.dpath = dpath
         self.root_url = 'http://localhost:{}'.format(port)
 
-        time.sleep(.002)
+        import platform
+        is_pypy = platform.python_implementation() == 'PyPy'
+        is_win32 = sys.platform.startswith('win32')
 
+        if is_pypy and is_win32:
+            # not sure why
+            init_sleeptime = 0.2
+            fail_sleeptime = 0.1
+            timeout = 3
+        else:
+            init_sleeptime = 0.002
+            fail_sleeptime = 0.01
+            timeout = 1
+
+        time.sleep(init_sleeptime)
         # Wait for the server to be alive
         status_code = None
         max_tries = 100
         for _ in range(max_tries):
             try:
-                resp = requests.get(self.root_url, timeout=1)
+                resp = requests.get(self.root_url, timeout=timeout)
             except requests.exceptions.ConnectionError:
-                time.sleep(0.01)
+                time.sleep(fail_sleeptime)
             else:
                 status_code = resp.status_code
             if status_code == 200:
