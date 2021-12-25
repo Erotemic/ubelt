@@ -335,7 +335,7 @@ class FormatterExtensions(object):
         >>> # Register a function to format your specific type
         >>> @extensions.register(MyObject)
         >>> def format_myobject(data, **kwargs):
-        >>>     return 'I can do anything here'
+        >>>     return 'I can do anything here to return a string'
         >>> # Repr2 will now respect the passed custom extensions
         >>> # Note that the global extensions will still be respected
         >>> # unless they are overloaded.

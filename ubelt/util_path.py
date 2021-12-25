@@ -23,6 +23,7 @@ from os.path import (
 )
 import os
 import sys
+import pathlib
 
 
 PY2 = sys.version_info[0] == 2
@@ -312,6 +313,11 @@ def ensuredir(dpath, mode=0o1777, verbose=0, recreate=False):
 class TempDir(object):
     """
     Context for creating and cleaning up temporary directories.
+
+    Note:
+        This exists because :class:`tempfile.TemporaryDirectory` was
+        introduced in Python 3.2. Thus once ubelt no longer supports
+        python 2.7, this class will be deprecated.
 
     Example:
         >>> from ubelt.util_path import *  # NOQA

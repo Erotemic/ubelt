@@ -316,7 +316,7 @@ project. Note: this measure is biased towards older functions.
 Examples
 ========
 
-Be sure to checkout the new Jupyter notebook: https://github.com/Erotemic/ubelt/blob/master/docs/notebooks/Ubelt%20Demo.ipynb
+Be sure to checkout the new Jupyter notebook: https://github.com/Erotemic/ubelt/blob/main/docs/notebooks/Ubelt%20Demo.ipynb
 
 Here are some examples of some features inside ``ubelt``
 
@@ -410,7 +410,7 @@ Caching
 
 Cache intermediate results in a script with minimal boilerplate. 
 It looks like 4 lines of boilerplate is the best you can do with Python 3.8 syntax.
-See <https://raw.githubusercontent.com/Erotemic/ubelt/master/ubelt/util_cache.py>`__ for details.
+See <https://raw.githubusercontent.com/Erotemic/ubelt/main/ubelt/util_cache.py>`__ for details.
 
 
 .. code:: python
@@ -824,12 +824,12 @@ Also check out my other projects (many of which are powered by ubelt):
 
 .. |CircleCI| image:: https://circleci.com/gh/Erotemic/ubelt.svg?style=svg
     :target: https://circleci.com/gh/Erotemic/ubelt
-.. |Travis| image:: https://img.shields.io/travis/Erotemic/ubelt/master.svg?label=Travis%20CI
-   :target: https://travis-ci.org/Erotemic/ubelt?branch=master
-.. |Appveyor| image:: https://ci.appveyor.com/api/projects/status/github/Erotemic/ubelt?branch=master&svg=True
-   :target: https://ci.appveyor.com/project/Erotemic/ubelt/branch/master
-.. |Codecov| image:: https://codecov.io/github/Erotemic/ubelt/badge.svg?branch=master&service=github
-   :target: https://codecov.io/github/Erotemic/ubelt?branch=master
+.. |Travis| image:: https://img.shields.io/travis/Erotemic/ubelt/main.svg?label=Travis%20CI
+   :target: https://travis-ci.org/Erotemic/ubelt?branch=main
+.. |Appveyor| image:: https://ci.appveyor.com/api/projects/status/github/Erotemic/ubelt?branch=main&svg=True
+   :target: https://ci.appveyor.com/project/Erotemic/ubelt/branch/main
+.. |Codecov| image:: https://codecov.io/github/Erotemic/ubelt/badge.svg?branch=main&service=github
+   :target: https://codecov.io/github/Erotemic/ubelt?branch=main
 .. |Pypi| image:: https://img.shields.io/pypi/v/ubelt.svg
    :target: https://pypi.python.org/pypi/ubelt
 .. |Downloads| image:: https://img.shields.io/pypi/dm/ubelt.svg

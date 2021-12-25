@@ -61,7 +61,7 @@ jobs:
         # Get path to installed package
         MOD_DPATH=$(python -c "import ubelt, os; print(os.path.dirname(ubelt.__file__))")
         echo "MOD_DPATH = $MOD_DPATH"
-        python -m pytest -p pytester -p no:doctest --xdoctest --cov=ubelt $MOD_DPATH ./tests
+        python -m pytest --xdoctest --cov=ubelt $MOD_DPATH ./tests
 
     - name: Test full sdist
       run: |
@@ -72,7 +72,7 @@ jobs:
         # Get path to installed package
         MOD_DPATH=$(python -c "import ubelt, os; print(os.path.dirname(ubelt.__file__))")
         echo "MOD_DPATH = $MOD_DPATH"
-        python -m pytest -p pytester -p no:doctest --xdoctest $MOD_DPATH ./tests
+        python -m pytest --xdoctest $MOD_DPATH ./tests
 
 
     - name: Upload sdist artifact
@@ -162,7 +162,7 @@ jobs:
     #    # configure cibuildwheel to build native archs ('auto'), or emulated ones
     #    CIBW_ARCHS_LINUX: ${{ matrix.arch }}
     
-    # Setup Python environemtn for a pure wheel
+    # Setup Python environment for a pure wheel
     - uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python-version }}
