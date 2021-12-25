@@ -75,7 +75,7 @@ class chunks(object):
             For instance how do we turn a list with 4 elements into 3 chunks
             where does the extra item go?
 
-        In ubelt <= 0.10.1 there is a bug when specifying nchunks,
+        In ubelt <= 0.10.3 there is a bug when specifying nchunks,
         where it chooses a chunksize that is too large. Specify
         ``legacy=True`` to get the old buggy behavior if needed.
 
@@ -129,32 +129,34 @@ class chunks(object):
         >>> assert pytest.raises(TypeError, len, chunks((_ for _ in range(2)), 2))
 
     Example:
-        from ubelt.util_list import *  # NOQA
-        import ubelt as ub
-        basis = {
-            'chunker': [{'nchunks': 3}, {'chunksize': 3}],
-            'items': [range(2), range(4), range(5), range(7)],
-            'legacy': [False, True],
-
-        }
-        grid_items = list(ub.named_product(basis))
-        rows = []
-        for grid_item in grid_items:
-            chunker = grid_item.get('chunker')
-            grid_item.update(chunker)
-            kw = ub.dict_diff(grid_item, {'chunker'})
-            print('kw = {!r}'.format(kw))
-            self = chunk_iter = ub.chunks(**kw)
-            chunked = list(chunk_iter)
-            chunk_info = list(map(len, chunked))
-            row = ub.dict_union(grid_item, {'info': chunk_info})
-            row['chunker'] = str(row['chunker'])
-            row.update(chunk_iter.__dict__)
-            rows.append(row)
-        import pandas as pd
-        df = pd.DataFrame(rows)
-        for _, subdf in df.groupby('legacy'):
-            print(subdf.sort_values('chunker'))
+        >>> from ubelt.util_list import *  # NOQA
+        >>> import ubelt as ub
+        >>> basis = {
+        >>>     'legacy': [False, True],
+        >>>     'chunker': [{'nchunks': 3}, {'nchunks': 4}, {'nchunks': 5}, {'nchunks': 7}, {'chunksize': 3}],
+        >>>     'items': [range(2), range(4), range(5), range(7), range(11)],
+        >>>     'bordermode': ['none', 'cycle', 'replicate'],
+        >>> }
+        >>> grid_items = list(ub.named_product(basis))
+        >>> rows = []
+        >>> for grid_item in ub.ProgIter(grid_items):
+        >>>     chunker = grid_item.get('chunker')
+        >>>     grid_item.update(chunker)
+        >>>     kw = ub.dict_diff(grid_item, {'chunker'})
+        >>>     self = chunk_iter = ub.chunks(**kw)
+        >>>     chunked = list(chunk_iter)
+        >>>     chunk_lens = list(map(len, chunked))
+        >>>     row = ub.dict_union(grid_item, {'chunk_lens': chunk_lens, 'chunks': chunked})
+        >>>     row['chunker'] = str(row['chunker'])
+        >>>     if not row['legacy'] and 'nchunks' in kw:
+        >>>         assert kw['nchunks'] == row['nchunks']
+        >>>     row.update(chunk_iter.__dict__)
+        >>>     rows.append(row)
+        >>> # xdoctest: +REQUIRES(module:pandas)
+        >>> import pandas as pd
+        >>> df = pd.DataFrame(rows)
+        >>> for _, subdf in df.groupby('chunker'):
+        >>>     print(subdf)
 
     """
     def __init__(self, items, chunksize=None, nchunks=None, total=None,
@@ -170,6 +172,9 @@ class chunks(object):
             except TypeError:
                 pass  # iterators dont know len
 
+        if bordermode is None:
+            bordermode = 'none'
+
         if nchunks is None:
             if total is not None:
                 nchunks = int(math.ceil(total / chunksize))
@@ -183,11 +188,18 @@ class chunks(object):
                 chunksize = int(math.ceil(total / nchunks))
                 remainder = 0
             else:
-                # I feel like this could be simpler
-                chunksize = max(int(math.floor(total / nchunks)), 1)
-                nchunks = min(int(math.ceil(total / chunksize)), nchunks)
-                chunked_total = chunksize * nchunks
-                remainder = total - chunked_total
+                if bordermode == 'none':
+                    # I feel like this could be simpler
+                    chunksize = max(int(math.floor(total / nchunks)), 1)
+                    nchunks = min(int(math.ceil(total / chunksize)), nchunks)
+                    chunked_total = chunksize * nchunks
+                    remainder = total - chunked_total
+                else:
+                    # not working
+                    chunksize = max(int(math.ceil(total / nchunks)), 1)
+                    # Can artificially extend the size in this case
+                    # total = chunksize * nchunks
+                    remainder = 0
 
         self.legacy = legacy
         self.remainder = remainder
@@ -206,23 +218,38 @@ class chunks(object):
         bordermode = self.bordermode
         items = self.items
         chunksize = self.chunksize
-        if bordermode is None or bordermode == 'none':
-            if self.legacy or self.nchunks is None:
-                return self.noborder(items, chunksize)
-            else:
-                return self.noborder_nchunks()
-        elif bordermode == 'cycle':
-            return self.cycle(items, chunksize)
-        elif bordermode == 'replicate':
-            return self.replicate(items, chunksize)
-        else:
-            raise ValueError('unknown bordermode=%r' % (bordermode,))
 
-    def noborder_nchunks(self):
+        if not self.legacy and self.nchunks is not None:
+            return self._new_iterator()
+        else:
+            if bordermode is None or bordermode == 'none':
+                return self.noborder(items, chunksize)
+            elif bordermode == 'cycle':
+                return self.cycle(items, chunksize)
+            elif bordermode == 'replicate':
+                return self.replicate(items, chunksize)
+            else:
+                raise ValueError('unknown bordermode=%r' % (bordermode,))
+
+    def _new_iterator(self):
         chunksize = self.chunksize
         nchunks = self.nchunks
         chunksize = self.chunksize
         remainder = self.remainder
+
+        if self.bordermode == 'cycle':
+            iterator = it.cycle(iter(self.items))
+        elif self.bordermode == 'replicate':
+            def replicator(items):
+                for item in items:
+                    yield item
+                while True:
+                    yield item
+            iterator = replicator(iter(self.items))
+        elif self.bordermode == 'none':
+            iterator = iter(self.items)
+        else:
+            raise KeyError(self.bordermode)
 
         # Build an iterator that describes how big each chunk will be
         if remainder:
@@ -236,7 +263,6 @@ class chunks(object):
             )
         else:
             chunksize_iter = it.repeat(chunksize, nchunks)
-        iterator = iter(self.items)
         for _chunksize in chunksize_iter:
             chunk = list(it.islice(iterator, _chunksize))
             if chunk:
