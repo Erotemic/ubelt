@@ -183,6 +183,7 @@ class chunks(object):
                 chunksize = int(math.ceil(total / nchunks))
                 remainder = 0
             else:
+                # I feel like this could be simpler
                 chunksize = max(int(math.floor(total / nchunks)), 1)
                 nchunks = min(int(math.ceil(total / chunksize)), nchunks)
                 chunked_total = chunksize * nchunks
@@ -225,6 +226,10 @@ class chunks(object):
 
         # Build an iterator that describes how big each chunk will be
         if remainder:
+            # TODO:
+            # handle replicate and cycle border modes
+            # TODO:
+            # benchmark different methods
             chunksize_iter = it.chain(
                 it.repeat(chunksize + 1, remainder),
                 it.repeat(chunksize, nchunks - remainder)
