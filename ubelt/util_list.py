@@ -77,7 +77,7 @@ class chunks(object):
 
         In ubelt <= 0.10.1 there is a bug when specifying nchunks,
         where it chooses a chunksize that is too large. Specify
-        ``old_method=True`` to get the old buggy behavior if needed.
+        ``legacy=True`` to get the old buggy behavior if needed.
 
     Yields:
         List[T]:
@@ -128,46 +128,114 @@ class chunks(object):
         >>> assert pytest.raises(ValueError, chunks, range(9), chunksize=2, nchunks=2)
         >>> assert pytest.raises(TypeError, len, chunks((_ for _ in range(2)), 2))
 
+    Example:
+        from ubelt.util_list import *  # NOQA
+        import ubelt as ub
+        basis = {
+            'chunker': [{'nchunks': 3}, {'chunksize': 3}],
+            'items': [range(2), range(4), range(5), range(7)],
+            'legacy': [False, True],
+
+        }
+        grid_items = list(ub.named_product(basis))
+        rows = []
+        for grid_item in grid_items:
+            chunker = grid_item.get('chunker')
+            grid_item.update(chunker)
+            kw = ub.dict_diff(grid_item, {'chunker'})
+            print('kw = {!r}'.format(kw))
+            self = chunk_iter = ub.chunks(**kw)
+            chunked = list(chunk_iter)
+            chunk_info = list(map(len, chunked))
+            row = ub.dict_union(grid_item, {'info': chunk_info})
+            row['chunker'] = str(row['chunker'])
+            row.update(chunk_iter.__dict__)
+            rows.append(row)
+        import pandas as pd
+        df = pd.DataFrame(rows)
+        for _, subdf in df.groupby('legacy'):
+            print(subdf.sort_values('chunker'))
+
     """
     def __init__(self, items, chunksize=None, nchunks=None, total=None,
-                 bordermode='none', old_method=False):
+                 bordermode='none', legacy=False):
         if nchunks is not None and chunksize is not None:  # nocover
             raise ValueError('Cannot specify both chunksize and nchunks')
         if nchunks is None and chunksize is None:  # nocover
             raise ValueError('Must specify either chunksize or nchunks')
-        if nchunks is not None:
-            if total is None:
+
+        if total is None:
+            try:
                 total = len(items)
+            except TypeError:
+                pass  # iterators dont know len
 
-            if old_method:
+        if nchunks is None:
+            if total is not None:
+                nchunks = int(math.ceil(total / chunksize))
+            remainder = 0
+        else:
+            if total is None:
+                raise ValueError(
+                    'Need to specify total to use nchunks on an iterable '
+                    'without length hints')
+            if legacy:
                 chunksize = int(math.ceil(total / nchunks))
+                remainder = 0
             else:
-                chunksize = int(math.floor(total / nchunks))
-                remainder = total % nchunks
+                chunksize = max(int(math.floor(total / nchunks)), 1)
+                nchunks = min(int(math.ceil(total / chunksize)), nchunks)
+                chunked_total = chunksize * nchunks
+                remainder = total - chunked_total
 
-        self.bordermode = bordermode
+        self.legacy = legacy
+        self.remainder = remainder
         self.items = items
-        self.chunksize = chunksize
         self.total = total
+        self.nchunks = nchunks
+        self.chunksize = chunksize
+        self.bordermode = bordermode
 
     def __len__(self):
-        if self.total is None:
-            self.total = len(self.items)
-        nchunks = int(math.ceil(self.total / self.chunksize))
-        return nchunks
+        if self.nchunks is None:
+            raise Exception('length is unknown')
+        return self.nchunks
 
     def __iter__(self):
         bordermode = self.bordermode
         items = self.items
         chunksize = self.chunksize
         if bordermode is None or bordermode == 'none':
-            return self.noborder(items, chunksize)
+            if self.legacy or self.nchunks is None:
+                return self.noborder(items, chunksize)
+            else:
+                return self.noborder_nchunks()
         elif bordermode == 'cycle':
             return self.cycle(items, chunksize)
         elif bordermode == 'replicate':
             return self.replicate(items, chunksize)
         else:
             raise ValueError('unknown bordermode=%r' % (bordermode,))
+
+    def noborder_nchunks(self):
+        chunksize = self.chunksize
+        nchunks = self.nchunks
+        chunksize = self.chunksize
+        remainder = self.remainder
+
+        # Build an iterator that describes how big each chunk will be
+        if remainder:
+            chunksize_iter = it.chain(
+                it.repeat(chunksize + 1, remainder),
+                it.repeat(chunksize, nchunks - remainder)
+            )
+        else:
+            chunksize_iter = it.repeat(chunksize, nchunks)
+        iterator = iter(self.items)
+        for _chunksize in chunksize_iter:
+            chunk = list(it.islice(iterator, _chunksize))
+            if chunk:
+                yield chunk
 
     @staticmethod
     def noborder(items, chunksize):
