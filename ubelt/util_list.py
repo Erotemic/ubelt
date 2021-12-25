@@ -172,7 +172,7 @@ class chunks(object):
             except TypeError:
                 pass  # iterators dont know len
 
-        if bordermode is None:
+        if bordermode is None:  # nocover
             bordermode = 'none'
 
         if nchunks is None:
@@ -265,8 +265,8 @@ class chunks(object):
             chunksize_iter = it.repeat(chunksize, nchunks)
         for _chunksize in chunksize_iter:
             chunk = list(it.islice(iterator, _chunksize))
-            if chunk:
-                yield chunk
+            # if chunk:
+            yield chunk
 
     @staticmethod
     def noborder(items, chunksize):
