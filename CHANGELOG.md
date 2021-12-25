@@ -15,6 +15,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### Fixed
 * `ubelt.hash_data` now handles non-numeric float values.
+* `ubelt.chunks` now works correctly when nchunks is specified.
 
 ### Changed
 
