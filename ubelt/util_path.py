@@ -278,6 +278,9 @@ def ensuredir(dpath, mode=0o1777, verbose=0, recreate=False):
     Returns:
         str: path - the ensured directory
 
+    SeeAlso:
+        :method:`ub.Path.ensuredir`
+
     Note:
         This function is not thread-safe in Python2
 
@@ -374,7 +377,18 @@ class _ExtendedPathMixin(object):
     def ensuredir(self, mode=0o777):
         """
         Concise alias of `self.mkdir(parents=True, exist_ok=True)`
-        """
+
+        Example:
+            >>> import ubelt as ub
+            >>> cache_dpath = ub.ensure_app_cache_dir('ubelt')
+            >>> dpath = ub.Path(join(cache_dpath, 'ensuredir'))
+            >>> if exists(dpath):
+            ...     os.rmdir(dpath)
+            >>> assert not dpath.exists()
+            >>> dpath.ensuredir()
+            >>> assert dpath.exists()
+            >>> dpath.rmdir()
+            """
         self.mkdir(mode=mode, parents=True, exist_ok=True)
         return self
 
@@ -395,8 +409,14 @@ class _ExtendedPathMixin(object):
         Concise alias of `Path(os.path.expandvars(self.expanduser()))`
 
         Example:
-            >>> print(Path('$HOME').expand())
-            >>> print(Path('~/').expand())
+            >>> import ubelt as ub
+            >>> home_v1 = ub.Path('$HOME').expand()
+            >>> home_v2 = ub.Path('~/').expand()
+            >>> home_v3 = ub.Path.home()
+            >>> print('home_v1 = {!r}'.format(home_v1))
+            >>> print('home_v2 = {!r}'.format(home_v2))
+            >>> print('home_v3 = {!r}'.format(home_v3))
+            >>> assert home_v1 == home_v2 == home_v3
         """
         return self.expandvars().expanduser()
 
@@ -405,9 +425,8 @@ class Path(pathlib.Path, _ExtendedPathMixin):
     """
     An extension of :class:`pathlib.Path` with extra convinience methods
     """
-
     def __new__(cls, *args, **kwargs):
-        if cls is Path:
+        if cls is Path:  # pragma: nobranch
             cls = WindowsPath2 if os.name == 'nt' else PosixPath2
         self = cls._from_parts(args, init=False)
         if not self._flavour.is_supported:
