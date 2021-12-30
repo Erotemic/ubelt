@@ -12,6 +12,8 @@ import zipfile
 from os.path import exists, join
 from ubelt.util_mixins import NiceRepr
 
+__all__ = ['zopen', 'split_archive']
+
 PY2 = (sys.version_info[0] == 2)
 
 if PY2:

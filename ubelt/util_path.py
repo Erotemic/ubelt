@@ -15,11 +15,13 @@ The :func:`userhome` function reports the home directory of the current user of
 the operating system.
 
 The :func:`ensuredir` function operates like ``mkdir -p`` in unix.
+
+The :class:`Path` object is an extension of :class:`pathlib.Path` that contains
+extra convinience methods.
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 from os.path import (
     dirname, exists, expanduser, expandvars, join, normpath, split, splitext,
-    # relpath
 )
 import os
 import sys
@@ -30,7 +32,8 @@ PY2 = sys.version_info[0] == 2
 
 
 __all__ = [
-    'TempDir', 'augpath', 'shrinkuser', 'userhome', 'ensuredir', 'expandpath',
+    'Path', 'TempDir', 'augpath', 'shrinkuser', 'userhome', 'ensuredir',
+    'expandpath',
 ]
 
 
@@ -361,3 +364,62 @@ class TempDir(object):
 
     def __exit__(self, type_, value, trace):
         self.cleanup()
+
+
+class _ExtendedPathMixin(object):
+    """
+    An extension of :class:`pathlib.Path` with extra convinience methods
+    """
+
+    def ensuredir(self, mode=0o777):
+        """
+        Concise alias of `self.mkdir(parents=True, exist_ok=True)`
+        """
+        self.mkdir(mode=mode, parents=True, exist_ok=True)
+        return self
+
+    def expandvars(self):
+        """
+        As discussed in CPythonIssue21301_, CPython wont be adding expandvars
+        to pathlib. I think this is a mistake, so I added it in this extension.
+
+        References:
+            .. [CPythonIssue21301] https://bugs.python.org/issue21301
+        """
+        return self.__class__(os.path.expandvars(self))
+
+    def expand(self):
+        """
+        Expands user tilde and environment variables.
+
+        Concise alias of `Path(os.path.expandvars(self.expanduser()))`
+
+        Example:
+            >>> print(Path('$HOME').expand())
+            >>> print(Path('~/').expand())
+        """
+        return self.expandvars().expanduser()
+
+
+class Path(pathlib.Path, _ExtendedPathMixin):
+    """
+    An extension of :class:`pathlib.Path` with extra convinience methods
+    """
+
+    def __new__(cls, *args, **kwargs):
+        if cls is Path:
+            cls = WindowsPath2 if os.name == 'nt' else PosixPath2
+        self = cls._from_parts(args, init=False)
+        if not self._flavour.is_supported:
+            raise NotImplementedError("cannot instantiate %r on your system"
+                                      % (cls.__name__,))
+        self._init()
+        return self
+
+
+class WindowsPath2(pathlib.WindowsPath, _ExtendedPathMixin):
+    pass
+
+
+class PosixPath2(pathlib.PosixPath, _ExtendedPathMixin):
+    pass
