@@ -385,7 +385,7 @@ class Path(_PathBase):
             >>> import ubelt as ub
             >>> cache_dpath = ub.ensure_app_cache_dir('ubelt')
             >>> dpath = ub.Path(join(cache_dpath, 'ensuredir'))
-            >>> if exists(dpath):
+            >>> if dpath.exists():
             ...     os.rmdir(dpath)
             >>> assert not dpath.exists()
             >>> dpath.ensuredir()
