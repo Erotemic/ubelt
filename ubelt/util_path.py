@@ -407,7 +407,7 @@ class Path(_PathBase):
         References:
             .. [CPythonIssue21301] https://bugs.python.org/issue21301
         """
-        return self.__class__(os.path.expandvars(self))
+        return Path(os.path.expandvars(str(self)))
 
     def expand(self):
         """
@@ -416,16 +416,16 @@ class Path(_PathBase):
         Concise alias of `Path(os.path.expandvars(self.expanduser()))`
 
         Example:
-            >>> if os.path == 'nt':
-            ...     import pytest
-            ...     pytest.skip('windows is different')
             >>> import ubelt as ub
             >>> home_v1 = ub.Path('$HOME').expand()
             >>> home_v2 = ub.Path('~/').expand()
-            >>> home_v3 = ub.Path.home()
+            >>> #home_v3 = ub.Path.home()
             >>> print('home_v1 = {!r}'.format(home_v1))
             >>> print('home_v2 = {!r}'.format(home_v2))
-            >>> print('home_v3 = {!r}'.format(home_v3))
-            >>> assert home_v1 == home_v2 == home_v3
+            >>> #print('home_v3 = {!r}'.format(home_v3))
+            >>> assert home_v1 == home_v2 # == home_v3
         """
-        return self.expandvars().expanduser()
+        if PY2:  # nocover
+            return os.path.expanduser(str(self.expandvars()))
+        else:
+            return self.expandvars().expanduser()
