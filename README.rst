@@ -31,6 +31,8 @@ Read the docs here: http://ubelt.readthedocs.io/en/latest/
 
 These are some of the tasks that ubelt's API enables:
 
+  - extended pathlib (ub.Path)
+
   - hash common data structures like list, dict, int, str, etc. (hash_data)
 
   - hash files (hash_file)
@@ -39,7 +41,7 @@ These are some of the tasks that ubelt's API enables:
 
   - time a block of code (Timerit, Timer)
 
-  - show loop progress (ProgIter)
+  - show loop progress with less overhead than tqdm (ProgIter)
 
   - download a file with optional caching and hash verification (download, grabdata)
 
@@ -116,7 +118,7 @@ Ubelt is small. Its top-level API is defined using roughly 40 lines:
     from ubelt.util_indexable import (IndexableWalker, indexable_allclose,)
     from ubelt.util_memoize import (memoize, memoize_method, memoize_property,)
     from ubelt.util_mixins import (NiceRepr,)
-    from ubelt.util_path import (TempDir, augpath, ensuredir, expandpath,
+    from ubelt.util_path import (Path, TempDir, augpath, ensuredir, expandpath,
                                  shrinkuser, userhome,)
     from ubelt.util_platform import (DARWIN, LINUX, POSIX, WIN32,
                                      ensure_app_cache_dir, ensure_app_config_dir,
@@ -128,9 +130,11 @@ Ubelt is small. Its top-level API is defined using roughly 40 lines:
                                 paragraph,)
     from ubelt.util_stream import (CaptureStdout, CaptureStream, TeeStringIO,)
     from ubelt.util_time import (timestamp,)
+    from ubelt.util_zip import (split_archive, zopen,)
     from ubelt.orderedset import (OrderedSet, oset,)
     from ubelt.progiter import (ProgIter,)
     from ubelt.timerit import (Timer, Timerit,)
+
 
 
 Installation:
@@ -206,117 +210,101 @@ a histogram of usefulness. I generated this histogram using ``python dev/gen_api
 which roughly counts the number of times I've used a ubelt function in another
 project. Note: this measure is biased towards older functions.
 
-====================================================================================================================================================== ================
- Function name                                                                                                                                               Usefulness
-====================================================================================================================================================== ================
-`ubelt.repr2 <https://ubelt.readthedocs.io/en/latest/ubelt.util_format.html#ubelt.util_format.repr2>`__                                                            2001
-`ubelt.expandpath <https://ubelt.readthedocs.io/en/latest/ubelt.util_path.html#ubelt.util_path.expandpath>`__                                                       728
-`ubelt.ProgIter <https://ubelt.readthedocs.io/en/latest/ubelt.progiter.html#ubelt.progiter.ProgIter>`__                                                             694
-`ubelt.ensuredir <https://ubelt.readthedocs.io/en/latest/ubelt.util_path.html#ubelt.util_path.ensuredir>`__                                                         539
-`ubelt.take <https://ubelt.readthedocs.io/en/latest/ubelt.util_list.html#ubelt.util_list.take>`__                                                                   383
-`ubelt.odict <https://ubelt.readthedocs.io/en/latest/ubelt.util_dict.html#ubelt.util_dict.odict>`__                                                                 338
-`ubelt.map_vals <https://ubelt.readthedocs.io/en/latest/ubelt.util_dict.html#ubelt.util_dict.map_vals>`__                                                           305
-`ubelt.dzip <https://ubelt.readthedocs.io/en/latest/ubelt.util_dict.html#ubelt.util_dict.dzip>`__                                                                   272
-`ubelt.augpath <https://ubelt.readthedocs.io/en/latest/ubelt.util_path.html#ubelt.util_path.augpath>`__                                                             250
-`ubelt.ddict <https://ubelt.readthedocs.io/en/latest/ubelt.util_dict.html#ubelt.util_dict.ddict>`__                                                                 227
-`ubelt.NiceRepr <https://ubelt.readthedocs.io/en/latest/ubelt.util_mixins.html#ubelt.util_mixins.NiceRepr>`__                                                       220
-`ubelt.cmd <https://ubelt.readthedocs.io/en/latest/ubelt.util_cmd.html#ubelt.util_cmd.cmd>`__                                                                       209
-`ubelt.flatten <https://ubelt.readthedocs.io/en/latest/ubelt.util_list.html#ubelt.util_list.flatten>`__                                                             206
-`ubelt.peek <https://ubelt.readthedocs.io/en/latest/ubelt.util_list.html#ubelt.util_list.peek>`__                                                                   189
-`ubelt.NoParam <https://ubelt.readthedocs.io/en/latest/ubelt.util_const.html#ubelt.util_const.NoParam>`__                                                           184
-`ubelt.argval <https://ubelt.readthedocs.io/en/latest/ubelt.util_arg.html#ubelt.util_arg.argval>`__                                                                 179
-`ubelt.group_items <https://ubelt.readthedocs.io/en/latest/ubelt.util_dict.html#ubelt.util_dict.group_items>`__                                                     173
-`ubelt.argflag <https://ubelt.readthedocs.io/en/latest/ubelt.util_arg.html#ubelt.util_arg.argflag>`__                                                               173
-`ubelt.codeblock <https://ubelt.readthedocs.io/en/latest/ubelt.util_str.html#ubelt.util_str.codeblock>`__                                                           171
-`ubelt.Timerit <https://ubelt.readthedocs.io/en/latest/ubelt.timerit.html#ubelt.timerit.Timerit>`__                                                                 164
-`ubelt.dict_hist <https://ubelt.readthedocs.io/en/latest/ubelt.util_dict.html#ubelt.util_dict.dict_hist>`__                                                         161
-`ubelt.iterable <https://ubelt.readthedocs.io/en/latest/ubelt.util_list.html#ubelt.util_list.iterable>`__                                                           144
-`ubelt.hash_data <https://ubelt.readthedocs.io/en/latest/ubelt.util_hash.html#ubelt.util_hash.hash_data>`__                                                         124
-`ubelt.grabdata <https://ubelt.readthedocs.io/en/latest/ubelt.util_download.html#ubelt.util_download.grabdata>`__                                                   106
-`ubelt.oset <https://ubelt.readthedocs.io/en/latest/ubelt.orderedset.html#ubelt.orderedset.oset>`__                                                                 103
-`ubelt.paragraph <https://ubelt.readthedocs.io/en/latest/ubelt.util_str.html#ubelt.util_str.paragraph>`__                                                           100
-`ubelt.delete <https://ubelt.readthedocs.io/en/latest/ubelt.util_io.html#ubelt.util_io.delete>`__                                                                    97
-`ubelt.allsame <https://ubelt.readthedocs.io/en/latest/ubelt.util_list.html#ubelt.util_list.allsame>`__                                                              90
-`ubelt.compress <https://ubelt.readthedocs.io/en/latest/ubelt.util_list.html#ubelt.util_list.compress>`__                                                            87
-`ubelt.color_text <https://ubelt.readthedocs.io/en/latest/ubelt.util_colors.html#ubelt.util_colors.color_text>`__                                                    84
-`ubelt.dict_subset <https://ubelt.readthedocs.io/en/latest/ubelt.util_dict.html#ubelt.util_dict.dict_subset>`__                                                      76
-`ubelt.dict_isect <https://ubelt.readthedocs.io/en/latest/ubelt.util_dict.html#ubelt.util_dict.dict_isect>`__                                                        75
-`ubelt.Cacher <https://ubelt.readthedocs.io/en/latest/ubelt.util_cache.html#ubelt.util_cache.Cacher>`__                                                              70
-`ubelt.dict_diff <https://ubelt.readthedocs.io/en/latest/ubelt.util_dict.html#ubelt.util_dict.dict_diff>`__                                                          65
-`ubelt.memoize <https://ubelt.readthedocs.io/en/latest/ubelt.util_memoize.html#ubelt.util_memoize.memoize>`__                                                        54
-`ubelt.indent <https://ubelt.readthedocs.io/en/latest/ubelt.util_str.html#ubelt.util_str.indent>`__                                                                  54
-`ubelt.argsort <https://ubelt.readthedocs.io/en/latest/ubelt.util_list.html#ubelt.util_list.argsort>`__                                                              53
-`ubelt.Timer <https://ubelt.readthedocs.io/en/latest/ubelt.timerit.html#ubelt.timerit.Timer>`__                                                                      52
-`ubelt.dict_union <https://ubelt.readthedocs.io/en/latest/ubelt.util_dict.html#ubelt.util_dict.dict_union>`__                                                        50
-`ubelt.invert_dict <https://ubelt.readthedocs.io/en/latest/ubelt.util_dict.html#ubelt.util_dict.invert_dict>`__                                                      49
-`ubelt.identity <https://ubelt.readthedocs.io/en/latest/ubelt.util_func.html#ubelt.util_func.identity>`__                                                            49
-`ubelt.find_duplicates <https://ubelt.readthedocs.io/en/latest/ubelt.util_dict.html#ubelt.util_dict.find_duplicates>`__                                              43
-`ubelt.map_keys <https://ubelt.readthedocs.io/en/latest/ubelt.util_dict.html#ubelt.util_dict.map_keys>`__                                                            43
-`ubelt.timestamp <https://ubelt.readthedocs.io/en/latest/ubelt.util_time.html#ubelt.util_time.timestamp>`__                                                          42
-`ubelt.unique <https://ubelt.readthedocs.io/en/latest/ubelt.util_list.html#ubelt.util_list.unique>`__                                                                40
-`ubelt.chunks <https://ubelt.readthedocs.io/en/latest/ubelt.util_list.html#ubelt.util_list.chunks>`__                                                                38
-`ubelt.hzcat <https://ubelt.readthedocs.io/en/latest/ubelt.util_str.html#ubelt.util_str.hzcat>`__                                                                    37
-`ubelt.argmax <https://ubelt.readthedocs.io/en/latest/ubelt.util_list.html#ubelt.util_list.argmax>`__                                                                35
-`ubelt.import_module_from_path <https://ubelt.readthedocs.io/en/latest/ubelt.util_import.html#ubelt.util_import.import_module_from_path>`__                          35
-`ubelt.memoize_property <https://ubelt.readthedocs.io/en/latest/ubelt.util_memoize.html#ubelt.util_memoize.memoize_property>`__                                      34
-`ubelt.iter_window <https://ubelt.readthedocs.io/en/latest/ubelt.util_list.html#ubelt.util_list.iter_window>`__                                                      33
-`ubelt.readfrom <https://ubelt.readthedocs.io/en/latest/ubelt.util_io.html#ubelt.util_io.readfrom>`__                                                                31
-`ubelt.sorted_vals <https://ubelt.readthedocs.io/en/latest/ubelt.util_dict.html#ubelt.util_dict.sorted_vals>`__                                                      30
-`ubelt.hash_file <https://ubelt.readthedocs.io/en/latest/ubelt.util_hash.html#ubelt.util_hash.hash_file>`__                                                          30
-`ubelt.writeto <https://ubelt.readthedocs.io/en/latest/ubelt.util_io.html#ubelt.util_io.writeto>`__                                                                  30
-`ubelt.memoize_method <https://ubelt.readthedocs.io/en/latest/ubelt.util_memoize.html#ubelt.util_memoize.memoize_method>`__                                          29
-`ubelt.symlink <https://ubelt.readthedocs.io/en/latest/ubelt.util_links.html#ubelt.util_links.symlink>`__                                                            28
-`ubelt.ensure_unicode <https://ubelt.readthedocs.io/en/latest/ubelt.util_str.html#ubelt.util_str.ensure_unicode>`__                                                  25
-`ubelt.CacheStamp <https://ubelt.readthedocs.io/en/latest/ubelt.util_cache.html#ubelt.util_cache.CacheStamp>`__                                                      23
-`ubelt.touch <https://ubelt.readthedocs.io/en/latest/ubelt.util_io.html#ubelt.util_io.touch>`__                                                                      22
-`ubelt.modname_to_modpath <https://ubelt.readthedocs.io/en/latest/ubelt.util_import.html#ubelt.util_import.modname_to_modpath>`__                                    21
-`ubelt.find_exe <https://ubelt.readthedocs.io/en/latest/ubelt.util_platform.html#ubelt.util_platform.find_exe>`__                                                    17
-`ubelt.import_module_from_name <https://ubelt.readthedocs.io/en/latest/ubelt.util_import.html#ubelt.util_import.import_module_from_name>`__                          17
-`ubelt.highlight_code <https://ubelt.readthedocs.io/en/latest/ubelt.util_colors.html#ubelt.util_colors.highlight_code>`__                                            17
-`ubelt.AutoDict <https://ubelt.readthedocs.io/en/latest/ubelt.util_dict.html#ubelt.util_dict.AutoDict>`__                                                            13
-`ubelt.inject_method <https://ubelt.readthedocs.io/en/latest/ubelt.util_func.html#ubelt.util_func.inject_method>`__                                                  11
-`ubelt.argmin <https://ubelt.readthedocs.io/en/latest/ubelt.util_list.html#ubelt.util_list.argmin>`__                                                                 8
-`ubelt.shrinkuser <https://ubelt.readthedocs.io/en/latest/ubelt.util_path.html#ubelt.util_path.shrinkuser>`__                                                         8
-`ubelt.split_modpath <https://ubelt.readthedocs.io/en/latest/ubelt.util_import.html#ubelt.util_import.split_modpath>`__                                               6
-`ubelt.find_path <https://ubelt.readthedocs.io/en/latest/ubelt.util_platform.html#ubelt.util_platform.find_path>`__                                                   5
-`ubelt.download <https://ubelt.readthedocs.io/en/latest/ubelt.util_download.html#ubelt.util_download.download>`__                                                     5
-`ubelt.sorted_keys <https://ubelt.readthedocs.io/en/latest/ubelt.util_dict.html#ubelt.util_dict.sorted_keys>`__                                                       5
-`ubelt.CaptureStdout <https://ubelt.readthedocs.io/en/latest/ubelt.util_stream.html#ubelt.util_stream.CaptureStdout>`__                                               4
-`ubelt.modpath_to_modname <https://ubelt.readthedocs.io/en/latest/ubelt.util_import.html#ubelt.util_import.modpath_to_modname>`__                                     4
-`ubelt.userhome <https://ubelt.readthedocs.io/en/latest/ubelt.util_path.html#ubelt.util_path.userhome>`__                                                             3
-`ubelt.argunique <https://ubelt.readthedocs.io/en/latest/ubelt.util_list.html#ubelt.util_list.argunique>`__                                                           2
-`ubelt.AutoOrderedDict <https://ubelt.readthedocs.io/en/latest/ubelt.util_dict.html#ubelt.util_dict.AutoOrderedDict>`__                                               1
-`ubelt.unique_flags <https://ubelt.readthedocs.io/en/latest/ubelt.util_list.html#ubelt.util_list.unique_flags>`__                                                     1
-`ubelt.varied_values <https://ubelt.readthedocs.io/en/latest/ubelt.util_dict.html#ubelt.util_dict.varied_values>`__                                                   0
-`ubelt.platform_data_dir <https://ubelt.readthedocs.io/en/latest/ubelt.util_platform.html#ubelt.util_platform.platform_data_dir>`__                                   0
-`ubelt.platform_config_dir <https://ubelt.readthedocs.io/en/latest/ubelt.util_platform.html#ubelt.util_platform.platform_config_dir>`__                               0
-`ubelt.named_product <https://ubelt.readthedocs.io/en/latest/ubelt.util_dict.html#ubelt.util_dict.named_product>`__                                                   0
-`ubelt.indexable_allclose <https://ubelt.readthedocs.io/en/latest/ubelt.util_indexable.html#ubelt.util_indexable.indexable_allclose>`__                               0
-`ubelt.get_app_data_dir <https://ubelt.readthedocs.io/en/latest/ubelt.util_platform.html#ubelt.util_platform.get_app_data_dir>`__                                     0
-`ubelt.get_app_config_dir <https://ubelt.readthedocs.io/en/latest/ubelt.util_platform.html#ubelt.util_platform.get_app_config_dir>`__                                 0
-`ubelt.ensure_app_data_dir <https://ubelt.readthedocs.io/en/latest/ubelt.util_platform.html#ubelt.util_platform.ensure_app_data_dir>`__                               0
-`ubelt.ensure_app_config_dir <https://ubelt.readthedocs.io/en/latest/ubelt.util_platform.html#ubelt.util_platform.ensure_app_config_dir>`__                           0
-`ubelt.compatible <https://ubelt.readthedocs.io/en/latest/ubelt.util_func.html#ubelt.util_func.compatible>`__                                                         0
-`ubelt.boolmask <https://ubelt.readthedocs.io/en/latest/ubelt.util_list.html#ubelt.util_list.boolmask>`__                                                             0
-`ubelt.TempDir <https://ubelt.readthedocs.io/en/latest/ubelt.util_path.html#ubelt.util_path.TempDir>`__                                                               0
-`ubelt.TeeStringIO <https://ubelt.readthedocs.io/en/latest/ubelt.util_stream.html#ubelt.util_stream.TeeStringIO>`__                                                   0
-`ubelt.POSIX <https://ubelt.readthedocs.io/en/latest/ubelt.util_platform.html#ubelt.util_platform.POSIX>`__                                                           0
-`ubelt.OrderedSet <https://ubelt.readthedocs.io/en/latest/ubelt.orderedset.html#ubelt.orderedset.OrderedSet>`__                                                       0
-`ubelt.NO_COLOR <https://ubelt.readthedocs.io/en/latest/ubelt.util_colors.html#ubelt.util_colors.NO_COLOR>`__                                                         0
-`ubelt.JobPool <https://ubelt.readthedocs.io/en/latest/ubelt.util_futures.html#ubelt.util_futures.JobPool>`__                                                         0
-`ubelt.IndexableWalker <https://ubelt.readthedocs.io/en/latest/ubelt.util_indexable.html#ubelt.util_indexable.IndexableWalker>`__                                     0
-`ubelt.FormatterExtensions <https://ubelt.readthedocs.io/en/latest/ubelt.util_format.html#ubelt.util_format.FormatterExtensions>`__                                   0
-`ubelt.Executor <https://ubelt.readthedocs.io/en/latest/ubelt.util_futures.html#ubelt.util_futures.Executor>`__                                                       0
-`ubelt.DownloadManager <https://ubelt.readthedocs.io/en/latest/ubelt.util_download_manager.html#ubelt.util_download_manager.DownloadManager>`__                       0
-`ubelt.CaptureStream <https://ubelt.readthedocs.io/en/latest/ubelt.util_stream.html#ubelt.util_stream.CaptureStream>`__                                               0
-====================================================================================================================================================== ================
+====================================================================================== ================
+ Function name                                                                               Usefulness
+====================================================================================== ================
+:func:`ubelt.repr2<ubelt.util_format.repr2>`                                                       1877
+:func:`ubelt.take<ubelt.util_list.take>`                                                            239
+:func:`ubelt.ProgIter<ubelt.progiter.ProgIter>`                                                     201
+:func:`ubelt.odict<ubelt.util_dict.odict>`                                                          194
+:func:`ubelt.iterable<ubelt.util_list.iterable>`                                                    189
+:func:`ubelt.NoParam<ubelt.util_const.NoParam>`                                                     180
+:func:`ubelt.NiceRepr<ubelt.util_mixins.NiceRepr>`                                                  178
+:func:`ubelt.ensuredir<ubelt.util_path.ensuredir>`                                                  150
+:func:`ubelt.map_vals<ubelt.util_dict.map_vals>`                                                    149
+:func:`ubelt.dzip<ubelt.util_dict.dzip>`                                                            143
+:func:`ubelt.flatten<ubelt.util_list.flatten>`                                                      122
+:func:`ubelt.codeblock<ubelt.util_str.codeblock>`                                                   114
+:func:`ubelt.Timerit<ubelt.timerit.Timerit>`                                                        110
+:func:`ubelt.cmd<ubelt.util_cmd.cmd>`                                                               106
+:func:`ubelt.ddict<ubelt.util_dict.ddict>`                                                          100
+:func:`ubelt.argflag<ubelt.util_arg.argflag>`                                                        98
+:func:`ubelt.paragraph<ubelt.util_str.paragraph>`                                                    98
+:func:`ubelt.expandpath<ubelt.util_path.expandpath>`                                                 98
+:func:`ubelt.grabdata<ubelt.util_download.grabdata>`                                                 94
+:func:`ubelt.peek<ubelt.util_list.peek>`                                                             94
+:func:`ubelt.allsame<ubelt.util_list.allsame>`                                                       84
+:func:`ubelt.argval<ubelt.util_arg.argval>`                                                          82
+:func:`ubelt.oset<ubelt.orderedset.oset>`                                                            79
+:func:`ubelt.hash_data<ubelt.util_hash.hash_data>`                                                   79
+:func:`ubelt.hzcat<ubelt.util_str.hzcat>`                                                            72
+:func:`ubelt.dict_hist<ubelt.util_dict.dict_hist>`                                                   58
+:func:`ubelt.group_items<ubelt.util_dict.group_items>`                                               57
+:func:`ubelt.delete<ubelt.util_io.delete>`                                                           51
+:func:`ubelt.compress<ubelt.util_list.compress>`                                                     50
+:func:`ubelt.identity<ubelt.util_func.identity>`                                                     49
+:func:`ubelt.Timer<ubelt.timerit.Timer>`                                                             48
+:func:`ubelt.color_text<ubelt.util_colors.color_text>`                                               48
+:func:`ubelt.dict_diff<ubelt.util_dict.dict_diff>`                                                   47
+:func:`ubelt.dict_isect<ubelt.util_dict.dict_isect>`                                                 44
+:func:`ubelt.memoize<ubelt.util_memoize.memoize>`                                                    37
+:func:`ubelt.indent<ubelt.util_str.indent>`                                                          34
+:func:`ubelt.map_keys<ubelt.util_dict.map_keys>`                                                     33
+:func:`ubelt.memoize_property<ubelt.util_memoize.memoize_property>`                                  30
+:func:`ubelt.iter_window<ubelt.util_list.iter_window>`                                               27
+:func:`ubelt.argsort<ubelt.util_list.argsort>`                                                       27
+:func:`ubelt.ensure_unicode<ubelt.util_str.ensure_unicode>`                                          26
+:func:`ubelt.named_product<ubelt.util_dict.named_product>`                                           26
+:func:`ubelt.augpath<ubelt.util_path.augpath>`                                                       26
+:func:`ubelt.sorted_vals<ubelt.util_dict.sorted_vals>`                                               26
+:func:`ubelt.Cacher<ubelt.util_cache.Cacher>`                                                        25
+:func:`ubelt.unique<ubelt.util_list.unique>`                                                         24
+:func:`ubelt.invert_dict<ubelt.util_dict.invert_dict>`                                               23
+:func:`ubelt.chunks<ubelt.util_list.chunks>`                                                         23
+:func:`ubelt.import_module_from_path<ubelt.util_import.import_module_from_path>`                     23
+:func:`ubelt.dict_union<ubelt.util_dict.dict_union>`                                                 22
+:func:`ubelt.CacheStamp<ubelt.util_cache.CacheStamp>`                                                21
+:func:`ubelt.IndexableWalker<ubelt.util_indexable.IndexableWalker>`                                  20
+:func:`ubelt.import_module_from_name<ubelt.util_import.import_module_from_name>`                     18
+:func:`ubelt.timestamp<ubelt.util_time.timestamp>`                                                   18
+:func:`ubelt.argmax<ubelt.util_list.argmax>`                                                         18
+:func:`ubelt.readfrom<ubelt.util_io.readfrom>`                                                       18
+:func:`ubelt.memoize_method<ubelt.util_memoize.memoize_method>`                                      17
+:func:`ubelt.dict_subset<ubelt.util_dict.dict_subset>`                                               17
+:func:`ubelt.writeto<ubelt.util_io.writeto>`                                                         17
+:func:`ubelt.touch<ubelt.util_io.touch>`                                                             16
+:func:`ubelt.JobPool<ubelt.util_futures.JobPool>`                                                    15
+:func:`ubelt.modname_to_modpath<ubelt.util_import.modname_to_modpath>`                               15
+:func:`ubelt.find_exe<ubelt.util_platform.find_exe>`                                                 14
+:func:`ubelt.hash_file<ubelt.util_hash.hash_file>`                                                   14
+:func:`ubelt.find_duplicates<ubelt.util_dict.find_duplicates>`                                       14
+:func:`ubelt.highlight_code<ubelt.util_colors.highlight_code>`                                       10
+:func:`ubelt.find_path<ubelt.util_platform.find_path>`                                                7
+:func:`ubelt.inject_method<ubelt.util_func.inject_method>`                                            7
+:func:`ubelt.symlink<ubelt.util_links.symlink>`                                                       7
+:func:`ubelt.shrinkuser<ubelt.util_path.shrinkuser>`                                                  7
+:func:`ubelt.modpath_to_modname<ubelt.util_import.modpath_to_modname>`                                6
+:func:`ubelt.argmin<ubelt.util_list.argmin>`                                                          5
+:func:`ubelt.split_modpath<ubelt.util_import.split_modpath>`                                          4
+:func:`ubelt.CaptureStdout<ubelt.util_stream.CaptureStdout>`                                          4
+:func:`ubelt.AutoDict<ubelt.util_dict.AutoDict>`                                                      3
+:func:`ubelt.argunique<ubelt.util_list.argunique>`                                                    2
+:func:`ubelt.compatible<ubelt.util_func.compatible>`                                                  2
+:func:`ubelt.AutoOrderedDict<ubelt.util_dict.AutoOrderedDict>`                                        1
+:func:`ubelt.download<ubelt.util_download.download>`                                                  1
+:func:`ubelt.Executor<ubelt.util_futures.Executor>`                                                   1
+:func:`ubelt.unique_flags<ubelt.util_list.unique_flags>`                                              1
+:func:`ubelt.sorted_keys<ubelt.util_dict.sorted_keys>`                                                1
+====================================================================================== ================
+
    
 
 
 Examples
 ========
 
-Be sure to checkout the new Jupyter notebook: https://github.com/Erotemic/ubelt/blob/main/docs/notebooks/Ubelt%20Demo.ipynb
+The most up to date examples are the doctests. 
+We also have a Jupyter notebook: https://github.com/Erotemic/ubelt/blob/main/docs/notebooks/Ubelt%20Demo.ipynb
 
 Here are some examples of some features inside ``ubelt``
 
