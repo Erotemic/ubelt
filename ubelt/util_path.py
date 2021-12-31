@@ -392,7 +392,11 @@ class Path(_PathBase):
             >>> assert dpath.exists()
             >>> dpath.rmdir()
             """
-        self.mkdir(mode=mode, parents=True, exist_ok=True)
+        if PY2:
+            if not self.exists():
+                self.mkdir(mode=mode, parents=True)
+        else:
+            self.mkdir(mode=mode, parents=True, exist_ok=True)
         return self
 
     def expandvars(self):
