@@ -369,7 +369,10 @@ class TempDir(object):
         self.cleanup()
 
 
-class _ExtendedPathMixin(object):
+_PathBase = pathlib.WindowsPath if os.name == 'nt' else pathlib.PosixPath
+
+
+class Path(_PathBase):
     """
     An extension of :class:`pathlib.Path` with extra convinience methods
     """
@@ -419,26 +422,3 @@ class _ExtendedPathMixin(object):
             >>> assert home_v1 == home_v2 == home_v3
         """
         return self.expandvars().expanduser()
-
-
-class Path(pathlib.Path, _ExtendedPathMixin):
-    """
-    An extension of :class:`pathlib.Path` with extra convinience methods
-    """
-    def __new__(cls, *args, **kwargs):
-        if cls is Path:  # pragma: nobranch
-            cls = WindowsPath2 if os.name == 'nt' else PosixPath2
-        self = cls._from_parts(args, init=False)
-        if not self._flavour.is_supported:
-            raise NotImplementedError("cannot instantiate %r on your system"
-                                      % (cls.__name__,))
-        self._init()
-        return self
-
-
-class WindowsPath2(pathlib.WindowsPath, _ExtendedPathMixin):
-    pass
-
-
-class PosixPath2(pathlib.PosixPath, _ExtendedPathMixin):
-    pass
