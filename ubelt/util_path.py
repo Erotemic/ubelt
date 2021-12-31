@@ -412,6 +412,9 @@ class Path(_PathBase):
         Concise alias of `Path(os.path.expandvars(self.expanduser()))`
 
         Example:
+            >>> if os.path == 'nt':
+            ...     import pytest
+            ...     pytest.skip('windows is different')
             >>> import ubelt as ub
             >>> home_v1 = ub.Path('$HOME').expand()
             >>> home_v2 = ub.Path('~/').expand()
