@@ -102,7 +102,11 @@ def count_ubelt_usage():
 if __name__ == '__main__':
     """
     CommandLine:
+        # For index.rst
         python ~/code/ubelt/dev/gen_api_for_docs.py
+
+        # For README
+        python ~/code/ubelt/dev/gen_api_for_docs.py --url-mode
 
         # First run and copy the table:
         python ~/code/ubelt/dev/count_usage_freq.py

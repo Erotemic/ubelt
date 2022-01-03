@@ -225,6 +225,7 @@ def import_module_from_path(modpath, index=-1):
         import zipimport
         # We allow (if not prefer or force) the colon to be a path.sep in order
         # to agree with the mod.__name__ attribute that will be produced
+        # TODO: we could codify this by using `util_zip.split_archive`
 
         # zip followed by colon or slash
         pat = '(.zip[' + re.escape(os.path.sep) + '/:])'

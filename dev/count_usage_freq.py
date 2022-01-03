@@ -28,10 +28,15 @@ def count_ubelt_usage():
         'vtool_ibeis', 'hesaff', 'torch_liberator', 'liberator',
     ] + config['extra_modnames']
 
+    code_repos = [ub.Path('~/code').expand() / name for name in names]
+    repo_dpaths = code_repos + [
+        # ub.Path('~/local').expand(),
+        ub.Path('~/misc').expand(),
+    ]
     all_fpaths = []
-    for name in names:
-        repo_fpath = ub.expandpath(join('~/code', name))
-        fpaths = glob.glob(join(repo_fpath, '**', '*.py'), recursive=True)
+    for repo_dpath in repo_dpaths:
+        name = repo_dpath.stem
+        fpaths = glob.glob(join(repo_dpath, '**', '*.py'), recursive=True)
         for fpath in fpaths:
             all_fpaths.append((name, fpath))
 
@@ -42,7 +47,8 @@ def count_ubelt_usage():
 
     pkg_to_hist = ub.ddict(lambda: ub.ddict(int))
     for name, fpath in ub.ProgIter(all_fpaths):
-        text = open(fpath, 'r').read()
+        with open(fpath, 'r') as file:
+            text = file.read()
         for match in pat.finditer(text):
             attr = match.groupdict()['attr']
             if attr in ub.__all__:
@@ -96,6 +102,6 @@ if __name__ == '__main__':
 
     CommandLine:
         python ~/code/ubelt/dev/count_usage_freq.py --help
-        python ~/code/ubelt/dev/count_usage_freq.py --remove_zeros=False
+        python ~/code/ubelt/dev/count_usage_freq.py --remove_zeros=False --print_packages=True
     """
     count_ubelt_usage()

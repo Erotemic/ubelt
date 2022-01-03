@@ -1,6 +1,18 @@
 # -*- coding: utf-8 -*-
 """
 Abstractions for working with zipfiles and archives
+
+This may be renamed to util_archive in the future.
+
+The :func:`ubelt.split_archive` works with paths that reference a file inside
+of an archive (e.g. a zipfile). It splits it into two parts, the full path to
+the archive and then the path to the file inside of the archive. By convention
+these are separated with either a pathsep or a colon.
+
+The :func:`ubelt.zopen` works to open a file that lives inside of an archive
+without the user needing to worry about extracting it first. When possible it
+will read it directly from the archive, but in some cases it may extract it to
+a temporary directory first.
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import os
