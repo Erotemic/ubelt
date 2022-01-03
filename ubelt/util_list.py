@@ -70,7 +70,7 @@ class chunks(object):
 
     Note:
         FIXME:
-            When nchunks is given, thats how many chunks we should get
+            When nchunks is given, that's how many chunks we should get
             but the issue is that chunksize is not well defined in that instance
             For instance how do we turn a list with 4 elements into 3 chunks
             where does the extra item go?

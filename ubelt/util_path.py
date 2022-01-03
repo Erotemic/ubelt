@@ -64,7 +64,7 @@ def augpath(path, suffix='', prefix='', ext=None, base=None, dpath=None,
 
         base (str | None, default=None):
             if specified, replaces the basename without extension.
-            Note: this is refered to as stem in :class:`ub.Path`.
+            Note: this is referred to as stem in :class:`ub.Path`.
 
         dpath (str | PathLike | None, default=None):
             if specified, replaces the specified "relative" directory, which by
@@ -408,7 +408,7 @@ class Path(_PathBase):
 
     def expandvars(self):
         """
-        As discussed in CPythonIssue21301_, CPython wont be adding expandvars
+        As discussed in CPythonIssue21301_, CPython won't be adding expandvars
         to pathlib. I think this is a mistake, so I added it in this extension.
 
         Returns:

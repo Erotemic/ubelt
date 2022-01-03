@@ -575,7 +575,7 @@ class Cacher(object):
             >>> assert func.cacher.exists()
             >>> func.cacher.clear()
         """
-        # Cant return arguments because cfgstr wont take them into account
+        # Can't return arguments because cfgstr won't take them into account
         def _wrapper():
             data = self.ensure(func)
             return data

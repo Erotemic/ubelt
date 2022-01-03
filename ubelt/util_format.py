@@ -974,7 +974,7 @@ def _sort_itemstrs(items, itemstrs, key=None):
     string values are used to define an ordering.
     """
     # First try to sort items by their normal values
-    # If that doesnt work, then sort by their string values
+    # If that does not work, then sort by their string values
     import ubelt as ub
     try:
         # Set ordering is not unique. Sort by strings values instead.

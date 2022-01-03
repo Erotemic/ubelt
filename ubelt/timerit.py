@@ -635,7 +635,7 @@ def _choose_unit(value, unit=None, asciimode=None):
 
 def _trychar(char, fallback, asciimode=None):  # nocover
     """
-    Logic from IPython timeit to handle terminals that cant show mu
+    Logic from IPython timeit to handle terminals that can't show mu
 
     Args:
         char (str): character, typically unicode, to try to use

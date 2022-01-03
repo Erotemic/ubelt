@@ -423,7 +423,7 @@ def _check_hash_stamp(fpath, hash_prefix, hasher, verbose, needs_download=False)
                     hash_prefix, hashstr))
             needs_download = True
     elif exists(fpath):
-        # If the file exists, but the hash doesnt exist, simply compute the
+        # If the file exists, but the hash does not exist, simply compute the
         # hash of the existing file instead of redownloading it.
         # Redownload if this fails.
         from ubelt import util_hash

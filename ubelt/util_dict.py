@@ -180,7 +180,7 @@ def dzip(items1, items2, cls=dict):
     if len(items1) == 0 and len(items2) == 1:
         # Corner case:
         # allow the first list to be empty and the second list to broadcast a
-        # value. This means that the equality check wont work for the case
+        # value. This means that the equality check won't work for the case
         # where items1 and items2 are supposed to correspond, but the length of
         # items2 is 1.
         items2 = []

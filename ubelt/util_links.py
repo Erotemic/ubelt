@@ -250,7 +250,7 @@ def _dirstats(dpath=None):  # nocover
                 path = util_colors.color_text(path, 'red')
             elif ELFDJ == [1, 1, 0, 0, 0]:
                 # Windows? Why? What does this mean!?
-                # A directory link that cant be resolved?
+                # A directory link that can't be resolved?
                 path = util_colors.color_text(path, 'red')
             elif ELFDJ == [0, 0, 0, 0, 0]:
                 # Windows? AGAIN? HOW DO YOU LIST FILES THAT DONT EXIST?

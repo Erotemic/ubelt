@@ -425,7 +425,7 @@ class HashableExtensions(object):
             ...     def __init__(self, id):
             ...         self.id = id
             >>> data = MyType(1)
-            >>> # Custom types wont work with ub.hash_data by default
+            >>> # Custom types won't work with ub.hash_data by default
             >>> with pytest.raises(TypeError):
             ...     ub.hash_data(data)
             >>> # To handle custom types, you can create custom extensions
@@ -447,7 +447,7 @@ class HashableExtensions(object):
             ...     def __init__(self, id):
             ...         self.id = id
             >>> data = MyType(1)
-            >>> # Custom types wont work with ub.hash_data by default
+            >>> # Custom types won't work with ub.hash_data by default
             >>> with pytest.raises(TypeError):
             ...     ub.hash_data(data)
             >>> # You can register your functions with ubelt's internal
@@ -502,7 +502,7 @@ class HashableExtensions(object):
             >>> data = Foo()
             >>> assert pytest.raises(TypeError, self.lookup, data)
 
-            >>> # If ub.hash_data doesnt support your object,
+            >>> # If ub.hash_data does not support your object,
             >>> # then you can register it.
             >>> @self.register(Foo)
             >>> def _hashfoo(data):
