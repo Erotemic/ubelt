@@ -417,7 +417,7 @@ class Path(_PathBase):
         References:
             .. [CPythonIssue21301] https://bugs.python.org/issue21301
         """
-        return Path(os.path.expandvars(str(self)))
+        return self.__class__(os.path.expandvars(str(self)))
 
     def expand(self):
         """
@@ -432,6 +432,8 @@ class Path(_PathBase):
             >>> import ubelt as ub
             >>> #home_v1 = ub.Path('$HOME').expand()
             >>> home_v2 = ub.Path('~/').expand()
+            >>> assert isinstance(home_v2, ub.Path)
+            >>> # xdoctest: +REQUIRES(PY3)
             >>> home_v3 = ub.Path.home()
             >>> #print('home_v1 = {!r}'.format(home_v1))
             >>> print('home_v2 = {!r}'.format(home_v2))
@@ -439,7 +441,7 @@ class Path(_PathBase):
             >>> assert home_v3 == home_v2 # == home_v1
         """
         if PY2:  # nocover
-            return os.path.expanduser(str(self.expandvars()))
+            return self.__class__(os.path.expanduser(str(self.expandvars())))
         else:
             return self.expandvars().expanduser()
 
@@ -491,8 +493,8 @@ class Path(_PathBase):
                 extension). Note: named base in :func:`augpath`.
 
             dpath (str | PathLike | None, default=None):
-                if specified, replaces the specified "relative" directory, which by
-                default is the parent directory.
+                if specified, replaces the specified "relative" directory,
+                which by default is the parent directory.
 
             relative (str | PathLike | None, default=None):
                 Replaces ``relative`` with ``dpath`` in ``path``.
@@ -500,10 +502,10 @@ class Path(_PathBase):
                 Defaults to the dirname of the input ``path``.
                 *experimental* not currently implemented.
 
-            multidot (bool, default=False): Allows extensions to contain multiple
-                dots. Specifically, if False, everything after the last dot in the
-                basename is the extension. If True, everything after the first dot
-                in the basename is the extension.
+            multidot (bool, default=False): Allows extensions to contain
+                multiple dots. Specifically, if False, everything after the
+                last dot in the basename is the extension. If True, everything
+                after the first dot in the basename is the extension.
 
         Returns:
             Path: augmented path
