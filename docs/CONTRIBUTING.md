@@ -25,7 +25,7 @@ enabled by passing the `--network` flag to the above scripts.
 
 ## Documentation
 
-All documenation should be written in module-level, class-level, and function-level docstrings. 
+All documentation should be written in module-level, class-level, and function-level docstrings. 
 Docstrings should follow [Google-style](http://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html). 
 
 ## Code Style

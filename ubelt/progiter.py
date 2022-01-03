@@ -4,9 +4,9 @@ A Progress Iterator
 
 ProgIter lets you measure and print the progress of an iterative process. This
 can be done either via an iterable interface or using the manual API. Using the
-iterable inferface is most common.
+iterable interface is most common.
 
-ProgIter was originally developed independantly of tqdm, but the newer versions
+ProgIter was originally developed independently of tqdm, but the newer versions
 of this library have been designed to be compatible with tqdm-API.
 :class:`ProgIter` is now a (mostly) drop-in alternative to :func:`tqdm.tqdm`. The
 :mod:`tqdm` library may be more appropriate in some cases. *The main advantage of
@@ -44,7 +44,7 @@ Example:
     1000/1000... rate=114326.51 Hz, eta=0:00:00, total=0:00:00
 
 
-For more complex applications is may sometimes be desireable to
+For more complex applications is may sometimes be desirable to
 manually use the ProgIter API. This is done as follows:
 
 Example:
@@ -386,8 +386,8 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
                 adjust = False
             freq = kwargs.pop('miniters', freq)
 
-            kwargs.pop('position', None)  # API compatability does nothing
-            kwargs.pop('dynamic_ncols', None)  # API compatability does nothing
+            kwargs.pop('position', None)  # API compatibility does nothing
+            kwargs.pop('dynamic_ncols', None)  # API compatibility does nothing
             kwargs.pop('leave', True)  # we always leave
 
             # Accept the old api keywords
@@ -534,7 +534,7 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
         self._iter_idx = self.initial
         self._last_idx = self.initial - 1
         # now time is actually not right now
-        # now refers the the most recent measurment
+        # now refers the the most recent measurement
         # last refers to the measurement before that
         self._now_idx = self.initial
         self._now_time = 0
@@ -561,7 +561,7 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
 
         # Time progress was initialized
         self._start_time = default_timer()
-        # Last time measures were udpated
+        # Last time measures were updated
         self._last_time  = self._start_time
         self._now_idx = self._iter_idx
         self._now_time = self._start_time
@@ -599,7 +599,7 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
 
     def _adjust_frequency(self):
         # Adjust frequency so the next print will not happen until
-        # approximatly `time_thresh` seconds have passed as estimated by
+        # approximately `time_thresh` seconds have passed as estimated by
         # iter_idx.
         eps = 1E-9
         self._max_between_time = max(self._max_between_time,
@@ -727,7 +727,7 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
 
     def format_message(self):
         r"""
-        builds a formatted progres message with the current values.
+        builds a formatted progress message with the current values.
         This contains the special characters needed to clear lines.
 
         Example:

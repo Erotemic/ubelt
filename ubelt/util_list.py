@@ -68,6 +68,17 @@ class chunks(object):
 
         total (int): hints about the length of the input
 
+    Note:
+        FIXME:
+            When nchunks is given, thats how many chunks we should get
+            but the issue is that chunksize is not well defined in that instance
+            For instance how do we turn a list with 4 elements into 3 chunks
+            where does the extra item go?
+
+        In ubelt <= 0.10.3 there is a bug when specifying nchunks,
+        where it chooses a chunksize that is too large. Specify
+        ``legacy=True`` to get the old buggy behavior if needed.
+
     Yields:
         List[T]:
             subsequent non-overlapping chunks of the input items
@@ -97,10 +108,10 @@ class chunks(object):
         >>> assert len(list(ub.chunks(range(2), nchunks=2))) == 2
         >>> assert len(list(ub.chunks(range(3), nchunks=2))) == 2
         >>> # Note: ub.chunks will not do the 2,1,1 split
-        >>> assert len(list(ub.chunks(range(4), nchunks=3))) == 2
-        >>> assert len(list(ub.chunks([], 2, None, 'none'))) == 0
-        >>> assert len(list(ub.chunks([], 2, None, 'cycle'))) == 0
-        >>> assert len(list(ub.chunks([], 2, None, 'replicate'))) == 0
+        >>> assert len(list(ub.chunks(range(4), nchunks=3))) == 3
+        >>> assert len(list(ub.chunks([], 2, bordermode='none'))) == 0
+        >>> assert len(list(ub.chunks([], 2, bordermode='cycle'))) == 0
+        >>> assert len(list(ub.chunks([], 2, None, bordermode='replicate'))) == 0
 
     Example:
         >>> from ubelt.util_list import *  # NOQA
@@ -117,72 +128,176 @@ class chunks(object):
         >>> assert pytest.raises(ValueError, chunks, range(9), chunksize=2, nchunks=2)
         >>> assert pytest.raises(TypeError, len, chunks((_ for _ in range(2)), 2))
 
+    Example:
+        >>> from ubelt.util_list import *  # NOQA
+        >>> import ubelt as ub
+        >>> basis = {
+        >>>     'legacy': [False, True],
+        >>>     'chunker': [{'nchunks': 3}, {'nchunks': 4}, {'nchunks': 5}, {'nchunks': 7}, {'chunksize': 3}],
+        >>>     'items': [range(2), range(4), range(5), range(7), range(9)],
+        >>>     'bordermode': ['none', 'cycle', 'replicate'],
+        >>> }
+        >>> grid_items = list(ub.named_product(basis))
+        >>> rows = []
+        >>> for grid_item in ub.ProgIter(grid_items):
+        >>>     chunker = grid_item.get('chunker')
+        >>>     grid_item.update(chunker)
+        >>>     kw = ub.dict_diff(grid_item, {'chunker'})
+        >>>     self = chunk_iter = ub.chunks(**kw)
+        >>>     chunked = list(chunk_iter)
+        >>>     chunk_lens = list(map(len, chunked))
+        >>>     row = ub.dict_union(grid_item, {'chunk_lens': chunk_lens, 'chunks': chunked})
+        >>>     row['chunker'] = str(row['chunker'])
+        >>>     if not row['legacy'] and 'nchunks' in kw:
+        >>>         assert kw['nchunks'] == row['nchunks']
+        >>>     row.update(chunk_iter.__dict__)
+        >>>     rows.append(row)
+        >>> # xdoctest: +REQUIRES(module:pandas)
+        >>> import pandas as pd
+        >>> df = pd.DataFrame(rows)
+        >>> for _, subdf in df.groupby('chunker'):
+        >>>     print(subdf)
+
     """
     def __init__(self, items, chunksize=None, nchunks=None, total=None,
-                 bordermode='none'):
+                 bordermode='none', legacy=False):
         if nchunks is not None and chunksize is not None:  # nocover
             raise ValueError('Cannot specify both chunksize and nchunks')
         if nchunks is None and chunksize is None:  # nocover
             raise ValueError('Must specify either chunksize or nchunks')
-        if nchunks is not None:
-            if total is None:
-                total = len(items)
-            chunksize = int(math.ceil(total / nchunks))
 
-        self.bordermode = bordermode
+        if total is None:
+            try:
+                total = len(items)
+            except TypeError:
+                pass  # iterators dont know len
+
+        if bordermode is None:  # nocover
+            bordermode = 'none'
+
+        if nchunks is None:
+            if total is not None:
+                nchunks = int(math.ceil(total / chunksize))
+            remainder = 0
+        else:
+            if total is None:
+                raise ValueError(
+                    'Need to specify total to use nchunks on an iterable '
+                    'without length hints')
+            if legacy:
+                chunksize = int(math.ceil(total / nchunks))
+                remainder = 0
+            else:
+                if bordermode == 'none':
+                    # I feel like this could be simpler
+                    chunksize = max(int(math.floor(total / nchunks)), 1)
+                    nchunks = min(int(math.ceil(total / chunksize)), nchunks)
+                    chunked_total = chunksize * nchunks
+                    remainder = total - chunked_total
+                else:
+                    # not working
+                    chunksize = max(int(math.ceil(total / nchunks)), 1)
+                    # Can artificially extend the size in this case
+                    # total = chunksize * nchunks
+                    remainder = 0
+
+        self.legacy = legacy
+        self.remainder = remainder
         self.items = items
-        self.chunksize = chunksize
         self.total = total
+        self.nchunks = nchunks
+        self.chunksize = chunksize
+        self.bordermode = bordermode
 
     def __len__(self):
-        if self.total is None:
-            self.total = len(self.items)
-        nchunks = int(math.ceil(self.total / self.chunksize))
-        return nchunks
+        if self.nchunks is None:
+            raise TypeError('length is unknown')
+        return self.nchunks
 
     def __iter__(self):
         bordermode = self.bordermode
         items = self.items
         chunksize = self.chunksize
-        if bordermode is None or bordermode == 'none':
-            return self.noborder(items, chunksize)
-        elif bordermode == 'cycle':
-            return self.cycle(items, chunksize)
-        elif bordermode == 'replicate':
-            return self.replicate(items, chunksize)
+
+        if not self.legacy and self.nchunks is not None:
+            return self._new_iterator()
         else:
-            raise ValueError('unknown bordermode=%r' % (bordermode,))
+            if bordermode is None or bordermode == 'none':
+                return self.noborder(items, chunksize)
+            elif bordermode == 'cycle':
+                return self.cycle(items, chunksize)
+            elif bordermode == 'replicate':
+                return self.replicate(items, chunksize)
+            else:
+                raise ValueError('unknown bordermode=%r' % (bordermode,))
+
+    def _new_iterator(self):
+        chunksize = self.chunksize
+        nchunks = self.nchunks
+        chunksize = self.chunksize
+        remainder = self.remainder
+
+        if self.bordermode == 'cycle':
+            iterator = it.cycle(iter(self.items))
+        elif self.bordermode == 'replicate':
+            def replicator(items):
+                for item in items:
+                    yield item
+                while True:
+                    yield item
+            iterator = replicator(iter(self.items))
+        elif self.bordermode == 'none':
+            iterator = iter(self.items)
+        else:
+            raise KeyError(self.bordermode)
+
+        # Build an iterator that describes how big each chunk will be
+        if remainder:
+            # TODO:
+            # handle replicate and cycle border modes
+            # TODO:
+            # benchmark different methods
+            chunksize_iter = it.chain(
+                it.repeat(chunksize + 1, remainder),
+                it.repeat(chunksize, nchunks - remainder)
+            )
+        else:
+            chunksize_iter = it.repeat(chunksize, nchunks)
+        for _chunksize in chunksize_iter:
+            chunk = list(it.islice(iterator, _chunksize))
+            # if chunk:
+            yield chunk
 
     @staticmethod
     def noborder(items, chunksize):
         # feed the same iter to zip_longest multiple times, this causes it to
         # consume successive values of the same sequence
-        sentinal = object()
+        sentinel = object()
         copied_iters = [iter(items)] * chunksize
-        chunks_with_sentinals = zip_longest(*copied_iters, fillvalue=sentinal)
+        chunks_with_sentinals = zip_longest(*copied_iters, fillvalue=sentinel)
         # Dont fill empty space in the last chunk, just return it as is
         for chunk in chunks_with_sentinals:
-            yield [item for item in chunk if item is not sentinal]
+            yield [item for item in chunk if item is not sentinel]
 
     @staticmethod
     def cycle(items, chunksize):
-        sentinal = object()
+        sentinel = object()
         copied_iters = [iter(items)] * chunksize
-        chunks_with_sentinals = zip_longest(*copied_iters, fillvalue=sentinal)
+        chunks_with_sentinals = zip_longest(*copied_iters, fillvalue=sentinel)
         # Fill empty space in the last chunk with values from the beginning
         bordervalues = it.cycle(iter(items))
         for chunk in chunks_with_sentinals:
-            yield [item if item is not sentinal else next(bordervalues)
+            yield [item if item is not sentinel else next(bordervalues)
                    for item in chunk]
 
     @staticmethod
     def replicate(items, chunksize):
-        sentinal = object()
+        sentinel = object()
         copied_iters = [iter(items)] * chunksize
         # Fill empty space in the last chunk by replicating the last value
-        chunks_with_sentinals = zip_longest(*copied_iters, fillvalue=sentinal)
+        chunks_with_sentinals = zip_longest(*copied_iters, fillvalue=sentinel)
         for chunk in chunks_with_sentinals:
-            filt_chunk = [item for item in chunk if item is not sentinal]
+            filt_chunk = [item for item in chunk if item is not sentinel]
             if len(filt_chunk) == chunksize:
                 yield filt_chunk
             else:
@@ -238,7 +353,7 @@ def take(items, indices, default=util_const.NoParam):
         default (Any, default=NoParam):
             if specified ``items`` must support the ``get`` method.
 
-    Yeilds:
+    Yields:
         VT: a selected item within the list
 
     SeeAlso:
@@ -479,7 +594,7 @@ def iter_window(iterable, size=2, step=1, wrap=False):
         wrap (bool, default=False): wraparound flag
 
     Returns:
-        Iterable[T]: returns a possibly overlaping windows in a sequence
+        Iterable[T]: returns a possibly overlapping windows in a sequence
 
     Example:
         >>> import ubelt as ub
@@ -717,7 +832,6 @@ def peek(iterable, default=util_const.NoParam):
     Returns:
         T: item - the first item of ordered sequence, a popped item from an
                  iterator, or an arbitrary item from an unordered collection.
-
 
     Example:
         >>> import ubelt as ub

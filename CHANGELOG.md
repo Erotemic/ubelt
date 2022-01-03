@@ -5,13 +5,32 @@ We are currently working on porting this changelog to the specifications in
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
-## Version 0.10.2 - Unreleased
+## Version 0.11.0 - Unreleased
+
+### Added
+* Added `ubelt.Path`, as an extension and quicker-to-type version of pathlib.Path with extra functionality.
+* Added `progkw` as argument to `JobPool.as_completed` to control progress reporting
+* Added `progkw` as argument to `ub.download` / `ub.grabdat` to control progress reporting
+* Added `util_zip` with the `zopen` function. Access a file inside a zipfile with a standard `open` like interface. 
+
+
+### Fixed
+* `ubelt.hash_data` now handles non-numeric float values.
+* `ubelt.chunks` now works correctly when nchunks is specified.
+
+### Changed
+
+* Changed default of `_hashable_sequence` `types` arg from True to False to be
+  consistent, but kept existing types=True behavior in hashable extensions. Changes
+  should be backwards compatible, but in the future we may introduce a breaking
+  change to make hash behavior more consistent.
 
 
 ## Version 0.10.2 - Released 2021-12-07
 
 ### Added
 * Added pyi type annotation files. (Used a custom script to export docstring type annotations)
+* Added `default` keyword argument to signature of `ub.peek`
 
 ### Fixed
 * Added `map` function to the executor classes.
@@ -26,6 +45,8 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 * Verbose test from symlink previously showed "real -> link" which makes no
   sense because a link should be the object that "is pointing". Thus it now
   shows "link -> real"
+* `ub.download` should now generate less stdout text
+* New in-repo "dev" benchmarks
 
 ## Version 0.10.1 - Released 2021-08-23
 

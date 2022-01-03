@@ -17,8 +17,12 @@ DEFAULT_HASHER: Any
 
 class _Hashers:
     algos: Any
+    aliases: Any
 
     def __init__(self) -> None:
+        ...
+
+    def available(self):
         ...
 
     def __contains__(self, key):
@@ -52,6 +56,9 @@ class _HashTracer:
         ...
 
     def update(self, bytes) -> None:
+        ...
+
+    def hexdigest(self):
         ...
 
 

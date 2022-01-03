@@ -114,7 +114,7 @@ class PythonPathContext(object):
                 raise RuntimeError('\n'.join(msg_parts))
             else:
                 # We were able to recover, but warn the user. This method of
-                # recovery is a hueristic and doesnt work in some cases.
+                # recovery is a heuristic and doesnt work in some cases.
                 msg_parts.append((
                     'Expected dpath was at index {}. '
                     'This could indicate conflicting module namespaces.'
@@ -225,6 +225,7 @@ def import_module_from_path(modpath, index=-1):
         import zipimport
         # We allow (if not prefer or force) the colon to be a path.sep in order
         # to agree with the mod.__name__ attribute that will be produced
+        # TODO: we could codify this by using `util_zip.split_archive`
 
         # zip followed by colon or slash
         pat = '(.zip[' + re.escape(os.path.sep) + '/:])'
@@ -285,7 +286,7 @@ def import_module_from_name(modname):
 
     Example:
         >>> # test with modules that wont be imported in normal circumstances
-        >>> # todo write a test where we gaurentee this
+        >>> # todo write a test where we guarantee this
         >>> modname_list = [
         >>>     'pickletools',
         >>>     'lib2to3.fixes.fix_apply',
@@ -303,7 +304,7 @@ def import_module_from_name(modname):
         import importlib
         module = importlib.import_module(modname)
     else:  # nocover
-        # The __import__ statment is weird
+        # The __import__ statement is weird
         if '.' in modname:
             fromlist = modname.split('.')[-1]
             fromlist_ = list(map(str, fromlist))  # needs to be ascii for python2.7

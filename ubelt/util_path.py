@@ -15,21 +15,26 @@ The :func:`userhome` function reports the home directory of the current user of
 the operating system.
 
 The :func:`ensuredir` function operates like ``mkdir -p`` in unix.
+
+The :class:`Path` object is an extension of :class:`pathlib.Path` that contains
+extra convinience methods corresponding to the extra functional methods in this
+module.
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 from os.path import (
     dirname, exists, expanduser, expandvars, join, normpath, split, splitext,
-    # relpath
 )
 import os
 import sys
+import pathlib
 
 
 PY2 = sys.version_info[0] == 2
 
 
 __all__ = [
-    'TempDir', 'augpath', 'shrinkuser', 'userhome', 'ensuredir', 'expandpath',
+    'Path', 'TempDir', 'augpath', 'shrinkuser', 'userhome', 'ensuredir',
+    'expandpath',
 ]
 
 
@@ -58,7 +63,8 @@ def augpath(path, suffix='', prefix='', ext=None, base=None, dpath=None,
             if specified, replaces the extension
 
         base (str | None, default=None):
-            if specified, replaces the basename without extension
+            if specified, replaces the basename without extension.
+            Note: this is refered to as stem in :class:`ub.Path`.
 
         dpath (str | PathLike | None, default=None):
             if specified, replaces the specified "relative" directory, which by
@@ -107,6 +113,8 @@ def augpath(path, suffix='', prefix='', ext=None, base=None, dpath=None,
         >>> augpath('foo.tar.gz', suffix='_new', multidot=True)
         foo_new.tar.gz
     """
+    stem = base  # new nomenclature
+
     # Breakup path
     if relative is None:
         orig_dpath, fname = split(path)
@@ -131,10 +139,10 @@ def augpath(path, suffix='', prefix='', ext=None, base=None, dpath=None,
         dpath = orig_dpath
     if ext is None:
         ext = orig_ext
-    if base is None:
-        base = orig_base
+    if stem is None:
+        stem = orig_base
     # Recombine into new path
-    new_fname = ''.join((prefix, base, suffix, ext))
+    new_fname = ''.join((prefix, stem, suffix, ext))
     newpath = join(dpath, new_fname)
     return newpath
 
@@ -274,6 +282,9 @@ def ensuredir(dpath, mode=0o1777, verbose=0, recreate=False):
     Returns:
         str: path - the ensured directory
 
+    SeeAlso:
+        :method:`ub.Path.ensuredir`
+
     Note:
         This function is not thread-safe in Python2
 
@@ -312,6 +323,11 @@ def ensuredir(dpath, mode=0o1777, verbose=0, recreate=False):
 class TempDir(object):
     """
     Context for creating and cleaning up temporary directories.
+
+    Note:
+        This exists because :class:`tempfile.TemporaryDirectory` was
+        introduced in Python 3.2. Thus once ubelt no longer supports
+        python 2.7, this class will be deprecated.
 
     Example:
         >>> from ubelt.util_path import *  # NOQA
@@ -355,3 +371,157 @@ class TempDir(object):
 
     def __exit__(self, type_, value, trace):
         self.cleanup()
+
+
+_PathBase = pathlib.WindowsPath if os.name == 'nt' else pathlib.PosixPath
+
+
+class Path(_PathBase):
+    """
+    An extension of :class:`pathlib.Path` with extra convinience methods
+    """
+
+    def ensuredir(self, mode=0o777):
+        """
+        Concise alias of ``self.mkdir(parents=True, exist_ok=True)``
+
+        Returns:
+            Path: returns itself
+
+        Example:
+            >>> import ubelt as ub
+            >>> cache_dpath = ub.ensure_app_cache_dir('ubelt')
+            >>> dpath = ub.Path(join(cache_dpath, 'ensuredir'))
+            >>> if dpath.exists():
+            ...     os.rmdir(dpath)
+            >>> assert not dpath.exists()
+            >>> dpath.ensuredir()
+            >>> assert dpath.exists()
+            >>> dpath.rmdir()
+            """
+        if PY2:
+            if not self.exists():
+                self.mkdir(mode=mode, parents=True)
+        else:
+            self.mkdir(mode=mode, parents=True, exist_ok=True)
+        return self
+
+    def expandvars(self):
+        """
+        As discussed in CPythonIssue21301_, CPython wont be adding expandvars
+        to pathlib. I think this is a mistake, so I added it in this extension.
+
+        Returns:
+            Path: path with expanded environment variables
+
+        References:
+            .. [CPythonIssue21301] https://bugs.python.org/issue21301
+        """
+        return self.__class__(os.path.expandvars(str(self)))
+
+    def expand(self):
+        """
+        Expands user tilde and environment variables.
+
+        Concise alias of `Path(os.path.expandvars(self.expanduser()))`
+
+        Returns:
+            Path: path with expanded environment variables and tildes
+
+        Example:
+            >>> import ubelt as ub
+            >>> #home_v1 = ub.Path('$HOME').expand()
+            >>> home_v2 = ub.Path('~/').expand()
+            >>> assert isinstance(home_v2, ub.Path)
+            >>> # xdoctest: +REQUIRES(PY3)
+            >>> home_v3 = ub.Path.home()
+            >>> #print('home_v1 = {!r}'.format(home_v1))
+            >>> print('home_v2 = {!r}'.format(home_v2))
+            >>> print('home_v3 = {!r}'.format(home_v3))
+            >>> assert home_v3 == home_v2 # == home_v1
+        """
+        if PY2:  # nocover
+            return self.__class__(os.path.expanduser(str(self.expandvars())))
+        else:
+            return self.expandvars().expanduser()
+
+    def shrinkuser(self, home='~'):
+        """
+        Inverse of :func:`os.path.expanduser`.
+
+        Args:
+            home (str, default='~'): symbol used to replace the home path.
+                Defaults to '~', but you might want to use '$HOME' or
+                '%USERPROFILE%' instead.
+
+        Returns:
+            str: path - shortened path replacing the home directory with a tilde
+
+        Example:
+            >>> import ubelt as ub
+            >>> path = ub.Path('~').expand()
+            >>> assert str(path.shrinkuser()) == '~'
+            >>> assert str(ub.Path((str(path) + '1')).shrinkuser()) == str(path) + '1'
+            >>> assert str((path / '1').shrinkuser()) == join('~', '1')
+            >>> assert str((path / '1').shrinkuser('$HOME')) == join('$HOME', '1')
+            >>> assert str(ub.Path('.').shrinkuser()) == '.'
+        """
+        shrunk = shrinkuser(str(self), home)
+        new = self.__class__(shrunk)
+        return new
+
+    def augment(self, suffix='', prefix='', ext=None, stem=None, dpath=None,
+                relative=None, multidot=False):
+        """
+        Create a new path with a different extension, basename, directory,
+        prefix, and/or suffix.
+
+        See :func:`augpath` for more details.
+
+        Args:
+            suffix (str, default=''):
+                placed between the stem and extension
+
+            prefix (str, default=''):
+                placed in front of the stem
+
+            ext (str | None, default=None):
+                if specified, replaces the extension
+
+            stem (str | None, default=None):
+                if specified, replaces the stem (i.e. basename without
+                extension). Note: named base in :func:`augpath`.
+
+            dpath (str | PathLike | None, default=None):
+                if specified, replaces the specified "relative" directory,
+                which by default is the parent directory.
+
+            relative (str | PathLike | None, default=None):
+                Replaces ``relative`` with ``dpath`` in ``path``.
+                Has no effect if ``dpath`` is not specified.
+                Defaults to the dirname of the input ``path``.
+                *experimental* not currently implemented.
+
+            multidot (bool, default=False): Allows extensions to contain
+                multiple dots. Specifically, if False, everything after the
+                last dot in the basename is the extension. If True, everything
+                after the first dot in the basename is the extension.
+
+        Returns:
+            Path: augmented path
+
+        Example:
+            >>> import ubelt as ub
+            >>> path = ub.Path('foo.bar')
+            >>> suffix = '_suff'
+            >>> prefix = 'pref_'
+            >>> ext = '.baz'
+            >>> newpath = path.augment(suffix, prefix, ext=ext, stem='bar')
+            >>> print('newpath = {!r}'.format(newpath))
+            newpath = Path('pref_bar_suff.baz')
+        """
+        aug = augpath(str(self), suffix=suffix, prefix=prefix, ext=ext,
+                          base=stem, dpath=dpath, relative=relative,
+                          multidot=multidot)
+        new = self.__class__(aug)
+        return new

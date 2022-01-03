@@ -165,7 +165,7 @@ jobs:
           name: run tests
           command: |
             . venv/bin/activate
-            $PYTHON_EXE run_tests.py --network
+            $PYTHON_EXE run_tests.py  # --network
             codecov
       - store_artifacts:
           path: .coverage
@@ -184,7 +184,7 @@ jobs:
   test_full/cp3_10-3_10-linux:
     <<: *test_full_template
     docker:
-      - image: circleci/python:3.10-rc
+      - image: circleci/python:3.10
   
   test_full/cp39-39-linux:
     <<: *test_full_template
@@ -226,7 +226,7 @@ jobs:
   test_minimal/cp3_10-3_10-linux:
     <<: *test_minimal_template
     docker:
-      - image: circleci/python:3.10-rc
+      - image: circleci/python:3.10
   
   test_minimal/cp39-39-linux:
     <<: *test_minimal_template
@@ -279,9 +279,6 @@ jobs:
     environment:
       - PYTHON_EXE: pypy3
 
- 
-  # -- gpgsign + deploy
-  
         
   __doc__:
     docker:
@@ -291,26 +288,62 @@ jobs:
       - | 
         __heredoc__=" 
 
-        # Install CircleCI (todo check hashes)
-        # https://github.com/CircleCI-Public/circleci-cli/releases/download/v0.1.15848/circleci-cli_0.1.15848_linux_amd64.tar.gz
-        # https://github.com/CircleCI-Public/circleci-cli/releases/download/v0.1.15848/circleci-cli_0.1.15848_checksums.txt
-        curl -fLSs https://raw.githubusercontent.com/CircleCI-Public/circleci-cli/master/install.sh | DESTDIR=$HOME/.local/bin bash
+        ## Install CircleCI (todo check hashes)
+        ## https://github.com/CircleCI-Public/circleci-cli/releases/download/v0.1.15848/circleci-cli_0.1.15848_linux_amd64.tar.gz
+        ## https://github.com/CircleCI-Public/circleci-cli/releases/download/v0.1.15848/circleci-cli_0.1.15848_checksums.txt
+        #curl -fLSs https://raw.githubusercontent.com/CircleCI-Public/circleci-cli/master/install.sh | DESTDIR=$HOME/.local/bin bash
 
-        # Run entire script end-to-end
-        circleci local execute --job test_full/pypy3
+        ## Run entire script end-to-end
+        #circleci local execute --job test_full/pypy3
 
-        # Manually drop into docker and run things
-        docker run -v $(pwd):/io -it pypy:3 bash
+        ## Manually drop into docker and run things
+        #docker run -v $(pwd):/io -it pypy:3 bash
 
-        cd /io
+        #cd /io
 
-        pypy3 -m venv venv 
-        . venv/bin/activate
-        # The "minimal" tests install barebones requirements
-        pip install -r requirements/tests.txt
-        pip install -r requirements/runtime.txt 
+        #pypy3 -m venv venv 
+        #. venv/bin/activate
+        ## The "minimal" tests install barebones requirements
+        #pip install -r requirements/tests.txt
+        #pip install -r requirements/runtime.txt 
+        #pip install -e .
+
+        #./run_doctests.sh || echo "pypy failed, but this is allowed"
+        #./run_tests.sh || echo "pypy failed, but this is allowed"
+
+        # New
+        IMAGE_NAME=pypy:3.7
+        docker run -v $PWD:/io:ro -v $HOME/.cache/pip:/pip_cache -it $IMAGE_NAME bash
+        # Will need to chmod things afterwords
+        export PIP_CACHE_DIR=/pip_cache
+        echo $PIP_CACHE_DIR
+        chmod -R o+rw $PIP_CACHE_DIR
+        chmod -R o+rw $PIP_CACHE_DIR
+        chmod -R g+rw $PIP_CACHE_DIR
+        USER=$(whoami)
+        chown -R $USER $PIP_CACHE_DIR
+        cd $HOME
+        git clone /io ./repo
+
+        cd $HOME/repo
+
+        # Make a virtualenv
+        export PYVER=$(python -c "import sys; print('{}{}'.format(*sys.version_info[0:2]))")
+        pip install virtualenv
+        virtualenv venv$PYVER
+        source venv$PYVER/bin/activate
+        #pip install pip -U
+        #pip install pip setuptools -U
+
+        # STRICT VARIANT
+        ./dev/make_strict_req.sh
+        pip install -r requirements-strict.txt 
+        pip install -r requirements-strict/tests.txt 
         pip install -e .
+        ./run_tests.py
 
-        ./run_doctests.sh || echo "pypy failed, but this is allowed"
-        ./run_tests.sh || echo "pypy failed, but this is allowed"
+        # LOOSE VARIANT
+        pip install -r requirements.txt
+        pip install -e .[tests]
+        ./run_tests.py
         "

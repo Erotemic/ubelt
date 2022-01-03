@@ -9,7 +9,7 @@ general and robust way that I (Jon Crall) have achieved, and I don't think its
 possible to do better.  These four lines implement the following necessary and
 sufficient steps for general robust on-disk caching.
 
-    1. Defining the cache dependenies
+    1. Defining the cache dependencies
     2. Checking if the cache missed
     3. Loading the cache on a hit
     4. Executing the process and saving the result on a miss.
@@ -63,7 +63,8 @@ Example:
     >>> def compute_many_files(dpath):
     ...     for i in range(0):
     ...         fpath = '{}/file{}.txt'.format(dpath, i)
-    ...         open(fpath).write('foo' + str(i))
+    ...         with open(fpath, 'w') as file:
+    ...             file.write('foo' + str(i))
     >>> #
     >>> import ubelt as ub
     >>> dpath = ub.ensure_app_cache_dir('ubelt/demo/cache')
@@ -484,7 +485,7 @@ class Cacher(object):
             >>> depends = 'long-cfg' * 32
             >>> cacher = Cacher('test_enabled_save', depends=depends)
             >>> cacher.save('data')
-            >>> assert exists(cacher.get_fpath()), 'should be enabeled'
+            >>> assert exists(cacher.get_fpath()), 'should be enabled'
             >>> assert exists(cacher.get_fpath() + '.meta'), 'missing metadata'
             >>> # Setting the cacher as enabled=False turns it off
             >>> cacher2 = Cacher('test_disabled_save', 'params', enabled=False)

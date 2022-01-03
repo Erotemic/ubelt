@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 This module exposes decorators for in-memory caching of functional results.
-This is particularly useful when prototyping dynamic programing algorithms.
+This is particularly useful when prototyping dynamic programming algorithms.
 
 Either :func:`memoize`, :func:`memoize_method`, and :func:`memoize_property`
 should be used depending on what type of function is being wrapped. The
@@ -96,7 +96,7 @@ def _make_signature_key(args, kwargs):
     # TODO: we should check if Python is at least 3.7 and sort by kwargs
     # keys otherwise. Should we use hash_data for key generation
     if (sys.version_info.major, sys.version_info.minor) < (3, 7):  # nocover
-        # We can sort because they keys are gaurenteed to be strings
+        # We can sort because they keys are guaranteed to be strings
         kwitems = sorted(kwitems)
     kwitems = tuple(kwitems)
 

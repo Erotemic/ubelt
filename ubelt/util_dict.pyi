@@ -13,8 +13,8 @@ from typing import Any, TypeVar
 from ubelt import util_const
 
 T = TypeVar("T")
-VT = TypeVar("VT")
 KT = TypeVar("KT")
+VT = TypeVar("VT")
 odict = OrderedDict
 ddict = defaultdict
 

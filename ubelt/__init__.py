@@ -18,7 +18,7 @@ contains information and examples complementary to these docs.
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 
-__dev__="""
+__dev__ = """
 AutogenInit:
     mkinit ubelt --diff
     mkinit ubelt -w  # todo: get sphinx to ignore this
@@ -29,7 +29,7 @@ Testing:
     xdoctest ubelt
 """
 
-__version__ = '0.10.2'
+__version__ = '0.11.0'
 
 __submodules__ = [
     'util_arg',
@@ -56,6 +56,7 @@ __submodules__ = [
     'util_str',
     'util_stream',
     'util_time',
+    'util_zip',
     'orderedset',
     'progiter',
     'timerit',
@@ -91,6 +92,7 @@ from ubelt import util_platform
 from ubelt import util_str
 from ubelt import util_stream
 from ubelt import util_time
+from ubelt import util_zip
 
 from ubelt.util_arg import (argflag, argval,)
 from ubelt.util_cache import (CacheStamp, Cacher,)
@@ -119,7 +121,7 @@ from ubelt.util_import import (import_module_from_name,
 from ubelt.util_indexable import (IndexableWalker, indexable_allclose,)
 from ubelt.util_memoize import (memoize, memoize_method, memoize_property,)
 from ubelt.util_mixins import (NiceRepr,)
-from ubelt.util_path import (TempDir, augpath, ensuredir, expandpath,
+from ubelt.util_path import (Path, TempDir, augpath, ensuredir, expandpath,
                              shrinkuser, userhome,)
 from ubelt.util_platform import (DARWIN, LINUX, POSIX, WIN32,
                                  ensure_app_cache_dir, ensure_app_config_dir,
@@ -131,6 +133,7 @@ from ubelt.util_str import (codeblock, ensure_unicode, hzcat, indent,
                             paragraph,)
 from ubelt.util_stream import (CaptureStdout, CaptureStream, TeeStringIO,)
 from ubelt.util_time import (timestamp,)
+from ubelt.util_zip import (split_archive, zopen,)
 from ubelt.orderedset import (OrderedSet, oset,)
 from ubelt.progiter import (ProgIter,)
 from ubelt.timerit import (Timer, Timerit,)
@@ -145,33 +148,34 @@ __all__ = ['AutoDict', 'AutoOrderedDict', 'CacheStamp', 'Cacher',
            'CaptureStdout', 'CaptureStream', 'DARWIN', 'DownloadManager',
            'Executor', 'FormatterExtensions', 'IndexableWalker', 'JobPool',
            'LINUX', 'NO_COLOR', 'NiceRepr', 'NoParam', 'OrderedSet', 'POSIX',
-           'ProgIter', 'TeeStringIO', 'TempDir', 'Timer', 'Timerit', 'WIN32',
-           '_util_deprecated', 'allsame', 'argflag', 'argmax', 'argmin',
-           'argsort', 'argunique', 'argval', 'augpath', 'boolmask', 'chunks',
-           'cmd', 'codeblock', 'color_text', 'compatible', 'compress',
-           'compressuser', 'ddict', 'delete', 'dict_diff', 'dict_hist',
-           'dict_isect', 'dict_subset', 'dict_take', 'dict_union', 'download',
-           'dzip', 'editfile', 'ensure_app_cache_dir', 'ensure_app_config_dir',
-           'ensure_app_data_dir', 'ensure_app_resource_dir', 'ensure_unicode',
-           'ensuredir', 'expandpath', 'find_duplicates', 'find_exe',
-           'find_path', 'flatten', 'get_app_cache_dir', 'get_app_config_dir',
-           'get_app_data_dir', 'get_app_resource_dir', 'grabdata',
-           'group_items', 'hash_data', 'hash_file', 'highlight_code', 'hzcat',
-           'identity', 'import_module_from_name', 'import_module_from_path',
-           'indent', 'indexable_allclose', 'inject_method', 'invert_dict',
-           'iter_window', 'iterable', 'map_keys', 'map_vals', 'memoize',
-           'memoize_method', 'memoize_property', 'modname_to_modpath',
-           'modpath_to_modname', 'named_product', 'odict', 'orderedset',
-           'oset', 'paragraph', 'peek', 'platform_cache_dir',
-           'platform_config_dir', 'platform_data_dir', 'platform_resource_dir',
-           'progiter', 'readfrom', 'repr2', 'schedule_deprecation',
-           'shrinkuser', 'sorted_keys', 'sorted_vals', 'split_modpath',
-           'startfile', 'symlink', 'take', 'timerit', 'timestamp', 'touch',
-           'truepath', 'unique', 'unique_flags', 'userhome', 'util_arg',
-           'util_cache', 'util_cmd', 'util_colors', 'util_const', 'util_dict',
-           'util_download', 'util_download_manager', 'util_format',
-           'util_func', 'util_futures', 'util_hash', 'util_import',
-           'util_indexable', 'util_io', 'util_links', 'util_list',
-           'util_memoize', 'util_mixins', 'util_path', 'util_platform',
-           'util_str', 'util_stream', 'util_time', 'varied_values', 'writeto']
+           'Path', 'ProgIter', 'TeeStringIO', 'TempDir', 'Timer', 'Timerit',
+           'WIN32', '_util_deprecated', 'allsame', 'argflag', 'argmax',
+           'argmin', 'argsort', 'argunique', 'argval', 'augpath', 'boolmask',
+           'chunks', 'cmd', 'codeblock', 'color_text', 'compatible',
+           'compress', 'compressuser', 'ddict', 'delete', 'dict_diff',
+           'dict_hist', 'dict_isect', 'dict_subset', 'dict_take', 'dict_union',
+           'download', 'dzip', 'editfile', 'ensure_app_cache_dir',
+           'ensure_app_config_dir', 'ensure_app_data_dir',
+           'ensure_app_resource_dir', 'ensure_unicode', 'ensuredir',
+           'expandpath', 'find_duplicates', 'find_exe', 'find_path', 'flatten',
+           'get_app_cache_dir', 'get_app_config_dir', 'get_app_data_dir',
+           'get_app_resource_dir', 'grabdata', 'group_items', 'hash_data',
+           'hash_file', 'highlight_code', 'hzcat', 'identity',
+           'import_module_from_name', 'import_module_from_path', 'indent',
+           'indexable_allclose', 'inject_method', 'invert_dict', 'iter_window',
+           'iterable', 'map_keys', 'map_vals', 'memoize', 'memoize_method',
+           'memoize_property', 'modname_to_modpath', 'modpath_to_modname',
+           'named_product', 'odict', 'orderedset', 'oset', 'paragraph', 'peek',
+           'platform_cache_dir', 'platform_config_dir', 'platform_data_dir',
+           'platform_resource_dir', 'progiter', 'readfrom', 'repr2',
+           'schedule_deprecation', 'shrinkuser', 'sorted_keys', 'sorted_vals',
+           'split_archive', 'split_modpath', 'startfile', 'symlink', 'take',
+           'timerit', 'timestamp', 'touch', 'truepath', 'unique',
+           'unique_flags', 'userhome', 'util_arg', 'util_cache', 'util_cmd',
+           'util_colors', 'util_const', 'util_dict', 'util_download',
+           'util_download_manager', 'util_format', 'util_func', 'util_futures',
+           'util_hash', 'util_import', 'util_indexable', 'util_io',
+           'util_links', 'util_list', 'util_memoize', 'util_mixins',
+           'util_path', 'util_platform', 'util_str', 'util_stream',
+           'util_time', 'util_zip', 'varied_values', 'writeto', 'zopen']
 # </AUTOGEN_INIT>

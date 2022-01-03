@@ -245,7 +245,7 @@ def _dirstats(dpath=None):  # nocover
                 # A broken directory junction
                 path = util_colors.color_text(path, 'purple')
             elif ELFDJ == [1, 0, 1, 0, 1]:
-                # A file junction? Thats not good.
+                # A file junction? That's not good.
                 # I guess this is a windows 7 thing?
                 path = util_colors.color_text(path, 'red')
             elif ELFDJ == [1, 1, 0, 0, 0]:

@@ -140,6 +140,104 @@ def test_hash_data_without_types():
     assert len(failed) == 0
 
 
+def test_available():
+    assert 'sha1' in ub.util_hash._HASHERS.available()
+
+
+def test_idempotency():
+    # When we disable types and join sequence items, the hashable
+    # sequence should be idempotent
+    nested_data = ['fds', [3, 2, 3], {3: 2, '3': [3, 2, {3}]}, {1, 2, 3}]
+    hashable1 = b''.join(hash_sequence(nested_data))
+    hashable2 = b''.join(hash_sequence(hashable1, types=False))
+    assert hashable1 == hashable2
+
+
+def test_special_floats():
+    # Tests a fix from version 0.10.3 for inf/nan floats
+    # standard_floats = [0.0, 0.1, 0.2]
+    data = [
+        float('inf'), float('nan'), float('-inf'),
+        -0., 0., -1., 1., 0.3, 0.1 + 0.2,
+    ]
+    expected_encoding = [
+        b'_[_',
+        b'FLTinf_,_',
+        b'FLTnan_,_',
+        b'FLT-inf_,_',
+        b'FLT\x00/\x01_,_',
+        b'FLT\x00/\x01_,_',
+        b'FLT\xff/\x01_,_',
+        b'FLT\x01/\x01_,_',
+        b'FLT\x13333333/@\x00\x00\x00\x00\x00\x00_,_',
+        b'FLT\x04\xcc\xcc\xcc\xcc\xcc\xcd/\x10\x00\x00\x00\x00\x00\x00_,_',
+        b'_]_']
+    exepcted_prefix = '3196f80e17de93565f0fc57d98922a44'
+
+    hasher = 'sha512'
+    encoded = hash_sequence(data, types=True)
+    hashed = ub.hash_data(data, hasher=hasher, types=True)[0:32]
+    print('expected_encoding = {!r}'.format(expected_encoding))
+    print('encoded           = {!r}'.format(encoded))
+    print('hashed          = {!r}'.format(hashed))
+    print('exepcted_prefix = {!r}'.format(exepcted_prefix))
+    assert encoded == expected_encoding
+    assert hashed == exepcted_prefix
+    _sanity_check(data)
+
+
+def test_hashable_sequence_sanity():
+    data = [1, 2, [3.2, 5]]
+    # data = [1]
+    _sanity_check(data)
+
+
+def _sanity_check(data):
+
+    hasher_code = 'sha512'
+    hasher_type = ub.util_hash._rectify_hasher(hasher_code)
+
+    encoded_seq = hash_sequence(data, types=False)
+    encoded_byt = b''.join(encoded_seq)
+    hashed = ub.hash_data(data, hasher=hasher_code, types=False)
+    rehashed = ub.hash_data(encoded_byt, hasher=hasher_code, types=False)
+
+    hash_obj1 = hasher_type()
+    hash_obj1.update(encoded_byt)
+    hashed1 = hash_obj1.hexdigest()
+
+    hash_obj2 = hasher_type()
+    for item in encoded_seq:
+        hash_obj2.update(item)
+    hashed2 = hash_obj2.hexdigest()
+
+    print('encoded_seq = {!r}'.format(encoded_seq))
+    print('encoded_byt = {!r}'.format(encoded_byt))
+
+    print('hashed   = {!r}'.format(hashed))
+    print('rehashed = {!r}'.format(rehashed))
+    print('hashed1  = {!r}'.format(hashed1))
+    print('hashed2  = {!r}'.format(hashed2))
+
+    # Sanity check
+    ub.hash_data(encoded_seq, hasher=hasher_code, types=False)
+
+    seq2 = b''.join(hash_sequence(encoded_byt, types=False))
+    assert encoded_byt == seq2
+
+    tracer1 = ub.util_hash._HashTracer()
+    ub.hash_data(encoded_byt, types=False, hasher=tracer1)
+    traced_bytes1 = tracer1.hexdigest()
+    print('traced_bytes1 = {!r}'.format(traced_bytes1))
+    assert traced_bytes1 == encoded_byt
+
+    tracer2 = ub.util_hash._HashTracer()
+    ub.hash_data(encoded_byt, types=False, hasher=tracer2)
+    traced_bytes2 = tracer1.hexdigest()
+    print('traced_bytes2 = {!r}'.format(traced_bytes2))
+    assert traced_bytes2 == traced_bytes1
+
+
 def test_numpy_object_array():
     """
     _HASHABLE_EXTENSIONS = ub.util_hash._HASHABLE_EXTENSIONS
@@ -232,7 +330,7 @@ def test_numpy_random_state():
 
 def test_uuid():
     data = uuid.UUID('12345678-1234-1234-1234-123456789abc')
-    sequence = b''.join(hash_sequence(data))
+    sequence = b''.join(hash_sequence(data, types=True))
     assert sequence == b'UUID\x124Vx\x124\x124\x124\x124Vx\x9a\xbc'
     assert ub.hash_data(data, types=True, base='abc', hasher='sha512').startswith('nkklelnjzqbi')
     assert ub.hash_data(data.bytes, types=True) != ub.hash_data(data, types=True), (
@@ -326,13 +424,18 @@ def _test_int_bytes():
     assert ub.util_hash._int_to_bytes(-2 ** 256) == b'\xff\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
 
 
-def _test_xxhash():
-    try:
-        import xxhash  # NOQA
-    except ImportError:
-        pass
-    else:
+def test_xxhash():
+    if 'xxh64' in ub.util_hash._HASHERS.available():
         assert ub.hash_data('foo', hasher='xxh64') == '33bf00a859c4ba3f'
+    else:
+        pytest.skip('xxhash is not available')
+
+
+def test_blake3():
+    if 'blake3' in ub.util_hash._HASHERS.available():
+        assert ub.hash_data('foo', hasher='b3') == '04e0bb39f30b1a3feb89f536c93be15055482df748674b00d26e5a75777702e9'
+    else:
+        pytest.skip('blake3 is not available')
 
 
 if __name__ == '__main__':

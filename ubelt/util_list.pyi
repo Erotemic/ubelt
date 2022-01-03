@@ -9,8 +9,8 @@ from collections.abc import Generator
 from typing import Any, TypeVar
 
 T = TypeVar("T")
-VT = TypeVar("VT")
 KT = TypeVar("KT")
+VT = TypeVar("VT")
 
 
 class chunks:
@@ -52,7 +52,7 @@ def iterable(obj: object, strok: bool = ...) -> bool:
 
 def take(items: Union[Sequence[VT], Mapping[KT, VT]],
          indices: Iterable[Union[int, KT]],
-         default: Any = ...) -> Generator[Any, None, None]:
+         default: Any = ...) -> Generator[VT, None, None]:
     ...
 
 
@@ -110,5 +110,5 @@ def argmin(indexable: Union[Iterable[VT], Mapping[KT, VT]],
     ...
 
 
-def peek(iterable: Iterable[T]) -> T:
+def peek(iterable: Iterable[T], default: T = ...) -> T:
     ...

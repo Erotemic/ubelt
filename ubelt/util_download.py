@@ -35,7 +35,7 @@ else:
 
 
 def download(url, fpath=None, dpath=None, fname=None, hash_prefix=None,
-             hasher='sha512', chunksize=8192, verbose=1):
+             hasher='sha512', chunksize=8192, verbose=1, progkw=None):
     """
     Downloads a url to a file on disk.
 
@@ -76,6 +76,9 @@ def download(url, fpath=None, dpath=None, fname=None, hash_prefix=None,
         verbose (int, default=1):
             Verbosity level 0 or 1.
 
+        progkw (Dict | None):
+            if specified provides extra arguments to the progress iterator
+
     Returns:
         str | PathLike: fpath - path to the downloaded file.
 
@@ -92,9 +95,6 @@ def download(url, fpath=None, dpath=None, fname=None, hash_prefix=None,
         .. [2] http://stackoverflow.com/questions/15644964/python-progress-bar-and-downloads
         .. [3] http://stackoverflow.com/questions/16694907/how-to-download-large-file-in-python-with-requests-py
         .. [4] https://github.com/pytorch/pytorch/blob/2787f1d8edbd4aadd4a8680d204341a1d7112e2d/torch/hub.py#L347
-
-    TODO:
-        - [ ] fine-grained control of progress
 
     Example:
         >>> # xdoctest: +REQUIRES(--network)
@@ -203,8 +203,15 @@ def download(url, fpath=None, dpath=None, fname=None, hash_prefix=None,
     # possible optimization (have not tested or timed)
     _urldata_read = urldata.read
     try:
-        pbar = Progress(total=file_size, disable=not verbose,
-                        freq=chunksize, time_thresh=1)
+        _progkw = {
+            'total': file_size,
+            'freq': chunksize,
+            'time_thresh': 1,
+        }
+        if progkw is not None:
+            _progkw.update(progkw)
+        _progkw['disable'] = not verbose
+        pbar = Progress(**_progkw)
         with pbar:
             _pbar_update = pbar.update
 
@@ -299,7 +306,8 @@ def grabdata(url, fpath=None, dpath=None, fname=None, redo=False,
             If hash_prefix is specified, this indicates the hashing
             algorithm to apply to the file. Defaults to sha512.
 
-        **download_kw: additional kwargs to pass to ub.download
+        **download_kw: additional kwargs to pass to
+            :func:`ubelt.util_download.download`
 
     Returns:
         str | PathLike: fpath - path to downloaded or cached file.
@@ -334,13 +342,15 @@ def grabdata(url, fpath=None, dpath=None, fname=None, redo=False,
         >>> # todo: check file timestamps have changed
         >>> #
         >>> # Check that a redownload occurs when the stamp is changed
-        >>> open(stamp_fpath, 'w').write('corrupt-stamp')
+        >>> with open(stamp_fpath, 'w') as file:
+        >>>     file.write('corrupt-stamp')
         >>> fpath = ub.grabdata(url, fname=fname, hash_prefix=prefix1)
         >>> assert ub.readfrom(stamp_fpath) == prefix1
         >>> #
         >>> # Check that a redownload occurs when the stamp is removed
         >>> ub.delete(stamp_fpath)
-        >>> open(fpath, 'w').write('corrupt-data')
+        >>> with open(fpath, 'w') as file:
+        >>>     file.write('corrupt-data')
         >>> assert not ub.hash_file(fpath, base='hex', hasher='sha512').startswith(prefix1)
         >>> fpath = ub.grabdata(url, fname=fname, hash_prefix=prefix1)
         >>> assert ub.hash_file(fpath, base='hex', hasher='sha512').startswith(prefix1)

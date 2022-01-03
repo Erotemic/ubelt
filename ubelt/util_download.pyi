@@ -2,6 +2,7 @@ from typing import Optional
 import io
 from typing import Union
 from os import PathLike
+from typing import Dict
 from typing import TypeVar
 
 Hasher = TypeVar("Hasher")
@@ -14,7 +15,8 @@ def download(url: str,
              hash_prefix: Union[None, str] = ...,
              hasher: Union[str, Hasher] = ...,
              chunksize: int = ...,
-             verbose: int = ...) -> str | PathLike:
+             verbose: int = ...,
+             progkw: Union[Dict, None] = ...) -> str | PathLike:
     ...
 
 

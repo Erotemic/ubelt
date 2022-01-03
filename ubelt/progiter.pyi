@@ -89,9 +89,10 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
     show_times: Any
     show_wall: Any
     eta_window: Any
-    time_thresh: float
+    time_thresh: Any
     clearline: Any
     chunksize: Any
+    rel_adjust_limit: Any
     extra: str
     started: bool
     finished: bool
@@ -112,6 +113,7 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
                  verbose: Any | None = ...,
                  stream: Any | None = ...,
                  chunksize: Any | None = ...,
+                 rel_adjust_limit: float = ...,
                  **kwargs) -> None:
         ...
 
