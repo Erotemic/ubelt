@@ -8,23 +8,27 @@ from typing import List
 from collections.abc import Generator
 from typing import Any, TypeVar
 
-T = TypeVar("T")
 KT = TypeVar("KT")
+T = TypeVar("T")
 VT = TypeVar("VT")
 
 
 class chunks:
-    bordermode: Any
+    legacy: Any
+    remainder: Any
     items: Any
-    chunksize: Any
     total: Any
+    nchunks: Any
+    chunksize: Any
+    bordermode: Any
 
     def __init__(self,
                  items,
                  chunksize: Any | None = ...,
                  nchunks: Any | None = ...,
                  total: Any | None = ...,
-                 bordermode: str = ...) -> None:
+                 bordermode: str = ...,
+                 legacy: bool = ...) -> None:
         ...
 
     def __len__(self):

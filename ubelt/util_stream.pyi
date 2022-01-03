@@ -31,13 +31,13 @@ class CaptureStream:
 
 
 class CaptureStdout(CaptureStream):
-    enabled: Any
-    suppress: Any
-    orig_stdout: Any
-    cap_stdout: Any
     text: Any
     parts: Any
     started: bool
+    cap_stdout: Any
+    enabled: Any
+    suppress: Any
+    orig_stdout: Any
 
     def __init__(self,
                  suppress: bool = ...,

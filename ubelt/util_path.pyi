@@ -19,7 +19,7 @@ def userhome(username: Union[str, None] = ...) -> str:
     ...
 
 
-def shrinkuser(path: Union[str, PathLike], home: str = ...) -> str:
+def shrinkuser(path: Union[str, PathLike], home: str = ...) -> Path:
     ...
 
 
@@ -56,4 +56,28 @@ class TempDir:
         ...
 
     def __exit__(self, type_, value, trace) -> None:
+        ...
+
+
+class Path(_PathBase):
+    def ensuredir(self, mode: int = ...) -> Path:
+        ...
+
+    def expandvars(self) -> Path:
+        ...
+
+    def expand(self) -> Path:
+        ...
+
+    def shrinkuser(self, home: str = ...) -> str:
+        ...
+
+    def augment(self,
+                suffix: str = ...,
+                prefix: str = ...,
+                ext: Union[str, None] = ...,
+                stem: Union[str, None] = ...,
+                dpath: Union[str, PathLike, None] = ...,
+                relative: Union[str, PathLike, None] = ...,
+                multidot: bool = ...) -> Path:
         ...

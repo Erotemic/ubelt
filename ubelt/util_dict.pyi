@@ -12,8 +12,8 @@ from collections.abc import Generator
 from typing import Any, TypeVar
 from ubelt import util_const
 
-T = TypeVar("T")
 KT = TypeVar("KT")
+T = TypeVar("T")
 VT = TypeVar("VT")
 odict = OrderedDict
 ddict = defaultdict
