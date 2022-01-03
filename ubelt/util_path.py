@@ -17,7 +17,7 @@ the operating system.
 The :func:`ensuredir` function operates like ``mkdir -p`` in unix.
 
 The :class:`Path` object is an extension of :class:`pathlib.Path` that contains
-extra convinience methods corresponding to the extra functional methods in this
+extra convenience methods corresponding to the extra functional methods in this
 module.
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
@@ -378,7 +378,7 @@ _PathBase = pathlib.WindowsPath if os.name == 'nt' else pathlib.PosixPath
 
 class Path(_PathBase):
     """
-    An extension of :class:`pathlib.Path` with extra convinience methods
+    An extension of :class:`pathlib.Path` with extra convenience methods
     """
 
     def ensuredir(self, mode=0o777):

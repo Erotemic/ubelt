@@ -158,6 +158,8 @@ def generate_typed_stubs():
             # print('gen.import_tracker.required_names = {!r}'.format(gen.import_tracker.required_names))
             # print(gen.import_tracker.import_lines())
 
+            print('mod.path = {!r}'.format(mod.path))
+
             known_one_letter_types = {
                 # 'T', 'K', 'A', 'B', 'C', 'V',
                 'DT', 'KT', 'VT', 'T'
@@ -173,6 +175,12 @@ def generate_typed_stubs():
                 # gen.add_import_line('from typing import {}\n'.format('TypeVar'))
                 gen._output = ['{} = TypeVar("{}")\n'.format(type_var_name, type_var_name)] + gen._output
 
+            # Hack for specific module
+            # if mod.path.endswith('util_path.py'):
+            #     gen.add_typing_import('TypeVar')
+            #     # hack for variable inheritence
+            #     gen._output = ['import pathlib\nimport os\n', "_PathBase = pathlib.WindowsPath if os.name == 'nt' else pathlib.PosixPath\n"] + gen._output
+
             text = ''.join(gen.output())
             # Hack to remove lines caused by Py2 compat
             text = text.replace('Generator = object\n', '')
@@ -185,6 +193,11 @@ def generate_typed_stubs():
             text = text.replace('__win32_can_symlink__: Any\n', '')
             # text = text.replace('odict = OrderedDict', '')
             # text = text.replace('ddict = defaultdict', '')
+
+            if mod.path.endswith('util_path.py'):
+                # hack for forward reference
+                text = text.replace(' -> Path:', " -> 'Path':")
+                text = text.replace('class Path(_PathBase)', "class Path")
 
             # Format the PYI file nicely
             text = autoflake.fix_code(text, remove_unused_variables=True,
@@ -204,7 +217,7 @@ def generate_typed_stubs():
                 lines=None,
                 verify=False)
 
-            print(text)
+            # print(text)
 
             # Write output to file.
             subdir = dirname(target)
@@ -322,7 +335,7 @@ class ExtendedStubGenerator(StubGenerator):
                 if key == 'Args':
                     # hack for *args
                     lines = '\n'.join([line.lstrip('*') for line in lines.split('\n')])
-                    print('lines = {!r}'.format(lines))
+                    # print('lines = {!r}'.format(lines))
                     parsed_args = list(docscrape_google.parse_google_argblock(lines))
                     for info in parsed_args:
                         _hack_for_info(info)
@@ -453,7 +466,7 @@ class ExtendedStubGenerator(StubGenerator):
 
     def visit_class_def(self, o) -> None:
         self._IN_CLASS = o.name
-        print('o.name = {!r}'.format(o.name))
+        # print('o.name = {!r}'.format(o.name))
         ret = super().visit_class_def(o)
         self._IN_CLASS = None
         return ret

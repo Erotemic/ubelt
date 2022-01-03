@@ -59,17 +59,17 @@ class TempDir:
         ...
 
 
-class Path(_PathBase):
-    def ensuredir(self, mode: int = ...) -> Path:
+class Path:
+    def ensuredir(self, mode: int = ...) -> 'Path':
         ...
 
-    def expandvars(self) -> Path:
+    def expandvars(self) -> 'Path':
         ...
 
-    def expand(self) -> Path:
+    def expand(self) -> 'Path':
         ...
 
-    def shrinkuser(self, home: str = ...) -> Path:
+    def shrinkuser(self, home: str = ...) -> 'Path':
         ...
 
     def augment(self,
@@ -79,5 +79,5 @@ class Path(_PathBase):
                 stem: Union[str, None] = ...,
                 dpath: Union[str, PathLike, None] = ...,
                 relative: Union[str, PathLike, None] = ...,
-                multidot: bool = ...) -> Path:
+                multidot: bool = ...) -> 'Path':
         ...
