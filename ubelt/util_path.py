@@ -464,7 +464,7 @@ class Path(_PathBase):
             >>> assert str((path / '1').shrinkuser('$HOME')) == join('$HOME', '1')
             >>> assert str(ub.Path('.').shrinkuser()) == '.'
         """
-        shrunk = shrinkuser(self, home)
+        shrunk = shrinkuser(str(self), home)
         new = self.__class__(shrunk)
         return new
 
@@ -518,7 +518,8 @@ class Path(_PathBase):
             >>> print('newpath = {!r}'.format(newpath))
             newpath = Path('pref_bar_suff.baz')
         """
-        aug = augpath(self, suffix=suffix, prefix=prefix, ext=ext, base=stem,
-                      dpath=dpath, relative=relative, multidot=multidot)
+        aug = augpath(str(self, suffix=suffix, prefix=prefix, ext=ext,
+                          base=stem, dpath=dpath, relative=relative,
+                          multidot=multidot)
         new = self.__class__(aug)
         return new
