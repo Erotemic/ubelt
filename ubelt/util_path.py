@@ -518,8 +518,8 @@ class Path(_PathBase):
             >>> print('newpath = {!r}'.format(newpath))
             newpath = Path('pref_bar_suff.baz')
         """
-        aug = augpath(str(self, suffix=suffix, prefix=prefix, ext=ext,
+        aug = augpath(str(self), suffix=suffix, prefix=prefix, ext=ext,
                           base=stem, dpath=dpath, relative=relative,
-                          multidot=multidot))
+                          multidot=multidot)
         new = self.__class__(aug)
         return new
