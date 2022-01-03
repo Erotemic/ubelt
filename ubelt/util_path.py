@@ -219,7 +219,7 @@ def shrinkuser(path, home='~'):
             '%USERPROFILE%' instead.
 
     Returns:
-        Path: path - shortened path replacing the home directory with a symbol
+        str: path - shortened path replacing the home directory with a symbol
 
     Example:
         >>> from ubelt.util_path import *  # NOQA
@@ -455,7 +455,7 @@ class Path(_PathBase):
                 '%USERPROFILE%' instead.
 
         Returns:
-            str: path - shortened path replacing the home directory with a tilde
+            Path: path - shortened path replacing the home directory with a symbol
 
         Example:
             >>> import ubelt as ub

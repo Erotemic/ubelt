@@ -19,7 +19,7 @@ def userhome(username: Union[str, None] = ...) -> str:
     ...
 
 
-def shrinkuser(path: Union[str, PathLike], home: str = ...) -> Path:
+def shrinkuser(path: Union[str, PathLike], home: str = ...) -> str:
     ...
 
 
@@ -69,7 +69,7 @@ class Path(_PathBase):
     def expand(self) -> Path:
         ...
 
-    def shrinkuser(self, home: str = ...) -> str:
+    def shrinkuser(self, home: str = ...) -> Path:
         ...
 
     def augment(self,
