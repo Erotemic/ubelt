@@ -283,7 +283,7 @@ def ensuredir(dpath, mode=0o1777, verbose=0, recreate=False):
         str: path - the ensured directory
 
     SeeAlso:
-        :method:`ub.Path.ensuredir`
+        :func:`ubelt.Path.ensuredir`
 
     Note:
         This function is not thread-safe in Python2

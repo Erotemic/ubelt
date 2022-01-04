@@ -87,14 +87,15 @@ def download(url, fpath=None, dpath=None, fname=None, hash_prefix=None,
         RuntimeError - if the hash does not match the hash_prefix
 
     Note:
-        Based largely on code in pytorch [4]_ with modifications influenced by
-        other resources [1]_ [2]_ [3]_.
+        Based largely on code in pytorch [TorchDL]_ with modifications
+        influenced by other resources [Shichao_2012]_ [SO_15644964]_
+        [SO_16694907]_.
 
     References:
-        .. [1] http://blog.moleculea.com/2012/10/04/urlretrieve-progres-indicator/
-        .. [2] http://stackoverflow.com/questions/15644964/python-progress-bar-and-downloads
-        .. [3] http://stackoverflow.com/questions/16694907/how-to-download-large-file-in-python-with-requests-py
-        .. [4] https://github.com/pytorch/pytorch/blob/2787f1d8edbd4aadd4a8680d204341a1d7112e2d/torch/hub.py#L347
+        .. [Shichao_2012] https://blog.shichao.io/2012/10/04/progress_speed_indicator_for_urlretrieve_in_python.html
+        .. [SO_15644964] http://stackoverflow.com/questions/15644964/python-progress-bar-and-downloads
+        .. [SO_16694907] http://stackoverflow.com/questions/16694907/how-to-download-large-file-in-python-with-requests-py
+        .. [TorchDL] https://github.com/pytorch/pytorch/blob/2787f1d8edbd4aadd4a8680d204341a1d7112e2d/torch/hub.py#L347
 
     Example:
         >>> # xdoctest: +REQUIRES(--network)

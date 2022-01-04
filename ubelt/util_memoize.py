@@ -7,6 +7,11 @@ Either :func:`memoize`, :func:`memoize_method`, and :func:`memoize_property`
 should be used depending on what type of function is being wrapped. The
 following example demonstrates this.
 
+In Python 3.8+ :func:`memoize` and :func:`memoize_method` work similarly to the
+standard library :func:`functools.cache` and :func:`functools.memoize_method`,
+but the ubelt version makes use of :func:`ubelt.util_hash.hash_data`, which
+is slower, but handles inputs containing mutable containers.
+
 Example:
     >>> import ubelt as ub
     >>> # Memoize a function, the args are hashed
@@ -55,7 +60,7 @@ PY2 = sys.version_info[0] == 2
 def _hashable(item):
     """
     Returns the item if it is naturally hashable, otherwise it tries to use
-    ub.hash_data to make it hashable. Errors if it cannot.
+    ubelt.util_hash.hash_data to make it hashable. Errors if it cannot.
     """
     try:
         hash(item)
@@ -120,7 +125,8 @@ def memoize(func):
         Callable: memoized wrapper
 
     References:
-        .. [1] https://wiki.python.org/moin/PythonDecoratorLibrary#Memoize
+        .. [WikiMemoize] https://wiki.python.org/moin/PythonDecoratorLibrary#Memoize
+        .. [FunctoolsCache] https://docs.python.org/3/library/functools.html
 
     Example:
         >>> import ubelt as ub
@@ -161,7 +167,7 @@ class memoize_method(object):
     memoization decorator for a method that respects args and kwargs
 
     References:
-        .. [2] http://code.activestate.com/recipes/577452-a-memoize-decorator-for-instance-methods
+        .. [ActiveState_Miller_2010] http://code.activestate.com/recipes/577452-a-memoize-decorator-for-instance-methods
 
     Example:
         >>> import ubelt as ub
@@ -242,10 +248,10 @@ def memoize_property(fget):
     property. In either case the method will always become a property.
 
     Note:
-        implementation is a modified version of [3]_.
+        implementation is a modified version of [estebistec_memoize]_.
 
     References:
-        .. [3] https://github.com/estebistec/python-memoized-property
+        .. [estebistec_memoize] https://github.com/estebistec/python-memoized-property
 
     Example:
         >>> import ubelt as ub

@@ -20,11 +20,11 @@ not installed.
 This module contains a global variable ``NO_COLOR``, which if set to True will
 force all ANSI text coloring functions to become no-ops. This defaults to the
 value of the ``bool(os.environ.get('NO_COLOR'))`` flag, which is compliant with
-[1]_.
+[NoColor]_.
 
 
 References:
-    .. [1] https://no-color.org/
+    .. [NoColor] https://no-color.org/
 
 Note:
     In the future we may rename this module to ``util_ansi``.

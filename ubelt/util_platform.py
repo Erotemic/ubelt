@@ -4,12 +4,13 @@ The goal of this module is to provide an idiomatic cross-platform pattern of
 accessing platform dependent file systems.
 
 Standard application directory structure: cache, config, and other XDG
-standards [1]_. This is similar to the more focused :mod:`appdirs` module [5]_.
-In the future ubelt may directly use :mod:`appdirs`.
+standards [XDG_Spec]_. This is similar to the more focused :mod:`appdirs`
+module [AS_appdirs]_.  In the future ubelt may directly use :mod:`appdirs`.
 
 Note:
     Table mapping the type of directory to the system default environment
-    variable.  Inspired by [2]_, [3]_, and [4]_.
+    variable.  Inspired by [SO_43853548]_, [SO_11113974]_, and
+    [harawata_appdirs]_.
 
 
 .. code-block:: none
@@ -29,12 +30,12 @@ Note:
         XDG_CONFIG_HOME = ~/.config
 
 References:
-    .. [1] https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html
-    .. [2] https://stackoverflow.com/questions/43853548/xdg-windows
-    .. [3] https://stackoverflow.com/questions/11113974/cross-plat-path
-    .. [4] https://github.com/harawata/appdirs#supported-directories
-    .. [5] https://github.com/ActiveState/appdirs
-    .. [6] https://stackoverflow.com/questions/43853548/xdg-windows
+    .. [XDG_Spec] https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html
+    .. [SO_43853548] https://stackoverflow.com/questions/43853548/xdg-windows
+    .. [SO_11113974] https://stackoverflow.com/questions/11113974/cross-plat-path
+    .. [harawata_appdirs] https://github.com/harawata/appdirs#supported-directories
+    .. [AS_appdirs] https://github.com/ActiveState/appdirs
+    .. [SO_43853548] https://stackoverflow.com/questions/43853548/xdg-windows
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import os

@@ -86,7 +86,7 @@ class AutoDict(dict):
         :class:`AutoOrderedDict` - the ordered version
 
     References:
-        .. [1] http://stackoverflow.com/questions/651794/init-dict-of-dicts
+        .. [SO_651794] http://stackoverflow.com/questions/651794/init-dict-of-dicts
 
     Example:
         >>> import ubelt as ub
@@ -778,13 +778,14 @@ def named_product(_=None, **basis):
         the input keys instead of an tuple.
 
         This function used to be called "basis_product", but "named_product"
-        might be more appropriate. This function exists in other places ([1],
-        [2], and [3]).
+        might be more appropriate. This function exists in other places
+        ([minstrel271_namedproduct]_, [pytb_namedproduct]_, and
+        [Hettinger_namedproduct]_).
 
     References:
-        .. [1] https://gist.github.com/minstrel271/d51654af3fa4e6411267
-        .. [2] https://py-toolbox.readthedocs.io/en/latest/modules/itertools.html#
-        .. [3] https://twitter.com/raymondh/status/970380630822305792
+        .. [minstrel271_namedproduct] https://gist.github.com/minstrel271/d51654af3fa4e6411267
+        .. [pytb_namedproduct] https://py-toolbox.readthedocs.io/en/latest/modules/itertools.html#
+        .. [Hettinger_namedproduct] https://twitter.com/raymondh/status/970380630822305792
 
     Example:
         >>> # An example use case is looping over all possible settings in a
@@ -846,8 +847,8 @@ def varied_values(longform, min_variations=0, default=NoParam):
 
     Args:
         longform (List[Dict]):
-            This is longform data, as described in [1]_. It is a list of
-            dictionaries.
+            This is longform data, as described in [SeabornLongform]_. It is a
+            list of dictionaries.
 
             Each item in the list - or row - is a dictionary and can be thought
             of as an observation. The keys in each dictionary are the columns.
@@ -871,7 +872,7 @@ def varied_values(longform, min_variations=0, default=NoParam):
             do not contain the same columns.
 
     References:
-        .. [1] https://seaborn.pydata.org/tutorial/data_structure.html#long-form-data
+        .. [SeabornLongform] https://seaborn.pydata.org/tutorial/data_structure.html#long-form-data
 
     Example:
         >>> # An example use case is to determine what values of a
