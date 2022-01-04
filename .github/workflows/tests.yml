@@ -32,7 +32,8 @@ jobs:
     - name: Typecheck with mypy
       run: |
         # stop the build if there are Python syntax errors or undefined names
-        pip install mypy
+        pip install mypy 
+        mypy --install-types
         mypy ./ubelt 
 
   build_and_test_sdist:
