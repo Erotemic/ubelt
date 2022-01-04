@@ -362,7 +362,6 @@ def find_path(name, path=None, exact=False):
     Example:
         >>> list(find_path('ping', exact=True))
         >>> list(find_path('bin'))
-        >>> list(find_path('bin'))
         >>> list(find_path('*cc*'))
         >>> list(find_path('cmake*'))
 
