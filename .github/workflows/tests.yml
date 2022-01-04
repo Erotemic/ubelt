@@ -33,7 +33,7 @@ jobs:
       run: |
         # stop the build if there are Python syntax errors or undefined names
         pip install mypy 
-        mypy --install-types
+        mypy --install-types --non-interactive ./ubelt
         mypy ./ubelt 
 
   build_and_test_sdist:
