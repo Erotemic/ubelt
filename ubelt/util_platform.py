@@ -35,7 +35,6 @@ References:
     .. [SO_11113974] https://stackoverflow.com/questions/11113974/cross-plat-path
     .. [harawata_appdirs] https://github.com/harawata/appdirs#supported-directories
     .. [AS_appdirs] https://github.com/ActiveState/appdirs
-    .. [SO_43853548] https://stackoverflow.com/questions/43853548/xdg-windows
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 import os
