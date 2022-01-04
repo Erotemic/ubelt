@@ -846,7 +846,7 @@ def varied_values(longform, min_variations=0, default=NoParam):
     Given a list of dictionaries, find the values that differ between them.
 
     Args:
-        longform (List[Dict]):
+        longform (List[Dict[KT, VT]]):
             This is longform data, as described in [SeabornLongform]_. It is a
             list of dictionaries.
 
@@ -859,11 +859,12 @@ def varied_values(longform, min_variations=0, default=NoParam):
             "columns" with fewer than ``min_variations`` unique values are
             removed from the result.
 
-        default (object, default=NoParam):
+        default (VT, default=NoParam):
             if specified, unspecified columns are given this value.
 
     Returns:
-        dict : a mapping from each "column" to the set of unique values it took
+        Dict[KT, List[VT]] :
+            a mapping from each "column" to the set of unique values it took
             over each "row". If a column is not specified for each row, it is
             assumed to take a `default` value, if it is specified.
 
