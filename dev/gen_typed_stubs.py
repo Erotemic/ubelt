@@ -2,6 +2,9 @@
 Script for auto-generating pyi type extension files from google-style
 docstrings
 
+Requirements:
+    pip install mypy autoflake yapf
+
 CommandLine:
     # Run script to parse google-style docstrings and write pyi files
     python ~/code/ubelt/dev/gen_typed_stubs.py
@@ -118,7 +121,7 @@ def generate_typed_stubs():
         modules=[],
         packages=[],
         files=files,
-        verbose=0,
+        verbose=False,
         quiet=False,
         export_less=True)
     # generate_stubs(options)
