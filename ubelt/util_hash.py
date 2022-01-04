@@ -136,11 +136,13 @@ if PY2:
 
     def _py2_to_bytes(int_, length, byteorder='big', signed=True):
         """
+        Workaround for [PythonBug16580]_.
+
         Args:
             length (int) : number of bytes (not bits)
 
         References:
-            https://bugs.python.org/issue16580
+            .. [PythonBug16580] https://bugs.python.org/issue16580
         """
         # convert nbytes to nbits
         bit_width = length * 8
@@ -425,7 +427,7 @@ class HashableExtensions(object):
             ...     def __init__(self, id):
             ...         self.id = id
             >>> data = MyType(1)
-            >>> # Custom types wont work with ub.hash_data by default
+            >>> # Custom types won't work with ub.hash_data by default
             >>> with pytest.raises(TypeError):
             ...     ub.hash_data(data)
             >>> # To handle custom types, you can create custom extensions
@@ -447,7 +449,7 @@ class HashableExtensions(object):
             ...     def __init__(self, id):
             ...         self.id = id
             >>> data = MyType(1)
-            >>> # Custom types wont work with ub.hash_data by default
+            >>> # Custom types won't work with ub.hash_data by default
             >>> with pytest.raises(TypeError):
             ...     ub.hash_data(data)
             >>> # You can register your functions with ubelt's internal
@@ -502,7 +504,7 @@ class HashableExtensions(object):
             >>> data = Foo()
             >>> assert pytest.raises(TypeError, self.lookup, data)
 
-            >>> # If ub.hash_data doesnt support your object,
+            >>> # If ub.hash_data does not support your object,
             >>> # then you can register it.
             >>> @self.register(Foo)
             >>> def _hashfoo(data):
@@ -1140,8 +1142,8 @@ def hash_file(fpath, blocksize=1048576, stride=1, maxbytes=None, hasher=NoParam,
         Blocksize matters when stride > 1.
 
     References:
-        http://stackoverflow.com/questions/3431825/md5-checksum-of-a-file
-        http://stackoverflow.com/questions/5001893/when-to-use-sha-1-vs-sha-2
+        .. [SO_3431825] http://stackoverflow.com/questions/3431825/md5-checksum-of-a-file
+        .. [SO_5001893] http://stackoverflow.com/questions/5001893/when-to-use-sha-1-vs-sha-2
 
     Example:
         >>> import ubelt as ub

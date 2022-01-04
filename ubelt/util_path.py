@@ -17,7 +17,7 @@ the operating system.
 The :func:`ensuredir` function operates like ``mkdir -p`` in unix.
 
 The :class:`Path` object is an extension of :class:`pathlib.Path` that contains
-extra convinience methods corresponding to the extra functional methods in this
+extra convenience methods corresponding to the extra functional methods in this
 module.
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
@@ -64,7 +64,7 @@ def augpath(path, suffix='', prefix='', ext=None, base=None, dpath=None,
 
         base (str | None, default=None):
             if specified, replaces the basename without extension.
-            Note: this is refered to as stem in :class:`ub.Path`.
+            Note: this is referred to as stem in :class:`ub.Path`.
 
         dpath (str | PathLike | None, default=None):
             if specified, replaces the specified "relative" directory, which by
@@ -219,7 +219,7 @@ def shrinkuser(path, home='~'):
             '%USERPROFILE%' instead.
 
     Returns:
-        str: path - shortened path replacing the home directory with a tilde
+        str: path - shortened path replacing the home directory with a symbol
 
     Example:
         >>> from ubelt.util_path import *  # NOQA
@@ -283,7 +283,7 @@ def ensuredir(dpath, mode=0o1777, verbose=0, recreate=False):
         str: path - the ensured directory
 
     SeeAlso:
-        :method:`ub.Path.ensuredir`
+        :func:`ubelt.Path.ensuredir`
 
     Note:
         This function is not thread-safe in Python2
@@ -378,7 +378,7 @@ _PathBase = pathlib.WindowsPath if os.name == 'nt' else pathlib.PosixPath
 
 class Path(_PathBase):
     """
-    An extension of :class:`pathlib.Path` with extra convinience methods
+    An extension of :class:`pathlib.Path` with extra convenience methods
     """
 
     def ensuredir(self, mode=0o777):
@@ -408,8 +408,9 @@ class Path(_PathBase):
 
     def expandvars(self):
         """
-        As discussed in CPythonIssue21301_, CPython wont be adding expandvars
-        to pathlib. I think this is a mistake, so I added it in this extension.
+        As discussed in [CPythonIssue21301]_, CPython won't be adding
+        expandvars to pathlib. I think this is a mistake, so I added it in this
+        extension.
 
         Returns:
             Path: path with expanded environment variables
@@ -455,7 +456,7 @@ class Path(_PathBase):
                 '%USERPROFILE%' instead.
 
         Returns:
-            str: path - shortened path replacing the home directory with a tilde
+            Path: path - shortened path replacing the home directory with a symbol
 
         Example:
             >>> import ubelt as ub

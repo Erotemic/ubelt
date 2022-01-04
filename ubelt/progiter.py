@@ -652,7 +652,7 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
             self._est_seconds_left  = est_eta
 
         # Adjust frequency if printing too quickly
-        # so progress doesnt slow down actual function
+        # so progress does not slow down actual function
         if self.adjust and (self._between_time < self.time_thresh or
                             self._between_time > self.time_thresh * 2.0):
             self._adjust_frequency()

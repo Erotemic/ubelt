@@ -112,12 +112,14 @@ def repr2(data, **kwargs):
         explicit (bool, default=False):
             changes dict representation from ``{k1: v1, ...}`` to
             ``dict(k1=v1, ...)``.
+
             Modifies:
                 default kvsep is modified to  ``'='``
                 dict braces from `{}` to `dict()`.
 
         compact (bool, default=False):
             Produces values more suitable for space constrianed environments
+
             Modifies:
                 default kvsep is modified to ``'='``
                 default itemsep is modified to  ``''``
@@ -150,6 +152,7 @@ def repr2(data, **kwargs):
             if True, attempts to sort all collections in the returned text.
             Currently if True this WILL sort lists.
             Currently if True this WILL NOT sort OrderedDicts.
+
             NOTE:
                 The previous behavior may not be intuitive, as such the
                 behavior of this arg is subject to change.
@@ -186,7 +189,6 @@ def repr2(data, **kwargs):
         :func:`pprint.pformat`
 
     Example:
-        >>> from ubelt.util_format import *
         >>> import ubelt as ub
         >>> dict_ = {
         ...     'custom_types': [slice(0, 1, None), 1/3],
@@ -203,7 +205,7 @@ def repr2(data, **kwargs):
         ... }
         >>> # In the interest of saving space we are only going to show the
         >>> # output for the first example.
-        >>> result = repr2(dict_, nl=1, precision=2)
+        >>> result = ub.repr2(dict_, nl=1, precision=2)
         >>> print(result)
         {
             'custom_types': [slice(0, 1, None), 0.33],
@@ -216,28 +218,28 @@ def repr2(data, **kwargs):
             'simple_list': [1, 2, 'red', 'blue'],
         }
         >>> # You can try the rest yourself.
-        >>> result = repr2(dict_, nl=3, precision=2); print(result)
-        >>> result = repr2(dict_, nl=2, precision=2); print(result)
-        >>> result = repr2(dict_, nl=1, precision=2, itemsep='', explicit=True); print(result)
-        >>> result = repr2(dict_, nl=1, precision=2, nobr=1, itemsep='', explicit=True); print(result)
-        >>> result = repr2(dict_, nl=3, precision=2, cbr=True); print(result)
-        >>> result = repr2(dict_, nl=3, precision=2, si=True); print(result)
-        >>> result = repr2(dict_, nl=3, sort=True); print(result)
-        >>> result = repr2(dict_, nl=3, sort=False, trailing_sep=False); print(result)
-        >>> result = repr2(dict_, nl=3, sort=False, trailing_sep=False, nobr=True); print(result)
+        >>> result = ub.repr2(dict_, nl=3, precision=2); print(result)
+        >>> result = ub.repr2(dict_, nl=2, precision=2); print(result)
+        >>> result = ub.repr2(dict_, nl=1, precision=2, itemsep='', explicit=True); print(result)
+        >>> result = ub.repr2(dict_, nl=1, precision=2, nobr=1, itemsep='', explicit=True); print(result)
+        >>> result = ub.repr2(dict_, nl=3, precision=2, cbr=True); print(result)
+        >>> result = ub.repr2(dict_, nl=3, precision=2, si=True); print(result)
+        >>> result = ub.repr2(dict_, nl=3, sort=True); print(result)
+        >>> result = ub.repr2(dict_, nl=3, sort=False, trailing_sep=False); print(result)
+        >>> result = ub.repr2(dict_, nl=3, sort=False, trailing_sep=False, nobr=True); print(result)
 
     Example:
-        >>> from ubelt.util_format import *
+        >>> import ubelt as ub
         >>> def _nest(d, w):
         ...     if d == 0:
         ...         return {}
         ...     else:
         ...         return {'n{}'.format(d): _nest(d - 1, w + 1), 'm{}'.format(d): _nest(d - 1, w + 1)}
         >>> dict_ = _nest(d=4, w=1)
-        >>> result = repr2(dict_, nl=6, precision=2, cbr=1)
+        >>> result = ub.repr2(dict_, nl=6, precision=2, cbr=1)
         >>> print('---')
         >>> print(result)
-        >>> result = repr2(dict_, nl=-1, precision=2)
+        >>> result = ub.repr2(dict_, nl=-1, precision=2)
         >>> print('---')
         >>> print(result)
 
@@ -974,7 +976,7 @@ def _sort_itemstrs(items, itemstrs, key=None):
     string values are used to define an ordering.
     """
     # First try to sort items by their normal values
-    # If that doesnt work, then sort by their string values
+    # If that does not work, then sort by their string values
     import ubelt as ub
     try:
         # Set ordering is not unique. Sort by strings values instead.

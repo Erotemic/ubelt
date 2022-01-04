@@ -57,3 +57,27 @@ class TempDir:
 
     def __exit__(self, type_, value, trace) -> None:
         ...
+
+
+class Path:
+    def ensuredir(self, mode: int = ...) -> 'Path':
+        ...
+
+    def expandvars(self) -> 'Path':
+        ...
+
+    def expand(self) -> 'Path':
+        ...
+
+    def shrinkuser(self, home: str = ...) -> 'Path':
+        ...
+
+    def augment(self,
+                suffix: str = ...,
+                prefix: str = ...,
+                ext: Union[str, None] = ...,
+                stem: Union[str, None] = ...,
+                dpath: Union[str, PathLike, None] = ...,
+                relative: Union[str, PathLike, None] = ...,
+                multidot: bool = ...) -> 'Path':
+        ...

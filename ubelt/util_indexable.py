@@ -8,7 +8,7 @@ import sys
 try:
     from collections.abc import Generator
 except Exception:
-    # Python <3.4 doesnt have Generator ABC
+    # Python <3.4 does not have Generator ABC
     Generator = object  # type: ignore
 
 

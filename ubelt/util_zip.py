@@ -388,8 +388,8 @@ class zopen(NiceRepr):
                     data = _handle.read()
                     _handle = io.BytesIO(data)
                 elif self.mode == 'r':
-                    # FIXME: doesnt always work. handle seems to be closed too
-                    # soon in the case util.zopen(module.__file__).read()
+                    # FIXME: does not always work. handle seems to be closed
+                    # too soon in the case util.zopen(module.__file__).read()
                     _handle = io.TextIOWrapper(_handle)
                 else:
                     raise KeyError(self.mode)

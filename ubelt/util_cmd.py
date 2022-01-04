@@ -95,7 +95,7 @@ def _proc_iteroutput_thread(proc):
         Tuple[str, str]: oline, eline: stdout and stderr line
 
     References:
-        https://stackoverflow.com/questions/375427/non-blocking-read-subproc
+        .. [SO_375427] https://stackoverflow.com/questions/375427/non-blocking-read-subproc
     """
     from six.moves import queue
 
@@ -248,8 +248,8 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
     Note:
         Inputs can either be text or tuple based. On UNIX we ensure conversion
         to text if shell=True, and to tuple if shell=False. On windows, the
-        input is always text based.  See [3]_ for a potential cross-platform
-        shlex solution for windows.
+        input is always text based.  See [SO_33560364]_ for a potential
+        cross-platform shlex solution for windows.
 
     CommandLine:
         xdoctest -m ubelt.util_cmd cmd:6
@@ -257,9 +257,9 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
         pytest "$(python -c 'import ubelt; print(ubelt.util_cmd.__file__)')" -sv --xdoctest-verbose 2
 
     References:
-        .. [1] https://stackoverflow.com/questions/11495783/redirect-subprocess-stderr-to-stdout
-        .. [2] https://stackoverflow.com/questions/7729336/how-can-i-print-and-display-subprocess-stdout-and-stderr-output-without-distorti
-        .. [3] https://stackoverflow.com/questions/33560364/python-windows-parsing-command-lines-with-shlex
+        .. [SO_11495783] https://stackoverflow.com/questions/11495783/redirect-subprocess-stderr-to-stdout
+        .. [SO_7729336] https://stackoverflow.com/questions/7729336/how-can-i-print-and-display-subprocess-stdout-and-stderr-output-without-distorti
+        .. [SO_33560364] https://stackoverflow.com/questions/33560364/python-windows-parsing-command-lines-with-shlex
 
     Example:
         >>> import ubelt as ub

@@ -114,7 +114,7 @@ class PythonPathContext(object):
                 raise RuntimeError('\n'.join(msg_parts))
             else:
                 # We were able to recover, but warn the user. This method of
-                # recovery is a heuristic and doesnt work in some cases.
+                # recovery is a heuristic and does not work in some cases.
                 msg_parts.append((
                     'Expected dpath was at index {}. '
                     'This could indicate conflicting module namespaces.'
@@ -143,7 +143,7 @@ def import_module_from_path(modpath, index=-1):
         ModuleType: the imported module
 
     References:
-        https://stackoverflow.com/questions/67631/import-module-given-path
+        .. [SO_67631] https://stackoverflow.com/questions/67631/import-module-given-path
 
     Note:
         If the module is part of a package, the package will be imported first.
@@ -264,7 +264,7 @@ def import_module_from_path(modpath, index=-1):
                 return module
         raise IOError('modpath={} does not exist'.format(modpath))
     else:
-        # the importlib version doesnt work in pytest
+        # the importlib version does not work in pytest
         module = _custom_import_modpath(modpath, index=index)
         # TODO: use this implementation once pytest fixes importlib
         # module = _importlib_import_modpath(modpath)
@@ -285,7 +285,7 @@ def import_module_from_name(modname):
         :func:`import_module_from_path`
 
     Example:
-        >>> # test with modules that wont be imported in normal circumstances
+        >>> # test with modules that won't be imported in normal circumstances
         >>> # todo write a test where we guarantee this
         >>> modname_list = [
         >>>     'pickletools',

@@ -5,7 +5,10 @@ We are currently working on porting this changelog to the specifications in
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
-## Version 0.11.0 - Unreleased
+## Version 0.11.1 - Unreleased
+
+
+## Version 0.11.0 - Released 2022-01-03
 
 ### Added
 * Added `ubelt.Path`, as an extension and quicker-to-type version of pathlib.Path with extra functionality.

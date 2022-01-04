@@ -203,7 +203,7 @@ def ensure_unicode(text):
         str
 
     References:
-        http://stackoverflow.com/questions/12561063/extract-data-from-file
+        [SO_12561063] http://stackoverflow.com/questions/12561063/extract-data-from-file
 
     Example:
         >>> from ubelt.util_str import *
