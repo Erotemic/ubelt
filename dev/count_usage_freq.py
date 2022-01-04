@@ -6,7 +6,7 @@ import scriptconfig as scfg
 class UsageConfig(scfg.Config):
     default = {
         'print_packages': False,
-        'remove_zeros': True,
+        'remove_zeros': False,
         'hardcoded_ubelt_hack': True,
         'extra_modnames': [],
     }
