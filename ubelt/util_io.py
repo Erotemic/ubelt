@@ -148,7 +148,7 @@ def touch(fpath, mode=0o666, dir_fd=None, verbose=0, **kwargs):
         str: path to the file
 
     References:
-        https://stackoverflow.com/questions/1158076/implement-touch-using-python
+        .. [SO_1158076] https://stackoverflow.com/questions/1158076/implement-touch-using-python
 
     Example:
         >>> import ubelt as ub

@@ -408,8 +408,9 @@ class Path(_PathBase):
 
     def expandvars(self):
         """
-        As discussed in CPythonIssue21301_, CPython won't be adding expandvars
-        to pathlib. I think this is a mistake, so I added it in this extension.
+        As discussed in [CPythonIssue21301]_, CPython won't be adding
+        expandvars to pathlib. I think this is a mistake, so I added it in this
+        extension.
 
         Returns:
             Path: path with expanded environment variables

@@ -36,13 +36,13 @@ class _NoParamType(object):
     r"""
     Class used to define :data:`NoParam`, a sentinel that acts like None when
     None might be a valid value. The value of :data:`NoParam` is robust to
-    reloading, pickling, and copying.
+    reloading, pickling, and copying. See [SO_41048643]_ for more details.
 
     However, try to never assign this value to a persistent variable.  Use this
     class sparingly.
 
     References:
-        _[1] http://stackoverflow.com/questions/41048643/a-second-none
+        .. [SO_41048643]: http://stackoverflow.com/questions/41048643/a-second-none
 
     Example:
         >>> import ubelt as ub

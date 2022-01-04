@@ -143,7 +143,7 @@ def import_module_from_path(modpath, index=-1):
         ModuleType: the imported module
 
     References:
-        https://stackoverflow.com/questions/67631/import-module-given-path
+        .. [SO_67631] https://stackoverflow.com/questions/67631/import-module-given-path
 
     Note:
         If the module is part of a package, the package will be imported first.

@@ -95,7 +95,7 @@ def _proc_iteroutput_thread(proc):
         Tuple[str, str]: oline, eline: stdout and stderr line
 
     References:
-        https://stackoverflow.com/questions/375427/non-blocking-read-subproc
+        .. [SO_375427] https://stackoverflow.com/questions/375427/non-blocking-read-subproc
     """
     from six.moves import queue
 

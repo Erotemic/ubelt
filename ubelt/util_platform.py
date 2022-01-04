@@ -291,8 +291,8 @@ def find_exe(name, multi=False, path=None):
         This is essentially the ``which`` UNIX command
 
     References:
-        https://stackoverflow.com/questions/377017/test-if-executable-exists-in-python/377028#377028
-        https://docs.python.org/dev/library/shutil.html#shutil.which
+        .. [SO_377017] https://stackoverflow.com/questions/377017/test-if-executable-exists-in-python/377028#377028
+        .. [shutil_which] https://docs.python.org/dev/library/shutil.html#shutil.which
 
     Example:
         >>> find_exe('ls')

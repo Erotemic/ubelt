@@ -136,11 +136,13 @@ if PY2:
 
     def _py2_to_bytes(int_, length, byteorder='big', signed=True):
         """
+        Workaround for [PythonBug16580]_.
+
         Args:
             length (int) : number of bytes (not bits)
 
         References:
-            https://bugs.python.org/issue16580
+            .. [PythonBug16580] https://bugs.python.org/issue16580
         """
         # convert nbytes to nbits
         bit_width = length * 8
@@ -1140,8 +1142,8 @@ def hash_file(fpath, blocksize=1048576, stride=1, maxbytes=None, hasher=NoParam,
         Blocksize matters when stride > 1.
 
     References:
-        http://stackoverflow.com/questions/3431825/md5-checksum-of-a-file
-        http://stackoverflow.com/questions/5001893/when-to-use-sha-1-vs-sha-2
+        .. [SO_3431825] http://stackoverflow.com/questions/3431825/md5-checksum-of-a-file
+        .. [SO_5001893] http://stackoverflow.com/questions/5001893/when-to-use-sha-1-vs-sha-2
 
     Example:
         >>> import ubelt as ub

@@ -776,7 +776,7 @@ def _byte_str(num, unit='auto', precision=2):
         unit (str): which unit to use, can be auto, B, KB, MB, GB, or TB
 
     References:
-        https://en.wikipedia.org/wiki/Orders_of_magnitude_(data)
+        .. [WikiOrdersOfMag] https://en.wikipedia.org/wiki/Orders_of_magnitude_(data)
 
     Returns:
         str: string representing the number of bytes with appropriate units

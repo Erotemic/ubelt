@@ -84,7 +84,7 @@ class chunks(object):
             subsequent non-overlapping chunks of the input items
 
     References:
-        http://stackoverflow.com/questions/434287/iterate-over-a-list-in-chunks
+        .. [SO_434287] http://stackoverflow.com/questions/434287/iterate-over-a-list-in-chunks
 
     Example:
         >>> import ubelt as ub
