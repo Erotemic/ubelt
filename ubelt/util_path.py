@@ -26,11 +26,16 @@ from os.path import (
 )
 import os
 import sys
-import pathlib
 from ubelt import util_io
 
-
 PY2 = sys.version_info[0] == 2
+PY_LE_35 = sys.version_info[0:2] <= (3, 5)
+
+if PY2:
+    # Use pathlib2 backport in Python2
+    import pathlib2 as pathlib
+else:
+    import pathlib
 
 
 __all__ = [
@@ -572,22 +577,8 @@ class Path(_PathBase):
             >>> dpath1.delete()
             >>> assert not any(p.exists() for p in [dpath1, fpath1, fpath2])
         """
-        if PY2:
+        if PY_LE_35:
             util_io.delete(str(self))
         else:
             util_io.delete(self)
         return self
-
-    @classmethod
-    def home(cls):
-        """
-        Return a new path pointing to the user's home directory (as returned by
-        os.path.expanduser('~')).
-
-        Returns:
-            Path: home dir
-
-        Notes:
-            Only defined in ubelt for Python 2.7, can remove once we drop it
-        """
-        return cls('~').expanduser()
