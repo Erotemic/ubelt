@@ -583,6 +583,10 @@ class Path(_PathBase):
             util_io.delete(self)
         return self
 
+    def __fspath__(self):
+        # Only for 3.5. Remove after 3.5 support is removed.
+        return str(self)
+
 
 if PY_LE_35:  # nocover
     def _fspath(path):
