@@ -27,6 +27,7 @@ from os.path import (
 import os
 import sys
 import pathlib
+from ubelt import util_io
 
 
 PY2 = sys.version_info[0] == 2
@@ -381,6 +382,24 @@ class Path(_PathBase):
     An extension of :class:`pathlib.Path` with extra convenience methods
     """
 
+    def touch(self, mode=0o666, exist_ok=True):
+        """
+        Create this file with the given access mode, if it doesn't exist.
+
+        Returns:
+            Path: returns itself
+
+        Notes:
+            The :func:`ubelt.util_io.touch` function currently has a slightly
+            different implementation. This uses whatever the pathlib version
+            is. This may change in the future.
+        """
+        # modify touch to return self
+        # Note: util_io.touch is more expressive than standard python
+        # touch, may want to use that instead.
+        super(Path, self).touch(mode=mode, exist_ok=exist_ok)
+        return self
+
     def ensuredir(self, mode=0o777):
         """
         Concise alias of ``self.mkdir(parents=True, exist_ok=True)``
@@ -434,7 +453,6 @@ class Path(_PathBase):
             >>> #home_v1 = ub.Path('$HOME').expand()
             >>> home_v2 = ub.Path('~/').expand()
             >>> assert isinstance(home_v2, ub.Path)
-            >>> # xdoctest: +REQUIRES(PY3)
             >>> home_v3 = ub.Path.home()
             >>> #print('home_v1 = {!r}'.format(home_v1))
             >>> print('home_v2 = {!r}'.format(home_v2))
@@ -526,3 +544,50 @@ class Path(_PathBase):
                           multidot=multidot)
         new = self.__class__(aug)
         return new
+
+    def delete(self):
+        """
+        Removes a file or recursively removes a directory.
+        If a path does not exist, then this is does nothing.
+
+        SeeAlso:
+            :func:`ubelt.delete`
+
+        Returns:
+            Path: reference to self
+
+        Example:
+            >>> import ubelt as ub
+            >>> from os.path import join
+            >>> base = ub.Path(ub.ensure_app_cache_dir('ubelt', 'delete_test2'))
+            >>> dpath1 = (base / 'dir').ensuredir()
+            >>> (base / 'dir' / 'subdir').ensuredir()
+            >>> (base / 'dir' / 'to_remove1.txt').touch()
+            >>> fpath1 = (base / 'dir' / 'subdir' / 'to_remove3.txt').touch()
+            >>> fpath2 = (base / 'dir' / 'subdir' / 'to_remove2.txt').touch()
+            >>> assert all(p.exists() for p in [dpath1, fpath1, fpath2])
+            >>> fpath1.delete()
+            >>> assert all(p.exists() for p in [dpath1, fpath2])
+            >>> assert not fpath1.exists()
+            >>> dpath1.delete()
+            >>> assert not any(p.exists() for p in [dpath1, fpath1, fpath2])
+        """
+        if PY2:
+            util_io.delete(str(self))
+        else:
+            util_io.delete(self)
+        return self
+
+    @classmethod
+    def home(cls):
+        """
+        Return a new path pointing to the user's home directory (as returned by
+        os.path.expanduser('~')).
+
+        Returns:
+            Path: home dir
+
+        Notes:
+            Only defined in ubelt for Python 2.7, can remove once we drop it
+        """
+        return cls('~').expanduser()

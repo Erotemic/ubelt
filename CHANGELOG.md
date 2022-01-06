@@ -7,6 +7,11 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## Version 0.11.1 - Unreleased
 
+### Added
+* More `ubelt.Path` extensions for `delete` 
+
+### Changed
+* Modified default `ubelt.Path` behavior for `touch` to return a self-reference for chaining
 
 ## Version 0.11.0 - Released 2022-01-03
 

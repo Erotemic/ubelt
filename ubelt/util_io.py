@@ -187,6 +187,14 @@ def delete(path, verbose=False):
             A cross-platform Python package for sending files to the trash
             instead of irreversibly deleting them.
 
+        :func:`ubelt.util_path.Path.delete`
+
+    Notes:
+        This can call :func:`os.unlink`, :func:`os.rmdir`, or
+        :func:`shutil.rmtree`, depending on what ``path`` references on the
+        filesystem. (On windows may also call a custom
+        :func:`ubelt._win32_links._win32_rmtree`).
+
     Example:
         >>> import ubelt as ub
         >>> from os.path import join
