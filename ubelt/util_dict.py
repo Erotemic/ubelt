@@ -323,6 +323,10 @@ def find_duplicates(items, k=2, key=None):
         dict[T, List[int]] :
             maps each duplicate item to the indices at which it appears
 
+    Notes:
+        Similar to :func:`more_itertools.duplicates_everseen`,
+        :func:`more_itertools.duplicates_justseen`.
+
     Example:
         >>> import ubelt as ub
         >>> items = [0, 0, 1, 2, 3, 3, 0, 12, 2, 9]

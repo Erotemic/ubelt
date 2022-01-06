@@ -544,12 +544,22 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
         self._iters_per_second = 0.0
         self._update_message_template()
 
+    def start(self):
+        """
+        Alias of :func:`ubelt.progiter.ProgIter.begin`
+        """
+        return self.begin()
+
     def begin(self):
         """
         Initializes information used to measure progress
 
         This only needs to be used if this ProgIter is not wrapping an iterable.
         Does nothing if the this ProgIter is disabled.
+
+        Returns:
+            ProgIter:
+                a chainable self-reference
         """
         if not self.enabled:
             return
@@ -576,6 +586,7 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
         self._cursor_at_newline = not self.clearline
         self.started = True
         self.finished = False
+        return self
 
     def end(self):
         """
