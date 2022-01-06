@@ -544,7 +544,7 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
         self._iters_per_second = 0.0
         self._update_message_template()
 
-    def start(self):
+    def start(self):  # nocover
         """
         Alias of :func:`ubelt.progiter.ProgIter.begin`
         """
