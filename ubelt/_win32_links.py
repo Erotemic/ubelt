@@ -22,6 +22,7 @@ from os.path import exists
 from os.path import join
 from ubelt import util_io
 from ubelt import util_path
+from ubelt.util_path import _fspath
 import sys
 
 if sys.platform.startswith('win32'):

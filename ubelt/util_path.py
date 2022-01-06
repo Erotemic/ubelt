@@ -582,3 +582,41 @@ class Path(_PathBase):
         else:
             util_io.delete(self)
         return self
+
+
+if PY_LE_35:  # nocover
+    def _fspath(path):
+        """
+        Return the file system path representation of the object.
+
+        If the object is str or bytes, then allow it to pass through as-is. If
+        the object defines __fspath__(), then return the result of that method.
+        All other types raise a TypeError.
+
+        Internal helper for cases where os.fspath does not exist on older Python
+        """
+        import six
+        string_types = six.string_types
+
+        if isinstance(path, string_types):
+            return path
+
+        # Work from the object's type to match method resolution of other magic
+        # methods.
+        path_type = type(path)
+        try:
+            path_repr = path_type.__fspath__(path)
+        except AttributeError:
+            if hasattr(path_type, '__fspath__'):
+                raise
+            else:
+                raise TypeError("expected str, bytes or os.PathLike object, "
+                                "not " + path_type.__name__)
+        if isinstance(path_repr, string_types):
+            return path_repr
+        else:
+            raise TypeError("expected {}.__fspath__() to return str or bytes, "
+                            "not {}".format(path_type.__name__,
+                                            type(path_repr).__name__))
+else:
+    _fspath = os.fspath

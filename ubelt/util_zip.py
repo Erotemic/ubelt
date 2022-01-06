@@ -15,40 +15,23 @@ will read it directly from the archive, but in some cases it may extract it to
 a temporary directory first.
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
-import os
-import sys
 import io
+import os
 import re
+import sys
 import tempfile
 import zipfile
 from os.path import exists, join
 from ubelt.util_mixins import NiceRepr
+from ubelt.util_path import _fspath
 
 __all__ = ['zopen', 'split_archive']
 
 PY2 = (sys.version_info[0] == 2)
 
+
 if PY2:
     OSError = IOError
-    def _fspath(p):
-        import pathlib
-        if isinstance(p, (str, unicode)):  # NOQA
-            return p
-        elif isinstance(p, pathlib.Path):
-            return str(p)
-        else:
-            raise TypeError
-elif sys.version_info[0:2] >= (3, 6):  # nocover
-    _fspath = os.fspath
-else:  # nocover
-    def _fspath(p):
-        import pathlib
-        if isinstance(p, (str, bytes)):  # NOQA
-            return p
-        elif isinstance(p, pathlib.Path):
-            return str(p)
-        else:
-            raise TypeError
 
 
 def split_archive(fpath, ext='.zip'):
@@ -61,9 +44,8 @@ def split_archive(fpath, ext='.zip'):
         >>> split_archive('/a/b/foo.zip/bar.txt')
         >>> split_archive('/a/b/foo.zip/baz/biz.zip/bar.py')
         >>> split_archive('archive.zip')
-        >>> # xdoctest: +REQUIRES(module:pathlib)
-        >>> import pathlib
-        >>> split_archive(pathlib.Path('/a/b/foo.zip/baz/biz.zip/bar.py'))
+        >>> import ubelt as ub
+        >>> split_archive(ub.Path('/a/b/foo.zip/baz/biz.zip/bar.py'))
         >>> split_archive('/a/b/foo.zip/baz.pt/bar.zip/bar.zip', '.pt')
 
     TODO:
@@ -140,11 +122,10 @@ class zopen(NiceRepr):
 
     Example:
         >>> from ubelt.util_zip import *  # NOQA
-        >>> import pathlib
         >>> import pickle
         >>> import ubelt as ub
         >>> dpath = ub.ensure_app_cache_dir('ubelt/tests/util_zip')
-        >>> dpath = pathlib.Path(dpath)
+        >>> dpath = ub.Path(dpath)
         >>> data_fpath = dpath / 'test.pkl'
         >>> data = {'demo': 'data'}
         >>> with open(str(data_fpath), 'wb') as file:
