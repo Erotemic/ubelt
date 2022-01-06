@@ -9,6 +9,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### Added
 * More `ubelt.Path` extensions for `delete` 
+* Add `timeout` parameter to `ubelt.download`
 
 ### Changed
 * Modified default `ubelt.Path` behavior for `touch` to return a self-reference for chaining
