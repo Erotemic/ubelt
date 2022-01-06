@@ -577,7 +577,7 @@ class Path(_PathBase):
             >>> dpath1.delete()
             >>> assert not any(p.exists() for p in [dpath1, fpath1, fpath2])
         """
-        if PY_LE_35:
+        if PY_LE_35:  # nocover
             util_io.delete(str(self))
         else:
             util_io.delete(self)

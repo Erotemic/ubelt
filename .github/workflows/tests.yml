@@ -64,9 +64,7 @@ jobs:
         ls -al
         # Run the tests
         # Get path to installed package
-        MOD_DPATH=$(python -c "import ubelt, os; print(os.path.dirname(ubelt.__file__))")
-        echo "MOD_DPATH = $MOD_DPATH"
-        python -m pytest --xdoctest --cov=ubelt $MOD_DPATH ./tests
+        python -m pytest --xdoctest --cov=ubelt ./tests --pyargs ubelt
 
     - name: Test full sdist
       run: |
@@ -75,9 +73,7 @@ jobs:
         python -m pip install -r requirements/optional.txt
         # Run the tests
         # Get path to installed package
-        MOD_DPATH=$(python -c "import ubelt, os; print(os.path.dirname(ubelt.__file__))")
-        echo "MOD_DPATH = $MOD_DPATH"
-        python -m pytest --xdoctest $MOD_DPATH ./tests
+        python -m pytest --xdoctest ./tests --pyargs ubelt
 
 
     - name: Upload sdist artifact
@@ -196,9 +192,7 @@ jobs:
         cd $WORKSPACE_DNAME
         # Run the tests
         # Get path to installed package
-        MOD_DPATH=$(python -c "import ubelt, os; print(os.path.dirname(ubelt.__file__))")
-        echo "MOD_DPATH = $MOD_DPATH"
-        python -m pytest -p pytester -p no:doctest --xdoctest --cov-config ../.coveragerc --cov-report term --cov=ubelt $MOD_DPATH ../tests
+        python -m pytest -p pytester -p no:doctest --xdoctest --cov-config ../.coveragerc --cov-report term --cov=ubelt ../tests --pyargs ubelt
         mv .coverage "../.coverage.$WORKSPACE_DNAME"
         cd ..
         # Move coverage file to a new name

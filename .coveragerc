@@ -22,7 +22,7 @@ exclude_lines =
     .*sys.version_info[0] == 2:
 
 omit =
-    ubelt/tests/*
-    ubelt/_win32_links.py
-    ubelt/__main__.py
+    *ubelt/tests/*
+    *ubelt/_win32_links.py
+    *ubelt/__main__.py
     */setup.py
