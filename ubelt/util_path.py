@@ -396,10 +396,10 @@ class Path(_PathBase):
         >>> assert not aug_fpath.delete().exists()
         >>> assert dpath.exists()
         >>> assert not dpath.delete().exists()
-        >>> print(f'{fpath.shrinkuser()}')
-        >>> print(f'{dpath.shrinkuser()}')
-        >>> print(f'{aug_fpath.shrinkuser()}')
-        >>> print(f'{aug_dpath.shrinkuser()}')
+        >>> print(f'{str(fpath.shrinkuser()).replace(os.path.sep, "/")}')
+        >>> print(f'{str(dpath.shrinkuser()).replace(os.path.sep, "/")}')
+        >>> print(f'{str(aug_fpath.shrinkuser()).replace(os.path.sep, "/")}')
+        >>> print(f'{str(aug_dpath.shrinkuser()).replace(os.path.sep, "/")}')
         ~/.cache/ubelt/demo_path/text_file.txt
         ~/.cache/ubelt/demo_path
         ~/.cache/ubelt/demo_path/text_file.aux.jpg
