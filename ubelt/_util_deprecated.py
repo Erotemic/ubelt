@@ -3,7 +3,7 @@ This file contains functions to be deprecated, but are still accessible.
 """
 import warnings
 
-__all__ = []
+# __all__ = []
 
 
 DEP_SCHEDULE_1 = dict(deprecate='0.9.6', remove='1.0.0')
