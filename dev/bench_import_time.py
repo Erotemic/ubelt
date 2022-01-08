@@ -58,9 +58,8 @@ def benchmark_multi_or_combined_import():
 
 def benchmark_ubelt_import_time_robust():
     import ubelt as ub
-
     measurements = []
-    for i in ub.ProgIter(range(100), desc='measure import time'):
+    for i in ub.ProgIter(range(1000), desc='measure import time'):
         row = {}
         info = ub.cmd('python -X importtime -c "import ubelt"')
         final_line = info['err'].rstrip().split('\n')[-1]
