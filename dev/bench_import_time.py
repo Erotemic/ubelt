@@ -56,10 +56,33 @@ def benchmark_multi_or_combined_import():
             info = ub.cmd('python -c "{}"'.format(multi_lines))
 
 
+def benchmark_ubelt_import_time_robust():
+    import ubelt as ub
+
+    measurements = []
+    for i in ub.ProgIter(range(100), desc='measure import time'):
+        row = {}
+        info = ub.cmd('python -X importtime -c "import ubelt"')
+        final_line = info['err'].rstrip().split('\n')[-1]
+        partial = final_line.split(':')[1].split('|')
+        row['self_us'] = float(partial[0].strip())
+        row['cummulative'] = float(partial[1].strip())
+        measurements.append(row)
+    import pandas as pd
+    df = pd.DataFrame(measurements)
+    stats = pd.DataFrame({
+        'mean': df.mean(),
+        'std': df.std(),
+        'min': df.min(),
+        'max': df.max(),
+        'total': df.sum(),
+    })
+    print(stats)
+
 if __name__ == '__main__':
     """
     CommandLine:
         python ~/code/ubelt/dev/bench_import_time.py
     """
     benchmark_import_time()
-    benchmark_multi_or_combined_import()
+    # benchmark_multi_or_combined_import()
