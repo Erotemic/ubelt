@@ -32,10 +32,6 @@ if sys.platform.startswith('win32'):  # nocover
 else:
     _win32_links = None
 
-PY2 = sys.version_info[0] == 2
-if PY2:
-    FileExistsError = IOError
-
 
 def symlink(real_path, link_path, overwrite=False, verbose=0):
     """

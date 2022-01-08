@@ -52,9 +52,6 @@ from ubelt import util_hash
 __all__ = ['memoize', 'memoize_method', 'memoize_property']
 
 
-PY2 = sys.version_info[0] == 2
-
-
 def _hashable(item):
     """
     Returns the item if it is naturally hashable, otherwise it tries to use
@@ -80,10 +77,7 @@ def _make_signature_key(args, kwargs):
         >>> print('key = {!r}'.format(key))
         >>> # Some mutable types cannot be handled by ub.hash_data
         >>> import pytest
-        >>> if PY2:
-        >>>     import collections as abc
-        >>> else:
-        >>>     from collections import abc
+        >>> from collections import abc
         >>> # This used to error, in ubelt versions < 0.9.5
         >>> _make_signature_key((4, [1, 2], {1: 2, 'a': 'b'}), kwargs={})
         >>> class Dummy(abc.MutableSet):
@@ -206,10 +200,7 @@ class memoize_method(object):
         self._func = func
         self._cache_name = '_cache__' + func.__name__
         # Mimic attributes of a bound method
-        if PY2:
-            self.im_func = func
-        else:
-            self.__func__ = func
+        self.__func__ = func
 
     def __get__(self, instance, cls=None):
         """

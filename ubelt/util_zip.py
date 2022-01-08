@@ -21,7 +21,6 @@ import tempfile
 import zipfile
 from os.path import exists, join
 from ubelt.util_mixins import NiceRepr
-from ubelt.util_path import _fspath
 
 __all__ = ['zopen', 'split_archive']
 
@@ -56,7 +55,7 @@ def split_archive(fpath, ext='.zip'):
         ('/a/b/foo.zip/baz/biz.zip', 'bar.py')
         ('/a/b/foo.zip/baz.pt', 'bar.zip/bar.zip')
     """
-    fpath = _fspath(fpath)
+    fpath = os.fspath(fpath)
     # fpath = os.fspath(fpath)
     pat = '({}[{}/:])'.format(re.escape(ext), re.escape(os.path.sep))
     # pat = r'(\'' + ext + '[' + re.escape(os.path.sep) + '/:])'
@@ -131,10 +130,10 @@ class zopen(NiceRepr):
         >>> # Write data
         >>> import zipfile
         >>> zip_fpath = dpath / 'test_zip.archive'
-        >>> stl_w_zfile = zipfile.ZipFile(_fspath(zip_fpath), mode='w')
-        >>> stl_w_zfile.write(_fspath(data_fpath), _fspath(data_fpath.relative_to(dpath)))
+        >>> stl_w_zfile = zipfile.ZipFile(os.fspath(zip_fpath), mode='w')
+        >>> stl_w_zfile.write(os.fspath(data_fpath), os.fspath(data_fpath.relative_to(dpath)))
         >>> stl_w_zfile.close()
-        >>> stl_r_zfile = zipfile.ZipFile(_fspath(zip_fpath), mode='r')
+        >>> stl_r_zfile = zipfile.ZipFile(os.fspath(zip_fpath), mode='r')
         >>> stl_r_zfile.namelist()
         >>> stl_r_zfile.close()
         >>> # Test zopen
@@ -347,7 +346,7 @@ class zopen(NiceRepr):
         if 'r' not in self.mode:
             raise NotImplementedError('Only read mode is supported for now')
         _handle = None
-        fpath = _fspath(self.fpath)
+        fpath = os.fspath(self.fpath)
         if exists(fpath):
             _handle = open(fpath, self.mode)
         elif self.ext + '/' in fpath or self.ext + os.path.sep in fpath:

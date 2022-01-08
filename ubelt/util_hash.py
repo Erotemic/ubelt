@@ -58,8 +58,6 @@ import hashlib
 import sys
 import math
 from collections import OrderedDict
-# from typing import List, Callable, Type, Dict  # NOQA
-# we will use NoParam instead of None because None is a valid hashlen setting
 from ubelt.util_const import NoParam
 
 __all__ = ['hash_data', 'hash_file']
@@ -364,29 +362,6 @@ def _rectify_base(base):
                 'Argument `base` must be a key, list, or tuple; not {}'.format(
                     type(base)))
         return base
-
-
-def _rectify_hashlen(hashlen):  # nocover
-    """
-    Example:
-        >>> assert _rectify_hashlen(NoParam) is None
-        >>> assert _rectify_hashlen(8) == 8
-    """
-    if hashlen is NoParam:
-        return None
-    else:  # nocover
-        # import warnings
-        from ubelt._util_deprecated import schedule_deprecation2
-        schedule_deprecation2(
-            migration='Use slice syntax instead', name='hashlen', type='kwarg',
-            deprecate='0.9.6', remove='1.0.0',
-        )
-        # warnings.warn('Specifying hashlen is deprecated and will be removed. '
-        #               'Use slice syntax instead', DeprecationWarning)
-        if hashlen == 'default':  # nocover
-            return None
-        else:
-            return hashlen
 
 
 class HashableExtensions(object):
@@ -1002,19 +977,19 @@ def _convert_hexstr_base(hexstr, base):
     return newbase_str
 
 
-def _digest_hasher(hasher, hashlen, base):
+def _digest_hasher(hasher, base):
     """ counterpart to _update_hasher """
     # Get a 128 character hex string
     hex_text = hasher.hexdigest()
     # Shorten length of string (by increasing base)
     base_text = _convert_hexstr_base(hex_text, base)
     # Truncate
-    text = base_text[:hashlen]
+    text = base_text
     return text
 
 
-def hash_data(data, hasher=NoParam, base=NoParam, types=False,
-              hashlen=NoParam, convert=False, extensions=None):
+def hash_data(data, hasher=NoParam, base=NoParam, types=False, convert=False,
+              extensions=None):
     """
     Get a unique hash depending on the state of the data.
 
@@ -1035,10 +1010,6 @@ def hash_data(data, hasher=NoParam, base=NoParam, types=False,
         types (bool):
             If True data types are included in the hash, otherwise only the raw
             data is hashed. Defaults to False.
-
-        hashlen (int):
-            Maximum number of symbols in the returned hash. If not specified,
-            all are returned.  DEPRECATED. Use slice syntax instead.
 
         convert (bool, default=True):
             if True, try and convert the data to json an the json is hashed
@@ -1083,17 +1054,16 @@ def hash_data(data, hasher=NoParam, base=NoParam, types=False,
             pass
 
     base = _rectify_base(base)
-    hashlen = _rectify_hashlen(hashlen)
     hasher = _rectify_hasher(hasher)()
     # Feed the data into the hasher
     _update_hasher(hasher, data, types=types, extensions=extensions)
     # Get the hashed representation
-    text = _digest_hasher(hasher, hashlen, base)
+    text = _digest_hasher(hasher, base)
     return text
 
 
-def hash_file(fpath, blocksize=1048576, stride=1, maxbytes=None, hasher=NoParam,
-              hashlen=NoParam, base=NoParam):
+def hash_file(fpath, blocksize=1048576, stride=1, maxbytes=None,
+              hasher=NoParam, base=NoParam):
     """
     Hashes the data in a file on disk.
 
@@ -1125,10 +1095,6 @@ def hash_file(fpath, blocksize=1048576, stride=1, maxbytes=None, hasher=NoParam,
             :mod:`xxhash` is installed.
 
             TODO: add logic such that you can update an existing hasher
-
-        hashlen (int):
-            maximum number of symbols in the returned hash. If not specified,
-            all are returned. DEPRECATED. DO NOT USE.
 
         base (List[str] | str, default='hex'):
             list of symbols or shorthand key.
@@ -1205,7 +1171,6 @@ def hash_file(fpath, blocksize=1048576, stride=1, maxbytes=None, hasher=NoParam,
         >>>     assert want.endswith(got)
     """
     base = _rectify_base(base)
-    hashlen = _rectify_hashlen(hashlen)
     hasher = _rectify_hasher(hasher)()
     with open(fpath, 'rb') as file:
         buf = file.read(blocksize)
@@ -1243,5 +1208,5 @@ def hash_file(fpath, blocksize=1048576, stride=1, maxbytes=None, hasher=NoParam,
                         buf = file.read(blocksize)
 
     # Get the hashed representation
-    text = _digest_hasher(hasher, hashlen, base)
+    text = _digest_hasher(hasher, base)
     return text

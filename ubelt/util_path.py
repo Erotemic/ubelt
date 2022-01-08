@@ -25,15 +25,7 @@ from os.path import (
 import os
 import sys
 from ubelt import util_io
-
-PY2 = sys.version_info[0] == 2
-PY_LE_35 = sys.version_info[0:2] <= (3, 5)
-
-if PY2:
-    # Use pathlib2 backport in Python2
-    import pathlib2 as pathlib
-else:
-    import pathlib
+import pathlib
 
 
 __all__ = [
@@ -249,9 +241,6 @@ def expandpath(path):
     """
     Shell-like environment variable and tilde path expansion.
 
-    Less aggressive than truepath. Only expands environs and tilde. Does not
-    change relative paths to absolute paths.
-
     Args:
         path (str | PathLike): string representation of a path
 
@@ -314,10 +303,7 @@ def ensuredir(dpath, mode=0o1777, verbose=0, recreate=False):
     if not exists(dpath):
         if verbose:
             print('Ensuring directory (creating {!r})'.format(dpath))
-        if PY2:  # nocover
-            os.makedirs(normpath(dpath), mode=mode)
-        else:
-            os.makedirs(normpath(dpath), mode=mode, exist_ok=True)
+        os.makedirs(normpath(dpath), mode=mode, exist_ok=True)
     else:
         if verbose:
             print('Ensuring directory (existing {!r})'.format(dpath))
@@ -327,6 +313,8 @@ def ensuredir(dpath, mode=0o1777, verbose=0, recreate=False):
 class TempDir(object):
     """
     Context for creating and cleaning up temporary directories.
+
+    DEPRECATE
 
     Note:
         This exists because :class:`tempfile.TemporaryDirectory` was
@@ -400,7 +388,7 @@ class Path(_PathBase):
         # modify touch to return self
         # Note: util_io.touch is more expressive than standard python
         # touch, may want to use that instead.
-        super(Path, self).touch(mode=mode, exist_ok=exist_ok)
+        super().touch(mode=mode, exist_ok=exist_ok)
         return self
 
     def ensuredir(self, mode=0o777):
@@ -421,11 +409,7 @@ class Path(_PathBase):
             >>> assert dpath.exists()
             >>> dpath.rmdir()
             """
-        if PY2:
-            if not self.exists():
-                self.mkdir(mode=mode, parents=True)
-        else:
-            self.mkdir(mode=mode, parents=True, exist_ok=True)
+        self.mkdir(mode=mode, parents=True, exist_ok=True)
         return self
 
     def expandvars(self):
@@ -462,10 +446,7 @@ class Path(_PathBase):
             >>> print('home_v3 = {!r}'.format(home_v3))
             >>> assert home_v3 == home_v2 # == home_v1
         """
-        if PY2:  # nocover
-            return self.__class__(os.path.expanduser(str(self.expandvars())))
-        else:
-            return self.expandvars().expanduser()
+        return self.expandvars().expanduser()
 
     def shrinkuser(self, home='~'):
         """
@@ -488,7 +469,7 @@ class Path(_PathBase):
             >>> assert str((path / '1').shrinkuser('$HOME')) == join('$HOME', '1')
             >>> assert str(ub.Path('.').shrinkuser()) == '.'
         """
-        shrunk = shrinkuser(str(self), home)
+        shrunk = shrinkuser(self, home)
         new = self.__class__(shrunk)
         return new
 
@@ -575,50 +556,5 @@ class Path(_PathBase):
             >>> dpath1.delete()
             >>> assert not any(p.exists() for p in [dpath1, fpath1, fpath2])
         """
-        if PY_LE_35:  # nocover
-            util_io.delete(str(self))
-        else:
-            util_io.delete(self)
+        util_io.delete(self)
         return self
-
-    def __fspath__(self):
-        # Only for 3.5. Remove after 3.5 support is removed.
-        return str(self)
-
-
-if PY_LE_35:  # nocover
-    def _fspath(path):
-        """
-        Return the file system path representation of the object.
-
-        If the object is str or bytes, then allow it to pass through as-is. If
-        the object defines __fspath__(), then return the result of that method.
-        All other types raise a TypeError.
-
-        Internal helper for cases where os.fspath does not exist on older Python
-        """
-        import six
-        string_types = six.string_types
-
-        if isinstance(path, string_types):
-            return path
-
-        # Work from the object's type to match method resolution of other magic
-        # methods.
-        path_type = type(path)
-        try:
-            path_repr = path_type.__fspath__(path)
-        except AttributeError:
-            if hasattr(path_type, '__fspath__'):
-                raise
-            else:
-                raise TypeError("expected str, bytes or os.PathLike object, "
-                                "not " + path_type.__name__)
-        if isinstance(path_repr, string_types):
-            return path_repr
-        else:
-            raise TypeError("expected {}.__fspath__() to return str or bytes, "
-                            "not {}".format(path_type.__name__,
-                                            type(path_repr).__name__))
-else:
-    _fspath = os.fspath

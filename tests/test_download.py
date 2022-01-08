@@ -225,13 +225,8 @@ def test_download_bad_url():
     #     pytest.skip('not running network tests')
 
     # Ensure the opener exist
-    import sys
-    if sys.version_info[0] == 2:  # nocover
-        # import urllib2 as urllib_x
-        from urllib2 import URLError  # NOQA
-    else:
-        # import urllib.request as urllib_x
-        from urllib.error import URLError  # NOQA
+    # import urllib.request as urllib_x
+    from urllib.error import URLError  # NOQA
     # if urllib_x._opener is None:
     #     urllib_x.install_opener(urllib_x.build_opener())
 

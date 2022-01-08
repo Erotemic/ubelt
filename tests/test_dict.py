@@ -105,14 +105,6 @@ def test_dict_subset_iterable():
     assert dict(got) == dict_
 
 
-def test_dict_take():
-    # There was a bug in 0.7.0 where iterable keys would be exhausted too soon
-    keys_list = list(range(10))
-    dict_ = {k: k for k in keys_list}
-    got = list(ub.dict_take(dict_, keys_list))
-    assert got == keys_list
-
-
 # def _benchmark_groupid_sorted():
 #     import random
 #     import ubelt as ub

@@ -8,12 +8,7 @@ from os.path import join, exists, relpath, dirname
 import ubelt as ub
 import pytest
 import os
-import six
 from ubelt import util_links
-
-
-if six.PY2:
-    FileExistsError = IOError
 
 
 def test_rel_dir_link():
@@ -33,8 +28,8 @@ def test_rel_dir_link():
         link = ub.symlink(real_path, link_path)
         # Note: on windows this is hacked.
         pointed = ub.util_links._readlink(link)
-        resolved = ub.truepath(join(dirname(link), pointed), real=True)
-        assert ub.truepath(real_dpath, real=True) == resolved
+        resolved = os.path.realpath(ub.expandpath(join(dirname(link), pointed)))
+        assert os.path.realpath(ub.expandpath(real_dpath)) == resolved
     except Exception:
         util_links._dirstats(dpath)
         util_links._dirstats(join(dpath, 'dir1'))
@@ -84,8 +79,8 @@ def test_rel_file_link():
             assert _win32_links._win32_is_hardlinked(real_fpath, link_fpath)
         else:
             pointed = ub.util_links._readlink(link)
-            resolved = ub.truepath(join(dirname(link), pointed), real=True)
-            assert ub.truepath(real_fpath, real=True) == resolved
+            resolved = os.path.realpath(ub.expandpath(join(dirname(link), pointed)))
+            assert os.path.realpath(ub.expandpath(real_fpath)) == resolved
     except Exception:
         util_links._dirstats(dpath)
         util_links._dirstats(join(dpath, 'dir1'))
