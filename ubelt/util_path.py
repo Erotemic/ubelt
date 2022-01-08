@@ -371,6 +371,39 @@ _PathBase = pathlib.WindowsPath if os.name == 'nt' else pathlib.PosixPath
 class Path(_PathBase):
     """
     An extension of :class:`pathlib.Path` with extra convenience methods
+
+    Note:
+        New methods are:
+            * augment
+            * ensuredir
+            * expand
+            * expandvars
+            * shrinkuser
+
+        Modified methods are:
+            * touch
+
+    Example:
+        >>> # Ubelt extends pathlib functionality
+        >>> import ubelt as ub
+        >>> dpath = ub.Path('~/.cache/ubelt/demo_path').expand().ensuredir()
+        >>> fpath = dpath / 'text_file.txt'
+        >>> aug_fpath = fpath.augment(suffix='.aux', ext='.jpg').touch()
+        >>> aug_dpath = dpath.augment('demo_path2')
+        >>> assert aug_fpath.read_text() == ''
+        >>> fpath.write_text('text data')
+        >>> assert aug_fpath.exists()
+        >>> assert not aug_fpath.delete().exists()
+        >>> assert dpath.exists()
+        >>> assert not dpath.delete().exists()
+        >>> print(f'{fpath.shrinkuser()}')
+        >>> print(f'{dpath.shrinkuser()}')
+        >>> print(f'{aug_fpath.shrinkuser()}')
+        >>> print(f'{aug_dpath.shrinkuser()}')
+        ~/.cache/ubelt/demo_path/text_file.txt
+        ~/.cache/ubelt/demo_path
+        ~/.cache/ubelt/demo_path/text_file.aux.jpg
+        ~/.cache/ubelt/demo_pathdemo_path2
     """
 
     def touch(self, mode=0o666, exist_ok=True):
@@ -424,7 +457,7 @@ class Path(_PathBase):
         References:
             .. [CPythonIssue21301] https://bugs.python.org/issue21301
         """
-        return self.__class__(os.path.expandvars(str(self)))
+        return self.__class__(os.path.expandvars(self))
 
     def expand(self):
         """
@@ -523,9 +556,8 @@ class Path(_PathBase):
             >>> print('newpath = {!r}'.format(newpath))
             newpath = Path('pref_bar_suff.baz')
         """
-        aug = augpath(str(self), suffix=suffix, prefix=prefix, ext=ext,
-                          base=stem, dpath=dpath, relative=relative,
-                          multidot=multidot)
+        aug = augpath(self, suffix=suffix, prefix=prefix, ext=ext, base=stem,
+                      dpath=dpath, relative=relative, multidot=multidot)
         new = self.__class__(aug)
         return new
 

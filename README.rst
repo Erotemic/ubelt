@@ -15,8 +15,7 @@ that extend the Python standard library. It has a flat API that all behaves
 similarly on Windows, Mac, and Linux (up to some small unavoidable
 differences).  Almost every function in ``ubelt`` was written with a doctest.
 This provides helpful documentation and example usage as well as helping
-achieve 100% test coverage (with minor exceptions for Python2, Windows,
-etc...). 
+achieve 100% test coverage (with minor exceptions on Windows). 
 
 * Goal: provide simple functions that accomplish common tasks not yet addressed by the python standard library.
 
@@ -141,8 +140,8 @@ Installation:
 =============
 
 Ubelt is distributed on pypi as a universal wheel and can be pip installed on
-Python 2.7, Python 3.5+. Installations are tested on CPython and PyPy
-implementations.
+Python 3.6+. Installations are tested on CPython and PyPy implementations. For
+Python 2.7 and 3.5, the last supported version was 0.11.1.
 
 ::
 
@@ -150,13 +149,6 @@ implementations.
 
 Note that our distributions on pypi are signed with GPG. The signing public key
 is ``D297D757``; this should agree with the value in `dev/public_gpg_key`.
-
-
-It is also possible to simply install it from source.
-
-::
-
-    pip install git+https://github.com/Erotemic/ubelt.git
 
 
 History:
@@ -178,6 +170,10 @@ The more IPython-y tools were ported to `xdev <https://github.com/Erotemic/xdev>
 Parts of it made their way into `scriptconfig <https://gitlab.kitware.com/utils/scriptconfig>`__.
 The init-file generation was moved to `mkinit <https://github.com/Erotemic/mkinit>`__.
 Some vim and system-y things can be found in `vimtk <https://github.com/Erotemic/vimtk>`__.
+
+Development on ubelt started 2017-01-30 and development of utool mostly stopped
+on utool was stopped later that year, but recieved patches until about 2020.
+Ubelt achived 1.0.0 and removed support for Python 2.7 and 3.5 on 2022-01-07.
 
 
 Function Usefulness 
@@ -533,10 +529,41 @@ Example usage on Linux might look like this:
 .. code:: python
 
     >>> import ubelt as ub
-    >>> print(ub.compressuser(ub.ensure_app_cache_dir('my_app')))
+    >>> print(ub.shrinkuser(ub.ensure_app_cache_dir('my_app')))
     ~/.cache/my_app
-    >>> print(ub.compressuser(ub.ensure_app_resource_dir('my_app')))
+    >>> print(ub.shrinkuser(ub.ensure_app_resource_dir('my_app')))
     ~/.config/my_app
+
+Paths
+-----
+
+Ubelt extends ``pathlib.Path`` by adding several new (often chainable) methods.
+Namely, ``augment``, ``delete``, ``expand``, ``ensuredir``, ``shrinkuser``. It
+also modifies behavior of ``touch`` to be chainable.
+
+
+.. code:: python
+
+        >>> # Ubelt extends pathlib functionality
+        >>> import ubelt as ub
+        >>> dpath = ub.Path('~/.cache/ubelt/demo_path').expand().ensuredir()
+        >>> fpath = dpath / 'text_file.txt'
+        >>> aug_fpath = fpath.augment(suffix='.aux', ext='.jpg').touch()
+        >>> aug_dpath = dpath.augment('demo_path2')
+        >>> assert aug_fpath.read_text() == ''
+        >>> fpath.write_text('text data')
+        >>> assert aug_fpath.exists()
+        >>> assert not aug_fpath.delete().exists()
+        >>> assert dpath.exists()
+        >>> assert not dpath.delete().exists()
+        >>> print(f'{fpath.shrinkuser()}')
+        >>> print(f'{dpath.shrinkuser()}')
+        >>> print(f'{aug_fpath.shrinkuser()}')
+        >>> print(f'{aug_dpath.shrinkuser()}')
+        ~/.cache/ubelt/demo_path/text_file.txt
+        ~/.cache/ubelt/demo_path
+        ~/.cache/ubelt/demo_path/text_file.aux.jpg
+        ~/.cache/ubelt/demo_pathdemo_path2
 
 Symlinks
 --------
@@ -567,7 +594,7 @@ URL and save its data to a file.
     >>> import ubelt as ub
     >>> url = 'http://i.imgur.com/rqwaDag.png'
     >>> fpath = ub.download(url, verbose=0)
-    >>> print(ub.compressuser(fpath))
+    >>> print(ub.shrinkuser(fpath))
     ~/.cache/ubelt/rqwaDag.png
 
 The function ``ub.grabdata`` works similarly to ``ub.download``, but
@@ -580,7 +607,7 @@ it needs to.
     >>> import ubelt as ub
     >>> url = 'http://i.imgur.com/rqwaDag.png'
     >>> fpath = ub.grabdata(url, verbose=0, hash_prefix='944389a39')
-    >>> print(ub.compressuser(fpath))
+    >>> print(ub.shrinkuser(fpath))
     ~/.cache/ubelt/rqwaDag.png
 
 
@@ -810,8 +837,6 @@ Libraries that contain one specific data structure or utility:
 
 Notes.
 ------
-Ubelt will support Python 2.7 and 3.5 until the 1.0 release.
-
 PRs are welcome. 
 
 Also check out my other projects (many of which are powered by ubelt):

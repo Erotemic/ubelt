@@ -3,12 +3,8 @@ The util_indexable module defines ``IndexableWalker`` which is a powerful
 way to iterate through nested Python containers.
 """
 import sys
-
-try:
-    from collections.abc import Generator
-except Exception:
-    # Python <3.4 does not have Generator ABC
-    Generator = object  # type: ignore
+from math import isclose
+from collections.abc import Generator
 
 
 class IndexableWalker(Generator):
@@ -359,7 +355,7 @@ def indexable_allclose(dct1, dct2, rel_tol=1e-9, abs_tol=0.0, return_info=False)
 
             flag = (v1 == v2)
             if not flag:
-                if isinstance(v1, float) and isinstance(v2, float) and _isclose(v1, v2):
+                if isinstance(v1, float) and isinstance(v2, float) and isclose(v1, v2):
                     flag = True
             if flag:
                 passlist.append(p1)
@@ -382,10 +378,3 @@ def indexable_allclose(dct1, dct2, rel_tol=1e-9, abs_tol=0.0, return_info=False)
         return final_flag
 
 
-# Define isclose for Python 2.7
-if sys.version_info[0] == 2:  # nocover
-    def _isclose(a, b, rel_tol=1e-9, abs_tol=0.0):
-        return abs(a - b) <= max(rel_tol * max(abs(a), abs(b)), abs_tol)
-else:  # nocover
-    import math
-    _isclose = math.isclose
