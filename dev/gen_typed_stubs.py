@@ -54,8 +54,12 @@ def generate_typed_stubs():
 
     pyfile mypy.stubgen
     # Delete compiled verisons so we can hack it
-    rm ~/.pyenv/versions/3.8.6/envs/pyenv3.8.6/lib/python3.8/site-packages/mypy/*.cpython-38-x86_64-linux-gnu.so
 
+    # ls $VIRTUAL_ENV/lib/*/site-packages/mypy/*.so
+    # rm $VIRTUAL_ENV/lib/*/site-packages/mypy/*.so
+    # rm ~/.pyenv/versions/3.8.6/envs/pyenv3.8.6/lib/python3.8/site-packages/mypy/*.cpython-38-x86_64-linux-gnu.so
+
+    cd $HOME/code
     git clone https://github.com/python/mypy.git
     cd mypy
     pip install -e .
