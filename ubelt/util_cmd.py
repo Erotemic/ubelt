@@ -33,14 +33,6 @@ if POSIX:
 else:  # nocover
     select = NotImplemented
 
-PY2 = sys.version_info[0] == 2
-PY34 = sys.version_info[0:2] == (3, 4)
-if PY2:
-    import six
-    string_types = six.string_types
-else:
-    string_types = (str,)
-
 
 def _textio_iterlines(stream):
     """
@@ -343,7 +335,7 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
             raise ValueError('Unknown kwargs: {}'.format(list(kwargs.keys())))
 
     # Determine if command is specified as text or a tuple
-    if isinstance(command, string_types):
+    if isinstance(command, str):
         command_text = command
         command_tup = None
     else:
@@ -441,10 +433,6 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
 
         if check:
             if info['ret'] != 0:
-                if PY2 or PY34:
-                    raise subprocess.CalledProcessError(
-                        info['ret'], info['command'], info['out'])
-                else:
-                    raise subprocess.CalledProcessError(
-                        info['ret'], info['command'], info['out'], info['err'])
+                raise subprocess.CalledProcessError(
+                    info['ret'], info['command'], info['out'], info['err'])
     return info

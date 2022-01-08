@@ -26,7 +26,6 @@ The :func:`ddict` and :func:`odict` functions are alias for the commonly used
 :func:`collections.defaultdict` and :func:`collections.OrderedDict` classes.
 
 """
-import sys
 import operator as op
 import itertools as it
 from collections import OrderedDict
@@ -56,17 +55,6 @@ __all__ = [
     'named_product',
     'varied_values',
 ]
-
-
-PY2 = sys.version_info[0] == 2
-
-if PY2:
-    import six
-    from six.moves import zip
-    iteritems = six.iteritems
-else:
-    def iteritems(d, **kw):
-        return d.items(**kw)
 
 
 # Expose for convenience
@@ -560,7 +548,7 @@ def map_vals(func, dict_):
     """
     if not hasattr(func, '__call__'):
         func = func.__getitem__
-    keyval_list = [(key, func(val)) for key, val in iteritems(dict_)]
+    keyval_list = [(key, func(val)) for key, val in dict_.items()]
     dictclass = OrderedDict if isinstance(dict_, OrderedDict) else dict
     newdict = dictclass(keyval_list)
     return newdict
@@ -598,7 +586,7 @@ def map_keys(func, dict_):
     """
     if not hasattr(func, '__call__'):
         func = func.__getitem__
-    keyval_list = [(func(key), val) for key, val in iteritems(dict_)]
+    keyval_list = [(func(key), val) for key, val in dict_.items()]
     dictclass = OrderedDict if isinstance(dict_, OrderedDict) else dict
     newdict = dictclass(keyval_list)
     if len(newdict) != len(dict_):

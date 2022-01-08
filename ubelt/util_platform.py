@@ -57,15 +57,6 @@ DARWIN = sys.platform == 'darwin'  # type: bool
 POSIX = 'posix' in sys.builtin_module_names  # type: bool
 
 
-PY2 = sys.version_info[0] == 2  # type: bool
-
-if PY2:
-    import six
-    string_types = six.string_types
-else:
-    string_types = (str,)
-
-
 def platform_data_dir():
     """
     Returns path for user-specific data files
@@ -375,7 +366,7 @@ def find_path(name, path=None, exact=False):
     """
     if path is None:
         path = os.environ.get('PATH', os.defpath)
-    if isinstance(path, string_types):
+    if isinstance(path, str):
         dpaths = path.split(os.pathsep)
     else:
         dpaths = path

@@ -40,24 +40,8 @@ extensions keyword argument (although this will be a global change).
 
 """
 import collections
-import sys
-# from typing import List, Callable, Type, Dict
 
 __all__ = ['repr2', 'FormatterExtensions']
-
-PY2 = sys.version_info[0] == 2
-
-if PY2:
-    import six
-    iteritems = six.iteritems
-    string_types = six.string_types
-    text_type = six.text_type
-else:
-    string_types = (str,)
-    text_type = str
-
-    def iteritems(d, **kw):
-        return d.items(**kw)
 
 
 def repr2(data, **kwargs):
@@ -388,7 +372,7 @@ class FormatterExtensions(object):
             if isinstance(key, tuple):
                 for t in key:
                     self._type_registry[t] = func
-            if isinstance(key, string_types):
+            if isinstance(key, str):
                 self._typename_registry[key] = func
             else:
                 self._type_registry[key] = func
@@ -570,7 +554,7 @@ class FormatterExtensions(object):
             strvals = kwargs.get('sv', kwargs.get('strvals', False))
 
             if precision is None:
-                text = text_type(data)
+                text = str(data)
             else:
                 text = ('{:.%df}' % precision).format(data)
 
@@ -622,14 +606,8 @@ _FORMATTER_EXTENSIONS._lazy_queue.append(_lazy_init)
 def _format_object(val, **kwargs):
     stritems = kwargs.get('si', kwargs.get('stritems', False))
     strvals = stritems or kwargs.get('sv', kwargs.get('strvals', False))
-    base_valfunc = text_type if strvals else repr
-
+    base_valfunc = str if strvals else repr
     itemstr = base_valfunc(val)
-
-    # Remove unicode repr from python2 to agree with python3 output
-    if PY2 and isinstance(val, string_types):  # nocover
-        if itemstr.startswith(("u'", 'u"')):
-            itemstr = itemstr[1:]
     return itemstr
 
 
@@ -776,7 +754,7 @@ def _format_dict(dict_, **kwargs):
     itemsep = kwargs.get('itemsep', ' ')
 
     align = kwargs.get('align', False)
-    if align and not isinstance(align, string_types):
+    if align and not isinstance(align, str):
         default_kvsep = ': '
         if explicit:
             default_kvsep = '='
@@ -889,7 +867,7 @@ def _dict_itemstrs(dict_, **kwargs):
 
     def make_item_str(key, val):
         if explicit or kwargs.get('strkeys', default_strkeys):
-            key_str = text_type(key)
+            key_str = str(key)
         else:
             key_str = repr2(key, precision=precision, newlines=0)
 
@@ -918,7 +896,7 @@ def _dict_itemstrs(dict_, **kwargs):
             item_str = prefix + val_str
         return item_str, _leaf_info
 
-    items = list(iteritems(dict_))
+    items = list(dict_.items())
     _tups = [make_item_str(key, val) for (key, val) in items]
     itemstrs = [t[0] for t in _tups]
     max_height = max([t[1]['max_height'] for t in _tups]) if _tups else 0
