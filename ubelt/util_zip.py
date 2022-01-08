@@ -146,6 +146,7 @@ class zopen(NiceRepr):
         >>> from ubelt.util_zip import *  # NOQA
         >>> import ubelt as ub
         >>> import json
+        >>> import zipfile
         >>> dpath = ub.ensure_app_cache_dir('ubelt/tests/util_zip')
         >>> infopath = join(dpath, 'info.json')
         >>> ub.writeto(infopath, '{"x": "1"}')
@@ -172,6 +173,7 @@ class zopen(NiceRepr):
         >>> from ubelt.util_zip import *  # NOQA
         >>> import ubelt as ub
         >>> import json
+        >>> import zipfile
         >>> dpath = ub.ensure_app_cache_dir('ubelt/tests/util_zip')
         >>> textpath = join(dpath, 'seekable_test.txt')
         >>> text = chr(10).join(['line{}'.format(i) for i in range(10)])
