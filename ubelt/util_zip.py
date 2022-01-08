@@ -15,10 +15,6 @@ a temporary directory first.
 """
 import io
 import os
-import re
-import sys
-import tempfile
-import zipfile
 from os.path import exists, join
 from ubelt.util_mixins import NiceRepr
 
@@ -49,6 +45,7 @@ def split_archive(fpath, ext='.zip'):
         ('/a/b/foo.zip/baz/biz.zip', 'bar.py')
         ('/a/b/foo.zip/baz.pt', 'bar.zip/bar.zip')
     """
+    import re
     fpath = os.fspath(fpath)
     # fpath = os.fspath(fpath)
     pat = '({}[{}/:])'.format(re.escape(ext), re.escape(os.path.sep))
@@ -260,6 +257,7 @@ class zopen(NiceRepr):
         Access the underlying archive file
         """
         if self._zfile_read is None:
+            import zipfile
             archivefile, internal = self._split_archive()
             myzip = zipfile.ZipFile(archivefile, 'r')
             self._zfile_read = myzip
@@ -345,6 +343,7 @@ class zopen(NiceRepr):
             archivefile, internal = self._split_archive()
             myzip = self.zfile
             if self._seekable:
+                import tempfile
                 # If we need data to be seekable, then we must extract it to a
                 # temporary file first.
                 self._temp_dpath = tempfile.mkdtemp(prefix='zopen_')
