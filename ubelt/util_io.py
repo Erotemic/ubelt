@@ -19,9 +19,6 @@ __all__ = [
 ]
 
 
-PY2 = sys.version_info[0] == 2
-
-
 def writeto(fpath, to_write, aslines=False, verbose=None):
     r"""
     Writes (utf8) text to a file.
@@ -80,15 +77,9 @@ def writeto(fpath, to_write, aslines=False, verbose=None):
             file.write(bytes)
 
 
-if PY2:  # nocover
-    def _ensure_bytes(text):
-        if isinstance(text, unicode):  # NOQA
-            text = text.encode('utf8')
-        return text
-else:
-    def _ensure_bytes(text):
-        """ ensures text is in a suitable format for writing """
-        return text.encode('utf8')
+def _ensure_bytes(text):
+    """ ensures text is in a suitable format for writing """
+    return text.encode('utf8')
 
 
 def readfrom(fpath, aslines=False, errors='replace', verbose=None):
@@ -160,14 +151,10 @@ def touch(fpath, mode=0o666, dir_fd=None, verbose=0, **kwargs):
     """
     if verbose:
         print('Touching file {}'.format(fpath))
-    if PY2:  # nocover
-        with open(fpath, 'a'):
-            os.utime(fpath, None)
-    else:
-        flags = os.O_CREAT | os.O_APPEND
-        with os.fdopen(os.open(fpath, flags=flags, mode=mode, dir_fd=dir_fd)) as f:
-            os.utime(f.fileno() if os.utime in os.supports_fd else fpath,
-                     dir_fd=None if os.supports_fd else dir_fd, **kwargs)
+    flags = os.O_CREAT | os.O_APPEND
+    with os.fdopen(os.open(fpath, flags=flags, mode=mode, dir_fd=dir_fd)) as f:
+        os.utime(f.fileno() if os.utime in os.supports_fd else fpath,
+                 dir_fd=None if os.supports_fd else dir_fd, **kwargs)
     return fpath
 
 

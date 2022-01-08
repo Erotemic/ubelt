@@ -92,8 +92,6 @@ Example:
 TODO:
     - [ ] Specify callback that occurs whenever progress is written?
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
 import sys
 import time
 import collections
@@ -103,16 +101,7 @@ __all__ = [
     'ProgIter',
 ]
 
-if sys.version_info.major > 2:  # nocover
-    text_type = str
-    string_types = str,
-    default_timer = time.perf_counter
-else:   # nocover
-    # text_type = unicode
-    # string_types = basestring,
-    text_type = eval('unicode', {}, {})  # type: ignore
-    string_types = (eval('basestring', {}, {}),)  # type: ignore
-    default_timer = time.clock if sys.platform.startswith('win32') else time.time  # type: ignore
+default_timer = time.perf_counter
 
 
 CLEAR_BEFORE = '\r'
@@ -223,7 +212,7 @@ class _TQDMCompat(object):
             if isinstance(postfix[key], numbers.Number):
                 postfix[key] = '{0:2.3g}'.format(postfix[key])
             # Else for any other type, try to get the string conversion
-            elif not isinstance(postfix[key], string_types):
+            elif not isinstance(postfix[key], str):
                 postfix[key] = str(postfix[key])
             # Else if it's a string, don't need to preprocess anything
         # Stitch together to get the final postfix
@@ -701,14 +690,14 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
             msg_body = [
                 ('{desc}'),
                 (' {percent:03.2f}% of ' + str(self.chunksize) + 'x'),
-                ('?' if length_unknown else text_type(self.total)),
+                ('?' if length_unknown else str(self.total)),
                 ('...'),
             ]
         else:
             msg_body = [
                 ('{desc}'),
                 (' {iter_idx:' + str(n_chrs) + 'd}/'),
-                ('?' if length_unknown else text_type(self.total)),
+                ('?' if length_unknown else str(self.total)),
                 ('...'),
             ]
 
@@ -765,14 +754,14 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
             eta = '?'
         else:
             if self._microseconds:
-                eta = text_type(timedelta(seconds=self._est_seconds_left))
+                eta = str(timedelta(seconds=self._est_seconds_left))
             else:
-                eta = text_type(timedelta(seconds=int(self._est_seconds_left)))
+                eta = str(timedelta(seconds=int(self._est_seconds_left)))
 
         if self._microseconds:
-            total = text_type(timedelta(seconds=self._total_seconds))
+            total = str(timedelta(seconds=self._total_seconds))
         else:
-            total = text_type(timedelta(seconds=int(self._total_seconds)))
+            total = str(timedelta(seconds=int(self._total_seconds)))
 
         # similar to tqdm.format_meter
         if self.chunksize and self.total:

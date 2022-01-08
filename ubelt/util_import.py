@@ -26,8 +26,6 @@ __all__ = [
     'import_module_from_path',
 ]
 
-PY2 = sys.version_info[0] == 2
-
 
 class PythonPathContext(object):
     """
@@ -318,16 +316,10 @@ def _extension_module_tags():
     """
     import sysconfig
     tags = []
-    if PY2:
-        # see also 'SHLIB_EXT'
-        multiarch = sysconfig.get_config_var('MULTIARCH')
-        if multiarch is not None:
-            tags.append(multiarch)
-    else:
-        # handle PEP 3149 -- ABI version tagged .so files
-        # ABI = application binary interface
-        tags.append(sysconfig.get_config_var('SOABI'))
-        tags.append('abi3')  # not sure why this one is valid but it is
+    # handle PEP 3149 -- ABI version tagged .so files
+    # ABI = application binary interface
+    tags.append(sysconfig.get_config_var('SOABI'))
+    tags.append('abi3')  # not sure why this one is valid but it is
     tags = [t for t in tags if t]
     return tags
 
@@ -341,13 +333,9 @@ def _platform_pylib_exts():  # nocover
     """
     import sysconfig
     valid_exts = []
-    if PY2:
-        # see also 'SHLIB_EXT'
-        base_ext = '.' + sysconfig.get_config_var('SO').split('.')[-1]
-    else:
-        # return with and without API flags
-        # handle PEP 3149 -- ABI version tagged .so files
-        base_ext = '.' + sysconfig.get_config_var('EXT_SUFFIX').split('.')[-1]
+    # return with and without API flags
+    # handle PEP 3149 -- ABI version tagged .so files
+    base_ext = '.' + sysconfig.get_config_var('EXT_SUFFIX').split('.')[-1]
     for tag in _extension_module_tags():
         valid_exts.append('.' + tag + base_ext)
     valid_exts.append(base_ext)
@@ -493,19 +481,10 @@ def _importlib_import_modpath(modpath):  # nocover
     """
     dpath, rel_modpath = split_modpath(modpath)
     modname = modpath_to_modname(modpath)
-    if PY2:  # nocover
-        import imp
-        module = imp.load_source(modname, modpath)
-    elif sys.version_info[0:2] <= (3, 4):  # nocover
-        if sys.version_info[0:2] <= (3, 2):
-            raise AssertionError('3.0 to 3.2 is not supported')
-        from importlib.machinery import SourceFileLoader
-        module = SourceFileLoader(modname, modpath).load_module()
-    else:
-        import importlib.util
-        spec = importlib.util.spec_from_file_location(modname, modpath)
-        module = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(module)
+    import importlib.util
+    spec = importlib.util.spec_from_file_location(modname, modpath)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
     return module
 
 
@@ -605,9 +584,6 @@ def normalize_modpath(modpath, hide_init=True, hide_main=False):
         >>> assert not res2.endswith('.py')
         >>> assert not res3.endswith('.py')
     """
-    if PY2:
-        if modpath.endswith('.pyc'):
-            modpath = modpath[:-1]
     if hide_init:
         if basename(modpath) == '__init__.py':
             modpath = dirname(modpath)
@@ -727,9 +703,6 @@ def split_modpath(modpath, check=True):
         >>> assert recon == modpath
         >>> assert rel_modpath == join('xdoctest', 'static_analysis.py')
     """
-    if PY2:
-        if modpath.endswith('.pyc'):
-            modpath = modpath[:-1]
     modpath_ = abspath(expanduser(modpath))
     if check:
         if not exists(modpath_):

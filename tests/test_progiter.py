@@ -1,7 +1,7 @@
 """
 pytest ubelt/tests/test_progiter.py
 """
-from six.moves import cStringIO
+from io import StringIO
 from xdoctest.utils import strip_ansi
 from ubelt.progiter import ProgIter
 import sys
@@ -42,7 +42,7 @@ def test_rate_format_string():
 def test_rate_format():
     # Define a function that takes some time
     import ubelt as ub
-    file = cStringIO()
+    file = StringIO()
     prog = ub.ProgIter(file=file)
     prog.begin()
 
@@ -70,7 +70,7 @@ def test_progiter():
     N = 500
 
     if False:
-        file = cStringIO()
+        file = StringIO()
         prog = ProgIter(range(N), clearline=False, file=file, freq=N // 10,
                         adjust=False)
         file.seek(0)
@@ -142,7 +142,7 @@ def test_progiter_offset_10():
     xdoctest ~/code/ubelt/tests/test_progiter.py test_progiter_offset_10
     """
     # Define a function that takes some time
-    file = cStringIO()
+    file = StringIO()
     list(ProgIter(range(10), total=20, verbose=3, start=10, file=file,
                   freq=5, show_times=False))
     file.seek(0)
@@ -162,7 +162,7 @@ def test_progiter_offset_0():
     pytest -s  ~/code/ubelt/ubelt/tests/test_progiter.py::test_progiter_offset_0
     """
     # Define a function that takes some time
-    file = cStringIO()
+    file = StringIO()
     for _ in ProgIter(range(10), total=20, verbose=3, start=0, file=file,
                       freq=5, show_times=False):
         pass
@@ -186,10 +186,9 @@ def time_progiter_overhead():
         from sklearn.externals.progiter import ProgIter
         import numpy as np
         import time
-        from six.moves import cStringIO, range
         import utool as ut
         N = 500
-        file = cStringIO()
+        file = StringIO()
         rng = np.random.RandomState(42)
         ndims = 2
         vec1 = rng.rand(113, ndims)
@@ -273,7 +272,7 @@ def test_unknown_total():
     Make sure a question mark is printed if the total is unknown
     """
     iterable = (_ for _ in range(0, 10))
-    file = cStringIO()
+    file = StringIO()
     prog = ProgIter(iterable, desc='unknown seq', file=file,
                     show_times=False, verbose=1)
     for n in prog:
@@ -289,7 +288,7 @@ def test_initial():
     """
     Make sure a question mark is printed if the total is unknown
     """
-    file = cStringIO()
+    file = StringIO()
     prog = ProgIter(initial=9001, file=file, show_times=False, clearline=False)
     message = prog.format_message()
     assert strip_ansi(message) == ' 9001/?... \n'
@@ -301,7 +300,7 @@ def test_clearline():
 
     pytest ubelt/tests/test_progiter.py::test_clearline
     """
-    file = cStringIO()
+    file = StringIO()
     # Clearline=False version should simply have a newline at the end.
     prog = ProgIter(file=file, show_times=False, clearline=False)
     message = prog.format_message()

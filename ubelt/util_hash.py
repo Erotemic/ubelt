@@ -55,7 +55,6 @@ Note:
     into a hashable encoding.
 """
 import hashlib
-import sys
 import math
 from collections import OrderedDict
 from ubelt.util_const import NoParam
@@ -81,28 +80,9 @@ _ALPHABET_36 = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
 
 DEFAULT_ALPHABET = _ALPHABET_16
 
-PY2 = sys.version_info[0] == 2  # type: bool
 
-if PY2:
-    import six
-    from six.moves import zip
-    b = six.b
-    string_types = six.string_types
-    binary_type = six.binary_type
-    text_type = six.text_type
-    _stringlike = (basestring, bytes)  # NOQA
-    _intlike = (int, long)  # NOQA
-else:
-    # zip = zip  # hack for editor
-    from builtins import zip   # hack for editor / static analysis
-    six = None
-    def b(s):
-        return s.encode("latin-1")
-    binary_type = bytes
-    text_type = str
-    string_types = (str,)
-    _stringlike = (str, bytes)  # NOQA
-    _intlike = (int,)
+def b(s):
+    return s.encode("latin-1")
 
 # Sensible choices for default hashers are sha1, sha512, and xxh64.
 
@@ -126,88 +106,46 @@ DEFAULT_HASHER = hashlib.sha512  # most robust algo, but slower than others
 _COMPATIBLE_HASHABLE_SEQUENCE_TYPES_DEFAULT = True
 
 
-if PY2:
-    import codecs
-    # HASH = type(hashlib.sha1())  # python2 doesn't expose the hash type
+# Note: the Hasher refers to hashlib._hashlib.HASH
+# but this does not play well with type annotations
+# try:
+#     HASH = hashlib._hashlib.HASH
+# except AttributeError:  # nocover
+#     # Python seems to have been compiled without OpenSSL
+#     HASH = None
 
-    def _py2_to_bytes(int_, length, byteorder='big', signed=True):
-        """
-        Workaround for [PythonBug16580]_.
+def _int_to_bytes(int_):
+    r"""
+    Converts an integer into its byte representation
+    assumes int32 by default, but dynamically handles larger ints
 
-        Args:
-            length (int) : number of bytes (not bits)
+    Example:
+        >>> from ubelt.util_hash import _int_to_bytes, _bytes_to_int
+        >>> int_ = 1
+        >>> assert _bytes_to_int((_int_to_bytes(int_))) == int_
+        >>> assert _int_to_bytes(int_) == b'\x01'
+        >>> assert _bytes_to_int((_int_to_bytes(0))) == 0
+        >>> assert _bytes_to_int((_int_to_bytes(-1))) == -1
+        >>> assert _bytes_to_int((_int_to_bytes(-1000000))) == -1000000
+        >>> assert _bytes_to_int((_int_to_bytes(1000000))) == 1000000
+    """
+    bit_length = int_.bit_length() + 1
+    length = math.ceil(bit_length / 8.0)  # bytelength
+    bytes_ = int_.to_bytes(length, byteorder='big', signed=True)
+    return bytes_
 
-        References:
-            .. [PythonBug16580] https://bugs.python.org/issue16580
-        """
-        # convert nbytes to nbits
-        bit_width = length * 8
-        if int_ < 0:
-            complement = (1 << bit_width) + int_
-        else:
-            complement = int_
-        h = '%x' % complement
-        p = ('0' * (len(h) % 2) + h).zfill(length * 2)
-        s = p.decode('hex')
-        bytes_ = s if byteorder == 'big' else s[::-1]
-        return bytes_
 
-    def _int_to_bytes(int_):
-        bit_length = int_.bit_length() + 1
-        length = int(math.ceil(bit_length / 8.0))  # bytelength
-        bytes_ = _py2_to_bytes(int_, length, byteorder='big', signed=True)
-        return bytes_
+def _bytes_to_int(bytes_):
+    r"""
+    Converts a string of bytes into its integer representation (big-endian)
 
-    def _bytes_to_int(bytes_):
-        nbytes = len(bytes_)
-        nbits = nbytes * 8
-        comp = int(codecs.encode(bytes_, 'hex'), 16)
-        if comp > 1 << (nbits - 1):
-            int_ = comp - (1 << (nbits))
-        else:
-            int_ = comp
-        return int_
-else:
-    # Note: the Hasher refers to hashlib._hashlib.HASH
-    # but this does not play well with type annotations
-    # try:
-    #     HASH = hashlib._hashlib.HASH
-    # except AttributeError:  # nocover
-    #     # Python seems to have been compiled without OpenSSL
-    #     HASH = None
-
-    codecs = None
-    def _int_to_bytes(int_):
-        r"""
-        Converts an integer into its byte representation
-        assumes int32 by default, but dynamically handles larger ints
-
-        Example:
-            >>> from ubelt.util_hash import _int_to_bytes, _bytes_to_int
-            >>> int_ = 1
-            >>> assert _bytes_to_int((_int_to_bytes(int_))) == int_
-            >>> assert _int_to_bytes(int_) == b'\x01'
-            >>> assert _bytes_to_int((_int_to_bytes(0))) == 0
-            >>> assert _bytes_to_int((_int_to_bytes(-1))) == -1
-            >>> assert _bytes_to_int((_int_to_bytes(-1000000))) == -1000000
-            >>> assert _bytes_to_int((_int_to_bytes(1000000))) == 1000000
-        """
-        bit_length = int_.bit_length() + 1
-        length = math.ceil(bit_length / 8.0)  # bytelength
-        bytes_ = int_.to_bytes(length, byteorder='big', signed=True)
-        return bytes_
-
-    def _bytes_to_int(bytes_):
-        r"""
-        Converts a string of bytes into its integer representation (big-endian)
-
-        Example:
-            >>> bytes_ = b'\x01'
-            >>> assert _int_to_bytes((_bytes_to_int(bytes_))) == bytes_
-            >>> assert _bytes_to_int(bytes_) == 1
-        """
-        int_ = int.from_bytes(bytes_, 'big', signed=True)
-        return int_
+    Example:
+        >>> bytes_ = b'\x01'
+        >>> assert _int_to_bytes((_bytes_to_int(bytes_))) == bytes_
+        >>> assert _bytes_to_int(bytes_) == 1
+    """
+    int_ = int.from_bytes(bytes_, 'big', signed=True)
+    return int_
 
 
 class _Hashers(object):
@@ -283,7 +221,7 @@ class _Hashers(object):
             if self._lazy_queue:
                 self._evaluate_registration_queue()
 
-            if isinstance(hasher, string_types):
+            if isinstance(hasher, str):
                 hasher_ = self.aliases.get(hasher, hasher)
                 if hasher_ in self.algos:  # pragma: no cover
                     return self.algos[hasher_]
@@ -803,12 +741,12 @@ def _convert_to_hashable(data, types=True, extensions=None):
         TypeError : if data has no registered hash methods
 
     Example:
-        >>> from ubelt.util_hash import _convert_to_hashable, _intlike
+        >>> from ubelt.util_hash import _convert_to_hashable
         >>> assert _convert_to_hashable(None) == (b'NULL', b'NONE')
         >>> assert _convert_to_hashable('string') == (b'TXT', b'string')
         >>> assert _convert_to_hashable(1) == (b'INT', b'\x01')
         >>> assert _convert_to_hashable(1.0) == (b'FLT', b'\x01/\x01')
-        >>> assert _convert_to_hashable(_intlike[-1](1)) == (b'INT', b'\x01')
+        >>> assert _convert_to_hashable(int(1)) == (b'INT', b'\x01')
         >>> import uuid
         >>> data = uuid.UUID('7e9d206b-dc02-4240-8bdb-fffe858121d0')
         >>> assert _convert_to_hashable(data) == (b'UUID', b'~\x9d k\xdc\x02B@\x8b\xdb\xff\xfe\x85\x81!\xd0')
@@ -823,14 +761,14 @@ def _convert_to_hashable(data, types=True, extensions=None):
     if data is None:
         hashable = b'NONE'
         prefix = b'NULL'
-    elif isinstance(data, binary_type):
+    elif isinstance(data, bytes):
         hashable = data
         prefix = b'TXT'
-    elif isinstance(data, text_type):
+    elif isinstance(data, str):
         # convert unicode into bytes
         hashable = data.encode('utf-8')
         prefix = b'TXT'
-    elif isinstance(data, _intlike):
+    elif isinstance(data, int):
         # warnings.warn('Hashing ints is slow, numpy is preferred')
         hashable = _int_to_bytes(data)
         # hashable = data.to_bytes(8, byteorder='big')
@@ -1044,7 +982,7 @@ def hash_data(data, hasher=NoParam, base=NoParam, types=False, convert=False,
         >>> print(ub.hash_data([1, 2, (3, '4')], base='abc',  hasher='sha512')[:32])
         hsrgqvfiuxvvhcdnypivhhthmrolkzej
     """
-    if convert and not isinstance(data, string_types):  # nocover
+    if convert and not isinstance(data, str):  # nocover
         import json
         try:
             data = json.dumps(data)

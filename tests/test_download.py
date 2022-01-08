@@ -360,19 +360,6 @@ class SingletonTestServer(ub.NiceRepr):
 
     @classmethod
     def instance(cls):
-        import sys
-        # import platform
-        # is_pypy = platform.python_implementation() == 'PyPy'
-        is_27 = sys.version_info[0:2] <= (2, 7)
-        is_win32 = sys.platform.startswith('win32')
-        if is_win32 and is_27:
-            pytest.skip(
-                'skip local server tests for python 2.7 on win32, '
-                'might be causing hang on appveyor')
-        # if is_win32 and is_pypy:
-        #     pytest.skip(
-        #         'skip local server tests for pypy on win32, '
-        #         'test of sometimes flaky. Unsure why.')
         if cls._instance is not None:
             self = cls._instance
         else:

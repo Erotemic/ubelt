@@ -24,12 +24,6 @@ from ubelt.util_mixins import NiceRepr
 
 __all__ = ['zopen', 'split_archive']
 
-PY2 = (sys.version_info[0] == 2)
-
-
-if PY2:
-    OSError = IOError
-
 
 def split_archive(fpath, ext='.zip'):
     """
@@ -193,8 +187,7 @@ class zopen(NiceRepr):
         >>> fpath = zippath + '/' + internal
         >>> # Test seekable
         >>> self_seekable = zopen(fpath, 'r', seekable=True)
-        >>> if not PY2:
-        >>>     assert self_seekable.seekable()
+        >>> assert self_seekable.seekable()
         >>> self_seekable.seek(8)
         >>> assert self_seekable.readline() == 'ne1' + chr(10)
         >>> assert self_seekable.readline() == 'line2' + chr(10)
@@ -204,8 +197,7 @@ class zopen(NiceRepr):
         >>> # Test non-seekable?
         >>> # Sometimes non-seekable files are still seekable
         >>> maybe_seekable = zopen(fpath, 'r', seekable=False)
-        >>> print('PY2 = {!r}'.format(PY2))
-        >>> if not PY2 and maybe_seekable.seekable():
+        >>> if maybe_seekable.seekable():
         >>>     maybe_seekable.seek(8)
         >>>     assert maybe_seekable.readline() == 'ne1' + chr(10)
         >>>     assert maybe_seekable.readline() == 'line2' + chr(10)

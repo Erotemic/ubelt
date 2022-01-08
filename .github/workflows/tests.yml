@@ -278,7 +278,7 @@ jobs:
           MB_PYTHON_TAG=$(python -c "import setup; print(setup.MB_PYTHON_TAG)")
           VERSION=$(python -c "import setup; print(setup.VERSION)") 
           pip install twine
-          pip install six pyopenssl ndg-httpsclient pyasn1 -U --user
+          pip install pyopenssl ndg-httpsclient pyasn1 -U --user
           pip install requests[security] twine --user
           GPG_KEYID=$(cat dev/public_gpg_key)
           echo "GPG_KEYID = '$GPG_KEYID'"
@@ -339,7 +339,7 @@ jobs:
           MB_PYTHON_TAG=$(python -c "import setup; print(setup.MB_PYTHON_TAG)")
           VERSION=$(python -c "import setup; print(setup.VERSION)") 
           pip install twine
-          pip install six pyopenssl ndg-httpsclient pyasn1 -U --user
+          pip install pyopenssl ndg-httpsclient pyasn1 -U --user
           pip install requests[security] twine --user
           GPG_KEYID=$(cat dev/public_gpg_key)
           echo "GPG_KEYID = '$GPG_KEYID'"

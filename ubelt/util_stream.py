@@ -136,8 +136,7 @@ class CaptureStdout(CaptureStream):
         ...     text = 'capture the heart ♥'
         ...     print(text)
         >>> print('dont capture look of disapproval ಠ_ಠ')
-        >>> import six
-        >>> assert isinstance(self.text, six.text_type)
+        >>> assert isinstance(self.text, str)
         >>> assert self.text == text + '\n', 'failed capture text'
 
     Example:
@@ -154,19 +153,7 @@ class CaptureStdout(CaptureStream):
         ...     print('dont capture')
         >>> assert self.text is None
     """
-    def __init__(self, suppress=True, enabled=True, **kwargs):
-
-        _misspelled_varname = 'supress'
-        if _misspelled_varname in kwargs:  # nocover
-            from ubelt._util_deprecated import schedule_deprecation2
-            schedule_deprecation2(
-                'Argument of CaptureStdout {} is misspelled and deprecated. Use suppress instead'.format(_misspelled_varname),
-                name=_misspelled_varname, type='kwarg', deprecated='0.10.3',
-                remove='1.0.0')
-            suppress = kwargs.pop(_misspelled_varname)
-            if len(kwargs) > 0:
-                raise ValueError('unexpected args: {}'.format(kwargs))
-
+    def __init__(self, suppress=True, enabled=True):
         self.text = None
         self._pos = 0  # keep track of how much has been logged
         self.parts = []

@@ -217,9 +217,8 @@ class Cacher(object):
 
         if cfgstr is None and self.depends is not None:
             from ubelt import util_hash
-            import six
             # lazy hashing of depends data into cfgstr
-            if isinstance(self.depends, six.string_types):
+            if isinstance(self.depends, str):
                 self.cfgstr = self.depends
             else:
                 self.cfgstr = util_hash.hash_data(self.depends)
@@ -417,7 +416,7 @@ class Cacher(object):
             >>> cacher.enabled = False
             >>> assert cacher.tryload() is None
         """
-        from six.moves import cPickle as pickle
+        import pickle
         cfgstr = self._rectify_cfgstr(cfgstr)
 
         dpath = self.dpath
@@ -490,7 +489,7 @@ class Cacher(object):
             >>> cacher2.save('data')
             >>> assert not exists(cacher2.get_fpath()), 'should be disabled'
         """
-        from six.moves import cPickle as pickle
+        import pickle
         from ubelt import util_path
         from ubelt import util_time
         if not self.enabled:

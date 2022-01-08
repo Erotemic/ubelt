@@ -20,9 +20,10 @@ There are also other numpy inspired functions: :func:`unique`,
 :func:`argunique`, :func:`unique_flags`, and :func:`boolmask`.
 """
 import itertools as it
-import sys
 import math
 import operator
+from collections import abc as collections_abc
+from itertools import zip_longest
 from ubelt import util_const
 
 __all__ = [
@@ -30,19 +31,6 @@ __all__ = [
     'chunks', 'compress', 'flatten', 'iter_window', 'iterable', 'peek', 'take',
     'unique', 'unique_flags',
 ]
-
-PY2 = sys.version_info[0] == 2
-
-if PY2:
-    import six
-    import collections as collections_abc
-    from six import next
-    from six.moves import zip_longest
-    string_types = six.string_types
-else:
-    from collections import abc as collections_abc
-    from itertools import zip_longest
-    string_types = (str,)
 
 
 class chunks(object):
@@ -338,7 +326,7 @@ def iterable(obj, strok=False):
     except Exception:
         return False
     else:
-        return strok or not isinstance(obj, string_types)
+        return strok or not isinstance(obj, str)
 
 
 def take(items, indices, default=util_const.NoParam):

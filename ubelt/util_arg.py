@@ -16,13 +16,6 @@ from ubelt import util_const
 __all__ = ['argval', 'argflag']
 
 
-if sys.version_info[0] == 2:  # nocover
-    import six
-    string_types = six.string_types
-else:
-    string_types = (str,)
-
-
 def argval(key, default=util_const.NoParam, argv=None):
     """
     Get the value of a keyword argument specified on the command line.
@@ -67,7 +60,7 @@ def argval(key, default=util_const.NoParam, argv=None):
     if argv is None:  # nocover
         argv = sys.argv
 
-    keys = [key] if isinstance(key, string_types) else key
+    keys = [key] if isinstance(key, str) else key
     n_max = len(argv) - 1
     for argx, item in enumerate(argv):
         for key_ in keys:
@@ -108,6 +101,6 @@ def argflag(key, argv=None):
     """
     if argv is None:  # nocover
         argv = sys.argv
-    keys = [key] if isinstance(key, string_types) else key
+    keys = [key] if isinstance(key, str) else key
     flag = any(k in argv for k in keys)
     return flag
