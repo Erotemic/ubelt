@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 pytest ubelt/tests/test_progiter.py
 """

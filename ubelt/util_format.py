@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Defines the function :func:`repr2`, which allows for a bit more customization
 than :func:`repr` or :func:`pprint`. See the docstring for more details.
@@ -40,7 +39,6 @@ extensions keyword argument (although this will be a global change).
 {1: monkey(nan), 2: monkey(inf), 3: monkey(3.0)}
 
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
 import collections
 import sys
 # from typing import List, Callable, Type, Dict

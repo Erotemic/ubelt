@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 This is util_time, it contains functions for handling time related code that I
 wish there was standard library support for. Currently there is only one
@@ -13,7 +12,6 @@ timestamp without much fuss.
 Timerit is back! But it no longer lives in util_time. Instead it now lives in
 ubelt/timerit.py
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
 import time
 
 __all__ = ['timestamp']

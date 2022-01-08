@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 This module defines :data:`ub.NoParam`. This is a robust sentinel value that
 can act like ``None`` when None might be a valid value. The value of
@@ -27,7 +26,6 @@ Example:
     >>> func(a=ub.NoParam)
     no param specified
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
 
 __all__ = ['NoParam']
 

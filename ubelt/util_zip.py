@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Abstractions for working with zipfiles and archives
 
@@ -14,7 +13,6 @@ without the user needing to worry about extracting it first. When possible it
 will read it directly from the archive, but in some cases it may extract it to
 a temporary directory first.
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
 import io
 import os
 import re

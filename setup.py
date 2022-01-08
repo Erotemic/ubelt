@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 """
 Installation:
     pip install git+https://github.com/Erotemic/ubelt.git

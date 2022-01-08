@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 r"""
 Wrappers around hashlib functions to generate hash signatures for common data.
 
@@ -55,7 +54,6 @@ Note:
     getting into the weeds of how we coerce technically non-hashable sequences
     into a hashable encoding.
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
 import hashlib
 import sys
 import math

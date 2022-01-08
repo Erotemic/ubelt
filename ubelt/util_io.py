@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Functions for reading and writing files on disk.
 
@@ -10,7 +9,6 @@ written and read is unicode text.
 throw an error if the file or directory does not exist. It also contains
 workarounds for win32 issues with :mod:`shutil`.
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
 import sys
 import os
 from os.path import exists

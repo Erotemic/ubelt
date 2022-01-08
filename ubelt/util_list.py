@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Utility functions for manipulating iterables, lists, and sequences.
 
@@ -20,7 +19,6 @@ lesser known, but very useful numpy equivalents.
 There are also other numpy inspired functions: :func:`unique`,
 :func:`argunique`, :func:`unique_flags`, and :func:`boolmask`.
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
 import itertools as it
 import sys
 import math

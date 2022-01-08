@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Functions for working with filesystem paths.
 
@@ -20,7 +19,6 @@ The :class:`Path` object is an extension of :class:`pathlib.Path` that contains
 extra convenience methods corresponding to the extra functional methods in this
 module.
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
 from os.path import (
     dirname, exists, expanduser, expandvars, join, normpath, split, splitext,
 )

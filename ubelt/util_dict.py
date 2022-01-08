@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Functions for working with dictionaries.
 
@@ -27,7 +26,6 @@ The :func:`ddict` and :func:`odict` functions are alias for the commonly used
 :func:`collections.defaultdict` and :func:`collections.OrderedDict` classes.
 
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
 import sys
 import operator as op
 import itertools as it

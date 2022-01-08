@@ -2,7 +2,6 @@
 The util_indexable module defines ``IndexableWalker`` which is a powerful
 way to iterate through nested Python containers.
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
 import sys
 
 try:

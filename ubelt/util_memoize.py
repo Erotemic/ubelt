@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 This module exposes decorators for in-memory caching of functional results.
 This is particularly useful when prototyping dynamic programming algorithms.
@@ -45,7 +44,6 @@ Example:
     >>> self.my_property2
     >>> self.my_property2
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
 import functools
 import sys
 from ubelt import util_hash

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 This module defines simple functions to color your text and highlight your code
 using `ANSI <https://en.wikipedia.org/wiki/ANSI_escape_code#Colors>`_ escape
@@ -32,7 +31,6 @@ Note:
 Requirements:
     pip install pygments
 """
-from __future__ import print_function, division, absolute_import, unicode_literals
 import sys
 import warnings
 import os

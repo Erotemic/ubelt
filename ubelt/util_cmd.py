@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 r"""
 This module exposes the :func:`ubelt.cmd` command, which provides a simple
 means for interacting with the commandline. While this does use
@@ -22,7 +21,6 @@ Example:
         'ret': 0,
     }
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
 import sys
 import warnings
 

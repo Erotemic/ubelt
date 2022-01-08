@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Functions for working with text and strings.
 
@@ -13,7 +12,6 @@ The :func:`hzcat` function horizontally concatenates multiline text.
 The :func:`indent` prefixes all lines in a text block with a given prefix. By
 default that prefix is 4 spaces.
 """
-from __future__ import print_function, division, absolute_import, unicode_literals
 import sys
 
 PY2 = sys.version_info[0] == 2

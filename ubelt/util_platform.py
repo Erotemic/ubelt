@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 The goal of this module is to provide an idiomatic cross-platform pattern of
 accessing platform dependent file systems.
@@ -36,7 +35,6 @@ References:
     .. [harawata_appdirs] https://github.com/harawata/appdirs#supported-directories
     .. [AS_appdirs] https://github.com/ActiveState/appdirs
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
 import os
 import sys
 import itertools as it

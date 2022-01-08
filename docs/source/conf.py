@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Notes:
     http://docs.readthedocs.io/en/latest/getting_started.html

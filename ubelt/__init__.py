@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 UBelt is a "utility belt" of commonly needed utility and helper functions.  It
 is a currated collection of top-level utilities with functionality that falls
@@ -15,7 +14,6 @@ NOTE: The `README <https://github.com/Erotemic/ubelt#readme>`_ on github
 contains information and examples complementary to these docs.
 """
 # flake8: noqa
-from __future__ import absolute_import, division, print_function, unicode_literals
 
 
 __dev__ = """

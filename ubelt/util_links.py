@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 r"""
 Cross-platform logic for dealing with symlinks. Basic functionality should work
 on all operating systems including everyone's favorite pathological OS (note

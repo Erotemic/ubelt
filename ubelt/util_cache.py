@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 This module exposes :class:`Cacher` and :class:`CacheStamp` classes, which
 provide a simple API for on-disk caching.
@@ -82,7 +81,6 @@ Example:
 TODO:
     - [ ] Remove the cfgstr-overrides?
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
 import os
 from os.path import join, normpath, basename, exists
 import warnings

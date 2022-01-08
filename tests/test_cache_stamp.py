@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import ubelt as ub
 from os.path import join
 

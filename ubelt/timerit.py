@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 First, :class:`Timer` is a context manager that times a block of indented
 code. Also has `tic` and `toc` methods for a more matlab like feel.
@@ -48,7 +47,6 @@ Example:
 
 
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
 import time
 import sys
 import itertools as it

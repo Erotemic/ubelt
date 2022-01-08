@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from os.path import exists
 import ubelt as ub
 import pytest

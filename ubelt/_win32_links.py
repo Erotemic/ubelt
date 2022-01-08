@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 For dealing with symlinks, junctions, and hard-links on windows.
 
@@ -15,7 +14,6 @@ Weird Behavior:
     - [ ] In many cases using the win32 API seems to result in privilege errors
           but using shell commands does not have this problem.
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
 import os
 import warnings
 from os.path import exists

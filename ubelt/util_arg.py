@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Simple ways to interact with the commandline without defining a full blown
 CLI. These are usually used for developer hacks. Any real interface should
@@ -11,7 +10,6 @@ exists on the command line.
 The :func:`argval` function returns the value of a ``--key=value`` style CLI
 argument.
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
 import sys
 from ubelt import util_const
 

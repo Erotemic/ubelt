@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 r"""
 Expose functions to simplify importing from module names and paths.
 
@@ -13,7 +12,6 @@ statically and convert between module names and file paths on disk.
 The :func:`ubelt.split_modpath` function separates modules into a root and base
 path depending on where the first ``__init__.py`` file is.
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
 from os.path import (abspath, basename, dirname, exists, expanduser, isdir,
                      isfile, join, realpath, relpath, split, splitext)
 import os
