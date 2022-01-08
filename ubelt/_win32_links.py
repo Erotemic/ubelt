@@ -22,6 +22,7 @@ from os.path import exists
 from os.path import join
 from ubelt import util_io
 from ubelt import util_path
+from ubelt.util_path import _fspath
 import sys
 
 if sys.platform.startswith('win32'):
@@ -373,18 +374,6 @@ def _win32_read_junction(path):
     if not jwfs.is_reparse_point(path):
         raise ValueError('not a junction')
 
-    # --- Older version based on using shell commands ---
-    # if not exists(path):
-    #     if six.PY2:
-    #         raise OSError('Cannot find path={}'.format(path))
-    #     else:
-    #         raise FileNotFoundError('Cannot find path={}'.format(path))
-    # target_name = os.path.basename(path)
-    # for type_or_size, name, pointed in _win32_dir(path, '*'):
-    #     if type_or_size == '<JUNCTION>' and name == target_name:
-    #         return pointed
-    # raise ValueError('not a junction')
-
     # new version using the windows api
     handle = jwfs.api.CreateFile(
             path, 0, 0, None, jwfs.api.OPEN_EXISTING,
@@ -414,29 +403,47 @@ def _win32_read_junction(path):
     return subname
 
 
+def _fspath(path):
+    """
+    For cases where os.fspath does not exist on older Python
+    """
+    import six
+    string_types = six.string_types
+
+    if isinstance(path, string_types):
+        return path
+
+    # Work from the object's type to match method resolution of other magic
+    # methods.
+    path_type = type(path)
+    try:
+        path_repr = path_type.__fspath__(path)
+    except AttributeError:
+        if hasattr(path_type, '__fspath__'):
+            raise
+        else:
+            raise TypeError("expected str, bytes or os.PathLike object, "
+                            "not " + path_type.__name__)
+    if isinstance(path_repr, string_types):
+        return path_repr
+    else:
+        raise TypeError("expected {}.__fspath__() to return str or bytes, "
+                        "not {}".format(path_type.__name__,
+                                        type(path_repr).__name__))
+
+
 def _win32_rmtree(path, verbose=0):
     """
     rmtree for win32 that treats junctions like directory symlinks.
     The junction removal portion may not be safe on race conditions.
 
-    There is a known issue that prevents shutil.rmtree from
-    deleting directories with junctions.
-    https://bugs.python.org/issue31226
-    """
+    There is a known issue [CPythonBug31226]_ that prevents
+    :func:`shutil.rmtree` from deleting directories with junctions.
 
-    # --- old version using the shell ---
-    # def _rmjunctions(root):
-    #     subdirs = []
-    #     for type_or_size, name, pointed in _win32_dir(root):
-    #         if type_or_size == '<DIR>':
-    #             subdirs.append(name)
-    #         elif type_or_size == '<JUNCTION>':
-    #             # remove any junctions as we encounter them
-    #             # os.unlink(join(root, name))
-    #             os.rmdir(join(root, name))
-    #     # recurse in all real directories
-    #     for name in subdirs:
-    #         _rmjunctions(join(root, name))
+    References:
+        .. [CPythonBug31226] https://bugs.python.org/issue31226
+    """
+    path = _fspath(path)
 
     def _rmjunctions(root):
         from os.path import join, isdir, islink
@@ -462,27 +469,6 @@ def _win32_rmtree(path, verbose=0):
 
             # only recurse into real directories
             ds[:] = subdirs
-
-            # Probably dont need this?
-            # for f in fs:
-            #     fpath = join(r, f)
-            #     if os.path.isdir(fpath):
-            #         if _win32_is_junction(fpath):
-            #             # remove any junctions as we encounter them
-            #             os.rmdir(fpath)
-
-        # subdirs = []
-        # for name in os.listdir(root):
-        #     current = join(root, name)
-        #     if os.path.isdir(current):
-        #         if _win32_is_junction(current):
-        #             # remove any junctions as we encounter them
-        #             os.rmdir(current)
-        #         elif not os.path.islink(current):
-        #             subdirs.append(current)
-        # # recurse in all real directories
-        # for subdir in subdirs:
-        #     _rmjunctions(subdir)
 
     if _win32_is_junction(path):
         if verbose:

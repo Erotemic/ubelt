@@ -16,6 +16,7 @@ if it needs to.
 """
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
+from ubelt.util_const import NoParam
 from os.path import basename, join, exists, dirname
 import os
 import sys
@@ -35,7 +36,8 @@ else:
 
 
 def download(url, fpath=None, dpath=None, fname=None, hash_prefix=None,
-             hasher='sha512', chunksize=8192, verbose=1, progkw=None):
+             hasher='sha512', chunksize=8192, verbose=1, timeout=NoParam,
+             progkw=None):
     """
     Downloads a url to a file on disk.
 
@@ -75,6 +77,12 @@ def download(url, fpath=None, dpath=None, fname=None, hash_prefix=None,
 
         verbose (int, default=1):
             Verbosity level 0 or 1.
+
+        timeout (float, default=NoParam):
+            Specify timeout in seconds for :func:`urllib.request.urlopen`.  (if
+            not specified, the global default timeout setting will be used)
+            This only works for HTTP, HTTPS and FTP connections for blocking
+            operations like the connection attempt.
 
         progkw (Dict | None):
             if specified provides extra arguments to the progress iterator
@@ -142,6 +150,10 @@ def download(url, fpath=None, dpath=None, fname=None, hash_prefix=None,
     import tempfile
     import hashlib
 
+    if timeout is NoParam:
+        import socket
+        timeout = socket._GLOBAL_DEFAULT_TIMEOUT
+
     if PY2:  # nocover
         from urllib2 import urlopen  # NOQA
     else:
@@ -169,7 +181,9 @@ def download(url, fpath=None, dpath=None, fname=None, hash_prefix=None,
             print('Downloading url={!r} to fpath={!r}'.format(
                 url, fpath))
 
-    urldata = urlopen(url)
+    # TODO: might want to open the url with different args
+    urldata = urlopen(url, timeout=timeout)
+
     meta = urldata.info()
     try:
         if hasattr(meta, 'getheaders'):  # nocover

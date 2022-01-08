@@ -208,17 +208,32 @@ def test_grabdata_value_error():
         ub.grabdata(url, dpath=dpath, appname='foobar')
 
 
-@pytest.mark.timeout(5)
+@pytest.mark.timeout(10)
 def test_download_bad_url():
     """
     Check that we error when the url is bad
 
+    Notes:
+        For some reason this can take a long time to realize there is no URL,
+        even if the timeout is specified and fairly low.
+
     CommandLine:
-        python -m ubelt.tests.test_download test_download_bad_url --verbose
+        python tests/test_download.py test_download_bad_url --verbose
     """
-    url = 'http://a-very-incorrect-url'
+    url = 'http://www.a-very-incorrect-url.gov/does_not_exist.txt'
     # if not ub.argflag('--network'):
     #     pytest.skip('not running network tests')
+
+    # Ensure the opener exist
+    import sys
+    if sys.version_info[0] == 2:  # nocover
+        # import urllib2 as urllib_x
+        from urllib2 import URLError  # NOQA
+    else:
+        # import urllib.request as urllib_x
+        from urllib.error import URLError  # NOQA
+    # if urllib_x._opener is None:
+    #     urllib_x.install_opener(urllib_x.build_opener())
 
     dpath = ub.ensure_app_cache_dir('ubelt', 'tests')
     fname = basename(url)
@@ -227,14 +242,8 @@ def test_download_bad_url():
     ub.delete(fpath)
     assert not exists(fpath)
 
-    # from ubelt.util_download import URLError
-    import six
-    if six.PY2:  # nocover
-        from urllib2 import URLError  # NOQA
-    else:
-        from urllib.error import URLError  # NOQA
     with pytest.raises(URLError):
-        ub.download(url, fpath=fpath, verbose=1)
+        ub.download(url, fpath=fpath, verbose=1, timeout=1.0)
 
 
 @pytest.mark.timeout(5)

@@ -79,6 +79,13 @@ class chunks(object):
         where it chooses a chunksize that is too large. Specify
         ``legacy=True`` to get the old buggy behavior if needed.
 
+    Notes:
+        This is similar to functionality provided by
+            :func:`more_itertools.chunked`,
+            :func:`more_itertools.chunked_even`,
+            :func:`more_itertools.sliced`,
+            :func:`more_itertools.divide`,
+
     Yields:
         List[T]:
             subsequent non-overlapping chunks of the input items
@@ -338,18 +345,21 @@ def iterable(obj, strok=False):
 
 def take(items, indices, default=util_const.NoParam):
     """
-    Selects a subset of a list based on a list of indices.
+    Lookup a subset of an indexable object using a sequence of indices.
 
-    This is similar to ``np.take``, but pure python. This also supports
-    specifying a default element if ``items`` is an iterable of dictionaries.
+    The ``items`` input is usually a list or dictionary. When ``items`` is a
+    list, this should be a sequence of integers. When ``items`` is a dict, this
+    is a list of keys to lookup in that dictionary.
+
+    For dictionaries, a default may be specified as a placeholder to use if a
+    key from ``indices`` is not in ``items``.
 
     Args:
         items (Sequence[VT] | Mapping[KT, VT]):
-            An indexable object to select items from
+            An indexable object to select items from.
 
         indices (Iterable[int | KT]):
-            sequence of indexes into ``items``
-
+            A sequence of indexes into ``items``.
         default (Any, default=NoParam):
             if specified ``items`` must support the ``get`` method.
 
@@ -362,6 +372,13 @@ def take(items, indices, default=util_const.NoParam):
     Note:
         ``ub.take(items, indices)`` is equivalent to
         ``(items[i] for i in indices)`` when ``default`` is unspecified.
+
+    Notes:
+        This is based on the :func:`numpy.take` function, but written in pure
+        python.
+
+        Do not confuse this with :func:`more_itertools.take`, the behavior is
+        very different.
 
     Example:
         >>> import ubelt as ub
@@ -398,9 +415,7 @@ def take(items, indices, default=util_const.NoParam):
 def compress(items, flags):
     """
     Selects from ``items`` where the corresponding value in ``flags`` is True.
-    This is similar to :func:`numpy.compress`.
 
-    This is actually a simple alias for :func:`itertools.compress`.
 
     Args:
         items (Iterable[Any]): a sequence to select items from
@@ -409,6 +424,13 @@ def compress(items, flags):
 
     Returns:
         Iterable[Any]: a subset of masked items
+
+    Notes:
+        This function is based on :func:`numpy.compress`, but is pure Python
+        and swaps the condition and array argument to be consistent with
+        :func:`ubelt.take`.
+
+        This is equivalent to :func:`itertools.compress`.
 
     Example:
         >>> import ubelt as ub
@@ -424,13 +446,15 @@ def flatten(nested):
     """
     Transforms a nested iterable into a flat iterable.
 
-    This is simply an alias for :func:`itertools.chain.from_iterable`.
-
     Args:
         nested (Iterable[Iterable[Any]]): list of lists
 
     Returns:
         Iterable[Any]: flattened items
+
+    Notes:
+        Equivalent to :func:`more_itertools.flatten` and
+        :func:`itertools.chain.from_iterable`.
 
     Example:
         >>> import ubelt as ub
@@ -454,6 +478,9 @@ def unique(items, key=None):
     Yields:
         T:
             a unique item from the input sequence
+
+    Notes:
+        Functionally equivalent to :func:`more_itertools.unique_everseen`.
 
     Example:
         >>> import ubelt as ub
@@ -596,6 +623,12 @@ def iter_window(iterable, size=2, step=1, wrap=False):
     Returns:
         Iterable[T]: returns a possibly overlapping windows in a sequence
 
+    Notes:
+        Similar to :func:`more_itertools.windowed`,
+        Similar to :func:`more_itertools.pairwise`,
+        Similar to :func:`more_itertools.triplewise`,
+        Similar to :func:`more_itertools.sliding_window`
+
     Example:
         >>> import ubelt as ub
         >>> iterable = [1, 2, 3, 4, 5, 6]
@@ -664,6 +697,9 @@ def allsame(iterable, eq=operator.eq):
 
     Returns:
         bool: True if all items are equal, otherwise False
+
+    Notes:
+        Similar to :func:`more_itertools.all_equal`
 
     Example:
         >>> import ubelt as ub
@@ -832,6 +868,9 @@ def peek(iterable, default=util_const.NoParam):
     Returns:
         T: item - the first item of ordered sequence, a popped item from an
                  iterator, or an arbitrary item from an unordered collection.
+
+    Notes:
+        Similar to :func:`more_itertools.peekable`
 
     Example:
         >>> import ubelt as ub
