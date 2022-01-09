@@ -64,10 +64,12 @@ def benchmark_ubelt_import_time_robust():
         def _main():
             import ubelt as ub
             measurements = []
-            for i in ub.ProgIter(range(20), desc='measure import time', verbose=0):
+            for i in range(20):
                 row = {}
-                info = ub.cmd('python -X importtime -c "import ubelt"')
-                final_line = info['err'].rstrip().split('\n')[-1]
+                # info = ub.cmd('python -X importtime -c "import ubelt"')
+                # text = info['err']
+                text = subprocess.check_output('python -X importtime -c "import ubelt"', shell=True)
+                final_line = text.rstrip().split('\n')[-1]
                 partial = final_line.split(':')[1].split('|')
                 row['self_us'] = float(partial[0].strip())
                 row['cummulative'] = float(partial[1].strip())
@@ -103,7 +105,7 @@ def benchmark_ubelt_import_time_robust():
     rows = []
     for bname in branches:
         print('bname = {!r}'.format(bname))
-        ub.cmd('git checkout {}'.format(bname), cwd=repo_root)
+        ub.cmd('git checkout {}'.format(bname), cwd=repo_root, verbose=3, check=True)
         info = ub.cmd('python {}'.format(fpath), verbose=2)
         dict_info = eval(info['out'])
         bname_to_info[bname] = dict_info
@@ -130,3 +132,4 @@ if __name__ == '__main__':
     # benchmark_import_time()
     benchmark_ubelt_import_time_robust()
     # benchmark_multi_or_combined_import()
+
