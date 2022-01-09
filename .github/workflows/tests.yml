@@ -4,6 +4,8 @@
 name: Tests
 
 on:
+  push:
+    branches: [ release ]
   pull_request:
     branches: [ main ]
 
