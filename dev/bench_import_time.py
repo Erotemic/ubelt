@@ -126,9 +126,10 @@ def benchmark_ubelt_import_time_robust():
                     'type': type,
                     'time': dict_info[stat][type],
                 })
-        df = pd.DataFrame(rows)
-        ax.cla()
-        sns.lineplot(data=df, x='version', y='time', hue='stat', style='type', ax=ax)
+        df = pd.DataFrame(rows[-1:])
+        print(df)
+        # ax.cla()
+        # sns.lineplot(data=df, x='version', y='time', hue='stat', style='type', ax=ax)
 
     ub.cmd('git checkout {}'.format('dev/1.0.0'), cwd=repo_root)
     df = pd.DataFrame(rows)
