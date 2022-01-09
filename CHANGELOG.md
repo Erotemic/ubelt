@@ -7,6 +7,10 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## Version 1.0.0 - Unreleased
 
+### Added
+
+* :func:`ubelt.Path.ensure_appdir`
+
 ### Changed
 * Remove support for Python 2.7 and Python 3.5
 * Removed deprecated functions scheduled for removal.
