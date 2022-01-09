@@ -1,4 +1,4 @@
-|GithubActions| |ReadTheDocs| |Pypi| |Downloads| |Codecov| |CircleCI| |Appveyor| |CodeQuality|
+|GithubActions| |ReadTheDocs| |Pypi| |Downloads| |Codecov| |CircleCI| |Appveyor| |CodeQuality| |TwitterFollow|
 
 
 .. The large version wont work because github strips rst image rescaling. https://i.imgur.com/AcWVroL.png
@@ -873,3 +873,5 @@ Also check out my other projects (many of which are powered by ubelt):
     :target: https://www.codacy.com/manual/Erotemic/ubelt?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=Erotemic/ubelt&amp;utm_campaign=Badge_Grade
 .. |GithubActions| image:: https://github.com/Erotemic/ubelt/actions/workflows/tests.yml/badge.svg?branch=main
     :target: https://github.com/Erotemic/ubelt/actions?query=branch%3Amain
+.. |TwitterFollow| image:: https://img.shields.io/twitter/follow/Erotemic.svg?style=social
+    :target: https://twitter.com/Erotemic

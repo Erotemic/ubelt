@@ -233,6 +233,10 @@ if __name__ == '__main__':
             'Intended Audience :: Developers',
             'Topic :: Software Development :: Libraries :: Python Modules',
             'Topic :: Utilities',
+            'Operating System :: Microsoft :: Windows',
+            'Operating System :: MacOS',
+            'Operating System :: POSIX :: Linux',
+            'Typing :: Stubs Only',
             # This should be interpreted as Apache License v2.0
             'License :: OSI Approved :: Apache Software License',
             # Supported Python versions
