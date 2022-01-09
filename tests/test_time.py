@@ -27,16 +27,6 @@ def test_timer_default_verbosity():
     assert cap.text != '', 'should be verbose by default when label is given'
 
 
-def test_timerit_default_verbosity():
-    with CaptureStdout() as cap:
-        ub.Timerit(10, '').call(lambda: None)
-    assert cap.text == '', 'should be quiet by default when label is not given'
-
-    with CaptureStdout() as cap:
-        ub.Timerit(10, 'alabel').call(lambda: None)
-    assert cap.text != '', 'should be verbose by default when label is given'
-
-
 def test_timer_error():
     try:
         with ub.Timer() as timer:

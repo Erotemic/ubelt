@@ -22,4 +22,5 @@ omit =
     *ubelt/tests/*
     *ubelt/_win32_links.py
     *ubelt/__main__.py
+    *ubelt/_util_deprecated.py
     */setup.py
