@@ -9,7 +9,6 @@ Submodules
 
    ubelt.orderedset
    ubelt.progiter
-   ubelt.timerit
    ubelt.util_arg
    ubelt.util_cache
    ubelt.util_cmd
@@ -34,6 +33,7 @@ Submodules
    ubelt.util_str
    ubelt.util_stream
    ubelt.util_time
+   ubelt.util_zip
 
 Module contents
 ---------------

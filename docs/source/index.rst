@@ -56,7 +56,6 @@ my own code (excluding ubelt itself).
 :func:`ubelt.argval<ubelt.util_arg.argval>`                                                         147
 :func:`ubelt.iterable<ubelt.util_list.iterable>`                                                    143
 :func:`ubelt.group_items<ubelt.util_dict.group_items>`                                              141
-:func:`ubelt.Timerit<ubelt.timerit.Timerit>`                                                        139
 :func:`ubelt.grabdata<ubelt.util_download.grabdata>`                                                128
 :func:`ubelt.oset<ubelt.orderedset.oset>`                                                           115
 :func:`ubelt.hash_data<ubelt.util_hash.hash_data>`                                                  115
@@ -68,7 +67,7 @@ my own code (excluding ubelt itself).
 :func:`ubelt.dict_isect<ubelt.util_dict.dict_isect>`                                                 86
 :func:`ubelt.dict_diff<ubelt.util_dict.dict_diff>`                                                   84
 :func:`ubelt.allsame<ubelt.util_list.allsame>`                                                       80
-:func:`ubelt.Timer<ubelt.timerit.Timer>`                                                             80
+:func:`ubelt.Timer<ubelt.util_time.Timer>`                                                           80
 :func:`ubelt.hzcat<ubelt.util_str.hzcat>`                                                            71
 :func:`ubelt.identity<ubelt.util_func.identity>`                                                     71
 :func:`ubelt.invert_dict<ubelt.util_dict.invert_dict>`                                               60
@@ -163,11 +162,6 @@ my own code (excluding ubelt itself).
 :mod:`ubelt.progiter`
 ---------------------
 :func:`<ubelt.ProgIter><ubelt.progiter.ProgIter>`
-
-:mod:`ubelt.timerit`
---------------------
-:func:`<ubelt.Timer><ubelt.timerit.Timer>`
-:func:`<ubelt.Timerit><ubelt.timerit.Timerit>`
 
 :mod:`ubelt.util_arg`
 ---------------------
@@ -342,6 +336,7 @@ my own code (excluding ubelt itself).
 :mod:`ubelt.util_time`
 ----------------------
 :func:`<ubelt.timestamp><ubelt.util_time.timestamp>`
+:func:`<ubelt.Timer><ubelt.util_time.Timer>`
 
 :mod:`ubelt.util_zip`
 ---------------------
