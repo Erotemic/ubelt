@@ -2,12 +2,12 @@
 The util_indexable module defines ``IndexableWalker`` which is a powerful
 way to iterate through nested Python containers.
 """
-import sys
 from math import isclose
-from collections.abc import Generator
+# from collections.abc import Generator
+from collections.abc import Iterable
 
 
-class IndexableWalker(Generator):
+class IndexableWalker(Iterable):
     """
     Traverses through a nested tree-liked indexable structure.
 
@@ -106,8 +106,7 @@ class IndexableWalker(Generator):
         self.dict_cls = dict_cls
         self.list_cls = list_cls
         self.indexable_cls = self.dict_cls + self.list_cls
-
-        self._walk_gen = None
+        # self._walk_gen = None
 
     def __iter__(self):
         """
@@ -120,25 +119,21 @@ class IndexableWalker(Generator):
                 path (List): list of index operations to arrive at the value
                 value (object): the value at the path
         """
-        return self
+        return self._walk()
 
-    def __next__(self):
-        """ returns next item from this generator """
-        if self._walk_gen is None:
-            self._walk_gen = self._walk()
-        return next(self._walk_gen)
+    # def __next__(self):
+    #     """ returns next item from this generator """
+    #     if self._walk_gen is None:
+    #         self._walk_gen = self._walk()
+    #     return next(self._walk_gen)
 
-    def next(self):  # nocover
-        # For Python 2.7
-        return self.__next__()
-
-    def send(self, arg):
-        """
-        send(arg) -> send 'arg' into generator,
-        return next yielded value or raise StopIteration.
-        """
-        # Note: this will error if called before __next__
-        self._walk_gen.send(arg)
+    # def send(self, arg):
+    #     """
+    #     send(arg) -> send 'arg' into generator,
+    #     return next yielded value or raise StopIteration.
+    #     """
+    #     # Note: this will error if called before __next__
+    #     self._walk_gen.send(arg)
 
     def throw(self, type=None, value=None, traceback=None):
         """
@@ -156,6 +151,8 @@ class IndexableWalker(Generator):
             value (object): new value
         """
         d = self.data
+        # note: slice unpack seems faster in 3.9 at least, dont change
+        # ~/misc/tests/python/bench_unpack.py
         prefix, key = path[:-1], path[-1]
         # *prefix, key = path
         for k in prefix:
@@ -376,5 +373,3 @@ def indexable_allclose(dct1, dct2, rel_tol=1e-9, abs_tol=0.0, return_info=False)
         return final_flag, info
     else:
         return final_flag
-
-

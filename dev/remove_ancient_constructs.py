@@ -9,10 +9,12 @@ def remove_old_python2_headers():
         patterns.Pattern.from_regex(re.escape('# -*- coding: utf-8 -*-') + '.*', dotall=True),
     ]
 
-    fpaths = set(ub.Path('~/code/ubelt/').expand().glob('**/*.py'))
+    fpaths = set(ub.Path('~/code/watch/').expand().glob('**/*.py'))
     fpaths = fpaths - {ub.Path('~/code/ubelt/dev/remove_ancient_constructs.py').expand()}
+
+    dry = 0
 
     for fpath in fpaths:
         # x = fpath.read_text().split('\n')[0:1][0]
         for pat in lines_to_remove:
-            search_replace.sedfile(fpath, regexpr=pat, repl='', dry=False, verbose=3)
+            search_replace.sedfile(fpath, regexpr=pat, repl='', dry=dry, verbose=3)
