@@ -12,9 +12,8 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 * :func:`ubelt.Path.ensure_appdir`
 
 ### Changed
-* `IndexableWalker` has been changed from a `Generator` to an `Iterable`. It no
-  longer manages its own iteration state, and can return multiple independent
-  generators over the same data.
+* `IndexableWalker` behavior has been changed, each time `iter` is called it
+  resets its global state. 
 * Remove support for Python 2.7 and Python 3.5
 * Removed deprecated functions scheduled for removal.
 

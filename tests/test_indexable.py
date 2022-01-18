@@ -68,3 +68,63 @@ def test_indexable_walker_map_patterns():
     assert ub.indexable_allclose(self.data, self_v2)
     assert ub.indexable_allclose(self.data, self_v1)
     assert not ub.indexable_allclose(self.data, mapped_v1)
+
+
+def test_walk_iter_gen_behavior():
+    from itertools import count, permutations
+    from functools import cache
+    counter = count()
+
+    @cache
+    def tree(b, d):
+        if d == 1:
+            return [next(counter) for i in range(b)]
+        else:
+            return [tree(b, d - 1) for i in range(b)]
+
+    data = tree(3, 3)
+
+    # Order of operations does matter
+    walker = ub.IndexableWalker(data)
+    # Should use self-iter
+    item1 = next(walker)
+    item2 = next(walker)
+    item3 = next(walker)
+    print('item1 = {!r}'.format(item1))
+    print('item2 = {!r}'.format(item2))
+    print('item3 = {!r}'.format(item3))
+
+    # Should make new iters, and clobber existing ones
+    assert list(walker) == list(walker)
+
+    import pytest
+    # Exhausing the current iterator will cause StopIteration
+    list(walker)
+    with pytest.raises(StopIteration):
+        item4 = next(walker)  # NOQA
+
+    walker = ub.IndexableWalker(data)
+    # Should make new iters, and clobber existing ones
+    item1 = next(walker)
+    iter(walker)
+    item2 = next(walker)
+    assert item1 == item2
+    assert item1 != next(walker)
+
+    # Should make new iters
+    walker = ub.IndexableWalker(data)
+    c = 0
+    for _ in walker:
+        try:
+            next(walker)
+        except StopIteration:
+            pass
+        c += 1
+
+    walker = ub.IndexableWalker(data)
+    d = 0
+    for _ in walker:
+        d += 1
+
+    assert d == len(list(walker))
+    assert d != c

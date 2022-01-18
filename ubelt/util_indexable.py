@@ -3,11 +3,11 @@ The util_indexable module defines ``IndexableWalker`` which is a powerful
 way to iterate through nested Python containers.
 """
 from math import isclose
-# from collections.abc import Generator
-from collections.abc import Iterable
+from collections.abc import Generator
+# from collections.abc import Iterable
 
 
-class IndexableWalker(Iterable):
+class IndexableWalker(Generator):
     """
     Traverses through a nested tree-liked indexable structure.
 
@@ -87,7 +87,6 @@ class IndexableWalker(Iterable):
 
     Example:
         >>> # Test sending false for every data item
-        >>> # xdoctest: +REQUIRES(module:numpy)
         >>> import ubelt as ub
         >>> import numpy as np
         >>> data = {1: 1}
@@ -106,7 +105,7 @@ class IndexableWalker(Iterable):
         self.dict_cls = dict_cls
         self.list_cls = list_cls
         self.indexable_cls = self.dict_cls + self.list_cls
-        # self._walk_gen = None
+        self._walk_gen = None
 
     def __iter__(self):
         """
@@ -119,21 +118,25 @@ class IndexableWalker(Iterable):
                 path (List): list of index operations to arrive at the value
                 value (object): the value at the path
         """
-        return self._walk()
+        # Calling iterate multiple times will clobber the internal state
+        self._walk_gen = self._walk()
+        return self._walk_gen
 
-    # def __next__(self):
-    #     """ returns next item from this generator """
-    #     if self._walk_gen is None:
-    #         self._walk_gen = self._walk()
-    #     return next(self._walk_gen)
+    def __next__(self):
+        """ returns next item from this generator """
+        if self._walk_gen is None:
+            self._walk_gen = self._walk()
+        return next(self._walk_gen)
 
-    # def send(self, arg):
-    #     """
-    #     send(arg) -> send 'arg' into generator,
-    #     return next yielded value or raise StopIteration.
-    #     """
-    #     # Note: this will error if called before __next__
-    #     self._walk_gen.send(arg)
+    # TODO: maybe we implement a map function?
+
+    def send(self, arg):
+        """
+        send(arg) -> send 'arg' into generator,
+        return next yielded value or raise StopIteration.
+        """
+        # Note: this will error if called before __next__
+        self._walk_gen.send(arg)
 
     def throw(self, type=None, value=None, traceback=None):
         """
