@@ -105,10 +105,11 @@ class Cacher(object):
 
         dpath (str | PathLike | None):
             Specifies where to save the cache. If unspecified, Cacher defaults
-            to an application resource dir as given by appname.
+            to an application cache dir as given by appname. See
+            :func:`ub.get_app_cache_dir` for more details.
 
         appname (str, default='ubelt'): Application name
-            Specifies a folder in the application resource directory where to
+            Specifies a folder in the application cache directory where to
             cache the data if ``dpath`` is not specified.
 
         ext (str, default='.pkl'): File extension for the cache format

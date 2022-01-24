@@ -1,9 +1,19 @@
 r"""
 This module exposes the :func:`ubelt.cmd` command, which provides a simple
-means for interacting with the commandline. While this does use
-:class:`subprocess.Popen` under the hood, the key draw of :func:`ubelt.cmd` is
-that you can capture stdout/stderr in your program while simultaneously
-printing it to the terminal in real time.
+means for interacting with the commandline.  This uses
+:class:`subprocess.Popen` under the hood, but improves upon existing
+:mod:`subprocess` functionality by:
+
+(1) Adding the option to "tee" the output, i.e. simultaniously capture and
+write to stdout and stderr.
+
+(2) Always specify the command as a string. The :mod:`subprocess` module
+expects the command as either a  ``List[str]`` if ``shell=False`` and ``str``
+if ``shell=True``. If necessary, :func:`ubelt.util_cmd.cmd` will automatically
+convert from one format to the other, so passing in either case will work.
+
+(3) Specificy if the process blocks or not by setting ``detatch``. Note: when
+``detatch is True`` it is not possible to tee the output.
 
 Example:
     >>> import ubelt as ub
