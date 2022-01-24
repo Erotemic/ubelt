@@ -604,6 +604,8 @@ class Path(_PathBase):
             >>> print(ub.Path.ensure_appdir('ubelt', type='cache').shrinkuser())
             >>> print(ub.Path.ensure_appdir('ubelt', type='config').shrinkuser())
             >>> print(ub.Path.ensure_appdir('ubelt', type='data').shrinkuser())
+
+            # TODO: fix "want" string on the mac
             ~/.cache/ubelt
             ~/.config/ubelt
             ~/.local/share/ubelt
