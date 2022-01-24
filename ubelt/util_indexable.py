@@ -88,7 +88,6 @@ class IndexableWalker(Generator):
     Example:
         >>> # Test sending false for every data item
         >>> # xdoctest: +REQUIRES(module:numpy)
-        >>> # xdoctest: +REQUIRES(--show)
         >>> import ubelt as ub
         >>> import numpy as np
         >>> data = {1: 1}
