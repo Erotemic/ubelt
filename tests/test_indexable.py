@@ -193,7 +193,7 @@ def test_indexable_walker_map_patterns():
     self_v2 = _indexable_walker_map_v2(self, ub.identity)
     # for timer in ti.reset('time'):
     #     with timer:
-    self_v3 = _map_vals3(self, ub.identity)
+    self_v3 = _map_vals3(self, ub.identity)  # NOQA
 
     # change auto-dict into lists when appropriate
     fixup = ub.IndexableWalker(self_v1)
