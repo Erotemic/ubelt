@@ -94,9 +94,9 @@ def _map_vals3(self, func):
     return mapped
 
 
-def _map_vals4(self, func):
-    for key, value, _data in _walk2(self.data):
-        pass
+# def _map_vals4(self, func):
+#     for key, value, _data in _walk2(self.data):
+#         pass
 
 
 # def _walk2(self, data=None, mapped=None):
@@ -183,17 +183,17 @@ def test_indexable_walker_map_patterns():
     assert ub.indexable_allclose(mapped_v1, mapped_v2)
 
     self = ub.IndexableWalker(data)
-    import timerit
-    ti = timerit.Timerit(10, bestof=2, verbose=2)
-    for timer in ti.reset('time'):
-        with timer:
-            self_v1 = _indexable_walker_map_v1(self, ub.identity)
-    for timer in ti.reset('time'):
-        with timer:
-            self_v2 = _indexable_walker_map_v2(self, ub.identity)
-    for timer in ti.reset('time'):
-        with timer:
-            self_v3 = _map_vals3(self, ub.identity)
+    # import timerit
+    # ti = timerit.Timerit(10, bestof=2, verbose=2)
+    # for timer in ti.reset('time'):
+    #     with timer:
+    self_v1 = _indexable_walker_map_v1(self, ub.identity)
+    # for timer in ti.reset('time'):
+    #     with timer:
+    self_v2 = _indexable_walker_map_v2(self, ub.identity)
+    # for timer in ti.reset('time'):
+    #     with timer:
+    self_v3 = _map_vals3(self, ub.identity)
 
     # change auto-dict into lists when appropriate
     fixup = ub.IndexableWalker(self_v1)
