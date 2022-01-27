@@ -461,15 +461,12 @@ def dict_diff(*args):
         return {}
     else:
         first_dict = args[0]
-        if isinstance(first_dict, OrderedDict):
-            from ubelt import OrderedSet
-            dictclass = OrderedDict
-            keys = OrderedSet(first_dict)
-        else:
-            dictclass = dict
-            keys = set(first_dict)
-        keys.difference_update(*map(set, args[1:]))
-        return dictclass((k, first_dict[k]) for k in keys)
+        dictclass = OrderedDict if isinstance(first_dict, OrderedDict) else dict
+        # remove_keys = set.union(*map(set, args[1:]))
+        # new = dictclass((k, v) for k, v in first_dict.items() if k not in remove_keys)
+        remove_keys = set.union(*map(set, args[1:]))
+        new = dictclass((k, first_dict[k]) for k in first_dict.keys() if k not in remove_keys)
+        return new
 
 
 def dict_isect(*args):

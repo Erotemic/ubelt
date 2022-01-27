@@ -226,7 +226,9 @@ class _Hashers(object):
                 if hasher_ in self.algos:  # pragma: no cover
                     return self.algos[hasher_]
                 else:
+                    # TODO: provide pip install messages for known hashers.
                     raise KeyError('unknown hasher: {}'.format(hasher))
+
         return hasher
 
 _HASHERS = _Hashers()
