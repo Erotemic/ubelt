@@ -196,13 +196,34 @@ def benchmark_dict_diff_impl():
     # preference profile. We will give that preference profile a weight (e.g.
     # based on the fastest method in the bunch) and then aggregate them with
     # some voting method.
+
+    USE_OPENSKILL = 1
+    if USE_OPENSKILL:
+        # Lets try a real ranking method
+        # https://github.com/OpenDebates/openskill.py
+        import openskill
+        method_ratings = {m: openskill.Rating() for m in basis['method']}
+
     weighted_rankings = ub.ddict(lambda: ub.ddict(float))
     for params, variants in data.groupby(['num_other', 'keytype', 'remove_fraction', 'num_items']):
         variants = variants.sort_values('mean')
         ranking = variants['method'].reset_index(drop=True)
+
+        if USE_OPENSKILL:
+            # The idea is that each setting of parameters is a game, and each
+            # "method" is a player. We rank the players by which is fastest,
+            # and update their ranking according to the Weng-Lin Bayes ranking
+            # model. This does not take the fact that some "games" (i.e.
+            # parameter settings) are more important than others, but it should
+            # be fairly robust on average.
+            old_ratings = [[r] for r in ub.take(method_ratings, ranking)]
+            new_values = openskill.rate(old_ratings)  # Not inplace
+            new_ratings = [openskill.Rating(*new[0]) for new in new_values]
+            method_ratings.update(ub.dzip(ranking, new_ratings))
+
         # Choose a ranking weight scheme
         weight = variants['mean'].min()
-        weight = 1
+        # weight = 1
         for rank, method in enumerate(ranking):
             weighted_rankings[method][rank] += weight
             weighted_rankings[method]['total'] += weight
@@ -218,10 +239,15 @@ def benchmark_dict_diff_impl():
     weight_rank_df = pd.DataFrame(weight_rank_rows)
     piv = weight_rank_df.pivot(['name'], ['rank'], ['weight'])
     print(piv)
-    # piv.columns
+
+    if USE_OPENSKILL:
+        from openskill import predict_win
+        win_prob = predict_win([[r] for r in method_ratings.values()])
+        skill_agg = pd.Series(ub.dzip(method_ratings.keys(), win_prob)).sort_values(ascending=False)
+        print('skill_agg =\n{}'.format(skill_agg))
 
     aggregated = (piv * piv.columns.levels[1].values).sum(axis=1).sort_values()
-    print(aggregated)
+    print('weight aggregated =\n{}'.format(aggregated))
 
     plot = True
     if plot:
