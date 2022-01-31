@@ -17,6 +17,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 * Remove support for Python 2.7 and Python 3.5
 * Removed deprecated functions scheduled for removal.
 * :func:`ubelt.util_dict.dict_diff` now preserves original dictionary order in Python 3.7+.
+* `ub.hash_data` can now hash slice objects.
 
 
 ## Version 0.11.1 - Unreleased

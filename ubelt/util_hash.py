@@ -657,6 +657,19 @@ class HashableExtensions(object):
             prefix = b'ODICT'
             return prefix, hashable
 
+        @self.register(slice)
+        def _convert_slice(data):
+            """
+            Currently ordered dictionaries are considered separately from
+            regular dictionaries. I'm not sure what the right thing to do is.
+            """
+            # See: [util_hash.Note.1]
+            hashable = b''.join(_hashable_sequence(
+                [data.start, data.stop, data.step], extensions=self,
+                types=_COMPATIBLE_HASHABLE_SEQUENCE_TYPES_DEFAULT))
+            prefix = b'SLICE'
+            return prefix, hashable
+
     def _register_agressive_extensions(self):  # nocover
         """
         Extensions that might be desired, but we do not enable them by default
