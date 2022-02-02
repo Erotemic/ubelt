@@ -18,6 +18,8 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 * Removed deprecated functions scheduled for removal.
 * :func:`ubelt.util_dict.dict_diff` now preserves original dictionary order in Python 3.7+.
 * `ub.hash_data` can now hash slice objects.
+* INTENTION OF BREAKING CHANGE NOTIFICATION: `ubelt.util_format.repr2` may no longer sort
+  dictionaries by default. Looking into a backwards compatible way to work around this.
 
 
 ## Version 0.11.1 - Unreleased

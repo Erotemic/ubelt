@@ -908,7 +908,11 @@ def _dict_itemstrs(dict_, **kwargs):
     if sort is None:
         # if sort is None, force orderings on unordered collections like dicts,
         # but keep ordering of ordered collections like OrderedDicts.
-        sort = True
+        # NOTE: WE WANT TO CHANGE THIS TO FALSE BY DEFAULT.
+        # MIGHT REQUIRE DEPRECATING PYTHON 3.6 SUPPORT
+        sort = True  # OLD UBELT BEHAVIOR
+        # sort = False  # CHANGED IN UBELT 1.0
+
     if isinstance(dict_, collections.OrderedDict):
         # never sort ordered dicts; they are perfect just the way they are!
         sort = False
