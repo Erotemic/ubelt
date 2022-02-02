@@ -910,8 +910,9 @@ def _dict_itemstrs(dict_, **kwargs):
         # but keep ordering of ordered collections like OrderedDicts.
         # NOTE: WE WANT TO CHANGE THIS TO FALSE BY DEFAULT.
         # MIGHT REQUIRE DEPRECATING PYTHON 3.6 SUPPORT
-        sort = True  # OLD UBELT BEHAVIOR
-        # sort = False  # CHANGED IN UBELT 1.0
+        sort = True  # LEGACY UBELT BEHAVIOR
+        # HOW TO WE INTRODUCE A BACKWARDS COMPATIBLE WAY TO MAKE THIS CHANGE?
+        # sort = False  # cannot make this change safely
 
     if isinstance(dict_, collections.OrderedDict):
         # never sort ordered dicts; they are perfect just the way they are!
