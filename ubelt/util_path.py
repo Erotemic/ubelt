@@ -34,8 +34,8 @@ __all__ = [
 ]
 
 
-def augpath(path, suffix='', prefix='', ext=None, base=None, dpath=None,
-            relative=None, multidot=False):
+def augpath(path, suffix='', prefix='', ext=None, tail='', base=None,
+            dpath=None, relative=None, multidot=False):
     """
     Create a new path with a different extension, basename, directory, prefix,
     and/or suffix.
@@ -49,30 +49,33 @@ def augpath(path, suffix='', prefix='', ext=None, base=None, dpath=None,
     Args:
         path (str | PathLike): a path to augment
 
-        suffix (str, default=''):
+        suffix (str):
             placed between the basename and extension
 
-        prefix (str, default=''):
+        prefix (str):
             placed in front of the basename
 
-        ext (str | None, default=None):
+        ext (str | None):
             if specified, replaces the extension
 
-        base (str | None, default=None):
+        tail (str | None):
+            If specified, appends this text to the extension
+
+        base (str | None):
             if specified, replaces the basename without extension.
             Note: this is referred to as stem in :class:`ub.Path`.
 
-        dpath (str | PathLike | None, default=None):
+        dpath (str | PathLike | None):
             if specified, replaces the specified "relative" directory, which by
             default is the parent directory.
 
-        relative (str | PathLike | None, default=None):
+        relative (str | PathLike | None):
             Replaces ``relative`` with ``dpath`` in ``path``.
             Has no effect if ``dpath`` is not specified.
             Defaults to the dirname of the input ``path``.
             *experimental* not currently implemented.
 
-        multidot (bool, default=False): Allows extensions to contain multiple
+        multidot (bool): Allows extensions to contain multiple
             dots. Specifically, if False, everything after the last dot in the
             basename is the extension. If True, everything after the first dot
             in the basename is the extension.
@@ -108,6 +111,8 @@ def augpath(path, suffix='', prefix='', ext=None, base=None, dpath=None,
         foo.tar.zip
         >>> augpath('foo.tar.gz', suffix='_new', multidot=True)
         foo_new.tar.gz
+        >>> augpath('foo.tar.gz', suffix='_new', tail='.cache', multidot=True)
+        foo_new.tar.gz.cache
     """
     stem = base  # new nomenclature
 
@@ -138,7 +143,7 @@ def augpath(path, suffix='', prefix='', ext=None, base=None, dpath=None,
     if stem is None:
         stem = orig_base
     # Recombine into new path
-    new_fname = ''.join((prefix, stem, suffix, ext))
+    new_fname = ''.join((prefix, stem, suffix, ext, tail))
     newpath = join(dpath, new_fname)
     return newpath
 
@@ -148,7 +153,7 @@ def userhome(username=None):
     Returns the path to some user's home directory.
 
     Args:
-        username (str | None, default=None):
+        username (str | None):
             name of a user on the system. If not specified, the current user is
             inferred.
 
@@ -210,7 +215,7 @@ def shrinkuser(path, home='~'):
 
     Args:
         path (str | PathLike): path in system file structure
-        home (str, default='~'): symbol used to replace the home path.
+        home (str): symbol used to replace the home path.
             Defaults to '~', but you might want to use '$HOME' or
             '%USERPROFILE%' instead.
 
@@ -266,9 +271,9 @@ def ensuredir(dpath, mode=0o1777, verbose=0, recreate=False):
     Args:
         dpath (str | PathLike | Tuple[str | PathLike]): dir to ensure. Can also
             be a tuple to send to join
-        mode (int, default=0o1777): octal mode of directory
-        verbose (int, default=0): verbosity
-        recreate (bool, default=False): if True removes the directory and
+        mode (int): octal mode of directory
+        verbose (int): verbosity
+        recreate (bool): if True removes the directory and
             all of its contents and creates a fresh new directory.
             USE CAREFULLY.
 
@@ -486,7 +491,7 @@ class Path(_PathBase):
         Inverse of :func:`os.path.expanduser`.
 
         Args:
-            home (str, default='~'): symbol used to replace the home path.
+            home (str): symbol used to replace the home path.
                 Defaults to '~', but you might want to use '$HOME' or
                 '%USERPROFILE%' instead.
 
@@ -507,7 +512,7 @@ class Path(_PathBase):
         return new
 
     def augment(self, suffix='', prefix='', ext=None, stem=None, dpath=None,
-                relative=None, multidot=False):
+                tail=None, relative=None, multidot=False):
         """
         Create a new path with a different extension, basename, directory,
         prefix, and/or suffix.
@@ -515,30 +520,33 @@ class Path(_PathBase):
         See :func:`augpath` for more details.
 
         Args:
-            suffix (str, default=''):
-                placed between the stem and extension
+            suffix (str):
+                Text placed between the stem and extension. Default to ''.
 
-            prefix (str, default=''):
-                placed in front of the stem
+            prefix (str):
+                Text placed in front of the stem. Defaults to ''.
 
-            ext (str | None, default=None):
-                if specified, replaces the extension
+            ext (str | None):
+                If specified, replaces the extension
 
-            stem (str | None, default=None):
-                if specified, replaces the stem (i.e. basename without
+            stem (str | None):
+                If specified, replaces the stem (i.e. basename without
                 extension). Note: named base in :func:`augpath`.
 
-            dpath (str | PathLike | None, default=None):
-                if specified, replaces the specified "relative" directory,
+            dpath (str | PathLike | None):
+                If specified, replaces the specified "relative" directory,
                 which by default is the parent directory.
 
-            relative (str | PathLike | None, default=None):
+            tail (str | None):
+                If specified, appends this text to the extension.
+
+            relative (str | PathLike | None):
                 Replaces ``relative`` with ``dpath`` in ``path``.
                 Has no effect if ``dpath`` is not specified.
                 Defaults to the dirname of the input ``path``.
                 *experimental* not currently implemented.
 
-            multidot (bool, default=False): Allows extensions to contain
+            multidot (bool): Allows extensions to contain
                 multiple dots. Specifically, if False, everything after the
                 last dot in the basename is the extension. If True, everything
                 after the first dot in the basename is the extension.
@@ -557,7 +565,8 @@ class Path(_PathBase):
             newpath = Path('pref_bar_suff.baz')
         """
         aug = augpath(self, suffix=suffix, prefix=prefix, ext=ext, base=stem,
-                      dpath=dpath, relative=relative, multidot=multidot)
+                      dpath=dpath, relative=relative, multidot=multidot,
+                      tail=tail)
         new = self.__class__(aug)
         return new
 

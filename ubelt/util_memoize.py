@@ -110,6 +110,10 @@ def memoize(func):
     """
     memoization decorator that respects args and kwargs
 
+    In Python 3.9. The :mod:`functools` introduces the `cache` method, which is
+    currently faster than memoize for simple functions [FunctoolsCache]_.
+    However, memoize can handle more general non-natively hashable inputs.
+
     Args:
         func (Callable): live python function
 
