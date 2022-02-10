@@ -11,6 +11,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 * :func:`ubelt.Path.ensure_appdir`
 * Add `tail` argument to :func:`ubelt.Path.augment` and  :func:`ubelt.util_path.augpath`
+* Add json `backend` option to Cacher.
 
 ### Changed
 * `IndexableWalker` behavior has been changed, each time `iter` is called it

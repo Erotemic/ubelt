@@ -603,6 +603,10 @@ class HashableExtensions(object):
             >>> print(ub.hash_data({3, 1, '2'})[0:8])
             742ae82d
             742ae82d
+
+        Example:
+            >>> import ubelt as ub
+            >>> assert ub.hash_data(slice(None)).startswith('0178e55a247d09ad282dc2e44f5388f477')
         """
         import uuid
         @self.register(uuid.UUID)

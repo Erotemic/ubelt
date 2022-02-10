@@ -512,7 +512,7 @@ class Path(_PathBase):
         return new
 
     def augment(self, suffix='', prefix='', ext=None, stem=None, dpath=None,
-                tail=None, relative=None, multidot=False):
+                tail='', relative=None, multidot=False):
         """
         Create a new path with a different extension, basename, directory,
         prefix, and/or suffix.
