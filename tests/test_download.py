@@ -416,9 +416,9 @@ class SingletonTestServer(ub.NiceRepr):
 
         if is_pypy and is_win32:
             # not sure why
-            init_sleeptime = 0.2
-            fail_sleeptime = 0.1
-            timeout = 3
+            init_sleeptime = 0.5
+            fail_sleeptime = 0.3
+            timeout = 10
         else:
             init_sleeptime = 0.002
             fail_sleeptime = 0.01
