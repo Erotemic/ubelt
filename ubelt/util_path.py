@@ -607,9 +607,12 @@ class Path(_PathBase):
         application to be used for cache, configs, or data.
 
         Args:
-            appname (str): name with paths
+            appname (str): the name of the application
             *args[str] : optional subdirs
-            type (str): can be cache, config, or data
+            type (str): can be 'cache', 'config', or 'data'.
+
+        Returns:
+            Path: a new path object
 
         Example:
             >>> import ubelt as ub
