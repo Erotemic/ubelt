@@ -9,7 +9,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### Added
 
-* :func:`ubelt.Path.ensure_appdir`
+* :func:`ubelt.Path.appdir` which functions like the `get_app_*_dir` methods in `util_platform`.
 * Add `tail` argument to :func:`ubelt.Path.augment` and  :func:`ubelt.util_path.augpath`
 * Add json `backend` option to Cacher.
 

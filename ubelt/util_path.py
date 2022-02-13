@@ -601,8 +601,11 @@ class Path(_PathBase):
         return self
 
     @classmethod
-    def ensure_appdir(cls, appname, *args, type='cache'):
+    def appdir(cls, appname, *args, type='cache'):
         """
+        Returns an operating system appropriate writable directory for an
+        application to be used for cache, configs, or data.
+
         Args:
             appname (str): name with paths
             *args[str] : optional subdirs
@@ -610,9 +613,9 @@ class Path(_PathBase):
 
         Example:
             >>> import ubelt as ub
-            >>> print(ub.Path.ensure_appdir('ubelt', type='cache').shrinkuser())
-            >>> print(ub.Path.ensure_appdir('ubelt', type='config').shrinkuser())
-            >>> print(ub.Path.ensure_appdir('ubelt', type='data').shrinkuser())
+            >>> print(ub.Path.appdir('ubelt', type='cache').shrinkuser())
+            >>> print(ub.Path.appdir('ubelt', type='config').shrinkuser())
+            >>> print(ub.Path.appdir('ubelt', type='data').shrinkuser())
 
             # TODO: fix "want" string on the mac
             ~/.cache/ubelt
@@ -621,14 +624,14 @@ class Path(_PathBase):
 
             >>> import pytest
             >>> with pytest.raises(KeyError):
-            >>>     ub.Path.ensure_appdir('ubelt', type='other')
+            >>>     ub.Path.appdir('ubelt', type='other')
         """
         from ubelt import util_platform
         if type == 'cache':
-            return cls(util_platform.ensure_app_cache_dir(appname, *args))
+            return cls(util_platform.get_app_cache_dir(appname, *args))
         elif type == 'config':
-            return cls(util_platform.ensure_app_config_dir(appname, *args))
+            return cls(util_platform.get_app_config_dir(appname, *args))
         elif type == 'data':
-            return cls(util_platform.ensure_app_data_dir(appname, *args))
+            return cls(util_platform.get_app_data_dir(appname, *args))
         else:
             raise KeyError(type)
