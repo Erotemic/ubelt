@@ -2,14 +2,9 @@
 The util_indexable module defines ``IndexableWalker`` which is a powerful
 way to iterate through nested Python containers.
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
-import sys
-
-try:
-    from collections.abc import Generator
-except Exception:
-    # Python <3.4 does not have Generator ABC
-    Generator = object  # type: ignore
+from math import isclose
+from collections.abc import Generator
+# from collections.abc import Iterable
 
 
 class IndexableWalker(Generator):
@@ -92,6 +87,7 @@ class IndexableWalker(Generator):
 
     Example:
         >>> # Test sending false for every data item
+        >>> # xdoctest: +REQUIRES(CPython)
         >>> # xdoctest: +REQUIRES(module:numpy)
         >>> import ubelt as ub
         >>> import numpy as np
@@ -111,7 +107,6 @@ class IndexableWalker(Generator):
         self.dict_cls = dict_cls
         self.list_cls = list_cls
         self.indexable_cls = self.dict_cls + self.list_cls
-
         self._walk_gen = None
 
     def __iter__(self):
@@ -125,7 +120,9 @@ class IndexableWalker(Generator):
                 path (List): list of index operations to arrive at the value
                 value (object): the value at the path
         """
-        return self
+        # Calling iterate multiple times will clobber the internal state
+        self._walk_gen = self._walk()
+        return self._walk_gen
 
     def __next__(self):
         """ returns next item from this generator """
@@ -133,9 +130,7 @@ class IndexableWalker(Generator):
             self._walk_gen = self._walk()
         return next(self._walk_gen)
 
-    def next(self):  # nocover
-        # For Python 2.7
-        return self.__next__()
+    # TODO: maybe we implement a map function?
 
     def send(self, arg):
         """
@@ -161,6 +156,8 @@ class IndexableWalker(Generator):
             value (object): new value
         """
         d = self.data
+        # note: slice unpack seems faster in 3.9 at least, dont change
+        # ~/misc/tests/python/bench_unpack.py
         prefix, key = path[:-1], path[-1]
         # *prefix, key = path
         for k in prefix:
@@ -360,7 +357,7 @@ def indexable_allclose(dct1, dct2, rel_tol=1e-9, abs_tol=0.0, return_info=False)
 
             flag = (v1 == v2)
             if not flag:
-                if isinstance(v1, float) and isinstance(v2, float) and _isclose(v1, v2):
+                if isinstance(v1, float) and isinstance(v2, float) and isclose(v1, v2):
                     flag = True
             if flag:
                 passlist.append(p1)
@@ -381,12 +378,3 @@ def indexable_allclose(dct1, dct2, rel_tol=1e-9, abs_tol=0.0, return_info=False)
         return final_flag, info
     else:
         return final_flag
-
-
-# Define isclose for Python 2.7
-if sys.version_info[0] == 2:  # nocover
-    def _isclose(a, b, rel_tol=1e-9, abs_tol=0.0):
-        return abs(a - b) <= max(rel_tol * max(abs(a), abs(b)), abs_tol)
-else:  # nocover
-    import math
-    _isclose = math.isclose

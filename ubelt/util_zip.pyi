@@ -1,8 +1,6 @@
 from typing import Any
 from ubelt.util_mixins import NiceRepr
 
-OSError = IOError
-
 
 def split_archive(fpath, ext: str = ...):
     ...

@@ -7,7 +7,6 @@ def memoize(func: Callable) -> Callable:
 
 
 class memoize_method:
-    im_func: Any
     __func__: Any
 
     def __init__(self, func) -> None:

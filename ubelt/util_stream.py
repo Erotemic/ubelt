@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Functions for capturing and redirecting IO streams.
 
@@ -9,7 +8,6 @@ The :class:`TeeStringIO` does the same thing but for arbitrary streams. It is
 how the former is implemented.
 
 """
-from __future__ import print_function, division, absolute_import, unicode_literals
 import sys
 import io
 
@@ -18,9 +16,6 @@ __all__ = [
     'CaptureStdout',
     'CaptureStream',
 ]
-
-
-PY2 = sys.version_info[0] == 2
 
 
 class TeeStringIO(io.StringIO):
@@ -37,7 +32,7 @@ class TeeStringIO(io.StringIO):
     """
     def __init__(self, redirect=None):
         self.redirect = redirect  # type: io.IOBase
-        super(TeeStringIO, self).__init__()
+        super().__init__()
 
         # Logic taken from prompt_toolkit/output/vt100.py version 3.0.5 in
         # flush I don't have a full understanding of what the buffer
@@ -77,7 +72,7 @@ class TeeStringIO(io.StringIO):
         if self.redirect is not None:
             return self.redirect.fileno()
         else:
-            return super(TeeStringIO, self).fileno()
+            return super().fileno()
 
     @property
     def encoding(self):
@@ -96,7 +91,7 @@ class TeeStringIO(io.StringIO):
         if self.redirect is not None:
             return self.redirect.encoding
         else:
-            return super(TeeStringIO, self).encoding
+            return super().encoding
 
     def write(self, msg):
         """
@@ -104,10 +99,7 @@ class TeeStringIO(io.StringIO):
         """
         if self.redirect is not None:
             self.redirect.write(msg)
-        if PY2:
-            from xdoctest.utils.util_str import ensure_unicode
-            msg = ensure_unicode(msg)
-        return super(TeeStringIO, self).write(msg)
+        return super().write(msg)
 
     def flush(self):  # nocover
         """
@@ -115,7 +107,7 @@ class TeeStringIO(io.StringIO):
         """
         if self.redirect is not None:
             self.redirect.flush()
-        return super(TeeStringIO, self).flush()
+        return super().flush()
 
 
 class CaptureStream(object):
@@ -144,8 +136,7 @@ class CaptureStdout(CaptureStream):
         ...     text = 'capture the heart ♥'
         ...     print(text)
         >>> print('dont capture look of disapproval ಠ_ಠ')
-        >>> import six
-        >>> assert isinstance(self.text, six.text_type)
+        >>> assert isinstance(self.text, str)
         >>> assert self.text == text + '\n', 'failed capture text'
 
     Example:
@@ -162,19 +153,7 @@ class CaptureStdout(CaptureStream):
         ...     print('dont capture')
         >>> assert self.text is None
     """
-    def __init__(self, suppress=True, enabled=True, **kwargs):
-
-        _misspelled_varname = 'supress'
-        if _misspelled_varname in kwargs:  # nocover
-            from ubelt._util_deprecated import schedule_deprecation2
-            schedule_deprecation2(
-                'Argument of CaptureStdout {} is misspelled and deprecated. Use suppress instead'.format(_misspelled_varname),
-                name=_misspelled_varname, type='kwarg', deprecated='0.10.3',
-                remove='1.0.0')
-            suppress = kwargs.pop(_misspelled_varname)
-            if len(kwargs) > 0:
-                raise ValueError('unexpected args: {}'.format(kwargs))
-
+    def __init__(self, suppress=True, enabled=True):
         self.text = None
         self._pos = 0  # keep track of how much has been logged
         self.parts = []

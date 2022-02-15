@@ -1,10 +1,19 @@
-# -*- coding: utf-8 -*-
 r"""
 This module exposes the :func:`ubelt.cmd` command, which provides a simple
-means for interacting with the commandline. While this does use
-:class:`subprocess.Popen` under the hood, the key draw of :func:`ubelt.cmd` is
-that you can capture stdout/stderr in your program while simultaneously
-printing it to the terminal in real time.
+means for interacting with the commandline.  This uses
+:class:`subprocess.Popen` under the hood, but improves upon existing
+:mod:`subprocess` functionality by:
+
+(1) Adding the option to "tee" the output, i.e. simultaniously capture and
+write to stdout and stderr.
+
+(2) Always specify the command as a string. The :mod:`subprocess` module
+expects the command as either a  ``List[str]`` if ``shell=False`` and ``str``
+if ``shell=True``. If necessary, :func:`ubelt.util_cmd.cmd` will automatically
+convert from one format to the other, so passing in either case will work.
+
+(3) Specificy if the process blocks or not by setting ``detatch``. Note: when
+``detatch is True`` it is not possible to tee the output.
 
 Example:
     >>> import ubelt as ub
@@ -22,7 +31,6 @@ Example:
         'ret': 0,
     }
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
 import sys
 import warnings
 
@@ -34,14 +42,6 @@ if POSIX:
     import select
 else:  # nocover
     select = NotImplemented
-
-PY2 = sys.version_info[0] == 2
-PY34 = sys.version_info[0:2] == (3, 4)
-if PY2:
-    import six
-    string_types = six.string_types
-else:
-    string_types = (str,)
 
 
 def _textio_iterlines(stream):
@@ -345,7 +345,7 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
             raise ValueError('Unknown kwargs: {}'.format(list(kwargs.keys())))
 
     # Determine if command is specified as text or a tuple
-    if isinstance(command, string_types):
+    if isinstance(command, str):
         command_text = command
         command_tup = None
     else:
@@ -443,10 +443,6 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
 
         if check:
             if info['ret'] != 0:
-                if PY2 or PY34:
-                    raise subprocess.CalledProcessError(
-                        info['ret'], info['command'], info['out'])
-                else:
-                    raise subprocess.CalledProcessError(
-                        info['ret'], info['command'], info['out'], info['err'])
+                raise subprocess.CalledProcessError(
+                    info['ret'], info['command'], info['out'], info['err'])
     return info

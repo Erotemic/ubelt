@@ -9,6 +9,7 @@ def repr2(data: object, **kwargs) -> str:
 
 
 class FormatterExtensions:
+
     def __init__(self) -> None:
         ...
 

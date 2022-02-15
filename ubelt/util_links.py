@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 r"""
 Cross-platform logic for dealing with symlinks. Basic functionality should work
 on all operating systems including everyone's favorite pathological OS (note
@@ -32,10 +31,6 @@ if sys.platform.startswith('win32'):  # nocover
     from ubelt import _win32_links
 else:
     _win32_links = None
-
-PY2 = sys.version_info[0] == 2
-if PY2:
-    FileExistsError = IOError
 
 
 def symlink(real_path, link_path, overwrite=False, verbose=0):

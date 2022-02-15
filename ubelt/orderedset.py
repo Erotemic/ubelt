@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 This module exposes the :class:`OrderedSet` class, which is a collection of
 unique items that maintains the order in which the items were added. An
@@ -30,7 +29,6 @@ entry has an index that can be looked up.
 Based on a recipe originally posted to ActiveState Recipes by Raymond Hettiger,
 and released under the MIT license.
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
 import itertools as it
 from collections import deque
 # import ordered_set

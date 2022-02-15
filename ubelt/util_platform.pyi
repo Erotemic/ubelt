@@ -8,7 +8,6 @@ WIN32: bool
 LINUX: bool
 DARWIN: bool
 POSIX: bool
-PY2: bool
 
 
 def platform_data_dir() -> str:

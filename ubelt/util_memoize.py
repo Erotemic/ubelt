@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 This module exposes decorators for in-memory caching of functional results.
 This is particularly useful when prototyping dynamic programming algorithms.
@@ -45,16 +44,12 @@ Example:
     >>> self.my_property2
     >>> self.my_property2
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
 import functools
 import sys
 from ubelt import util_hash
 
 
 __all__ = ['memoize', 'memoize_method', 'memoize_property']
-
-
-PY2 = sys.version_info[0] == 2
 
 
 def _hashable(item):
@@ -82,10 +77,7 @@ def _make_signature_key(args, kwargs):
         >>> print('key = {!r}'.format(key))
         >>> # Some mutable types cannot be handled by ub.hash_data
         >>> import pytest
-        >>> if PY2:
-        >>>     import collections as abc
-        >>> else:
-        >>>     from collections import abc
+        >>> from collections import abc
         >>> # This used to error, in ubelt versions < 0.9.5
         >>> _make_signature_key((4, [1, 2], {1: 2, 'a': 'b'}), kwargs={})
         >>> class Dummy(abc.MutableSet):
@@ -117,6 +109,10 @@ def _make_signature_key(args, kwargs):
 def memoize(func):
     """
     memoization decorator that respects args and kwargs
+
+    In Python 3.9. The :mod:`functools` introduces the `cache` method, which is
+    currently faster than memoize for simple functions [FunctoolsCache]_.
+    However, memoize can handle more general non-natively hashable inputs.
 
     Args:
         func (Callable): live python function
@@ -208,10 +204,7 @@ class memoize_method(object):
         self._func = func
         self._cache_name = '_cache__' + func.__name__
         # Mimic attributes of a bound method
-        if PY2:
-            self.im_func = func
-        else:
-            self.__func__ = func
+        self.__func__ = func
 
     def __get__(self, instance, cls=None):
         """

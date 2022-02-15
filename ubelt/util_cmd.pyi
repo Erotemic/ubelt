@@ -5,7 +5,6 @@ from typing import Dict
 from typing import Any
 
 POSIX: Any
-PY34: Any
 
 
 def cmd(command: Union[str, List[str]],

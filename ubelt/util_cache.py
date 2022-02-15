@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 This module exposes :class:`Cacher` and :class:`CacheStamp` classes, which
 provide a simple API for on-disk caching.
@@ -81,8 +80,8 @@ Example:
 
 TODO:
     - [ ] Remove the cfgstr-overrides?
+    - [ ] Allow json / yaml / toml / pickle as alternative extensions
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
 import os
 from os.path import join, normpath, basename, exists
 import warnings
@@ -107,13 +106,16 @@ class Cacher(object):
 
         dpath (str | PathLike | None):
             Specifies where to save the cache. If unspecified, Cacher defaults
-            to an application resource dir as given by appname.
+            to an application cache dir as given by appname. See
+            :func:`ub.get_app_cache_dir` for more details.
 
         appname (str, default='ubelt'): Application name
-            Specifies a folder in the application resource directory where to
+            Specifies a folder in the application cache directory where to
             cache the data if ``dpath`` is not specified.
 
-        ext (str, default='.pkl'): File extension for the cache format
+        ext (str, default='.pkl'):
+            File extension for the cache format.
+            TODO: add json
 
         meta (object | None):
             Metadata that is also saved with the ``cfgstr``.  This can be
@@ -142,6 +144,10 @@ class Cacher(object):
             A cfgstr should always be reasonably readable, thus it is good
             practice to hash extremely detailed cfgstrs to a reasonable
             readable level. Use meta to store make original details persist.
+
+        backend (str):
+            Set to either pickle or json to force backend. Defaults to
+            auto which chooses one based on the extension.
 
     Example:
         >>> import ubelt as ub
@@ -181,7 +187,7 @@ class Cacher(object):
 
     def __init__(self, fname, depends=None, dpath=None, appname='ubelt',
                  ext='.pkl', meta=None, verbose=None, enabled=True, log=None,
-                 hasher='sha1', protocol=-1, cfgstr=None):
+                 hasher='sha1', protocol=-1, cfgstr=None, backend='auto'):
 
         if depends is None:
             depends = cfgstr
@@ -199,6 +205,17 @@ class Cacher(object):
             from ubelt import util_platform
             dpath = util_platform.get_app_cache_dir(appname)
 
+        if backend == 'auto':
+            if ext == '.pkl':
+                backend = 'pickle'
+            elif ext == '.json':
+                backend = 'json'
+            else:
+                backend = 'pickle'
+        else:
+            if backend not in {'json', 'pickel'}:
+                raise ValueError(backend)
+
         self.dpath = dpath
         self.fname = fname
         self.depends = depends
@@ -210,7 +227,7 @@ class Cacher(object):
         self.protocol = protocol
         self.hasher = hasher
         self.log = print if log is None else log
-
+        self.backend = backend
         if len(self.ext) > 0 and self.ext[0] != '.':
             raise ValueError('Please be explicit and use a dot in ext')
 
@@ -219,9 +236,8 @@ class Cacher(object):
 
         if cfgstr is None and self.depends is not None:
             from ubelt import util_hash
-            import six
             # lazy hashing of depends data into cfgstr
-            if isinstance(self.depends, six.string_types):
+            if isinstance(self.depends, str):
                 self.cfgstr = self.depends
             else:
                 self.cfgstr = util_hash.hash_data(self.depends)
@@ -419,7 +435,6 @@ class Cacher(object):
             >>> cacher.enabled = False
             >>> assert cacher.tryload() is None
         """
-        from six.moves import cPickle as pickle
         cfgstr = self._rectify_cfgstr(cfgstr)
 
         dpath = self.dpath
@@ -432,26 +447,25 @@ class Cacher(object):
                     self.fname))
             raise IOError(3, 'Cache Loading Is Disabled')
 
-        fpath = self.get_fpath(cfgstr=cfgstr)
+        data_fpath = self.get_fpath(cfgstr=cfgstr)
 
-        if not exists(fpath):
+        if not exists(data_fpath):
             if verbose > 2:
                 self.log('[cacher] ... cache does not exist: '
                          'dpath={} fname={} cfgstr={}'.format(
                              basename(dpath), fname, cfgstr))
-            raise IOError(2, 'No such file or directory: %r' % (fpath,))
+            raise IOError(2, 'No such file or directory: {!r}'.format(data_fpath))
         else:
             if verbose > 3:
-                sizestr = _byte_str(os.stat(fpath).st_size)
+                sizestr = _byte_str(os.stat(data_fpath).st_size)
                 self.log('[cacher] ... cache exists: '
                          'dpath={} fname={} cfgstr={}, size={}'.format(
                              basename(dpath), fname, cfgstr, sizestr))
         try:
-            with open(fpath, 'rb') as file_:
-                data = pickle.load(file_)
+            data = self._backend_load(data_fpath)
         except Exception as ex:
             if verbose > 0:
-                self.log('CORRUPTED? fpath = %s' % (fpath,))
+                self.log('CORRUPTED? fpath = {!r}'.format(data_fpath))
             if verbose > 1:
                 self.log('[cacher] ... CORRUPTED? dpath={} cfgstr={}'.format(
                     basename(dpath), cfgstr))
@@ -492,7 +506,6 @@ class Cacher(object):
             >>> cacher2.save('data')
             >>> assert not exists(cacher2.get_fpath()), 'should be disabled'
         """
-        from six.moves import cPickle as pickle
         from ubelt import util_path
         from ubelt import util_time
         if not self.enabled:
@@ -518,13 +531,58 @@ class Cacher(object):
             file_.write(cfgstr + '\n')
             file_.write(str(self.meta) + '\n')
 
-        with open(data_fpath, 'wb') as file_:
-            # Use protocol 2 to support python2 and 3
-            pickle.dump(data, file_, protocol=self.protocol)
+        self._backend_dump(data_fpath, data)
 
         if self.verbose > 3:
             sizestr = _byte_str(os.stat(data_fpath).st_size)
             self.log('[cacher] ... finish save, size={}'.format(sizestr))
+
+    def _backend_load(self, data_fpath):
+        """
+        Example:
+            >>> import ubelt as ub
+            >>> cacher = ub.Cacher('test_other_backend', depends=['a'], ext='.json')
+            >>> cacher.save(['data'])
+            >>> cacher.tryload()
+
+            >>> import ubelt as ub
+            >>> cacher = ub.Cacher('test_other_backend2', depends=['a'], ext='.yaml', backend='json')
+            >>> cacher.save({'data': [1, 2, 3]})
+            >>> cacher.tryload()
+
+            >>> import pytest
+            >>> with pytest.raises(ValueError):
+            >>>     ub.Cacher('test_other_backend2', depends=['a'], ext='.yaml', backend='does-not-exist')
+            >>> cacher = ub.Cacher('test_other_backend2', depends=['a'], ext='.really-a-pickle', backend='auto')
+            >>> assert cacher.backend == 'pickle', 'should be default'
+        """
+        if self.backend == 'pickle':
+            import pickle
+            with open(data_fpath, 'rb') as file_:
+                data = pickle.load(file_)
+        elif self.backend == 'json':
+            import json
+            with open(data_fpath, 'r') as file_:
+                # Use protocol 2 to support python2 and 3
+                data = json.load(file_)
+        else:
+            raise NotImplementedError('self.backend = {}'.format(self.backend))
+        return data
+
+    def _backend_dump(self, data_fpath, data):
+        if self.backend == 'pickle':
+            import pickle
+            with open(data_fpath, 'wb') as file_:
+                # Use protocol 2 to support python2 and 3
+                pickle.dump(data, file_, protocol=self.protocol)
+        elif self.backend == 'json':
+            import json
+            with open(data_fpath, 'w') as file_:
+                # Use protocol 2 to support python2 and 3
+                json.dump(data, file_)
+        else:
+            raise NotImplementedError('self.backend = {}'.format(self.backend))
+        return data
 
     def ensure(self, func, *args, **kwargs):
         """

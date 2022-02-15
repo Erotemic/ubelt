@@ -16,6 +16,7 @@ def download(url: str,
              hasher: Union[str, Hasher] = ...,
              chunksize: int = ...,
              verbose: int = ...,
+             timeout: float = ...,
              progkw: Union[Dict, None] = ...) -> str | PathLike:
     ...
 

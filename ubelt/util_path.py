@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Functions for working with filesystem paths.
 
@@ -20,22 +19,13 @@ The :class:`Path` object is an extension of :class:`pathlib.Path` that contains
 extra convenience methods corresponding to the extra functional methods in this
 module.
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
 from os.path import (
     dirname, exists, expanduser, expandvars, join, normpath, split, splitext,
 )
 import os
 import sys
 from ubelt import util_io
-
-PY2 = sys.version_info[0] == 2
-PY_LE_35 = sys.version_info[0:2] <= (3, 5)
-
-if PY2:
-    # Use pathlib2 backport in Python2
-    import pathlib2 as pathlib
-else:
-    import pathlib
+import pathlib
 
 
 __all__ = [
@@ -44,8 +34,8 @@ __all__ = [
 ]
 
 
-def augpath(path, suffix='', prefix='', ext=None, base=None, dpath=None,
-            relative=None, multidot=False):
+def augpath(path, suffix='', prefix='', ext=None, tail='', base=None,
+            dpath=None, relative=None, multidot=False):
     """
     Create a new path with a different extension, basename, directory, prefix,
     and/or suffix.
@@ -59,30 +49,33 @@ def augpath(path, suffix='', prefix='', ext=None, base=None, dpath=None,
     Args:
         path (str | PathLike): a path to augment
 
-        suffix (str, default=''):
+        suffix (str):
             placed between the basename and extension
 
-        prefix (str, default=''):
+        prefix (str):
             placed in front of the basename
 
-        ext (str | None, default=None):
+        ext (str | None):
             if specified, replaces the extension
 
-        base (str | None, default=None):
+        tail (str | None):
+            If specified, appends this text to the extension
+
+        base (str | None):
             if specified, replaces the basename without extension.
             Note: this is referred to as stem in :class:`ub.Path`.
 
-        dpath (str | PathLike | None, default=None):
+        dpath (str | PathLike | None):
             if specified, replaces the specified "relative" directory, which by
             default is the parent directory.
 
-        relative (str | PathLike | None, default=None):
+        relative (str | PathLike | None):
             Replaces ``relative`` with ``dpath`` in ``path``.
             Has no effect if ``dpath`` is not specified.
             Defaults to the dirname of the input ``path``.
             *experimental* not currently implemented.
 
-        multidot (bool, default=False): Allows extensions to contain multiple
+        multidot (bool): Allows extensions to contain multiple
             dots. Specifically, if False, everything after the last dot in the
             basename is the extension. If True, everything after the first dot
             in the basename is the extension.
@@ -118,6 +111,8 @@ def augpath(path, suffix='', prefix='', ext=None, base=None, dpath=None,
         foo.tar.zip
         >>> augpath('foo.tar.gz', suffix='_new', multidot=True)
         foo_new.tar.gz
+        >>> augpath('foo.tar.gz', suffix='_new', tail='.cache', multidot=True)
+        foo_new.tar.gz.cache
     """
     stem = base  # new nomenclature
 
@@ -148,7 +143,7 @@ def augpath(path, suffix='', prefix='', ext=None, base=None, dpath=None,
     if stem is None:
         stem = orig_base
     # Recombine into new path
-    new_fname = ''.join((prefix, stem, suffix, ext))
+    new_fname = ''.join((prefix, stem, suffix, ext, tail))
     newpath = join(dpath, new_fname)
     return newpath
 
@@ -158,7 +153,7 @@ def userhome(username=None):
     Returns the path to some user's home directory.
 
     Args:
-        username (str | None, default=None):
+        username (str | None):
             name of a user on the system. If not specified, the current user is
             inferred.
 
@@ -220,7 +215,7 @@ def shrinkuser(path, home='~'):
 
     Args:
         path (str | PathLike): path in system file structure
-        home (str, default='~'): symbol used to replace the home path.
+        home (str): symbol used to replace the home path.
             Defaults to '~', but you might want to use '$HOME' or
             '%USERPROFILE%' instead.
 
@@ -251,9 +246,6 @@ def expandpath(path):
     """
     Shell-like environment variable and tilde path expansion.
 
-    Less aggressive than truepath. Only expands environs and tilde. Does not
-    change relative paths to absolute paths.
-
     Args:
         path (str | PathLike): string representation of a path
 
@@ -279,9 +271,9 @@ def ensuredir(dpath, mode=0o1777, verbose=0, recreate=False):
     Args:
         dpath (str | PathLike | Tuple[str | PathLike]): dir to ensure. Can also
             be a tuple to send to join
-        mode (int, default=0o1777): octal mode of directory
-        verbose (int, default=0): verbosity
-        recreate (bool, default=False): if True removes the directory and
+        mode (int): octal mode of directory
+        verbose (int): verbosity
+        recreate (bool): if True removes the directory and
             all of its contents and creates a fresh new directory.
             USE CAREFULLY.
 
@@ -316,10 +308,7 @@ def ensuredir(dpath, mode=0o1777, verbose=0, recreate=False):
     if not exists(dpath):
         if verbose:
             print('Ensuring directory (creating {!r})'.format(dpath))
-        if PY2:  # nocover
-            os.makedirs(normpath(dpath), mode=mode)
-        else:
-            os.makedirs(normpath(dpath), mode=mode, exist_ok=True)
+        os.makedirs(normpath(dpath), mode=mode, exist_ok=True)
     else:
         if verbose:
             print('Ensuring directory (existing {!r})'.format(dpath))
@@ -329,6 +318,8 @@ def ensuredir(dpath, mode=0o1777, verbose=0, recreate=False):
 class TempDir(object):
     """
     Context for creating and cleaning up temporary directories.
+
+    DEPRECATE
 
     Note:
         This exists because :class:`tempfile.TemporaryDirectory` was
@@ -385,6 +376,39 @@ _PathBase = pathlib.WindowsPath if os.name == 'nt' else pathlib.PosixPath
 class Path(_PathBase):
     """
     An extension of :class:`pathlib.Path` with extra convenience methods
+
+    Note:
+        New methods are:
+            * augment
+            * ensuredir
+            * expand
+            * expandvars
+            * shrinkuser
+
+        Modified methods are:
+            * touch
+
+    Example:
+        >>> # Ubelt extends pathlib functionality
+        >>> import ubelt as ub
+        >>> dpath = ub.Path('~/.cache/ubelt/demo_path').expand().ensuredir()
+        >>> fpath = dpath / 'text_file.txt'
+        >>> aug_fpath = fpath.augment(suffix='.aux', ext='.jpg').touch()
+        >>> aug_dpath = dpath.augment('demo_path2')
+        >>> assert aug_fpath.read_text() == ''
+        >>> fpath.write_text('text data')
+        >>> assert aug_fpath.exists()
+        >>> assert not aug_fpath.delete().exists()
+        >>> assert dpath.exists()
+        >>> assert not dpath.delete().exists()
+        >>> print(f'{str(fpath.shrinkuser()).replace(os.path.sep, "/")}')
+        >>> print(f'{str(dpath.shrinkuser()).replace(os.path.sep, "/")}')
+        >>> print(f'{str(aug_fpath.shrinkuser()).replace(os.path.sep, "/")}')
+        >>> print(f'{str(aug_dpath.shrinkuser()).replace(os.path.sep, "/")}')
+        ~/.cache/ubelt/demo_path/text_file.txt
+        ~/.cache/ubelt/demo_path
+        ~/.cache/ubelt/demo_path/text_file.aux.jpg
+        ~/.cache/ubelt/demo_pathdemo_path2
     """
 
     def touch(self, mode=0o666, exist_ok=True):
@@ -402,7 +426,7 @@ class Path(_PathBase):
         # modify touch to return self
         # Note: util_io.touch is more expressive than standard python
         # touch, may want to use that instead.
-        super(Path, self).touch(mode=mode, exist_ok=exist_ok)
+        super().touch(mode=mode, exist_ok=exist_ok)
         return self
 
     def ensuredir(self, mode=0o777):
@@ -423,11 +447,7 @@ class Path(_PathBase):
             >>> assert dpath.exists()
             >>> dpath.rmdir()
             """
-        if PY2:
-            if not self.exists():
-                self.mkdir(mode=mode, parents=True)
-        else:
-            self.mkdir(mode=mode, parents=True, exist_ok=True)
+        self.mkdir(mode=mode, parents=True, exist_ok=True)
         return self
 
     def expandvars(self):
@@ -442,7 +462,7 @@ class Path(_PathBase):
         References:
             .. [CPythonIssue21301] https://bugs.python.org/issue21301
         """
-        return self.__class__(os.path.expandvars(str(self)))
+        return self.__class__(os.path.expandvars(self))
 
     def expand(self):
         """
@@ -464,17 +484,14 @@ class Path(_PathBase):
             >>> print('home_v3 = {!r}'.format(home_v3))
             >>> assert home_v3 == home_v2 # == home_v1
         """
-        if PY2:  # nocover
-            return self.__class__(os.path.expanduser(str(self.expandvars())))
-        else:
-            return self.expandvars().expanduser()
+        return self.expandvars().expanduser()
 
     def shrinkuser(self, home='~'):
         """
         Inverse of :func:`os.path.expanduser`.
 
         Args:
-            home (str, default='~'): symbol used to replace the home path.
+            home (str): symbol used to replace the home path.
                 Defaults to '~', but you might want to use '$HOME' or
                 '%USERPROFILE%' instead.
 
@@ -490,12 +507,12 @@ class Path(_PathBase):
             >>> assert str((path / '1').shrinkuser('$HOME')) == join('$HOME', '1')
             >>> assert str(ub.Path('.').shrinkuser()) == '.'
         """
-        shrunk = shrinkuser(str(self), home)
+        shrunk = shrinkuser(self, home)
         new = self.__class__(shrunk)
         return new
 
     def augment(self, suffix='', prefix='', ext=None, stem=None, dpath=None,
-                relative=None, multidot=False):
+                tail='', relative=None, multidot=False):
         """
         Create a new path with a different extension, basename, directory,
         prefix, and/or suffix.
@@ -503,30 +520,33 @@ class Path(_PathBase):
         See :func:`augpath` for more details.
 
         Args:
-            suffix (str, default=''):
-                placed between the stem and extension
+            suffix (str):
+                Text placed between the stem and extension. Default to ''.
 
-            prefix (str, default=''):
-                placed in front of the stem
+            prefix (str):
+                Text placed in front of the stem. Defaults to ''.
 
-            ext (str | None, default=None):
-                if specified, replaces the extension
+            ext (str | None):
+                If specified, replaces the extension
 
-            stem (str | None, default=None):
-                if specified, replaces the stem (i.e. basename without
+            stem (str | None):
+                If specified, replaces the stem (i.e. basename without
                 extension). Note: named base in :func:`augpath`.
 
-            dpath (str | PathLike | None, default=None):
-                if specified, replaces the specified "relative" directory,
+            dpath (str | PathLike | None):
+                If specified, replaces the specified "relative" directory,
                 which by default is the parent directory.
 
-            relative (str | PathLike | None, default=None):
+            tail (str | None):
+                If specified, appends this text to the extension.
+
+            relative (str | PathLike | None):
                 Replaces ``relative`` with ``dpath`` in ``path``.
                 Has no effect if ``dpath`` is not specified.
                 Defaults to the dirname of the input ``path``.
                 *experimental* not currently implemented.
 
-            multidot (bool, default=False): Allows extensions to contain
+            multidot (bool): Allows extensions to contain
                 multiple dots. Specifically, if False, everything after the
                 last dot in the basename is the extension. If True, everything
                 after the first dot in the basename is the extension.
@@ -544,9 +564,9 @@ class Path(_PathBase):
             >>> print('newpath = {!r}'.format(newpath))
             newpath = Path('pref_bar_suff.baz')
         """
-        aug = augpath(str(self), suffix=suffix, prefix=prefix, ext=ext,
-                          base=stem, dpath=dpath, relative=relative,
-                          multidot=multidot)
+        aug = augpath(self, suffix=suffix, prefix=prefix, ext=ext, base=stem,
+                      dpath=dpath, relative=relative, multidot=multidot,
+                      tail=tail)
         new = self.__class__(aug)
         return new
 
@@ -577,50 +597,44 @@ class Path(_PathBase):
             >>> dpath1.delete()
             >>> assert not any(p.exists() for p in [dpath1, fpath1, fpath2])
         """
-        if PY_LE_35:  # nocover
-            util_io.delete(str(self))
-        else:
-            util_io.delete(self)
+        util_io.delete(self)
         return self
 
-    def __fspath__(self):
-        # Only for 3.5. Remove after 3.5 support is removed.
-        return str(self)
-
-
-if PY_LE_35:  # nocover
-    def _fspath(path):
+    @classmethod
+    def appdir(cls, appname, *args, type='cache'):
         """
-        Return the file system path representation of the object.
+        Returns an operating system appropriate writable directory for an
+        application to be used for cache, configs, or data.
 
-        If the object is str or bytes, then allow it to pass through as-is. If
-        the object defines __fspath__(), then return the result of that method.
-        All other types raise a TypeError.
+        Args:
+            appname (str): the name of the application
+            *args[str] : optional subdirs
+            type (str): can be 'cache', 'config', or 'data'.
 
-        Internal helper for cases where os.fspath does not exist on older Python
+        Returns:
+            Path: a new path object
+
+        Example:
+            >>> import ubelt as ub
+            >>> print(ub.Path.appdir('ubelt', type='cache').shrinkuser())
+            >>> print(ub.Path.appdir('ubelt', type='config').shrinkuser())
+            >>> print(ub.Path.appdir('ubelt', type='data').shrinkuser())
+
+            # TODO: fix "want" string on the mac
+            ~/.cache/ubelt
+            ~/.config/ubelt
+            ~/.local/share/ubelt
+
+            >>> import pytest
+            >>> with pytest.raises(KeyError):
+            >>>     ub.Path.appdir('ubelt', type='other')
         """
-        import six
-        string_types = six.string_types
-
-        if isinstance(path, string_types):
-            return path
-
-        # Work from the object's type to match method resolution of other magic
-        # methods.
-        path_type = type(path)
-        try:
-            path_repr = path_type.__fspath__(path)
-        except AttributeError:
-            if hasattr(path_type, '__fspath__'):
-                raise
-            else:
-                raise TypeError("expected str, bytes or os.PathLike object, "
-                                "not " + path_type.__name__)
-        if isinstance(path_repr, string_types):
-            return path_repr
+        from ubelt import util_platform
+        if type == 'cache':
+            return cls(util_platform.get_app_cache_dir(appname, *args))
+        elif type == 'config':
+            return cls(util_platform.get_app_config_dir(appname, *args))
+        elif type == 'data':
+            return cls(util_platform.get_app_data_dir(appname, *args))
         else:
-            raise TypeError("expected {}.__fspath__() to return str or bytes, "
-                            "not {}".format(path_type.__name__,
-                                            type(path_repr).__name__))
-else:
-    _fspath = os.fspath
+            raise KeyError(type)

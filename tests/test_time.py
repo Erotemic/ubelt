@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import, division, print_function, unicode_literals
 import pytest
 import ubelt as ub
 import re
@@ -26,16 +24,6 @@ def test_timer_default_verbosity():
 
     with CaptureStdout() as cap:
         ub.Timer('a label').tic().toc()
-    assert cap.text != '', 'should be verbose by default when label is given'
-
-
-def test_timerit_default_verbosity():
-    with CaptureStdout() as cap:
-        ub.Timerit(10, '').call(lambda: None)
-    assert cap.text == '', 'should be quiet by default when label is not given'
-
-    with CaptureStdout() as cap:
-        ub.Timerit(10, 'alabel').call(lambda: None)
     assert cap.text != '', 'should be verbose by default when label is given'
 
 

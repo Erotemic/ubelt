@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Functions for working with dictionaries.
 
@@ -27,8 +26,6 @@ The :func:`ddict` and :func:`odict` functions are alias for the commonly used
 :func:`collections.defaultdict` and :func:`collections.OrderedDict` classes.
 
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
-import sys
 import operator as op
 import itertools as it
 from collections import OrderedDict
@@ -58,17 +55,6 @@ __all__ = [
     'named_product',
     'varied_values',
 ]
-
-
-PY2 = sys.version_info[0] == 2
-
-if PY2:
-    import six
-    from six.moves import zip
-    iteritems = six.iteritems
-else:
-    def iteritems(d, **kw):
-        return d.items(**kw)
 
 
 # Expose for convenience
@@ -475,15 +461,12 @@ def dict_diff(*args):
         return {}
     else:
         first_dict = args[0]
-        if isinstance(first_dict, OrderedDict):
-            from ubelt import OrderedSet
-            dictclass = OrderedDict
-            keys = OrderedSet(first_dict)
-        else:
-            dictclass = dict
-            keys = set(first_dict)
-        keys.difference_update(*map(set, args[1:]))
-        return dictclass((k, first_dict[k]) for k in keys)
+        dictclass = OrderedDict if isinstance(first_dict, OrderedDict) else dict
+        # remove_keys = set.union(*map(set, args[1:]))
+        # new = dictclass((k, v) for k, v in first_dict.items() if k not in remove_keys)
+        remove_keys = set.union(*map(set, args[1:]))
+        new = dictclass((k, first_dict[k]) for k in first_dict.keys() if k not in remove_keys)
+        return new
 
 
 def dict_isect(*args):
@@ -562,7 +545,7 @@ def map_vals(func, dict_):
     """
     if not hasattr(func, '__call__'):
         func = func.__getitem__
-    keyval_list = [(key, func(val)) for key, val in iteritems(dict_)]
+    keyval_list = [(key, func(val)) for key, val in dict_.items()]
     dictclass = OrderedDict if isinstance(dict_, OrderedDict) else dict
     newdict = dictclass(keyval_list)
     return newdict
@@ -600,7 +583,7 @@ def map_keys(func, dict_):
     """
     if not hasattr(func, '__call__'):
         func = func.__getitem__
-    keyval_list = [(func(key), val) for key, val in iteritems(dict_)]
+    keyval_list = [(func(key), val) for key, val in dict_.items()]
     dictclass = OrderedDict if isinstance(dict_, OrderedDict) else dict
     newdict = dictclass(keyval_list)
     if len(newdict) != len(dict_):

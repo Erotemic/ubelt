@@ -1,9 +1,5 @@
 from typing import List
 from typing import Union
-from typing import Any
-
-binary_type: Any
-binary_type = bytes
 
 
 def indent(text: str, prefix: str = ...) -> str:

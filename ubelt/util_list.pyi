@@ -8,8 +8,8 @@ from typing import List
 from collections.abc import Generator
 from typing import Any, TypeVar
 
-KT = TypeVar("KT")
 T = TypeVar("T")
+KT = TypeVar("KT")
 VT = TypeVar("VT")
 
 

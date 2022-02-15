@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 """
 Installation:
     pip install git+https://github.com/Erotemic/ubelt.git
@@ -227,18 +226,21 @@ if __name__ == '__main__':
         url='https://github.com/Erotemic/ubelt',
         license='Apache 2',
         packages=find_packages('.'),
+        python_requires='>=3.6',
         classifiers=[
             # List of classifiers available at:
             # https://pypi.python.org/pypi?%3Aaction=list_classifiers
-            'Development Status :: 4 - Beta',
+            'Development Status :: 5 - Production/Stable',
             'Intended Audience :: Developers',
             'Topic :: Software Development :: Libraries :: Python Modules',
             'Topic :: Utilities',
+            'Operating System :: Microsoft :: Windows',
+            'Operating System :: MacOS',
+            'Operating System :: POSIX :: Linux',
+            'Typing :: Stubs Only',
             # This should be interpreted as Apache License v2.0
             'License :: OSI Approved :: Apache Software License',
             # Supported Python versions
-            'Programming Language :: Python :: 2.7',
-            'Programming Language :: Python :: 3.5',
             'Programming Language :: Python :: 3.6',
             'Programming Language :: Python :: 3.7',
             'Programming Language :: Python :: 3.8',

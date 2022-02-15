@@ -60,6 +60,10 @@ class TempDir:
 
 
 class Path:
+
+    def touch(self, mode: int = ..., exist_ok: bool = ...) -> 'Path':
+        ...
+
     def ensuredir(self, mode: int = ...) -> 'Path':
         ...
 
@@ -80,4 +84,7 @@ class Path:
                 dpath: Union[str, PathLike, None] = ...,
                 relative: Union[str, PathLike, None] = ...,
                 multidot: bool = ...) -> 'Path':
+        ...
+
+    def delete(self) -> 'Path':
         ...

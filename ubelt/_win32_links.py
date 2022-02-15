@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 For dealing with symlinks, junctions, and hard-links on windows.
 
@@ -15,14 +14,12 @@ Weird Behavior:
     - [ ] In many cases using the win32 API seems to result in privilege errors
           but using shell commands does not have this problem.
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
 import os
 import warnings
 from os.path import exists
 from os.path import join
 from ubelt import util_io
 from ubelt import util_path
-from ubelt.util_path import _fspath
 import sys
 
 if sys.platform.startswith('win32'):
@@ -403,35 +400,6 @@ def _win32_read_junction(path):
     return subname
 
 
-def _fspath(path):
-    """
-    For cases where os.fspath does not exist on older Python
-    """
-    import six
-    string_types = six.string_types
-
-    if isinstance(path, string_types):
-        return path
-
-    # Work from the object's type to match method resolution of other magic
-    # methods.
-    path_type = type(path)
-    try:
-        path_repr = path_type.__fspath__(path)
-    except AttributeError:
-        if hasattr(path_type, '__fspath__'):
-            raise
-        else:
-            raise TypeError("expected str, bytes or os.PathLike object, "
-                            "not " + path_type.__name__)
-    if isinstance(path_repr, string_types):
-        return path_repr
-    else:
-        raise TypeError("expected {}.__fspath__() to return str or bytes, "
-                        "not {}".format(path_type.__name__,
-                                        type(path_repr).__name__))
-
-
 def _win32_rmtree(path, verbose=0):
     """
     rmtree for win32 that treats junctions like directory symlinks.
@@ -443,7 +411,7 @@ def _win32_rmtree(path, verbose=0):
     References:
         .. [CPythonBug31226] https://bugs.python.org/issue31226
     """
-    path = _fspath(path)
+    path = os.fspath(path)
 
     def _rmjunctions(root):
         from os.path import join, isdir, islink

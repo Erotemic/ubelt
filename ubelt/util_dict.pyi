@@ -12,14 +12,15 @@ from collections.abc import Generator
 from typing import Any, TypeVar
 from ubelt import util_const
 
-KT = TypeVar("KT")
 T = TypeVar("T")
+KT = TypeVar("KT")
 VT = TypeVar("VT")
 odict = OrderedDict
 ddict = defaultdict
 
 
 class AutoDict(dict):
+
     def __getitem__(self, key):
         ...
 
@@ -116,7 +117,7 @@ def named_product(
     ...
 
 
-def varied_values(longform: List[Dict],
+def varied_values(longform: List[Dict[KT, VT]],
                   min_variations: int = ...,
-                  default: object = ...) -> dict:
+                  default: VT = ...) -> Dict[KT, List[VT]]:
     ...

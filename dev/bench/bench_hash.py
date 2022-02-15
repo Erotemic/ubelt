@@ -56,12 +56,12 @@ def benchmark_hash_data():
     print('convert = {!r}'.format(convert))
     print(ratios.mean().sort_values())
     if ub.argflag('--show'):
-        import netharn.util as kwel
-        kwel.autompl()
+        import kwplot
+        kwplot.autompl()
         xdata = sorted(ub.peek(results.values()).keys())
         ydata = ub.map_vals(lambda d: [d[x] for x in xdata], results)
-        kwel.multi_plot(xdata, ydata, xlabel='N', ylabel='seconds', title='convert = {}'.format(convert))
-        kwel.show_if_requested()
+        kwplot.multi_plot(xdata, ydata, xlabel='N', ylabel='seconds', title='convert = {}'.format(convert))
+        kwplot.show_if_requested()
 
 
 if __name__ == '__main__':

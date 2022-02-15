@@ -17,12 +17,10 @@ exclude_lines =
     ^ *pass *$
     if _debug:
     if __name__ == .__main__.:
-    .*if six.PY2:
-    .*if PY2:
-    .*sys.version_info[0] == 2:
 
 omit =
     *ubelt/tests/*
     *ubelt/_win32_links.py
     *ubelt/__main__.py
+    *ubelt/_util_deprecated.py
     */setup.py

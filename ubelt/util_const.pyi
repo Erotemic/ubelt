@@ -1,7 +1,5 @@
-from typing import Any
-
-
 class _NoParamType:
+
     def __new__(cls):
         ...
 
@@ -16,8 +14,6 @@ class _NoParamType:
 
     def __bool__(self):
         ...
-
-    __nonzero__: Any
 
 
 NoParam: _NoParamType

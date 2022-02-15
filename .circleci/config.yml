@@ -45,15 +45,6 @@ workflows:
       - test_full/cp36-36m-linux:
           filters:
               <<: *__ignore_release__
-      - test_full/cp35-35m-linux:
-          filters:
-              <<: *__ignore_release__
-      #- test_full/cp34-34m-linux:
-      #    filters:
-      #        <<: *__ignore_release__
-      - test_full/cp27-27mu-linux:
-          filters:
-              <<: *__ignore_release__
 
       - test_minimal/cp3_10-3_10-linux:
           filters:
@@ -68,15 +59,6 @@ workflows:
           filters:
               <<: *__ignore_release__
       - test_minimal/cp36-36m-linux:
-          filters:
-              <<: *__ignore_release__
-      - test_minimal/cp35-35m-linux:
-          filters:
-              <<: *__ignore_release__
-      #- test_minimal/cp34-34m-linux:
-      #    filters:
-      #        <<: *__ignore_release__
-      - test_minimal/cp27-27mu-linux:
           filters:
               <<: *__ignore_release__
 
@@ -204,22 +186,12 @@ jobs:
   test_full/cp36-36m-linux:
     <<: *test_full_template
     docker:
-      - image: circleci/python:3.5
+      - image: circleci/python:3.6
 
   test_full/cp35-35m-linux:
     <<: *test_full_template
     docker:
-      - image: circleci/python:3.5
-
-  #test_full/cp34-34m-linux:
-  #  <<: *test_full_template
-  #  docker:
-  #    - image: circleci/python:3.4
-
-  test_full/cp27-27mu-linux:
-    <<: *test_full_template
-    docker:
-      - image: circleci/python:2.7
+      - image: circleci/python:3.6
 
   # ------------
   
@@ -247,21 +219,6 @@ jobs:
     <<: *test_minimal_template
     docker:
       - image: circleci/python:3.6
-
-  test_minimal/cp35-35m-linux:
-    <<: *test_minimal_template
-    docker:
-      - image: circleci/python:3.5
-
-  #test_minimal/cp34-34m-linux:
-  #  <<: *test_minimal_template
-  #  docker:
-  #    - image: circleci/python:3.4
-
-  test_minimal/cp27-27mu-linux:
-    <<: *test_minimal_template
-    docker:
-      - image: circleci/python:2.7
 
   # --- pypy ----
 

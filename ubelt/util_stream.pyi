@@ -39,10 +39,7 @@ class CaptureStdout(CaptureStream):
     suppress: Any
     orig_stdout: Any
 
-    def __init__(self,
-                 suppress: bool = ...,
-                 enabled: bool = ...,
-                 **kwargs) -> None:
+    def __init__(self, suppress: bool = ..., enabled: bool = ...) -> None:
         ...
 
     def log_part(self) -> None:

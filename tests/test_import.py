@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import itertools as it
 from os.path import join
 import ubelt as ub

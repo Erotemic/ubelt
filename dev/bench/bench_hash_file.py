@@ -41,7 +41,7 @@ def hash_file2(fpath, blocksize=65536, hasher='xx64'):
             hasher.update(buf)
             buf = file.read(blocksize)
     # Get the hashed representation
-    text = ub.util_hash._digest_hasher(hasher, hashlen=None,
+    text = ub.util_hash._digest_hasher(hasher,
                                        base=ub.util_hash.DEFAULT_ALPHABET)
     return text
 

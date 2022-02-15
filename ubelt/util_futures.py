@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Introduces the Executor class that wraps the standard ThreadPoolExecutor,
 ProcessPoolExecutor, and the new SerialExecutor with a common interface and a
@@ -41,7 +40,6 @@ Example:
     >>> print(ub.repr2(ti))
 
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
 import concurrent.futures
 from concurrent.futures import as_completed
 

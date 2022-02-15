@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 UBelt is a "utility belt" of commonly needed utility and helper functions.  It
 is a currated collection of top-level utilities with functionality that falls
@@ -15,59 +14,54 @@ NOTE: The `README <https://github.com/Erotemic/ubelt#readme>`_ on github
 contains information and examples complementary to these docs.
 """
 # flake8: noqa
-from __future__ import absolute_import, division, print_function, unicode_literals
 
 
 __dev__ = """
 AutogenInit:
     mkinit ubelt --diff
     mkinit ubelt -w  # todo: get sphinx to ignore this
-
-    # TODO: Lazy imports with mkinit
+    # TODO: Lazy imports with mkinit (requires python 3.7)
 
 Testing:
     xdoctest ubelt
 """
 
-__version__ = '0.11.1'
+__version__ = '1.0.0'
 
-__submodules__ = [
-    'util_arg',
-    'util_cache',
-    'util_colors',
-    'util_const',
-    'util_cmd',
-    'util_dict',
-    'util_download',
-    'util_download_manager',
-    'util_func',
-    'util_format',
-    'util_futures',
-    'util_io',
-    'util_links',
-    'util_list',
-    'util_hash',
-    'util_import',
-    'util_indexable',
-    'util_memoize',
-    'util_mixins',
-    'util_path',
-    'util_platform',
-    'util_str',
-    'util_stream',
-    'util_time',
-    'util_zip',
-    'orderedset',
-    'progiter',
-    'timerit',
-    '_util_deprecated',
-]
+__submodules__ = {
+    'util_arg': None,
+    'util_cache': None,
+    'util_colors': None,
+    'util_const': None,
+    'util_cmd': None,
+    'util_dict': None,
+    'util_download': None,
+    'util_download_manager': None,
+    'util_func': None,
+    'util_format': None,
+    'util_futures': None,
+    'util_io': None,
+    'util_links': None,
+    'util_list': None,
+    'util_hash': None,
+    'util_import': None,
+    'util_indexable': None,
+    'util_memoize': None,
+    'util_mixins': None,
+    'util_path': None,
+    'util_platform': None,
+    'util_str': None,
+    'util_stream': None,
+    'util_time': None,
+    'util_zip': None,
+    'orderedset': None,
+    'progiter': None,
+    # '_util_deprecated': []
+}
 
 # <AUTOGEN_INIT>
-from ubelt import _util_deprecated
 from ubelt import orderedset
 from ubelt import progiter
-from ubelt import timerit
 from ubelt import util_arg
 from ubelt import util_cache
 from ubelt import util_cmd
@@ -132,50 +126,40 @@ from ubelt.util_platform import (DARWIN, LINUX, POSIX, WIN32,
 from ubelt.util_str import (codeblock, ensure_unicode, hzcat, indent,
                             paragraph,)
 from ubelt.util_stream import (CaptureStdout, CaptureStream, TeeStringIO,)
-from ubelt.util_time import (timestamp,)
+from ubelt.util_time import (Timer, timestamp,)
 from ubelt.util_zip import (split_archive, zopen,)
 from ubelt.orderedset import (OrderedSet, oset,)
 from ubelt.progiter import (ProgIter,)
-from ubelt.timerit import (Timer, Timerit,)
-from ubelt._util_deprecated import (compressuser, dict_take, dict_take,
-                                    editfile, editfile,
-                                    ensure_app_resource_dir,
-                                    get_app_resource_dir,
-                                    platform_resource_dir,
-                                    schedule_deprecation, startfile, truepath,)
 
 __all__ = ['AutoDict', 'AutoOrderedDict', 'CacheStamp', 'Cacher',
            'CaptureStdout', 'CaptureStream', 'DARWIN', 'DownloadManager',
            'Executor', 'FormatterExtensions', 'IndexableWalker', 'JobPool',
            'LINUX', 'NO_COLOR', 'NiceRepr', 'NoParam', 'OrderedSet', 'POSIX',
-           'Path', 'ProgIter', 'TeeStringIO', 'TempDir', 'Timer', 'Timerit',
-           'WIN32', '_util_deprecated', 'allsame', 'argflag', 'argmax',
-           'argmin', 'argsort', 'argunique', 'argval', 'augpath', 'boolmask',
-           'chunks', 'cmd', 'codeblock', 'color_text', 'compatible',
-           'compress', 'compressuser', 'ddict', 'delete', 'dict_diff',
-           'dict_hist', 'dict_isect', 'dict_subset', 'dict_take', 'dict_union',
-           'download', 'dzip', 'editfile', 'ensure_app_cache_dir',
-           'ensure_app_config_dir', 'ensure_app_data_dir',
-           'ensure_app_resource_dir', 'ensure_unicode', 'ensuredir',
-           'expandpath', 'find_duplicates', 'find_exe', 'find_path', 'flatten',
+           'Path', 'ProgIter', 'TeeStringIO', 'TempDir', 'Timer', 'WIN32',
+           'allsame', 'argflag', 'argmax', 'argmin', 'argsort', 'argunique',
+           'argval', 'augpath', 'boolmask', 'chunks', 'cmd', 'codeblock',
+           'color_text', 'compatible', 'compress', 'ddict', 'delete',
+           'dict_diff', 'dict_hist', 'dict_isect', 'dict_subset', 'dict_union',
+           'download', 'dzip', 'ensure_app_cache_dir', 'ensure_app_config_dir',
+           'ensure_app_data_dir', 'ensure_unicode', 'ensuredir', 'expandpath',
+           'find_duplicates', 'find_exe', 'find_path', 'flatten',
            'get_app_cache_dir', 'get_app_config_dir', 'get_app_data_dir',
-           'get_app_resource_dir', 'grabdata', 'group_items', 'hash_data',
-           'hash_file', 'highlight_code', 'hzcat', 'identity',
-           'import_module_from_name', 'import_module_from_path', 'indent',
-           'indexable_allclose', 'inject_method', 'invert_dict', 'iter_window',
-           'iterable', 'map_keys', 'map_vals', 'memoize', 'memoize_method',
+           'grabdata', 'group_items', 'hash_data', 'hash_file',
+           'highlight_code', 'hzcat', 'identity', 'import_module_from_name',
+           'import_module_from_path', 'indent', 'indexable_allclose',
+           'inject_method', 'invert_dict', 'iter_window', 'iterable',
+           'map_keys', 'map_vals', 'memoize', 'memoize_method',
            'memoize_property', 'modname_to_modpath', 'modpath_to_modname',
            'named_product', 'odict', 'orderedset', 'oset', 'paragraph', 'peek',
            'platform_cache_dir', 'platform_config_dir', 'platform_data_dir',
-           'platform_resource_dir', 'progiter', 'readfrom', 'repr2',
-           'schedule_deprecation', 'shrinkuser', 'sorted_keys', 'sorted_vals',
-           'split_archive', 'split_modpath', 'startfile', 'symlink', 'take',
-           'timerit', 'timestamp', 'touch', 'truepath', 'unique',
-           'unique_flags', 'userhome', 'util_arg', 'util_cache', 'util_cmd',
-           'util_colors', 'util_const', 'util_dict', 'util_download',
-           'util_download_manager', 'util_format', 'util_func', 'util_futures',
-           'util_hash', 'util_import', 'util_indexable', 'util_io',
-           'util_links', 'util_list', 'util_memoize', 'util_mixins',
-           'util_path', 'util_platform', 'util_str', 'util_stream',
-           'util_time', 'util_zip', 'varied_values', 'writeto', 'zopen']
+           'progiter', 'readfrom', 'repr2', 'shrinkuser', 'sorted_keys',
+           'sorted_vals', 'split_archive', 'split_modpath', 'symlink', 'take',
+           'timestamp', 'touch', 'unique', 'unique_flags', 'userhome',
+           'util_arg', 'util_cache', 'util_cmd', 'util_colors', 'util_const',
+           'util_dict', 'util_download', 'util_download_manager',
+           'util_format', 'util_func', 'util_futures', 'util_hash',
+           'util_import', 'util_indexable', 'util_io', 'util_links',
+           'util_list', 'util_memoize', 'util_mixins', 'util_path',
+           'util_platform', 'util_str', 'util_stream', 'util_time', 'util_zip',
+           'varied_values', 'writeto', 'zopen']
 # </AUTOGEN_INIT>

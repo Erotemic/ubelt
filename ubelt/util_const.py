@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 This module defines :data:`ub.NoParam`. This is a robust sentinel value that
 can act like ``None`` when None might be a valid value. The value of
@@ -27,7 +26,6 @@ Example:
     >>> func(a=ub.NoParam)
     no param specified
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
 
 __all__ = ['NoParam']
 
@@ -60,14 +58,10 @@ class _NoParamType(object):
         ... 'deepcopy': copy.deepcopy(NoParam),
         ... 'pickle': pickle.loads(pickle.dumps(NoParam))
         ... }
-        >>> #print(ub.align(ub.repr4(ub.map_vals(id, versions)), ':'))
         >>> print(versions)
         >>> assert all(id(v) == id_ for v in versions.values())
         >>> import six
-        >>> if six.PY2:
-        >>>     from imp import reload
-        >>> else:
-        >>>     from importlib import reload
+        >>> from importlib import reload
         >>> reload(util_const)
         >>> assert id(util_const.NoParam) == id_
         >>> assert all(id(v) == id_ for v in versions.values())
@@ -88,12 +82,9 @@ class _NoParamType(object):
         return 'NoParam'
     def __repr__(cls):
         return 'NoParam'
-        # return "<type 'NoParamType'>"
     def __bool__(self):
         # Ensure NoParam is Falsey
         return False
-    # Same thing as __bool__ in Python 2.7
-    __nonzero__ = __bool__
 
 
 # Create the only instance of _NoParamType that should ever exist

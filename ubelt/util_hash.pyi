@@ -8,10 +8,12 @@ from typing import Any, TypeVar
 Hasher = TypeVar("Hasher")
 HASH_VERSION: int
 DEFAULT_ALPHABET: Any
-PY2: bool
-b: Any
-binary_type: Any
-binary_type = bytes
+
+
+def b(s):
+    ...
+
+
 DEFAULT_HASHER: Any
 
 
@@ -66,7 +68,6 @@ def hash_data(data: object,
               hasher: Union[str, Hasher] = ...,
               base: Union[List[str], str] = ...,
               types: bool = ...,
-              hashlen: int = ...,
               convert: bool = ...,
               extensions: HashableExtensions = ...) -> str:
     ...
@@ -77,6 +78,5 @@ def hash_file(fpath: PathLike,
               stride: int = ...,
               maxbytes: Union[int, None] = ...,
               hasher: Union[str, Hasher] = ...,
-              hashlen: int = ...,
               base: Union[List[str], str] = ...):
     ...

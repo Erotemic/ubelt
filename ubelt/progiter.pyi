@@ -7,6 +7,7 @@ CLEAR_AFTER: str
 
 
 class _TQDMCompat:
+
     @classmethod
     def write(cls,
               s,
@@ -68,6 +69,7 @@ class _TQDMCompat:
 
 
 class _BackwardsCompat:
+
     @property
     def length(self):
         ...
@@ -135,7 +137,10 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
     def step(self, inc: int = ..., force: bool = ...) -> None:
         ...
 
-    def begin(self) -> None:
+    def start(self):
+        ...
+
+    def begin(self) -> ProgIter:
         ...
 
     def end(self) -> None:

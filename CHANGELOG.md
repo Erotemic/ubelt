@@ -5,6 +5,25 @@ We are currently working on porting this changelog to the specifications in
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## Version 1.0.0 - Unreleased
+
+### Added
+
+* :func:`ubelt.Path.appdir` which functions like the `get_app_*_dir` methods in `util_platform`.
+* Add `tail` argument to :func:`ubelt.Path.augment` and  :func:`ubelt.util_path.augpath`
+* Add json `backend` option to Cacher.
+
+### Changed
+* `IndexableWalker` behavior has been changed, each time `iter` is called it
+  resets its global state. 
+* Remove support for Python 2.7 and Python 3.5
+* Removed deprecated functions scheduled for removal.
+* :func:`ubelt.util_dict.dict_diff` now preserves original dictionary order in Python 3.7+.
+* `ub.hash_data` can now hash slice objects.
+* INTENTION OF BREAKING CHANGE NOTIFICATION: `ubelt.util_format.repr2` may no longer sort
+  dictionaries by default. Looking into a backwards compatible way to work around this.
+
+
 ## Version 0.11.1 - Unreleased
 
 ### Added
