@@ -7,6 +7,11 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## Version 1.0.1 - Unreleased
 
+### Fixed
+
+* Bug where six was used but not listed as a dependency. Six is now removed as a dependency.
+* Fixed out of date docs in some places.
+
 
 ## Version 1.0.0 - Released 2022-02-15
 

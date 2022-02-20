@@ -59,7 +59,7 @@ def _proc_async_iter_stream(proc, stream, buffersize=1):
     """
     Reads output from a process in a separate thread
     """
-    from six.moves import queue
+    import queue
     from threading import Thread
     def enqueue_output(proc, stream, stream_queue):
         while proc.poll() is None:
@@ -97,7 +97,7 @@ def _proc_iteroutput_thread(proc):
     References:
         .. [SO_375427] https://stackoverflow.com/questions/375427/non-blocking-read-subproc
     """
-    from six.moves import queue
+    import queue
 
     # Create threads that read stdout / stderr and queue up the output
     stdout_queue = _proc_async_iter_stream(proc, proc.stdout)
@@ -134,7 +134,7 @@ def _proc_iteroutput_select(proc):
     Yields:
         Tuple[str, str]: oline, eline: stdout and stderr line
     """
-    from six.moves import zip_longest
+    from itertools import zip_longest
     # Read output while the external program is running
     while proc.poll() is None:
         reads = [proc.stdout.fileno(), proc.stderr.fileno()]

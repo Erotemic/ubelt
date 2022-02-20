@@ -20,6 +20,7 @@ class Cacher:
     protocol: Any
     hasher: Any
     log: Any
+    backend: Any
 
     def __init__(self,
                  fname,
@@ -33,7 +34,8 @@ class Cacher:
                  log: Any | None = ...,
                  hasher: str = ...,
                  protocol: int = ...,
-                 cfgstr: Any | None = ...) -> None:
+                 cfgstr: Any | None = ...,
+                 backend: str = ...) -> None:
         ...
 
     def get_fpath(self, cfgstr: Union[str, None] = ...):

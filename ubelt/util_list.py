@@ -476,9 +476,8 @@ def unique(items, key=None):
 
     Example:
         >>> import ubelt as ub
-        >>> import six
         >>> items = ['A', 'a', 'b', 'B', 'C', 'c', 'D', 'e', 'D', 'E']
-        >>> unique_items = list(ub.unique(items, key=six.text_type.lower))
+        >>> unique_items = list(ub.unique(items, key=str.lower))
         >>> assert unique_items == ['A', 'b', 'C', 'D', 'e']
         >>> unique_items = list(ub.unique(items))
         >>> assert unique_items == ['A', 'a', 'b', 'B', 'C', 'c', 'D', 'e', 'E']

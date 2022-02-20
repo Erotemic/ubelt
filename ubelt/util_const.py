@@ -46,7 +46,7 @@ class _NoParamType(object):
         >>> import ubelt as ub
         >>> from ubelt import util_const
         >>> from ubelt.util_const import _NoParamType, NoParam
-        >>> from six.moves import cPickle as pickle
+        >>> import pickle
         >>> import copy
         >>> id_ = id(NoParam)
         >>> versions = {
@@ -60,7 +60,6 @@ class _NoParamType(object):
         ... }
         >>> print(versions)
         >>> assert all(id(v) == id_ for v in versions.values())
-        >>> import six
         >>> from importlib import reload
         >>> reload(util_const)
         >>> assert id(util_const.NoParam) == id_
