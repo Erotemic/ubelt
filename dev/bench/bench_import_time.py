@@ -105,7 +105,7 @@ def benchmark_ubelt_import_time_robust():
     info = ub.cmd('git tag', cwd=repo_root)
 
     versions = [p for p in info['out'].split('\n') if p]
-    branches = ['dev/1.0.1', 'main'] + versions
+    branches = ['dev/1.0.2', 'main'] + versions
 
     fig = kwplot.figure(doclf=True)
     ax = fig.gca()
@@ -131,7 +131,7 @@ def benchmark_ubelt_import_time_robust():
         # ax.cla()
         # sns.lineplot(data=df, x='version', y='time', hue='stat', style='type', ax=ax)
 
-    ub.cmd('git checkout {}'.format('dev/1.0.1'), cwd=repo_root)
+    ub.cmd('git checkout {}'.format('dev/1.0.2'), cwd=repo_root)
     df = pd.DataFrame(rows)
     from distutils.version import LooseVersion
     unique_versions = list(map(str, sorted(map(LooseVersion, df['version'].unique()))))
