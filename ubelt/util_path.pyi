@@ -8,6 +8,7 @@ def augpath(path: Union[str, PathLike],
             suffix: str = ...,
             prefix: str = ...,
             ext: Union[str, None] = ...,
+            tail: Union[str, None] = ...,
             base: Union[str, None] = ...,
             dpath: Union[str, PathLike, None] = ...,
             relative: Union[str, PathLike, None] = ...,
@@ -82,9 +83,14 @@ class Path:
                 ext: Union[str, None] = ...,
                 stem: Union[str, None] = ...,
                 dpath: Union[str, PathLike, None] = ...,
+                tail: Union[str, None] = ...,
                 relative: Union[str, PathLike, None] = ...,
                 multidot: bool = ...) -> 'Path':
         ...
 
     def delete(self) -> 'Path':
+        ...
+
+    @classmethod
+    def appdir(cls, appname: str, *args, type: str = ...) -> 'Path':
         ...

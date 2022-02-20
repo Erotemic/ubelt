@@ -5,7 +5,15 @@ We are currently working on porting this changelog to the specifications in
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
-## Version 1.0.0 - Unreleased
+## Version 1.0.1 - Unreleased
+
+### Fixed
+
+* Bug where six was used but not listed as a dependency. Six is now removed as a dependency.
+* Fixed out of date docs in some places.
+
+
+## Version 1.0.0 - Released 2022-02-15
 
 ### Added
 
@@ -24,7 +32,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
   dictionaries by default. Looking into a backwards compatible way to work around this.
 
 
-## Version 0.11.1 - Unreleased
+## Version 0.11.1 - Released 2022-02-15
 
 ### Added
 * More `ubelt.Path` extensions for `delete` 

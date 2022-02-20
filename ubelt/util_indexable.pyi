@@ -20,9 +20,6 @@ class IndexableWalker(Generator):
     def __next__(self):
         ...
 
-    def next(self):
-        ...
-
     def send(self, arg) -> None:
         ...
 
