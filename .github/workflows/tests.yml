@@ -17,7 +17,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Set up Python 3.8
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v3
       with:
         python-version: 3.8
     - name: Install dependencies
@@ -44,7 +44,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Set up Python 3.8
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v3
       with:
         python-version: 3.8
     - name: Upgrade pip 
@@ -164,7 +164,7 @@ jobs:
     #    CIBW_ARCHS_LINUX: ${{ matrix.arch }}
     
     # Setup Python environment for a pure wheel
-    - uses: actions/setup-python@v2
+    - uses: actions/setup-python@v3
       with:
         python-version: ${{ matrix.python-version }}
     
@@ -203,7 +203,7 @@ jobs:
 
     - name: Set up Python 3.8 to combine coverage Linux
       if: runner.os == 'Linux'
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v3
       with:
         python-version: 3.8
 
