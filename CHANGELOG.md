@@ -5,13 +5,13 @@ We are currently working on porting this changelog to the specifications in
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
-## Version 1.0.2 - Unreleased
+## Version 1.1.0 - Unreleased
 
 
 ### Changed
 * Register `pathlib.Path` with `ub.repr2`
 * Can now register global `ub.repr2` extensions `ub.repr2.register`
-* Can now register global `ub.hash_data` extensions `ub.hash_data.register`
+* Can now register global `ub.hash_data` extensions `ub.hash_data..register`
 
 
 ## Version 1.0.1 - Released 2022-02-20
