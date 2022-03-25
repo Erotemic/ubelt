@@ -354,6 +354,12 @@ class HashableExtensions(object):
 
         Example:
             >>> # xdoctest: +SKIP
+            >>> # Simple example
+            >>> import ubelt as ub
+            >>> ub.util_hash._HASHABLE_EXTENSIONS.register(pathlib.Path)( lambda x: (b'PATH', str))
+
+        Example:
+            >>> # xdoctest: +SKIP
             >>> # Skip this doctest because we dont want tests to modify
             >>> # the global state.
             >>> import ubelt as ub
@@ -368,6 +374,14 @@ class HashableExtensions(object):
             >>> # You can register your functions with ubelt's internal
             >>> # hashable_extension registry.
             >>> @ub.util_hash._HASHABLE_EXTENSIONS.register(MyType)
+            >>> def hash_my_type(data):
+            ...     return b'mytype', b(ub.hash_data(data.id))
+            >>> my_instance = MyType(1)
+            >>> ub.hash_data(my_instance)
+            >>> # New in ubelt 1.1.0: you can now do:
+            >>> # You can register your functions with ubelt's internal
+            >>> # hashable_extension registry.
+            >>> @ub.hash_data.register(MyType)
             >>> def hash_my_type(data):
             ...     return b'mytype', b(ub.hash_data(data.id))
             >>> my_instance = MyType(1)
@@ -609,6 +623,8 @@ class HashableExtensions(object):
             >>> assert ub.hash_data(slice(None)).startswith('0178e55a247d09ad282dc2e44f5388f477')
         """
         import uuid
+        import pathlib
+
         @self.register(uuid.UUID)
         def _convert_uuid(data):
             hashable = data.bytes
@@ -673,6 +689,9 @@ class HashableExtensions(object):
                 types=_COMPATIBLE_HASHABLE_SEQUENCE_TYPES_DEFAULT))
             prefix = b'SLICE'
             return prefix, hashable
+
+        self.register(pathlib.Path)(lambda x: (b'PATH', str))
+        # other data structures
 
     def _register_agressive_extensions(self):  # nocover
         """
@@ -1167,3 +1186,8 @@ def hash_file(fpath, blocksize=1048576, stride=1, maxbytes=None,
     # Get the hashed representation
     text = _digest_hasher(hasher, base)
     return text
+
+
+# Give the hash_data function itself a reference to the default extensions
+# so the user can modify them without accessing this module
+hash_data.register = _HASHABLE_EXTENSIONS.register
