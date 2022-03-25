@@ -32,7 +32,7 @@ Example:
     }
 """
 import sys
-import warnings
+import os
 
 __all__ = ['cmd']
 
@@ -195,7 +195,7 @@ def _tee_output(proc, stdout=None, stderr=None, backend='thread'):
 
 
 def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
-        env=None, tee_backend='auto', check=False, **kwargs):
+        env=None, tee_backend='auto', check=False, system=False):
     """
     Executes a command in a subprocess.
 
@@ -236,7 +236,9 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
             zero before returning, otherwise raise a CalledProcessError.
             Does nothing if detach is True.
 
-        **kwargs: only used to support deprecated arguments
+        system (bool, default=False): if True, most other considerations
+            are dropped, and :func:`os.system` is used to execute the
+            command in a platform dependant way.
 
     Returns:
         dict:
@@ -250,6 +252,9 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
         to text if shell=True, and to tuple if shell=False. On windows, the
         input is always text based.  See [SO_33560364]_ for a potential
         cross-platform shlex solution for windows.
+
+        When using the tee output, the stdout and stderr may be shuffled from
+        what they would be on the command line.
 
     CommandLine:
         xdoctest -m ubelt.util_cmd cmd:6
@@ -325,25 +330,18 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
         >>> # Check that the process did what we expect
         >>> assert ub.readfrom(fpath1) == ''
         >>> assert ub.readfrom(fpath2).strip() == 'writing2'
+
+    Example:
+        >>> # Can also use ub.cmd to call os.system
+        >>> import pytest
+        >>> import ubelt as ub
+        >>> import subprocess
+        >>> info = ub.cmd('echo hi', check=True, system=True)
+        >>> with pytest.raises(subprocess.CalledProcessError):
+        >>>     ub.cmd('exit 1', check=True, shell=True)
     """
     import subprocess
     # TODO: stdout, stderr - experimental - custom file to pipe stdout/stderr to
-    if kwargs:  # nocover
-        if 'verbout' in kwargs:
-            warnings.warn(
-                '`verbout` is deprecated and will be removed. '
-                'Use `tee` instead', DeprecationWarning)
-            tee = kwargs.pop('verbout')
-
-        if 'detatch' in kwargs:
-            warnings.warn(
-                '`detatch` is deprecated (misspelled) and will be removed. '
-                'Use `detach` instead', DeprecationWarning)
-            detach = kwargs.pop('detatch')
-
-        if kwargs:
-            raise ValueError('Unknown kwargs: {}'.format(list(kwargs.keys())))
-
     # Determine if command is specified as text or a tuple
     if isinstance(command, str):
         command_text = command
@@ -373,7 +371,6 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
         raise ValueError('tee_backend must be select, thread, or auto')
 
     if verbose > 1:
-        import os
         import platform
         import getpass
         from ubelt import shrinkuser
@@ -397,7 +394,15 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
                                 universal_newlines=True, cwd=cwd, env=env)
         return proc
 
-    if detach:
+    if system:
+        info = {
+            'command': command_text,
+            'out': None,
+            'err': None,
+        }
+        ret = os.system(command_text)
+        info['ret'] = ret
+    elif detach:
         info = {'proc': make_proc(), 'command': command_text}
         if verbose > 0:  # nocover
             print('...detaching')
@@ -434,6 +439,8 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
             'cwd': cwd,
             'command': command_text
         }
+
+    if not detach:
         if verbose > 2:
             # https://en.wikipedia.org/wiki/Box-drawing_character
             try:

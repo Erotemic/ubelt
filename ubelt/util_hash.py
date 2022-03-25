@@ -1189,5 +1189,5 @@ def hash_file(fpath, blocksize=1048576, stride=1, maxbytes=None,
 
 
 # Give the hash_data function itself a reference to the default extensions
-# so the user can modify them without accessing this module
+# register method so the user can modify them without accessing this module
 hash_data.register = _HASHABLE_EXTENSIONS.register
