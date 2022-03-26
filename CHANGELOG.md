@@ -15,6 +15,9 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 * `ub.cmd` now has a `system` argument for modularity with `os.system`.
 * Removed deprecated arguments from `ubelt.cmd`.
 
+### Fixed
+* `ub.hash_data` now recognizes subclasses of registered types.
+
 
 ## Version 1.0.1 - Released 2022-02-20
 

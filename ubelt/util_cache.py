@@ -194,6 +194,12 @@ class Cacher(object):
             depends = cfgstr
 
         if cfgstr is not None:
+            from ubelt import _util_deprecated
+            _util_deprecated.schedule_deprecation2(
+                migration='Use depends instead', name='cfgstr',
+                type='Cacher class arg', deprecate='1.1.0', error='1.3.0',
+                remove='1.4.0',
+            )
             # We will start warning after the next version releases and a
             # stable version with depends exists on pypi.
             # import warnings
@@ -233,6 +239,19 @@ class Cacher(object):
             raise ValueError('Please be explicit and use a dot in ext')
 
     def _rectify_cfgstr(self, cfgstr=None):
+        if cfgstr is not None:
+            from ubelt import _util_deprecated
+            _util_deprecated.schedule_deprecation2(
+                migration=(
+                    'In general, you should not need to specify a custom '
+                    'cfgstr after the Cacher has been created. '
+                    'If you must, then you can modify the ``depends`` class '
+                    'attribute instead, but in general it is recommend to '
+                    'avoid this.'
+                ), name='cfgstr', type='Cacher method arg', deprecate='1.1.0',
+                error='1.3.0', remove='1.4.0',
+            )
+
         cfgstr = self.cfgstr if cfgstr is None else cfgstr
 
         if cfgstr is None and self.depends is not None:
@@ -485,7 +504,7 @@ class Cacher(object):
 
     def save(self, data, cfgstr=None):
         """
-        Writes data to path specified by `self.fpath(cfgstr)`.
+        Writes data to path specified by ``self.fpath(cfgstr)``.
 
         Metadata containing information about the cache will also be appended
         to an adjacent file with the `.meta` suffix.
@@ -668,7 +687,7 @@ class CacheStamp(object):
             Defaults to sha1.
 
         verbose (bool, default=None):
-            Passed to internal ub.Cacher object
+            Passed to internal :class:`ubelt.Cacher` object
 
         enabled (bool, default=True):
             if False, expired always returns True
@@ -676,7 +695,7 @@ class CacheStamp(object):
         depends (str | List[str] | None):
             Indicate dependencies of this cache.  If the dependencies change,
             then the cache is recomputed.  New to CacheStamp in version 0.9.2,
-            replaces `cfgstr`.
+            replaces ``cfgstr``.
 
         meta (object | None):
             Metadata that is also saved with the ``cfgstr``.  This can be

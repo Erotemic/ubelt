@@ -12,15 +12,15 @@ expects the command as either a  ``List[str]`` if ``shell=False`` and ``str``
 if ``shell=True``. If necessary, :func:`ubelt.util_cmd.cmd` will automatically
 convert from one format to the other, so passing in either case will work.
 
-(3) Specificy if the process blocks or not by setting ``detatch``. Note: when
-``detatch is True`` it is not possible to tee the output.
+(3) Specificy if the process blocks or not by setting ``detach``. Note: when
+``detach is True`` it is not possible to tee the output.
 
 Example:
     >>> import ubelt as ub
     >>> # Running with verbose=1 will write to stdout in real time
     >>> info = ub.cmd('echo "write your command naturally"', verbose=1)
     write your command naturally
-    >>> # Unless `detatch=True`, `cmd` always returns an info dict.
+    >>> # Unless `detach=True`, `cmd` always returns an info dict.
     >>> print('info = ' + ub.repr2(info))
     info = {
         'command': 'echo "write your command naturally"',

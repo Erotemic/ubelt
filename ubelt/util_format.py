@@ -1175,4 +1175,5 @@ def _align_lines(line_list, character='=', replchar=None, pos=0):
 
 # Give the repr2 function itself a reference to the default extensions
 # register method so the user can modify them without accessing this module
+repr2.extensions = _FORMATTER_EXTENSIONS
 repr2.register = _FORMATTER_EXTENSIONS.register
