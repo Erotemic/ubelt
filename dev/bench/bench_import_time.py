@@ -143,12 +143,14 @@ def benchmark_ubelt_import_time_robust():
     kwplot.figure(fnum=2, pnum=(2, 1, 2))
     sns.lineplot(data=df[df['type'] == 'self_us'], x='release_index', y='time', hue='stat', style='type', marker='o')
 
+    kwplot.show_if_requested()
+
 
 
 if __name__ == '__main__':
     """
     CommandLine:
-        python ~/code/ubelt/dev/bench_import_time.py
+        python ~/code/ubelt/dev/bench/bench_import_time.py --show
     """
     # benchmark_import_time()
     benchmark_ubelt_import_time_robust()
