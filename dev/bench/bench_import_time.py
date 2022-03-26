@@ -53,7 +53,7 @@ def benchmark_multi_or_combined_import():
 
     for timer in ti.reset('multi_lines'):
         with timer:
-            info = ub.cmd('python -c "{}"'.format(multi_lines))
+            info = ub.cmd('python -c "{}"'.format(multi_lines))  # NOQA
 
 
 def benchmark_ubelt_import_time_robust():
@@ -61,17 +61,21 @@ def benchmark_ubelt_import_time_robust():
     import ubelt as ub
     import kwplot
     sns = kwplot.autosns(force='Qt5Agg')
+    # plt = kwplot.autoplt()  # NOQA
 
     prog = ub.codeblock(
         r'''
         def _main():
             import subprocess
             import ubelt as ub
+            import pandas as pd
             measurements = []
-            for i in range(200):
+
+            num_iters = 200
+            num_iters = 10
+
+            for i in range(num_iters):
                 row = {}
-                # info = ub.cmd('python -X importtime -c "import ubelt"')
-                # text = info['err']
                 prog = subprocess.Popen('python -X importtime -c "import ubelt"', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                 _, text = prog.communicate()
                 text = text.decode()
@@ -80,7 +84,6 @@ def benchmark_ubelt_import_time_robust():
                 row['self_us'] = float(partial[0].strip())
                 row['cummulative'] = float(partial[1].strip())
                 measurements.append(row)
-            import pandas as pd
             df = pd.DataFrame(measurements)
             stats = pd.DataFrame({
                 'mean': df.mean(),
@@ -92,13 +95,10 @@ def benchmark_ubelt_import_time_robust():
             info = stats.to_dict()
             info['version'] = ub.__version__
             print(info)
-            # print(stats)
         _main()
         ''')
 
-    dpath = ub.Path(ub.ensure_app_cache_dir('ubelt/tests/test_version_import'))
-    fpath = dpath / 'do_test.py'
-    fpath.write_text(prog)
+    dpath = ub.Path(ub.ensure_app_cache_dir('ubelt/tests/test_version_import2'))
 
     repo_root = ub.Path('$HOME/code/ubelt').expand()
 
@@ -108,18 +108,23 @@ def benchmark_ubelt_import_time_robust():
     info = ub.cmd('git tag', cwd=repo_root)
 
     versions = [p for p in info['out'].split('\n') if p]
-    branches = [current_branch, 'main'] + versions
+    branches = [current_branch, 'main'] + versions[::-1]
 
-    fig = kwplot.figure(doclf=True)
-    ax = fig.gca()
+    tmp_copy = dpath / repo_root.name
+    tmp_copy.delete()
+
+    ub.cmd(f'git clone {repo_root} {tmp_copy}', cwd=dpath)
+
+    fpath = tmp_copy / 'do_test.py'
+    fpath.write_text(prog)
 
     bname_to_info = {}
     rows = []
     try:
-        for bname in branches:
+        for bname in ub.ProgIter(branches, desc='looping over versions', verbose=3):
             print('bname = {!r}'.format(bname))
-            ub.cmd('git checkout {}'.format(bname), cwd=repo_root, verbose=3, check=True)
-            info = ub.cmd('python {}'.format(fpath), verbose=2)
+            ub.cmd('git checkout {}'.format(bname), cwd=tmp_copy, verbose=3, check=True)
+            info = ub.cmd('python {}'.format(fpath), verbose=2, cwd=tmp_copy)
             dict_info = eval(info['out'])
             bname_to_info[bname] = dict_info
             for stat in ['mean', 'min', 'max']:
@@ -137,21 +142,38 @@ def benchmark_ubelt_import_time_robust():
     except KeyboardInterrupt:
         pass
     finally:
-        ub.cmd('git checkout {}'.format(current_branch), cwd=repo_root)
+        ub.cmd('git checkout {}'.format(current_branch), cwd=tmp_copy)
 
     df = pd.DataFrame(rows)
+    # from packaging.version import Version
     from distutils.version import LooseVersion
     unique_versions = list(map(str, sorted(map(LooseVersion, df['version'].unique()))))
     df['release_index'] = df['version'].apply(lambda x: unique_versions.index(x))
-    ax.cla()
+
+    xtick_to_label = ub.sorted_keys(ub.dzip(
+        ub.oset(df['release_index']),
+        ub.oset(df['version'])
+    ))
+    xticks = list(xtick_to_label.keys())
+    xticklabels = list(xtick_to_label.values())
+
     kwplot.figure(fnum=2, pnum=(2, 1, 1), doclf=True)
     ax = sns.lineplot(data=df[df['type'] == 'cummulative'], x='release_index', y='time', hue='stat', style='type', marker='o')
-    ax.set_title('Ubelt import time over release history')
+    ax.set_title('Ubelt cummulative import time over release history')
+    ax.set_xticks(xticks, labels=xticklabels, rotation='vertical')
+    ax.set_xlabel('Version')
+    ax.set_ylabel('Time (μs)')
+    # ax.set_yscale('log')
+
     kwplot.figure(fnum=2, pnum=(2, 1, 2))
-    sns.lineplot(data=df[df['type'] == 'self_us'], x='release_index', y='time', hue='stat', style='type', marker='o')
+    ax = sns.lineplot(data=df[df['type'] == 'self_us'], x='release_index', y='time', hue='stat', style='type', marker='o')
+    ax.set_xticks(xticks, labels=xticklabels, rotation='vertical')
+    ax.set_title('Ubelt self import time over release history')
+    ax.set_xlabel('Version')
+    ax.set_ylabel('Time (μs)')
+    # ax.set_yscale('log')
 
     kwplot.show_if_requested()
-
 
 
 if __name__ == '__main__':

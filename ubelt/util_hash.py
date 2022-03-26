@@ -620,14 +620,14 @@ class HashableExtensions(object):
 
         Example:
             >>> import ubelt as ub
-            >>> print(ub.hash_data(ub.Path('/'))[0:8])
-            >>> print(ub.hash_data('/')[0:8])
-            5c86f034
-            5c86f034
-            >>> print(ub.hash_data(ub.Path('/'), types=True)[0:8])
-            >>> print(ub.hash_data('/', types=True)[0:8])
-            ec0c4e30
-            5e186482
+            >>> print(ub.hash_data(ub.Path('foo'))[0:8])
+            >>> print(ub.hash_data('foo')[0:8])
+            >>> print(ub.hash_data(ub.Path('foo'), types=True)[0:8])
+            >>> print(ub.hash_data('foo', types=True)[0:8])
+            f7fbba6e
+            f7fbba6e
+            cc21b9fa
+            bd1cabd0
         """
         import uuid
         import pathlib
