@@ -48,9 +48,9 @@ Example:
     >>>     data = 'mydata'
     >>>     cacher.save(data)                                 # boilerplate:4
 
-While the above two are equivalent, the second version provides simpler
-tracebacks, explicit procedures, and makes it easier to use breakpoint
-debugging (because there is no closure scope).
+While the above two are equivalent, the second version provides a simpler
+traceback, explicit procedures, and makes it easier to use breakpoint debugging
+(because there is no closure scope).
 
 
 While :class:`Cacher` is used to store direct results of in-line code in a
@@ -77,10 +77,10 @@ Example:
     >>>     self.renew()
     >>> assert not self.expired()
 
-
 TODO:
     - [ ] Remove the cfgstr-overrides?
-    - [ ] Allow json / yaml / toml / pickle as alternative extensions
+    - [X] Allow json as alternative extension
+    - [ ] Allow yaml / toml / as alternative extensions
 """
 import os
 from os.path import join, normpath, basename, exists
@@ -89,10 +89,12 @@ import warnings
 
 class Cacher(object):
     """
-    Cacher designed to be quickly integrated into existing scripts.
+    Saves data to disk and reloads it based on specified dependencies.
 
-    A dependency string can be specified, which will invalidate the cache if it
-    changes to an unseen value. The location
+    Cacher uses pickle to save/load data to/from disk. Dependencies of the
+    cached process can be specified, which ensures the cached data is
+    recomputed if the dependencies change. If the location of the cache is not
+    specified, it will default to the system user's cache directory.
 
     Args:
         fname (str):
@@ -102,7 +104,7 @@ class Cacher(object):
         depends (str | List[str] | None):
             Indicate dependencies of this cache.  If the dependencies change,
             then the cache is recomputed.  New in version 0.8.9, replaces
-            `cfgstr`.
+            ``cfgstr``.
 
         dpath (str | PathLike | None):
             Specifies where to save the cache. If unspecified, Cacher defaults
@@ -114,8 +116,8 @@ class Cacher(object):
             cache the data if ``dpath`` is not specified.
 
         ext (str, default='.pkl'):
-            File extension for the cache format.
-            TODO: add json
+            File extension for the cache format. Can be ``'.pkl'`` or
+            ``'.json'``.
 
         meta (object | None):
             Metadata that is also saved with the ``cfgstr``.  This can be
@@ -136,18 +138,17 @@ class Cacher(object):
 
         protocol (int, default=-1): Protocol version used by pickle.
             Defaults to the -1 which is the latest protocol.
-            If python 2 compatibility is not required, set to 2.
 
         cfgstr (str | None):
-            Deprecated in favor of depends. Indicates the state.  Either this
-            string or a hash of this string will be used to identify the cache.
-            A cfgstr should always be reasonably readable, thus it is good
-            practice to hash extremely detailed cfgstrs to a reasonable
+            Deprecated in favor of ``depends``. Indicates the state.  Either
+            this string or a hash of this string will be used to identify the
+            cache.  A cfgstr should always be reasonably readable, thus it is
+            good practice to hash extremely detailed cfgstrs to a reasonable
             readable level. Use meta to store make original details persist.
 
         backend (str):
-            Set to either pickle or json to force backend. Defaults to
-            auto which chooses one based on the extension.
+            Set to either ``'pickle'`` or ``'json'`` to force backend. Defaults
+            to auto which chooses one based on the extension.
 
     Example:
         >>> import ubelt as ub
@@ -563,7 +564,6 @@ class Cacher(object):
         elif self.backend == 'json':
             import json
             with open(data_fpath, 'r') as file_:
-                # Use protocol 2 to support python2 and 3
                 data = json.load(file_)
         else:
             raise NotImplementedError('self.backend = {}'.format(self.backend))
@@ -573,12 +573,10 @@ class Cacher(object):
         if self.backend == 'pickle':
             import pickle
             with open(data_fpath, 'wb') as file_:
-                # Use protocol 2 to support python2 and 3
                 pickle.dump(data, file_, protocol=self.protocol)
         elif self.backend == 'json':
             import json
             with open(data_fpath, 'w') as file_:
-                # Use protocol 2 to support python2 and 3
                 json.dump(data, file_)
         else:
             raise NotImplementedError('self.backend = {}'.format(self.backend))
@@ -704,26 +702,25 @@ class CacheStamp(object):
         >>> import ubelt as ub
         >>> from os.path import join
         >>> # Stamp the computation of expensive-to-compute.txt
-        >>> dpath = ub.ensure_app_cache_dir('ubelt', 'test-cache-stamp')
-        >>> ub.delete(dpath)
-        >>> ub.ensuredir(dpath)
-        >>> product = join(dpath, 'expensive-to-compute.txt')
-        >>> self = CacheStamp('somedata', depends='someconfig', dpath=dpath,
-        >>>                   product=product, hasher=None)
+        >>> dpath = ub.Path.appdir('ubelt', 'test-cache-stamp')
+        >>> dpath.delete().ensuredir()
+        >>> product = dpath / 'expensive-to-compute.txt'
+        >>> self = ub.CacheStamp('somedata', depends='someconfig', dpath=dpath,
+        >>>                      product=product, hasher=None)
         >>> self.hasher = None
         >>> if self.expired():
-        >>>     ub.writeto(product, 'very expensive')
+        >>>     product.write_text('very expensive')
         >>>     self.renew()
         >>> assert not self.expired()
         >>> # corrupting the output will not expire in non-robust mode
-        >>> ub.writeto(product, 'corrupted')
+        >>> product.write_text('corrupted')
         >>> assert not self.expired()
         >>> self.hasher = 'sha1'
         >>> # but it will expire if we are in robust mode
         >>> assert self.expired()
         >>> # deleting the product will cause expiration in any mode
         >>> self.hasher = None
-        >>> ub.delete(product)
+        >>> product.delete()
         >>> assert self.expired()
     """
     def __init__(self, fname, dpath, cfgstr=None, product=None, hasher='sha1',
@@ -784,10 +781,10 @@ class CacheStamp(object):
         products = self._rectify_products(product)
         certificate = self._get_certificate(cfgstr=cfgstr)
         if certificate is None:
-            # We dont have a certificate, so we are expired
+            # We don't have a certificate, so we are expired
             is_expired = True
         elif products is None:
-            # We dont have a product to check, so assume not expired
+            # We don't have a product to check, so assume not expired
             is_expired = False
         elif not all(map(exists, products)):
             # We are expired if the expected product does not exist
