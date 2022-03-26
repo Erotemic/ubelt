@@ -102,36 +102,43 @@ def benchmark_ubelt_import_time_robust():
 
     repo_root = ub.Path('$HOME/code/ubelt').expand()
 
+    info = ub.cmd('git branch --show-current', cwd=repo_root)
+    current_branch = info['out'].strip()
+
     info = ub.cmd('git tag', cwd=repo_root)
 
     versions = [p for p in info['out'].split('\n') if p]
-    branches = ['dev/1.0.2', 'main'] + versions
+    branches = [current_branch, 'main'] + versions
 
     fig = kwplot.figure(doclf=True)
     ax = fig.gca()
 
     bname_to_info = {}
     rows = []
-    for bname in branches:
-        print('bname = {!r}'.format(bname))
-        ub.cmd('git checkout {}'.format(bname), cwd=repo_root, verbose=3, check=True)
-        info = ub.cmd('python {}'.format(fpath), verbose=2)
-        dict_info = eval(info['out'])
-        bname_to_info[bname] = dict_info
-        for stat in ['mean', 'min', 'max']:
-            for type in ['self_us', 'cummulative']:
-                rows.append({
-                    'version': dict_info['version'],
-                    'stat': stat,
-                    'type': type,
-                    'time': dict_info[stat][type],
-                })
-        df = pd.DataFrame(rows[-1:])
-        print(df)
-        # ax.cla()
-        # sns.lineplot(data=df, x='version', y='time', hue='stat', style='type', ax=ax)
+    try:
+        for bname in branches:
+            print('bname = {!r}'.format(bname))
+            ub.cmd('git checkout {}'.format(bname), cwd=repo_root, verbose=3, check=True)
+            info = ub.cmd('python {}'.format(fpath), verbose=2)
+            dict_info = eval(info['out'])
+            bname_to_info[bname] = dict_info
+            for stat in ['mean', 'min', 'max']:
+                for type in ['self_us', 'cummulative']:
+                    rows.append({
+                        'version': dict_info['version'],
+                        'stat': stat,
+                        'type': type,
+                        'time': dict_info[stat][type],
+                    })
+            df = pd.DataFrame(rows[-1:])
+            print(df)
+            # ax.cla()
+            # sns.lineplot(data=df, x='version', y='time', hue='stat', style='type', ax=ax)
+    except KeyboardInterrupt:
+        pass
+    finally:
+        ub.cmd('git checkout {}'.format(current_branch), cwd=repo_root)
 
-    ub.cmd('git checkout {}'.format('dev/1.0.2'), cwd=repo_root)
     df = pd.DataFrame(rows)
     from distutils.version import LooseVersion
     unique_versions = list(map(str, sorted(map(LooseVersion, df['version'].unique()))))
