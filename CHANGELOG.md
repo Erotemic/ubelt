@@ -18,6 +18,12 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ### Fixed
 * `ub.hash_data` now recognizes subclasses of registered types.
 
+### Changed
+* The `ubelt.util_hash.HashableExtensions` implementation was updated to use
+  `functools.singledispatch` instead of the custom solution. This seems faster
+  and should not have any API impact.
+
+
 
 ## Version 1.0.1 - Released 2022-02-20
 

@@ -106,10 +106,6 @@ DEFAULT_HASHER = hashlib.sha512  # most robust algo, but slower than others
 _COMPATIBLE_HASHABLE_SEQUENCE_TYPES_DEFAULT = True
 
 
-# Testing to see if single dispatch is better
-_SINGLEDISPATCH_EXPERIMENT = 0
-
-
 # Note: the Hasher refers to hashlib._hashlib.HASH
 # but this does not play well with type annotations
 # try:
@@ -321,12 +317,12 @@ class HashableExtensions(object):
         self.iterable_checks = []
         self._lazy_queue = []  # type: List[Callable]  # NOQA
 
-        if _SINGLEDISPATCH_EXPERIMENT:
-            from functools import singledispatch
-            def _hash_func(data):
-                raise NotImplementedError
-            _hash_func.__is_base__ = True
-            self._hash_func = singledispatch(_hash_func)
+        # New singledispatch registry implementation
+        from functools import singledispatch
+        def _hash_dispatch(data):
+            raise NotImplementedError
+        _hash_dispatch.__is_base__ = True
+        self._hash_dispatch = singledispatch(_hash_dispatch)
 
     def register(self, hash_types):
         """
@@ -401,19 +397,9 @@ class HashableExtensions(object):
         # ensure iterable
         if not isinstance(hash_types, (list, tuple)):
             hash_types = [hash_types]
-
-        if _SINGLEDISPATCH_EXPERIMENT:
-            # Maybe try using functools.singledispatch instead?
-            def _decor_closure(hash_func):
-                for hash_type in hash_types:
-                    self._hash_func.register(hash_type)(hash_func)
-                return hash_func
-            return _decor_closure
-
         def _decor_closure(hash_func):
             for hash_type in hash_types:
-                key = (hash_type.__module__, hash_type.__name__)
-                self.keyed_extensions[key] = (hash_type, hash_func)
+                self._hash_dispatch.register(hash_type)(hash_func)
             return hash_func
         return _decor_closure
 
@@ -462,6 +448,7 @@ class HashableExtensions(object):
             >>> import ubelt as ub
             >>> self = ub.util_hash.HashableExtensions()
             >>> self._register_numpy_extensions()
+            >>> self._register_builtin_class_extensions()
             >>> #f1 = self.lookup(3)
             >>> data = np.array([1, 2, 3])
             >>> f2 = self.lookup(data)
@@ -476,35 +463,13 @@ class HashableExtensions(object):
                 func()
             self._lazy_queue = []
         query_hash_type = data.__class__
-
-        if _SINGLEDISPATCH_EXPERIMENT:
-            # Maybe try using functools.singledispatch instead?
-            hash_func = self._hash_func.dispatch(query_hash_type)
-            if getattr(hash_func, '__is_base__', False):
-                raise TypeError(
-                    'No registered hash func for hashable type={!r}'.format(
-                        query_hash_type))
-            return hash_func
-
-        key = (query_hash_type.__module__, query_hash_type.__name__)
-        # First try O(1) lookup for exact type matches
-        try:
-            hash_type, hash_func = self.keyed_extensions[key]
-        except KeyError:
-            # Otherwise look at the object mro to determine if any parent /
-            # sibling classes are exact matches. This is O(N) in the
-            # size of the object inheritance tree.
-            hash_func = None
-            for cand_type in query_hash_type.mro()[1:]:
-                key = (cand_type.__module__, cand_type.__name__)
-                if key in self.keyed_extensions:
-                    hash_type, hash_func = self.keyed_extensions[key]
-                    break
-
-            if hash_func is None:
-                raise TypeError(
-                    'No registered hash func for hashable type={!r}'.format(
-                        query_hash_type))
+        # TODO: recognize some special dunder method instead
+        # of strictly using this registry.
+        hash_func = self._hash_dispatch.dispatch(query_hash_type)
+        if getattr(hash_func, '__is_base__', False):
+            raise TypeError(
+                'No registered hash func for hashable type={!r}'.format(
+                    query_hash_type))
         return hash_func
 
     def add_iterable_check(self, func):
@@ -522,9 +487,6 @@ class HashableExtensions(object):
         """
         # system checks
         import numpy as np
-        numpy_floating_types = (np.float16, np.float32, np.float64)
-        if hasattr(np, 'float128'):  # nocover
-            numpy_floating_types = numpy_floating_types + (np.float128,)
 
         @self.add_iterable_check
         def is_object_ndarray(data):
@@ -564,15 +526,6 @@ class HashableExtensions(object):
                 hashable = header + dtype + data.tobytes()
             prefix = b'NDARR'
             return prefix, hashable
-
-        @self.register((np.int64, np.int32, np.int16, np.int8,
-                        np.uint64, np.uint32, np.uint16, np.uint8))
-        def _convert_numpy_int(data):
-            return _convert_to_hashable(int(data), extensions=self)
-
-        @self.register(numpy_floating_types)
-        def _convert_numpy_float(data):
-            return _convert_to_hashable(float(data), extensions=self)
 
         @self.register(np.random.RandomState)
         def _convert_numpy_random_state(data):
@@ -678,6 +631,15 @@ class HashableExtensions(object):
         """
         import uuid
         import pathlib
+        import numbers
+
+        @self.register(numbers.Integral)
+        def _convert_numpy_int(data):
+            return _convert_to_hashable(int(data), extensions=self)
+
+        @self.register(numbers.Real)
+        def _convert_numpy_float(data):
+            return _convert_to_hashable(float(data), extensions=self)
 
         @self.register(uuid.UUID)
         def _convert_uuid(data):
