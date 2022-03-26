@@ -366,6 +366,23 @@ class HashableExtensions(object):
             >>> ub.hash_data.register(pathlib.Path)(lambda x: (b'PATH', str))
 
         Example:
+            >>> # Can specify more than one type when you register
+            >>> import ubelt as ub
+            >>> import pytest
+            >>> extensions = ub.util_hash.HashableExtensions()
+            >>> class Type1(object):
+            >>>     ...
+            >>> class Type2(object):
+            >>>     ...
+            >>> @extensions.register([Type1, Type2])
+            >>> def hash_my_type(data):
+            ...     return b'mytype', b'constant'
+            >>> inst1 = Type1()
+            >>> inst2 = Type2()
+            >>> ub.hash_data(inst1, extensions=extensions)
+            >>> ub.hash_data(inst2, extensions=extensions)
+
+        Example:
             >>> # xdoctest: +SKIP
             >>> # Skip this doctest because we dont want tests to modify
             >>> # the global state.
