@@ -7,12 +7,16 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## Version 1.1.0 - Unreleased
 
+### Added
+* `ub.cmd` now has a `system` argument for modularity with `os.system`.
+* `ub.cmd` now accepts a `timeout` argument (tee support is pending).
+* `ub.JobPool` now contains a protected `_prog` variable allowing the user
+  finer-grained progress controls.
 
 ### Changed
 * Register `pathlib.Path` with `ub.repr2`
 * Can now register global `ub.repr2` extensions `ub.repr2.register`
 * Can now register global `ub.hash_data` extensions `ub.hash_data..register`
-* `ub.cmd` now has a `system` argument for modularity with `os.system`.
 * Removed deprecated arguments from `ubelt.cmd`.
 
 ### Fixed

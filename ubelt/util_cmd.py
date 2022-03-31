@@ -154,7 +154,8 @@ def _proc_iteroutput_select(proc):
         yield oline, eline
 
 
-def _tee_output(proc, stdout=None, stderr=None, backend='thread'):
+def _tee_output(proc, stdout=None, stderr=None, backend='thread',
+                timeout=None):
     """
     Simultaneously reports and captures stdout and stderr from a process
 
@@ -180,6 +181,8 @@ def _tee_output(proc, stdout=None, stderr=None, backend='thread'):
         # processes, otherwise we will have a dangling process
         raise AssertionError('Validate "backend" before creating the proc')
 
+    # TODO: handle timeout
+
     for oline, eline in _proc_iteroutput(proc):
         if oline:
             if stdout:  # pragma: nobranch
@@ -195,7 +198,7 @@ def _tee_output(proc, stdout=None, stderr=None, backend='thread'):
 
 
 def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
-        env=None, tee_backend='auto', check=False, system=False):
+        env=None, tee_backend='auto', check=False, system=False, timeout=None):
     """
     Executes a command in a subprocess.
 
@@ -238,7 +241,13 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
 
         system (bool, default=False): if True, most other considerations
             are dropped, and :func:`os.system` is used to execute the
-            command in a platform dependant way.
+            command in a platform dependant way. Other arguments such as
+            env, tee, timeout, and shell are all ignored.
+            (new in version 1.1.0)
+
+        timeout (float):
+            If the process does not complete in `timeout` seconds, raises a
+            :class:`subprocess.TimeoutExpired`. (new in version 1.1.0)
 
     Returns:
         dict:
@@ -414,8 +423,8 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
             stderr = sys.stderr
             proc = make_proc()
             proc, logged_out, logged_err = _tee_output(proc, stdout, stderr,
-                                                       backend=tee_backend)
-
+                                                       backend=tee_backend,
+                                                       timeout=timeout)
             try:
                 out = ''.join(logged_out)
             except UnicodeDecodeError:  # nocover
@@ -424,10 +433,10 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
                 err = ''.join(logged_err)
             except UnicodeDecodeError:  # nocover
                 err = '\n'.join(_.decode('utf-8') for _ in logged_err)
-            (out_, err_) = proc.communicate()
+            (out_, err_) = proc.communicate(timeout=timeout)
         else:
             proc = make_proc()
-            (out, err) = proc.communicate()
+            (out, err) = proc.communicate(timeout=timeout)
         # calling wait means that the process will terminate and it is safe to
         # return a reference to the process object.
         ret = proc.wait()
