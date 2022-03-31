@@ -1,9 +1,18 @@
 import ubelt as ub
 import pytest
+import sys
 from os.path import basename, join, exists
+import platform
 
 
-@pytest.mark.timeout(5)
+IS_PYPY = platform.python_implementation() == 'PyPy'
+IS_WIN32 = sys.platform.startswith('win32')
+
+
+TIMEOUT = 15 if IS_PYPY else 5
+
+
+@pytest.mark.timeout(TIMEOUT)
 def test_download_no_fpath():
     # url = 'http://i.imgur.com/rqwaDag.png'
     # if not ub.argflag('--network'):
@@ -23,7 +32,7 @@ def test_download_no_fpath():
     assert exists(fpath)
 
 
-@pytest.mark.timeout(5)
+@pytest.mark.timeout(TIMEOUT)
 def test_download_with_fpath():
     # url = 'http://i.imgur.com/rqwaDag.png'
     # if not ub.argflag('--network'):
@@ -46,7 +55,7 @@ def test_download_with_fpath():
     assert len(data) > 1200, 'should have downloaded some bytes'
 
 
-@pytest.mark.timeout(5)
+@pytest.mark.timeout(TIMEOUT)
 def test_download_chunksize():
     # url = 'https://www.dropbox.com/s/jl506apezj42zjz/ibeis-win32-setup-ymd_hm-2015-08-01_16-28.exe?dl=1'
     # url = 'http://i.imgur.com/rqwaDag.png'
@@ -67,7 +76,7 @@ def test_download_chunksize():
     assert exists(fpath)
 
 
-@pytest.mark.timeout(5)
+@pytest.mark.timeout(TIMEOUT)
 def test_download_cover_hashers():
     # url = 'https://www.dropbox.com/s/jl506apezj42zjz/ibeis-win32-setup-ymd_hm-2015-08-01_16-28.exe?dl=1'
     # url = 'http://i.imgur.com/rqwaDag.png'
@@ -85,7 +94,7 @@ def test_download_cover_hashers():
                 dpath=dpath, fname=fname)
 
 
-@pytest.mark.timeout(5)
+@pytest.mark.timeout(TIMEOUT)
 def test_download_hashalgo():
     # url = 'https://www.dropbox.com/s/jl506apezj42zjz/ibeis-win32-setup-ymd_hm-2015-08-01_16-28.exe?dl=1'
     import hashlib
@@ -110,7 +119,7 @@ def test_download_hashalgo():
     assert exists(fpath)
 
 
-@pytest.mark.timeout(5)
+@pytest.mark.timeout(TIMEOUT)
 def test_grabdata_cache():
     """
     Check where the url is downloaded to when fpath is not specified.
@@ -135,7 +144,7 @@ def test_grabdata_cache():
     assert exists(fpath)
 
 
-@pytest.mark.timeout(5)
+@pytest.mark.timeout(TIMEOUT)
 def test_grabdata_url_only():
     """
     Check where the url is downloaded to when fpath is not specified.
@@ -154,7 +163,7 @@ def test_grabdata_url_only():
     assert exists(fpath)
 
 
-@pytest.mark.timeout(5)
+@pytest.mark.timeout(TIMEOUT)
 def test_grabdata_with_fpath():
     """
     Check where the url is downloaded to when fpath is not specified.
@@ -244,7 +253,7 @@ def test_download_bad_url():
         ub.download(url, fpath=fpath, verbose=1, timeout=1.0)
 
 
-@pytest.mark.timeout(5)
+@pytest.mark.timeout(TIMEOUT)
 def test_grabdata_fname_only():
     # url = 'http://i.imgur.com/rqwaDag.png'
     # if not ub.argflag('--network'):
@@ -262,7 +271,7 @@ def test_grabdata_fname_only():
     assert exists(fpath)
 
 
-@pytest.mark.timeout(5)
+@pytest.mark.timeout(TIMEOUT)
 def test_grabdata_dpath_only():
     # url = 'http://i.imgur.com/rqwaDag.png'
     # if not ub.argflag('--network'):
@@ -278,7 +287,7 @@ def test_grabdata_dpath_only():
     assert exists(fpath)
 
 
-@pytest.mark.timeout(5)
+@pytest.mark.timeout(TIMEOUT)
 def test_grabdata_fpath_and_dpath():
     # url = 'http://i.imgur.com/rqwaDag.png'
     # if not ub.argflag('--network'):
@@ -289,7 +298,7 @@ def test_grabdata_fpath_and_dpath():
         ub.grabdata(url, fpath='foo', dpath='bar')
 
 
-# @pytest.mark.timeout(5)
+# @pytest.mark.timeout(TIMEOUT)
 def test_grabdata_hash_typo():
     """
     CommandLine:
@@ -410,11 +419,7 @@ class SingletonTestServer(ub.NiceRepr):
         self.dpath = dpath
         self.root_url = 'http://localhost:{}'.format(port)
 
-        import platform
-        is_pypy = platform.python_implementation() == 'PyPy'
-        is_win32 = sys.platform.startswith('win32')
-
-        if is_pypy and is_win32:
+        if IS_PYPY and IS_WIN32:
             # not sure why
             import pytest
             pytest.skip('not sure why download tests are failing on pypy win32')
@@ -484,7 +489,7 @@ def _demo_url(num_bytes=None):
     return url
 
 
-@pytest.mark.timeout(5)
+@pytest.mark.timeout(TIMEOUT)
 def test_download_with_progkw():
     """
     Test that progkw is properly passed through to ub.download
