@@ -6,7 +6,6 @@ from os.path import join
 from ubelt.util_hash import _convert_hexstr_base, _ALPHABET_16
 from ubelt.util_hash import _hashable_sequence
 from ubelt.util_hash import _rectify_hasher
-hash_sequence = _hashable_sequence
 
 
 try:
@@ -146,8 +145,8 @@ def test_idempotency():
     # When we disable types and join sequence items, the hashable
     # sequence should be idempotent
     nested_data = ['fds', [3, 2, 3], {3: 2, '3': [3, 2, {3}]}, {1, 2, 3}]
-    hashable1 = b''.join(hash_sequence(nested_data))
-    hashable2 = b''.join(hash_sequence(hashable1, types=False))
+    hashable1 = b''.join(_hashable_sequence(nested_data))
+    hashable2 = b''.join(_hashable_sequence(hashable1, types=False))
     assert hashable1 == hashable2
 
 
@@ -173,7 +172,7 @@ def test_special_floats():
     exepcted_prefix = '3196f80e17de93565f0fc57d98922a44'
 
     hasher = 'sha512'
-    encoded = hash_sequence(data, types=True)
+    encoded = _hashable_sequence(data, types=True)
     hashed = ub.hash_data(data, hasher=hasher, types=True)[0:32]
     print('expected_encoding = {!r}'.format(expected_encoding))
     print('encoded           = {!r}'.format(encoded))
@@ -195,7 +194,7 @@ def _sanity_check(data):
     hasher_code = 'sha512'
     hasher_type = ub.util_hash._rectify_hasher(hasher_code)
 
-    encoded_seq = hash_sequence(data, types=False)
+    encoded_seq = _hashable_sequence(data, types=False)
     encoded_byt = b''.join(encoded_seq)
     hashed = ub.hash_data(data, hasher=hasher_code, types=False)
     rehashed = ub.hash_data(encoded_byt, hasher=hasher_code, types=False)
@@ -220,7 +219,7 @@ def _sanity_check(data):
     # Sanity check
     ub.hash_data(encoded_seq, hasher=hasher_code, types=False)
 
-    seq2 = b''.join(hash_sequence(encoded_byt, types=False))
+    seq2 = b''.join(_hashable_sequence(encoded_byt, types=False))
     assert encoded_byt == seq2
 
     tracer1 = ub.util_hash._HashTracer()
@@ -263,10 +262,10 @@ def test_ndarray_int_object_convert():
 
     data = np.array(data_list, dtype=np.int64)
 
-    s1 = b''.join(hash_sequence(data.astype(object)))
-    s2 = b''.join(hash_sequence(data_list))
-    s3 = b''.join(hash_sequence(data.tolist()))
-    s4 = b''.join(hash_sequence(data.astype(np.uint8).astype(object)))
+    s1 = b''.join(_hashable_sequence(data.astype(object)))
+    s2 = b''.join(_hashable_sequence(data_list))
+    s3 = b''.join(_hashable_sequence(data.tolist()))
+    s4 = b''.join(_hashable_sequence(data.astype(np.uint8).astype(object)))
 
     assert s1 == s4
     assert s2 == s4
@@ -286,33 +285,33 @@ def test_ndarray_zeros():
 
 
 def test_nesting():
-    assert hash_sequence([1, 1, 1]) != hash_sequence([[1], 1, 1])
-    assert hash_sequence([[1], 1]) != hash_sequence([[1, 1]])
-    assert hash_sequence([1, [1]]) != hash_sequence([[1, 1]])
-    assert hash_sequence([[[1]]]) != hash_sequence([[1]])
+    assert _hashable_sequence([1, 1, 1]) != _hashable_sequence([[1], 1, 1])
+    assert _hashable_sequence([[1], 1]) != _hashable_sequence([[1, 1]])
+    assert _hashable_sequence([1, [1]]) != _hashable_sequence([[1, 1]])
+    assert _hashable_sequence([[[1]]]) != _hashable_sequence([[1]])
 
 
 def test_numpy_int():
     if np is None:
         pytest.skip('requires numpy')
-    assert hash_sequence(np.int8(3)) == hash_sequence(3)
-    assert hash_sequence(np.int16(3)) == hash_sequence(3)
-    assert hash_sequence(np.int32(3)) == hash_sequence(3)
-    assert hash_sequence(np.int64(3)) == hash_sequence(3)
-    assert hash_sequence(np.uint8(3)) == hash_sequence(3)
-    assert hash_sequence(np.uint16(3)) == hash_sequence(3)
-    assert hash_sequence(np.uint32(3)) == hash_sequence(3)
-    assert hash_sequence(np.uint64(3)) == hash_sequence(3)
+    assert _hashable_sequence(np.int8(3)) == _hashable_sequence(3)
+    assert _hashable_sequence(np.int16(3)) == _hashable_sequence(3)
+    assert _hashable_sequence(np.int32(3)) == _hashable_sequence(3)
+    assert _hashable_sequence(np.int64(3)) == _hashable_sequence(3)
+    assert _hashable_sequence(np.uint8(3)) == _hashable_sequence(3)
+    assert _hashable_sequence(np.uint16(3)) == _hashable_sequence(3)
+    assert _hashable_sequence(np.uint32(3)) == _hashable_sequence(3)
+    assert _hashable_sequence(np.uint64(3)) == _hashable_sequence(3)
 
 
 def test_numpy_float():
     if np is None:
         pytest.skip('requires numpy')
-    assert hash_sequence(np.float16(3.0)) == hash_sequence(3.0)
-    assert hash_sequence(np.float32(3.0)) == hash_sequence(3.0)
-    assert hash_sequence(np.float64(3.0)) == hash_sequence(3.0)
+    assert _hashable_sequence(np.float16(3.0)) == _hashable_sequence(3.0)
+    assert _hashable_sequence(np.float32(3.0)) == _hashable_sequence(3.0)
+    assert _hashable_sequence(np.float64(3.0)) == _hashable_sequence(3.0)
     try:
-        assert hash_sequence(np.float128(3.0)) == hash_sequence(3.0)
+        assert _hashable_sequence(np.float128(3.0)) == _hashable_sequence(3.0)
     except AttributeError:
         pass
 
@@ -328,7 +327,7 @@ def test_numpy_random_state():
 
 def test_uuid():
     data = uuid.UUID('12345678-1234-1234-1234-123456789abc')
-    sequence = b''.join(hash_sequence(data, types=True))
+    sequence = b''.join(_hashable_sequence(data, types=True))
     assert sequence == b'UUID\x124Vx\x124\x124\x124\x124Vx\x9a\xbc'
     assert ub.hash_data(data, types=True, base='abc', hasher='sha512').startswith('nkklelnjzqbi')
     assert ub.hash_data(data.bytes, types=True) != ub.hash_data(data, types=True), (

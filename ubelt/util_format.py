@@ -38,6 +38,15 @@ extensions keyword argument (although this will be a global change).
 >>> print(ub.repr2({1: float('nan'), 2: float('inf'), 3: 3.0}, nl=0, extensions=extensions))
 {1: monkey(nan), 2: monkey(inf), 3: monkey(3.0)}
 
+As of ubelt 1.1.0 you can now access and update the default extensions via the
+repr2 function itself.
+
+>>> # xdoctest: +SKIP
+>>> # We skip this at test time to not modify global state
+>>> @ub.repr2.EXTENSIONS.register(float)
+>>> def my_float_formater(data, **kw):
+>>>     return "monkey2({})".format(data)
+>>> print(ub.repr2({1: float('nan'), 2: float('inf'), 3: 3.0}, nl=0))
 """
 import collections
 
@@ -1162,3 +1171,9 @@ def _align_lines(line_list, character='=', replchar=None, pos=0):
         else:
             new_lines.append(replchar.join(tup))
     return new_lines
+
+
+# Give the repr2 function itself a reference to the default extensions
+# register method so the user can modify them without accessing this module
+repr2.extensions = _FORMATTER_EXTENSIONS
+repr2.register = _FORMATTER_EXTENSIONS.register

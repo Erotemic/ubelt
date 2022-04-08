@@ -1,17 +1,13 @@
 """
-This is util_time, it contains functions for handling time related code that I
-wish there was standard library support for. Currently there is only one
-function.
+This is util_time, it contains functions for handling time related code.
 
+The :func:`timestamp` function returns an iso8601 timestamp without much fuss.
 
-The :func:`timestamp` is less interesting than the previous two methods, but I
-have found it useful to have a function that quickly returns an iso8601
-timestamp without much fuss.
-
+The :class:`Timer` class is a context manager that times a block of indented
+code. It includes `tic` and `toc` methods a more matlab like feel.
 
 Timerit is gone! Use the standalone and separate module
-:class:`timerit.Timerit` But the :class:`. But the
-:class:`ubelt.util_timer.Timer` still exists here.
+:class:`timerit.Timerit` But the :class:`.
 """
 import time
 import sys

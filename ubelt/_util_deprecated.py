@@ -6,7 +6,7 @@ import warnings
 # __all__ = []
 
 
-DEP_SCHEDULE_1 = dict(deprecate='0.9.6', remove='1.0.1')
+DEP_SCHEDULE_1 = dict(deprecate='0.9.6', remove='1.0.0')
 
 
 def schedule_deprecation(deprecate=None, error=None, remove=None):  # nocover

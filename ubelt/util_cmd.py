@@ -12,15 +12,15 @@ expects the command as either a  ``List[str]`` if ``shell=False`` and ``str``
 if ``shell=True``. If necessary, :func:`ubelt.util_cmd.cmd` will automatically
 convert from one format to the other, so passing in either case will work.
 
-(3) Specificy if the process blocks or not by setting ``detatch``. Note: when
-``detatch is True`` it is not possible to tee the output.
+(3) Specificy if the process blocks or not by setting ``detach``. Note: when
+``detach is True`` it is not possible to tee the output.
 
 Example:
     >>> import ubelt as ub
     >>> # Running with verbose=1 will write to stdout in real time
     >>> info = ub.cmd('echo "write your command naturally"', verbose=1)
     write your command naturally
-    >>> # Unless `detatch=True`, `cmd` always returns an info dict.
+    >>> # Unless `detach=True`, `cmd` always returns an info dict.
     >>> print('info = ' + ub.repr2(info))
     info = {
         'command': 'echo "write your command naturally"',
@@ -32,7 +32,7 @@ Example:
     }
 """
 import sys
-import warnings
+import os
 
 __all__ = ['cmd']
 
@@ -154,7 +154,8 @@ def _proc_iteroutput_select(proc):
         yield oline, eline
 
 
-def _tee_output(proc, stdout=None, stderr=None, backend='thread'):
+def _tee_output(proc, stdout=None, stderr=None, backend='thread',
+                timeout=None):
     """
     Simultaneously reports and captures stdout and stderr from a process
 
@@ -180,6 +181,8 @@ def _tee_output(proc, stdout=None, stderr=None, backend='thread'):
         # processes, otherwise we will have a dangling process
         raise AssertionError('Validate "backend" before creating the proc')
 
+    # TODO: handle timeout
+
     for oline, eline in _proc_iteroutput(proc):
         if oline:
             if stdout:  # pragma: nobranch
@@ -195,7 +198,7 @@ def _tee_output(proc, stdout=None, stderr=None, backend='thread'):
 
 
 def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
-        env=None, tee_backend='auto', check=False, **kwargs):
+        env=None, tee_backend='auto', check=False, system=False, timeout=None):
     """
     Executes a command in a subprocess.
 
@@ -236,7 +239,15 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
             zero before returning, otherwise raise a CalledProcessError.
             Does nothing if detach is True.
 
-        **kwargs: only used to support deprecated arguments
+        system (bool, default=False): if True, most other considerations
+            are dropped, and :func:`os.system` is used to execute the
+            command in a platform dependant way. Other arguments such as
+            env, tee, timeout, and shell are all ignored.
+            (new in version 1.1.0)
+
+        timeout (float):
+            If the process does not complete in `timeout` seconds, raises a
+            :class:`subprocess.TimeoutExpired`. (new in version 1.1.0)
 
     Returns:
         dict:
@@ -250,6 +261,9 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
         to text if shell=True, and to tuple if shell=False. On windows, the
         input is always text based.  See [SO_33560364]_ for a potential
         cross-platform shlex solution for windows.
+
+        When using the tee output, the stdout and stderr may be shuffled from
+        what they would be on the command line.
 
     CommandLine:
         xdoctest -m ubelt.util_cmd cmd:6
@@ -325,25 +339,18 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
         >>> # Check that the process did what we expect
         >>> assert ub.readfrom(fpath1) == ''
         >>> assert ub.readfrom(fpath2).strip() == 'writing2'
+
+    Example:
+        >>> # Can also use ub.cmd to call os.system
+        >>> import pytest
+        >>> import ubelt as ub
+        >>> import subprocess
+        >>> info = ub.cmd('echo hi', check=True, system=True)
+        >>> with pytest.raises(subprocess.CalledProcessError):
+        >>>     ub.cmd('exit 1', check=True, shell=True)
     """
     import subprocess
     # TODO: stdout, stderr - experimental - custom file to pipe stdout/stderr to
-    if kwargs:  # nocover
-        if 'verbout' in kwargs:
-            warnings.warn(
-                '`verbout` is deprecated and will be removed. '
-                'Use `tee` instead', DeprecationWarning)
-            tee = kwargs.pop('verbout')
-
-        if 'detatch' in kwargs:
-            warnings.warn(
-                '`detatch` is deprecated (misspelled) and will be removed. '
-                'Use `detach` instead', DeprecationWarning)
-            detach = kwargs.pop('detatch')
-
-        if kwargs:
-            raise ValueError('Unknown kwargs: {}'.format(list(kwargs.keys())))
-
     # Determine if command is specified as text or a tuple
     if isinstance(command, str):
         command_text = command
@@ -373,7 +380,6 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
         raise ValueError('tee_backend must be select, thread, or auto')
 
     if verbose > 1:
-        import os
         import platform
         import getpass
         from ubelt import shrinkuser
@@ -397,7 +403,15 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
                                 universal_newlines=True, cwd=cwd, env=env)
         return proc
 
-    if detach:
+    if system:
+        info = {
+            'command': command_text,
+            'out': None,
+            'err': None,
+        }
+        ret = os.system(command_text)
+        info['ret'] = ret
+    elif detach:
         info = {'proc': make_proc(), 'command': command_text}
         if verbose > 0:  # nocover
             print('...detaching')
@@ -409,8 +423,8 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
             stderr = sys.stderr
             proc = make_proc()
             proc, logged_out, logged_err = _tee_output(proc, stdout, stderr,
-                                                       backend=tee_backend)
-
+                                                       backend=tee_backend,
+                                                       timeout=timeout)
             try:
                 out = ''.join(logged_out)
             except UnicodeDecodeError:  # nocover
@@ -419,10 +433,10 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
                 err = ''.join(logged_err)
             except UnicodeDecodeError:  # nocover
                 err = '\n'.join(_.decode('utf-8') for _ in logged_err)
-            (out_, err_) = proc.communicate()
+            (out_, err_) = proc.communicate(timeout=timeout)
         else:
             proc = make_proc()
-            (out, err) = proc.communicate()
+            (out, err) = proc.communicate(timeout=timeout)
         # calling wait means that the process will terminate and it is safe to
         # return a reference to the process object.
         ret = proc.wait()
@@ -434,6 +448,8 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
             'cwd': cwd,
             'command': command_text
         }
+
+    if not detach:
         if verbose > 2:
             # https://en.wikipedia.org/wiki/Box-drawing_character
             try:

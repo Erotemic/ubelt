@@ -64,6 +64,25 @@ def benchmark_hash_data():
         kwplot.show_if_requested()
 
 
+def benchmark_hash_extensions():
+    """"
+    xdoctest ~/code/ubelt/dev/bench/bench_hash.py benchmark_hash_extensions
+    """
+    import ubelt as ub
+    import uuid
+    import numpy as np
+    datas = [
+        ub.Path('/'),
+        uuid.uuid4(),
+        np.array([1, 2, 3])
+    ]
+    import timerit
+    ti = timerit.Timerit(10000, bestof=10, verbose=2)
+    for timer in ti.reset('time'):
+        with timer:
+            for data in datas:
+                ub.hash_data(data)
+
 if __name__ == '__main__':
     """
     CommandLine:

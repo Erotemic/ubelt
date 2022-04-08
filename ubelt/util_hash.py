@@ -317,6 +317,13 @@ class HashableExtensions(object):
         self.iterable_checks = []
         self._lazy_queue = []  # type: List[Callable]  # NOQA
 
+        # New singledispatch registry implementation
+        from functools import singledispatch
+        def _hash_dispatch(data):
+            raise NotImplementedError
+        _hash_dispatch.__is_base__ = True
+        self._hash_dispatch = singledispatch(_hash_dispatch)
+
     def register(self, hash_types):
         """
         Registers a function to generate a hash for data of the appropriate
@@ -354,6 +361,29 @@ class HashableExtensions(object):
 
         Example:
             >>> # xdoctest: +SKIP
+            >>> # Simple example
+            >>> import ubelt as ub
+            >>> ub.hash_data.register(pathlib.Path)(lambda x: (b'PATH', str))
+
+        Example:
+            >>> # Can specify more than one type when you register
+            >>> import ubelt as ub
+            >>> import pytest
+            >>> extensions = ub.util_hash.HashableExtensions()
+            >>> class Type1(object):
+            >>>     ...
+            >>> class Type2(object):
+            >>>     ...
+            >>> @extensions.register([Type1, Type2])
+            >>> def hash_my_type(data):
+            ...     return b'mytype', b'constant'
+            >>> inst1 = Type1()
+            >>> inst2 = Type2()
+            >>> ub.hash_data(inst1, extensions=extensions)
+            >>> ub.hash_data(inst2, extensions=extensions)
+
+        Example:
+            >>> # xdoctest: +SKIP
             >>> # Skip this doctest because we dont want tests to modify
             >>> # the global state.
             >>> import ubelt as ub
@@ -372,23 +402,23 @@ class HashableExtensions(object):
             ...     return b'mytype', b(ub.hash_data(data.id))
             >>> my_instance = MyType(1)
             >>> ub.hash_data(my_instance)
+            >>> # New in ubelt 1.1.0: you can now do:
+            >>> # You can register your functions with ubelt's internal
+            >>> # hashable_extension registry.
+            >>> @ub.hash_data.register(MyType)
+            >>> def hash_my_type(data):
+            ...     return b'mytype', b(ub.hash_data(data.id))
+            >>> my_instance = MyType(1)
+            >>> ub.hash_data(my_instance)
         """
         # ensure iterable
         if not isinstance(hash_types, (list, tuple)):
             hash_types = [hash_types]
         def _decor_closure(hash_func):
             for hash_type in hash_types:
-                key = (hash_type.__module__, hash_type.__name__)
-                self.keyed_extensions[key] = (hash_type, hash_func)
+                self._hash_dispatch.register(hash_type)(hash_func)
             return hash_func
         return _decor_closure
-
-    def add_iterable_check(self, func):
-        """
-        Registers a function that detects when a type is iterable
-        """
-        self.iterable_checks.append(func)
-        return func
 
     def lookup(self, data):
         """
@@ -403,7 +433,7 @@ class HashableExtensions(object):
             >>> import pytest
             >>> if not ub.modname_to_modpath('numpy'):
             ...     raise pytest.skip('numpy is optional')
-            >>> self = HashableExtensions()
+            >>> self = ub.util_hash.HashableExtensions()
             >>> self._register_numpy_extensions()
             >>> self._register_builtin_class_extensions()
 
@@ -428,34 +458,43 @@ class HashableExtensions(object):
             >>> import uuid
             >>> data = uuid.uuid4()
             >>> self.lookup(data)
+
+        Example:
+            >>> # xdoctest: +REQUIRES(module:numpy)
+            >>> import numpy as np
+            >>> import ubelt as ub
+            >>> self = ub.util_hash.HashableExtensions()
+            >>> self._register_numpy_extensions()
+            >>> self._register_builtin_class_extensions()
+            >>> #f1 = self.lookup(3)
+            >>> data = np.array([1, 2, 3])
+            >>> f2 = self.lookup(data)
+            >>> print(f2(data))
+            >>> data = np.uint8(3)
+            >>> f3 = self.lookup(data)
+            >>> print(f3(data))
         """
         # Evaluate the lazy queue if anything is in it
         if self._lazy_queue:
             for func in self._lazy_queue:
                 func()
             self._lazy_queue = []
-
-        # Maybe try using functools.singledispatch instead?
-        # First try O(1) lookup
         query_hash_type = data.__class__
-        key = (query_hash_type.__module__, query_hash_type.__name__)
-        try:
-            hash_type, hash_func = self.keyed_extensions[key]
-        except KeyError:
-            # if issubclass(query_hash_type, dict):
-            #     # TODO: In Python 3.7+ dicts are ordered by default, so
-            #     # perhaps we should allow hashing them by default
-            #     import warnings
-            #     warnings.warn(
-            #         'It looks like you are trying to hash an unordered dict. '
-            #         'By default this is not allowed, but if you REALLY need '
-            #         'to do this, then call '
-            #         'ubelt.util_hash._HASHABLE_EXTENSIONS._register_agressive_extensions() '
-            #         'beforehand')
+        # TODO: recognize some special dunder method instead
+        # of strictly using this registry.
+        hash_func = self._hash_dispatch.dispatch(query_hash_type)
+        if getattr(hash_func, '__is_base__', False):
             raise TypeError(
                 'No registered hash func for hashable type={!r}'.format(
                     query_hash_type))
         return hash_func
+
+    def add_iterable_check(self, func):
+        """
+        Registers a function that detects when a type is iterable
+        """
+        self.iterable_checks.append(func)
+        return func
 
     def _register_numpy_extensions(self):
         """
@@ -465,9 +504,6 @@ class HashableExtensions(object):
         """
         # system checks
         import numpy as np
-        numpy_floating_types = (np.float16, np.float32, np.float64)
-        if hasattr(np, 'float128'):  # nocover
-            numpy_floating_types = numpy_floating_types + (np.float128,)
 
         @self.add_iterable_check
         def is_object_ndarray(data):
@@ -507,15 +543,6 @@ class HashableExtensions(object):
                 hashable = header + dtype + data.tobytes()
             prefix = b'NDARR'
             return prefix, hashable
-
-        @self.register((np.int64, np.int32, np.int16, np.int8,
-                        np.uint64, np.uint32, np.uint16, np.uint8))
-        def _convert_numpy_int(data):
-            return _convert_to_hashable(int(data), extensions=self)
-
-        @self.register(numpy_floating_types)
-        def _convert_numpy_float(data):
-            return _convert_to_hashable(float(data), extensions=self)
 
         @self.register(np.random.RandomState)
         def _convert_numpy_random_state(data):
@@ -607,8 +634,30 @@ class HashableExtensions(object):
         Example:
             >>> import ubelt as ub
             >>> assert ub.hash_data(slice(None)).startswith('0178e55a247d09ad282dc2e44f5388f477')
+
+        Example:
+            >>> import ubelt as ub
+            >>> print(ub.hash_data(ub.Path('foo'))[0:8])
+            >>> print(ub.hash_data('foo')[0:8])
+            >>> print(ub.hash_data(ub.Path('foo'), types=True)[0:8])
+            >>> print(ub.hash_data('foo', types=True)[0:8])
+            f7fbba6e
+            f7fbba6e
+            cc21b9fa
+            bd1cabd0
         """
         import uuid
+        import pathlib
+        import numbers
+
+        @self.register(numbers.Integral)
+        def _convert_numpy_int(data):
+            return _convert_to_hashable(int(data), extensions=self)
+
+        @self.register(numbers.Real)
+        def _convert_numpy_float(data):
+            return _convert_to_hashable(float(data), extensions=self)
+
         @self.register(uuid.UUID)
         def _convert_uuid(data):
             hashable = data.bytes
@@ -673,6 +722,9 @@ class HashableExtensions(object):
                 types=_COMPATIBLE_HASHABLE_SEQUENCE_TYPES_DEFAULT))
             prefix = b'SLICE'
             return prefix, hashable
+
+        self.register(pathlib.Path)(lambda x: (b'PATH', str(x).encode('utf-8')))
+        # other data structures
 
     def _register_agressive_extensions(self):  # nocover
         """
@@ -1167,3 +1219,9 @@ def hash_file(fpath, blocksize=1048576, stride=1, maxbytes=None,
     # Get the hashed representation
     text = _digest_hasher(hasher, base)
     return text
+
+
+# Give the hash_data function itself a reference to the default extensions
+# register method so the user can modify them without accessing this module
+hash_data.extensions = _HASHABLE_EXTENSIONS
+hash_data.register = _HASHABLE_EXTENSIONS.register

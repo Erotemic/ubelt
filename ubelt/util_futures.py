@@ -112,6 +112,10 @@ class SerialExecutor(object):
     """
     Implements the concurrent.futures API around a single-threaded backend
 
+    Notes:
+        When using the SerialExecutor, any timeout specified to the result will
+        be ignored.
+
     Example:
         >>> from ubelt.util_futures import SerialExecutor  # NOQA
         >>> import concurrent.futures
@@ -423,6 +427,7 @@ class JobPool(object):
                 progkw = {}
             job_iter = ub.ProgIter(
                 job_iter, desc=desc, total=len(self.jobs), **progkw)
+            self._prog = job_iter
         for job in job_iter:
             yield job
 

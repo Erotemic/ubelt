@@ -35,3 +35,31 @@ def test_job_pool_as_completed_prog_args():
 
     print('final = {!r}'.format(final))
     pool.shutdown()
+
+
+def test_executor_timeout():
+    import pytest
+    pytest.skip(
+        'long test, demos that timeout does not work with SerialExecutor')
+
+    import ubelt as ub
+    import time
+    from concurrent.futures import TimeoutError
+
+    def long_job(n, t):
+        for i in range(n):
+            time.sleep(t)
+
+    for mode in ['thread', 'process', 'serial']:
+        executor = ub.Executor(mode=mode, max_workers=1)
+        with executor:
+            job = executor.submit(long_job, 10, 0.05)
+            with ub.Timer() as timer:
+                try:
+                    job_result = job.result(timeout=0.01)
+                except TimeoutError as ex:
+                    ex_ = ex
+                else:
+                    print('job_result = {!r}'.format(job_result))
+            print('timer.elapsed = {!r}'.format(timer.elapsed))
+            print('ex_ = {!r}'.format(ex_))

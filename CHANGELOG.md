@@ -5,7 +5,31 @@ We are currently working on porting this changelog to the specifications in
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
-## Version 1.0.1 - Unreleased
+## Version 1.1.0 - Unreleased
+
+### Added
+* `ub.cmd` now has a `system` argument for modularity with `os.system`.
+* `ub.cmd` now accepts a `timeout` argument (tee support is pending).
+* `ub.JobPool` now contains a protected `_prog` variable allowing the user
+  finer-grained progress controls.
+
+### Changed
+* Register `pathlib.Path` with `ub.repr2`
+* Can now register global `ub.repr2` extensions `ub.repr2.register`
+* Can now register global `ub.hash_data` extensions `ub.hash_data..register`
+* Removed deprecated arguments from `ubelt.cmd`.
+
+### Fixed
+* `ub.hash_data` now recognizes subclasses of registered types.
+
+### Changed
+* The `ubelt.util_hash.HashableExtensions` implementation was updated to use
+  `functools.singledispatch` instead of the custom solution. This seems faster
+  and should not have any API impact.
+
+
+
+## Version 1.0.1 - Released 2022-02-20
 
 ### Fixed
 
