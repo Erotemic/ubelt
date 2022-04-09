@@ -44,10 +44,10 @@ class HashableExtensions:
     def register(self, hash_types: Union[type, Tuple[type]]) -> Callable:
         ...
 
-    def add_iterable_check(self, func):
+    def lookup(self, data):
         ...
 
-    def lookup(self, data):
+    def add_iterable_check(self, func):
         ...
 
 

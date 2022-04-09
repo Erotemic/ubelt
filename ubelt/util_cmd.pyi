@@ -16,5 +16,6 @@ def cmd(command: Union[str, List[str]],
         env: Union[Dict[str, str], None] = ...,
         tee_backend: str = ...,
         check: bool = ...,
-        **kwargs) -> dict:
+        system: bool = ...,
+        timeout: float = ...) -> dict:
     ...

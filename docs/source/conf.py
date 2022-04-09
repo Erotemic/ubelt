@@ -77,13 +77,9 @@ def parse_version(fpath):
 project = 'UBelt'
 copyright = '2018, Jon Crall'
 author = 'Jon Crall'
+modname = 'ubelt'
 
-# The short X.Y version
-# version = '.'.join(ubelt.__version__.split('.')[0:2])
-# # The full version, including alpha/beta/rc tags
-# release = ubelt.__version__
-modpath = join(dirname(dirname(dirname(__file__))), 'ubelt', '__init__.py')
-# The full version, including alpha/beta/rc tags
+modpath = join(dirname(dirname(dirname(__file__))), modname, '__init__.py')
 release = parse_version(modpath)
 version = '.'.join(release.split('.')[0:2])
 
