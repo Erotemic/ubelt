@@ -1,4 +1,6 @@
-|GithubActions| |ReadTheDocs| |Pypi| |Downloads| |Codecov| |CircleCI| |Appveyor| |CodeQuality| |TwitterFollow|
+|GithubActions| |ReadTheDocs| |Pypi| |Downloads| |Codecov| |CircleCI| |Appveyor| 
+
+.. .. |CodeQuality| |TwitterFollow|
 
 
 .. The large version wont work because github strips rst image rescaling. https://i.imgur.com/AcWVroL.png
