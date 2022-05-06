@@ -1,7 +1,10 @@
+from typing import Union
 from typing import Any
 
 
-def timestamp(method: str = ...) -> str:
+def timestamp(datetime: Union[datetime.datetime, None] = ...,
+              precision: int = ...,
+              method: str = ...) -> str:
     ...
 
 

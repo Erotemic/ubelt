@@ -440,6 +440,9 @@ class JobPool(object):
         Args:
             **kwargs: passed to :method:`JobPool.as_completed`
 
+        Returns:
+            List[Any]: list of results
+
         Example:
             >>> import ubelt as ub
             >>> # We just want to try replacing our simple iterative algorithm

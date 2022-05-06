@@ -17,11 +17,16 @@ __all__ = ['timestamp', 'Timer']
 
 def timestamp(datetime=None, precision=0, method='iso8601'):
     """
-    Make an iso8601 timestamp suitable for use in filenames
+    Make a concise iso8601 timestamp suitable for use in filenames
 
     Args:
+        datetime (datetime.datetime | None):
+            A datetime to format into a timestamp. If unspecified, the current
+            local time is used.
+
         method (str):
             Type of timestamp. Currently the only option is iso8601.
+            This argument may be removed in the future.
 
         precision (int):
             if non-zero, adds up to 6 digits of sub-second precision.
@@ -103,9 +108,6 @@ def timestamp(datetime=None, precision=0, method='iso8601'):
         >>>     assert int(dtime.timestamp() * shift) == int(recon.timestamp() * shift)
     """
     if method == 'iso8601':
-        # ISO 8601
-        # datetime.datetime.utcnow().isoformat()
-        # utcnow
         from datetime import datetime as datetime_cls
         if datetime is None:
             datetime = datetime_cls.now()

@@ -1,6 +1,7 @@
 import concurrent.futures
 from typing import Callable
 from typing import Union
+from typing import List
 import concurrent.futures
 from collections.abc import Generator
 from typing import Any
@@ -89,6 +90,9 @@ class JobPool:
         desc: Union[str, None] = ...,
         progkw: Union[dict, None] = ...
     ) -> Generator[concurrent.futures.Future, None, None]:
+        ...
+
+    def join(self, **kwargs) -> List[Any]:
         ...
 
     def __iter__(self):
