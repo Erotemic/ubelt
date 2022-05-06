@@ -50,17 +50,17 @@ def timestamp(datetime=None, precision=0, method='iso8601'):
         >>> from datetime import datetime as datetime_cls
         >>> # Create a datetime object with timezone information
         >>> ast_tzinfo = datetime_mod.timezone(datetime_mod.timedelta(hours=-4), 'AST')
-        >>> datetime = datetime_cls.fromtimestamp(123456789.123456789).replace(tzinfo=ast_tzinfo)
+        >>> datetime = datetime_cls.utcfromtimestamp(123456789.123456789).replace(tzinfo=ast_tzinfo)
         >>> stamp = ub.timestamp(datetime, precision=2)
         >>> print('stamp = {!r}'.format(stamp))
-        stamp = '1973-11-29T163309.12-4'
+        stamp = '1973-11-29T213309.12-4'
 
         >>> # Demo with a fractional hour timezone
         >>> act_tzinfo = datetime_mod.timezone(datetime_mod.timedelta(hours=+9.5), 'ACT')
-        >>> datetime = datetime_cls.fromtimestamp(123456789.123456789).replace(tzinfo=act_tzinfo)
+        >>> datetime = datetime_cls.utcfromtimestamp(123456789.123456789).replace(tzinfo=act_tzinfo)
         >>> stamp = ub.timestamp(datetime, precision=2)
         >>> print('stamp = {!r}'.format(stamp))
-        stamp = '1973-11-29T163309.12+0930'
+        stamp = '1973-11-29T213309.12+0930'
 
     Ignore:
         >>> # xdoctest: +REQUIRES(module:dateutil)
@@ -78,8 +78,8 @@ def timestamp(datetime=None, precision=0, method='iso8601'):
         >>>     dateutil.tz.tzlocal()
         >>> ]
         >>> datetime_list = [
-        >>>     datetime_cls.fromtimestamp(123456789.123456789),
-        >>>     datetime_cls.fromtimestamp(0),
+        >>>     datetime_cls.utcfromtimestamp(123456789.123456789),
+        >>>     datetime_cls.utcfromtimestamp(0),
         >>> ]
         >>> basis = {
         >>>     #'precision': [0, 3, 9],
