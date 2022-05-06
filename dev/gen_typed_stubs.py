@@ -285,6 +285,9 @@ class ExtendedStubGenerator(StubGenerator):
             if 'io.' in info['type']:
                 self.add_import_line('import io\n')
 
+            if 'datetime.' in info['type']:
+                self.add_import_line('import datetime\n')
+
             if '|' in info['type']:
                 self.add_typing_import('Union')
                 self.add_import_line('from typing import {}\n'.format('Union'))

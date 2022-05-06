@@ -8,9 +8,9 @@ from typing import List
 from collections.abc import Generator
 from typing import Any, TypeVar
 
-T = TypeVar("T")
 KT = TypeVar("KT")
 VT = TypeVar("VT")
+T = TypeVar("T")
 
 
 class chunks:

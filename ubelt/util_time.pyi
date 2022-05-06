@@ -1,6 +1,6 @@
+import datetime
 from typing import Union
 from typing import Any
-import datetime
 
 
 def timestamp(datetime: Union[datetime.datetime, None] = ...,

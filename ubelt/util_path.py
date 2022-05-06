@@ -410,6 +410,7 @@ class Path(_PathBase):
         ~/.cache/ubelt/demo_path/text_file.aux.jpg
         ~/.cache/ubelt/demo_pathdemo_path2
     """
+    __slots__ = ()
 
     def touch(self, mode=0o666, exist_ok=True):
         """
@@ -638,3 +639,35 @@ class Path(_PathBase):
             return cls(util_platform.get_app_data_dir(appname, *args))
         else:
             raise KeyError(type)
+
+    def ls(self):
+        """
+        A convenience function to list all paths in a directory.
+
+        This is simply a wraper around iterdir that returns the results as a
+        list instead of a generator. This is mainly for faster navigation in
+        IPython. In production code `iterdir` should be used instead.
+
+        Returns:
+            List[Path]
+
+        Example:
+            >>> import ubelt as ub
+            >>> self = ub.Path.appdir('ubelt/tests/ls')
+            >>> (self / 'dir1').ensuredir()
+            >>> (self / 'dir2').ensuredir()
+            >>> (self / 'file1').touch()
+            >>> (self / 'file2').touch()
+            >>> (self / 'dir1/file3').touch()
+            >>> (self / 'dir2/file4').touch()
+            >>> children = self.ls()
+            >>> assert isinstance(children, list)
+            >>> print(ub.repr2(sorted([p.relative_to(self) for p in children])))
+            [
+                Path('dir1'),
+                Path('dir2'),
+                Path('file1'),
+                Path('file2'),
+            ]
+        """
+        return list(self.iterdir())
