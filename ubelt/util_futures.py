@@ -431,6 +431,38 @@ class JobPool(object):
         for job in job_iter:
             yield job
 
+    def join(self, **kwargs):
+        """
+        Like :method:`JobPool.as_completed`, but executes the `result` method
+        of each future and returns only after all processes are complete.
+        This allows for lower-boilerplate prototyping.
+
+        Args:
+            **kwargs: passed to :method:`JobPool.as_completed`
+
+        Example:
+            >>> import ubelt as ub
+            >>> # We just want to try replacing our simple iterative algorithm
+            >>> # with the embarassingly parallel version
+            >>> arglist = list(zip(range(1000), range(1000)))
+            >>> func = ub.identity
+            >>> #
+            >>> # Original version
+            >>> for args in arglist:
+            >>>     func(*args)
+            >>> #
+            >>> # Potentially parallel version
+            >>> jobs = ub.JobPool(max_workers=0)
+            >>> for args in arglist:
+            >>>     jobs.submit(func, *args)
+            >>> _ = jobs.join(desc='running')
+        """
+        results = []
+        for job in self.as_completed(**kwargs):
+            result = job.result()
+            results.append(result)
+        return results
+
     def __iter__(self):
         """
         An alternative to as completed

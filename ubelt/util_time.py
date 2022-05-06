@@ -15,30 +15,69 @@ import sys
 __all__ = ['timestamp', 'Timer']
 
 
-def timestamp(method='iso8601'):
+def timestamp(datetime=None, precision=0, method='iso8601'):
     """
     Make an iso8601 timestamp suitable for use in filenames
 
     Args:
-        method (str, default='iso8601'): type of timestamp
+        method (str):
+            Type of timestamp. Currently the only option is iso8601.
+
+        precision (int):
+            if non-zero, adds up to 6 digits of sub-second precision.
 
     Returns:
         str: stamp
+
+    References:
+        https://en.wikipedia.org/wiki/ISO_8601
+        https://docs.python.org/3/library/datetime.html#strftime-strptime-behavior
+        https://docs.python.org/3/library/time.html
+
+    Notes:
+        The time.strftime and datetime.datetime.strftime methods seem
+        to work differently. The former does not support %f
 
     Example:
         >>> import ubelt as ub
         >>> stamp = ub.timestamp()
         >>> print('stamp = {!r}'.format(stamp))
         stamp = ...-...-...T...
+
+    Example:
+        >>> import ubelt as ub
+        >>> stamp = ub.timestamp(precision=2)
+        >>> print('stamp = {!r}'.format(stamp))
+        stamp = ...-...-...T.......
+
+    Ignore:
+        # Make sure we are compatible with dateutil
+        from dateutil import parser
+        from ubelt.util_time import *  # NOQA
+        print(timestamp(precision=0))
+        print(timestamp(precision=1))
+        print(timestamp(precision=2))
+        print(timestamp(precision=6))
+        print(timestamp(precision=9))
     """
     if method == 'iso8601':
         # ISO 8601
         # datetime.datetime.utcnow().isoformat()
         # datetime.datetime.now().isoformat()
         # utcnow
+        import datetime
+        now = datetime.datetime.now()
         tz_hour = time.timezone // 3600
         utc_offset = str(tz_hour) if tz_hour < 0 else '+' + str(tz_hour)
-        stamp = time.strftime('%Y-%m-%dT%H%M%S') + utc_offset
+        if precision > 0:
+            fprecision = 6  # microseconds are padded to 6 decimals
+            ms_offset = -max(0, fprecision - precision)
+            local_stamp = now.strftime('%Y-%m-%dT%H%M%S.%f')
+            now.strftime('%z')
+            local_stamp = local_stamp[:ms_offset]
+        else:
+            local_stamp = time.strftime('%Y-%m-%dT%H%M%S')
+        stamp = local_stamp + utc_offset
         return stamp
     else:
         raise ValueError('only iso8601 is accepted for now')
