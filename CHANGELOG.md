@@ -17,6 +17,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 * `ub.timestamp` can now accept a datetime object as an argument, and will return 
    the timestamp for that object.
 * `ub.Path.ls` a convenience function that aliases `list(path.iterdir())`.
+* `ub.Path.walk` to wrap `os.walk`. 
 
 
 ### Changed

@@ -671,3 +671,42 @@ class Path(_PathBase):
             ]
         """
         return list(self.iterdir())
+
+    def walk(self, topdown=True, onerror=None, followlinks=False):
+        """
+        A variant of os.walk for pathlib
+
+        Args:
+            topdown (bool):
+                if True starts yield nodes closer to the root first otherwise
+                yield nodes closer to the leaves first.
+
+            onerror (callable):
+                A function with one argument of type OSError. If the
+                error is raised the walk is aborted, otherwise it continues.
+
+            followlinks (bool):
+                if True recurse into symbolic directory links
+
+        Yields:
+            Tuple[Path, str, str]: the root, file names, and directory names
+
+        Example:
+            >>> import ubelt as ub
+            >>> self = ub.Path.appdir('ubelt/tests/ls')
+            >>> (self / 'dir1').ensuredir()
+            >>> (self / 'dir2').ensuredir()
+            >>> (self / 'file1').touch()
+            >>> (self / 'file2').touch()
+            >>> (self / 'dir1/file3').touch()
+            >>> (self / 'dir2/file4').touch()
+            >>> subdirs = list(self.walk())
+            >>> assert len(subdirs) == 3
+        """
+        import os
+        cls = self.__class__
+        walker = os.walk(self, topdown=topdown, onerror=onerror,
+                         followlinks=followlinks)
+        for r, fs, ds in walker:
+            r = cls(r)
+            yield r, fs, ds
