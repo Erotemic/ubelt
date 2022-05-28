@@ -1,9 +1,6 @@
-# python ~/local/tools/supported_python_versions_pip.py ordered-set
-
-ordered-set>=3.1
-
 jaraco.windows>=3.9.1;platform_system=="Windows"
 
 # Now included by default
+# ordered-set>=3.1
 # progiter>=0.1.0
 # timerit>=0.2.1
