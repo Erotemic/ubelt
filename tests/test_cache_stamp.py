@@ -8,7 +8,7 @@ def test_cache_stamp():
     ub.delete(dpath)
     ub.ensuredir(dpath)
     product = join(dpath, 'expensive-to-compute.txt')
-    self = ub.CacheStamp('test1', dpath=dpath, cfgstr='test1',
+    self = ub.CacheStamp('test1', dpath=dpath, depends='test1',
                          product=product, hasher=None)
     if self.expired():
         ub.writeto(product, 'very expensive')
@@ -32,7 +32,7 @@ def test_cache_stamp_corrupt_product_nohasher():
     ub.delete(dpath)
     ub.ensuredir(dpath)
     product = join(dpath, name + '.txt')
-    self = ub.CacheStamp(name, dpath=dpath, cfgstr=name, product=product,
+    self = ub.CacheStamp(name, dpath=dpath, depends=name, product=product,
                          hasher=None)
     if self.expired():
         ub.writeto(product, 'very expensive')
@@ -49,7 +49,7 @@ def test_cache_stamp_corrupt_product_hasher():
     ub.delete(dpath)
     ub.ensuredir(dpath)
     product = join(dpath, name + '.txt')
-    self = ub.CacheStamp(name, dpath=dpath, cfgstr=name, product=product,
+    self = ub.CacheStamp(name, dpath=dpath, depends=name, product=product,
                          hasher='sha1')
     if self.expired():
         ub.writeto(product, 'very expensive')
@@ -71,7 +71,7 @@ def test_cache_stamp_multiproduct():
         join(dpath, 'product2.txt'),
         join(dpath, 'product3.txt'),
     ]
-    self = ub.CacheStamp('somedata', dpath=dpath, cfgstr='someconfig',
+    self = ub.CacheStamp('somedata', dpath=dpath, depends='someconfig',
                          product=product)
     if self.expired():
         for fpath in product:
@@ -90,7 +90,7 @@ def test_cache_stamp_noproduct():
     ub.ensuredir(dpath)
     name = 'noproduct'
     product = join(dpath, name + '.txt')
-    self = ub.CacheStamp('somedata', dpath=dpath, cfgstr='someconfig', product=None)
+    self = ub.CacheStamp('somedata', dpath=dpath, depends='someconfig', product=None)
     if self.expired():
         ub.writeto(product, 'very expensive')
         self.renew()

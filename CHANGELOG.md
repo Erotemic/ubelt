@@ -12,6 +12,13 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 * `ub.cmd` now accepts a `timeout` argument (tee support is pending).
 * `ub.JobPool` now contains a protected `_prog` variable allowing the user
   finer-grained progress controls.
+* `ub.JobPool` now contains a convenience method `join` that executes all jobs
+  and returns a list of results.
+* `ub.timestamp` can now accept a datetime object as an argument, and will return 
+   the timestamp for that object.
+* `ub.Path.ls` a convenience function that aliases `list(path.iterdir())`.
+* `ub.Path.walk` to wrap `os.walk`. 
+
 
 ### Changed
 * Register `pathlib.Path` with `ub.repr2`
@@ -21,12 +28,12 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### Fixed
 * `ub.hash_data` now recognizes subclasses of registered types.
+* `ub.timestamp()` has been outputting incorrect (negated) UTC offsets. This is now fixed.
 
 ### Changed
 * The `ubelt.util_hash.HashableExtensions` implementation was updated to use
   `functools.singledispatch` instead of the custom solution. This seems faster
   and should not have any API impact.
-
 
 
 ## Version 1.0.1 - Released 2022-02-20

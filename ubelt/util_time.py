@@ -15,33 +15,129 @@ import sys
 __all__ = ['timestamp', 'Timer']
 
 
-def timestamp(method='iso8601'):
+def timestamp(datetime=None, precision=0, method='iso8601'):
     """
-    Make an iso8601 timestamp suitable for use in filenames
+    Make a concise iso8601 timestamp suitable for use in filenames
 
     Args:
-        method (str, default='iso8601'): type of timestamp
+        datetime (datetime.datetime | None):
+            A datetime to format into a timestamp. If unspecified, the current
+            local time is used.
+
+        method (str):
+            Type of timestamp. Currently the only option is iso8601.
+            This argument may be removed in the future.
+
+        precision (int):
+            if non-zero, adds up to 6 digits of sub-second precision.
 
     Returns:
         str: stamp
+
+    References:
+        https://en.wikipedia.org/wiki/ISO_8601
+        https://docs.python.org/3/library/datetime.html#strftime-strptime-behavior
+        https://docs.python.org/3/library/time.html
+
+    Notes:
+        The time.strftime and datetime.datetime.strftime methods seem
+        to work differently. The former does not support %f
 
     Example:
         >>> import ubelt as ub
         >>> stamp = ub.timestamp()
         >>> print('stamp = {!r}'.format(stamp))
         stamp = ...-...-...T...
+
+    Example:
+        >>> import ubelt as ub
+        >>> import datetime as datetime_mod
+        >>> from datetime import datetime as datetime_cls
+        >>> # Create a datetime object with timezone information
+        >>> ast_tzinfo = datetime_mod.timezone(datetime_mod.timedelta(hours=-4), 'AST')
+        >>> datetime = datetime_cls.utcfromtimestamp(123456789.123456789).replace(tzinfo=ast_tzinfo)
+        >>> stamp = ub.timestamp(datetime, precision=2)
+        >>> print('stamp = {!r}'.format(stamp))
+        stamp = '1973-11-29T213309.12-4'
+
+        >>> # Demo with a fractional hour timezone
+        >>> act_tzinfo = datetime_mod.timezone(datetime_mod.timedelta(hours=+9.5), 'ACT')
+        >>> datetime = datetime_cls.utcfromtimestamp(123456789.123456789).replace(tzinfo=act_tzinfo)
+        >>> stamp = ub.timestamp(datetime, precision=2)
+        >>> print('stamp = {!r}'.format(stamp))
+        stamp = '1973-11-29T213309.12+0930'
+
+    Ignore:
+        >>> # xdoctest: +REQUIRES(module:dateutil)
+        >>> # Make sure we are compatible with dateutil
+        >>> import dateutil
+        >>> from dateutil import parser
+        >>> import datetime as datetime_mod
+        >>> from datetime import datetime as datetime_cls
+        >>> tzinfo_list = [
+        >>>     datetime_mod.timezone(datetime_mod.timedelta(hours=+9.5), 'ACT'),
+        >>>     datetime_mod.timezone(datetime_mod.timedelta(hours=-4), 'AST'),
+        >>>     datetime_mod.timezone(datetime_mod.timedelta(hours=0), 'UTC'),
+        >>>     datetime_mod.timezone.utc,
+        >>>     None,
+        >>>     dateutil.tz.tzlocal()
+        >>> ]
+        >>> datetime_list = [
+        >>>     datetime_cls.utcfromtimestamp(123456789.123456789),
+        >>>     datetime_cls.utcfromtimestamp(0),
+        >>> ]
+        >>> basis = {
+        >>>     #'precision': [0, 3, 9],
+        >>>     'tzinfo': tzinfo_list,
+        >>>     'datetime': datetime_list,
+        >>> }
+        >>> import copy
+        >>> for params in ub.named_product(basis):
+        >>>     dtime = params['datetime'].replace(tzinfo=params['tzinfo'])
+        >>>     precision = params.get('precision', 0)
+        >>>     stamp = ub.timestamp(datetime=dtime, precision=precision)
+        >>>     recon = parser.parse(stamp)
+        >>>     alt = recon.strftime('%Y-%m-%dT%H%M%S.%f%z')
+        >>>     print('---')
+        >>>     print('params = {}'.format(ub.repr2(params, nl=1)))
+        >>>     print(f'dtime={dtime}')
+        >>>     print(f'stamp={stamp}')
+        >>>     print(f'recon={recon}')
+        >>>     print(f'alt  ={alt}')
+        >>>     shift = 10 ** precision
+        >>>     assert int(dtime.timestamp() * shift) == int(recon.timestamp() * shift)
     """
     if method == 'iso8601':
-        # ISO 8601
-        # datetime.datetime.utcnow().isoformat()
-        # datetime.datetime.now().isoformat()
-        # utcnow
-        tz_hour = time.timezone // 3600
-        utc_offset = str(tz_hour) if tz_hour < 0 else '+' + str(tz_hour)
-        stamp = time.strftime('%Y-%m-%dT%H%M%S') + utc_offset
+        from datetime import datetime as datetime_cls
+        if datetime is None:
+            datetime = datetime_cls.now()
+
+        if datetime.tzinfo is None:
+            # Assume the local timezone (time.timezone is negated)
+            offset_seconds = -time.timezone
+        else:
+            offset_seconds = datetime.tzinfo.utcoffset(datetime).total_seconds()
+
+        seconds_per_hour = 3600
+        tz_hour, tz_remain = divmod(offset_seconds, seconds_per_hour)
+        tz_hour = int(tz_hour)
+        if tz_remain:
+            seconds_per_minute = 60
+            tz_min = int(tz_remain // seconds_per_minute)
+            utc_offset = '{:+03d}{:02d}'.format(tz_hour, tz_min)
+        else:
+            utc_offset = str(tz_hour) if tz_hour < 0 else '+' + str(tz_hour)
+        if precision > 0:
+            fprecision = 6  # microseconds are padded to 6 decimals
+            local_stamp = datetime.strftime('%Y-%m-%dT%H%M%S.%f')
+            ms_offset = len(local_stamp) - max(0, fprecision - precision)
+            local_stamp = local_stamp[:ms_offset]
+        else:
+            local_stamp = datetime.strftime('%Y-%m-%dT%H%M%S')
+        stamp = local_stamp + utc_offset
         return stamp
     else:
-        raise ValueError('only iso8601 is accepted for now')
+        raise ValueError('only iso8601 is allowed for method')
 
 
 class Timer(object):

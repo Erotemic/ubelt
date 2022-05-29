@@ -94,3 +94,6 @@ class Path:
     @classmethod
     def appdir(cls, appname: str, *args, type: str = ...) -> 'Path':
         ...
+
+    def ls(self):
+        ...

@@ -159,6 +159,15 @@ def test_cache_depends():
     cfgstr = cacher._rectify_cfgstr()
     assert cfgstr.startswith('8a82eef87cb905220841f95')
 
+
+def test_cache_cfgstr():
+    """
+    TODO: remove when cfgstr is removed
+    """
+    with pytest.warns(DeprecationWarning):
+        cacher1 = ub.Cacher('name', cfgstr='abc')
+    assert cacher1.depends == 'abc'
+
 if __name__ == '__main__':
     r"""
     CommandLine:
