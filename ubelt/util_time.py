@@ -160,9 +160,9 @@ def timestamp(datetime=None, precision=0, method='iso8601'):
             local_stamp = local_stamp[:ms_offset]
         else:
             if _needs_workaround39103():
-                local_stamp = datetime.strftime('%Y-%m-%dT%H%M%S')
-            else:
                 local_stamp = datetime.strftime('%04Y-%m-%dT%H%M%S')
+            else:
+                local_stamp = datetime.strftime('%Y-%m-%dT%H%M%S')
         stamp = local_stamp + utc_offset
         return stamp
     else:
