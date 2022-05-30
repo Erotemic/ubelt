@@ -151,7 +151,7 @@ def timeparse(stamp, allow_dateutil=True):
     `python-dateutil` package is installed.
 
     Args:
-        str (str):
+        stamp (str):
             a string encoded timestamp
 
         allow_dateutil (bool):
