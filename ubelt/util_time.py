@@ -128,7 +128,9 @@ def timestamp(datetime=None, precision=0, method='iso8601'):
         >>>     print(f'recon={recon}')
         >>>     print(f'alt  ={alt}')
         >>>     shift = 10 ** precision
-        >>>     assert int(dtime.timestamp() * shift) == int(recon.timestamp() * shift)
+        >>>     a = int(dtime.timestamp() * shift)
+        >>>     a = int(recon.timestamp() * shift)
+        >>>     assert a == b, f'{a} != {b}'
     """
     if method == 'iso8601':
         from datetime import datetime as datetime_cls
