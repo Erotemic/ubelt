@@ -10,11 +10,33 @@ The :class:`Timer` class is a context manager that times a block of indented
 code. It includes `tic` and `toc` methods a more matlab like feel.
 
 Timerit is gone! Use the standalone and separate module :module:`timerit`.
+
+
+See Also:
+    :mod:`tempora` - https://github.com/jaraco/tempora - time related utility functions from Jaraco
 """
 import time
 import sys
+from functools import lru_cache
 
 __all__ = ['timestamp', 'timeparse', 'Timer']
+
+
+@lru_cache(maxsize=None)
+def _needs_workaround39103():
+    """
+    Depending on the system C library, either %04Y or %Y wont work.
+    This is an actual Python bug:
+    https://bugs.python.org/issue13305
+
+    singer-python also had a similar issue:
+    https://github.com/singer-io/singer-python/issues/86
+
+    See Also
+    https://github.com/jaraco/tempora/blob/main/tempora/__init__.py#L59
+    """
+    from datetime import datetime as datetime_cls
+    return len(datetime_cls(1, 1, 1).strftime('%Y')) != 4
 
 
 def timestamp(datetime=None, precision=0, method='iso8601'):
@@ -130,24 +152,17 @@ def timestamp(datetime=None, precision=0, method='iso8601'):
             utc_offset = str(tz_hour) if tz_hour < 0 else '+' + str(tz_hour)
         if precision > 0:
             fprecision = 6  # microseconds are padded to 6 decimals
-
-            # Workaround:
-            # Depending on the system C library, either %04Y or %Y wont work.
-            # Its unclear if there is a way to test for this beforehand.
-            # For now, just try it, see if it fails and then redo it.
-            # singer-python also had a similar issue:
-            # https://github.com/singer-io/singer-python/issues/86
-            # This is an actual Python bug:
-            # https://bugs.python.org/issue13305
-            local_stamp = datetime.strftime('%04Y-%m-%dT%H%M%S.%f')
-            if local_stamp.startswith('4Y'):
+            if _needs_workaround39103():
+                local_stamp = datetime.strftime('%04Y-%m-%dT%H%M%S.%f')
+            else:
                 local_stamp = datetime.strftime('%Y-%m-%dT%H%M%S.%f')
             ms_offset = len(local_stamp) - max(0, fprecision - precision)
             local_stamp = local_stamp[:ms_offset]
         else:
-            local_stamp = datetime.strftime('%04Y-%m-%dT%H%M%S')
-            if local_stamp.startswith('4Y'):
+            if _needs_workaround39103():
                 local_stamp = datetime.strftime('%Y-%m-%dT%H%M%S')
+            else:
+                local_stamp = datetime.strftime('%04Y-%m-%dT%H%M%S')
         stamp = local_stamp + utc_offset
         return stamp
     else:
