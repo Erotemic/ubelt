@@ -1,6 +1,7 @@
 from typing import Union
 from os import PathLike
 from typing import Tuple
+from typing import Callable
 from collections.abc import Generator
 from typing import Any
 
@@ -102,7 +103,7 @@ class Path:
     def walk(
         self,
         topdown: bool = ...,
-        onerror: callable = ...,
+        onerror: Callable[[OSError], None] = ...,
         followlinks: bool = ...
-    ) -> Generator[Tuple[Path, str, str], None, None]:
+    ) -> Generator[Tuple['Path', str, str], None, None]:
         ...
