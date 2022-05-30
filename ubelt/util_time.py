@@ -129,7 +129,7 @@ def timestamp(datetime=None, precision=0, method='iso8601'):
         >>>     print(f'alt  ={alt}')
         >>>     shift = 10 ** precision
         >>>     a = int(dtime.timestamp() * shift)
-        >>>     a = int(recon.timestamp() * shift)
+        >>>     b = int(recon.timestamp() * shift)
         >>>     assert a == b, f'{a} != {b}'
     """
     if method == 'iso8601':
