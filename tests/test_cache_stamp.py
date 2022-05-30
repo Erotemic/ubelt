@@ -14,11 +14,13 @@ def test_cache_stamp():
         ub.writeto(product, 'very expensive')
         self.renew()
     assert not self.expired()
-    # corrupting the output will not expire in non-robust mode
+    # corrupting the output WILL expire in non-robust mode if the size is
+    # different.
     ub.writeto(product, 'corrupted')
-    assert not self.expired()
+    assert self.expired()
     self.hasher = 'sha1'
-    # but it will expire if we are in robust mode
+    # but it will expire if we are in robust mode, even if the size is not
+    # different
     assert self.expired()
     # deleting the product will cause expiration in any mode
     self.hasher = None
@@ -34,6 +36,11 @@ def test_cache_stamp_corrupt_product_nohasher():
     product = join(dpath, name + '.txt')
     self = ub.CacheStamp(name, dpath=dpath, depends=name, product=product,
                          hasher=None)
+    # Disable the new (as of 1.1.0) size and mtime checks
+    # note: as of version 1.1.0 we also have to disable the new size and
+    # mtime checks to get a non-robust mode.
+    self.expire_checks['size'] = False
+    self.expire_checks['mtime'] = False
     if self.expired():
         ub.writeto(product, 'very expensive')
         self.renew()
@@ -41,6 +48,28 @@ def test_cache_stamp_corrupt_product_nohasher():
     # corrupting the output will not expire in non-robust mode
     ub.writeto(product, 'corrupted')
     assert not self.expired()
+
+
+def test_not_time_expired():
+    # stamp the computation of expensive-to-compute.txt
+    dpath = ub.ensure_app_cache_dir('ubelt', 'test-cache-stamp')
+    ub.delete(dpath)
+    ub.ensuredir(dpath)
+    self = ub.CacheStamp('test1', dpath=dpath, depends='test1',
+                         expires=10000, hasher=None)
+    self.renew()
+    assert not self.expired()
+
+
+def test_time_expired():
+    # stamp the computation of expensive-to-compute.txt
+    dpath = ub.ensure_app_cache_dir('ubelt', 'test-cache-stamp')
+    ub.delete(dpath)
+    ub.ensuredir(dpath)
+    self = ub.CacheStamp('test1', dpath=dpath, depends='test1',
+                         expires=-10000, hasher=None)
+    self.renew()
+    assert self.expired() == 'expired_cert'
 
 
 def test_cache_stamp_corrupt_product_hasher():

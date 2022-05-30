@@ -147,7 +147,7 @@ def test_disable():
 
 def test_disabled_cache_stamp():
     stamp = ub.CacheStamp('foo', 'bar', enabled=False)
-    assert stamp.expired() is True, 'disabled cache stamps are always expired'
+    assert stamp.expired() == 'disabled', 'disabled cache stamps are always expired'
 
 
 def test_cache_depends():

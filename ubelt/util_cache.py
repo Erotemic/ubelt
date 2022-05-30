@@ -740,25 +740,13 @@ class CacheStamp(object):
         >>> dpath.delete().ensuredir()
         >>> product = dpath / 'expensive-to-compute.txt'
         >>> self = ub.CacheStamp('somedata', depends='someconfig', dpath=dpath,
-        >>>                      product=product, hasher=None)
-        >>> self.hasher = None
+        >>>                      product=product, hasher='sha256')
         >>> if self.expired():
         >>>     product.write_text('very expensive')
         >>>     self.renew()
         >>> assert not self.expired()
-        >>> # corrupting the output will not expire in non-robust mode
-        >>> product.write_text('corrupted')
-        >>> # note: as of version 1.1.0 we also have to disable the new size and
-        >>> # mtime checks to get a non-robust mode.
-        >>> self.expire_checks['size'] = False
-        >>> self.expire_checks['mtime'] = False
-        >>> assert not self.expired()
-        >>> self.hasher = 'sha1'
-        >>> # but it will expire if we are in robust mode
-        >>> assert self.expired()
-        >>> # deleting the product will cause expiration in any mode
-        >>> self.hasher = None
-        >>> product.delete()
+        >>> # corrupting the output will cause the stamp to expire
+        >>> product.write_text('very corrupted')
         >>> assert self.expired()
     """
     def __init__(self, fname, dpath, cfgstr=None, product=None, hasher='sha1',
