@@ -20,6 +20,10 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
    the timestamp for that object.
 * `ub.Path.ls` a convenience function that aliases `list(path.iterdir())`.
 * `ub.Path.walk` to wrap `os.walk`. 
+* `ub.CacheStamp` will now check the mtime and size to quickly check if the products
+  have changed and force expiration.
+* `ub.CacheStamp` now takes an expires keyword arg, which will keep the cache valid 
+  only for the specified amount of time.
 
 ### Changed
 * Register `pathlib.Path` with `ub.repr2`

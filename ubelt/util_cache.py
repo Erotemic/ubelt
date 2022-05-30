@@ -664,11 +664,14 @@ class CacheStamp(object):
 
     Writes a file that marks that a procedure has been done by writing a
     "stamp" file to disk. Removing the stamp file will force recomputation.
+
     However, removing or changing the result of the computation may not trigger
-    recomputation unless specific handling is done or the expected "product"
-    of the computation is a file and registered with the stamper.  If
-    hasher is None, we only check if the product exists, and we ignore
-    its hash, otherwise it checks that the hash of the product is the same.
+    recomputation unless specific handling is done of the expected "product" of
+    the computation is a file and registered with the stamper. When "product"
+    is specified, the stamp will mark itself as expired if the size or mtime of
+    the products have changed. Additionally, if hasher is specified, the hash
+    of the file is used to check if the files have not changed with high
+    probability.
 
     Args:
         fname (str):
@@ -683,8 +686,8 @@ class CacheStamp(object):
 
         hasher (str, default='sha1'):
             The type of hasher used to compute the file hash of product.
-            If None, then we assume the file has not been corrupted or changed.
-            Defaults to sha1.
+            If None, then we assume the file has not been corrupted or changed
+            if the mtime and size are the same. Defaults to sha1.
 
         verbose (bool, default=None):
             Passed to internal :class:`ubelt.Cacher` object
@@ -702,6 +705,13 @@ class CacheStamp(object):
             useful to indicate how the ``cfgstr`` was constructed.  New to
             CacheStamp in version 0.9.2.
 
+        expires (str | int | datetime.datetime | datetime.timedelta | None):
+            If specified, sets an expiration date for the certificate. This can
+            be an absolute datetime or a timedelta offset. If specified as an
+            int, this is interpreted as a time delta in seconds.  If specified
+            as a str, this is interpreted as an absolute timestamp. Time delta
+            offsets are coerced to absolute times at "renew" time.
+
         cfgstr (str | None):
             DEPRECATED in favor or depends.
             Configuration associated with the stamped computation.  A common
@@ -715,19 +725,18 @@ class CacheStamp(object):
             persist.
 
     TODO:
-        - [ ] expiration time delta or date time (also remember when renewed)
+        - [X] expiration time delta or date time (also remember when renewed)
 
-        - [ ] optionally checking the hash of the product
+        - [X] optionally checking the hash of the product
 
-        - [ ] optionally checking a manually specified expected hash
+        - [X] optionally checking a manually specified expected hash
 
-        - [ ] optionally checking the stamp time agrees with the product ctime
+        - [X] optionally checking the stamp time agrees with the product ctime
 
     Example:
         >>> import ubelt as ub
-        >>> from os.path import join
         >>> # Stamp the computation of expensive-to-compute.txt
-        >>> dpath = ub.Path.appdir('ubelt', 'test-cache-stamp')
+        >>> dpath = ub.Path.appdir('ubelt/tests/cache-stamp')
         >>> dpath.delete().ensuredir()
         >>> product = dpath / 'expensive-to-compute.txt'
         >>> self = ub.CacheStamp('somedata', depends='someconfig', dpath=dpath,
@@ -739,6 +748,10 @@ class CacheStamp(object):
         >>> assert not self.expired()
         >>> # corrupting the output will not expire in non-robust mode
         >>> product.write_text('corrupted')
+        >>> # note: as of version 1.1.0 we also have to disable the new size and
+        >>> # mtime checks to get a non-robust mode.
+        >>> self.expire_checks['size'] = False
+        >>> self.expire_checks['mtime'] = False
         >>> assert not self.expired()
         >>> self.hasher = 'sha1'
         >>> # but it will expire if we are in robust mode
@@ -749,12 +762,22 @@ class CacheStamp(object):
         >>> assert self.expired()
     """
     def __init__(self, fname, dpath, cfgstr=None, product=None, hasher='sha1',
-                 verbose=None, enabled=True, depends=None, meta=None):
+                 verbose=None, enabled=True, depends=None, meta=None,
+                 expires=None):
         self.cacher = Cacher(fname, cfgstr=cfgstr, dpath=dpath,
                              verbose=verbose, enabled=enabled, depends=depends,
                              meta=meta)
         self.product = product
         self.hasher = hasher
+        self.expires = expires
+
+        # The user can modify these if they want to disable size or mtime
+        # checks for expiration. Not sure if I want to expose it at the
+        # top level API yet or not.
+        self.expire_checks = {
+            'size': True,
+            'mtime': True,
+        }
 
     def _get_certificate(self, cfgstr=None):
         """
@@ -765,19 +788,37 @@ class CacheStamp(object):
 
     def _rectify_products(self, product=None):
         """ puts products in a normalized format """
+        from ubelt import util_path
         products = self.product if product is None else product
         if products is None:
             return None
         if not isinstance(products, (list, tuple)):
             products = [products]
+        products = list(map(util_path.Path, products))
         return products
 
+    def _product_info(self, product=None):
+        """
+        Compute summary info about each product on disk.
+        """
+        products = self._rectify_products(product)
+        product_info = {}
+        product_info.update(self._product_file_stats())
+        product_info['product_file_hash'] = self._product_file_hash(products)
+        return product_info
+
+    def _product_file_stats(self, product=None):
+        products = self._rectify_products(product)
+        product_stats = [p.stat() for p in products]
+        product_file_stats = {
+            'mtime': [stat.st_mtime for stat in product_stats],
+            'size': [stat.st_size for stat in product_stats]
+        }
+        return product_file_stats
+
     def _product_file_hash(self, product=None):
-        """
-        Get the hash of the each product file
-        """
         if self.hasher is None:
-            return None
+            product_file_hash = None
         else:
             from ubelt import util_hash
             products = self._rectify_products(product)
@@ -785,12 +826,13 @@ class CacheStamp(object):
                 util_hash.hash_file(p, hasher=self.hasher, base='hex')
                 for p in products
             ]
-            return product_file_hash
+        return product_file_hash
 
     def expired(self, cfgstr=None, product=None):
         """
-        Check to see if a previously existing stamp is still valid and if the
-        expected result of that computation still exists.
+        Check to see if a previously existing stamp is still valid, if the
+        expected result of that computation still exists, and if all other
+        expiration criteria are met.
 
         Args:
             cfgstr (str | None): overrides the instance-level cfgstr
@@ -799,28 +841,197 @@ class CacheStamp(object):
                 override the default product if specified
 
         Returns:
-            bool: True if the stamp is invalid or does not exist.
+            bool | str:
+                True(-thy) if the stamp is invalid, expired, or does not exist.
+                When the stamp is expired, the reason for expiration is
+                returned as a string. If the stamp is still valid, False is
+                returned.
+
+        Example:
+            >>> import ubelt as ub
+            >>> import time
+            >>> # Stamp the computation of expensive-to-compute.txt
+            >>> dpath = ub.Path.appdir('ubelt/tests/cache-stamp-expired')
+            >>> dpath.delete().ensuredir()
+            >>> products = [
+            >>>     dpath / 'product1.txt',
+            >>>     dpath / 'product2.txt',
+            >>> ]
+            >>> self = ub.CacheStamp('myname', depends='myconfig', dpath=dpath,
+            >>>                      product=products, hasher='sha256',
+            >>>                      expires=0)
+            >>> if self.expired():
+            >>>     for fpath in products:
+            >>>         fpath.write_text(fpath.name)
+            >>>     self.renew()
+            >>> fpath = products[0]
+            >>> # Because we set the expiration delta to 0, we should already be expired
+            >>> assert self.expired() == 'expired_cert'
+            >>> # Disable the expiration date, renew and we should be ok
+            >>> self.expires = None
+            >>> self.renew()
+            >>> assert not self.expired()
+            >>> # Modify the mtime to cause expiration
+            >>> orig_atime = fpath.stat().st_atime
+            >>> orig_mtime = fpath.stat().st_mtime
+            >>> os.utime(fpath, (orig_atime, orig_mtime + 200))
+            >>> assert self.expired() == 'mtime_diff'
+            >>> self.renew()
+            >>> assert not self.expired()
+            >>> # rewriting the file will cause the size constraint to fail
+            >>> # even if we hack the mtime to be the same
+            >>> orig_atime = fpath.stat().st_atime
+            >>> orig_mtime = fpath.stat().st_mtime
+            >>> fpath.write_text('corrupted')
+            >>> os.utime(fpath, (orig_atime, orig_mtime))
+            >>> assert self.expired() == 'size_diff'
+            >>> self.renew()
+            >>> assert not self.expired()
+            >>> # Finally, force a situation where the hash is the only thing
+            >>> # that saves us, write a different file with the same
+            >>> # size and mtime.
+            >>> orig_atime = fpath.stat().st_atime
+            >>> orig_mtime = fpath.stat().st_mtime
+            >>> fpath.write_text('corrApted')
+            >>> os.utime(fpath, (orig_atime, orig_mtime))
+            >>> assert self.expired() == 'hash_diff'
         """
         if not self.cacher.enabled:
-            return True
+            return 'disabled'
+
         products = self._rectify_products(product)
         certificate = self._get_certificate(cfgstr=cfgstr)
+
         if certificate is None:
             # We don't have a certificate, so we are expired
-            is_expired = True
-        elif products is None:
+            return 'no_cert'
+
+        expires = certificate['expires']
+        if expires is not None:
+            from ubelt import util_time
+            # Need to add in the local timezone to compare against the cert.
+            now = _localnow()
+            expires_abs = util_time.timeparse(expires)
+            if  now >= expires_abs:
+                # We are expired
+                return 'expired_cert'
+
+        if products is None:
             # We don't have a product to check, so assume not expired
-            is_expired = False
+            return False
         elif not all(map(exists, products)):
             # We are expired if the expected product does not exist
-            is_expired = True
+            return 'missing_products'
         else:
+            # First test to see if the size or mtime of the files has changed
+            # as a potentially quicker check. If sizes or mtimes do not exist
+            # in the certificate (old ubelt version), then ignore them.
+            product_file_stats = self._product_file_stats()
+            sizes = certificate.get('size', None)
+            if sizes is not None and self.expire_checks['size']:
+                if sizes != product_file_stats['size']:
+                    # The sizes are differnt, we are expired
+                    return  'size_diff'
+            mtimes = certificate.get('mtime', None)
+            if mtimes is not None and self.expire_checks['mtime']:
+                if mtimes != product_file_stats['mtime']:
+                    # The sizes are differnt, we are expired
+                    return 'mtime_diff'
+
             # We are expired if the hash of the existing product data
             # does not match the expected hash in the certificate
             product_file_hash = self._product_file_hash(products)
             certificate_hash = certificate.get('product_file_hash', None)
-            is_expired = product_file_hash != certificate_hash
-        return is_expired
+            if product_file_hash != certificate_hash:
+                # The hash is different, we are expired
+                return 'hash_diff'
+
+        # All tests passed, we are not expired
+        return False
+
+    def _expires(self, now=None):
+        """
+        Example:
+            >>> import ubelt as ub
+            >>> dpath = ub.Path.appdir('ubelt/tests/cache-stamp-expires')
+            >>> self = ub.CacheStamp('myname', depends='myconfig', dpath=dpath)
+            >>> # Test str input
+            >>> self.expires = '2020-01-01'
+            >>> assert self._expires().replace(tzinfo=None).isoformat() == '2020-01-01T00:00:00'
+            >>> # Test datetime input
+            >>> dt = ub.timeparse(ub.timestamp())
+            >>> self.expires = dt
+            >>> assert self._expires() == dt
+            >>> # Test None input
+            >>> self.expires = None
+            >>> assert self._expires() is None
+            >>> # Test int input
+            >>> self.expires = 0
+            >>> assert self._expires(dt) == dt
+            >>> self.expires = 10
+            >>> assert self._expires(dt) > dt
+            >>> self.expires = -10
+            >>> assert self._expires(dt) < dt
+            >>> # Test timedelta input
+            >>> import datetime as datetime_mod
+            >>> self.expires = datetime_mod.timedelta(seconds=-10)
+            >>> assert self._expires(dt) == dt + self.expires
+        """
+        # Rectify into a datetime
+        from ubelt import util_time
+        import datetime as datetime_mod
+        import numbers
+        if now is None:
+            now = datetime_mod.datetime.now()
+        expires = self.expires
+        if expires is None:
+            expires_abs = None
+        elif isinstance(expires, numbers.Number):
+            expires_abs = now + datetime_mod.timedelta(seconds=expires)
+        elif isinstance(expires, datetime_mod.timedelta):
+            expires_abs = now + expires
+        elif isinstance(expires, str):
+            expires_abs = util_time.timeparse(expires)
+        elif isinstance(expires, datetime_mod.datetime):
+            expires_abs = expires
+        else:
+            raise TypeError(
+                'expires must be a coercable to datetime or timedelta')
+        return expires_abs
+
+    def _new_certificate(self, cfgstr=None, product=None):
+        """
+        Example:
+            >>> import ubelt as ub
+            >>> # Stamp the computation of expensive-to-compute.txt
+            >>> dpath = ub.Path.appdir('ubelt/tests/cache-stamp-cert').ensuredir()
+            >>> product = dpath / 'product1.txt'
+            >>> product.write_text('hi')
+            >>> self = ub.CacheStamp('myname', depends='myconfig', dpath=dpath,
+            >>>                      product=product)
+            >>> cert = self._new_certificate()
+            >>> assert cert['expires'] is None
+            >>> self.expires = '2020-01-01'
+            >>> self.renew()
+            >>> cert = self._new_certificate()
+            >>> assert cert['expires'] is not None
+        """
+        from ubelt import util_time
+        products = self._rectify_products(product)
+        now = _localnow()
+        expires = self._expires(now)
+        certificate = {
+            'timestamp': util_time.timestamp(now, precision=4),
+            'expires': None if expires is None else util_time.timestamp(expires, precision=4),
+            'product': products,
+        }
+        if products is not None:
+            if not all(map(exists, products)):
+                raise IOError(
+                    'The stamped product must exist: {}'.format(products))
+            product_info = self._product_info(products)
+            certificate.update(product_info)
+        return certificate
 
     def renew(self, cfgstr=None, product=None):
         """
@@ -830,20 +1041,18 @@ class CacheStamp(object):
         Returns:
             dict: certificate information
         """
-        from ubelt import util_time
-        products = self._rectify_products(product)
-        certificate = {
-            'timestamp': util_time.timestamp(),
-            'product': products,
-        }
-        if products is not None:
-            if not all(map(exists, products)):
-                raise IOError(
-                    'The stamped product must exist: {}'.format(products))
-            product_hash = self._product_file_hash(products)
-            certificate['product_file_hash'] = product_hash
+        certificate = self._new_certificate()
         self.cacher.save(certificate, cfgstr=cfgstr)
         return certificate
+
+
+def _localnow():
+    # Might be nice to have a util_time function add in tzinfo
+    import datetime as datetime_mod
+    import time
+    local_tzinfo = datetime_mod.timezone(datetime_mod.timedelta(seconds=-time.timezone))
+    now = datetime_mod.datetime.now().replace(tzinfo=local_tzinfo)
+    return now
 
 
 def _byte_str(num, unit='auto', precision=2):
