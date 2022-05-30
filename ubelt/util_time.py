@@ -175,7 +175,6 @@ def timeparse(stamp, allow_dateutil=True):
         >>> datetime = ub.timeparse(stamp)
         >>> assert ub.timestamp(datetime, precision=4) == stamp
 
-
     Example:
         >>> import ubelt as ub
         >>> # We should always be able to parse these
@@ -223,11 +222,6 @@ def timeparse(stamp, allow_dateutil=True):
         ti.reset('standard dateutil.isoparse').call(lambda: dateutil.parser.isoparse('2000-01-02T112358.12345+0500'))
         ti.reset('standard ubelt.timeparse').call(lambda: ub.timeparse('2000-01-02T112358.12345+0500'))
         ti.reset('standard datetime_cls.strptime').call(lambda: datetime_cls.strptime('2000-01-02T112358.12345+0500', '%Y-%m-%dT%H%M%S.%f%z'))
-
-    Ignore:
-        datetime_cls.strptime('2000-11-22T111111', '%Y-%m-%dT%H%M%S')
-        datetime_cls.strptime('2000-11-22T111111+0000', '%Y-%m-%dT%H%M%S%z')
-        datetime_cls.strptime('2000-11-22T111111Z', '%Y-%m-%dT%H%M%S%z')
     """
     import datetime as datetime_mod
     from datetime import datetime as datetime_cls
@@ -287,7 +281,7 @@ def timeparse(stamp, allow_dateutil=True):
         else:
             try:
                 from dateutil.parser import parse as du_parse
-            except ImportError:  # nocover
+            except (ModuleNotFoundError, ImportError):  # nocover
                 raise ValueError((
                     'Cannot parse timestamp. '
                     'Unknown string format: {!r}, and '
