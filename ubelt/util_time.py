@@ -120,7 +120,7 @@ def timestamp(datetime=None, precision=0, method='iso8601'):
         >>>     precision = params.get('precision', 0)
         >>>     stamp = ub.timestamp(datetime=dtime, precision=precision)
         >>>     recon = ub.timeparse(stamp)
-        >>>     alt = recon.strftime('%04Y-%m-%dT%H%M%S.%f%z')
+        >>>     alt = recon.strftime('%Y-%m-%dT%H%M%S.%f%z')
         >>>     print('---')
         >>>     print('params = {}'.format(ub.repr2(params, nl=1)))
         >>>     print(f'dtime={dtime}')
