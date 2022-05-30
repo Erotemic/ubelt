@@ -223,6 +223,11 @@ def timeparse(stamp, allow_dateutil=True):
         ti.reset('standard dateutil.isoparse').call(lambda: dateutil.parser.isoparse('2000-01-02T112358.12345+0500'))
         ti.reset('standard ubelt.timeparse').call(lambda: ub.timeparse('2000-01-02T112358.12345+0500'))
         ti.reset('standard datetime_cls.strptime').call(lambda: datetime_cls.strptime('2000-01-02T112358.12345+0500', '%Y-%m-%dT%H%M%S.%f%z'))
+
+    Ignore:
+        datetime_cls.strptime('2000-11-22T111111', '%Y-%m-%dT%H%M%S')
+        datetime_cls.strptime('2000-11-22T111111+0000', '%Y-%m-%dT%H%M%S%z')
+        datetime_cls.strptime('2000-11-22T111111Z', '%Y-%m-%dT%H%M%S%z')
     """
     import datetime as datetime_mod
     from datetime import datetime as datetime_cls
@@ -231,6 +236,7 @@ def timeparse(stamp, allow_dateutil=True):
     maybe_minimal = (
         len(stamp) >= 17 and 'T' in stamp[10:]
     )
+    fixed_stamp = stamp
     if maybe_minimal:
         # Note by default %z only handles the format `[+-]HHMM(SS(.ffffff))`
         # this means we have to handle the case where `[+-]HH` is given.
@@ -242,14 +248,21 @@ def timeparse(stamp, allow_dateutil=True):
         elif '+' in timetz_part[6:]:
             time_part, sign, tz_part = timetz_part.partition('+')
         else:
-            tz_part = None
+            # In 3.7 a Z suffix is handled correctly
+            # For 3.6 compatability, replace Z with +0000
+            if timetz_part.endswith('Z'):
+                time_part = timetz_part[:-1]
+                sign = '+'
+                tz_part = '0000'
+            else:
+                tz_part = None
 
         if tz_part is not None:
             if len(tz_part) == 1:
                 tz_part = '0{}00'.format(tz_part)
             elif len(tz_part) == 2:
                 tz_part = '{}00'.format(tz_part)
-            stamp = ''.join([date_part, 'T', time_part, sign, tz_part])
+            fixed_stamp = ''.join([date_part, 'T', time_part, sign, tz_part])
 
     if maybe_minimal:
         minimal_formats = [
@@ -258,7 +271,7 @@ def timeparse(stamp, allow_dateutil=True):
         ]
         for fmt in minimal_formats:
             try:
-                datetime = datetime_cls.strptime(stamp, fmt)
+                datetime = datetime_cls.strptime(fixed_stamp, fmt)
             except ValueError:
                 pass
             else:
@@ -274,7 +287,7 @@ def timeparse(stamp, allow_dateutil=True):
         else:
             try:
                 from dateutil.parser import parse as du_parse
-            except ImportError:
+            except ImportError:  # nocover
                 raise ValueError((
                     'Cannot parse timestamp. '
                     'Unknown string format: {!r}, and '
