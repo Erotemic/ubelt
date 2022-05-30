@@ -157,16 +157,16 @@ def timestamp(datetime=None, precision=0, method='iso8601'):
             utc_offset = str(tz_hour) if tz_hour < 0 else '+' + str(tz_hour)
         if precision > 0:
             fprecision = 6  # microseconds are padded to 6 decimals
-            if _needs_workaround39103():
+            if _needs_workaround39103():  # nocover
                 local_stamp = datetime.strftime('%04Y-%m-%dT%H%M%S.%f')
-            else:
+            else:  # nocover
                 local_stamp = datetime.strftime('%Y-%m-%dT%H%M%S.%f')
             ms_offset = len(local_stamp) - max(0, fprecision - precision)
             local_stamp = local_stamp[:ms_offset]
         else:
-            if _needs_workaround39103():
+            if _needs_workaround39103():  # nocover
                 local_stamp = datetime.strftime('%04Y-%m-%dT%H%M%S')
-            else:
+            else:  # nocover
                 local_stamp = datetime.strftime('%Y-%m-%dT%H%M%S')
         stamp = local_stamp + utc_offset
         return stamp
