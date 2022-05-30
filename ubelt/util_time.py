@@ -130,11 +130,24 @@ def timestamp(datetime=None, precision=0, method='iso8601'):
             utc_offset = str(tz_hour) if tz_hour < 0 else '+' + str(tz_hour)
         if precision > 0:
             fprecision = 6  # microseconds are padded to 6 decimals
+
+            # Workaround:
+            # Depending on the system C library, either %04Y or %Y wont work.
+            # Its unclear if there is a way to test for this beforehand.
+            # For now, just try it, see if it fails and then redo it.
+            # singer-python also had a similar issue:
+            # https://github.com/singer-io/singer-python/issues/86
+            # This is an actual Python bug:
+            # https://bugs.python.org/issue13305
             local_stamp = datetime.strftime('%04Y-%m-%dT%H%M%S.%f')
+            if local_stamp.startswith('4Y'):
+                local_stamp = datetime.strftime('%Y-%m-%dT%H%M%S.%f')
             ms_offset = len(local_stamp) - max(0, fprecision - precision)
             local_stamp = local_stamp[:ms_offset]
         else:
             local_stamp = datetime.strftime('%04Y-%m-%dT%H%M%S')
+            if local_stamp.startswith('4Y'):
+                local_stamp = datetime.strftime('%Y-%m-%dT%H%M%S')
         stamp = local_stamp + utc_offset
         return stamp
     else:
