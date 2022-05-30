@@ -106,9 +106,12 @@ def timestamp(datetime=None, precision=0, method='iso8601'):
         >>>     None,
         >>>     tzlocal()
         >>> ]
+        >>> # Note: there is a win32 bug here
+        >>> # https://bugs.python.org/issue37 that means we cant use
+        >>> # dates close to the epoch
         >>> datetime_list = [
-        >>>     datetime_cls.utcfromtimestamp(123456789.123456789),
-        >>>     datetime_cls.utcfromtimestamp(0),
+        >>>     datetime_cls.utcfromtimestamp(123456789.123456789 + 315360000),
+        >>>     datetime_cls.utcfromtimestamp(0 + 315360000),
         >>> ]
         >>> basis = {
         >>>     'precision': [0, 3, 9],
