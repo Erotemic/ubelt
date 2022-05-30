@@ -717,6 +717,12 @@ class CacheStamp(object):
     TODO:
         - [ ] expiration time delta or date time (also remember when renewed)
 
+        - [ ] optionally checking the hash of the product
+
+        - [ ] optionally checking a manually specified expected hash
+
+        - [ ] optionally checking the stamp time agrees with the product ctime
+
     Example:
         >>> import ubelt as ub
         >>> from os.path import join

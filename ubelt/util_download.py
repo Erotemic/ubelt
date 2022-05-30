@@ -71,7 +71,8 @@ def download(url, fpath=None, dpath=None, fname=None, hash_prefix=None,
             operations like the connection attempt.
 
         progkw (Dict | None):
-            if specified provides extra arguments to the progress iterator
+            if specified provides extra arguments to the progress iterator.
+            See :class:`ubelt.progiter.ProgIter` for available options.
 
     Returns:
         str | PathLike: fpath - path to the downloaded file.
@@ -274,7 +275,7 @@ def grabdata(url, fpath=None, dpath=None, fname=None, redo=False,
     data.
 
     Args:
-        url (str): url to the file to download
+        url (str): url of the file to download
 
         fpath (Optional[str | PathLike]):
             The full path to download the file to. If unspecified, the
@@ -384,6 +385,8 @@ def grabdata(url, fpath=None, dpath=None, fname=None, redo=False,
         needs_download = True
 
     if hash_prefix:
+        # TODO: We should be able to use CacheStamp to abstract a lot of
+        # this logic away. But first CacheStamp needs to implement its TODOs
         stamp_fpath, needs_download = _check_hash_stamp(
             fpath, hash_prefix, hasher, verbose, needs_download)
 
@@ -404,6 +407,9 @@ def grabdata(url, fpath=None, dpath=None, fname=None, redo=False,
 
 
 def _check_hash_stamp(fpath, hash_prefix, hasher, verbose, needs_download=False):
+    """
+    Check for re-download conditions
+    """
     if isinstance(hasher, str):
         hasher_name = hasher
     else:

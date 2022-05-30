@@ -8,6 +8,8 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ## Version 1.1.0 - Unreleased
 
 ### Added
+* New method: `ub.timeparse` can parse the result of `ub.timestamp` into a
+  datetime object. Can optionally use `dateutil.parser.parse` under the hood.
 * `ub.cmd` now has a `system` argument for modularity with `os.system`.
 * `ub.cmd` now accepts a `timeout` argument (tee support is pending).
 * `ub.JobPool` now contains a protected `_prog` variable allowing the user
