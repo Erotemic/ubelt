@@ -951,7 +951,10 @@ class CacheStamp(object):
         certificate = self._get_certificate(cfgstr=cfgstr)
         if certificate is None:
             # We don't have a certificate, so we are expired
-            return 'no_cert'
+            err = 'no_cert'
+            if self.cacher.verbose > 0:  # pragma: nobranch
+                print('[cacher] stamp expired {}'.format(err))
+            return err
 
         expires = certificate['expires']
         if expires is not None:
@@ -961,7 +964,10 @@ class CacheStamp(object):
             expires_abs = util_time.timeparse(expires)
             if  now >= expires_abs:
                 # We are expired
-                return 'expired_cert'
+                err = 'expired_cert'
+                if self.cacher.verbose > 0:  # pragma: nobranch
+                    print('[cacher] stamp expired {}'.format(err))
+                return err
 
         products = self._rectify_products(product)
         if products is None:
@@ -969,7 +975,10 @@ class CacheStamp(object):
             return False
         elif not all(map(exists, products)):
             # We are expired if the expected product does not exist
-            return 'missing_products'
+            err = 'missing_products'
+            if self.cacher.verbose > 0:  # pragma: nobranch
+                print('[cacher] stamp expired {}'.format(err))
+            return err
         else:
             # First test to see if the size or mtime of the files has changed
             # as a potentially quicker check. If sizes or mtimes do not exist
@@ -979,12 +988,18 @@ class CacheStamp(object):
             if sizes is not None and self.expire_checks['size']:
                 if sizes != product_file_stats['size']:
                     # The sizes are differnt, we are expired
-                    return  'size_diff'
+                    err =  'size_diff'
+                    if self.cacher.verbose > 0:  # pragma: nobranch
+                        print('[cacher] stamp expired {}'.format(err))
+                    return err
             mtimes = certificate.get('mtime', None)
             if mtimes is not None and self.expire_checks['mtime']:
                 if mtimes != product_file_stats['mtime']:
                     # The sizes are differnt, we are expired
-                    return 'mtime_diff'
+                    err = 'mtime_diff'
+                    if self.cacher.verbose > 0:  # pragma: nobranch
+                        print('[cacher] stamp expired {}'.format(err))
+                    return err
 
             err = self._check_certificate_hashes(certificate)
             if err:
@@ -999,7 +1014,10 @@ class CacheStamp(object):
                     print('invalid hash value (expected "{}", got "{}")'.format(
                         product_file_hash, certificate_hash))
                 # The hash is different, we are expired
-                return 'hash_diff'
+                err = 'hash_diff'
+                if self.cacher.verbose > 0:
+                    print('[cacher] stamp expired {}'.format(err))
+                return err
 
         # All tests passed, we are not expired
         return False
@@ -1013,7 +1031,8 @@ class CacheStamp(object):
                     if self.cacher.verbose > 0:
                         print('invalid hash prefix value (expected "{}", got "{}")'.format(
                             pref_hash, cert_hash))
-                    return 'hash_prefix_mismatch'
+                    err = 'hash_prefix_mismatch'
+                    return err
 
     def _expires(self, now=None):
         """

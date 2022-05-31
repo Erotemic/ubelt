@@ -387,104 +387,38 @@ def grabdata(url, fpath=None, dpath=None, fname=None, redo=False,
     # this is the key to working through the logic of the following checks
     needs_download = redo
 
-    if 1:
-        if hasher is not None:
-            if not isinstance(hasher, str):
-                from ubelt import _util_deprecated
-                _util_deprecated.schedule_deprecation2(
-                    migration='Pass hasher as a string, otherwise unexpected behavior can occur',
-                    name='hasher', type='grabdata arg',
-                    deprecate='1.1.0', error='1.3.0', remove='1.4.0')
-                hasher_name = hasher.name
-            else:
-                hasher_name = hasher
-            depends = hasher_name
+    if hasher is not None:
+        if not isinstance(hasher, str):
+            from ubelt import _util_deprecated
+            _util_deprecated.schedule_deprecation2(
+                migration='Pass hasher as a string, otherwise unexpected behavior can occur',
+                name='hasher', type='grabdata arg',
+                deprecate='1.1.0', error='1.3.0', remove='1.4.0')
+            hasher_name = hasher.name
         else:
-            depends = ''
-        # TODO: it would be nice to have better control over the name of the
-        # stamp. Specifically we have no control over the separator between
-        # fname, depends, and the extension.
-        stamp = CacheStamp(
-            fname + '.stamp', dpath, depends=depends, hasher=hasher,
-            ext='.json', enabled=not redo, product=fpath,
-            hash_prefix=hash_prefix, verbose=verbose
-        )
-        if stamp.expired():
-            try:
-                if not hash_prefix:
-                    raise Exception
-                # If an expected hash is specified and the file exists, but the
-                # stamp is invalid, try to simply compute the hash of the
-                # existing file instead of redownloading it. Redownload if this
-                # fails.
-                stamp.renew()
-            except Exception:
-                fpath = download(
-                    url, fpath, verbose=verbose, hash_prefix=hash_prefix,
-                    hasher=hasher, **download_kw)
-                stamp.renew()
-
-        return fpath
+            hasher_name = hasher
+        depends = hasher_name
     else:
-        # old logic
-        if not exists(fpath):
-            # always download if we are missing the file
-            needs_download = True
-
-        if hash_prefix:
-            # TODO: We should be able to use CacheStamp to abstract a lot of
-            # this logic away. But first CacheStamp needs to implement its TODOs
-            stamp_fpath, needs_download = _check_hash_stamp(
-                fpath, hash_prefix, hasher, verbose, needs_download)
-
-        if needs_download:
-            fpath = download(url, fpath, verbose=verbose,
-                             hash_prefix=hash_prefix, hasher=hasher,
-                             **download_kw)
-
-            if hash_prefix:
-                # If the file successfully downloaded then the hashes match.
-                # write out the expected prefix so we can check it later
-                with open(stamp_fpath, 'w') as file:
-                    file.write(hash_prefix)
-        else:
-            if verbose >= 2:
-                print('Already have file %s' % fpath)
+        depends = ''
+    # TODO: it would be nice to have better control over the name of the stamp.
+    # Specifically we have no control over the separator between fname,
+    # depends, and the extension.
+    stamp = CacheStamp(
+        fname + '.stamp', dpath, depends=depends, hasher=hasher,
+        ext='.json', enabled=not redo, product=fpath,
+        hash_prefix=hash_prefix, verbose=verbose
+    )
+    if stamp.expired():
+        try:
+            if not hash_prefix:
+                raise Exception
+            # If an expected hash is specified and the file exists, but the
+            # stamp is invalid, try to simply compute the hash of the existing
+            # file instead of redownloading it. Redownload if this fails.
+            stamp.renew()
+        except Exception:
+            fpath = download(
+                url, fpath, verbose=verbose, hash_prefix=hash_prefix,
+                hasher=hasher, **download_kw)
+            stamp.renew()
     return fpath
-
-
-def _check_hash_stamp(fpath, hash_prefix, hasher, verbose, needs_download=False):
-    """
-    Check for re-download conditions
-    """
-    hasher_name = hasher if isinstance(hasher, str) else hasher.name
-    stamp_fpath = '{}.{}.hash'.format(fpath, hasher_name)
-    # Force a re-download if the hash file does not exist or it does
-    # not match the expected hash
-    if exists(stamp_fpath):
-        with open(stamp_fpath, 'r') as file:
-            hashstr = file.read()
-        if not hashstr.startswith(hash_prefix):
-            if verbose:  # pragma: nobranch
-                print('invalid hash value (expected "{}", got "{}")'.format(
-                    hash_prefix, hashstr))
-            needs_download = True
-    elif exists(fpath):
-        # If the file exists, but the hash does not exist, simply compute the
-        # hash of the existing file instead of redownloading it.
-        # Redownload if this fails.
-        from ubelt import util_hash
-        hashstr = util_hash.hash_file(fpath, hasher=hasher)
-        if hashstr.startswith(hash_prefix):
-            # Write the missing stamp file if it matches
-            with open(stamp_fpath, 'w') as file:
-                file.write(hash_prefix)
-        else:
-            if verbose:  # pragma: nobranch
-                print('invalid hash value (expected "{}", got "{}")'.format(
-                    hash_prefix, hashstr))
-            needs_download = True
-    else:
-        needs_download = True
-
-    return stamp_fpath, needs_download

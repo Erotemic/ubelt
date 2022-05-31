@@ -145,6 +145,22 @@ def test_grabdata_cache():
 
 
 @pytest.mark.timeout(TIMEOUT)
+def test_grabdata_nohash():
+    """
+    Check where the url is downloaded to when fpath is not specified.
+    """
+    url = _demo_url()
+    dpath = ub.Path.appdir('ubelt/tests/test-grabdata-nohash').ensuredir()
+    fname = basename(url)
+    fpath = (dpath / fname).delete()
+    assert not fpath.exists()
+    ub.grabdata(url, fpath=fpath, hasher=None, verbose=10)
+    assert fpath.exists()
+    # Even without the hasher, if the size of the data changes at all
+    # we should be able to detect and correct it.
+
+
+@pytest.mark.timeout(TIMEOUT)
 def test_grabdata_url_only():
     """
     Check where the url is downloaded to when fpath is not specified.
