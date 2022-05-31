@@ -14,7 +14,7 @@ if it needs to.
 
 """
 from ubelt.util_const import NoParam
-from os.path import basename, join, exists, dirname
+from os.path import basename, join, exists, dirname, split
 import os
 
 
@@ -304,6 +304,8 @@ def grabdata(url, fpath=None, dpath=None, fname=None, redo=False,
         hasher (str | Hasher):
             If hash_prefix is specified, this indicates the hashing
             algorithm to apply to the file. Defaults to sha512.
+            NOTE: Only pass hasher as a string. Passing as an instance is
+            deprecated and can cause unexpected results.
 
         **download_kw: additional kwargs to pass to
             :func:`ubelt.util_download.download`
@@ -326,12 +328,13 @@ def grabdata(url, fpath=None, dpath=None, fname=None, redo=False,
     Example:
         >>> # xdoctest: +REQUIRES(--network)
         >>> import ubelt as ub
+        >>> import json
         >>> fname = 'foo.bar'
         >>> url = 'http://i.imgur.com/rqwaDag.png'
         >>> prefix1 = '944389a39dfb8fa9'
-        >>> fpath = ub.grabdata(url, fname=fname, hash_prefix=prefix1)
-        >>> stamp_fpath = fpath + '.sha512.hash'
-        >>> assert ub.readfrom(stamp_fpath) == prefix1
+        >>> fpath = ub.grabdata(url, fname=fname, hash_prefix=prefix1, verbose=3)
+        >>> stamp_fpath = ub.Path(fpath + '.stamp_sha512.json')
+        >>> assert json.loads(stamp_fpath.read_text())['hash'][0].startswith(prefix1)
         >>> # Check that the download doesn't happen again
         >>> fpath = ub.grabdata(url, fname=fname, hash_prefix=prefix1)
         >>> # todo: check file timestamps have not changed
@@ -344,7 +347,7 @@ def grabdata(url, fpath=None, dpath=None, fname=None, redo=False,
         >>> with open(stamp_fpath, 'w') as file:
         >>>     file.write('corrupt-stamp')
         >>> fpath = ub.grabdata(url, fname=fname, hash_prefix=prefix1)
-        >>> assert ub.readfrom(stamp_fpath) == prefix1
+        >>> assert json.loads(stamp_fpath.read_text())['hash'][0].startswith(prefix1)
         >>> #
         >>> # Check that a redownload occurs when the stamp is removed
         >>> ub.delete(stamp_fpath)
@@ -360,9 +363,10 @@ def grabdata(url, fpath=None, dpath=None, fname=None, redo=False,
         >>> url2 = 'http://i.imgur.com/rqwaDag.png'
         >>> prefix2 = '944389a39dfb8fa9'
         >>> fpath = ub.grabdata(url2, fname=fname, hash_prefix=prefix2)
-        >>> assert ub.readfrom(stamp_fpath) == prefix2
+        >>> assert json.loads(stamp_fpath.read_text())['hash'][0].startswith(prefix2)
     """
     from ubelt.util_platform import ensure_app_cache_dir
+    from ubelt.util_cache import CacheStamp
     if appname and dpath:
         raise ValueError('Cannot specify appname with dpath')
     if fpath and (dpath or fname or appname):
@@ -376,72 +380,45 @@ def grabdata(url, fpath=None, dpath=None, fname=None, redo=False,
             fname = basename(url)
         fpath = join(dpath, fname)
 
+    if dpath is None or fname is None:
+        dpath, fname = split(fpath)
+
     # note that needs_download is never set to false after it becomes true
     # this is the key to working through the logic of the following checks
     needs_download = redo
 
-    if not exists(fpath):
-        # always download if we are missing the file
-        needs_download = True
-
-    if hash_prefix:
-        # TODO: We should be able to use CacheStamp to abstract a lot of
-        # this logic away. But first CacheStamp needs to implement its TODOs
-        stamp_fpath, needs_download = _check_hash_stamp(
-            fpath, hash_prefix, hasher, verbose, needs_download)
-
-    if needs_download:
-        fpath = download(url, fpath, verbose=verbose,
-                         hash_prefix=hash_prefix, hasher=hasher,
-                         **download_kw)
-
-        if hash_prefix:
-            # If the file successfully downloaded then the hashes match.
-            # write out the expected prefix so we can check it later
-            with open(stamp_fpath, 'w') as file:
-                file.write(hash_prefix)
-    else:
-        if verbose >= 2:
-            print('Already have file %s' % fpath)
-    return fpath
-
-
-def _check_hash_stamp(fpath, hash_prefix, hasher, verbose, needs_download=False):
-    """
-    Check for re-download conditions
-    """
-    if isinstance(hasher, str):
-        hasher_name = hasher
-    else:
-        hasher_name = hasher.name
-
-    stamp_fpath = '{}.{}.hash'.format(fpath, hasher_name)
-    # Force a re-download if the hash file does not exist or it does
-    # not match the expected hash
-    if exists(stamp_fpath):
-        with open(stamp_fpath, 'r') as file:
-            hashstr = file.read()
-        if not hashstr.startswith(hash_prefix):
-            if verbose:  # pragma: nobranch
-                print('invalid hash value (expected "{}", got "{}")'.format(
-                    hash_prefix, hashstr))
-            needs_download = True
-    elif exists(fpath):
-        # If the file exists, but the hash does not exist, simply compute the
-        # hash of the existing file instead of redownloading it.
-        # Redownload if this fails.
-        from ubelt import util_hash
-        hashstr = util_hash.hash_file(fpath, hasher=hasher)
-        if hashstr.startswith(hash_prefix):
-            # Write the missing stamp file if it matches
-            with open(stamp_fpath, 'w') as file:
-                file.write(hash_prefix)
+    if hasher is not None:
+        if not isinstance(hasher, str):
+            from ubelt import _util_deprecated
+            _util_deprecated.schedule_deprecation2(
+                migration='Pass hasher as a string, otherwise unexpected behavior can occur',
+                name='hasher', type='grabdata arg',
+                deprecate='1.1.0', error='1.3.0', remove='1.4.0')
+            hasher_name = hasher.name
         else:
-            if verbose:  # pragma: nobranch
-                print('invalid hash value (expected "{}", got "{}")'.format(
-                    hash_prefix, hashstr))
-            needs_download = True
+            hasher_name = hasher
+        depends = hasher_name
     else:
-        needs_download = True
-
-    return stamp_fpath, needs_download
+        depends = ''
+    # TODO: it would be nice to have better control over the name of the stamp.
+    # Specifically we have no control over the separator between fname,
+    # depends, and the extension.
+    stamp = CacheStamp(
+        fname + '.stamp', dpath, depends=depends, hasher=hasher,
+        ext='.json', enabled=not redo, product=fpath,
+        hash_prefix=hash_prefix, verbose=verbose
+    )
+    if stamp.expired():
+        try:
+            if not hash_prefix:
+                raise Exception
+            # If an expected hash is specified and the file exists, but the
+            # stamp is invalid, try to simply compute the hash of the existing
+            # file instead of redownloading it. Redownload if this fails.
+            stamp.renew()
+        except Exception:
+            fpath = download(
+                url, fpath, verbose=verbose, hash_prefix=hash_prefix,
+                hasher=hasher, **download_kw)
+            stamp.renew()
+    return fpath

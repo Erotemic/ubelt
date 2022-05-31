@@ -130,11 +130,10 @@ Ubelt is small. Its top-level API is defined using roughly 40 lines:
     from ubelt.util_str import (codeblock, ensure_unicode, hzcat, indent,
                                 paragraph,)
     from ubelt.util_stream import (CaptureStdout, CaptureStream, TeeStringIO,)
-    from ubelt.util_time import (Timer, timestamp,)
+    from ubelt.util_time import (Timer, timeparse, timestamp,)
     from ubelt.util_zip import (split_archive, zopen,)
     from ubelt.orderedset import (OrderedSet, oset,)
     from ubelt.progiter import (ProgIter,)
-
 
 Installation:
 =============
@@ -753,12 +752,9 @@ decided if its best to statically copy them into ubelt or require on pypi to
 satisfy the dependency. There are some tools that are not used by default 
 unless you explicitly allow for them. 
 
-Code that is currently statically included:
+Code that is currently statically included (vendored):
 
 -  ProgIter - https://github.com/Erotemic/progiter
-
-Code that is currently linked via pypi:
-
 -  OrderedSet - https://github.com/LuminosoInsight/ordered-set
 
 
@@ -767,6 +763,7 @@ Code that is completely optional, and only used in specific cases:
 - Numpy - ``ub.repr2`` will format a numpy array nicely by default
 - xxhash - this can be specified as a hasher to ``ub.hash_data``
 - Pygments - used by the ``util_color`` module.
+- dateutil - used by the ``util_time`` module.
 
 
 Similar Tools
@@ -778,23 +775,23 @@ listed here.
 Libraries that contain a broad scope of utilities:
 
 * Boltons: https://github.com/mahmoud/boltons
-
+* Toolz: https://github.com/pytoolz/toolz
+* CyToolz: https://github.com/pytoolz/cytoolz/
 
 Libraries that contain a specific scope of utilities:
 
-* More-Itertools: https://pypi.org/project/more-itertools/
-* Toolz: https://github.com/pytoolz/toolz
-* CyToolz: https://github.com/pytoolz/cytoolz/
-* Funcy: https://github.com/Suor/funcy
-* Rich: https://github.com/willmcgugan/rich
+* More-Itertools: iteration tools: https://pypi.org/project/more-itertools/
+* Funcy: functional tools: https://github.com/Suor/funcy
+* Rich: pretty CLI displays - https://github.com/willmcgugan/rich
+* tempora: time related tools - https://github.com/jaraco/tempora
 
 
 Libraries that contain one specific data structure or utility:
 
-* Benedict: https://pypi.org/project/python-benedict/
-* tqdm: https://pypi.org/project/tqdm/
-* pooch: https://pypi.org/project/pooch/
-* timerit - https://github.com/Erotemic/timerit
+* Benedict: dictionary tools - https://pypi.org/project/python-benedict/
+* tqdm: progress bars - https://pypi.org/project/tqdm/
+* pooch: data downloading - https://pypi.org/project/pooch/
+* timerit: snippet timing for benchmarks - https://github.com/Erotemic/timerit
 
 
 Notes.

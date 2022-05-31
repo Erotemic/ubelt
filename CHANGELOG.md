@@ -22,8 +22,10 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 * `ub.Path.walk` to wrap `os.walk`. 
 * `ub.CacheStamp` will now check the mtime and size to quickly check if the products
   have changed and force expiration.
-* `ub.CacheStamp` now takes an expires keyword arg, which will keep the cache valid 
+* `ub.CacheStamp` now takes an `expires` keyword arg, which will keep the cache valid 
   only for the specified amount of time.
+* `ub.CacheStamp` now takes an `hash_prefix` keyword arg, which will check that it
+  matches the hash of the product.
 
 ### Changed
 * Register `pathlib.Path` with `ub.repr2`
@@ -31,12 +33,20 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 * Can now register global `ub.hash_data` extensions `ub.hash_data..register`
 * Removed deprecated arguments from `ubelt.cmd`.
 
+### Deprecated
+* `product` and `cfgstr` arguments to `CacheStamp.expired`
+* `product` and `cfgstr` arguments to `CacheStamp.renew`
+* Passing `hasher` as an instance to functions like `grabdata` or `CacheStamp`
+  can cause unexpected hashes as they may be used more than once.
+
 ### Fixed
 * `ub.hash_data` now recognizes subclasses of registered types.
 * `ub.timestamp()` has been outputting incorrect (negated) UTC offsets. This is now fixed.
 * `ub.timestamp()` now works correctly when the year has less than 4 digits.
 
 ### Changed
+* The `ubelt.util_download.grabdata` function now uses `CacheStamp` instead of
+  implementing its own stamp solution.
 * The `ubelt.util_hash.HashableExtensions` implementation was updated to use
   `functools.singledispatch` instead of the custom solution. This seems faster
   and should not have any API impact.
