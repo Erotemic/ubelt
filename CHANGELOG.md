@@ -36,6 +36,8 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ### Deprecated
 * `product` and `cfgstr` arguments to `CacheStamp.expired`
 * `product` and `cfgstr` arguments to `CacheStamp.renew`
+* Passing `hasher` as an instance to functions like `grabdata` or `CacheStamp`
+  can cause unexpected hashes as they may be used more than once.
 
 ### Fixed
 * `ub.hash_data` now recognizes subclasses of registered types.

@@ -304,6 +304,8 @@ def grabdata(url, fpath=None, dpath=None, fname=None, redo=False,
         hasher (str | Hasher):
             If hash_prefix is specified, this indicates the hashing
             algorithm to apply to the file. Defaults to sha512.
+            NOTE: Only pass hasher as a string. Passing as an instance is
+            deprecated and can cause unexpected results.
 
         **download_kw: additional kwargs to pass to
             :func:`ubelt.util_download.download`
@@ -387,7 +389,16 @@ def grabdata(url, fpath=None, dpath=None, fname=None, redo=False,
 
     if 1:
         if hasher is not None:
-            depends = hasher if isinstance(hasher, str) else hasher.name
+            if not isinstance(hasher, str):
+                from ubelt import _util_deprecated
+                _util_deprecated.schedule_deprecation2(
+                    migration='Pass hasher as a string, otherwise unexpected behavior can occur',
+                    name='hasher', type='grabdata arg',
+                    deprecate='1.1.0', error='1.3.0', remove='1.4.0')
+                hasher_name = hasher.name
+            else:
+                hasher_name = hasher
+            depends = hasher_name
         else:
             depends = ''
         # TODO: it would be nice to have better control over the name of the

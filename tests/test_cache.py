@@ -168,6 +168,41 @@ def test_cache_cfgstr():
         cacher1 = ub.Cacher('name', cfgstr='abc')
     assert cacher1.depends == 'abc'
 
+def test_cache_stamp_with_hash():
+    dpath = ub.Path.appdir('ubelt/tests/test-cache-stamp-with-hash')
+    for verbose in [0, 1]:
+        dpath.delete().ensuredir()
+        fpath = dpath / 'result.txt'
+        fpath.write_text('hello')
+        expected_hash = ub.hash_file(fpath, hasher='sha256')
+        unexpected_hash = 'fdsfdsafds'
+        stamp = ub.CacheStamp(
+            'foo.stamp', dpath=dpath, product=[fpath], depends='nodep',
+            hash_prefix=unexpected_hash, verbose=verbose, hasher='sha256', ext='.json')
+        assert not exists(stamp.cacher.get_fpath())
+        with pytest.raises(RuntimeError):
+            stamp.renew()
+        assert not exists(stamp.cacher.get_fpath())
+        # Fix the expected hash and now renew should work
+        stamp.hash_prefix = expected_hash
+        stamp.renew()
+        assert exists(stamp.cacher.get_fpath())
+        assert not stamp.expired()
+
+        # But change it back, and we will be expired
+        stamp.hash_prefix = unexpected_hash
+        assert stamp.expired() == 'hash_prefix_mismatch'
+
+        # Then change it back, and we are ok
+        stamp.hash_prefix = expected_hash
+        assert not stamp.expired()
+
+        # Corrupt the file and check for hash diff
+        # (need to disable mtime check for this to always work)
+        stamp.expire_checks['mtime'] = False
+        fpath.write_text('jello')
+        assert stamp.expired() == 'hash_diff'
+
 if __name__ == '__main__':
     r"""
     CommandLine:

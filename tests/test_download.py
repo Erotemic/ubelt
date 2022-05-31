@@ -307,7 +307,6 @@ def test_grabdata_hash_typo():
 
     """
     # url = 'https://www.dropbox.com/s/jl506apezj42zjz/ibeis-win32-setup-ymd_hm-2015-08-01_16-28.exe?dl=1'
-    import hashlib
     # url = 'http://i.imgur.com/rqwaDag.png'
     # if not ub.argflag('--network'):
     #     pytest.skip('not running network tests')
@@ -328,14 +327,14 @@ def test_grabdata_hash_typo():
         with pytest.raises(RuntimeError):
             got_fpath = ub.grabdata(
                 url, hash_prefix='e09c80c42fda5-typo-5f9d992e59ca6b3307d',
-                hasher=hashlib.md5(), verbose=verbose)
+                hasher='md5', verbose=verbose)
         assert fpath.exists()
         real_hash = ub.hash_file(fpath, hasher='md5')
 
         print('[STEP2] Fixing the typo recomputes the hash, but does not redownload the file')
         got_fpath = ub.grabdata(url,
                                 hash_prefix='e09c80c42fda55f9d992e59ca6b3307d',
-                                hasher=hashlib.md5(), verbose=verbose)
+                                hasher='md5', verbose=verbose)
         assert got_fpath == str(fpath)
         assert fpath.exists()
 
@@ -344,8 +343,20 @@ def test_grabdata_hash_typo():
         print('[STEP3] Deleting the hash file recomputes the hash')
         got_fpath = ub.grabdata(url, fpath=fpath,
                                 hash_prefix='e09c80c42fda55f9d992e59ca6b3307d',
-                                hasher=hashlib.md5(), verbose=verbose)
+                                hasher='md5', verbose=verbose)
         assert stamp_fpath.exists()
+
+
+def test_deprecated_grabdata_args():
+    with pytest.warns(DeprecationWarning):
+        import hashlib
+        url = _demo_url()
+        dpath = ub.ensure_app_cache_dir('ubelt')
+        fname = basename(url)
+        fpath = join(dpath, fname)
+        got_fpath = ub.grabdata(
+            url, hash_prefix='e09c80c42fda55f9d992e59ca6b3307d',
+            hasher=hashlib.md5())
 
 
 class SingletonTestServer(ub.NiceRepr):

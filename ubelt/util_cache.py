@@ -190,6 +190,8 @@ class Cacher(object):
                  ext='.pkl', meta=None, verbose=None, enabled=True, log=None,
                  hasher='sha1', protocol=-1, cfgstr=None, backend='auto'):
 
+        # TODO: maybe allow depends to be None, and just warn if it defaults to
+        # NoParam?
         if depends is None:
             depends = cfgstr
 
@@ -265,7 +267,7 @@ class Cacher(object):
 
         if cfgstr is None and self.enabled:
             warnings.warn(
-                'No cfgstr given in Cacher constructor or call for {}'.format(
+                'No depends given in Cacher constructor or call for {}'.format(
                     self.fname), UserWarning)
             cfgstr = ''
         if self.fname is None:
@@ -813,7 +815,15 @@ class CacheStamp(object):
         if self.hasher is None:
             hasher_name = None
         else:
-            hasher_name = self.hasher if isinstance(self.hasher, str) else self.hasher.name
+            if not isinstance(self.hasher, str):  # nocover
+                from ubelt import _util_deprecated
+                _util_deprecated.schedule_deprecation2(
+                    migration='Pass hasher as a string',
+                    name='hasher', type='CacheStamp arg',
+                    deprecate='1.1.0', error='1.3.0', remove='1.4.0')
+                hasher_name = self.hasher.name
+            else:
+                hasher_name = self.hasher
         product_info['hasher'] = hasher_name
         product_info['hash'] = self._product_file_hash(products)
         return product_info
@@ -920,14 +930,14 @@ class CacheStamp(object):
             >>> with pytest.raises(RuntimeError):
             ...     self.renew()
         """
-        if cfgstr is not None:
+        if cfgstr is not None:  # nocover
             from ubelt import _util_deprecated
             _util_deprecated.schedule_deprecation2(
                 migration='Do not pass cfgstr to expired. Use the class depends arg',
                 name='cfgstr', type='CacheStamp.expires arg',
                 deprecate='1.1.0', error='1.3.0', remove='1.4.0',
             )
-        if product is not None:
+        if product is not None:  # nocover
             from ubelt import _util_deprecated
             _util_deprecated.schedule_deprecation2(
                 migration='Do not pass product to expired. Use the class product arg',
@@ -1097,14 +1107,14 @@ class CacheStamp(object):
         Returns:
             dict: certificate information
         """
-        if cfgstr is not None:
+        if cfgstr is not None:  # nocover
             from ubelt import _util_deprecated
             _util_deprecated.schedule_deprecation2(
                 migration='Do not pass cfgstr to renew. Use the class depends arg',
                 name='cfgstr', type='CacheStamp.renew arg',
                 deprecate='1.1.0', error='1.3.0', remove='1.4.0',
             )
-        if product is not None:
+        if product is not None:  # nocover
             from ubelt import _util_deprecated
             _util_deprecated.schedule_deprecation2(
                 migration='Do not pass product to renew. Use the class product arg',
