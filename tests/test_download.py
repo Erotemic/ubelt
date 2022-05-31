@@ -158,6 +158,10 @@ def test_grabdata_nohash():
     assert fpath.exists()
     # Even without the hasher, if the size of the data changes at all
     # we should be able to detect and correct it.
+    orig_text = fpath.read_text()
+    fpath.write_text('corrupted')
+    ub.grabdata(url, fpath=fpath, hasher=None, verbose=10)
+    assert fpath.read_text() == orig_text
 
 
 @pytest.mark.timeout(TIMEOUT)
