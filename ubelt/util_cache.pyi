@@ -72,6 +72,9 @@ class CacheStamp:
     cacher: Any
     product: Any
     hasher: Any
+    expires: Any
+    hash_prefix: Any
+    expire_checks: Any
 
     def __init__(self,
                  fname,
@@ -82,7 +85,10 @@ class CacheStamp:
                  verbose: Any | None = ...,
                  enabled: bool = ...,
                  depends: Any | None = ...,
-                 meta: Any | None = ...) -> None:
+                 meta: Any | None = ...,
+                 hash_prefix: Any | None = ...,
+                 expires: Any | None = ...,
+                 ext: str = ...) -> None:
         ...
 
     def expired(
@@ -90,7 +96,7 @@ class CacheStamp:
         cfgstr: Union[str, None] = ...,
         product: Union[str, PathLike, Sequence[Union[str, PathLike]],
                        None] = ...
-    ) -> bool:
+    ) -> bool | str:
         ...
 
     def renew(self,
