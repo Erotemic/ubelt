@@ -199,7 +199,7 @@ def test_cache_stamp_with_hash():
 
         # Corrupt the file and check for hash diff
         # (need to disable mtime check for this to always work)
-        stamp.expire_checks['mtime'] = False
+        stamp._expire_checks['mtime'] = False
         fpath.write_text('jello')
         assert stamp.expired() == 'hash_diff'
 

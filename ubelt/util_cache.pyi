@@ -74,7 +74,6 @@ class CacheStamp:
     hasher: Any
     expires: Any
     hash_prefix: Any
-    expire_checks: Any
 
     def __init__(self,
                  fname,

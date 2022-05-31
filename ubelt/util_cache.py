@@ -773,7 +773,7 @@ class CacheStamp(object):
         # The user can modify these if they want to disable size or mtime
         # checks for expiration. Not sure if I want to expose it at the
         # top level API yet or not.
-        self.expire_checks = {
+        self._expire_checks = {
             'size': True,
             'mtime': True,
         }
@@ -985,7 +985,7 @@ class CacheStamp(object):
             # in the certificate (old ubelt version), then ignore them.
             product_file_stats = self._product_file_stats()
             sizes = certificate.get('size', None)
-            if sizes is not None and self.expire_checks['size']:
+            if sizes is not None and self._expire_checks['size']:
                 if sizes != product_file_stats['size']:
                     # The sizes are differnt, we are expired
                     err =  'size_diff'
@@ -993,7 +993,7 @@ class CacheStamp(object):
                         print('[cacher] stamp expired {}'.format(err))
                     return err
             mtimes = certificate.get('mtime', None)
-            if mtimes is not None and self.expire_checks['mtime']:
+            if mtimes is not None and self._expire_checks['mtime']:
                 if mtimes != product_file_stats['mtime']:
                     # The sizes are differnt, we are expired
                     err = 'mtime_diff'
