@@ -60,6 +60,7 @@ def test_timeparse_minimal():
         '2000-11-22T111111Z',
         '2000-11-22T111111+5',
         '2000-11-22T111111+0530',
+        '2000-11-22T111111',
     ]
     for stamp in good_stamps:
         result = ub.timeparse(stamp, allow_dateutil=0)

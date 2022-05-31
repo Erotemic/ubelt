@@ -295,6 +295,8 @@ def timeparse(stamp, allow_dateutil=True):
         minimal_formats = [
             '%Y-%m-%dT%H%M%S%z',
             '%Y-%m-%dT%H%M%S.%f%z',
+            '%Y-%m-%dT%H%M%S',
+            '%Y-%m-%dT%H%M%S.%f',
         ]
         for fmt in minimal_formats:
             try:
@@ -318,8 +320,8 @@ def timeparse(stamp, allow_dateutil=True):
                 raise ValueError((
                     'Cannot parse timestamp. '
                     'Unknown string format: {!r}, and '
-                    'dateutil is not installed').format(stamp))
-            else:
+                    'dateutil is not installed').format(stamp)) from None
+            else:  # nocover
                 datetime = du_parse(stamp)
 
     if datetime.tzinfo is None:

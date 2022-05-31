@@ -944,7 +944,7 @@ class CacheStamp(object):
             >>> dpath = ub.Path.appdir('ubelt/tests/cache-stamp-expires')
             >>> self = ub.CacheStamp('myname', depends='myconfig', dpath=dpath)
             >>> # Test str input
-            >>> self.expires = '2020-01-01'
+            >>> self.expires = '2020-01-01T000000Z'
             >>> assert self._expires().replace(tzinfo=None).isoformat() == '2020-01-01T00:00:00'
             >>> # Test datetime input
             >>> dt = ub.timeparse(ub.timestamp())
@@ -999,7 +999,7 @@ class CacheStamp(object):
             >>>                      product=product)
             >>> cert = self._new_certificate()
             >>> assert cert['expires'] is None
-            >>> self.expires = '2020-01-01'
+            >>> self.expires = '2020-01-01T000000'
             >>> self.renew()
             >>> cert = self._new_certificate()
             >>> assert cert['expires'] is not None
