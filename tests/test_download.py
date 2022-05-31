@@ -302,7 +302,8 @@ def test_grabdata_fpath_and_dpath():
 def test_grabdata_hash_typo():
     """
     CommandLine:
-        xdoctest ~/code/ubelt/ubelt/tests/test_download.py test_grabdata_hash_typo --network
+        pytest ~/code/ubelt/tests/test_download.py -k test_grabdata_hash_typo --network -s
+        xdoctest ~/code/ubelt/tests/test_download.py test_grabdata_hash_typo --network
 
     """
     # url = 'https://www.dropbox.com/s/jl506apezj42zjz/ibeis-win32-setup-ymd_hm-2015-08-01_16-28.exe?dl=1'
@@ -315,34 +316,36 @@ def test_grabdata_hash_typo():
 
     dpath = ub.ensure_app_cache_dir('ubelt')
     fname = basename(url)
-    fpath = join(dpath, fname)
+    fpath = ub.Path(join(dpath, fname))
+    stamp_fpath = fpath.augment(tail='.stamp_md5.json')
 
-    for verbose in [0]:
-        ub.delete(fpath)
-        ub.delete(fpath + '.md5.hash')
+    for verbose in [5]:
+        fpath.delete()
+        stamp_fpath.delete()
         assert not exists(fpath)
 
         print('[STEP1] Downloading file, but we have a typo in the hash')
         with pytest.raises(RuntimeError):
             got_fpath = ub.grabdata(
-                url, hash_prefix='545e3a51404f-typo-4e46aa65a70948e126',
+                url, hash_prefix='e09c80c42fda5-typo-5f9d992e59ca6b3307d',
                 hasher=hashlib.md5(), verbose=verbose)
-        assert exists(fpath)
+        assert fpath.exists()
+        real_hash = ub.hash_file(fpath, hasher='md5')
 
         print('[STEP2] Fixing the typo recomputes the hash, but does not redownload the file')
         got_fpath = ub.grabdata(url,
-                                hash_prefix='22d42eb002cefa81e9ad604ea57bc01d',
+                                hash_prefix='e09c80c42fda55f9d992e59ca6b3307d',
                                 hasher=hashlib.md5(), verbose=verbose)
-        assert got_fpath == fpath
-        assert exists(fpath)
+        assert got_fpath == str(fpath)
+        assert fpath.exists()
 
         # If we delete the .hash file we will simply recompute
-        ub.delete(fpath + '.md5.hash')
+        stamp_fpath.delete()
         print('[STEP3] Deleting the hash file recomputes the hash')
         got_fpath = ub.grabdata(url, fpath=fpath,
-                                hash_prefix='22d42eb002cefa81e9ad604ea57bc01d',
+                                hash_prefix='e09c80c42fda55f9d992e59ca6b3307d',
                                 hasher=hashlib.md5(), verbose=verbose)
-        assert exists(fpath + '.md5.hash')
+        assert stamp_fpath.exists()
 
 
 class SingletonTestServer(ub.NiceRepr):
@@ -504,8 +507,8 @@ def test_download_with_progkw():
 
 
 def test_grabdata():
-    # xdoctest: +REQUIRES(--network)
     import ubelt as ub
+    import json
     # fname = 'foo.bar'
     # url = 'http://i.imgur.com/rqwaDag.png'
     # prefix1 = '944389a39dfb8fa9'
@@ -513,8 +516,8 @@ def test_grabdata():
     url = _demo_url(128 * 11)
     prefix1 = 'b7fa848cd088ae842a89ef'
     fpath = ub.grabdata(url, fname=fname, hash_prefix=prefix1)
-    stamp_fpath = fpath + '.sha512.hash'
-    assert ub.readfrom(stamp_fpath) == prefix1
+    stamp_fpath = ub.Path(fpath + '.stamp_sha512.json')
+    assert json.loads(stamp_fpath.read_text())['hash'][0].startswith(prefix1)
     # Check that the download doesn't happen again
     fpath = ub.grabdata(url, fname=fname, hash_prefix=prefix1)
     # todo: check file timestamps have not changed
@@ -527,7 +530,7 @@ def test_grabdata():
     with open(stamp_fpath, 'w') as file:
         file.write('corrupt-stamp')
     fpath = ub.grabdata(url, fname=fname, hash_prefix=prefix1)
-    assert ub.readfrom(stamp_fpath) == prefix1
+    assert json.loads(stamp_fpath.read_text())['hash'][0].startswith(prefix1)
     #
     # Check that a redownload occurs when the stamp is removed
     ub.delete(stamp_fpath)
@@ -544,7 +547,7 @@ def test_grabdata():
     # prefix2 = '944389a39dfb8fa9'
     url2, prefix2 = url, prefix1
     fpath = ub.grabdata(url2, fname=fname, hash_prefix=prefix2)
-    assert ub.readfrom(stamp_fpath) == prefix2
+    assert json.loads(stamp_fpath.read_text())['hash'][0].startswith(prefix2)
 
 
 def test_grabdata_delete_hash_stamp():
@@ -553,7 +556,7 @@ def test_grabdata_delete_hash_stamp():
     url = _demo_url(128 * 12)
     prefix1 = '43f92597d7eb08b57c88b636'
     fpath = ub.grabdata(url, fname=fname, hash_prefix=prefix1)
-    stamp_fpath = fpath + '.sha512.hash'
+    stamp_fpath = ub.Path(fpath + '.stamp_sha512.json')
     ub.delete(stamp_fpath)
     fpath = ub.grabdata(url, fname=fname, hash_prefix=prefix1)
 

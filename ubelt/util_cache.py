@@ -712,6 +712,14 @@ class CacheStamp(object):
             as a str, this is interpreted as an absolute timestamp. Time delta
             offsets are coerced to absolute times at "renew" time.
 
+        hash_prefix (None | str | List[str]):
+            If specified, we verify that these match the hash(s) of the
+            product(s) in the stamp certificate.
+
+        ext (str, default='.pkl'):
+            File extension for the cache format. Can be ``'.pkl'`` or
+            ``'.json'``.
+
         cfgstr (str | None):
             DEPRECATED in favor or depends.
             Configuration associated with the stamped computation.  A common
@@ -751,13 +759,14 @@ class CacheStamp(object):
     """
     def __init__(self, fname, dpath, cfgstr=None, product=None, hasher='sha1',
                  verbose=None, enabled=True, depends=None, meta=None,
-                 expires=None):
+                 hash_prefix=None, expires=None, ext='.pkl'):
         self.cacher = Cacher(fname, cfgstr=cfgstr, dpath=dpath,
                              verbose=verbose, enabled=enabled, depends=depends,
-                             meta=meta)
+                             meta=meta, ext=ext)
         self.product = product
         self.hasher = hasher
         self.expires = expires
+        self.hash_prefix = hash_prefix
 
         # The user can modify these if they want to disable size or mtime
         # checks for expiration. Not sure if I want to expose it at the
@@ -771,7 +780,7 @@ class CacheStamp(object):
         """
         Returns the stamp certificate if it exists
         """
-        certificate = self.cacher.tryload(cfgstr=cfgstr)
+        certificate = self.cacher.tryload(cfgstr=cfgstr, on_error='clear')
         return certificate
 
     def _rectify_products(self, product=None):
@@ -785,6 +794,15 @@ class CacheStamp(object):
         products = list(map(util_path.Path, products))
         return products
 
+    def _rectify_hash_prefixes(self):
+        """ puts products in a normalized format """
+        hash_prefixes = self.hash_prefix
+        if hash_prefixes is None:
+            return None
+        if not isinstance(hash_prefixes, (list, tuple)):
+            hash_prefixes = [hash_prefixes]
+        return hash_prefixes
+
     def _product_info(self, product=None):
         """
         Compute summary info about each product on disk.
@@ -792,7 +810,12 @@ class CacheStamp(object):
         products = self._rectify_products(product)
         product_info = {}
         product_info.update(self._product_file_stats())
-        product_info['product_file_hash'] = self._product_file_hash(products)
+        if self.hasher is None:
+            hasher_name = None
+        else:
+            hasher_name = self.hasher if isinstance(self.hasher, str) else self.hasher.name
+        product_info['hasher'] = hasher_name
+        product_info['hash'] = self._product_file_hash(products)
         return product_info
 
     def _product_file_stats(self, product=None):
@@ -823,10 +846,12 @@ class CacheStamp(object):
         expiration criteria are met.
 
         Args:
-            cfgstr (str | None): overrides the instance-level cfgstr
+            cfgstr (str | None): overrides the instance-level cfgstr.
+                DEPRECATED do not use.
 
             product (str | PathLike | Sequence[str | PathLike] | None):
-                override the default product if specified
+                override the default product if specified.
+                DEPRECATED do not use.
 
         Returns:
             bool | str:
@@ -838,6 +863,7 @@ class CacheStamp(object):
         Example:
             >>> import ubelt as ub
             >>> import time
+            >>> import os
             >>> # Stamp the computation of expensive-to-compute.txt
             >>> dpath = ub.Path.appdir('ubelt/tests/cache-stamp-expired')
             >>> dpath.delete().ensuredir()
@@ -875,7 +901,7 @@ class CacheStamp(object):
             >>> assert self.expired() == 'size_diff'
             >>> self.renew()
             >>> assert not self.expired()
-            >>> # Finally, force a situation where the hash is the only thing
+            >>> # Force a situation where the hash is the only thing
             >>> # that saves us, write a different file with the same
             >>> # size and mtime.
             >>> orig_atime = fpath.stat().st_atime
@@ -883,13 +909,36 @@ class CacheStamp(object):
             >>> fpath.write_text('corrApted')
             >>> os.utime(fpath, (orig_atime, orig_mtime))
             >>> assert self.expired() == 'hash_diff'
+            >>> # Test what a wrong hash prefix causes expiration
+            >>> certificate = self.renew()
+            >>> self.hash_prefix = certificate['hash']
+            >>> self.expired()
+            >>> self.hash_prefix = ['bad', 'hashes']
+            >>> self.expired()
+            >>> # A bad hash will not allow us to renew
+            >>> import pytest
+            >>> with pytest.raises(RuntimeError):
+            ...     self.renew()
         """
+        if cfgstr is not None:
+            from ubelt import _util_deprecated
+            _util_deprecated.schedule_deprecation2(
+                migration='Do not pass cfgstr to expired. Use the class depends arg',
+                name='cfgstr', type='CacheStamp.expires arg',
+                deprecate='1.1.0', error='1.3.0', remove='1.4.0',
+            )
+        if product is not None:
+            from ubelt import _util_deprecated
+            _util_deprecated.schedule_deprecation2(
+                migration='Do not pass product to expired. Use the class product arg',
+                name='product', type='CacheStamp.expires arg',
+                deprecate='1.1.0', error='1.3.0', remove='1.4.0',
+            )
+
         if not self.cacher.enabled:
             return 'disabled'
 
-        products = self._rectify_products(product)
         certificate = self._get_certificate(cfgstr=cfgstr)
-
         if certificate is None:
             # We don't have a certificate, so we are expired
             return 'no_cert'
@@ -904,6 +953,7 @@ class CacheStamp(object):
                 # We are expired
                 return 'expired_cert'
 
+        products = self._rectify_products(product)
         if products is None:
             # We don't have a product to check, so assume not expired
             return False
@@ -926,16 +976,34 @@ class CacheStamp(object):
                     # The sizes are differnt, we are expired
                     return 'mtime_diff'
 
+            err = self._check_certificate_hashes(certificate)
+            if err:
+                return err
+
             # We are expired if the hash of the existing product data
             # does not match the expected hash in the certificate
+            certificate_hash = certificate.get('hash', None)
             product_file_hash = self._product_file_hash(products)
-            certificate_hash = certificate.get('product_file_hash', None)
             if product_file_hash != certificate_hash:
+                if self.cacher.verbose > 0:
+                    print('invalid hash value (expected "{}", got "{}")'.format(
+                        product_file_hash, certificate_hash))
                 # The hash is different, we are expired
                 return 'hash_diff'
 
         # All tests passed, we are not expired
         return False
+
+    def _check_certificate_hashes(self, certificate):
+        certificate_hash = certificate.get('hash', None)
+        hash_prefixes = self._rectify_hash_prefixes()
+        if hash_prefixes is not None:
+            for pref_hash, cert_hash in zip(hash_prefixes, certificate_hash):
+                if not cert_hash.startswith(pref_hash):
+                    if self.cacher.verbose > 0:
+                        print('invalid hash prefix value (expected "{}", got "{}")'.format(
+                            pref_hash, cert_hash))
+                    return 'hash_prefix_mismatch'
 
     def _expires(self, now=None):
         """
@@ -1011,7 +1079,7 @@ class CacheStamp(object):
         certificate = {
             'timestamp': util_time.timestamp(now, precision=4),
             'expires': None if expires is None else util_time.timestamp(expires, precision=4),
-            'product': products,
+            'product': None if products is None else [os.fspath(p) for p in products],
         }
         if products is not None:
             if not all(map(exists, products)):
@@ -1029,7 +1097,24 @@ class CacheStamp(object):
         Returns:
             dict: certificate information
         """
-        certificate = self._new_certificate()
+        if cfgstr is not None:
+            from ubelt import _util_deprecated
+            _util_deprecated.schedule_deprecation2(
+                migration='Do not pass cfgstr to renew. Use the class depends arg',
+                name='cfgstr', type='CacheStamp.renew arg',
+                deprecate='1.1.0', error='1.3.0', remove='1.4.0',
+            )
+        if product is not None:
+            from ubelt import _util_deprecated
+            _util_deprecated.schedule_deprecation2(
+                migration='Do not pass product to renew. Use the class product arg',
+                name='product', type='CacheStamp.renew arg',
+                deprecate='1.1.0', error='1.3.0', remove='1.4.0',
+            )
+        certificate = self._new_certificate(cfgstr, product)
+        err = self._check_certificate_hashes(certificate)
+        if err:
+            raise RuntimeError(err)
         self.cacher.save(certificate, cfgstr=cfgstr)
         return certificate
 
