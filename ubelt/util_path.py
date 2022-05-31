@@ -681,7 +681,7 @@ class Path(_PathBase):
                 if True starts yield nodes closer to the root first otherwise
                 yield nodes closer to the leaves first.
 
-            onerror (callable):
+            onerror (Callable[[OSError], None]):
                 A function with one argument of type OSError. If the
                 error is raised the walk is aborted, otherwise it continues.
 
@@ -689,7 +689,7 @@ class Path(_PathBase):
                 if True recurse into symbolic directory links
 
         Yields:
-            Tuple[Path, str, str]: the root, file names, and directory names
+            Tuple['Path', str, str]: the root, file names, and directory names
 
         Example:
             >>> import ubelt as ub

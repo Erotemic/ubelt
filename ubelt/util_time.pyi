@@ -9,6 +9,10 @@ def timestamp(datetime: Union[datetime.datetime, None] = ...,
     ...
 
 
+def timeparse(stamp: str, allow_dateutil: bool = ...) -> datetime.datetime:
+    ...
+
+
 class Timer:
     label: Any
     verbose: Any

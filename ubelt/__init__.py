@@ -126,7 +126,7 @@ from ubelt.util_platform import (DARWIN, LINUX, POSIX, WIN32,
 from ubelt.util_str import (codeblock, ensure_unicode, hzcat, indent,
                             paragraph,)
 from ubelt.util_stream import (CaptureStdout, CaptureStream, TeeStringIO,)
-from ubelt.util_time import (Timer, timestamp,)
+from ubelt.util_time import (Timer, timeparse, timestamp,)
 from ubelt.util_zip import (split_archive, zopen,)
 from ubelt.orderedset import (OrderedSet, oset,)
 from ubelt.progiter import (ProgIter,)
@@ -154,9 +154,9 @@ __all__ = ['AutoDict', 'AutoOrderedDict', 'CacheStamp', 'Cacher',
            'platform_cache_dir', 'platform_config_dir', 'platform_data_dir',
            'progiter', 'readfrom', 'repr2', 'shrinkuser', 'sorted_keys',
            'sorted_vals', 'split_archive', 'split_modpath', 'symlink', 'take',
-           'timestamp', 'touch', 'unique', 'unique_flags', 'userhome',
-           'util_arg', 'util_cache', 'util_cmd', 'util_colors', 'util_const',
-           'util_dict', 'util_download', 'util_download_manager',
+           'timeparse', 'timestamp', 'touch', 'unique', 'unique_flags',
+           'userhome', 'util_arg', 'util_cache', 'util_cmd', 'util_colors',
+           'util_const', 'util_dict', 'util_download', 'util_download_manager',
            'util_format', 'util_func', 'util_futures', 'util_hash',
            'util_import', 'util_indexable', 'util_io', 'util_links',
            'util_list', 'util_memoize', 'util_mixins', 'util_path',

@@ -305,6 +305,13 @@ class ExtendedStubGenerator(StubGenerator):
             if 'concurrent.futures.Future' in info['type']:
                 self.add_import_line('import concurrent.futures\n')
 
+            if info['type'].startswith('callable'):
+                # TODO: generalize, allow the "callable" func to be transformed
+                # into the type if given in the docstring
+                self.add_typing_import('Callable')
+                info['type'] = info['type'].replace('callable', 'Callable')
+                self.add_import_line('from typing import {}\n'.format(typing_arg))
+
         name_to_parsed_docstr_info = {}
         return_parsed_docstr_info = None
         fullname = o.name
