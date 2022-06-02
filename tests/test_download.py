@@ -540,11 +540,12 @@ def test_download_with_progkw():
 def test_grabdata():
     import ubelt as ub
     import json
+    import time
     # fname = 'foo.bar'
     # url = 'http://i.imgur.com/rqwaDag.png'
     # prefix1 = '944389a39dfb8fa9'
-    url = _demo_url(128 * 128)
-    prefix1 = 'b55c662adf2884671de760'
+    url = _demo_url(128 * 11)
+    prefix1 = 'b7fa848cd088ae842a89'
     fname = 'foo2.bar'
     #
     print('1. Download the file once')
@@ -559,26 +560,21 @@ def test_grabdata():
     assert stat0 == stat1, 'the file should not be modified'
     #
     print('3. Set redo=True, which should force a redownload')
-    fpath = ub.grabdata(url, fname=fname, hash_prefix=prefix1, redo=True,
-                        hasher='sha512')
-    stat2 = ub.Path(fpath).stat()
-    # Note: the precision of mtime is too low for this test work reliably
-    # https://apenwarr.ca/log/20181113
-    # https://web.archive.org/web/20201122021820/https://apenwarr.ca/log/20181113
-    try:
-        assert stat2 != stat1, 'the file stat should be modified'
-    except AssertionError:
-        # If the test fails, wait and try once more. This should be more than
-        # enough precision.
-        import time
-        print('3.5. Sometimes the redownload happens so fast we need to '
-              'wait to notice the file is actually different')
-        time.sleep(1.1)
+    num_tries = 10
+    for _ in range(num_tries):
         fpath = ub.grabdata(url, fname=fname, hash_prefix=prefix1, redo=True,
                             hasher='sha512')
         stat2 = ub.Path(fpath).stat()
-        assert stat2 != stat1, (
-            'the file stat should be modified, especially after waiting 0.1s!')
+        # Note: the precision of mtime is too low for this test work reliably
+        # https://apenwarr.ca/log/20181113
+        if stat2 != stat1:
+            break
+        print('... Sometimes the redownload happens so fast we need to '
+              'wait to notice the file is actually different')
+        time.sleep(0.1)
+    else:
+        raise AssertionError(
+            'the file stat should be modified, we waited over 1s.')
     #
     print('4. Check that a redownload occurs when the stamp is changed')
     stamp_fpath.write_text('corrupt-stamp')
