@@ -543,32 +543,47 @@ def test_grabdata():
     # fname = 'foo.bar'
     # url = 'http://i.imgur.com/rqwaDag.png'
     # prefix1 = '944389a39dfb8fa9'
-    url = _demo_url(128 * 11)
-    prefix1 = 'b7fa848cd088ae842a89ef'
+    url = _demo_url(128 * 128)
+    prefix1 = 'b55c662adf2884671de760'
     fname = 'foo2.bar'
+    #
+    print('1. Download the file once')
     fpath = ub.grabdata(url, fname=fname, hash_prefix=prefix1, hasher='sha512')
     stat0 = ub.Path(fpath).stat()
     stamp_fpath = ub.Path(fpath).augment(tail='.stamp_sha512.json')
     assert json.loads(stamp_fpath.read_text())['hash'][0].startswith(prefix1)
-    # Check that the download doesn't happen again
+    #
+    print("2. Rerun and check that the download doesn't happen again")
     fpath = ub.grabdata(url, fname=fname, hash_prefix=prefix1)
     stat1 = ub.Path(fpath).stat()
-    # check that the file has not been modified
-    assert stat0 == stat1
+    assert stat0 == stat1, 'the file should not be modified'
     #
-    # Check redo works with hash
+    print('3. Set redo=True, which should force a redownload')
     fpath = ub.grabdata(url, fname=fname, hash_prefix=prefix1, redo=True,
                         hasher='sha512')
     stat2 = ub.Path(fpath).stat()
-    # check that the file has been modified
-    assert stat2 != stat1
+    # Note: the precision of mtime is too low for this test work reliably
+    # https://apenwarr.ca/log/20181113
+    # https://web.archive.org/web/20201122021820/https://apenwarr.ca/log/20181113
+    try:
+        assert stat2 != stat1, 'the file stat should be modified'
+    except AssertionError:
+        # If the test fails, wait and try once more. This should be more than
+        # enough precision.
+        import time
+        time.sleep(0.1)
+        fpath = ub.grabdata(url, fname=fname, hash_prefix=prefix1, redo=True,
+                            hasher='sha512')
+        stat2 = ub.Path(fpath).stat()
+        assert stat2 != stat1, (
+            'the file stat should be modified, especially after waiting 0.1s!')
     #
-    # Check that a redownload occurs when the stamp is changed
+    print('4. Check that a redownload occurs when the stamp is changed')
     stamp_fpath.write_text('corrupt-stamp')
     fpath = ub.grabdata(url, fname=fname, hash_prefix=prefix1, hasher='sha512')
     assert json.loads(stamp_fpath.read_text())['hash'][0].startswith(prefix1)
     #
-    # Check that a redownload occurs when the stamp is removed
+    print('5. Check that a redownload occurs when the stamp is removed')
     ub.delete(stamp_fpath)
     fpath = ub.Path(fpath)
     fpath.write_text('corrupt-stamp')
