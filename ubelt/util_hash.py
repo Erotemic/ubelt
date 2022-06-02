@@ -29,8 +29,8 @@ Example:
     >>>     'param4': ('str', 4.2),
     >>> }.items()))
     >>> # hash_data can hash any ordered builtin object
-    >>> ub.hash_data(data, convert=False, hasher='sha512')
-    2ff39d0ecbf6ecc740ca7d...
+    >>> ub.hash_data(data, hasher='sha256')
+    0b101481e4b894ddf6de57...
 
 Example:
     >>> import ubelt as ub
@@ -1121,21 +1121,18 @@ def hash_file(fpath, blocksize=1048576, stride=1, maxbytes=None,
     Example:
         >>> import ubelt as ub
         >>> from os.path import join
-        >>> fpath = join(ub.ensure_app_cache_dir('ubelt'), 'tmp.txt')
-        >>> ub.writeto(fpath, 'foobar')
+        >>> dpath = ub.Path.appdir('ubelt/tests/test-hash').ensuredir()
+        >>> fpath = dpath / 'tmp1.txt'
+        >>> fpath.write_text('foobar')
         >>> print(ub.hash_file(fpath, hasher='sha1', base='hex'))
         8843d7f92416211de9ebb963ff4ce28125932878
 
     Example:
         >>> import ubelt as ub
-        >>> from os.path import join
-        >>> fpath = join(ub.ensure_app_cache_dir('ubelt'), 'tmp.txt')
-        >>> ub.writeto(fpath, 'foobar')
-        >>> print(ub.hash_file(fpath, hasher='sha1', base='hex', maxbytes=1000))
-        8843d7f92416211de9ebb963ff4ce28125932878
-
+        >>> dpath = ub.Path.appdir('ubelt/tests/test-hash').ensuredir()
+        >>> fpath = dpath / 'tmp2.txt'
         >>> # We have the ability to only hash at most ``maxbytes`` in a file
-        >>> ub.writeto(fpath, 'abcdefghijklmnop')
+        >>> fpath.write_text('abcdefghijklmnop')
         >>> h0 = ub.hash_file(fpath, hasher='sha1', base='hex', maxbytes=11, blocksize=3)
         >>> h1 = ub.hash_file(fpath, hasher='sha1', base='hex', maxbytes=32, blocksize=3)
         >>> h2 = ub.hash_file(fpath, hasher='sha1', base='hex', maxbytes=32, blocksize=32)
@@ -1157,7 +1154,8 @@ def hash_file(fpath, blocksize=1048576, stride=1, maxbytes=None,
     Example:
         >>> import ubelt as ub
         >>> from os.path import join
-        >>> fpath = ub.touch(join(ub.ensure_app_cache_dir('ubelt'), 'empty_file'))
+        >>> dpath = ub.ensure_app_cache_dir('ubelt/tests/test-hash')
+        >>> fpath = ub.touch(join(dpath, 'empty_file'))
         >>> # Test that the output is the same as sha1sum executable
         >>> if ub.find_exe('sha1sum'):
         >>>     want = ub.cmd(['sha1sum', fpath], verbose=2)['out'].split(' ')[0]

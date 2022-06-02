@@ -39,8 +39,8 @@ def test_cache_stamp_corrupt_product_nohasher():
     # Disable the new (as of 1.1.0) size and mtime checks
     # note: as of version 1.1.0 we also have to disable the new size and
     # mtime checks to get a non-robust mode.
-    self.expire_checks['size'] = False
-    self.expire_checks['mtime'] = False
+    self._expire_checks['size'] = False
+    self._expire_checks['mtime'] = False
     if self.expired():
         ub.writeto(product, 'very expensive')
         self.renew()

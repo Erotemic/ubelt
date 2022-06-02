@@ -145,7 +145,7 @@ class chunks(object):
         >>>         assert kw['nchunks'] == row['nchunks']
         >>>     row.update(chunk_iter.__dict__)
         >>>     rows.append(row)
-        >>> # xdoctest: +REQUIRES(module:pandas)
+        >>> # xdoctest: +SKIP
         >>> import pandas as pd
         >>> df = pd.DataFrame(rows)
         >>> for _, subdf in df.groupby('chunker'):

@@ -393,15 +393,25 @@ def dict_union(*args):
     """
     Dictionary set extension for ``set.union``
 
-    Combines the disjoint keys in multiple dictionaries. For intersecting keys,
-    dictionaries towards the end of the sequence are given precedence.
+    Combines items with from multiple dictionaries.  For items with
+    intersecting keys, dictionaries towards the end of the sequence are given
+    precedence.
 
     Args:
-        *args (List[Dict]) : a sequence of dictionaries
+        *args (List[Dict]) : A sequence of dictionaries.
+            Values are taken from the last
 
     Returns:
         Dict | OrderedDict :
             OrderedDict if the first argument is an OrderedDict, otherwise dict
+
+    Notes:
+        In Python 3.8+, the bitwise or operator "|" operator performs a similar
+        operation, but as of 2022-06-01 there is still no public method for
+        dictionary union (or any other dictionary set operator).
+
+    References:
+        https://stackoverflow.com/questions/38987/merge-two-dict
 
     SeeAlso:
         :func:`collections.ChainMap` - a standard python builtin data structure

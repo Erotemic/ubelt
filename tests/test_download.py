@@ -540,45 +540,78 @@ def test_download_with_progkw():
 def test_grabdata():
     import ubelt as ub
     import json
+    import time
     # fname = 'foo.bar'
     # url = 'http://i.imgur.com/rqwaDag.png'
     # prefix1 = '944389a39dfb8fa9'
-    fname = 'foo2.bar'
     url = _demo_url(128 * 11)
-    prefix1 = 'b7fa848cd088ae842a89ef'
-    fpath = ub.grabdata(url, fname=fname, hash_prefix=prefix1)
-    stamp_fpath = ub.Path(fpath + '.stamp_sha512.json')
-    assert json.loads(stamp_fpath.read_text())['hash'][0].startswith(prefix1)
-    # Check that the download doesn't happen again
-    fpath = ub.grabdata(url, fname=fname, hash_prefix=prefix1)
-    # todo: check file timestamps have not changed
+    prefix1 = 'b7fa848cd088ae842a89'
+    fname = 'foo2.bar'
     #
-    # Check redo works with hash
-    fpath = ub.grabdata(url, fname=fname, hash_prefix=prefix1, redo=True)
-    # todo: check file timestamps have changed
-    #
-    # Check that a redownload occurs when the stamp is changed
-    with open(stamp_fpath, 'w') as file:
-        file.write('corrupt-stamp')
-    fpath = ub.grabdata(url, fname=fname, hash_prefix=prefix1)
+    print('1. Download the file once')
+    fpath = ub.grabdata(url, fname=fname, hash_prefix=prefix1, hasher='sha512')
+    stat0 = ub.Path(fpath).stat()
+    stamp_fpath = ub.Path(fpath).augment(tail='.stamp_sha512.json')
     assert json.loads(stamp_fpath.read_text())['hash'][0].startswith(prefix1)
     #
-    # Check that a redownload occurs when the stamp is removed
+    print("2. Rerun and check that the download doesn't happen again")
+    fpath = ub.grabdata(url, fname=fname, hash_prefix=prefix1)
+    stat1 = ub.Path(fpath).stat()
+    assert stat0 == stat1, 'the file should not be modified'
+    #
+    print('3. Set redo=True, which should force a redownload')
+    num_tries = 10
+    for _ in range(num_tries):
+        fpath = ub.grabdata(url, fname=fname, hash_prefix=prefix1, redo=True,
+                            hasher='sha512')
+        stat2 = ub.Path(fpath).stat()
+        # Note: the precision of mtime is too low for this test work reliably
+        # https://apenwarr.ca/log/20181113
+        if stat2 != stat1:
+            break
+        print('... Sometimes the redownload happens so fast we need to '
+              'wait to notice the file is actually different')
+        time.sleep(0.1)
+    else:
+        raise AssertionError(
+            'the file stat should be modified, we waited over 1s.')
+    #
+    print('4. Check that a redownload occurs when the stamp is changed')
+    stamp_fpath.write_text('corrupt-stamp')
+    fpath = ub.grabdata(url, fname=fname, hash_prefix=prefix1, hasher='sha512')
+    assert json.loads(stamp_fpath.read_text())['hash'][0].startswith(prefix1)
+    #
+    print('5. Check that a redownload occurs when the stamp is removed')
     ub.delete(stamp_fpath)
-    with open(fpath, 'w') as file:
-        file.write('corrupt-data')
+    fpath = ub.Path(fpath)
+    fpath.write_text('corrupt-stamp')
     assert not ub.hash_file(fpath, base='hex', hasher='sha512').startswith(prefix1)
-    fpath = ub.grabdata(url, fname=fname, hash_prefix=prefix1)
+    fpath = ub.grabdata(url, fname=fname, hash_prefix=prefix1, hasher='sha512')
     assert ub.hash_file(fpath, base='hex', hasher='sha512').startswith(prefix1)
-    #
-    # Check that requesting new data causes redownload
-    #url2 = 'https://data.kitware.com/api/v1/item/5b4039308d777f2e6225994c/download'
-    #prefix2 = 'c98a46cb31205cf'  # hack SSL
-    # url2 = 'http://i.imgur.com/rqwaDag.png'
-    # prefix2 = '944389a39dfb8fa9'
-    url2, prefix2 = url, prefix1
-    fpath = ub.grabdata(url2, fname=fname, hash_prefix=prefix2)
-    assert json.loads(stamp_fpath.read_text())['hash'][0].startswith(prefix2)
+
+
+def test_grabdata_same_fpath_different_url():
+    url1 = _demo_url(128 * 11)
+    url2 = _demo_url(128 * 12)
+    url3 = _demo_url(128 * 13)
+    prefix1 = 'b7fa848cd088ae842a89ef'
+    prefix2 = '43f92597d7eb08b57c88b6'
+    # prefix3 = ''
+    fname = 'foobar'
+    fpath1 = ub.grabdata(url1, fname=fname, hash_prefix=prefix1, hasher='sha512', verbose=100)
+    stat1 = ub.Path(fpath1).stat()
+    # Should requesting a new url, even with the same fpath, cause redownload?
+    fpath2 = ub.grabdata(url2, fname=fname, hash_prefix=None, hasher='sha512', verbose=100)
+    stat2 = ub.Path(fpath2).stat()
+    fpath3 = ub.grabdata(url3, fname=fname, hash_prefix=None, hasher='sha512', verbose=100)
+    stat3 = ub.Path(fpath3).stat()
+    assert stat1 != stat2, 'the stats will change because we did not specify a hash prefix'
+    assert stat2 == stat3, 'we may change this behavior in the future'
+    fpath3 = ub.grabdata(url2, fname=fname, hash_prefix=prefix2, hasher='sha512', verbose=100)
+    stat3 = ub.Path(fpath3).stat()
+    assert stat1 != stat3, 'if we do specify a new hash, we should get a new download'
+    assert url1 != url2, 'urls should be different'
+    assert ub.allsame([fpath1, fpath2, fpath3]), 'all fpaths should be the same'
 
 
 def test_grabdata_delete_hash_stamp():
