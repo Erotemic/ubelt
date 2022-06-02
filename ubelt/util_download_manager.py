@@ -29,7 +29,7 @@ class DownloadManager:
         >>> # Does not require network
         >>> import ubelt as ub
         >>> manager = ub.DownloadManager()
-        >>> for i in range(1000):
+        >>> for i in range(100):
         ...     job = manager.submit('localhost/might-not-exist-i-{}'.format(i))
         >>> file_paths = []
         >>> for job in manager.as_completed(prog=True):
