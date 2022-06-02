@@ -168,6 +168,7 @@ def test_cache_cfgstr():
         cacher1 = ub.Cacher('name', cfgstr='abc')
     assert cacher1.depends == 'abc'
 
+
 def test_cache_stamp_with_hash():
     dpath = ub.Path.appdir('ubelt/tests/test-cache-stamp-with-hash')
     for verbose in [0, 1]:
@@ -202,6 +203,10 @@ def test_cache_stamp_with_hash():
         stamp._expire_checks['mtime'] = False
         fpath.write_text('jello')
         assert stamp.expired() == 'hash_diff'
+
+        # Disabling the hash check makes us rely on size / mtime, but is faster
+        stamp._expire_checks['hash'] = False
+        assert not stamp.expired()
 
 if __name__ == '__main__':
     r"""
