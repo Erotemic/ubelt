@@ -571,7 +571,9 @@ def test_grabdata():
         # If the test fails, wait and try once more. This should be more than
         # enough precision.
         import time
-        time.sleep(0.1)
+        print('3.5. Sometimes the redownload happens so fast we need to '
+              'wait to notice the file is actually different')
+        time.sleep(1.1)
         fpath = ub.grabdata(url, fname=fname, hash_prefix=prefix1, redo=True,
                             hasher='sha512')
         stat2 = ub.Path(fpath).stat()
