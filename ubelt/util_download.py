@@ -383,10 +383,6 @@ def grabdata(url, fpath=None, dpath=None, fname=None, redo=False,
     if dpath is None or fname is None:
         dpath, fname = split(fpath)
 
-    # note that needs_download is never set to false after it becomes true
-    # this is the key to working through the logic of the following checks
-    needs_download = redo
-
     if hasher is not None:
         if not isinstance(hasher, str):
             from ubelt import _util_deprecated
@@ -397,26 +393,38 @@ def grabdata(url, fpath=None, dpath=None, fname=None, redo=False,
             hasher_name = hasher.name
         else:
             hasher_name = hasher
+    else:
+        hasher_name = None
+
+    if hasher_name is not None and hash_prefix:
         depends = hasher_name
     else:
         depends = ''
+        # If the hash isn't specified, should we force download a different url
+        # to the same file?
+        # depends = url
+
     # TODO: it would be nice to have better control over the name of the stamp.
     # Specifically we have no control over the separator between fname,
     # depends, and the extension.
     stamp = CacheStamp(
         fname + '.stamp', dpath, depends=depends, hasher=hasher,
-        ext='.json', enabled=not redo, product=fpath,
+        ext='.json', product=fpath,
         hash_prefix=hash_prefix, verbose=verbose
     )
-    if stamp.expired():
+    if redo or stamp.expired():
         try:
-            if not hash_prefix:
+            if not hash_prefix or redo:
                 raise Exception
             # If an expected hash is specified and the file exists, but the
             # stamp is invalid, try to simply compute the hash of the existing
             # file instead of redownloading it. Redownload if this fails.
             stamp.renew()
         except Exception:
+            needs_download = 1
+        else:
+            needs_download = 0
+        if needs_download:
             fpath = download(
                 url, fpath, verbose=verbose, hash_prefix=hash_prefix,
                 hasher=hasher, **download_kw)
