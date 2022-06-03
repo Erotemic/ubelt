@@ -150,31 +150,6 @@ Note that our distributions on pypi are signed with GPG. The signing public key
 is ``D297D757``; this should agree with the value in `dev/public_gpg_key`.
 
 
-History:
-========
-
-Ubelt is a migration of the most useful parts of
-``utool``\ (https://github.com/Erotemic/utool) into a standalone module
-with minimal dependencies.
-
-The ``utool`` library contains a number of useful utility functions, but it
-also contained non-useful functions, as well as the kitchen sink. A number of
-the functions were too specific or not well documented. The ``ubelt`` is a port
-of the simplest and most useful parts of ``utool``.
-
-Note that there are other cool things in ``utool`` that are not in ``ubelt``.
-Notably, the doctest harness ultimately became `xdoctest <https://github.com/Erotemic/xdoctest>`__. 
-Code introspection and dynamic analysis tools were ported to `xinspect <https://github.com/Erotemic/xinspect>`__.
-The more IPython-y tools were ported to `xdev <https://github.com/Erotemic/xdev>`__.
-Parts of it made their way into `scriptconfig <https://gitlab.kitware.com/utils/scriptconfig>`__.
-The init-file generation was moved to `mkinit <https://github.com/Erotemic/mkinit>`__.
-Some vim and system-y things can be found in `vimtk <https://github.com/Erotemic/vimtk>`__.
-
-Development on ubelt started 2017-01-30 and development of utool mostly stopped
-on utool was stopped later that year, but recieved patches until about 2020.
-Ubelt achived 1.0.0 and removed support for Python 2.7 and 3.5 on 2022-01-07.
-
-
 Function Usefulness 
 ===================
 
@@ -327,22 +302,75 @@ We also have a Jupyter notebook: https://github.com/Erotemic/ubelt/blob/main/doc
 
 Here are some examples of some features inside ``ubelt``
 
+Hashing
+-------
 
-Timing
-------
-
-Quickly time a single line.
+The ``ub.hash_data`` constructs a hash for common Python nested data
+structures. Extensions to allow it to hash custom types can be registered.  By
+default it handles lists, dicts, sets, slices, uuids, and numpy arrays.
 
 .. code:: python
 
-    >>> import math
     >>> import ubelt as ub
-    >>> timer = ub.Timer('Timer demo!', verbose=1)
-    >>> with timer:
-    >>>     math.factorial(100000)
-    tic('Timer demo!')
-    ...toc('Timer demo!')=0.1453s
+    >>> data = [('arg1', 5), ('lr', .01), ('augmenters', ['flip', 'translate'])]
+    >>> ub.hash_data(data, hasher='sha256')
+    0d95771ff684756d7be7895b5594b8f8484adecef03b46002f97ebeb1155fb15
 
+Support for torch tensors and pandas data frames are also included, but needs to
+be explicitly enabled.  There also exists an non-public plugin architecture to
+extend this function to arbitrary types. While not officially supported, it is
+usable and will become better integrated in the future. See
+``ubelt/util_hash.py`` for details.
+
+Caching
+-------
+
+Cache intermediate results from blocks of code inside a script with minimal
+boilerplate or modification to the original code.  
+
+For direct caching of data, use the ``Cacher`` class.  By default results will
+be written to the ubelt's appdir cache, but the exact location can be specified
+via ``dpath`` or the ``appname`` arguments.  Additionally, process dependencies
+can be specified via the ``depends`` argument, which allows for implicit cache
+invalidation.  As far as I can tell, this is the most concise way (4 lines of
+boilerplate) to cache a block of code with existing Python syntax (as of
+2022-06-03).
+
+.. code:: python
+
+    >>> import ubelt as ub
+    >>> depends = ['config', {'of': 'params'}, 'that-uniquely-determine-the-process']
+    >>> cacher = ub.Cacher('test_process', depends=depends, appname='myapp')
+    >>> data = cacher.tryload()
+    >>> if data is None:
+    >>>     myvar1 = 'result of expensive process'
+    >>>     myvar2 = 'another result'
+    >>>     data = myvar1, myvar2
+    >>>     cacher.save(data)
+    >>> myvar1, myvar2 = data
+
+For indirect caching, use the ``CacheStamp`` class. This simply writes a
+"stamp" file that marks that a process has completed. Additionally you can
+specify criteria for when the stamp should expire. If you let ``CacheStamp``
+know about the expected "product", it will expire the stamp if that file has
+changed, which can be useful in situations where caches might becomes corrupt
+or need invalidation.
+
+.. code:: python
+
+    >>> import ubelt as ub
+    >>> dpath = ub.Path.appdir('ubelt/demo/cache').delete().ensuredir()
+    >>> params = {'params1': 1, 'param2': 2}
+    >>> expected_fpath = dpath / 'file.txt'
+    >>> self = ub.CacheStamp('name', dpath=dpath, depends=params,
+    >>>                      hasher='sha256', product=expected_fpath,
+    >>>                      expires='2101-01-01T000000Z')
+    >>> if self.expired():
+    ...     expected_fpath.write_text('expensive process')
+    >>>     self.renew()
+
+See `<https://ubelt.readthedocs.io/en/latest/ubelt.util_cache.html>`_ for more
+details about ``Cacher`` and ``CacheStamp``.
 
 Loop Progress
 -------------
@@ -369,47 +397,20 @@ Note: ``ProgIter`` is also defined in a standalone module: ``pip install progite
       642/1000... rate=94099.22 Hz, eta=0:00:00, total=0:00:00, wall=14:05 EST 
      1000/1000... rate=71886.74 Hz, eta=0:00:00, total=0:00:00, wall=14:05 EST 
 
+Timing
+------
 
-Caching
--------
-
-Cache intermediate results in a script with minimal boilerplate. 
-It looks like 4 lines of boilerplate is the best you can do with Python 3.8 syntax.
-See <https://raw.githubusercontent.com/Erotemic/ubelt/main/ubelt/util_cache.py>`__ for details.
-
+Quickly time a single line.
 
 .. code:: python
 
+    >>> import math
     >>> import ubelt as ub
-    >>> cfgstr = 'repr-of-params-that-uniquely-determine-the-process'
-    >>> cacher = ub.Cacher('test_process', cfgstr)
-    >>> data = cacher.tryload()
-    >>> if data is None:
-    >>>     myvar1 = 'result of expensive process'
-    >>>     myvar2 = 'another result'
-    >>>     data = myvar1, myvar2
-    >>>     cacher.save(data)
-    >>> myvar1, myvar2 = data
-
-Hashing
--------
-
-The ``ub.hash_data`` constructs a hash corresponding to a (mostly)
-arbitrary ordered python object. A common use case for this function is
-to construct the ``cfgstr`` mentioned in the example for ``ub.Cacher``.
-Instead of returning a hex, string, ``ub.hash_data`` encodes the hash
-digest using the 26 lowercase letters in the roman alphabet. This makes
-the result easy to use as a filename suffix.
-
-.. code:: python
-
-    >>> import ubelt as ub
-    >>> data = [('arg1', 5), ('lr', .01), ('augmenters', ['flip', 'translate'])]
-    >>> ub.hash_data(data)[0:8]
-    5f5fda5e
-
-There exists an undocumented plugin architecture to extend this function
-to arbitrary types. See ``ubelt/util_hash.py`` for details.
+    >>> timer = ub.Timer('Timer demo!', verbose=1)
+    >>> with timer:
+    >>>     math.factorial(100000)
+    tic('Timer demo!')
+    ...toc('Timer demo!')=0.1453s
 
 Command Line Interaction
 ------------------------
@@ -438,7 +439,8 @@ Also note the use of ``ub.repr2`` to nicely format the output
 dictionary.
 
 Additionally, if you specify ``verbose=True``, ``ub.cmd`` will
-simultaneously capture the standard output and display it in real time.
+simultaneously capture the standard output and display it in real time (i.e. it
+will "`tee <https://en.wikipedia.org/wiki/Tee_(command)>`__" the output).
 
 .. code:: python
 
@@ -467,40 +469,12 @@ Lastly, ``ub.cmd`` removes the need to think about if you need to pass a
 list of args, or a string. Both will work. This utility has been tested
 on both Windows and Linux.
 
-Cross-Platform Resource and Cache Directories
----------------------------------------------
-
-If you have an application which writes configuration or cache files,
-the standard place to dump those files differs depending if you are on
-Windows, Linux, or Mac. Ubelt offers a unified functions for determining
-what these paths are.
-
-The ``ub.ensure_app_cache_dir`` and ``ub.ensure_app_resource_dir``
-functions find the correct platform-specific location for these files
-and ensures that the directories exist. (Note: replacing "ensure" with
-"get" will simply return the path, but not ensure that it exists)
-
-The resource root directory is ``~/AppData/Roaming`` on Windows,
-``~/.config`` on Linux and ``~/Library/Application Support`` on Mac. The
-cache root directory is ``~/AppData/Local`` on Windows, ``~/.config`` on
-Linux and ``~/Library/Caches`` on Mac.
-
-Example usage on Linux might look like this:
-
-.. code:: python
-
-    >>> import ubelt as ub
-    >>> print(ub.shrinkuser(ub.ensure_app_cache_dir('my_app')))
-    ~/.cache/my_app
-    >>> print(ub.shrinkuser(ub.ensure_app_resource_dir('my_app')))
-    ~/.config/my_app
-
 Paths
 -----
 
 Ubelt extends ``pathlib.Path`` by adding several new (often chainable) methods.
 Namely, ``augment``, ``delete``, ``expand``, ``ensuredir``, ``shrinkuser``. It
-also modifies behavior of ``touch`` to be chainable.
+also modifies behavior of ``touch`` to be chainable. (New in 1.0.0)
 
 
 .. code:: python
@@ -525,6 +499,45 @@ also modifies behavior of ``touch`` to be chainable.
         ~/.cache/ubelt/demo_path
         ~/.cache/ubelt/demo_path/text_file.aux.jpg
         ~/.cache/ubelt/demo_pathdemo_path2
+
+Cross-Platform Resource and Cache Directories
+---------------------------------------------
+
+If you have an application which writes configuration or cache files,
+the standard place to dump those files differs depending if you are on
+Windows, Linux, or Mac. Ubelt offers a unified functions for determining
+what these paths are.
+
+The ``ub.ensure_app_cache_dir`` and ``ub.ensure_app_config_dir``
+functions find the correct platform-specific location for these files
+and ensures that the directories exist. (Note: replacing "ensure" with
+"get" will simply return the path, but not ensure that it exists)
+
+The config root directory is ``~/AppData/Roaming`` on Windows,
+``~/.config`` on Linux and ``~/Library/Application Support`` on Mac. The
+cache root directory is ``~/AppData/Local`` on Windows, ``~/.config`` on
+Linux and ``~/Library/Caches`` on Mac.
+
+Example usage on Linux might look like this:
+
+.. code:: python
+
+    >>> import ubelt as ub
+    >>> print(ub.shrinkuser(ub.ensure_app_cache_dir('my_app')))
+    ~/.cache/my_app
+    >>> print(ub.shrinkuser(ub.ensure_app_config_dir('my_app')))
+    ~/.config/my_app
+
+New in version 1.0.0: the ``ub.Path.appdir`` classmethod provides a way to
+achieve the above with a chainable object oriented interface.
+
+.. code:: python
+
+    >>> import ubelt as ub
+    >>> print(ub.Path.appdir('my_app').ensuredir().shrinkuser())
+    ~/.cache/my_app
+    >>> print(ub.Path.appdir('my_app', type='config').ensuredir().shrinkuser())
+    ~/.config/my_app
 
 Symlinks
 --------
@@ -757,7 +770,6 @@ Code that is currently statically included (vendored):
 -  ProgIter - https://github.com/Erotemic/progiter
 -  OrderedSet - https://github.com/LuminosoInsight/ordered-set
 
-
 Code that is completely optional, and only used in specific cases:
 
 - Numpy - ``ub.repr2`` will format a numpy array nicely by default
@@ -792,6 +804,31 @@ Libraries that contain one specific data structure or utility:
 * tqdm: progress bars - https://pypi.org/project/tqdm/
 * pooch: data downloading - https://pypi.org/project/pooch/
 * timerit: snippet timing for benchmarks - https://github.com/Erotemic/timerit
+
+
+History:
+========
+
+Ubelt is a migration of the most useful parts of
+``utool``\ (https://github.com/Erotemic/utool) into a standalone module
+with minimal dependencies.
+
+The ``utool`` library contains a number of useful utility functions, but it
+also contained non-useful functions, as well as the kitchen sink. A number of
+the functions were too specific or not well documented. The ``ubelt`` is a port
+of the simplest and most useful parts of ``utool``.
+
+Note that there are other cool things in ``utool`` that are not in ``ubelt``.
+Notably, the doctest harness ultimately became `xdoctest <https://github.com/Erotemic/xdoctest>`__. 
+Code introspection and dynamic analysis tools were ported to `xinspect <https://github.com/Erotemic/xinspect>`__.
+The more IPython-y tools were ported to `xdev <https://github.com/Erotemic/xdev>`__.
+Parts of it made their way into `scriptconfig <https://gitlab.kitware.com/utils/scriptconfig>`__.
+The init-file generation was moved to `mkinit <https://github.com/Erotemic/mkinit>`__.
+Some vim and system-y things can be found in `vimtk <https://github.com/Erotemic/vimtk>`__.
+
+Development on ubelt started 2017-01-30 and development of utool mostly stopped
+on utool was stopped later that year, but received patches until about 2020.
+Ubelt achieved 1.0.0 and removed support for Python 2.7 and 3.5 on 2022-01-07.
 
 
 Notes.

@@ -35,17 +35,22 @@ def writeto(fpath, to_write, aslines=False, verbose=None):
         After 2020-01-01, we may consider deprecating the function.
 
         NOTE: In PyPy ``open(<fpath>).write(<to_write>)`` does not work. See
-        `https://pypy.org/compat.html`. This is a strong argument
-        for keeping this function.
+        `https://pypy.org/compat.html`. This is an argument for keeping this
+        function.
+
+        NOTE: With modern versions of Python, it is generally recommened to use
+        :func:`pathlib.Path.write_text` instead
 
     Example:
         >>> import ubelt as ub
+        >>> import os
+        >>> from os.path import exists
         >>> dpath = ub.ensure_app_cache_dir('ubelt')
         >>> fpath = dpath + '/' + 'testwrite.txt'
         >>> if exists(fpath):
         >>>     os.remove(fpath)
         >>> to_write = 'utf-8 symbols Δ, Й, ק, م, ๗, あ, 叶, 葉, and 말.'
-        >>> writeto(fpath, to_write)
+        >>> ub.writeto(fpath, to_write)
         >>> read_ = ub.readfrom(fpath)
         >>> print('read_    = ' + read_)
         >>> print('to_write = ' + to_write)
@@ -53,16 +58,27 @@ def writeto(fpath, to_write, aslines=False, verbose=None):
 
     Example:
         >>> import ubelt as ub
+        >>> import os
+        >>> from os.path import exists
         >>> dpath = ub.ensure_app_cache_dir('ubelt')
         >>> fpath = dpath + '/' + 'testwrite2.txt'
         >>> if exists(fpath):
         >>>     os.remove(fpath)
         >>> to_write = ['a\n', 'b\n', 'c\n', 'd\n']
-        >>> writeto(fpath, to_write, aslines=True)
+        >>> ub.writeto(fpath, to_write, aslines=True)
         >>> read_ = ub.readfrom(fpath, aslines=True)
         >>> print('read_    = {}'.format(read_))
         >>> print('to_write = {}'.format(to_write))
         >>> assert read_ == to_write
+
+    Example:
+        >>> # With modern Python, use pathlib.Path (or ub.Path) instead
+        >>> import ubelt as ub
+        >>> dpath = ub.Path.appdir('ubelt/tests/io').ensuredir()
+        >>> fpath = (dpath / 'test_file.txt').delete()
+        >>> to_write = 'utf-8 symbols Δ, Й, ק, م, ๗, あ, 叶, 葉, and 말.'
+        >>> ub.writeto(fpath, to_write)
+        >>> fpath.write_text(to_write)
     """
     if verbose:
         print('Writing to text file: %r ' % (fpath,))
