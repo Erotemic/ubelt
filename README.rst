@@ -341,12 +341,15 @@ boilerplate) to cache a block of code with existing Python syntax (as of
     >>> import ubelt as ub
     >>> depends = ['config', {'of': 'params'}, 'that-uniquely-determine-the-process']
     >>> cacher = ub.Cacher('test_process', depends=depends, appname='myapp')
-    >>> data = cacher.tryload()
-    >>> if data is None:
-    >>>     myvar1 = 'result of expensive process'
-    >>>     myvar2 = 'another result'
-    >>>     data = myvar1, myvar2
-    >>>     cacher.save(data)
+    >>> # start fresh
+    >>> cacher.clear()
+    >>> for _ in range(2):
+    >>>     data = cacher.tryload()
+    >>>     if data is None:
+    >>>         myvar1 = 'result of expensive process'
+    >>>         myvar2 = 'another result'
+    >>>         data = myvar1, myvar2
+    >>>         cacher.save(data)
     >>> myvar1, myvar2 = data
 
 For indirect caching, use the ``CacheStamp`` class. This simply writes a
@@ -362,12 +365,16 @@ or need invalidation.
     >>> dpath = ub.Path.appdir('ubelt/demo/cache').delete().ensuredir()
     >>> params = {'params1': 1, 'param2': 2}
     >>> expected_fpath = dpath / 'file.txt'
-    >>> self = ub.CacheStamp('name', dpath=dpath, depends=params,
+    >>> stamp = ub.CacheStamp('name', dpath=dpath, depends=params,
     >>>                      hasher='sha256', product=expected_fpath,
-    >>>                      expires='2101-01-01T000000Z')
-    >>> if self.expired():
-    ...     expected_fpath.write_text('expensive process')
-    >>>     self.renew()
+    >>>                      expires='2101-01-01T000000Z', verbose=3)
+    >>> # Start fresh
+    >>> stamp.clear()
+    >>>     
+    >>> for _ in range(2):
+    >>>     if stamp.expired():
+    >>>         expected_fpath.write_text('expensive process')
+    >>>         stamp.renew()
 
 See `<https://ubelt.readthedocs.io/en/latest/ubelt.util_cache.html>`_ for more
 details about ``Cacher`` and ``CacheStamp``.
@@ -500,8 +507,8 @@ also modifies behavior of ``touch`` to be chainable. (New in 1.0.0)
         ~/.cache/ubelt/demo_path/text_file.aux.jpg
         ~/.cache/ubelt/demo_pathdemo_path2
 
-Cross-Platform Resource and Cache Directories
----------------------------------------------
+Cross-Platform Config and Cache Directories
+-------------------------------------------
 
 If you have an application which writes configuration or cache files,
 the standard place to dump those files differs depending if you are on
@@ -649,8 +656,8 @@ Take only the values, optionally specify a default value.
 
     >>> import ubelt as ub
     >>> dict_ = {1: 'a', 2: 'b', 3: 'c'}
-    >>> print(list(ub.take(dict_, [1, 2, 3, 4, 5], default=None)))
-    ['a', 'b', 'c', None, None]
+    >>> print(list(ub.take(dict_, [1, 3, 4, 5], default=None)))
+    ['a', 'c', None, None]
 
 Apply a function to each value in the dictionary (see also
 ``ub.map_keys``).
@@ -719,8 +726,27 @@ does not actually depend on ``xdoctest`` during runtime).
 .. code:: python
 
     >>> import ubelt as ub
-    >>> module = ub.import_module_from_path(ub.expandpath('~/code/ubelt/ubelt'))
+    >>> try:
+    >>>     # This is where I keep ubelt on my machine, so it is not expected to work elsewhere.
+    >>>     module = ub.import_module_from_path(ub.expandpath('~/code/ubelt/ubelt'))
+    >>>     print('module = {!r}'.format(module))
+    >>> except OSError:
+    >>>     pass
+    >>>         
+    >>> module = ub.import_module_from_name('ubelt')
     >>> print('module = {!r}'.format(module))
+    >>> #
+    >>> try:
+    >>>     module = ub.import_module_from_name('does-not-exist')
+    >>>     raise AssertionError
+    >>> except ModuleNotFoundError:
+    >>>     pass
+    >>> #
+    >>> modpath = ub.util_import.__file__
+    >>> print(ub.modpath_to_modname(modpath))
+    >>> modname = ub.util_import.__name__
+    >>> assert ub.expandpath(ub.modname_to_modpath(modname)) == modpath
+
     module = <module 'ubelt' from '/home/joncrall/code/ubelt/ubelt/__init__.py'>
     >>> module = ub.import_module_from_name('ubelt')
     >>> print('module = {!r}'.format(module))

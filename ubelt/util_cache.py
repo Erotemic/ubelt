@@ -316,6 +316,11 @@ class Cacher(object):
             condensed = cfgstr
         return condensed
 
+    @property
+    def fpath(self):
+        import ubelt as ub
+        return ub.Path(self.get_fpath())
+
     def get_fpath(self, cfgstr=None):
         """
         Reports the filepath that the cacher will use.
@@ -532,7 +537,7 @@ class Cacher(object):
 
     def save(self, data, cfgstr=None):
         """
-        Writes data to path specified by ``self.fpath(cfgstr)``.
+        Writes data to path specified by ``self.fpath``.
 
         Metadata containing information about the cache will also be appended
         to an adjacent file with the `.meta` suffix.
@@ -803,6 +808,16 @@ class CacheStamp(object):
             'mtime': True,
             'hash': True,
         }
+
+    @property
+    def fpath(self):
+        return self.cacher.fpath
+
+    def clear(self):
+        """
+        Delete the stamp (the products are untouched)
+        """
+        return self.cacher.clear()
 
     def _get_certificate(self, cfgstr=None):
         """
