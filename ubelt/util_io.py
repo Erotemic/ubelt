@@ -103,7 +103,7 @@ def readfrom(fpath, aslines=False, errors='replace', verbose=None):
     Reads (utf8) text from a file.
 
     Note:
-        You probably should use ``open(<fpath>).read()`` instead.
+        You probably should use ``ub.Path(<fpath>).read_text()`` instead.
         This function exists as a convenience for writing in Python2. After
         2020-01-01, we may consider deprecating the function.
 
