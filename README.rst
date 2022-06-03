@@ -742,10 +742,10 @@ does not actually depend on ``xdoctest`` during runtime).
     >>> except ModuleNotFoundError:
     >>>     pass
     >>> #
-    >>> modpath = ub.util_import.__file__
+    >>> modpath = ub.Path(ub.util_import.__file__)
     >>> print(ub.modpath_to_modname(modpath))
     >>> modname = ub.util_import.__name__
-    >>> assert ub.expandpath(ub.modname_to_modpath(modname)) == modpath
+    >>> assert ub.Path(ub.modname_to_modpath(modname)).resolve() == modpath.resolve()
 
     module = <module 'ubelt' from '/home/joncrall/code/ubelt/ubelt/__init__.py'>
     >>> module = ub.import_module_from_name('ubelt')

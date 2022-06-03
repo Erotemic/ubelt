@@ -182,6 +182,7 @@ class Cacher(object):
         >>> # Create a cacher and try loading the data
         >>> cacher = ub.Cacher('demo_process', depends, verbose=4)
         >>> cacher.clear()
+        >>> print(f'cacher.fpath={cacher.fpath}')
         >>> data = cacher.tryload()
         >>> if data is None:
         >>>     # Put expensive functions in if block when cacher misses
@@ -781,6 +782,8 @@ class CacheStamp(object):
         >>> product = dpath / 'expensive-to-compute.txt'
         >>> self = ub.CacheStamp('somedata', depends='someconfig', dpath=dpath,
         >>>                      product=product, hasher='sha256')
+        >>> self.clear()
+        >>> print(f'self.fpath={self.fpath}')
         >>> if self.expired():
         >>>     product.write_text('very expensive')
         >>>     self.renew()
