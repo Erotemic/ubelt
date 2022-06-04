@@ -39,7 +39,8 @@ def writeto(fpath, to_write, aslines=False, verbose=None):
         function.
 
         NOTE: With modern versions of Python, it is generally recommened to use
-        :func:`pathlib.Path.write_text` instead
+        :func:`pathlib.Path.write_text` instead. Although there does seem to be
+        some corner case this handles better on win32, so maybe useful?
 
     Example:
         >>> import ubelt as ub
