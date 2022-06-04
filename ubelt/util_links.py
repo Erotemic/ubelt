@@ -3,8 +3,8 @@ Cross-platform logic for dealing with symlinks. Basic functionality should work
 on all operating systems including everyone's favorite pathological OS (note
 that there is an additional helper file for this case), but there are some
 corner cases depending on your version. Recent versions of Windows tend to
-work, but there certain system settings that cause issues. Obviously, any POSIX
-system work without difficulty.
+work, but there certain system settings that cause issues. Any POSIX system
+works without difficulty.
 
 Example:
     >>> import ubelt as ub
@@ -35,10 +35,10 @@ else:
 
 def symlink(real_path, link_path, overwrite=False, verbose=0):
     """
-    Create a symbolic link.
+    Create a link ``link_path`` that mirrors ``real_path``.
 
-    This will work on linux or windows, however windows does have some corner
-    cases. For more details see notes in :mod:`ubelt._win32_links`.
+    This function attempts to create a real symlink, but will fall back on a
+    hard link or junction if symlinks are not supported.
 
     Args:
         path (str | PathLike): path to real file or directory
@@ -55,6 +55,26 @@ def symlink(real_path, link_path, overwrite=False, verbose=0):
 
     Returns:
         str | PathLike: link path
+
+    Note:
+        On systems that do not contain support for symlinks (e.g. some versions
+        / configurations of Windows), this function will fall back on hard
+        links or junctions [WikiNTFSLinks]_, [WikiHardLink]_. The differences
+        between the two are explained in [WikiSymLink]_.
+
+        If symlinks are not available, then ``link_path`` and ``real_path``
+        must exist on the same filesystem.  Given that, this function always
+        works in the sense that (1) ``link_path`` will mirror the data from
+        ``real_path``, (2) updates to one will effect the other, and (3) no
+        extra space will be used.
+
+        More details can be found in :mod:`ubelt._win32_links`. On systems that
+        support symlinks (e.g. Linux), none of the above applies.
+
+    References:
+        .. [WikiSymLink] https://en.wikipedia.org/wiki/Symbolic_link
+        .. [WikiHardLink] https://en.wikipedia.org/wiki/Hard_link
+        .. [WikiNTFSLinks] https://en.wikipedia.org/wiki/NTFS_links
 
     Example:
         >>> import ubelt as ub

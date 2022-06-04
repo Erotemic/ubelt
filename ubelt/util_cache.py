@@ -3,7 +3,7 @@ This module exposes :class:`Cacher` and :class:`CacheStamp` classes, which
 provide a simple API for on-disk caching.
 
 The :class:`Cacher` class is the simplest and most direct method of caching. In
-fact, it only requires four lines of boilderplate, which is the smallest
+fact, it only requires four lines of boilerplate, which is the smallest
 general and robust way that I (Jon Crall) have achieved, and I don't think its
 possible to do better.  These four lines implement the following necessary and
 sufficient steps for general robust on-disk caching.
@@ -52,22 +52,19 @@ While the above two are equivalent, the second version provides a simpler
 traceback, explicit procedures, and makes it easier to use breakpoint debugging
 (because there is no closure scope).
 
-
 While :class:`Cacher` is used to store direct results of in-line code in a
 pickle format, the :class:`CacheStamp` object is used to cache processes that
 produces an on-disk side effects other than the main return value. For
 instance, consider the following example:
 
 Example:
+    >>> import ubelt as ub
     >>> def compute_many_files(dpath):
-    ...     for i in range(0):
+    ...     for i in range(10):
     ...         fpath = '{}/file{}.txt'.format(dpath, i)
     ...         with open(fpath, 'w') as file:
     ...             file.write('foo' + str(i))
-    >>> #
-    >>> import ubelt as ub
-    >>> dpath = ub.ensure_app_cache_dir('ubelt/demo/cache')
-    >>> ub.delete(dpath)  # start fresh
+    >>> dpath = ub.Path.appdir('ubelt/demo/cache').delete().ensuredir()
     >>> # You must specify a directory, unlike in Cacher where it is optional
     >>> self = ub.CacheStamp('name', dpath=dpath, depends={'a': 1, 'b': 2})
     >>> if self.expired():
@@ -77,10 +74,42 @@ Example:
     >>>     self.renew()
     >>> assert not self.expired()
 
-TODO:
-    - [ ] Remove the cfgstr-overrides?
-    - [X] Allow json as alternative extension
-    - [ ] Allow yaml / toml / as alternative extensions
+The CacheStamp is lightweight in that it simply marks that a process has been
+completed, but the job of saving / loading the actual data is left to the
+developer. The ``expired`` method checks if the stamp exists, and ``renew``
+writes the stamp to disk.
+
+In ubelt version 1.1.0, several additional features were added to CacheStamp.
+In addition to specifying parameters via ``depends``, it is also possible for
+CacheStamp to determine if an associated file has been modified. To do this,
+the paths of the files must be known a-priori and passed to CacheStamp via the
+``product`` argument. This will allow the CacheStamp to detect if the files
+have been modified since the ``renew`` method was called. It does this by
+remembering the size, modified time, and checksum of each file.  If the hash of
+the expected hash of the product is known in advance, it is also possible to
+specify the expected ``hash_prefix`` of each product. In this case, ``renew``
+will raise an Exception if this specified hash prefix does not match the files
+on disk. Lastly, it is possible to specify an expiration time via ``expires``,
+after which the CacheStamp will always be marked as invalid. This is now the
+mechanism via which the cache in :func:`ubelt.util_download.grabdata` works.
+
+Example:
+    >>> import ubelt as ub
+    >>> dpath = ub.Path.appdir('ubelt/demo/cache').delete().ensuredir()
+    >>> params = {'a': 1, 'b': 2}
+    >>> expected_fpaths = [dpath / 'file{}.txt'.format(i) for i in range(2)]
+    >>> hash_prefix = ['a7a8a91659601590e17191301dc1',
+    ...                '55ae75d991c770d8f3ef07cbfde1']
+    >>> self = ub.CacheStamp('name', dpath=dpath, depends=params,
+    >>>                      hash_prefix=hash_prefix, hasher='sha256',
+    >>>                      product=expected_fpaths, expires='2101-01-01T000000Z')
+    >>> if self.expired():
+    >>>     for fpath in expected_fpaths:
+    ...         fpath.write_text(fpath.name)
+    >>>     self.renew()
+    >>> # modifying or removing the file will cause the stamp to expire
+    >>> expected_fpaths[0].write_text('corrupted')
+    >>> assert self.expired()
 """
 import os
 from os.path import join, normpath, basename, exists
@@ -122,6 +151,7 @@ class Cacher(object):
         meta (object | None):
             Metadata that is also saved with the ``cfgstr``.  This can be
             useful to indicate how the ``cfgstr`` was constructed.
+            Note: this is a candidate for deprecation.
 
         verbose (int, default=1): Level of verbosity. Can be 1, 2 or 3.
 
@@ -139,16 +169,12 @@ class Cacher(object):
         protocol (int, default=-1): Protocol version used by pickle.
             Defaults to the -1 which is the latest protocol.
 
-        cfgstr (str | None):
-            Deprecated in favor of ``depends``. Indicates the state.  Either
-            this string or a hash of this string will be used to identify the
-            cache.  A cfgstr should always be reasonably readable, thus it is
-            good practice to hash extremely detailed cfgstrs to a reasonable
-            readable level. Use meta to store make original details persist.
-
         backend (str):
             Set to either ``'pickle'`` or ``'json'`` to force backend. Defaults
             to auto which chooses one based on the extension.
+
+        cfgstr (str | None):
+            Deprecated in favor of ``depends``.
 
     Example:
         >>> import ubelt as ub
@@ -156,6 +182,7 @@ class Cacher(object):
         >>> # Create a cacher and try loading the data
         >>> cacher = ub.Cacher('demo_process', depends, verbose=4)
         >>> cacher.clear()
+        >>> print(f'cacher.fpath={cacher.fpath}')
         >>> data = cacher.tryload()
         >>> if data is None:
         >>>     # Put expensive functions in if block when cacher misses
@@ -289,6 +316,11 @@ class Cacher(object):
         else:
             condensed = cfgstr
         return condensed
+
+    @property
+    def fpath(self):
+        import ubelt as ub
+        return ub.Path(self.get_fpath())
 
     def get_fpath(self, cfgstr=None):
         """
@@ -506,7 +538,7 @@ class Cacher(object):
 
     def save(self, data, cfgstr=None):
         """
-        Writes data to path specified by ``self.fpath(cfgstr)``.
+        Writes data to path specified by ``self.fpath``.
 
         Metadata containing information about the cache will also be appended
         to an adjacent file with the `.meta` suffix.
@@ -664,16 +696,32 @@ class CacheStamp(object):
     """
     Quickly determine if a file-producing computation has been done.
 
-    Writes a file that marks that a procedure has been done by writing a
-    "stamp" file to disk. Removing the stamp file will force recomputation.
+    Check if the computation needs to be redone by calling ``expired``.  If the
+    stamp is not expired, the user can expect that the results exist and could
+    be loaded. If the stamp is expired, the computation should be redone.
+    After the result is updated, the calls ``renew``, which writes a "stamp"
+    file to disk that marks that the procedure has been done.
 
-    However, removing or changing the result of the computation may not trigger
-    recomputation unless specific handling is done of the expected "product" of
-    the computation is a file and registered with the stamper. When "product"
-    is specified, the stamp will mark itself as expired if the size or mtime of
-    the products have changed. Additionally, if hasher is specified, the hash
-    of the file is used to check if the files have not changed with high
-    probability.
+    There are several ways to control how a stamp expires. At a bare minimum,
+    removing the stamp file will force expiration. However, in this
+    circumstance CacheStamp only knows that something has been done, but it
+    doesn't have any information about what was done, so in general this is not
+    sufficient.
+
+    To achieve more robust expiration behavior, the user should specify the
+    ``product`` argument, which is a list of file paths that are expected to
+    exist whenever the stamp is renewed. When this is specified the CacheStamp
+    will expire if any of these products are deleted, their size changes, their
+    modified timestamp changes, or their hash (i.e. checksum) changes. Note
+    that by setting ``hasher=None``, running and verifying checksums can be
+    disabled.
+
+    If the user knows what the hash of the file should be this can be specified
+    to prevent renewal of the stamp unless these match the files on disk. This
+    can be useful for security purposes.
+
+    The stamp can also be set to expire at a specified time or after a
+    specified duration using the ``expires`` argument.
 
     Args:
         fname (str):
@@ -705,7 +753,8 @@ class CacheStamp(object):
         meta (object | None):
             Metadata that is also saved with the ``cfgstr``.  This can be
             useful to indicate how the ``cfgstr`` was constructed.  New to
-            CacheStamp in version 0.9.2.
+            CacheStamp in version 0.9.2.  Note: this is a candidate for
+            deprecation.
 
         expires (str | int | datetime.datetime | datetime.timedelta | None):
             If specified, sets an expiration date for the certificate. This can
@@ -724,24 +773,6 @@ class CacheStamp(object):
 
         cfgstr (str | None):
             DEPRECATED in favor or depends.
-            Configuration associated with the stamped computation.  A common
-            pattern is to call :func:`ubelt.hash_data` on a dependency list.
-
-            Deprecated in favor of depends. Indicates the state.
-            Either this string or a hash of this string will be used to
-            identify the cache. A cfgstr should always be reasonably readable,
-            thus it is good practice to hash extremely detailed cfgstrs to a
-            reasonable readable level. Use meta to store make original details
-            persist.
-
-    TODO:
-        - [X] expiration time delta or date time (also remember when renewed)
-
-        - [X] optionally checking the hash of the product
-
-        - [X] optionally checking a manually specified expected hash
-
-        - [X] optionally checking the stamp time agrees with the product ctime
 
     Example:
         >>> import ubelt as ub
@@ -751,6 +782,8 @@ class CacheStamp(object):
         >>> product = dpath / 'expensive-to-compute.txt'
         >>> self = ub.CacheStamp('somedata', depends='someconfig', dpath=dpath,
         >>>                      product=product, hasher='sha256')
+        >>> self.clear()
+        >>> print(f'self.fpath={self.fpath}')
         >>> if self.expired():
         >>>     product.write_text('very expensive')
         >>>     self.renew()
@@ -776,7 +809,18 @@ class CacheStamp(object):
         self._expire_checks = {
             'size': True,
             'mtime': True,
+            'hash': True,
         }
+
+    @property
+    def fpath(self):
+        return self.cacher.fpath
+
+    def clear(self):
+        """
+        Delete the stamp (the products are untouched)
+        """
+        return self.cacher.clear()
 
     def _get_certificate(self, cfgstr=None):
         """
@@ -1007,17 +1051,18 @@ class CacheStamp(object):
 
             # We are expired if the hash of the existing product data
             # does not match the expected hash in the certificate
-            certificate_hash = certificate.get('hash', None)
-            product_file_hash = self._product_file_hash(products)
-            if product_file_hash != certificate_hash:
-                if self.cacher.verbose > 0:
-                    print('invalid hash value (expected "{}", got "{}")'.format(
-                        product_file_hash, certificate_hash))
-                # The hash is different, we are expired
-                err = 'hash_diff'
-                if self.cacher.verbose > 0:
-                    print('[cacher] stamp expired {}'.format(err))
-                return err
+            if self._expire_checks['hash']:
+                certificate_hash = certificate.get('hash', None)
+                product_file_hash = self._product_file_hash(products)
+                if product_file_hash != certificate_hash:
+                    if self.cacher.verbose > 0:
+                        print('invalid hash value (expected "{}", got "{}")'.format(
+                            product_file_hash, certificate_hash))
+                    # The hash is different, we are expired
+                    err = 'hash_diff'
+                    if self.cacher.verbose > 0:
+                        print('[cacher] stamp expired {}'.format(err))
+                    return err
 
         # All tests passed, we are not expired
         return False

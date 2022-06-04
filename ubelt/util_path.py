@@ -319,7 +319,9 @@ class TempDir(object):
     """
     Context for creating and cleaning up temporary directories.
 
-    DEPRECATE
+    Note:
+        This class will be DEPRECATED. The exact deprecation version and
+        mitigation plan has not yet been developed.
 
     Note:
         This exists because :class:`tempfile.TemporaryDirectory` was
@@ -383,7 +385,12 @@ class Path(_PathBase):
             * ensuredir
             * expand
             * expandvars
+            * ls
             * shrinkuser
+            * walk
+
+        New classmethods are:
+            * appdir
 
         Modified methods are:
             * touch
@@ -412,105 +419,42 @@ class Path(_PathBase):
     """
     __slots__ = ()
 
-    def touch(self, mode=0o666, exist_ok=True):
+    @classmethod
+    def appdir(cls, appname, *args, type='cache'):
         """
-        Create this file with the given access mode, if it doesn't exist.
-
-        Returns:
-            Path: returns itself
-
-        Notes:
-            The :func:`ubelt.util_io.touch` function currently has a slightly
-            different implementation. This uses whatever the pathlib version
-            is. This may change in the future.
-        """
-        # modify touch to return self
-        # Note: util_io.touch is more expressive than standard python
-        # touch, may want to use that instead.
-        super().touch(mode=mode, exist_ok=exist_ok)
-        return self
-
-    def ensuredir(self, mode=0o777):
-        """
-        Concise alias of ``self.mkdir(parents=True, exist_ok=True)``
-
-        Returns:
-            Path: returns itself
-
-        Example:
-            >>> import ubelt as ub
-            >>> cache_dpath = ub.ensure_app_cache_dir('ubelt')
-            >>> dpath = ub.Path(join(cache_dpath, 'ensuredir'))
-            >>> if dpath.exists():
-            ...     os.rmdir(dpath)
-            >>> assert not dpath.exists()
-            >>> dpath.ensuredir()
-            >>> assert dpath.exists()
-            >>> dpath.rmdir()
-            """
-        self.mkdir(mode=mode, parents=True, exist_ok=True)
-        return self
-
-    def expandvars(self):
-        """
-        As discussed in [CPythonIssue21301]_, CPython won't be adding
-        expandvars to pathlib. I think this is a mistake, so I added it in this
-        extension.
-
-        Returns:
-            Path: path with expanded environment variables
-
-        References:
-            .. [CPythonIssue21301] https://bugs.python.org/issue21301
-        """
-        return self.__class__(os.path.expandvars(self))
-
-    def expand(self):
-        """
-        Expands user tilde and environment variables.
-
-        Concise alias of `Path(os.path.expandvars(self.expanduser()))`
-
-        Returns:
-            Path: path with expanded environment variables and tildes
-
-        Example:
-            >>> import ubelt as ub
-            >>> #home_v1 = ub.Path('$HOME').expand()
-            >>> home_v2 = ub.Path('~/').expand()
-            >>> assert isinstance(home_v2, ub.Path)
-            >>> home_v3 = ub.Path.home()
-            >>> #print('home_v1 = {!r}'.format(home_v1))
-            >>> print('home_v2 = {!r}'.format(home_v2))
-            >>> print('home_v3 = {!r}'.format(home_v3))
-            >>> assert home_v3 == home_v2 # == home_v1
-        """
-        return self.expandvars().expanduser()
-
-    def shrinkuser(self, home='~'):
-        """
-        Inverse of :func:`os.path.expanduser`.
+        Returns an operating system appropriate writable directory for an
+        application to be used for cache, configs, or data.
 
         Args:
-            home (str): symbol used to replace the home path.
-                Defaults to '~', but you might want to use '$HOME' or
-                '%USERPROFILE%' instead.
+            appname (str): the name of the application
+            *args[str] : optional subdirs
+            type (str): can be 'cache', 'config', or 'data'.
 
         Returns:
-            Path: path - shortened path replacing the home directory with a symbol
+            Path: a new path object
 
         Example:
+            >>> # xdoctest: +IGNORE_WANT
             >>> import ubelt as ub
-            >>> path = ub.Path('~').expand()
-            >>> assert str(path.shrinkuser()) == '~'
-            >>> assert str(ub.Path((str(path) + '1')).shrinkuser()) == str(path) + '1'
-            >>> assert str((path / '1').shrinkuser()) == join('~', '1')
-            >>> assert str((path / '1').shrinkuser('$HOME')) == join('$HOME', '1')
-            >>> assert str(ub.Path('.').shrinkuser()) == '.'
+            >>> print(ub.Path.appdir('ubelt', type='cache').shrinkuser())
+            >>> print(ub.Path.appdir('ubelt', type='config').shrinkuser())
+            >>> print(ub.Path.appdir('ubelt', type='data').shrinkuser())
+            ~/.cache/ubelt
+            ~/.config/ubelt
+            ~/.local/share/ubelt
+            >>> import pytest
+            >>> with pytest.raises(KeyError):
+            >>>     ub.Path.appdir('ubelt', type='other')
         """
-        shrunk = shrinkuser(self, home)
-        new = self.__class__(shrunk)
-        return new
+        from ubelt import util_platform
+        if type == 'cache':
+            return cls(util_platform.get_app_cache_dir(appname, *args))
+        elif type == 'config':
+            return cls(util_platform.get_app_config_dir(appname, *args))
+        elif type == 'data':
+            return cls(util_platform.get_app_data_dir(appname, *args))
+        else:
+            raise KeyError(type)
 
     def augment(self, suffix='', prefix='', ext=None, stem=None, dpath=None,
                 tail='', relative=None, multidot=False):
@@ -601,44 +545,62 @@ class Path(_PathBase):
         util_io.delete(self)
         return self
 
-    @classmethod
-    def appdir(cls, appname, *args, type='cache'):
+    def ensuredir(self, mode=0o777):
         """
-        Returns an operating system appropriate writable directory for an
-        application to be used for cache, configs, or data.
-
-        Args:
-            appname (str): the name of the application
-            *args[str] : optional subdirs
-            type (str): can be 'cache', 'config', or 'data'.
+        Concise alias of ``self.mkdir(parents=True, exist_ok=True)``
 
         Returns:
-            Path: a new path object
+            Path: returns itself
 
         Example:
             >>> import ubelt as ub
-            >>> print(ub.Path.appdir('ubelt', type='cache').shrinkuser())
-            >>> print(ub.Path.appdir('ubelt', type='config').shrinkuser())
-            >>> print(ub.Path.appdir('ubelt', type='data').shrinkuser())
+            >>> cache_dpath = ub.ensure_app_cache_dir('ubelt')
+            >>> dpath = ub.Path(join(cache_dpath, 'ensuredir'))
+            >>> if dpath.exists():
+            ...     os.rmdir(dpath)
+            >>> assert not dpath.exists()
+            >>> dpath.ensuredir()
+            >>> assert dpath.exists()
+            >>> dpath.rmdir()
+            """
+        self.mkdir(mode=mode, parents=True, exist_ok=True)
+        return self
 
-            # TODO: fix "want" string on the mac
-            ~/.cache/ubelt
-            ~/.config/ubelt
-            ~/.local/share/ubelt
-
-            >>> import pytest
-            >>> with pytest.raises(KeyError):
-            >>>     ub.Path.appdir('ubelt', type='other')
+    def expand(self):
         """
-        from ubelt import util_platform
-        if type == 'cache':
-            return cls(util_platform.get_app_cache_dir(appname, *args))
-        elif type == 'config':
-            return cls(util_platform.get_app_config_dir(appname, *args))
-        elif type == 'data':
-            return cls(util_platform.get_app_data_dir(appname, *args))
-        else:
-            raise KeyError(type)
+        Expands user tilde and environment variables.
+
+        Concise alias of `Path(os.path.expandvars(self.expanduser()))`
+
+        Returns:
+            Path: path with expanded environment variables and tildes
+
+        Example:
+            >>> import ubelt as ub
+            >>> #home_v1 = ub.Path('$HOME').expand()
+            >>> home_v2 = ub.Path('~/').expand()
+            >>> assert isinstance(home_v2, ub.Path)
+            >>> home_v3 = ub.Path.home()
+            >>> #print('home_v1 = {!r}'.format(home_v1))
+            >>> print('home_v2 = {!r}'.format(home_v2))
+            >>> print('home_v3 = {!r}'.format(home_v3))
+            >>> assert home_v3 == home_v2 # == home_v1
+        """
+        return self.expandvars().expanduser()
+
+    def expandvars(self):
+        """
+        As discussed in [CPythonIssue21301]_, CPython won't be adding
+        expandvars to pathlib. I think this is a mistake, so I added it in this
+        extension.
+
+        Returns:
+            Path: path with expanded environment variables
+
+        References:
+            .. [CPythonIssue21301] https://bugs.python.org/issue21301
+        """
+        return self.__class__(os.path.expandvars(self))
 
     def ls(self):
         """
@@ -671,6 +633,49 @@ class Path(_PathBase):
             ]
         """
         return list(self.iterdir())
+
+    def shrinkuser(self, home='~'):
+        """
+        Inverse of :func:`os.path.expanduser`.
+
+        Args:
+            home (str): symbol used to replace the home path.
+                Defaults to '~', but you might want to use '$HOME' or
+                '%USERPROFILE%' instead.
+
+        Returns:
+            Path: path - shortened path replacing the home directory with a symbol
+
+        Example:
+            >>> import ubelt as ub
+            >>> path = ub.Path('~').expand()
+            >>> assert str(path.shrinkuser()) == '~'
+            >>> assert str(ub.Path((str(path) + '1')).shrinkuser()) == str(path) + '1'
+            >>> assert str((path / '1').shrinkuser()) == join('~', '1')
+            >>> assert str((path / '1').shrinkuser('$HOME')) == join('$HOME', '1')
+            >>> assert str(ub.Path('.').shrinkuser()) == '.'
+        """
+        shrunk = shrinkuser(self, home)
+        new = self.__class__(shrunk)
+        return new
+
+    def touch(self, mode=0o666, exist_ok=True):
+        """
+        Create this file with the given access mode, if it doesn't exist.
+
+        Returns:
+            Path: returns itself
+
+        Notes:
+            The :func:`ubelt.util_io.touch` function currently has a slightly
+            different implementation. This uses whatever the pathlib version
+            is. This may change in the future.
+        """
+        # modify touch to return self
+        # Note: util_io.touch is more expressive than standard python
+        # touch, may want to use that instead.
+        super().touch(mode=mode, exist_ok=exist_ok)
+        return self
 
     def walk(self, topdown=True, onerror=None, followlinks=False):
         """

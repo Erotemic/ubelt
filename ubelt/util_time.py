@@ -41,7 +41,7 @@ def _needs_workaround39103():
 
 def timestamp(datetime=None, precision=0, method='iso8601'):
     """
-    Make a concise iso8601 timestamp suitable for use in filenames
+    Make a concise iso8601 timestamp suitable for use in filenames.
 
     Args:
         datetime (datetime.datetime | None):
@@ -58,14 +58,16 @@ def timestamp(datetime=None, precision=0, method='iso8601'):
     Returns:
         str: stamp
 
-    References:
-        https://en.wikipedia.org/wiki/ISO_8601
-        https://docs.python.org/3/library/datetime.html#strftime-strptime-behavior
-        https://docs.python.org/3/library/time.html
+    Note:
+        For more info see [WikiISO8601]_, [PyStrptime]_, [PyTime]_.
 
-    Notes:
-        The time.strftime and datetime.datetime.strftime methods seem
-        to work differently. The former does not support %f
+    References:
+        .. [WikiISO8601] https://en.wikipedia.org/wiki/ISO_8601
+        .. [PyStrptime] https://docs.python.org/3/library/datetime.html#strftime-strptime-behavior
+        .. [PyTime] https://docs.python.org/3/library/time.html
+
+    TODO:
+        - [ ] Allow defaulting to local or utm timezone (currently default is local)
 
     Example:
         >>> import ubelt as ub
@@ -157,6 +159,8 @@ def timestamp(datetime=None, precision=0, method='iso8601'):
             utc_offset = str(tz_hour) if tz_hour < 0 else '+' + str(tz_hour)
         if precision > 0:
             fprecision = 6  # microseconds are padded to 6 decimals
+            # NOTE: The time.strftime and datetime.datetime.strftime methods
+            # seem to work differently. The former does not support %f
             if _needs_workaround39103():  # nocover
                 local_stamp = datetime.strftime('%04Y-%m-%dT%H%M%S.%f')
             else:  # nocover
@@ -196,6 +200,9 @@ def timeparse(stamp, allow_dateutil=True):
 
     Raises:
         ValueError: if if parsing fails.
+
+    TODO:
+        - [ ] Allow defaulting to local or utm timezone (currently default is local)
 
     Example:
         >>> import ubelt as ub
