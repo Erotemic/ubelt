@@ -170,7 +170,7 @@ I chose these and provided some comment on why:
     ub.ProgIter  # a minimal progress iterator. It's single threaded, informative, and faster than tqdm.
     ub.dict_isect  # like set intersection, but with dictionaries
     ub.dict_union  # like set union, but with dictionaries
-    ub.dict_diff  # like set diff, but with dictionaries
+    ub.dict_diff  # like set difference, but with dictionaries
     ub.map_keys  # shorthand for ``dict(zip(map(func, d.keys()), d.values()))``
     ub.map_vals  # shorthand for ``dict(zip(d.keys(), map(func, d.values())))``
     ub.memoize  # like ``functools.cache``, but uses ub.hash_data if the args are not hashable.
