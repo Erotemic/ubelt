@@ -78,7 +78,8 @@ def writeto(fpath, to_write, aslines=False, verbose=None):
         >>> fpath = (dpath / 'test_file.txt').delete()
         >>> to_write = 'utf-8 symbols Δ, Й, ק, م, ๗, あ, 叶, 葉, and 말.'
         >>> ub.writeto(fpath, to_write)
-        >>> fpath.write_text(to_write)
+        >>> fpath.write_bytes(to_write.encode('utf8'))
+        >>> assert fpath.read_bytes().decode('utf8') == to_write
     """
     if verbose:
         print('Writing to text file: %r ' % (fpath,))
