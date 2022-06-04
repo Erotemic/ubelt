@@ -160,18 +160,21 @@ I chose these and provided some comment on why:
 
     import ubelt as ub
 
+    ub.Path  # inherits from pathlib.Path with quality of life improvements
     ub.Cacher  # configuration based on-disk cachine
-    ub.Path  # an extension of the pathlib.Path
-    ub.cmd  # combines the best of subprocess.Popen and os.system
+    ub.CacheStamp  # indirect caching with corruption detection
     ub.hash_data  # hash mutable python containers, useful with Cacher to config strings
-    ub.repr2  # readable representations of nested data structures
-    ub.download  # why is this not a one liner --- also see grabdata for the same thing, but builtin caching.
-    ub.AutoDict  # one of the most useful tools in Perl, recursive default dicts of dicts
+    ub.cmd  # combines the best of subprocess.Popen and os.system
+    ub.download  # download a file with a single command. Also see grabdata for the same thing, but caching from CacheStamp.
     ub.JobPool   # easy multi-threading / multi-procesing / or single-threaded processing
-    ub.modname_to_modpath  # (works via static analysis)
-    ub.modpath_to_modname  # (works via static analysis)
-    ub.import_module_from_path  # (Unlike importlib, this does not break pytest)
-    ub.import_module_from_name  # (Unlike importlib, this does not break pytest)
+    ub.ProgIter  # a minimal progress iterator. It's single threaded, informative, and faster than tqdm.
+    ub.dict_isect  # like set intersection, but with dictionaries
+    ub.dict_union  # like set union, but with dictionaries
+    ub.dict_diff  # like set diff, but with dictionaries
+    ub.map_keys  # shorthand for ``dict(zip(map(func, d.keys()), d.values()))``
+    ub.map_vals  # shorthand for ``dict(zip(d.keys(), map(func, d.values())))``
+    ub.memoize  # like ``functools.cache``, but uses ub.hash_data if the args are not hashable.
+    ub.repr2  # readable representations of nested data structures
 
 
 But a better way might to objectively measure the frequency of usage and built
@@ -302,6 +305,37 @@ We also have a Jupyter notebook: https://github.com/Erotemic/ubelt/blob/main/doc
 
 Here are some examples of some features inside ``ubelt``
 
+Paths
+-----
+
+Ubelt extends ``pathlib.Path`` by adding several new (often chainable) methods.
+Namely, ``augment``, ``delete``, ``expand``, ``ensuredir``, ``shrinkuser``. It
+also modifies behavior of ``touch`` to be chainable. (New in 1.0.0)
+
+
+.. code:: python
+
+        >>> # Ubelt extends pathlib functionality
+        >>> import ubelt as ub
+        >>> dpath = ub.Path('~/.cache/ubelt/demo_path').expand().ensuredir()
+        >>> fpath = dpath / 'text_file.txt'
+        >>> aug_fpath = fpath.augment(suffix='.aux', ext='.jpg').touch()
+        >>> aug_dpath = dpath.augment('demo_path2')
+        >>> assert aug_fpath.read_text() == ''
+        >>> fpath.write_text('text data')
+        >>> assert aug_fpath.exists()
+        >>> assert not aug_fpath.delete().exists()
+        >>> assert dpath.exists()
+        >>> assert not dpath.delete().exists()
+        >>> print(f'{fpath.shrinkuser()}')
+        >>> print(f'{dpath.shrinkuser()}')
+        >>> print(f'{aug_fpath.shrinkuser()}')
+        >>> print(f'{aug_dpath.shrinkuser()}')
+        ~/.cache/ubelt/demo_path/text_file.txt
+        ~/.cache/ubelt/demo_path
+        ~/.cache/ubelt/demo_path/text_file.aux.jpg
+        ~/.cache/ubelt/demo_pathdemo_path2
+
 Hashing
 -------
 
@@ -404,20 +438,6 @@ Note: ``ProgIter`` is also defined in a standalone module: ``pip install progite
       642/1000... rate=94099.22 Hz, eta=0:00:00, total=0:00:00, wall=14:05 EST 
      1000/1000... rate=71886.74 Hz, eta=0:00:00, total=0:00:00, wall=14:05 EST 
 
-Timing
-------
-
-Quickly time a single line.
-
-.. code:: python
-
-    >>> import math
-    >>> import ubelt as ub
-    >>> timer = ub.Timer('Timer demo!', verbose=1)
-    >>> with timer:
-    >>>     math.factorial(100000)
-    tic('Timer demo!')
-    ...toc('Timer demo!')=0.1453s
 
 Command Line Interaction
 ------------------------
@@ -428,6 +448,9 @@ doesn't have much flexibility. The ``ub.cmd`` function aims to fix this.
 It is as simple to run as ``os.system``, but it returns a dictionary
 containing the return code, standard out, standard error, and the
 ``Popen`` object used under the hood.
+
+This utility is designed to provide as consistent as possible behavior across
+different platforms.  We aim to support Windows, Linux, and OSX. 
 
 .. code:: python
 
@@ -472,40 +495,222 @@ python process, see what it is doing, and then do something based on its
 output, just as you would if you were interacting with the command line
 itself.
 
-Lastly, ``ub.cmd`` removes the need to think about if you need to pass a
-list of args, or a string. Both will work. This utility has been tested
-on both Windows and Linux.
+The idea is that ``ub.cmd`` removes the need to think about if you need to pass
+a list of args, or a string. Both will work. 
 
-Paths
------
+New in ``1.0.0``, a third variant with different consequences for executing
+shell commands. Using the ``system=True`` kwarg will directly use ``os.system``
+instead of ``Popen`` entirely. In this mode it is not possible to ``tee`` the
+output because the program is executing directly in the foreground. This is
+useful for doing things like spawning a vim session and returning if the user
+manages to quit vim.
 
-Ubelt extends ``pathlib.Path`` by adding several new (often chainable) methods.
-Namely, ``augment``, ``delete``, ``expand``, ``ensuredir``, ``shrinkuser``. It
-also modifies behavior of ``touch`` to be chainable. (New in 1.0.0)
+Downloading Files
+-----------------
+
+The function ``ub.download`` provides a simple interface to download a
+URL and save its data to a file.
+
+.. code:: python
+
+    >>> import ubelt as ub
+    >>> url = 'http://i.imgur.com/rqwaDag.png'
+    >>> fpath = ub.download(url, verbose=0)
+    >>> print(ub.shrinkuser(fpath))
+    ~/.cache/ubelt/rqwaDag.png
+
+The function ``ub.grabdata`` works similarly to ``ub.download``, but
+whereas ``ub.download`` will always re-download the file,
+``ub.grabdata`` will check if the file exists and only re-download it if
+it needs to.
+
+.. code:: python
+
+    >>> import ubelt as ub
+    >>> url = 'http://i.imgur.com/rqwaDag.png'
+    >>> fpath = ub.grabdata(url, verbose=0, hash_prefix='944389a39')
+    >>> print(ub.shrinkuser(fpath))
+    ~/.cache/ubelt/rqwaDag.png
+
+
+New in version 0.4.0: both functions now accepts the ``hash_prefix`` keyword
+argument, which if specified will check that the hash of the file matches the
+provided value. The ``hasher`` keyword argument can be used to change which
+hashing algorithm is used (it defaults to ``"sha512"``).
+
+Dictionary Set Operations
+-------------------------
+
+
+Dictionary operations that are analogous to set operations. 
+See each funtions documentation for more details on the behavior of the values.
+Typically the last seen value is given priority.
+
+I hope Python decides to add these to the stdlib someday. 
+
+* ``ubelt.dict_union`` corresponds to ``set.union``.
+* ``ubelt.dict_isect`` corresponds to ``set.intersection``.
+* ``ubelt.dict_diff`` corresponds to ``set.difference``.
+
+.. code:: python 
+
+   >>> d1 = {'a': 1, 'b': 2, 'c': 3}
+   >>> d2 = {'c': 10, 'e': 20, 'f': 30}
+   >>> d3 = {'e': 10, 'f': 20, 'g': 30, 'a': 40}
+   >>> ub.dict_union(d1, d2, d3)
+   {'a': 40, 'b': 2, 'c': 10, 'e': 10, 'f': 20, 'g': 30}
+
+   >>> ub.dict_isect(d1, d2)
+   {'c': 3}
+
+   >>> ub.dict_diff(d1, d2)
+   {'a': 1, 'b': 2}
+
+Grouping Items
+--------------
+
+Given a list of items and corresponding ids, create a dictionary mapping each
+id to a list of its corresponding items.  In other words, group a sequence of
+items of type ``VT`` and corresponding keys of type ``KT`` given by a function
+or corresponding list, group them into a ``Dict[KT, List[VT]`` such that each
+key maps to a list of the values associated with the key.  This is similar to
+`pandas.DataFrame.groupby <https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.groupby.html>`_.
+
+Group ids can be specified by a second list containing the id for
+each corresponding item. 
+
+.. code:: python
+
+    >>> import ubelt as ub
+    >>> # Group via a corresonding list
+    >>> item_list    = ['ham',     'jam',   'spam',     'eggs',    'cheese', 'bannana']
+    >>> groupid_list = ['protein', 'fruit', 'protein',  'protein', 'dairy',  'fruit']
+    >>> dict(ub.group_items(item_list, groupid_list))
+    {'dairy': ['cheese'], 'fruit': ['jam', 'bannana'], 'protein': ['ham', 'spam', 'eggs']}
+
+
+They can also be given by a function that is executed on each item in the list
 
 
 .. code:: python
 
-        >>> # Ubelt extends pathlib functionality
-        >>> import ubelt as ub
-        >>> dpath = ub.Path('~/.cache/ubelt/demo_path').expand().ensuredir()
-        >>> fpath = dpath / 'text_file.txt'
-        >>> aug_fpath = fpath.augment(suffix='.aux', ext='.jpg').touch()
-        >>> aug_dpath = dpath.augment('demo_path2')
-        >>> assert aug_fpath.read_text() == ''
-        >>> fpath.write_text('text data')
-        >>> assert aug_fpath.exists()
-        >>> assert not aug_fpath.delete().exists()
-        >>> assert dpath.exists()
-        >>> assert not dpath.delete().exists()
-        >>> print(f'{fpath.shrinkuser()}')
-        >>> print(f'{dpath.shrinkuser()}')
-        >>> print(f'{aug_fpath.shrinkuser()}')
-        >>> print(f'{aug_dpath.shrinkuser()}')
-        ~/.cache/ubelt/demo_path/text_file.txt
-        ~/.cache/ubelt/demo_path
-        ~/.cache/ubelt/demo_path/text_file.aux.jpg
-        ~/.cache/ubelt/demo_pathdemo_path2
+    >>> import ubelt as ub
+    >>> # Group via a function
+    >>> item_list    = ['ham',     'jam',   'spam',     'eggs',    'cheese', 'bannana']
+    >>> def grouper(item):
+    ...     return item.count('a')
+    >>> dict(ub.group_items(item_list, grouper))
+    {1: ['ham', 'jam', 'spam'], 0: ['eggs', 'cheese'], 3: ['bannana']}
+
+Dictionary Histogram
+--------------------
+
+Find the frequency of items in a sequence. 
+Given a list or sequence of items, this returns a dictionary mapping each
+unique value in the sequence to the number of times it appeared.
+This is similar to `pandas.DataFrame.value_counts <https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.value_counts.html>`_.
+
+.. code:: python
+
+    >>> import ubelt as ub
+    >>> item_list = [1, 2, 39, 900, 1232, 900, 1232, 2, 2, 2, 900]
+    >>> ub.dict_hist(item_list)
+    {1232: 2, 1: 1, 2: 4, 900: 3, 39: 1}
+    
+
+Each item can also be given a weight
+
+.. code:: python
+
+    >>> import ubelt as ub
+    >>> item_list = [1, 2, 39, 900, 1232, 900, 1232, 2, 2, 2, 900]
+    >>> weights   = [1, 1,  0,   0,    0,   0,  0.5, 0, 1, 1, 0.3]
+    >>> ub.dict_hist(item_list, weights=weights)
+    {1: 1, 2: 3, 39: 0, 900: 0.3, 1232: 0.5}
+
+Dictionary Manipulation
+-----------------------
+
+Map functions across dictionarys to transform the keys or values in a
+dictionary.  The ``ubelt.map_keys`` function applies a function to each key in
+a dictionary and returns this transformed copy of the dictionary. Key conflict
+behavior currently raises and error, but may be configurable in the future. The
+``ubelt.map_vals`` function is the same except the function is applied to each
+value instead.  I these functions are useful enough to be ported to Python
+itself.
+
+.. code:: python
+
+    >>> import ubelt as ub
+    >>> dict_ = {'a': [1, 2, 3], 'bb': [], 'ccc': [2,]}
+    >>> dict_keymod = ub.map_keys(len, dict_)
+    >>> dict_valmod = ub.map_vals(len, dict_)
+    >>> print(dict_keymod)
+    >>> print(dict_valmod)
+    {1: [1, 2, 3], 2: [], 3: [2]}
+    {'a': 3, 'bb': 0, 'ccc': 1}
+
+Take a subset of a dictionary. Note this is similar to ``ub.dict_isect``,
+except this will raise an error if the given keys are not in the dictionary.
+
+.. code:: python
+
+    >>> import ubelt as ub
+    >>> dict_ = {'K': 3, 'dcvs_clip_max': 0.2, 'p': 0.1}
+    >>> subdict_ = ub.dict_subset(dict_, ['K', 'dcvs_clip_max'])
+    >>> print(subdict_)
+    {'K': 3, 'dcvs_clip_max': 0.2}
+
+
+The ``ubelt.take`` function works on dictionarys (and lists). It is similar to
+``ubelt.dict_subset``, except that it returns just a list of the values, and
+discards information about the keys. It is also possible to specify a default
+value.
+
+.. code:: python
+
+    >>> import ubelt as ub
+    >>> dict_ = {1: 'a', 2: 'b', 3: 'c'}
+    >>> print(list(ub.take(dict_, [1, 3, 4, 5], default=None)))
+    ['a', 'c', None, None]
+
+Invert the mapping defined by a dictionary. By default ``invert_dict``
+assumes that all dictionary values are distinct (i.e. the mapping is
+one-to-one / injective).
+
+.. code:: python
+
+    >>> import ubelt as ub
+    >>> mapping = {0: 'a', 1: 'b', 2: 'c', 3: 'd'}
+    >>> ub.invert_dict(mapping)
+    {'a': 0, 'b': 1, 'c': 2, 'd': 3}
+
+However, by specifying ``unique_vals=False`` the inverted dictionary
+builds a set of keys that were associated with each value.
+
+.. code:: python
+
+    >>> import ubelt as ub
+    >>> mapping = {'a': 0, 'A': 0, 'b': 1, 'c': 2, 'C': 2, 'd': 3}
+    >>> ub.invert_dict(mapping, unique_vals=False)
+    {0: {'A', 'a'}, 1: {'b'}, 2: {'C', 'c'}, 3: {'d'}}
+
+
+Find Duplicates
+---------------
+
+Find all duplicate items in a list. More specifically,
+``ub.find_duplicates`` searches for items that appear more than ``k``
+times, and returns a mapping from each duplicate item to the positions
+it appeared in.
+
+.. code:: python
+
+    >>> import ubelt as ub
+    >>> items = [0, 0, 1, 2, 3, 3, 0, 12, 2, 9]
+    >>> ub.find_duplicates(items, k=2)
+    {0: [0, 1, 6], 2: [3, 8], 3: [4, 5]}
+
 
 Cross-Platform Config and Cache Directories
 -------------------------------------------
@@ -564,132 +769,6 @@ are not available)
     >>> ub.writeto(real_path, 'foo')
     >>> ub.symlink(real_path, link_path)
 
-Downloading Files
------------------
-
-The function ``ub.download`` provides a simple interface to download a
-URL and save its data to a file.
-
-.. code:: python
-
-    >>> import ubelt as ub
-    >>> url = 'http://i.imgur.com/rqwaDag.png'
-    >>> fpath = ub.download(url, verbose=0)
-    >>> print(ub.shrinkuser(fpath))
-    ~/.cache/ubelt/rqwaDag.png
-
-The function ``ub.grabdata`` works similarly to ``ub.download``, but
-whereas ``ub.download`` will always re-download the file,
-``ub.grabdata`` will check if the file exists and only re-download it if
-it needs to.
-
-.. code:: python
-
-    >>> import ubelt as ub
-    >>> url = 'http://i.imgur.com/rqwaDag.png'
-    >>> fpath = ub.grabdata(url, verbose=0, hash_prefix='944389a39')
-    >>> print(ub.shrinkuser(fpath))
-    ~/.cache/ubelt/rqwaDag.png
-
-
-New in version 0.4.0: both functions now accepts the ``hash_prefix`` keyword
-argument, which if specified will check that the hash of the file matches the
-provided value. The ``hasher`` keyword argument can be used to change which
-hashing algorithm is used (it defaults to ``"sha512"``).
-
-Grouping
---------
-
-Group items in a sequence into a dictionary by a second id list
-
-.. code:: python
-
-    >>> import ubelt as ub
-    >>> item_list    = ['ham',     'jam',   'spam',     'eggs',    'cheese', 'bannana']
-    >>> groupid_list = ['protein', 'fruit', 'protein',  'protein', 'dairy',  'fruit']
-    >>> ub.group_items(item_list, groupid_list)
-    {'dairy': ['cheese'], 'fruit': ['jam', 'bannana'], 'protein': ['ham', 'spam', 'eggs']}
-
-Dictionary Histogram
---------------------
-
-Find the frequency of items in a sequence
-
-.. code:: python
-
-    >>> import ubelt as ub
-    >>> item_list = [1, 2, 39, 900, 1232, 900, 1232, 2, 2, 2, 900]
-    >>> ub.dict_hist(item_list)
-    {1232: 2, 1: 1, 2: 4, 900: 3, 39: 1}
-
-Find Duplicates
----------------
-
-Find all duplicate items in a list. More specifically,
-``ub.find_duplicates`` searches for items that appear more than ``k``
-times, and returns a mapping from each duplicate item to the positions
-it appeared in.
-
-.. code:: python
-
-    >>> import ubelt as ub
-    >>> items = [0, 0, 1, 2, 3, 3, 0, 12, 2, 9]
-    >>> ub.find_duplicates(items, k=2)
-    {0: [0, 1, 6], 2: [3, 8], 3: [4, 5]}
-
-Dictionary Manipulation
------------------------
-
-Take a subset of a dictionary.
-
-.. code:: python
-
-    >>> import ubelt as ub
-    >>> dict_ = {'K': 3, 'dcvs_clip_max': 0.2, 'p': 0.1}
-    >>> subdict_ = ub.dict_subset(dict_, ['K', 'dcvs_clip_max'])
-    >>> print(subdict_)
-    {'K': 3, 'dcvs_clip_max': 0.2}
-
-Take only the values, optionally specify a default value.
-
-.. code:: python
-
-    >>> import ubelt as ub
-    >>> dict_ = {1: 'a', 2: 'b', 3: 'c'}
-    >>> print(list(ub.take(dict_, [1, 3, 4, 5], default=None)))
-    ['a', 'c', None, None]
-
-Apply a function to each value in the dictionary (see also
-``ub.map_keys``).
-
-.. code:: python
-
-    >>> import ubelt as ub
-    >>> dict_ = {'a': [1, 2, 3], 'b': []}
-    >>> newdict = ub.map_vals(len, dict_)
-    >>> print(newdict)
-    {'a': 3, 'b': 0}
-
-Invert the mapping defined by a dictionary. By default ``invert_dict``
-assumes that all dictionary values are distinct (i.e. the mapping is
-one-to-one / injective).
-
-.. code:: python
-
-    >>> import ubelt as ub
-    >>> mapping = {0: 'a', 1: 'b', 2: 'c', 3: 'd'}
-    >>> ub.invert_dict(mapping)
-    {'a': 0, 'b': 1, 'c': 2, 'd': 3}
-
-However, by specifying ``unique_vals=False`` the inverted dictionary
-builds a set of keys that were associated with each value.
-
-.. code:: python
-
-    >>> import ubelt as ub
-    >>> mapping = {'a': 0, 'A': 0, 'b': 1, 'c': 2, 'C': 2, 'd': 3}
-    >>> ub.invert_dict(mapping, unique_vals=False)
-    {0: {'A', 'a'}, 1: {'b'}, 2: {'C', 'c'}, 3: {'d'}}
 
 AutoDict - Autovivification
 ---------------------------
@@ -783,6 +862,23 @@ text.
     A = [[1, 2], * [[5, 6],
          [3, 4]]    [7, 8]]
 
+
+Timing
+------
+
+Quickly time a single line.
+
+.. code:: python
+
+    >>> import math
+    >>> import ubelt as ub
+    >>> timer = ub.Timer('Timer demo!', verbose=1)
+    >>> with timer:
+    >>>     math.factorial(100000)
+    tic('Timer demo!')
+    ...toc('Timer demo!')=0.1453s
+
+
 External tools
 --------------
 
@@ -861,12 +957,8 @@ Notes.
 ------
 PRs are welcome. 
 
-Also check out my other projects (many of which are powered by ubelt):
+Also check out my other projects which are powered by ubelt:
 
--  ProgIter https://github.com/Erotemic/progiter
--  Timerit https://github.com/Erotemic/timerit
--  mkinit https://github.com/Erotemic/mkinit
--  xdoctest https://github.com/Erotemic/xdoctest
 -  xinspect https://github.com/Erotemic/xinspect
 -  xdev https://github.com/Erotemic/xdev
 -  vimtk https://github.com/Erotemic/vimtk
@@ -875,6 +967,14 @@ Also check out my other projects (many of which are powered by ubelt):
 -  kwarray https://github.com/Kitware/kwarray
 -  kwimage https://github.com/Kitware/kwimage
 -  kwcoco https://github.com/Kitware/kwcoco
+
+And my projects related to ubelt:
+
+-  ProgIter https://github.com/Erotemic/progiter
+-  Timerit https://github.com/Erotemic/timerit
+-  mkinit https://github.com/Erotemic/mkinit
+-  xdoctest https://github.com/Erotemic/xdoctest
+
   
 
 .. |CircleCI| image:: https://circleci.com/gh/Erotemic/ubelt.svg?style=svg
