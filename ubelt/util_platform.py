@@ -283,32 +283,41 @@ def find_exe(name, multi=False, path=None):
         .. [shutil_which] https://docs.python.org/dev/library/shutil.html#shutil.which
 
     Example:
-        >>> find_exe('ls')
-        >>> find_exe('ping')
-        >>> assert find_exe('which') == find_exe(find_exe('which'))
-        >>> find_exe('which', multi=True)
-        >>> find_exe('ping', multi=True)
-        >>> find_exe('cmake', multi=True)
-        >>> find_exe('nvcc', multi=True)
-        >>> find_exe('noexist', multi=True)
+        >>> # The following are programs commonly exposed via the PATH variable.
+        >>> # Exact results may differ between machines.
+        >>> # xdoctest: +IGNORE_WANT
+        >>> import ubelt as ub
+        >>> print(ub.find_exe('ls'))
+        >>> print(ub.find_exe('ping'))
+        >>> print(ub.find_exe('which'))
+        >>> print(ub.find_exe('which', multi=True))
+        >>> print(ub.find_exe('ping', multi=True))
+        >>> print(ub.find_exe('noexist', multi=True))
+        /usr/bin/ls
+        /usr/bin/ping
+        /usr/bin/which
+        ['/usr/bin/which', '/bin/which']
+        ['/usr/bin/ping', '/bin/ping']
+        []
 
     Example:
         >>> import ubelt as ub
-        >>> assert not ub.find_exe('noexist', multi=False)
+        >>> assert not ub.find_exe('!noexist', multi=False)
         >>> assert ub.find_exe('ping', multi=False) or ub.find_exe('ls', multi=False)
-        >>> assert not ub.find_exe('noexist', multi=True)
+        >>> assert not ub.find_exe('!noexist', multi=True)
         >>> assert ub.find_exe('ping', multi=True) or ub.find_exe('ls', multi=True)
 
     Benchmark:
         >>> # xdoctest: +IGNORE_WANT
         >>> import ubelt as ub
         >>> import shutil
-        >>> for timer in ub.Timerit(100, bestof=10, label='ub.find_exe'):
+        >>> from timerit import Timerit
+        >>> for timer in Timerit(1000, bestof=10, label='ub.find_exe'):
         >>>     ub.find_exe('which')
-        >>> for timer in ub.Timerit(100, bestof=10, label='shutil.which'):
+        >>> for timer in Timerit(1000, bestof=10, label='shutil.which'):
         >>>     shutil.which('which')
-        Timed best=58.71 µs, mean=59.64 ± 0.96 µs for ub.find_exe
-        Timed best=72.75 µs, mean=73.07 ± 0.22 µs for shutil.which
+        Timed best=25.339 µs, mean=25.809 ± 0.3 µs for ub.find_exe
+        Timed best=28.600 µs, mean=28.986 ± 0.3 µs for shutil.which
     """
     candidates = find_path(name, path=path, exact=True)
     mode = os.X_OK | os.F_OK
@@ -349,18 +358,24 @@ def find_path(name, path=None, exact=False):
         where '.' might be replaced by the root directory of interest.
 
     Example:
-        >>> list(find_path('ping', exact=True))
-        >>> list(find_path('bin'))
-        >>> list(find_path('*cc*'))
-        >>> list(find_path('cmake*'))
+        >>> # xdoctest: +IGNORE_WANT
+        >>> import ubelt as ub
+        >>> print(list(ub.find_path('ping', exact=True)))
+        >>> print(list(ub.find_path('bin')))
+        >>> print(list(ub.find_path('gcc*')))
+        >>> print(list(ub.find_path('cmake*')))
+        ['/usr/bin/ping', '/bin/ping']
+        []
+        [... '/usr/bin/gcc-11', '/usr/bin/gcc-ranlib', ...]
+        [... '/usr/bin/cmake-gui', '/usr/bin/cmake', ...]
 
     Example:
         >>> import ubelt as ub
         >>> from os.path import dirname
         >>> path = dirname(dirname(ub.util_platform.__file__))
-        >>> res = sorted(find_path('ubelt/util_*.py', path=path))
+        >>> res = sorted(ub.find_path('ubelt/util_*.py', path=path))
         >>> assert len(res) >= 10
-        >>> res = sorted(find_path('ubelt/util_platform.py', path=path, exact=True))
+        >>> res = sorted(ub.find_path('ubelt/util_platform.py', path=path, exact=True))
         >>> print(res)
         >>> assert len(res) == 1
     """
