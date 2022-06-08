@@ -5,7 +5,12 @@ We are currently working on porting this changelog to the specifications in
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
-## Version 1.1.0 - Unreleased
+## Version 1.1.1 - Unreleased
+
+### Fixed
+* Issue #113, where a `ub.find_exe` test failed on Gentoo. Fixed by #114
+
+## Version 1.1.0 - Released 2022-06-03
 
 ### Added
 * New method: `ub.timeparse` can parse the result of `ub.timestamp` into a
@@ -15,8 +20,8 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### Changed
 * Register `pathlib.Path` with `ub.repr2`
-* Can now register global `ub.repr2` extensions `ub.repr2.register`
-* Can now register global `ub.hash_data` extensions `ub.hash_data..register`
+* Can now register global `ub.repr2` extensions via `ub.repr2.register`
+* Can now register global `ub.hash_data` extensions via `ub.hash_data.register`
 * Removed deprecated arguments from `ubelt.cmd`.
 * `ub.CacheStamp` will now check the mtime and size to quickly check if the products
   have changed and force expiration.
