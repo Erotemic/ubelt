@@ -341,7 +341,8 @@ class Cacher(object):
             >>> # xdoctest: +REQUIRES(module:pytest)
             >>> from ubelt.util_cache import Cacher
             >>> import pytest
-            >>> with pytest.warns(UserWarning):
+            >>> #with pytest.warns(UserWarning):
+            >>> if 1:  # we no longer warn here
             >>>     cacher = Cacher('test_cacher1')
             >>>     cacher.get_fpath()
             >>> self = Cacher('test_cacher2', depends='cfg1')
