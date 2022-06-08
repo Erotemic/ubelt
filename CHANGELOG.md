@@ -7,6 +7,9 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## Version 1.1.1 - Unreleased
 
+### Changed
+* Removed warning from `ubelt.Cacher` when depends is not specified.
+
 ### Fixed
 * Issue #113, where a `ub.find_exe` test failed on Gentoo. Fixed by #114
 

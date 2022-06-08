@@ -113,7 +113,7 @@ Example:
 """
 import os
 from os.path import join, normpath, basename, exists
-import warnings
+# import warnings
 
 
 class Cacher(object):
@@ -293,9 +293,11 @@ class Cacher(object):
             cfgstr = self.cfgstr
 
         if cfgstr is None and self.enabled:
-            warnings.warn(
-                'No depends given in Cacher constructor or call for {}'.format(
-                    self.fname), UserWarning)
+            # This likely does not need to warn anymore. It is ok if no
+            # dependencies are specified. That is an expected use case.
+            # warnings.warn(
+            #     'No depends given in Cacher constructor or call for {}'.format(
+            #         self.fname), UserWarning)
             cfgstr = ''
         if self.fname is None:
             raise AssertionError('no fname specified in Cacher')
@@ -773,6 +775,10 @@ class CacheStamp(object):
 
         cfgstr (str | None):
             DEPRECATED in favor or depends.
+
+    Notes:
+        The size, mtime, and hash mechanism is similar to how Makefile and redo
+        caches work.
 
     Example:
         >>> import ubelt as ub
