@@ -222,6 +222,9 @@ if __name__ == '__main__':
             'optional': parse_requirements('requirements/optional.txt'),
             'docs': parse_requirements('requirements/docs.txt'),
         },
+        package_data={
+            'ubelt': ['py.typed', '*.pyi'],
+        },
         author_email='erotemic@gmail.com',
         url='https://github.com/Erotemic/ubelt',
         license='Apache 2',

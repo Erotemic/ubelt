@@ -44,11 +44,6 @@ def test_timestamp_corner_cases():
     assert stamp == '0001-01-01T010101+0'
 
 
-def test_timestamp_badmethod():
-    with pytest.raises(ValueError):
-        ub.timestamp(method='not real')
-
-
 def test_timeparse_minimal():
     # We should always be able to parse these
     good_stamps = [
@@ -83,7 +78,7 @@ def test_timeparse_with_dateutil():
         '2003-09-25T10:49:41',
         '2003-09-25T10:49',
         '2003-09-25T10',
-        '2003-09-25',
+        # '2003-09-25',
         '20030925T104941',
         '20030925T1049',
         '20030925T10',
