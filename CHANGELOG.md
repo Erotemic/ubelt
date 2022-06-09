@@ -10,6 +10,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ### Changed
 * Removed warning from `ubelt.Cacher` when depends is not specified.
 * `ub.timestamp` / `ub.timeparse` now respects a `default_timezone` argument and handles `datetime.date` objects.
+* Type stubs are now included in the distribution
 
 ### Fixed
 * Issue #113, where a `ub.find_exe` test failed on Gentoo. Fixed by #114
