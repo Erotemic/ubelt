@@ -14,6 +14,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### Fixed
 * Issue #113, where a `ub.find_exe` test failed on Gentoo. Fixed by #114
+* Issue where older versions of CacheStamp would be interpreted as 1.1 stamps.
 
 ## Version 1.1.0 - Released 2022-06-03
 

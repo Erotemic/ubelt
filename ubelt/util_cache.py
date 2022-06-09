@@ -1007,7 +1007,7 @@ class CacheStamp(object):
                 print('[cacher] stamp expired {}'.format(err))
             return err
 
-        expires = certificate['expires']
+        expires = certificate.get('expires', None)
         if expires is not None:
             from ubelt import util_time
             # Need to add in the local timezone to compare against the cert.
