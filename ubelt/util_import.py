@@ -34,14 +34,14 @@ class PythonPathContext(object):
     Used in testing, and used as a helper in certain ubelt functions.
 
     Warning:
-        Even though this context manager takes precautions, this modifies the
-        python path, and things can go wrong when that happens.  This is
+        Even though this context manager takes precautions, this modifies
+        ``sys.path``, and things can go wrong when that happens.  This is
         generally safe as long as nothing else you do inside of this context
         modifies the path. If the path is modified in this context, we will try
         to detect it and warn.
 
     Args:
-        dpath (str): directory to insert into the PYTHONPATH
+        dpath (str | PathLike): directory to insert into the PYTHONPATH
         index (int): position to add to. Typically either -1 or 0.
 
     Example:
@@ -123,11 +123,18 @@ class PythonPathContext(object):
 
 def import_module_from_path(modpath, index=-1):
     """
-    Imports a module via its path
+    Imports a module via a filesystem path.
+
+    This works by modifying ``sys.path``, importing the module name, and then
+    attempting to undo the change to sys.path. This function may produce
+    unexpected results in the case where the imported module itself itself
+    modifies ``sys.path`` or if there is another conflicting module with the
+    same name.
 
     Args:
         modpath (str | PathLike):
-            Path to the module on disk or within a zipfile.
+            Path to the module on disk or within a zipfile. Paths within a
+            zipfile can be given by ``<path-to>.zip/<path-inside-zip>.py``.
 
         index (int):
             Location at which we modify PYTHONPATH if necessary.  If your
@@ -140,6 +147,10 @@ def import_module_from_path(modpath, index=-1):
 
     References:
         .. [SO_67631] https://stackoverflow.com/questions/67631/import-module-given-path
+
+    Raises:
+        IOError - when the path to the module does not exist
+        ImportError - when the module is unable to be imported
 
     Note:
         If the module is part of a package, the package will be imported first.
@@ -271,8 +282,12 @@ def import_module_from_name(modname):
     """
     Imports a module from its string name (i.e. ``__name__``)
 
+    This is a simple wrapper around :func:`importlib.import_module`, but is
+    provided as a companion function to :func:`import_module_from_path`, which
+    contains functionality not provided in the Python standard library.
+
     Args:
-        modname (str):  module name
+        modname (str): module name
 
     Returns:
         ModuleType: module
@@ -313,6 +328,9 @@ def import_module_from_name(modname):
 def _extension_module_tags():
     """
     Returns valid tags an extension module might have
+
+    Returns:
+        List[str]
     """
     import sysconfig
     tags = []
@@ -330,6 +348,9 @@ def _platform_pylib_exts():  # nocover
     On python3 return the previous with and without abi (e.g.
     .cpython-35m-x86_64-linux-gnu) flags. On python2 returns with
     and without multiarch.
+
+    Returns:
+        tuple
     """
     import sysconfig
     valid_exts = []
@@ -349,12 +370,16 @@ def _syspath_modname_to_modpath(modname, sys_path=None, exclude=None):
     Args:
         modname (str): name of module to find
 
-        sys_path (List[str | PathLike] | None, default=None):
-            if specified overrides ``sys.path``
+        sys_path (None | List[str | PathLike]):
+            The paths to search for the module.
+            If unspecified, defaults to ``sys.path``.
 
-        exclude (List[str | PathLike] | None, default=None):
-            list of directory paths. if specified prevents these directories
-            from being searched.
+        exclude (List[str | PathLike] | None):
+            If specified prevents these directories from being searched.
+            Defaults to None.
+
+    Returns:
+        str: path to the module.
 
     Note:
         This is much slower than the pkgutil mechanisms.
@@ -478,6 +503,9 @@ def _custom_import_modpath(modpath, index=-1):
 def _importlib_import_modpath(modpath):  # nocover
     """
     Alternative to import_module_from_path using importlib mechainsms
+
+    Args:
+        modname (str): the module name.
     """
     dpath, rel_modpath = split_modpath(modpath)
     modname = modpath_to_modname(modpath)
@@ -492,6 +520,9 @@ def _pkgutil_modname_to_modpath(modname):  # nocover
     """
     faster version of :func:`_syspath_modname_to_modpath` using builtin python
     mechanisms, but unfortunately it doesn't play nice with pytest.
+
+    Args:
+        modname (str): the module name.
 
     Example:
         >>> # xdoctest: +SKIP
@@ -524,14 +555,24 @@ def modname_to_modpath(modname, hide_init=True, hide_main=False, sys_path=None):
     exist.
 
     Args:
-        modname (str): module filepath
-        hide_init (bool): if False, __init__.py will be returned for packages
-        hide_main (bool): if False, and hide_init is True, __main__.py will be
-            returned for packages, if it exists.
-        sys_path (list, default=None): if specified overrides ``sys.path``
+        modname (str):
+            The name of a module in ``sys_path``.
+
+        hide_init (bool):
+            if False, __init__.py will be returned for packages.
+            Defaults to True.
+
+        hide_main (bool):
+            if False, and ``hide_init`` is True, __main__.py will be returned
+            for packages, if it exists. Defautls to False.
+
+        sys_path (None | List[str | PathLike]):
+            The paths to search for the module.
+            If unspecified, defaults to ``sys.path``.
 
     Returns:
-        str: modpath - path to the module, or None if it doesn't exist
+        str | None:
+            modpath - path to the module, or None if it doesn't exist
 
     Example:
         >>> modname = 'xdoctest.__main__'
@@ -558,11 +599,16 @@ def normalize_modpath(modpath, hide_init=True, hide_main=False):
     Normalizes __init__ and __main__ paths.
 
     Args:
-        modpath (str | PathLike): path to a module
-        hide_init (bool, default=True): if True, always return package modules
-           as __init__.py files otherwise always return the dpath.
-        hide_main (bool, default=False): if True, always strip away main files
-            otherwise ignore __main__.py.
+        modpath (str | PathLike):
+            path to a module
+
+        hide_init (bool):
+            if True, always return package modules as __init__.py files
+            otherwise always return the dpath. Defaults to True.
+
+        hide_main (bool):
+            if True, always strip away main files otherwise ignore __main__.py.
+            Defaults to False.
 
     Returns:
         str | PathLike: a normalized path to the module

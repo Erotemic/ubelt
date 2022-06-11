@@ -5,7 +5,7 @@ We are currently working on porting this changelog to the specifications in
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
-## Version 1.1.1 - Unreleased
+## Version 1.1.1 - Released 2022-06-09
 
 ### Changed
 * Removed warning from `ubelt.Cacher` when depends is not specified.
