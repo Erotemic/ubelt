@@ -17,12 +17,12 @@ def identity(arg=None, *args, **kwargs):
     All other inputs are ignored. Defaults to None if called without args.
 
     Args:
-        arg (object, default=None): some value
+        arg (Any, default=None): some value
         *args: ignored
         **kwargs: ignored
 
     Returns:
-        object: arg - the same value
+        Any: arg - the same value
 
     Example:
         >>> import ubelt as ub
@@ -84,10 +84,11 @@ def compatible(config, func, start=0):
 
     Args:
         config (Dict[str, Any]):
-            a flat configuration dictionary
+            a flat configuration dictionary that contains keyword arguments
+            that might be passed to a function.
 
         func (Callable):
-            a function or method
+            a function or method to check the arguments of
 
         start (int, default=0):
             Only take args after this position. Set to 1 if calling with an
@@ -140,28 +141,22 @@ def compatible(config, func, start=0):
             func(**ub.compatible(config, func))
     """
     import inspect
-    if hasattr(inspect, 'signature'):  # pragma :nobranch
-        sig = inspect.signature(func)
-        argnames = []
-        has_kwargs = False
-        for arg in sig.parameters.values():
-            if arg.kind == inspect.Parameter.VAR_KEYWORD:
-                has_kwargs = True
-            elif arg.kind == inspect.Parameter.VAR_POSITIONAL:
-                # Ignore variadic positional args
-                pass
-            elif arg.kind == inspect.Parameter.POSITIONAL_ONLY:
-                raise ValueError('this does not work with positional only')
-            elif arg.kind in {inspect.Parameter.POSITIONAL_OR_KEYWORD,
-                              inspect.Parameter.KEYWORD_ONLY}:
-                argnames.append(arg.name)
-            else:  # nocover
-                raise TypeError(arg.kind)
-    else:  # nocover
-        # For Python 2.7
-        spec = inspect.getargspec(func)
-        argnames = spec.args
-        has_kwargs = spec.keywords
+    sig = inspect.signature(func)
+    argnames = []
+    has_kwargs = False
+    for arg in sig.parameters.values():
+        if arg.kind == inspect.Parameter.VAR_KEYWORD:
+            has_kwargs = True
+        elif arg.kind == inspect.Parameter.VAR_POSITIONAL:
+            # Ignore variadic positional args
+            pass
+        elif arg.kind == inspect.Parameter.POSITIONAL_ONLY:
+            raise ValueError('this does not work with positional only')
+        elif arg.kind in {inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                          inspect.Parameter.KEYWORD_ONLY}:
+            argnames.append(arg.name)
+        else:  # nocover
+            raise TypeError(arg.kind)
 
     if has_kwargs:
         # kwargs could be anything, so keep everything
