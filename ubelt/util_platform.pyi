@@ -48,13 +48,13 @@ def ensure_app_cache_dir(appname: str, *args) -> str:
 
 def find_exe(
     name: Union[str, PathLike],
-    multi: bool = ...,
-    path: Union[str, PathLike, Iterable[Union[str, PathLike]], None] = ...
+    multi: bool = False,
+    path: Union[str, PathLike, Iterable[Union[str, PathLike]], None] = None
 ) -> str | List[str] | None:
     ...
 
 
 def find_path(name: Union[str, PathLike],
-              path: Union[str, Iterable[Union[str, PathLike]]] = ...,
-              exact: bool = ...) -> Generator[str, None, None]:
+              path: Union[str, Iterable[Union[str, PathLike]]] = None,
+              exact: bool = False) -> Generator[str, None, None]:
     ...

@@ -5,25 +5,25 @@ import io
 
 def writeto(fpath: Union[str, PathLike],
             to_write: str,
-            aslines: bool = ...,
-            verbose: bool = ...) -> None:
+            aslines: bool = False,
+            verbose: bool = None) -> None:
     ...
 
 
 def readfrom(fpath: Union[str, PathLike],
-             aslines: bool = ...,
+             aslines: bool = False,
              errors: str = ...,
-             verbose: bool = ...) -> str:
+             verbose: bool = None) -> str:
     ...
 
 
 def touch(fpath: Union[str, PathLike],
-          mode: int = ...,
-          dir_fd: io.IOBase = ...,
-          verbose: int = ...,
+          mode: int = 438,
+          dir_fd: io.IOBase = None,
+          verbose: int = 0,
           **kwargs) -> str:
     ...
 
 
-def delete(path: Union[str, PathLike], verbose: bool = ...) -> None:
+def delete(path: Union[str, PathLike], verbose: bool = False) -> None:
     ...

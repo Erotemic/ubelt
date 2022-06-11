@@ -58,19 +58,19 @@ def download(url, fpath=None, dpath=None, fname=None, hash_prefix=None,
             If hash_prefix is specified, this indicates the hashing
             algorithm to apply to the file. Defaults to sha512.
 
-        chunksize (int, default=2 ** 13):
-            Download chunksize.
+        chunksize (int):
+            Download chunksize. Default to ``2 ** 13``
 
-        verbose (int, default=1):
-            Verbosity level 0 or 1.
+        verbose (int | bool):
+            Verbosity flag. Quiet is 0, higher is more verbose. Defaults to 1.
 
-        timeout (float, default=NoParam):
+        timeout (float | NoParamType):
             Specify timeout in seconds for :func:`urllib.request.urlopen`.  (if
             not specified, the global default timeout setting will be used)
             This only works for HTTP, HTTPS and FTP connections for blocking
             operations like the connection attempt.
 
-        progkw (Dict | None):
+        progkw (Dict | NoParamType):
             if specified provides extra arguments to the progress iterator.
             See :class:`ubelt.progiter.ProgIter` for available options.
 
@@ -266,7 +266,7 @@ def download(url, fpath=None, dpath=None, fname=None, hash_prefix=None,
 
 def grabdata(url, fpath=None, dpath=None, fname=None, redo=False,
              verbose=1, appname=None, hash_prefix=None, hasher='sha512',
-             **download_kw):
+             expires=None, **download_kw):
     """
     Downloads a file, caches it, and returns its local path.
 
@@ -291,7 +291,8 @@ def grabdata(url, fpath=None, dpath=None, fname=None, redo=False,
 
         redo (bool, default=False): if True forces redownload of the file
 
-        verbose (bool, default=True):  verbosity flag
+        verbose (int):
+            Verbosity flag. Quiet is 0, higher is more verbose. Defaults to 1.
 
         appname (str): set dpath to `ub.get_app_cache_dir(appname)`.
             Mutually exclusive with dpath and fpath.
@@ -306,6 +307,10 @@ def grabdata(url, fpath=None, dpath=None, fname=None, redo=False,
             algorithm to apply to the file. Defaults to sha512.
             NOTE: Only pass hasher as a string. Passing as an instance is
             deprecated and can cause unexpected results.
+
+        expires (str | int | datetime.datetime):
+            when the cache should expire and redownload or the number of
+            seconds to wait before the cache should expire.
 
         **download_kw: additional kwargs to pass to
             :func:`ubelt.util_download.download`
@@ -410,7 +415,8 @@ def grabdata(url, fpath=None, dpath=None, fname=None, redo=False,
     stamp = CacheStamp(
         fname + '.stamp', dpath, depends=depends, hasher=hasher,
         ext='.json', product=fpath,
-        hash_prefix=hash_prefix, verbose=verbose
+        hash_prefix=hash_prefix, verbose=verbose,
+        expires=expires,
     )
     if redo or stamp.expired():
         try:

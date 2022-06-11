@@ -1006,15 +1006,15 @@ def hash_data(data, hasher=NoParam, base=NoParam, types=False, convert=False,
         data (object):
             Any sort of loosely organized data
 
-        hasher (str | Hasher, default='sha512'):
+        hasher (str | Hasher | NoParamType):
             string code or a hash algorithm from hashlib. Valid hashing
             algorithms are defined by :py:obj:`hashlib.algorithms_guaranteed`
             (e.g.  'sha1', 'sha512', 'md5') as well as 'xxh32' and 'xxh64' if
-            :mod:`xxhash` is installed.
+            :mod:`xxhash` is installed. Defaults to 'sha512'.
 
-        base (List[str] | str, default='hex'):
+        base (List[str] | str | NoParamType):
             list of symbols or shorthand key.
-            Valid keys are 'abc', 'hex', and 'dec'.
+            Valid keys are 'abc', 'hex', and 'dec'. Defaults to 'hex'
 
         types (bool):
             If True data types are included in the hash, otherwise only the raw
@@ -1083,31 +1083,31 @@ def hash_file(fpath, blocksize=1048576, stride=1, maxbytes=None,
         fpath (PathLike):
             location of the file to be hashed.
 
-        blocksize (int, default=2 ** 20):
+        blocksize (int):
             Amount of data to read and hash at a time. There is a trade off and
             the optimal number will depend on specific hardware. This number
             was chosen to be optimal on a developer system. See
             "dev/bench_hash_file" for methodology to choose this number for
-            your use case.
+            your use case. Defaults to 2 ** 20.
 
-        stride (int, default=1):
+        stride (int):
             strides > 1 skip data to hash, useful for faster hashing, but less
-            accurate, also makes hash dependent on blocksize.
+            accurate, also makes hash dependent on blocksize. Defaults to 1.
 
         maxbytes (int | None):
             if specified, only hash the leading `maxbytes` of data in the file.
 
-        hasher (str | Hasher, default='sha512'):
+        hasher (str | Hasher | NoParamType):
             string code or a hash algorithm from hashlib. Valid hashing
             algorithms are defined by :py:obj:`hashlib.algorithms_guaranteed`
             (e.g.  'sha1', 'sha512', 'md5') as well as 'xxh32' and 'xxh64' if
-            :mod:`xxhash` is installed.
+            :mod:`xxhash` is installed.  Defaults to 'sha512'.
 
             TODO: add logic such that you can update an existing hasher
 
-        base (List[str] | str, default='hex'):
+        base (List[str] | str | NoParamType):
             list of symbols or shorthand key.
-            Valid keys are 'abc', 'hex', and 'dec'.
+            Valid keys are 'abc', 'hex', and 'dec'. Defaults to 'hex'.
 
     Note:
         For better hashes keep stride = 1.

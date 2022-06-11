@@ -1,5 +1,6 @@
 from typing import Union
 from os import PathLike
+import concurrent
 import concurrent.futures
 from typing import Any
 
@@ -19,9 +20,9 @@ class DownloadManager:
 
     def submit(self,
                url: Union[str, PathLike],
-               dst: Union[str, None] = ...,
-               hash_prefix: Union[str, None] = ...,
-               hasher: str = ...) -> concurrent.futures.Future:
+               dst: Union[str, None] = None,
+               hash_prefix: Union[str, None] = None,
+               hasher: str = 'sha256') -> concurrent.futures.Future:
         ...
 
     def as_completed(self,

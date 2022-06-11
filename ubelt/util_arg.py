@@ -27,7 +27,7 @@ def argval(key, default=util_const.NoParam, argv=None):
             string or tuple of strings. Each key should be prefixed with two
             hyphens (i.e. ``--``)
 
-        default (T | util_const._NoParamType, default=NoParam):
+        default (T | NoParamType, default=NoParam):
             a value to return if not specified.
 
         argv (Optional[List[str]], default=None):

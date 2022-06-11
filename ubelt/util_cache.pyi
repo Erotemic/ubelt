@@ -38,27 +38,31 @@ class Cacher:
                  backend: str = ...) -> None:
         ...
 
-    def get_fpath(self, cfgstr: Union[str, None] = ...):
+    @property
+    def fpath(self):
         ...
 
-    def exists(self, cfgstr: Union[str, None] = ...):
+    def get_fpath(self, cfgstr: Union[str, None] = None):
+        ...
+
+    def exists(self, cfgstr: Union[str, None] = None):
         ...
 
     def existing_versions(self) -> Generator[str, None, None]:
         ...
 
-    def clear(self, cfgstr: Union[str, None] = ...) -> None:
+    def clear(self, cfgstr: Union[str, None] = None) -> None:
         ...
 
     def tryload(self,
-                cfgstr: Union[str, None] = ...,
-                on_error: str = ...) -> None | object:
+                cfgstr: Union[str, None] = None,
+                on_error: str = 'raise') -> None | object:
         ...
 
-    def load(self, cfgstr: Union[str, None] = ...) -> object:
+    def load(self, cfgstr: Union[str, None] = None) -> object:
         ...
 
-    def save(self, data: object, cfgstr: Union[str, None] = ...) -> None:
+    def save(self, data: object, cfgstr: Union[str, None] = None) -> None:
         ...
 
     def ensure(self, func: Callable, *args, **kwargs):
@@ -90,11 +94,18 @@ class CacheStamp:
                  ext: str = ...) -> None:
         ...
 
+    @property
+    def fpath(self):
+        ...
+
+    def clear(self):
+        ...
+
     def expired(
         self,
-        cfgstr: Union[str, None] = ...,
+        cfgstr: Union[str, None] = None,
         product: Union[str, PathLike, Sequence[Union[str, PathLike]],
-                       None] = ...
+                       None] = None
     ) -> bool | str:
         ...
 

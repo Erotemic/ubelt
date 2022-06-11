@@ -30,7 +30,7 @@ Example:
 __all__ = ['NoParam']
 
 
-class _NoParamType(object):
+class NoParamType(object):
     r"""
     Class used to define :data:`NoParam`, a sentinel that acts like None when
     None might be a valid value. The value of :data:`NoParam` is robust to
@@ -43,16 +43,60 @@ class _NoParamType(object):
         .. [SO_41048643]: http://stackoverflow.com/questions/41048643/a-second-none
 
     Example:
+        >>> # Use case
+        >>> # Imagine you need a function with a default argument, but you need to
+        >>> # distinguish between cases where the user called it without specifying
+        >>> # a default, versus the user specifying None. For instance, imagine you
+        >>> # are writing the code for a dictionary ``get(key, default)``.
+        >>> #
+        >>> # You want the user to distinguish between the user calling it with
+        >>> # None and the user not calling it at all.
+        >>> #
+        >>> # If the key is not in the dictionary, raise a KeyError
+        >>> d.get(self, key)
+        >>> #
+        >>> # If the key is not in the dictionary, return ``default``
+        >>> d.get(self, key, None)  # with positional args
+        >>> d.get(self, key, default=None)  # with keyword args
+        >>> #
+        >>> # So you can't write it like this because you can't distinguish between
+        >>> # the user passing default as None, or not passing a default at all.
+        >>> def get(self, key, default=None):
+        >>>     if default is None:
+        >>>         ...  # What do?!
+        >>> #
+        >>> # You could write it like this, which is long and annoying
+        >>> def get(self, key, *args, **kw):
+        >>>     try:
+        >>>         return self[key]
+        >>>     except KeyError as ke:
+        >>>         if len(args) > 0:
+        >>>             return args[0]
+        >>>         elif 'default' in kw:
+        >>>             return kw['default']
+        >>>         else:
+        >>>             raise
+        >>> #
+        >>> # Instead write it like this, which is short and nice
+        >>> def get(self, key, default=NoParam):
+        >>>     try:
+        >>>         return self[key]
+        >>>     except KeyError:
+        >>>         if default is NoParam:
+        >>>             raise
+        >>>         return default
+
+    Example:
         >>> import ubelt as ub
         >>> from ubelt import util_const
-        >>> from ubelt.util_const import _NoParamType, NoParam
+        >>> from ubelt.util_const import NoParamType, NoParam
         >>> import pickle
         >>> import copy
         >>> id_ = id(NoParam)
         >>> versions = {
         ... 'ub.util_const.NoParam': ub.util_const.NoParam,
         ... 'NoParam': NoParam,
-        ... '_NoParamType()': _NoParamType(),
+        ... 'NoParamType()': NoParamType(),
         ... 'ub.NoParam': ub.NoParam,
         ... 'copy': copy.copy(NoParam),
         ... 'deepcopy': copy.deepcopy(NoParam),
@@ -72,7 +116,7 @@ class _NoParamType(object):
     def __new__(cls):
         return NoParam
     def __reduce__(self):
-        return (_NoParamType, ())
+        return (NoParamType, ())
     def __copy__(self):
         return NoParam
     def __deepcopy__(self, memo):
@@ -85,8 +129,10 @@ class _NoParamType(object):
         # Ensure NoParam is Falsey
         return False
 
+# Backwards compat
+_NoParamType = NoParamType
 
-# Create the only instance of _NoParamType that should ever exist
+# Create the only instance of NoParamType that should ever exist
 try:
     # If the module is reloaded (via imp.reload), globals() will contain
     # NoParam. This skips the code that would instantiate a second object
@@ -98,4 +144,4 @@ except NameError:  # pragma: no cover
     # When the module is first loaded, globals() will not contain NoParam. A
     # NameError will be thrown, causing the first instance of NoParam to be
     # instantiated.
-    NoParam = object.__new__(_NoParamType)  # type: _NoParamType
+    NoParam = object.__new__(NoParamType)  # type: NoParamType

@@ -1,4 +1,4 @@
-class _NoParamType:
+class NoParamType:
 
     def __new__(cls):
         ...
@@ -16,4 +16,4 @@ class _NoParamType:
         ...
 
 
-NoParam: _NoParamType
+NoParam: NoParamType
