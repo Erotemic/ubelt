@@ -52,13 +52,6 @@ class NoParamType(object):
         >>> # You want the user to distinguish between the user calling it with
         >>> # None and the user not calling it at all.
         >>> #
-        >>> # If the key is not in the dictionary, raise a KeyError
-        >>> d.get(self, key)
-        >>> #
-        >>> # If the key is not in the dictionary, return ``default``
-        >>> d.get(self, key, None)  # with positional args
-        >>> d.get(self, key, default=None)  # with keyword args
-        >>> #
         >>> # So you can't write it like this because you can't distinguish between
         >>> # the user passing default as None, or not passing a default at all.
         >>> def get(self, key, default=None):
@@ -78,6 +71,7 @@ class NoParamType(object):
         >>>             raise
         >>> #
         >>> # Instead write it like this, which is short and nice
+        >>> from ubelt import NoParam
         >>> def get(self, key, default=NoParam):
         >>>     try:
         >>>         return self[key]
@@ -85,6 +79,19 @@ class NoParamType(object):
         >>>         if default is NoParam:
         >>>             raise
         >>>         return default
+        >>> #
+        >>> # setup some data
+        >>> self = {}
+        >>> key = 'spam'
+        >>> #
+        >>> # If the key is not in the dictionary, raise a KeyError
+        >>> import pytest
+        >>> with pytest.raises(KeyError):
+        >>>     get(self, key)
+        >>> #
+        >>> # If the key is not in the dictionary, return ``default``
+        >>> get(self, key, None)  # with positional args
+        >>> get(self, key, default=None)  # with keyword args
 
     Example:
         >>> import ubelt as ub
