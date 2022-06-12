@@ -364,7 +364,7 @@ def dict_subset(dict_, keys, default=util_const.NoParam, cls=OrderedDict):
 
         keys (Iterable[KT]): keys to take from ``dict_``
 
-        default (Optional[object] | util_const._NoParamType):
+        default (Optional[object] | NoParamType):
             if specified uses default if keys are missing.
 
         cls (Type[Dict], default=OrderedDict): type of the returned dictionary.
@@ -856,8 +856,9 @@ def varied_values(longform, min_variations=0, default=NoParam):
             "columns" with fewer than ``min_variations`` unique values are
             removed from the result.
 
-        default (VT, default=NoParam):
+        default (VT | NoParamType):
             if specified, unspecified columns are given this value.
+            Defaults to NoParam.
 
     Returns:
         Dict[KT, List[VT]] :

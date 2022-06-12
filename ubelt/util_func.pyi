@@ -3,15 +3,15 @@ from typing import Dict
 from typing import Any
 
 
-def identity(arg: object = ..., *args, **kwargs) -> object:
+def identity(arg: Any = None, *args, **kwargs) -> Any:
     ...
 
 
-def inject_method(self, func: Callable[..., Any], name: str = ...) -> None:
+def inject_method(self, func: Callable[..., Any], name: str = None) -> None:
     ...
 
 
 def compatible(config: Dict[str, Any],
                func: Callable,
-               start: int = ...) -> Dict[str, Any]:
+               start: int = 0) -> Dict[str, Any]:
     ...

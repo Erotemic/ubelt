@@ -1,4 +1,4 @@
-from collections import MutableSet, Sequence
+from collections.abc import MutableSet, Sequence
 from typing import Any
 
 SLICE_ALL: Any

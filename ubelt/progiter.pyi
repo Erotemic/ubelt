@@ -134,7 +134,7 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
     def set_extra(self, extra) -> None:
         ...
 
-    def step(self, inc: int = ..., force: bool = ...) -> None:
+    def step(self, inc: int = 1, force: bool = False) -> None:
         ...
 
     def start(self):

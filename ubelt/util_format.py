@@ -49,6 +49,8 @@ repr2 function itself.
 >>> print(ub.repr2({1: float('nan'), 2: float('inf'), 3: 3.0}, nl=0))
 """
 import collections
+from ubelt import util_str
+from ubelt import util_list
 
 __all__ = ['repr2', 'FormatterExtensions']
 
@@ -811,13 +813,12 @@ def _join_itemstrs(itemstrs, itemsep, newlines, _leaf_info, nobraces,
             if compact_brace:
                 # Why must we modify the indentation below and not here?
                 # prefix = ''
-                # rest = [ub.indent(s, prefix) for s in itemstrs[1:]]
+                # rest = [util_str.indent(s, prefix) for s in itemstrs[1:]]
                 # indented = itemstrs[0:1] + rest
                 indented = itemstrs
             else:
-                import ubelt as ub
                 prefix = ' ' * 4
-                indented = [ub.indent(s, prefix) for s in itemstrs]
+                indented = [util_str.indent(s, prefix) for s in itemstrs]
 
             if align:
                 indented = _align_lines(indented, character=align)
@@ -967,14 +968,13 @@ def _sort_itemstrs(items, itemstrs, key=None):
     """
     # First try to sort items by their normal values
     # If that does not work, then sort by their string values
-    import ubelt as ub
     try:
         # Set ordering is not unique. Sort by strings values instead.
         if len(items) > 0 and isinstance(items[0], (set, frozenset)):
             raise TypeError
-        sortx = ub.argsort(items, key=key)
+        sortx = util_list.argsort(items, key=key)
     except TypeError:
-        sortx = ub.argsort(itemstrs, key=key)
+        sortx = util_list.argsort(itemstrs, key=key)
     itemstrs = [itemstrs[x] for x in sortx]
     return itemstrs
 

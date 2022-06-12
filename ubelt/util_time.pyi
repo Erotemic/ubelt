@@ -1,15 +1,18 @@
-import datetime
 from typing import Union
+import datetime
 from typing import Any
 
 
-def timestamp(datetime: Union[datetime.datetime, None] = ...,
-              precision: int = ...,
-              method: str = ...) -> str:
+def timestamp(datetime: Union[datetime.datetime, datetime.date, None] = None,
+              precision: int = 0,
+              default_timezone: Union[str, datetime.timezone] = 'local',
+              allow_dateutil: bool = True) -> str:
     ...
 
 
-def timeparse(stamp: str, allow_dateutil: bool = ...) -> datetime.datetime:
+def timeparse(stamp: str,
+              default_timezone: str = 'local',
+              allow_dateutil: bool = True) -> datetime.datetime:
     ...
 
 

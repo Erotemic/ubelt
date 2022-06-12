@@ -41,7 +41,7 @@ class IndexableWalker(Generator):
 
 def indexable_allclose(dct1: dict,
                        dct2: dict,
-                       rel_tol: float = ...,
-                       abs_tol: float = ...,
-                       return_info: bool = ...) -> bool | Tuple[bool, Dict]:
+                       rel_tol: float = 1e-09,
+                       abs_tol: float = 0.0,
+                       return_info: bool = False) -> bool | Tuple[bool, Dict]:
     ...

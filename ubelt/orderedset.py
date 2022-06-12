@@ -31,20 +31,13 @@ and released under the MIT license.
 """
 import itertools as it
 from collections import deque
-# import ordered_set
+from collections.abc import MutableSet, Sequence
 
 __all__ = ['OrderedSet', 'oset']
 
 
-try:
-    # Python 3
-    from collections.abc import MutableSet, Sequence
-except ImportError:  # nocover
-    # Python 2.7
-    from collections import MutableSet, Sequence
-
 SLICE_ALL = slice(None)
-__version__ = "3.1"
+__version__ = "3.2"
 
 
 def is_iterable(obj):
