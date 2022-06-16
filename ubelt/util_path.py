@@ -496,8 +496,37 @@ class Path(_PathBase):
                 last dot in the basename is the extension. If True, everything
                 after the first dot in the basename is the extension.
 
+        SeeAlso:
+            # Stdlib ways of augmenting
+            pathlib.Path.with_stem
+            pathlib.Path.with_suffix
+
         Returns:
             Path: augmented path
+
+        Note:
+            NOTICE OF BACKWARDS INCOMPATABILITY.
+
+            THE INITIAL RELEASE OF Path.augment suffered from an unfortunate
+            variable naming decision that conflicts with pathlib.Path
+
+            p = ub.Path('the.entire.fname.or.dname.is.the.name.exe')
+            print(f'p     ={p}')
+            print(f'p.name={p.name}')
+            p = ub.Path('the.stem.ends.here.ext')
+            print(f'p     ={p}')
+            print(f'p.stem={p.stem}')
+            p = ub.Path('only.the.last.dot.is.the.suffix')
+            print(f'p       ={p}')
+            print(f'p.suffix={p.suffix}')
+            p = ub.Path('but.all.suffixes.can.be.recovered')
+            print(f'p         ={p}')
+            print(f'p.suffixes={p.suffixes}')
+
+            p.name
+            p.stem
+            p.suffixes
+            p.parts
 
         Example:
             >>> import ubelt as ub
@@ -509,6 +538,19 @@ class Path(_PathBase):
             >>> print('newpath = {!r}'.format(newpath))
             newpath = Path('pref_bar_suff.baz')
         """
+        if suffix or prefix:
+            import warnings
+            warnings.warn(
+                'DEVELOPER NOTICE: The ubelt.Path.augment function may '
+                'experience a BACKWARDS INCOMPATIBLE update in the future. '
+                'To avoid any issue use the ``ubelt.augment`` function '
+                'instead for now. If you see this warning, please make an '
+                'issue on https://github.com/Erotemic/ubelt/issues indicating '
+                'that there are users of this function in the wild. If there '
+                'are none, then this signature will be "fixed", but if anyone '
+                'depends on this feature then we will continue to support it as '
+                'is.'
+            )
         aug = augpath(self, suffix=suffix, prefix=prefix, ext=ext, base=stem,
                       dpath=dpath, relative=relative, multidot=multidot,
                       tail=tail)
@@ -694,7 +736,8 @@ class Path(_PathBase):
                 if True recurse into symbolic directory links
 
         Yields:
-            Tuple['Path', str, str]: the root, file names, and directory names
+            Tuple['Path', List[str], List[str]]:
+                the root path, directory names, and file names
 
         Example:
             >>> import ubelt as ub
@@ -707,11 +750,24 @@ class Path(_PathBase):
             >>> (self / 'dir2/file4').touch()
             >>> subdirs = list(self.walk())
             >>> assert len(subdirs) == 3
+
+        Example:
+            >>> # Modified from the stdlib
+            >>> import os
+            >>> from os.path import join, getsize
+            >>> import email
+            >>> import ubelt as ub
+            >>> base = ub.Path(email.__file__).parent
+            >>> for root, dirs, files in base.walk():
+            >>>     print(root, " consumes", end="")
+            >>>     print(sum(getsize(join(root, name)) for name in files), end="")
+            >>>     print("bytes in ", len(files), " non-directory files")
+            >>>     if 'CVS' in dirs:
+            >>>         dirs.remove('CVS')  # don't visit CVS directories
         """
         import os
         cls = self.__class__
         walker = os.walk(self, topdown=topdown, onerror=onerror,
                          followlinks=followlinks)
-        for r, fs, ds in walker:
-            r = cls(r)
-            yield r, fs, ds
+        for root, dnames, fnames in walker:
+            yield (cls(root), dnames, fnames)
