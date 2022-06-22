@@ -5,6 +5,13 @@ We are currently working on porting this changelog to the specifications in
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## Version 1.1.2 - Unreleased
+
+### Fixed
+* Fixed issue where ubelt Cacher triggered its own warnings
+* Fixed deprecated usage of LooseVersion
+
+
 ## Version 1.1.1 - Released 2022-06-09
 
 ### Changed

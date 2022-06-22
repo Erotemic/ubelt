@@ -542,7 +542,8 @@ class Path(_PathBase):
             import warnings
             warnings.warn(
                 'DEVELOPER NOTICE: The ubelt.Path.augment function may '
-                'experience a BACKWARDS INCOMPATIBLE update in the future. '
+                'experience a BACKWARDS INCOMPATIBLE update in the future '
+                'having to do with the prefix and suffix argument to ub.Path.augment '
                 'To avoid any issue use the ``ubelt.augment`` function '
                 'instead for now. If you see this warning, please make an '
                 'issue on https://github.com/Erotemic/ubelt/issues indicating '
