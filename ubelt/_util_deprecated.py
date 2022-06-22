@@ -14,7 +14,10 @@ def schedule_deprecation(deprecate=None, error=None, remove=None):  # nocover
     Deprecation machinery to help provide users with a smoother transition
     """
     import ubelt as ub
-    from distutils.version import LooseVersion
+    try:
+        from packaging.version import parse as LooseVersion
+    except ImportError:
+        from distutils.version import LooseVersion
     current = LooseVersion(ub.__version__)
     deprecate = None if deprecate is None else LooseVersion(deprecate)
     remove = None if remove is None else LooseVersion(remove)
@@ -51,7 +54,10 @@ def schedule_deprecation2(migration='', name='?', type='?', deprecate=None, erro
     New version for kwargs, todo: rectify with function version
     """
     import ubelt as ub
-    from distutils.version import LooseVersion
+    try:  # nocover
+        from packaging.version import parse as LooseVersion
+    except ImportError:
+        from distutils.version import LooseVersion
     current = LooseVersion(ub.__version__)
     deprecate = None if deprecate is None else LooseVersion(deprecate)
     remove = None if remove is None else LooseVersion(remove)

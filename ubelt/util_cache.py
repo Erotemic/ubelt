@@ -217,22 +217,16 @@ class Cacher(object):
                  ext='.pkl', meta=None, verbose=None, enabled=True, log=None,
                  hasher='sha1', protocol=-1, cfgstr=None, backend='auto'):
 
-        # TODO: maybe allow depends to be None, and just warn if it defaults to
-        # NoParam?
         if depends is None:
             depends = cfgstr
 
-        if cfgstr is not None:
+        if cfgstr is not None:  # nocover
             from ubelt import _util_deprecated
             _util_deprecated.schedule_deprecation2(
                 migration='Use depends instead', name='cfgstr',
                 type='Cacher class arg', deprecate='1.1.0', error='1.3.0',
                 remove='1.4.0',
             )
-            # We will start warning after the next version releases and a
-            # stable version with depends exists on pypi.
-            # import warnings
-            # warnings.warn('cfgstr is deprecated, use depends instead')
             depends = cfgstr
 
         if verbose is None:
@@ -268,7 +262,7 @@ class Cacher(object):
             raise ValueError('Please be explicit and use a dot in ext')
 
     def _rectify_cfgstr(self, cfgstr=None):
-        if cfgstr is not None:
+        if cfgstr is not None:  # nocover
             from ubelt import _util_deprecated
             _util_deprecated.schedule_deprecation2(
                 migration=(
@@ -443,7 +437,7 @@ class Cacher(object):
             None | object:
                 the cached data if it exists, otherwise returns None
         """
-        cfgstr = self._rectify_cfgstr(cfgstr)
+        # cfgstr = self._rectify_cfgstr(cfgstr)
         if self.enabled:
             try:
                 if self.verbose > 1:
@@ -492,7 +486,7 @@ class Cacher(object):
             >>> cacher.enabled = False
             >>> assert cacher.tryload() is None
         """
-        cfgstr = self._rectify_cfgstr(cfgstr)
+        cfgstr_ = self._rectify_cfgstr(cfgstr)
 
         dpath = self.dpath
         fname = self.fname
@@ -510,14 +504,14 @@ class Cacher(object):
             if verbose > 2:
                 self.log('[cacher] ... cache does not exist: '
                          'dpath={} fname={} cfgstr={}'.format(
-                             basename(dpath), fname, cfgstr))
+                             basename(dpath), fname, cfgstr_))
             raise IOError(2, 'No such file or directory: {!r}'.format(data_fpath))
         else:
             if verbose > 3:
                 sizestr = _byte_str(os.stat(data_fpath).st_size)
                 self.log('[cacher] ... cache exists: '
                          'dpath={} fname={} cfgstr={}, size={}'.format(
-                             basename(dpath), fname, cfgstr, sizestr))
+                             basename(dpath), fname, cfgstr_, sizestr))
         try:
             data = self._backend_load(data_fpath)
         except Exception as ex:
@@ -525,7 +519,7 @@ class Cacher(object):
                 self.log('CORRUPTED? fpath = {!r}'.format(data_fpath))
             if verbose > 1:
                 self.log('[cacher] ... CORRUPTED? dpath={} cfgstr={}'.format(
-                    basename(dpath), cfgstr))
+                    basename(dpath), cfgstr_))
             if isinstance(ex, (EOFError, IOError, ImportError)):
                 raise IOError(str(ex))
             else:
@@ -570,7 +564,7 @@ class Cacher(object):
         if self.verbose > 0:
             self.log('[cacher] ... {} cache save'.format(self.fname))
 
-        cfgstr = self._rectify_cfgstr(cfgstr)
+        cfgstr_ = self._rectify_cfgstr(cfgstr)
         condensed = self._condense_cfgstr(cfgstr)
 
         # Make sure the cache directory exists
@@ -585,7 +579,7 @@ class Cacher(object):
             file_.write('\n\nsaving {}\n'.format(util_time.timestamp()))
             file_.write(self.fname + '\n')
             file_.write(condensed + '\n')
-            file_.write(cfgstr + '\n')
+            file_.write(cfgstr_ + '\n')
             file_.write(str(self.meta) + '\n')
 
         self._backend_dump(data_fpath, data)
