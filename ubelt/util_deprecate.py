@@ -50,6 +50,10 @@ def schedule_deprecation(modname, name='?', type='?', migration='',
             reminding the developer to remove the feature (or extend the remove
             version).
 
+    Note:
+        The :class:`DeprecationWarning` is not visible by default.
+        https://docs.python.org/3/library/warnings.html
+
     Example:
         >>> from ubelt import schedule_deprecation
         >>> import sys
@@ -79,6 +83,11 @@ def schedule_deprecation(modname, name='?', type='?', migration='',
         ...     schedule_deprecation(
         ...         'dummy_module', 'myfunc', 'function', 'do something else',
         ...         deprecate='1.1.0', error='1.2.0', remove='1.3.0')
+        >>> # When no versions are specified, it simply emits the warning
+        >>> with pytest.warns(DeprecationWarning):
+        ...     dummy_module.__version__ = '1.1.0'
+        ...     schedule_deprecation(
+        ...         'dummy_module', 'myfunc', 'function', 'do something else')
     """
     import sys
     import warnings
