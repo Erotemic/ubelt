@@ -15,8 +15,8 @@ from collections.abc import Generator
 from typing import Any, TypeVar
 
 T = TypeVar("T")
-KT = TypeVar("KT")
 VT = TypeVar("VT")
+KT = TypeVar("KT")
 odict = OrderedDict
 ddict = defaultdict
 

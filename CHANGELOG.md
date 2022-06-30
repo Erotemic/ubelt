@@ -7,6 +7,10 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## Version 1.1.2 - Unreleased
 
+### Added
+* Added new module `util_deprecate` with the function `schedule_deprecation`,
+  which is generally useful for library maintenance.
+
 ### Fixed
 * Fixed issue where ubelt Cacher triggered its own warnings
 * Fixed deprecated usage of LooseVersion
