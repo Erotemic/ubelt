@@ -392,8 +392,8 @@ def grabdata(url, fpath=None, dpath=None, fname=None, redo=False,
 
     if hasher is not None:
         if not isinstance(hasher, str):
-            from ubelt import _util_deprecated
-            _util_deprecated.schedule_deprecation(
+            from ubelt import schedule_deprecation
+            schedule_deprecation(
                 modname='ubelt',
                 migration='Pass hasher as a string, otherwise unexpected behavior can occur',
                 name='hasher', type='grabdata arg',
