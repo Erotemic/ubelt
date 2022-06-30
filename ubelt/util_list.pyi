@@ -2,31 +2,33 @@ from typing import Union
 from typing import Mapping
 from typing import Sequence
 from typing import Iterable
+from typing import Any
 from typing import Callable
 from typing import Iterator
 from typing import List
+from _typeshed import Incomplete
 from collections.abc import Generator
 from typing import Any, TypeVar
 
-KT = TypeVar("KT")
 T = TypeVar("T")
+KT = TypeVar("KT")
 VT = TypeVar("VT")
 
 
 class chunks:
-    legacy: Any
-    remainder: Any
-    items: Any
-    total: Any
-    nchunks: Any
-    chunksize: Any
-    bordermode: Any
+    legacy: Incomplete
+    remainder: Incomplete
+    items: Incomplete
+    total: Incomplete
+    nchunks: Incomplete
+    chunksize: Incomplete
+    bordermode: Incomplete
 
     def __init__(self,
                  items,
-                 chunksize: Any | None = ...,
-                 nchunks: Any | None = ...,
-                 total: Any | None = ...,
+                 chunksize: Incomplete | None = ...,
+                 nchunks: Incomplete | None = ...,
+                 total: Incomplete | None = ...,
                  bordermode: str = ...,
                  legacy: bool = ...) -> None:
         ...

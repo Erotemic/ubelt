@@ -1,12 +1,12 @@
 import io
-from typing import Any
+from _typeshed import Incomplete
 
 
 class TeeStringIO(io.StringIO):
-    redirect: Any
-    buffer: Any
+    redirect: Incomplete
+    buffer: Incomplete
 
-    def __init__(self, redirect: Any | None = ...) -> None:
+    def __init__(self, redirect: Incomplete | None = ...) -> None:
         ...
 
     def isatty(self):
@@ -31,13 +31,13 @@ class CaptureStream:
 
 
 class CaptureStdout(CaptureStream):
-    text: Any
-    parts: Any
+    text: Incomplete
+    parts: Incomplete
     started: bool
-    cap_stdout: Any
-    enabled: Any
-    suppress: Any
-    orig_stdout: Any
+    cap_stdout: Incomplete
+    enabled: Incomplete
+    suppress: Incomplete
+    orig_stdout: Incomplete
 
     def __init__(self, suppress: bool = ..., enabled: bool = ...) -> None:
         ...

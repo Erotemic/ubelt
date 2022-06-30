@@ -1,4 +1,4 @@
-from typing import Any
+from _typeshed import Incomplete
 from ubelt.util_mixins import NiceRepr
 
 
@@ -7,10 +7,10 @@ def split_archive(fpath, ext: str = ...):
 
 
 class zopen(NiceRepr):
-    fpath: Any
-    ext: Any
-    name: Any
-    mode: Any
+    fpath: Incomplete
+    ext: Incomplete
+    name: Incomplete
+    mode: Incomplete
 
     def __init__(self,
                  fpath,

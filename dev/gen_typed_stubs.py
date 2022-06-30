@@ -1,4 +1,9 @@
 """
+MOVED TO xdev:
+    SEE xdev
+    xdev doctypes ubelt
+
+
 Script for auto-generating pyi type extension files from google-style
 docstrings
 

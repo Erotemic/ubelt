@@ -1,15 +1,16 @@
 from typing import List
 from typing import Tuple
-from typing import Dict
-from collections.abc import Generator
 from typing import Any
+from typing import Dict
+from _typeshed import Incomplete
+from collections.abc import Generator
 
 
 class IndexableWalker(Generator):
-    data: Any
-    dict_cls: Any
-    list_cls: Any
-    indexable_cls: Any
+    data: Incomplete
+    dict_cls: Incomplete
+    list_cls: Incomplete
+    indexable_cls: Incomplete
 
     def __init__(self, data, dict_cls=..., list_cls=...) -> None:
         ...
@@ -17,22 +18,22 @@ class IndexableWalker(Generator):
     def __iter__(self) -> Generator[Tuple[List, Any], Any, Any]:
         ...
 
-    def __next__(self):
+    def __next__(self) -> Any:
         ...
 
     def send(self, arg) -> None:
         ...
 
     def throw(self,
-              type: Any | None = ...,
-              value: Any | None = ...,
-              traceback: Any | None = ...) -> None:
+              type: Incomplete | None = ...,
+              value: Incomplete | None = ...,
+              traceback: Incomplete | None = ...) -> None:
         ...
 
-    def __setitem__(self, path: List, value: object) -> None:
+    def __setitem__(self, path: List, value: Any) -> None:
         ...
 
-    def __getitem__(self, path: List):
+    def __getitem__(self, path: List) -> Any:
         ...
 
     def __delitem__(self, path: List) -> None:

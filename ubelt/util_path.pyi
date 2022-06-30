@@ -1,9 +1,10 @@
 from typing import Union
 from os import PathLike
 from typing import Tuple
+from typing import List
 from typing import Callable
+from _typeshed import Incomplete
 from collections.abc import Generator
-from typing import Any
 
 
 def augpath(path: Union[str, PathLike],
@@ -38,7 +39,7 @@ def ensuredir(dpath: Union[str, PathLike, Tuple[Union[str, PathLike]]],
 
 
 class TempDir:
-    dpath: Any
+    dpath: Incomplete
 
     def __init__(self) -> None:
         ...
@@ -91,7 +92,7 @@ class Path:
     def expandvars(self) -> 'Path':
         ...
 
-    def ls(self):
+    def ls(self) -> List[Path]:
         ...
 
     def shrinkuser(self, home: str = '~') -> 'Path':
@@ -105,5 +106,5 @@ class Path:
         topdown: bool = True,
         onerror: Callable[[OSError], None] = None,
         followlinks: bool = False
-    ) -> Generator[Tuple['Path', str, str], None, None]:
+    ) -> Generator[Tuple['Path', List[str], List[str]], None, None]:
         ...

@@ -1,40 +1,40 @@
 from typing import Union
+from os import PathLike
 from typing import Callable
 from typing import Sequence
-from os import PathLike
+from _typeshed import Incomplete
 from collections.abc import Generator
-from typing import Any
 
 
 class Cacher:
     VERBOSE: int
     FORCE_DISABLE: bool
-    dpath: Any
-    fname: Any
-    depends: Any
-    cfgstr: Any
-    verbose: Any
-    ext: Any
-    meta: Any
-    enabled: Any
-    protocol: Any
-    hasher: Any
-    log: Any
-    backend: Any
+    dpath: Incomplete
+    fname: Incomplete
+    depends: Incomplete
+    cfgstr: Incomplete
+    verbose: Incomplete
+    ext: Incomplete
+    meta: Incomplete
+    enabled: Incomplete
+    protocol: Incomplete
+    hasher: Incomplete
+    log: Incomplete
+    backend: Incomplete
 
     def __init__(self,
                  fname,
-                 depends: Any | None = ...,
-                 dpath: Any | None = ...,
+                 depends: Incomplete | None = ...,
+                 dpath: Incomplete | None = ...,
                  appname: str = ...,
                  ext: str = ...,
-                 meta: Any | None = ...,
-                 verbose: Any | None = ...,
+                 meta: Incomplete | None = ...,
+                 verbose: Incomplete | None = ...,
                  enabled: bool = ...,
-                 log: Any | None = ...,
+                 log: Incomplete | None = ...,
                  hasher: str = ...,
                  protocol: int = ...,
-                 cfgstr: Any | None = ...,
+                 cfgstr: Incomplete | None = ...,
                  backend: str = ...) -> None:
         ...
 
@@ -42,10 +42,10 @@ class Cacher:
     def fpath(self):
         ...
 
-    def get_fpath(self, cfgstr: Union[str, None] = None):
+    def get_fpath(self, cfgstr: Union[str, None] = None) -> str | PathLike:
         ...
 
-    def exists(self, cfgstr: Union[str, None] = None):
+    def exists(self, cfgstr: Union[str, None] = None) -> bool:
         ...
 
     def existing_versions(self) -> Generator[str, None, None]:
@@ -73,24 +73,24 @@ class Cacher:
 
 
 class CacheStamp:
-    cacher: Any
-    product: Any
-    hasher: Any
-    expires: Any
-    hash_prefix: Any
+    cacher: Incomplete
+    product: Incomplete
+    hasher: Incomplete
+    expires: Incomplete
+    hash_prefix: Incomplete
 
     def __init__(self,
                  fname,
                  dpath,
-                 cfgstr: Any | None = ...,
-                 product: Any | None = ...,
+                 cfgstr: Incomplete | None = ...,
+                 product: Incomplete | None = ...,
                  hasher: str = ...,
-                 verbose: Any | None = ...,
+                 verbose: Incomplete | None = ...,
                  enabled: bool = ...,
-                 depends: Any | None = ...,
-                 meta: Any | None = ...,
-                 hash_prefix: Any | None = ...,
-                 expires: Any | None = ...,
+                 depends: Incomplete | None = ...,
+                 meta: Incomplete | None = ...,
+                 hash_prefix: Incomplete | None = ...,
+                 expires: Incomplete | None = ...,
                  ext: str = ...) -> None:
         ...
 
@@ -110,6 +110,6 @@ class CacheStamp:
         ...
 
     def renew(self,
-              cfgstr: Any | None = ...,
-              product: Any | None = ...) -> dict:
+              cfgstr: Incomplete | None = ...,
+              product: Incomplete | None = ...) -> dict:
         ...
