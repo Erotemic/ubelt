@@ -117,7 +117,7 @@ def repr2(data, **kwargs):
                 default kvsep is modified to ``'='``
                 default itemsep is modified to  ``''``
                 default nobraces is modified to ``1``.
-                default nl is modified to ``0``.
+                default newlines is modified to ``0``.
                 default strkeys to ``True``
                 default strvals to ``True``
 
@@ -128,7 +128,9 @@ def repr2(data, **kwargs):
             separator between keys and values
 
         itemsep (str, default=' '):
-            separator between items
+            separator between items. This separator is placed after commas,
+            which are currently not configurable. This may be modified in the
+            future.
 
         sort (bool | callable, default=None):
             if None, then sort unordered collections, but keep the ordering of

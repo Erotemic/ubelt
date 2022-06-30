@@ -222,7 +222,8 @@ class Cacher(object):
 
         if cfgstr is not None:  # nocover
             from ubelt import _util_deprecated
-            _util_deprecated.schedule_deprecation2(
+            _util_deprecated.schedule_deprecation(
+                modname='ubelt',
                 migration='Use depends instead', name='cfgstr',
                 type='Cacher class arg', deprecate='1.1.0', error='1.3.0',
                 remove='1.4.0',
@@ -264,7 +265,8 @@ class Cacher(object):
     def _rectify_cfgstr(self, cfgstr=None):
         if cfgstr is not None:  # nocover
             from ubelt import _util_deprecated
-            _util_deprecated.schedule_deprecation2(
+            _util_deprecated.schedule_deprecation(
+                modname='ubelt',
                 migration=(
                     'In general, you should not need to specify a custom '
                     'cfgstr after the Cacher has been created. '
@@ -862,7 +864,8 @@ class CacheStamp(object):
         else:
             if not isinstance(self.hasher, str):  # nocover
                 from ubelt import _util_deprecated
-                _util_deprecated.schedule_deprecation2(
+                _util_deprecated.schedule_deprecation(
+                    modname='ubelt',
                     migration='Pass hasher as a string',
                     name='hasher', type='CacheStamp arg',
                     deprecate='1.1.0', error='1.3.0', remove='1.4.0')
@@ -977,14 +980,16 @@ class CacheStamp(object):
         """
         if cfgstr is not None:  # nocover
             from ubelt import _util_deprecated
-            _util_deprecated.schedule_deprecation2(
+            _util_deprecated.schedule_deprecation(
+                modname='ubelt',
                 migration='Do not pass cfgstr to expired. Use the class depends arg',
                 name='cfgstr', type='CacheStamp.expires arg',
                 deprecate='1.1.0', error='1.3.0', remove='1.4.0',
             )
         if product is not None:  # nocover
             from ubelt import _util_deprecated
-            _util_deprecated.schedule_deprecation2(
+            _util_deprecated.schedule_deprecation(
+                modname='ubelt',
                 migration='Do not pass product to expired. Use the class product arg',
                 name='product', type='CacheStamp.expires arg',
                 deprecate='1.1.0', error='1.3.0', remove='1.4.0',
@@ -1174,14 +1179,16 @@ class CacheStamp(object):
         """
         if cfgstr is not None:  # nocover
             from ubelt import _util_deprecated
-            _util_deprecated.schedule_deprecation2(
+            _util_deprecated.schedule_deprecation(
+                modname='ubelt',
                 migration='Do not pass cfgstr to renew. Use the class depends arg',
                 name='cfgstr', type='CacheStamp.renew arg',
                 deprecate='1.1.0', error='1.3.0', remove='1.4.0',
             )
         if product is not None:  # nocover
             from ubelt import _util_deprecated
-            _util_deprecated.schedule_deprecation2(
+            _util_deprecated.schedule_deprecation(
+                modname='ubelt',
                 migration='Do not pass product to renew. Use the class product arg',
                 name='product', type='CacheStamp.renew arg',
                 deprecate='1.1.0', error='1.3.0', remove='1.4.0',
