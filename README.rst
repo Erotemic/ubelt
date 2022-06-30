@@ -102,6 +102,7 @@ Ubelt is small. Its top-level API is defined using roughly 40 lines:
                                  dzip, find_duplicates, group_items, invert_dict,
                                  map_keys, map_vals, named_product, odict,
                                  sorted_keys, sorted_vals, varied_values,)
+    from ubelt.util_deprecate import (schedule_deprecation,)
     from ubelt.util_download import (download, grabdata,)
     from ubelt.util_download_manager import (DownloadManager,)
     from ubelt.util_func import (compatible, identity, inject_method,)
@@ -134,6 +135,7 @@ Ubelt is small. Its top-level API is defined using roughly 40 lines:
     from ubelt.util_zip import (split_archive, zopen,)
     from ubelt.orderedset import (OrderedSet, oset,)
     from ubelt.progiter import (ProgIter,)
+
 
 Installation:
 =============
