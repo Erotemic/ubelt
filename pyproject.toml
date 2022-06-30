@@ -8,6 +8,15 @@ ignore_missing_imports = true
 tags = [ "purepy", "erotemic", "github",]
 mod_name = "ubelt"
 repo_name = "ubelt"
+rel_mod_parent_dpath = "."
+os = ["all"]
+min_python = 3.6
+author = "Jon Crall"
+author_email = "erotemic@gmail.com"
+description = "A Python utility belt containing simple tools, a stdlib like feel, and extra batteries"
+license = "Apache 2"
+dev_status = "stable"
+
 
 [tool.pytest.ini_options]
 addopts = "-p no:doctest --xdoctest --xdoctest-style=google --ignore-glob=setup.py"
