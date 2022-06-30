@@ -50,6 +50,7 @@ jobs:
     - name: Build sdist
       shell: bash
       run: |-
+        python -m pip install pip -U
         python -m pip install setuptools>=0.8 wheel build
         python -m build --sdist --outdir wheelhouse
     - name: Install sdist
@@ -122,49 +123,9 @@ jobs:
     - name: Build pure wheel
       shell: bash
       run: |-
-        python -m pip -U
+        python -m pip install pip -U
         python -m pip install setuptools>=0.8 wheel build
         python -m build --wheel --outdir wheelhouse
-    - name: Test minimal loose pure wheel
-      shell: bash
-      env:
-        CI_PYTHON_VERSION: py${{ matrix.python-version }}
-      run: |-
-        # Find the path to the wheel
-        WHEEL_FPATH=$(ls wheelhouse/ubelt*.whl)
-        # Install the wheel
-        python -m pip install --user --force-reinstall ${WHEEL_FPATH}[tests]
-        # Create a sandboxed directory
-        WORKSPACE_DNAME="testdir_${CI_PYTHON_VERSION}_${GITHUB_RUN_ID}_${RUNNER_OS}"
-        mkdir -p $WORKSPACE_DNAME
-        cd $WORKSPACE_DNAME
-        # Get the path to the installed package and run the tests
-        MOD_DPATH=$(python -c "import ubelt, os; print(os.path.dirname(ubelt.__file__))")
-        echo "MOD_DPATH = $MOD_DPATH"
-        python -m pytest -p pytester -p no:doctest --xdoctest --cov-config ../pyproject.toml --cov-report term --cov=ubelt $MOD_DPATH ../tests
-        # Move coverage file to a new name
-        mv .coverage "../.coverage.$WORKSPACE_DNAME"
-        cd ..
-    - name: Test minimal strict pure wheel
-      shell: bash
-      env:
-        CI_PYTHON_VERSION: py${{ matrix.python-version }}
-      run: |-
-        # Find the path to the wheel
-        WHEEL_FPATH=$(ls wheelhouse/ubelt*.whl)
-        # Install the wheel
-        python -m pip install --user --force-reinstall ${WHEEL_FPATH}[tests-strict,runtime-strict]
-        # Create a sandboxed directory
-        WORKSPACE_DNAME="testdir_${CI_PYTHON_VERSION}_${GITHUB_RUN_ID}_${RUNNER_OS}"
-        mkdir -p $WORKSPACE_DNAME
-        cd $WORKSPACE_DNAME
-        # Get the path to the installed package and run the tests
-        MOD_DPATH=$(python -c "import ubelt, os; print(os.path.dirname(ubelt.__file__))")
-        echo "MOD_DPATH = $MOD_DPATH"
-        python -m pytest -p pytester -p no:doctest --xdoctest --cov-config ../pyproject.toml --cov-report term --cov=ubelt $MOD_DPATH ../tests
-        # Move coverage file to a new name
-        mv .coverage "../.coverage.$WORKSPACE_DNAME"
-        cd ..
     - name: Test full strict pure wheel
       shell: bash
       env:
@@ -174,26 +135,6 @@ jobs:
         WHEEL_FPATH=$(ls wheelhouse/ubelt*.whl)
         # Install the wheel
         python -m pip install --user --force-reinstall ${WHEEL_FPATH}[tests-strict,all-strict]
-        # Create a sandboxed directory
-        WORKSPACE_DNAME="testdir_${CI_PYTHON_VERSION}_${GITHUB_RUN_ID}_${RUNNER_OS}"
-        mkdir -p $WORKSPACE_DNAME
-        cd $WORKSPACE_DNAME
-        # Get the path to the installed package and run the tests
-        MOD_DPATH=$(python -c "import ubelt, os; print(os.path.dirname(ubelt.__file__))")
-        echo "MOD_DPATH = $MOD_DPATH"
-        python -m pytest -p pytester -p no:doctest --xdoctest --cov-config ../pyproject.toml --cov-report term --cov=ubelt $MOD_DPATH ../tests
-        # Move coverage file to a new name
-        mv .coverage "../.coverage.$WORKSPACE_DNAME"
-        cd ..
-    - name: Test full loose pure wheel
-      shell: bash
-      env:
-        CI_PYTHON_VERSION: py${{ matrix.python-version }}
-      run: |-
-        # Find the path to the wheel
-        WHEEL_FPATH=$(ls wheelhouse/ubelt*.whl)
-        # Install the wheel
-        python -m pip install --user --force-reinstall ${WHEEL_FPATH}[tests,all]
         # Create a sandboxed directory
         WORKSPACE_DNAME="testdir_${CI_PYTHON_VERSION}_${GITHUB_RUN_ID}_${RUNNER_OS}"
         mkdir -p $WORKSPACE_DNAME
