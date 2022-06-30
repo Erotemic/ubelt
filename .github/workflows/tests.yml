@@ -86,6 +86,7 @@ jobs:
         path: ./wheelhouse/*.tar.gz
   build_and_test_wheels:
     name: ${{ matrix.python-version }} on ${{ matrix.os }}, arch=${{ matrix.arch }}
+      with ${{ install_extras }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -100,21 +101,26 @@ jobs:
         - '3.9'
         - '3.10'
         - pypy-3.7
+        install_extras:
+        - tests
+        - tests,optional
+        - tests-strict,runtime-strict
+        - tests-strict,runtime-strict,optional-strict
         arch:
         - auto
     steps:
     - uses: actions/checkout@v3
     - name: Enable MSVC 64bit
+      uses: ilammy/msvc-dev-cmd@v1
       if: matrix.os == 'windows-latest' && matrix.cibw_build != 'cp3*-win32'
-      uses: ilammy/msvc-dev-cmd@v1
     - name: Enable MSVC 32bit
-      if: matrix.os == 'windows-latest' && matrix.cibw_build == 'cp3*-win32'
       uses: ilammy/msvc-dev-cmd@v1
+      if: matrix.os == 'windows-latest' && matrix.cibw_build == 'cp3*-win32'
       with:
         arch: x86
     - name: Set up QEMU
-      if: runner.os == 'Linux' && matrix.arch != 'auto'
       uses: docker/setup-qemu-action@v2
+      if: runner.os == 'Linux' && matrix.arch != 'auto'
       with:
         platforms: all
     - uses: actions/setup-python@v4
@@ -126,15 +132,16 @@ jobs:
         python -m pip install pip -U
         python -m pip install setuptools>=0.8 wheel build
         python -m build --wheel --outdir wheelhouse
-    - name: Test full strict pure wheel
+    - name: Test wheel with ${{ matrix.install_extras }}
       shell: bash
       env:
+        INSTALL_EXTRAS: ${{ matrix.install_extras }}
         CI_PYTHON_VERSION: py${{ matrix.python-version }}
       run: |-
         # Find the path to the wheel
         WHEEL_FPATH=$(ls wheelhouse/ubelt*.whl)
         # Install the wheel
-        python -m pip install --user --force-reinstall ${WHEEL_FPATH}[tests-strict,all-strict]
+        python -m pip install ${WHEEL_FPATH}[${INSTALL_EXTRAS}]
         # Create a sandboxed directory
         WORKSPACE_DNAME="testdir_${CI_PYTHON_VERSION}_${GITHUB_RUN_ID}_${RUNNER_OS}"
         mkdir -p $WORKSPACE_DNAME
