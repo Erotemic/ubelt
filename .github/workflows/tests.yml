@@ -129,10 +129,10 @@ jobs:
       env:
         CI_PYTHON_VERSION: py${{ matrix.python-version }}
       run: |-
+        # Find the path to the wheel
+        WHEEL_FPATH=$(ls wheelhouse/ubelt*.whl)
         # Install the wheel
-        python -m pip install wheelhouse/ubelt*.whl
-        python -m pip install -r requirements/tests.txt
-        true
+        python -m pip install --user --force-reinstall ${WHEEL_FPATH}[tests]
         # Create a sandboxed directory
         WORKSPACE_DNAME="testdir_${CI_PYTHON_VERSION}_${GITHUB_RUN_ID}_${RUNNER_OS}"
         mkdir -p $WORKSPACE_DNAME
