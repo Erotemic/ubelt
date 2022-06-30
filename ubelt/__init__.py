@@ -13,8 +13,6 @@ contains a docstring with at least one example.
 NOTE: The `README <https://github.com/Erotemic/ubelt#readme>`_ on github
 contains information and examples complementary to these docs.
 """
-# flake8: noqa
-
 
 __dev__ = """
 AutogenInit:
@@ -57,10 +55,8 @@ __submodules__ = {
     'util_zip': None,
     'orderedset': None,
     'progiter': None,
-    # '_util_deprecated': []
 }
 
-# <AUTOGEN_INIT>
 from ubelt import orderedset
 from ubelt import progiter
 from ubelt import util_arg
@@ -166,4 +162,3 @@ __all__ = ['AutoDict', 'AutoOrderedDict', 'CacheStamp', 'Cacher',
            'util_links', 'util_list', 'util_memoize', 'util_mixins',
            'util_path', 'util_platform', 'util_str', 'util_stream',
            'util_time', 'util_zip', 'varied_values', 'writeto', 'zopen']
-# </AUTOGEN_INIT>
