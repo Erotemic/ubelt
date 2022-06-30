@@ -98,7 +98,6 @@ jobs:
         - '3.8'
         - '3.9'
         - '3.10'
-        #- 3.11-dev
         - pypy-3.7
         arch:
         - auto
@@ -153,7 +152,7 @@ jobs:
         # Find the path to the wheel
         WHEEL_FPATH=$(ls wheelhouse/ubelt*.whl)
         # Install the wheel
-        python -m pip install ${WHEEL_FPATH}[tests-strict,runtime-strict]
+        python -m pip install --force-reinstall ${WHEEL_FPATH}[tests-strict,runtime-strict]
         # Create a sandboxed directory
         WORKSPACE_DNAME="testdir_${CI_PYTHON_VERSION}_${GITHUB_RUN_ID}_${RUNNER_OS}"
         mkdir -p $WORKSPACE_DNAME
@@ -173,7 +172,7 @@ jobs:
         # Find the path to the wheel
         WHEEL_FPATH=$(ls wheelhouse/ubelt*.whl)
         # Install the wheel
-        python -m pip install ${WHEEL_FPATH}[tests-strict,all-strict]
+        python -m pip install --force-reinstall ${WHEEL_FPATH}[tests-strict,all-strict]
         # Create a sandboxed directory
         WORKSPACE_DNAME="testdir_${CI_PYTHON_VERSION}_${GITHUB_RUN_ID}_${RUNNER_OS}"
         mkdir -p $WORKSPACE_DNAME
@@ -193,7 +192,7 @@ jobs:
         # Find the path to the wheel
         WHEEL_FPATH=$(ls wheelhouse/ubelt*.whl)
         # Install the wheel
-        python -m pip install ${WHEEL_FPATH}[tests,all]
+        python -m pip install --force-reinstall ${WHEEL_FPATH}[tests,all]
         # Create a sandboxed directory
         WORKSPACE_DNAME="testdir_${CI_PYTHON_VERSION}_${GITHUB_RUN_ID}_${RUNNER_OS}"
         mkdir -p $WORKSPACE_DNAME
