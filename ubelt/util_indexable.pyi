@@ -4,6 +4,7 @@ from typing import Any
 from typing import Dict
 from _typeshed import Incomplete
 from collections.abc import Generator
+from typing import Any
 
 
 class IndexableWalker(Generator):

@@ -35,6 +35,7 @@ __submodules__ = {
     'util_const': None,
     'util_cmd': None,
     'util_dict': None,
+    'util_deprecate': None,
     'util_download': None,
     'util_download_manager': None,
     'util_func': None,
@@ -67,6 +68,7 @@ from ubelt import util_cache
 from ubelt import util_cmd
 from ubelt import util_colors
 from ubelt import util_const
+from ubelt import util_deprecate
 from ubelt import util_dict
 from ubelt import util_download
 from ubelt import util_download_manager
@@ -98,6 +100,7 @@ from ubelt.util_dict import (AutoDict, AutoOrderedDict, ddict, dict_diff,
                              dzip, find_duplicates, group_items, invert_dict,
                              map_keys, map_vals, named_product, odict,
                              sorted_keys, sorted_vals, varied_values,)
+from ubelt.util_deprecate import (schedule_deprecation,)
 from ubelt.util_download import (download, grabdata,)
 from ubelt.util_download_manager import (DownloadManager,)
 from ubelt.util_func import (compatible, identity, inject_method,)
@@ -152,14 +155,15 @@ __all__ = ['AutoDict', 'AutoOrderedDict', 'CacheStamp', 'Cacher',
            'memoize_property', 'modname_to_modpath', 'modpath_to_modname',
            'named_product', 'odict', 'orderedset', 'oset', 'paragraph', 'peek',
            'platform_cache_dir', 'platform_config_dir', 'platform_data_dir',
-           'progiter', 'readfrom', 'repr2', 'shrinkuser', 'sorted_keys',
-           'sorted_vals', 'split_archive', 'split_modpath', 'symlink', 'take',
-           'timeparse', 'timestamp', 'touch', 'unique', 'unique_flags',
-           'userhome', 'util_arg', 'util_cache', 'util_cmd', 'util_colors',
-           'util_const', 'util_dict', 'util_download', 'util_download_manager',
-           'util_format', 'util_func', 'util_futures', 'util_hash',
-           'util_import', 'util_indexable', 'util_io', 'util_links',
-           'util_list', 'util_memoize', 'util_mixins', 'util_path',
-           'util_platform', 'util_str', 'util_stream', 'util_time', 'util_zip',
-           'varied_values', 'writeto', 'zopen']
+           'progiter', 'readfrom', 'repr2', 'schedule_deprecation',
+           'shrinkuser', 'sorted_keys', 'sorted_vals', 'split_archive',
+           'split_modpath', 'symlink', 'take', 'timeparse', 'timestamp',
+           'touch', 'unique', 'unique_flags', 'userhome', 'util_arg',
+           'util_cache', 'util_cmd', 'util_colors', 'util_const',
+           'util_deprecate', 'util_dict', 'util_download',
+           'util_download_manager', 'util_format', 'util_func', 'util_futures',
+           'util_hash', 'util_import', 'util_indexable', 'util_io',
+           'util_links', 'util_list', 'util_memoize', 'util_mixins',
+           'util_path', 'util_platform', 'util_str', 'util_stream',
+           'util_time', 'util_zip', 'varied_values', 'writeto', 'zopen']
 # </AUTOGEN_INIT>

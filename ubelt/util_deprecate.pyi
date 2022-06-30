@@ -1,14 +1,4 @@
 from typing import Union
-from _typeshed import Incomplete
-
-
-def schedule_deprecation2(migration: str = ...,
-                          name: str = ...,
-                          type: str = ...,
-                          deprecate: Incomplete | None = ...,
-                          error: Incomplete | None = ...,
-                          remove: Incomplete | None = ...) -> None:
-    ...
 
 
 def schedule_deprecation(modname: str,
