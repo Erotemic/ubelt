@@ -86,7 +86,7 @@ jobs:
         path: ./wheelhouse/*.tar.gz
   build_and_test_wheels:
     name: ${{ matrix.python-version }} on ${{ matrix.os }}, arch=${{ matrix.arch }}
-      with ${{ install_extras }}
+      with ${{ install-extras }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -101,7 +101,7 @@ jobs:
         - '3.9'
         - '3.10'
         - pypy-3.7
-        install_extras:
+        install-extras:
         - tests
         - tests,optional
         - tests-strict,runtime-strict
@@ -132,10 +132,10 @@ jobs:
         python -m pip install pip -U
         python -m pip install setuptools>=0.8 wheel build
         python -m build --wheel --outdir wheelhouse
-    - name: Test wheel with ${{ matrix.install_extras }}
+    - name: Test wheel with ${{ matrix.install-extras }}
       shell: bash
       env:
-        INSTALL_EXTRAS: ${{ matrix.install_extras }}
+        INSTALL_EXTRAS: ${{ matrix.install-extras }}
         CI_PYTHON_VERSION: py${{ matrix.python-version }}
       run: |-
         # Find the path to the wheel
