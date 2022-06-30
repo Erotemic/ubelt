@@ -1,5 +1,5 @@
 from typing import Callable
-from typing import Any
+from _typeshed import Incomplete
 
 
 def memoize(func: Callable) -> Callable:
@@ -7,7 +7,7 @@ def memoize(func: Callable) -> Callable:
 
 
 class memoize_method:
-    __func__: Any
+    __func__: Incomplete
 
     def __init__(self, func) -> None:
         ...

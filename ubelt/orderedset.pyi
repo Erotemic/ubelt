@@ -1,7 +1,7 @@
+from _typeshed import Incomplete
 from collections.abc import MutableSet, Sequence
-from typing import Any
 
-SLICE_ALL: Any
+SLICE_ALL: Incomplete
 
 
 def is_iterable(obj):
@@ -9,10 +9,10 @@ def is_iterable(obj):
 
 
 class OrderedSet(MutableSet, Sequence):
-    items: Any
-    map: Any
+    items: Incomplete
+    map: Incomplete
 
-    def __init__(self, iterable: Any | None = ...) -> None:
+    def __init__(self, iterable: Incomplete | None = ...) -> None:
         ...
 
     def __len__(self):
@@ -30,7 +30,7 @@ class OrderedSet(MutableSet, Sequence):
     def add(self, key):
         ...
 
-    append: Any
+    append: Incomplete
 
     def update(self, sequence):
         ...
@@ -38,8 +38,8 @@ class OrderedSet(MutableSet, Sequence):
     def index(self, key):
         ...
 
-    get_loc: Any
-    get_indexer: Any
+    get_loc: Incomplete
+    get_indexer: Incomplete
 
     def pop(self):
         ...

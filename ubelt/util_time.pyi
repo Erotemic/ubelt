@@ -1,6 +1,6 @@
 from typing import Union
 import datetime
-from typing import Any
+from _typeshed import Incomplete
 
 
 def timestamp(datetime: Union[datetime.datetime, datetime.date, None] = None,
@@ -17,17 +17,17 @@ def timeparse(stamp: str,
 
 
 class Timer:
-    label: Any
-    verbose: Any
-    newline: Any
+    label: Incomplete
+    verbose: Incomplete
+    newline: Incomplete
     tstart: int
     elapsed: int
-    write: Any
-    flush: Any
+    write: Incomplete
+    flush: Incomplete
 
     def __init__(self,
                  label: str = ...,
-                 verbose: Any | None = ...,
+                 verbose: Incomplete | None = ...,
                  newline: bool = ...) -> None:
         ...
 

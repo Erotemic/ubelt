@@ -2,9 +2,9 @@ from typing import Union
 from typing import List
 from os import PathLike
 from typing import Dict
-from typing import Any
+from _typeshed import Incomplete
 
-POSIX: Any
+POSIX: Incomplete
 
 
 def cmd(command: Union[str, List[str]],

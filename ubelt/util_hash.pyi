@@ -5,23 +5,24 @@ from ubelt.util_const import NoParam
 from ubelt.util_const import NoParamType
 from typing import List
 from os import PathLike
-from typing import Any, TypeVar
+from _typeshed import Incomplete
+from typing import TypeVar
 
 Hasher = TypeVar("Hasher")
 HASH_VERSION: int
-DEFAULT_ALPHABET: Any
+DEFAULT_ALPHABET: Incomplete
 
 
 def b(s):
     ...
 
 
-DEFAULT_HASHER: Any
+DEFAULT_HASHER: Incomplete
 
 
 class _Hashers:
-    algos: Any
-    aliases: Any
+    algos: Incomplete
+    aliases: Incomplete
 
     def __init__(self) -> None:
         ...
@@ -37,8 +38,8 @@ class _Hashers:
 
 
 class HashableExtensions:
-    keyed_extensions: Any
-    iterable_checks: Any
+    keyed_extensions: Incomplete
+    iterable_checks: Incomplete
 
     def __init__(self) -> None:
         ...
@@ -54,7 +55,7 @@ class HashableExtensions:
 
 
 class _HashTracer:
-    sequence: Any
+    sequence: Incomplete
 
     def __init__(self) -> None:
         ...

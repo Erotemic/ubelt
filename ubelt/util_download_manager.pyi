@@ -2,19 +2,19 @@ from typing import Union
 from os import PathLike
 import concurrent
 import concurrent.futures
-from typing import Any
+from _typeshed import Incomplete
 
 
 class DownloadManager:
-    pool: Any
-    download_root: Any
-    cache: Any
-    dl_func: Any
+    pool: Incomplete
+    download_root: Incomplete
+    cache: Incomplete
+    dl_func: Incomplete
 
     def __init__(self,
-                 download_root: Any | None = ...,
+                 download_root: Incomplete | None = ...,
                  mode: str = ...,
-                 max_workers: Any | None = ...,
+                 max_workers: Incomplete | None = ...,
                  cache: bool = ...) -> None:
         ...
 
@@ -26,8 +26,8 @@ class DownloadManager:
         ...
 
     def as_completed(self,
-                     prog: Any | None = ...,
-                     desc: Any | None = ...,
+                     prog: Incomplete | None = ...,
+                     desc: Incomplete | None = ...,
                      verbose: int = ...):
         ...
 

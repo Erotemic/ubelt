@@ -1,17 +1,19 @@
 import concurrent
 import concurrent.futures
 from typing import Callable
+from typing import Any
 from typing import Union
 from typing import List
 import concurrent.futures
+from _typeshed import Incomplete
 from collections.abc import Generator
 from typing import Any
 
 
 class SerialFuture(concurrent.futures.Future):
-    func: Any
-    args: Any
-    kw: Any
+    func: Incomplete
+    args: Incomplete
+    kw: Incomplete
 
     def __init__(self, func, *args, **kw) -> None:
         ...
@@ -41,7 +43,7 @@ class SerialExecutor:
 
 
 class Executor:
-    backend: Any
+    backend: Incomplete
 
     def __init__(self, mode: str = ..., max_workers: int = ...) -> None:
         ...
@@ -63,8 +65,8 @@ class Executor:
 
 
 class JobPool:
-    executor: Any
-    jobs: Any
+    executor: Incomplete
+    jobs: Incomplete
 
     def __init__(self, mode: str = ..., max_workers: int = ...) -> None:
         ...

@@ -4,6 +4,7 @@ from typing import Dict
 from typing import Union
 from typing import Callable
 from typing import List
+from typing import Any
 from typing import Optional
 from ubelt.util_const import NoParam
 from ubelt.util_const import NoParamType
@@ -13,8 +14,8 @@ from collections import OrderedDict, defaultdict
 from collections.abc import Generator
 from typing import Any, TypeVar
 
-KT = TypeVar("KT")
 T = TypeVar("T")
+KT = TypeVar("KT")
 VT = TypeVar("VT")
 odict = OrderedDict
 ddict = defaultdict

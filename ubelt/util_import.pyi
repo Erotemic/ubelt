@@ -3,12 +3,12 @@ from os import PathLike
 from types import ModuleType
 from typing import List
 from typing import Tuple
-from typing import Any
+from _typeshed import Incomplete
 
 
 class PythonPathContext:
-    dpath: Any
-    index: Any
+    dpath: Incomplete
+    index: Incomplete
 
     def __init__(self, dpath, index: int = ...) -> None:
         ...

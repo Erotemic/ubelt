@@ -118,14 +118,19 @@ class IndexableWalker(Generator):
         Returns:
             Generator[Tuple[List, Any], Any, Any]:
                 path (List): list of index operations to arrive at the value
-                value (object): the value at the path
+                value (Any): the value at the path
         """
         # Calling iterate multiple times will clobber the internal state
         self._walk_gen = self._walk()
         return self._walk_gen
 
     def __next__(self):
-        """ returns next item from this generator """
+        """
+        returns next item from this generator
+
+        Returns:
+            Any
+        """
         if self._walk_gen is None:
             self._walk_gen = self._walk()
         return next(self._walk_gen)
@@ -153,7 +158,7 @@ class IndexableWalker(Generator):
 
         Args:
             path (List): list of indexes into the nested structure
-            value (object): new value
+            value (Any): new value
         """
         d = self.data
         # note: slice unpack seems faster in 3.9 at least, dont change
@@ -172,7 +177,7 @@ class IndexableWalker(Generator):
             path (List): list of indexes into the nested structure
 
         Returns:
-            value
+            Any: value
         """
         d = self.data
         prefix, key = path[:-1], path[-1]
@@ -207,9 +212,9 @@ class IndexableWalker(Generator):
         Defines the underlying generator used by IndexableWalker
 
         Yields:
-            Tuple[List, object] | None:
+            Tuple[List, Any] | None:
                 path (List) - a "path" through the nested data structure
-                value (object) - the value indexed by that "path".
+                value (Any) - the value indexed by that "path".
 
             Can also yield None in the case that `send` is called on the
             generator.

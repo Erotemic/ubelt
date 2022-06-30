@@ -18,5 +18,5 @@ def hzcat(args: List[str], sep: str = ''):
     ...
 
 
-def ensure_unicode(text: Union[str, bytes]):
+def ensure_unicode(text: Union[str, bytes]) -> str:
     ...

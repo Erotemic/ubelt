@@ -1,6 +1,6 @@
-from typing import Any
+from _typeshed import Incomplete
 
-default_timer: Any
+default_timer: Incomplete
 CLEAR_BEFORE: str
 AT_END: str
 CLEAR_AFTER: str
@@ -11,20 +11,20 @@ class _TQDMCompat:
     @classmethod
     def write(cls,
               s,
-              file: Any | None = ...,
+              file: Incomplete | None = ...,
               end: str = ...,
               nolock: bool = ...) -> None:
         ...
 
-    desc: Any
+    desc: Incomplete
 
     def set_description(self,
-                        desc: Any | None = ...,
+                        desc: Incomplete | None = ...,
                         refresh: bool = ...) -> None:
         ...
 
     def set_description_str(self,
-                            desc: Any | None = ...,
+                            desc: Incomplete | None = ...,
                             refresh: bool = ...) -> None:
         ...
 
@@ -59,7 +59,7 @@ class _TQDMCompat:
         ...
 
     def set_postfix(self,
-                    ordered_dict: Any | None = ...,
+                    ordered_dict: Incomplete | None = ...,
                     refresh: bool = ...,
                     **kwargs) -> None:
         ...
@@ -80,29 +80,29 @@ class _BackwardsCompat:
 
 
 class ProgIter(_TQDMCompat, _BackwardsCompat):
-    stream: Any
-    iterable: Any
-    desc: Any
-    total: Any
-    freq: Any
-    initial: Any
-    enabled: Any
-    adjust: Any
-    show_times: Any
-    show_wall: Any
-    eta_window: Any
-    time_thresh: Any
-    clearline: Any
-    chunksize: Any
-    rel_adjust_limit: Any
+    stream: Incomplete
+    iterable: Incomplete
+    desc: Incomplete
+    total: Incomplete
+    freq: Incomplete
+    initial: Incomplete
+    enabled: Incomplete
+    adjust: Incomplete
+    show_times: Incomplete
+    show_wall: Incomplete
+    eta_window: Incomplete
+    time_thresh: Incomplete
+    clearline: Incomplete
+    chunksize: Incomplete
+    rel_adjust_limit: Incomplete
     extra: str
     started: bool
     finished: bool
 
     def __init__(self,
-                 iterable: Any | None = ...,
-                 desc: Any | None = ...,
-                 total: Any | None = ...,
+                 iterable: Incomplete | None = ...,
+                 desc: Incomplete | None = ...,
+                 total: Incomplete | None = ...,
                  freq: int = ...,
                  initial: int = ...,
                  eta_window: int = ...,
@@ -112,9 +112,9 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
                  show_times: bool = ...,
                  show_wall: bool = ...,
                  enabled: bool = ...,
-                 verbose: Any | None = ...,
-                 stream: Any | None = ...,
-                 chunksize: Any | None = ...,
+                 verbose: Incomplete | None = ...,
+                 stream: Incomplete | None = ...,
+                 chunksize: Incomplete | None = ...,
                  rel_adjust_limit: float = ...,
                  **kwargs) -> None:
         ...
