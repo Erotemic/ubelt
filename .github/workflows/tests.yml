@@ -85,7 +85,7 @@ jobs:
         name: wheels
         path: ./wheelhouse/*.tar.gz
   build_and_test_wheels:
-    name: ${{ matrix.python-version }} on ${{ matrix.os }}, arch=${{ matrix.arch }} with ${{ install-extras }}
+    name: ${{ matrix.python-version }} on ${{ matrix.os }}, arch=${{ matrix.arch }} with ${{ matrix.install-extras }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
