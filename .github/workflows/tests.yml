@@ -122,6 +122,7 @@ jobs:
     - name: Build pure wheel
       shell: bash
       run: |-
+        python -m pip -U
         python -m pip install setuptools>=0.8 wheel build
         python -m build --wheel --outdir wheelhouse
     - name: Test minimal loose pure wheel
