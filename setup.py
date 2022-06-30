@@ -59,14 +59,16 @@ def parse_description():
     return ''
 
 
-def parse_requirements(fname='requirements.txt', with_version=False):
+def parse_requirements(fname='requirements.txt', versions=False):
     """
     Parse the package dependencies listed in a requirements file but strips
     specific versioning information.
 
     Args:
         fname (str): path to requirements file
-        with_version (bool, default=False): if true include version specs
+        versions (bool | str, default=False):
+            If true include version specs.
+            If strict, then pin to the minimum version.
 
     Returns:
         List[str]: list of requirements items
@@ -134,8 +136,15 @@ def parse_requirements(fname='requirements.txt', with_version=False):
         if exists(require_fpath):
             for info in parse_require_file(require_fpath):
                 parts = [info['package']]
-                if with_version and 'version' in info:
-                    parts.extend(info['version'])
+                if versions and 'version' in info:
+                    if versions == 'strict':
+                        # In strict mode, we pin to the minimum version
+                        if info['version']:
+                            # Only replace the first >= instance
+                            verstr = ''.join(info['version']).replace('>=', '==', 1)
+                            parts.append(verstr)
+                    else:
+                        parts.extend(info['version'])
                 if not sys.version.startswith('3.4'):
                     # apparently package_deps are broken in 3.4
                     plat_deps = info.get('platform_deps')
@@ -154,18 +163,20 @@ VERSION = parse_version('ubelt/__init__.py')
 
 if __name__ == '__main__':
     setupkw = {}
-    setupkw["install_requires"] = parse_requirements("requirements/runtime.txt")
-    setupkw["extras_require"] = {
-        "all": parse_requirements("requirements.txt"),
-        "tests": parse_requirements("requirements/tests.txt"),
-        "optional": parse_requirements("requirements/optional.txt"),
-        "all-strict": parse_requirements("requirements.txt", versions="strict"),
-        "runtime-strict": parse_requirements(
-            "requirements/runtime.txt", versions="strict"
+    setupkw['install_requires'] = parse_requirements('requirements/runtime.txt')
+    setupkw['extras_require'] = {
+        'all': parse_requirements('requirements.txt'),
+        'tests': parse_requirements('requirements/tests.txt'),
+        'optional': parse_requirements('requirements/optional.txt'),
+        'docs': parse_requirements('requirements/docs.txt'),
+        'all-strict': parse_requirements('requirements.txt', versions='strict'),
+        'runtime-strict': parse_requirements(
+            'requirements/runtime.txt', versions='strict'
         ),
-        "tests-strict": parse_requirements("requirements/tests.txt", versions="strict"),
-        "optional-strict": parse_requirements(
-            "requirements/optional.txt", versions="strict"
+        'tests-strict': parse_requirements('requirements/tests.txt', versions='strict'),
+        'docs-strict': parse_requirements('requirements/docs.txt', versions='strict'),
+        'optional-strict': parse_requirements(
+            'requirements/optional.txt', versions='strict'
         ),
     }
     setup(
@@ -176,13 +187,6 @@ if __name__ == '__main__':
                      'a stdlib like feel, and extra batteries.'),
         long_description=parse_description(),
         long_description_content_type='text/x-rst',
-        install_requires=parse_requirements('requirements/runtime.txt'),
-        extras_require={
-            'all': parse_requirements('requirements.txt'),
-            'tests': parse_requirements('requirements/tests.txt'),
-            'optional': parse_requirements('requirements/optional.txt'),
-            'docs': parse_requirements('requirements/docs.txt'),
-        },
         package_data={
             'ubelt': ['py.typed', '*.pyi'],
         },
