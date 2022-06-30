@@ -202,6 +202,8 @@ def download(url, fpath=None, dpath=None, fname=None, hash_prefix=None,
     # possible optimization (have not tested or timed)
     _urldata_read = urldata.read
     try:
+        # TODO: this outputs a lot of information that can bog down a CI
+        # Might need to update defaults of ProgIter to reduce clutter
         _progkw = {
             'total': file_size,
             'freq': chunksize,
@@ -391,7 +393,8 @@ def grabdata(url, fpath=None, dpath=None, fname=None, redo=False,
     if hasher is not None:
         if not isinstance(hasher, str):
             from ubelt import _util_deprecated
-            _util_deprecated.schedule_deprecation2(
+            _util_deprecated.schedule_deprecation(
+                modname='ubelt',
                 migration='Pass hasher as a string, otherwise unexpected behavior can occur',
                 name='hasher', type='grabdata arg',
                 deprecate='1.1.0', error='1.3.0', remove='1.4.0')
