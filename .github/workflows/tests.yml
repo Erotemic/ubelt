@@ -72,9 +72,12 @@ jobs:
         true
         MOD_DPATH=$(python -c "import ubelt, os; print(os.path.dirname(ubelt.__file__))")
         echo "MOD_DPATH = $MOD_DPATH"
+        # Run in a sandboxed directory
         WORKSPACE_DNAME="testsrcdir_${CI_PYTHON_VERSION}_${GITHUB_RUN_ID}_${RUNNER_OS}"
         mkdir -p $WORKSPACE_DNAME
         cd $WORKSPACE_DNAME
+        # Run the tests
+        # Get path to installed package
         MOD_DPATH=$(python -c "import ubelt, os; print(os.path.dirname(ubelt.__file__))")
         echo "MOD_DPATH = $MOD_DPATH"
         python -m pytest -p pytester -p no:doctest --xdoctest $MOD_DPATH ../tests
@@ -85,7 +88,8 @@ jobs:
         name: wheels
         path: ./wheelhouse/*.tar.gz
   build_and_test_wheels:
-    name: ${{ matrix.python-version }} on ${{ matrix.os }}, arch=${{ matrix.arch }} with ${{ matrix.install-extras }}
+    name: ${{ matrix.python-version }} on ${{ matrix.os }}, arch=${{ matrix.arch }}
+      with ${{ install-extras }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -103,8 +107,6 @@ jobs:
         install-extras:
         - tests
         - tests,optional
-        - tests-strict,runtime-strict
-        - tests-strict,runtime-strict,optional-strict
         arch:
         - auto
     steps:
