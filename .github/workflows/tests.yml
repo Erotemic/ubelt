@@ -88,8 +88,7 @@ jobs:
         name: wheels
         path: ./wheelhouse/*.tar.gz
   build_and_test_wheels:
-    name: ${{ matrix.python-version }} on ${{ matrix.os }}, arch=${{ matrix.arch }}
-      with ${{ install-extras }}
+    name: ${{ matrix.python-version }} on ${{ matrix.os }}, arch=${{ matrix.arch }} with ${{ install-extras }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -109,6 +108,43 @@ jobs:
         - tests,optional
         arch:
         - auto
+        include:
+        - python-version: '3.6'
+          os: windows-latest
+          install-extras: tests-strict,runtime-strict
+        - python-version: '3.10'
+          os: windows-latest
+          install-extras: tests-strict,runtime-strict
+        - python-version: '3.6'
+          os: windows-latest
+          install-extras: tests-strict,runtime-strict,optional-strict
+        - python-version: '3.10'
+          os: windows-latest
+          install-extras: tests-strict,runtime-strict,optional-strict
+        - python-version: '3.6'
+          os: ubuntu-latest
+          install-extras: tests-strict,runtime-strict
+        - python-version: '3.10'
+          os: ubuntu-latest
+          install-extras: tests-strict,runtime-strict
+        - python-version: '3.6'
+          os: ubuntu-latest
+          install-extras: tests-strict,runtime-strict,optional-strict
+        - python-version: '3.10'
+          os: ubuntu-latest
+          install-extras: tests-strict,runtime-strict,optional-strict
+        - python-version: '3.6'
+          os: macOS-latest
+          install-extras: tests-strict,runtime-strict
+        - python-version: '3.10'
+          os: macOS-latest
+          install-extras: tests-strict,runtime-strict
+        - python-version: '3.6'
+          os: macOS-latest
+          install-extras: tests-strict,runtime-strict,optional-strict
+        - python-version: '3.10'
+          os: macOS-latest
+          install-extras: tests-strict,runtime-strict,optional-strict
     steps:
     - uses: actions/checkout@v3
     - name: Enable MSVC 64bit
@@ -188,8 +224,7 @@ jobs:
   test_deploy:
     name: Uploading Test to PyPi
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && ! startsWith(github.event.ref, 'refs/tags')
-      && ! startsWith(github.event.ref, 'refs/heads/release')
+    if: github.event_name == 'push' && ! startsWith(github.event.ref, 'refs/tags') && ! startsWith(github.event.ref, 'refs/heads/release')
     needs:
     - build_and_test_wheels
     - build_and_test_sdist
@@ -233,8 +268,7 @@ jobs:
   live_deploy:
     name: Uploading Live to PyPi
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && (startsWith(github.event.ref, 'refs/tags')
-      || startsWith(github.event.ref, 'refs/heads/release'))
+    if: github.event_name == 'push' && (startsWith(github.event.ref, 'refs/tags') || startsWith(github.event.ref, 'refs/heads/release'))
     needs:
     - build_and_test_wheels
     - build_and_test_sdist
