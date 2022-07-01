@@ -5,7 +5,10 @@ We are currently working on porting this changelog to the specifications in
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
-## Version 1.1.2 - Unreleased
+## Version 1.1.3 - Unreleased
+
+
+## Version 1.1.2 - Released 2022-06-30
 
 ### Added
 * Added new module `util_deprecate` with the function `schedule_deprecation`,
@@ -14,6 +17,9 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ### Fixed
 * Fixed issue where ubelt Cacher triggered its own warnings
 * Fixed deprecated usage of LooseVersion
+
+### Changed
+* Tentative deprecation or backwards incompatible change in ub.Path.augment with suffix or prefix keywords
 
 
 ## Version 1.1.1 - Released 2022-06-09

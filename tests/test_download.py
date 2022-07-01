@@ -9,7 +9,7 @@ IS_PYPY = platform.python_implementation() == 'PyPy'
 IS_WIN32 = sys.platform.startswith('win32')
 
 
-TIMEOUT = 15 if IS_PYPY else 5
+TIMEOUT = (15 if IS_PYPY else 5) * 30
 
 
 @pytest.mark.timeout(TIMEOUT)
@@ -237,7 +237,7 @@ def test_grabdata_value_error():
         ub.grabdata(url, dpath=dpath, appname='foobar')
 
 
-@pytest.mark.timeout(10)
+@pytest.mark.timeout(TIMEOUT * 2)
 def test_download_bad_url():
     """
     Check that we error when the url is bad
@@ -350,6 +350,7 @@ def test_grabdata_hash_typo():
                 hasher='md5', verbose=verbose)
         assert fpath.exists()
         real_hash = ub.hash_file(fpath, hasher='md5')
+        real_hash
 
         print('[STEP2] Fixing the typo recomputes the hash, but does not redownload the file')
         got_fpath = ub.grabdata(url,
@@ -371,12 +372,13 @@ def test_deprecated_grabdata_args():
     with pytest.warns(DeprecationWarning):
         import hashlib
         url = _demo_url()
-        dpath = ub.ensure_app_cache_dir('ubelt')
-        fname = basename(url)
-        fpath = join(dpath, fname)
+        # dpath = ub.ensure_app_cache_dir('ubelt')
+        # fname = basename(url)
+        # fpath = join(dpath, fname)
         got_fpath = ub.grabdata(
             url, hash_prefix='e09c80c42fda55f9d992e59ca6b3307d',
             hasher=hashlib.md5())
+        got_fpath
 
 
 class SingletonTestServer(ub.NiceRepr):
@@ -468,7 +470,7 @@ class SingletonTestServer(ub.NiceRepr):
         time.sleep(init_sleeptime)
         # Wait for the server to be alive
         status_code = None
-        max_tries = 100
+        max_tries = 300
         for _ in range(max_tries):
             try:
                 resp = requests.get(self.root_url, timeout=timeout)
@@ -506,7 +508,7 @@ def test_local_download():
     server = SingletonTestServer.instance()
     url = server.write_file(filebytes=int(10 * 2 ** 20))[0]
     # also test with a timeout for lazy coverage
-    ub.download(url, timeout=1000)
+    ub.download(url, timeout=3000)
 
 
 def _demo_url(num_bytes=None):
@@ -560,7 +562,8 @@ def test_grabdata():
     assert stat0 == stat1, 'the file should not be modified'
     #
     print('3. Set redo=True, which should force a redownload')
-    num_tries = 10
+    sleep_time = 0.1
+    num_tries = 60
     for _ in range(num_tries):
         fpath = ub.grabdata(url, fname=fname, hash_prefix=prefix1, redo=True,
                             hasher='sha512')
@@ -571,10 +574,11 @@ def test_grabdata():
             break
         print('... Sometimes the redownload happens so fast we need to '
               'wait to notice the file is actually different')
-        time.sleep(0.1)
+        time.sleep(sleep_time)
     else:
         raise AssertionError(
-            'the file stat should be modified, we waited over 1s.')
+            'the file stat should be modified, we waited over {}s.'.format(
+                sleep_time * num_tries))
     #
     print('4. Check that a redownload occurs when the stamp is changed')
     stamp_fpath.write_text('corrupt-stamp')
