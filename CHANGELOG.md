@@ -7,6 +7,9 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## Version 1.1.3 - Unreleased
 
+### Fixed
+* Race condition on win32 in `ubelt.symlink`
+
 
 ## Version 1.1.2 - Released 2022-06-30
 
