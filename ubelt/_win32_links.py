@@ -47,8 +47,12 @@ def _win32_can_symlink(verbose=0, force=0, testing=0):
     if __win32_can_symlink__ is not None and not force:
         return __win32_can_symlink__
 
-    from ubelt import util_platform
-    tempdir = util_platform.ensure_app_cache_dir('ubelt', '_win32_can_symlink')
+    # We have to use a unique directory otherwise we encounter multiprocess
+    # race conditions.
+    import tempfile
+    tempdir = tempfile.mkdtemp(suffix='_win32_can_symlink')
+    # from ubelt import util_platform
+    # tempdir = util_platform.ensure_app_cache_dir('ubelt', '_win32_can_symlink')
 
     try:
         util_io.delete(tempdir)
