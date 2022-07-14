@@ -251,7 +251,7 @@ def _win32_symlink(path, link, verbose=0):
         info = util_cmd.cmd(command, shell=True)
         if info['ret'] != 0:
             from ubelt import util_format
-            permission_msg = 'You do not have sufficient privledges'
+            permission_msg = 'You do not have sufficient privledge'
             if permission_msg not in info['err']:
                 print('Failed command:')
                 print(info['command'])
