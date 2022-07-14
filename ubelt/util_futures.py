@@ -433,12 +433,12 @@ class JobPool(object):
 
     def join(self, **kwargs):
         """
-        Like :method:`JobPool.as_completed`, but executes the `result` method
+        Like :func:`JobPool.as_completed`, but executes the `result` method
         of each future and returns only after all processes are complete.
         This allows for lower-boilerplate prototyping.
 
         Args:
-            **kwargs: passed to :method:`JobPool.as_completed`
+            **kwargs: passed to :func:`JobPool.as_completed`
 
         Returns:
             List[Any]: list of results

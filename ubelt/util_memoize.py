@@ -170,8 +170,9 @@ class memoize_method(object):
         >>> closure = {'a': 'b', 'c': 'd'}
         >>> incr = [0]
         >>> class Foo(object):
-        >>>     @memoize_method
+        >>>     @ub.memoize_method
         >>>     def foo_memo(self, key):
+        >>>         "Wrapped foo_memo docstr"
         >>>         value = closure[key]
         >>>         incr[0] += 1
         >>>         return value
@@ -199,12 +200,15 @@ class memoize_method(object):
         >>> assert incr[0] == 7
         >>> self2.foo_memo('a')
         >>> assert incr[0] == 7
+        >>> assert self.foo_memo.__doc__ == 'Wrapped foo_memo docstr'
+        >>> assert self.foo_memo.__name__ == 'foo_memo'
     """
     def __init__(self, func):
         self._func = func
         self._cache_name = '_cache__' + func.__name__
         # Mimic attributes of a bound method
         self.__func__ = func
+        functools.update_wrapper(self, func)
 
     def __get__(self, instance, cls=None):
         """
