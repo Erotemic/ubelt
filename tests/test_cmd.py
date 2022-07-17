@@ -265,6 +265,7 @@ def test_timeout():
         print('kw = {}'.format(ub.repr2(kw, nl=0)))
         with pytest.raises(subprocess.TimeoutExpired):
             ub.cmd(py_script, **kw)
+            return
 
 
 def _dev_debug_timeouts():
