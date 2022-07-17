@@ -17,6 +17,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 * The `timeout` argument now works correctly with `ub.cmd` when `tee=True`.
 * Added `appname` to `ubelt.download` which was supposed to exist as indicated
   by the docs, but didn't.
+* The resources used by `ubelt.cmd` are now properly closed.
 
 ### Changed
 * `ub.compatible` no longer errors on positional only functions, instead it
