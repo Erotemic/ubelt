@@ -44,159 +44,6 @@ else:  # nocover
     select = NotImplemented
 
 
-def _textio_iterlines(stream):
-    """
-    Iterates over lines in a TextIO stream until an EOF is encountered.
-    This is the iterator version of stream.readlines()
-    """
-    line = stream.readline()
-    while line != '':
-        yield line
-        line = stream.readline()
-
-
-def _proc_async_iter_stream(proc, stream, buffersize=1):
-    """
-    Reads output from a process in a separate thread
-    """
-    import queue
-    from threading import Thread
-    def enqueue_output(proc, stream, stream_queue):
-        while proc.poll() is None:
-            line = stream.readline()
-            # print('ENQUEUE LIVE {!r} {!r}'.format(stream, line))
-            stream_queue.put(line)
-
-        for line in _textio_iterlines(stream):
-            # print('ENQUEUE FINAL {!r} {!r}'.format(stream, line))
-            stream_queue.put(line)
-
-        # print("STREAM IS DONE {!r}".format(stream))
-        stream_queue.put(None)  # signal that the stream is finished
-        # stream.close()
-    stream_queue = queue.Queue(maxsize=buffersize)
-    _thread = Thread(target=enqueue_output, args=(proc, stream, stream_queue))
-    _thread.daemon = True  # thread dies with the program
-    _thread.start()
-    return stream_queue
-
-
-def _proc_iteroutput_thread(proc):
-    """
-    Iterates over output from a process line by line
-
-    Note:
-        WARNING. Current implementation might have bugs with other threads.
-        This behavior was seen when using earlier versions of tqdm. I'm not
-        sure if this was our bug or tqdm's. Newer versions of tqdm fix this,
-        but I cannot guarantee that there isn't an issue on our end.
-
-    Yields:
-        Tuple[str, str]: oline, eline: stdout and stderr line
-
-    References:
-        .. [SO_375427] https://stackoverflow.com/questions/375427/non-blocking-read-subproc
-    """
-    import queue
-
-    # Create threads that read stdout / stderr and queue up the output
-    stdout_queue = _proc_async_iter_stream(proc, proc.stdout)
-    stderr_queue = _proc_async_iter_stream(proc, proc.stderr)
-
-    stdout_live = True
-    stderr_live = True
-
-    # read from the output asynchronously until
-    while stdout_live or stderr_live:
-        if stdout_live:  # pragma: nobranch
-            try:
-                oline = stdout_queue.get_nowait()
-                stdout_live = oline is not None
-            except queue.Empty:
-                oline = None
-        if stderr_live:
-            try:
-                eline = stderr_queue.get_nowait()
-                stderr_live = eline is not None
-            except queue.Empty:
-                eline = None
-        if oline is not None or eline is not None:
-            yield oline, eline
-
-
-def _proc_iteroutput_select(proc):
-    """
-    Iterates over output from a process line by line
-
-    UNIX only. Use :func:`_proc_iteroutput_thread` instead for a cross platform
-    solution based on threads.
-
-    Yields:
-        Tuple[str, str]: oline, eline: stdout and stderr line
-    """
-    from itertools import zip_longest
-    # Read output while the external program is running
-    while proc.poll() is None:
-        reads = [proc.stdout.fileno(), proc.stderr.fileno()]
-        ret = select.select(reads, [], [])
-        oline = eline = None
-        for fd in ret[0]:
-            if fd == proc.stdout.fileno():
-                oline = proc.stdout.readline()
-            if fd == proc.stderr.fileno():
-                eline = proc.stderr.readline()
-        yield oline, eline
-
-    # Grab any remaining data in stdout and stderr after the process finishes
-    oline_iter = _textio_iterlines(proc.stdout)
-    eline_iter = _textio_iterlines(proc.stderr)
-    for oline, eline in zip_longest(oline_iter, eline_iter):
-        yield oline, eline
-
-
-def _tee_output(proc, stdout=None, stderr=None, backend='thread',
-                timeout=None):
-    """
-    Simultaneously reports and captures stdout and stderr from a process
-
-    subprocess must be created using (stdout=subprocess.PIPE,
-    stderr=subprocess.PIPE)
-    """
-    logged_out = []
-    logged_err = []
-    if backend == 'auto':
-        # backend = 'select' if POSIX else 'thread'
-        backend = 'thread'
-
-    if backend == 'select':
-        if not POSIX:  # nocover
-            raise NotImplementedError('select is only available on posix')
-        # the select-based version is stable, but slow
-        _proc_iteroutput = _proc_iteroutput_select
-    elif backend == 'thread':
-        # the thread version is fast, but might run into issues.
-        _proc_iteroutput = _proc_iteroutput_thread
-    else:  # nocover
-        # The value of "backend" should be checked before we create the
-        # processes, otherwise we will have a dangling process
-        raise AssertionError('Validate "backend" before creating the proc')
-
-    # TODO: handle timeout
-
-    for oline, eline in _proc_iteroutput(proc):
-        if oline:
-            if stdout:  # pragma: nobranch
-                stdout.write(oline)
-                stdout.flush()
-            logged_out.append(oline)
-        if eline:
-            if stderr:  # pragma: nobranch
-                stderr.write(eline)
-                stderr.flush()
-            logged_err.append(eline)
-    return proc, logged_out, logged_err
-
-
 def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
         env=None, tee_backend='auto', check=False, system=False, timeout=None):
     """
@@ -463,3 +310,156 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
                 raise subprocess.CalledProcessError(
                     info['ret'], info['command'], info['out'], info['err'])
     return info
+
+
+def _textio_iterlines(stream):
+    """
+    Iterates over lines in a TextIO stream until an EOF is encountered.
+    This is the iterator version of stream.readlines()
+    """
+    line = stream.readline()
+    while line != '':
+        yield line
+        line = stream.readline()
+
+
+def _proc_async_iter_stream(proc, stream, buffersize=1):
+    """
+    Reads output from a process in a separate thread
+    """
+    import queue
+    from threading import Thread
+    def enqueue_output(proc, stream, stream_queue):
+        while proc.poll() is None:
+            line = stream.readline()
+            # print('ENQUEUE LIVE {!r} {!r}'.format(stream, line))
+            stream_queue.put(line)
+
+        for line in _textio_iterlines(stream):
+            # print('ENQUEUE FINAL {!r} {!r}'.format(stream, line))
+            stream_queue.put(line)
+
+        # print("STREAM IS DONE {!r}".format(stream))
+        stream_queue.put(None)  # signal that the stream is finished
+        # stream.close()
+    stream_queue = queue.Queue(maxsize=buffersize)
+    _thread = Thread(target=enqueue_output, args=(proc, stream, stream_queue))
+    _thread.daemon = True  # thread dies with the program
+    _thread.start()
+    return stream_queue
+
+
+def _proc_iteroutput_thread(proc):
+    """
+    Iterates over output from a process line by line
+
+    Note:
+        WARNING. Current implementation might have bugs with other threads.
+        This behavior was seen when using earlier versions of tqdm. I'm not
+        sure if this was our bug or tqdm's. Newer versions of tqdm fix this,
+        but I cannot guarantee that there isn't an issue on our end.
+
+    Yields:
+        Tuple[str, str]: oline, eline: stdout and stderr line
+
+    References:
+        .. [SO_375427] https://stackoverflow.com/questions/375427/non-blocking-read-subproc
+    """
+    import queue
+
+    # Create threads that read stdout / stderr and queue up the output
+    stdout_queue = _proc_async_iter_stream(proc, proc.stdout)
+    stderr_queue = _proc_async_iter_stream(proc, proc.stderr)
+
+    stdout_live = True
+    stderr_live = True
+
+    # read from the output asynchronously until
+    while stdout_live or stderr_live:
+        if stdout_live:  # pragma: nobranch
+            try:
+                oline = stdout_queue.get_nowait()
+                stdout_live = oline is not None
+            except queue.Empty:
+                oline = None
+        if stderr_live:
+            try:
+                eline = stderr_queue.get_nowait()
+                stderr_live = eline is not None
+            except queue.Empty:
+                eline = None
+        if oline is not None or eline is not None:
+            yield oline, eline
+
+
+def _proc_iteroutput_select(proc):
+    """
+    Iterates over output from a process line by line
+
+    UNIX only. Use :func:`_proc_iteroutput_thread` instead for a cross platform
+    solution based on threads.
+
+    Yields:
+        Tuple[str, str]: oline, eline: stdout and stderr line
+    """
+    from itertools import zip_longest
+    # Read output while the external program is running
+    while proc.poll() is None:
+        reads = [proc.stdout.fileno(), proc.stderr.fileno()]
+        ret = select.select(reads, [], [])
+        oline = eline = None
+        for fd in ret[0]:
+            if fd == proc.stdout.fileno():
+                oline = proc.stdout.readline()
+            if fd == proc.stderr.fileno():
+                eline = proc.stderr.readline()
+        yield oline, eline
+
+    # Grab any remaining data in stdout and stderr after the process finishes
+    oline_iter = _textio_iterlines(proc.stdout)
+    eline_iter = _textio_iterlines(proc.stderr)
+    for oline, eline in zip_longest(oline_iter, eline_iter):
+        yield oline, eline
+
+
+def _tee_output(proc, stdout=None, stderr=None, backend='thread',
+                timeout=None):
+    """
+    Simultaneously reports and captures stdout and stderr from a process
+
+    subprocess must be created using (stdout=subprocess.PIPE,
+    stderr=subprocess.PIPE)
+    """
+    logged_out = []
+    logged_err = []
+    if backend == 'auto':
+        # backend = 'select' if POSIX else 'thread'
+        backend = 'thread'
+
+    if backend == 'select':
+        if not POSIX:  # nocover
+            raise NotImplementedError('select is only available on posix')
+        # the select-based version is stable, but slow
+        _proc_iteroutput = _proc_iteroutput_select
+    elif backend == 'thread':
+        # the thread version is fast, but might run into issues.
+        _proc_iteroutput = _proc_iteroutput_thread
+    else:  # nocover
+        # The value of "backend" should be checked before we create the
+        # processes, otherwise we will have a dangling process
+        raise AssertionError('Validate "backend" before creating the proc')
+
+    # TODO: handle timeout
+
+    for oline, eline in _proc_iteroutput(proc):
+        if oline:
+            if stdout:  # pragma: nobranch
+                stdout.write(oline)
+                stdout.flush()
+            logged_out.append(oline)
+        if eline:
+            if stderr:  # pragma: nobranch
+                stderr.write(eline)
+                stderr.flush()
+            logged_err.append(eline)
+    return proc, logged_out, logged_err
