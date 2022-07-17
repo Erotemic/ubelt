@@ -131,7 +131,7 @@ def color_text(text, color):
         >>> else:
         >>>     # Otherwise text passes through unchanged
         >>>     assert ub.color_text(text, 'red') == 'raw text'
-        >>>     assert ub.color_text(text,VNone) == 'raw text'
+        >>>     assert ub.color_text(text, None) == 'raw text'
 
     Example:
         >>> # xdoctest: +REQUIRES(module:pygments)
