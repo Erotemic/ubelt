@@ -6,7 +6,7 @@ if __name__ == '__main__':
     mod_dpath = package_name
     test_dpath = 'tests'
     pytest_args = [
-        '--cov-config', '.coveragerc',
+        '--cov-config', 'pyproject.toml',
         '--cov-report', 'html',
         '--cov-report', 'term',
         '--xdoctest',

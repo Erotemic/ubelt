@@ -21,9 +21,9 @@ import os
 __all__ = ['download', 'grabdata']
 
 
-def download(url, fpath=None, dpath=None, fname=None, hash_prefix=None,
-             hasher='sha512', chunksize=8192, verbose=1, timeout=NoParam,
-             progkw=None):
+def download(url, fpath=None, dpath=None, fname=None, appname=None,
+             hash_prefix=None, hasher='sha512', chunksize=8192, verbose=1,
+             timeout=NoParam, progkw=None):
     """
     Downloads a url to a file on disk.
 
@@ -49,6 +49,10 @@ def download(url, fpath=None, dpath=None, fname=None, hash_prefix=None,
         fname (Optional[str]):
             What to name the downloaded file. Defaults to the url basename.
             Mutually exclusive with fpath.
+
+        appname (str): set dpath to
+            ``ub.get_app_cache_dir(appname or 'ubelt')`` if dpath and fpath are
+            not given.
 
         hash_prefix (None | str):
             If specified, download will retry / error if the file hash
@@ -147,7 +151,7 @@ def download(url, fpath=None, dpath=None, fname=None, hash_prefix=None,
         raise ValueError('Cannot specify fpath with dpath or fname')
     if fpath is None:
         if dpath is None:
-            dpath = ensure_app_cache_dir('ubelt')
+            dpath = ensure_app_cache_dir(appname or 'ubelt')
         if fname is None:
             fname = basename(url)
         fpath = join(dpath, fname)
@@ -296,8 +300,9 @@ def grabdata(url, fpath=None, dpath=None, fname=None, redo=False,
         verbose (int):
             Verbosity flag. Quiet is 0, higher is more verbose. Defaults to 1.
 
-        appname (str): set dpath to `ub.get_app_cache_dir(appname)`.
-            Mutually exclusive with dpath and fpath.
+        appname (str): set dpath to
+            ``ub.get_app_cache_dir(appname or 'ubelt')`` if dpath and fpath are
+            not given.
 
         hash_prefix (None | str):
             If specified, grabdata verifies that this matches the hash of the
@@ -381,8 +386,7 @@ def grabdata(url, fpath=None, dpath=None, fname=None, redo=False,
 
     if fpath is None:
         if dpath is None:
-            appname = appname or 'ubelt'
-            dpath = ensure_app_cache_dir(appname)
+            dpath = ensure_app_cache_dir(appname or 'ubelt')
         if fname is None:
             fname = basename(url)
         fpath = join(dpath, fname)

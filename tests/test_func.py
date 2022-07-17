@@ -22,8 +22,8 @@ def test_positional_only_args():
     import ubelt as ub
     import sys
     import pytest
-    if sys.version_info[0:2] < (3, 6):
-        pytest.skip('position only arguments syntax requires Python 3.6+')
+    if sys.version_info[0:2] <= (3, 7):
+        pytest.skip('position only arguments syntax requires Python >= 3.8')
 
     # Define via an exec, so this test does not raise a syntax error
     # in other versions of python and skips gracefully
