@@ -336,9 +336,9 @@ def test_grabdata_hash_typo():
 
     url = _demo_url()
 
-    dpath = ub.ensure_app_cache_dir('ubelt/tests/test_download')
+    dpath = ub.Path.appdir('ubelt/tests/test_download')
     fname = basename(url)
-    fpath = ub.Path(join(dpath, fname))
+    fpath = dpath / fname
     stamp_fpath = fpath.augment(tail='.stamp_md5.json')
 
     for verbose in [5]:
@@ -361,7 +361,7 @@ def test_grabdata_hash_typo():
                                 hash_prefix='e09c80c42fda55f9d992e59ca6b3307d',
                                 hasher='md5', verbose=verbose,
                                 appname='ubelt/tests/test_download')
-        assert got_fpath == str(fpath)
+        assert ub.Path(got_fpath).resolve() == fpath.resolve()
         assert fpath.exists()
 
         # If we delete the .hash file we will simply recompute
