@@ -420,6 +420,12 @@ class SingletonTestServer(ub.NiceRepr):
             cls._instance = self
         return self
 
+    def close(self):
+        if self.proc.poll() is None:
+            self.proc.terminate()
+            self.proc.wait()
+        self.__class__.instance = None
+
     def __nice__(self):
         return '{} - {}'.format(self.root_url, self.proc.returncode)
 
@@ -651,6 +657,18 @@ def test_download_with_sha1_hasher():
     import ubelt as ub
     url = _demo_url(128 * 4)
     ub.download(url, hasher='sha1', hash_prefix='164557facb7392')
+
+
+def setup_module(module):
+    """ setup any state specific to the execution of the given module."""
+    SingletonTestServer.instance()
+
+
+def teardown_module(module):
+    """ teardown any state that was previously setup with a setup_module
+    method.
+    """
+    SingletonTestServer.instance().close()
 
 
 if __name__ == '__main__':
