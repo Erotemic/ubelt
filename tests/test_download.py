@@ -1,4 +1,5 @@
 import ubelt as ub
+import os
 import pytest
 import sys
 from os.path import basename, join, exists
@@ -19,14 +20,14 @@ def test_download_no_fpath():
     #     pytest.skip('not running network tests')
     url = _demo_url()
 
-    dpath = ub.ensure_app_cache_dir('ubelt')
+    dpath = ub.ensure_app_cache_dir('ubelt/tests/test_download')
     fname = basename(url)
     fpath = join(dpath, fname)
 
     ub.delete(fpath)
     assert not exists(fpath)
 
-    got_fpath = ub.download(url)
+    got_fpath = ub.download(url, appname='ubelt/tests/test_download')
 
     assert got_fpath == fpath
     assert exists(fpath)
@@ -39,14 +40,15 @@ def test_download_with_fpath():
     #     pytest.skip('not running network tests')
     url = _demo_url(1201)
 
-    dpath = ub.ensure_app_cache_dir('ubelt', 'tests')
+    dpath = ub.ensure_app_cache_dir('ubelt/tests/test_download')
     fname = basename(url)
     fpath = join(dpath, fname)
 
     ub.delete(fpath)
     assert not exists(fpath)
 
-    got_fpath = ub.download(url, fpath=fpath)
+    got_fpath = ub.download(url, fpath=fpath,
+                            appname='ubelt/tests/test_download')
     assert got_fpath == fpath
     assert exists(fpath)
 
@@ -63,14 +65,14 @@ def test_download_chunksize():
     #     pytest.skip('not running network tests')
     url = _demo_url()
 
-    dpath = ub.ensure_app_cache_dir('ubelt')
+    dpath = ub.ensure_app_cache_dir('ubelt/tests/test_download')
     fname = basename(url)
     fpath = join(dpath, fname)
 
     ub.delete(fpath)
     assert not exists(fpath)
 
-    got_fpath = ub.download(url, chunksize=2)
+    got_fpath = ub.download(url, chunksize=2, appname='ubelt/tests/test_download')
 
     assert got_fpath == fpath
     assert exists(fpath)
@@ -84,7 +86,7 @@ def test_download_cover_hashers():
     #     pytest.skip('not running network tests')
     url = _demo_url()
 
-    dpath = ub.ensure_app_cache_dir('ubelt')
+    dpath = ub.ensure_app_cache_dir('ubelt/tests/test_download')
     fname = basename(url)
 
     # add coverage for different hashers
@@ -104,7 +106,7 @@ def test_download_hashalgo():
     #     pytest.skip('not running network tests')
     url = _demo_url()
 
-    dpath = ub.ensure_app_cache_dir('ubelt')
+    dpath = ub.ensure_app_cache_dir('ubelt/tests/test_download')
     fname = basename(url)
     fpath = join(dpath, fname)
 
@@ -113,6 +115,7 @@ def test_download_hashalgo():
 
     got_fpath = ub.download(url,
                             hash_prefix='e09c80c42fda55f9d992e59ca6b3307d',
+                            appname='ubelt/tests/test_download',
                             hasher=hashlib.md5())
 
     assert got_fpath == fpath
@@ -129,18 +132,18 @@ def test_grabdata_cache():
     #     pytest.skip('not running network tests')
     url = _demo_url()
 
-    dpath = ub.ensure_app_cache_dir('ubelt')
+    dpath = ub.ensure_app_cache_dir('ubelt/tests/test_download')
     fname = basename(url)
     fpath = join(dpath, fname)
 
-    got_fpath = ub.grabdata(url)
+    got_fpath = ub.grabdata(url, appname='ubelt/tests/test_download')
     assert got_fpath == fpath
     assert exists(fpath)
 
     ub.delete(fpath)
     assert not exists(fpath)
 
-    ub.grabdata(url)
+    ub.grabdata(url, appname='ubelt/tests/test_download')
     assert exists(fpath)
 
 
@@ -150,7 +153,7 @@ def test_grabdata_nohash():
     Check where the url is downloaded to when fpath is not specified.
     """
     url = _demo_url()
-    dpath = ub.Path.appdir('ubelt/tests/test-grabdata-nohash').ensuredir()
+    dpath = ub.Path.appdir('ubelt/tests/test_download/test-grabdata-nohash').ensuredir()
     fname = basename(url)
     fpath = (dpath / fname).delete()
     assert not fpath.exists()
@@ -174,9 +177,9 @@ def test_grabdata_url_only():
     #     pytest.skip('not running network tests')
     url = _demo_url()
 
-    dpath = ub.ensure_app_cache_dir('ubelt')
+    dpath = ub.Path.appdir('ubelt')
     fname = basename(url)
-    fpath = join(dpath, fname)
+    fpath = os.fspath(dpath / fname)
 
     got_fpath = ub.grabdata(url)
     assert got_fpath == fpath
@@ -193,7 +196,7 @@ def test_grabdata_with_fpath():
     #     pytest.skip('not running network tests')
     url = _demo_url()
 
-    dpath = ub.ensure_app_cache_dir('ubelt')
+    dpath = ub.ensure_app_cache_dir('ubelt/tests/test_download')
     fname = basename(url)
     fpath = join(dpath, fname)
 
@@ -217,7 +220,7 @@ def test_grabdata_value_error():
     #     pytest.skip('not running network tests')
     url = _demo_url()
 
-    dpath = ub.ensure_app_cache_dir('ubelt')
+    dpath = ub.ensure_app_cache_dir('ubelt/tests/test_download')
     fname = basename(url)
     fpath = join(dpath, fname)
 
@@ -262,7 +265,7 @@ def test_download_bad_url():
     # if urllib_x._opener is None:
     #     urllib_x.install_opener(urllib_x.build_opener())
 
-    dpath = ub.ensure_app_cache_dir('ubelt', 'tests')
+    dpath = ub.ensure_app_cache_dir('ubelt/tests/test_download')
     fname = basename(url)
     fpath = join(dpath, fname)
 
@@ -282,9 +285,9 @@ def test_grabdata_fname_only():
 
     url = _demo_url()
 
-    dpath = ub.ensure_app_cache_dir('ubelt')
+    dpath = ub.Path.appdir('ubelt')
     fname = 'custom_text.txt'
-    fpath = join(dpath, fname)
+    fpath = os.fspath(dpath / fname)
 
     got_fpath = ub.grabdata(url, fname=fname)
     assert got_fpath == fpath
@@ -298,7 +301,7 @@ def test_grabdata_dpath_only():
     #     pytest.skip('not running network tests')
     url = _demo_url()
 
-    dpath = ub.ensure_app_cache_dir('ubelt', 'test')
+    dpath = ub.ensure_app_cache_dir('ubelt/tests/test_download')
     fname = basename(url)
     fpath = join(dpath, fname)
 
@@ -333,7 +336,7 @@ def test_grabdata_hash_typo():
 
     url = _demo_url()
 
-    dpath = ub.ensure_app_cache_dir('ubelt')
+    dpath = ub.ensure_app_cache_dir('ubelt/tests/test_download')
     fname = basename(url)
     fpath = ub.Path(join(dpath, fname))
     stamp_fpath = fpath.augment(tail='.stamp_md5.json')
@@ -347,7 +350,8 @@ def test_grabdata_hash_typo():
         with pytest.raises(RuntimeError):
             got_fpath = ub.grabdata(
                 url, hash_prefix='e09c80c42fda5-typo-5f9d992e59ca6b3307d',
-                hasher='md5', verbose=verbose)
+                hasher='md5', verbose=verbose,
+                appname='ubelt/tests/test_download')
         assert fpath.exists()
         real_hash = ub.hash_file(fpath, hasher='md5')
         real_hash
@@ -355,7 +359,8 @@ def test_grabdata_hash_typo():
         print('[STEP2] Fixing the typo recomputes the hash, but does not redownload the file')
         got_fpath = ub.grabdata(url,
                                 hash_prefix='e09c80c42fda55f9d992e59ca6b3307d',
-                                hasher='md5', verbose=verbose)
+                                hasher='md5', verbose=verbose,
+                                appname='ubelt/tests/test_download')
         assert got_fpath == str(fpath)
         assert fpath.exists()
 
@@ -372,7 +377,7 @@ def test_deprecated_grabdata_args():
     with pytest.warns(DeprecationWarning):
         import hashlib
         url = _demo_url()
-        # dpath = ub.ensure_app_cache_dir('ubelt')
+        # dpath = ub.ensure_app_cache_dir('ubelt/tests/test_download')
         # fname = basename(url)
         # fpath = join(dpath, fname)
         got_fpath = ub.grabdata(
@@ -439,7 +444,7 @@ class SingletonTestServer(ub.NiceRepr):
         port = find_free_port()
         print('port = {!r}'.format(port))
 
-        dpath = ub.ensure_app_cache_dir('ubelt/simple_server')
+        dpath = ub.ensure_app_cache_dir('ubelt/tests/test_download/simple_server')
 
         if sys.version_info[0] == 2:
             server_cmd = [
@@ -531,7 +536,7 @@ def test_download_with_progkw():
     Test that progkw is properly passed through to ub.download
     """
     url = _demo_url(128 * 10)
-    dpath = ub.ensure_app_cache_dir('ubelt', 'tests')
+    dpath = ub.ensure_app_cache_dir('ubelt/tests/test_download')
     fname = basename(url)
     fpath = join(dpath, fname)
     with ub.CaptureStdout() as cap:

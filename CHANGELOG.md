@@ -14,6 +14,9 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 * Race condition on win32 in `ubelt.symlink`
 * Issue with `ubelt.memoize_method` where the method name and docstring were
   not wrapped correctly.
+* The `timeout` argument now works correctly with `ub.cmd` when `tee=True`.
+* Added `appname` to `ubelt.download` which was supposed to exist as indicated
+  by the docs, but didn't.
 
 ### Changed
 * `ub.compatible` no longer errors on positional only functions, instead it

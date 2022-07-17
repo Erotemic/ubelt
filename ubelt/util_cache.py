@@ -377,7 +377,7 @@ class Cacher(object):
             >>> # Ensure that some data exists
             >>> known_fpaths = set()
             >>> import ubelt as ub
-            >>> dpath = ub.ensure_app_cache_dir('ubelt',
+            >>> dpath = ub.ensure_app_cache_dir('ubelt/tests/util_cache',
             >>>                                 'test-existing-versions')
             >>> ub.delete(dpath)  # start fresh
             >>> cacher = Cacher('versioned_data_v2', depends='1', dpath=dpath)
@@ -482,7 +482,8 @@ class Cacher(object):
         Example:
             >>> from ubelt.util_cache import *  # NOQA
             >>> # Setting the cacher as enabled=False turns it off
-            >>> cacher = Cacher('test_disabled_load', '', enabled=True)
+            >>> cacher = Cacher('test_disabled_load', '', enabled=True,
+            >>>                 appname='ubelt/tests/util_cache')
             >>> cacher.save('data')
             >>> assert cacher.load() == 'data'
             >>> cacher.enabled = False
@@ -550,12 +551,14 @@ class Cacher(object):
             >>> from ubelt.util_cache import *  # NOQA
             >>> # Normal functioning
             >>> depends = 'long-cfg' * 32
-            >>> cacher = Cacher('test_enabled_save', depends=depends)
+            >>> cacher = Cacher('test_enabled_save', depends=depends,
+            >>>                 appname='ubelt/tests/util_cache')
             >>> cacher.save('data')
             >>> assert exists(cacher.get_fpath()), 'should be enabled'
             >>> assert exists(cacher.get_fpath() + '.meta'), 'missing metadata'
             >>> # Setting the cacher as enabled=False turns it off
-            >>> cacher2 = Cacher('test_disabled_save', 'params', enabled=False)
+            >>> cacher2 = Cacher('test_disabled_save', 'params', enabled=False,
+            >>>                  appname='ubelt/tests/util_cache')
             >>> cacher2.save('data')
             >>> assert not exists(cacher2.get_fpath()), 'should be disabled'
         """
