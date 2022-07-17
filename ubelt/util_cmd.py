@@ -132,6 +132,8 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
 
     Related Work:
         https://github.com/pycontribs/subprocess-tee
+        https://github.com/mortoray/shelljob
+        https://github.com/netinvent/command_runner
 
     References:
         .. [SO_11495783] https://stackoverflow.com/questions/11495783/redirect-subprocess-stderr-to-stdout
@@ -358,6 +360,8 @@ def _textio_iterlines(stream):
         str: a line read from the stream.
     """
     try:
+        # These if statements help mitigate race conditions but does not solve
+        # them if the stream closes in the middle of a readline.
         if stream.closed:  # nocover
             return
         line = stream.readline()
@@ -406,6 +410,10 @@ def _proc_async_iter_stream(proc, stream, buffersize=1, timeout=None):
 def _enqueue_output_thread_worker(proc, stream, out_queue, control_queue, timeout=None):
     """
     Thread worker function
+
+    This follows a similar strategy employed in
+    http://eyalarubas.com/python-subproc-nonblock.html and
+    https://stackoverflow.com/questions/375427/a-non-blocking-read-on-a-subprocess-pipe-in-python/4896288#4896288
 
     Args:
         proc (subprocess.Popen): The process being run
@@ -529,6 +537,8 @@ def _proc_iteroutput_thread(proc, timeout=None):
             if elapsed >= timeout:
                 stdout_ctrl.put('STOP')
                 stderr_ctrl.put('STOP')
+                # Unfortunately we can't guarentee that the threads will stop
+                # because they might get stuck in a readline
                 # stdout_thread.join()
                 # stderr_thread.join()
                 yield subprocess.TimeoutExpired, subprocess.TimeoutExpired
