@@ -373,25 +373,26 @@ class Cacher(object):
             str: paths to cached files corresponding to this cacher
 
         Example:
-            >>> from ubelt.util_cache import Cacher
             >>> # Ensure that some data exists
-            >>> known_fpaths = set()
             >>> import ubelt as ub
-            >>> dpath = ub.ensure_app_cache_dir('ubelt/tests/util_cache',
-            >>>                                 'test-existing-versions')
-            >>> ub.delete(dpath)  # start fresh
-            >>> cacher = Cacher('versioned_data_v2', depends='1', dpath=dpath)
+            >>> dpath = ub.Path.appdir(
+            >>>     'ubelt/tests/util_cache',
+            >>>     'test-existing-versions').delete().ensuredir()
+            >>> cacher = ub.Cacher('versioned_data_v2', depends='1', dpath=dpath)
             >>> cacher.ensure(lambda: 'data1')
+            >>> known_fpaths = set()
             >>> known_fpaths.add(cacher.get_fpath())
-            >>> cacher = Cacher('versioned_data_v2', depends='2', dpath=dpath)
+            >>> cacher = ub.Cacher('versioned_data_v2', depends='2', dpath=dpath)
             >>> cacher.ensure(lambda: 'data2')
             >>> known_fpaths.add(cacher.get_fpath())
             >>> # List previously computed configs for this type
             >>> from os.path import basename
-            >>> cacher = Cacher('versioned_data_v2', depends='2', dpath=dpath)
+            >>> cacher = ub.Cacher('versioned_data_v2', depends='2', dpath=dpath)
             >>> exist_fpaths = set(cacher.existing_versions())
             >>> exist_fnames = list(map(basename, exist_fpaths))
             >>> print('exist_fnames = {!r}'.format(exist_fnames))
+            >>> print('exist_fpaths = {!r}'.format(exist_fpaths))
+            >>> print('known_fpaths={!r}'.format(known_fpaths))
             >>> assert exist_fpaths.issubset(known_fpaths)
         """
         import glob

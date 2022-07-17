@@ -34,24 +34,18 @@ Example:
 import sys
 import os
 
-import logging
-if 0:
-    logging.basicConfig(
-        format='[%(asctime)s %(threadName)s %(levelname)s] %(message)s',
-        level=logging.DEBUG,
-        force=True
-    )
-logger = logging.getLogger(__name__)
+# import logging
+# logging.basicConfig(
+#     format='[%(asctime)s %(threadName)s %(levelname)s] %(message)s',
+#     level=logging.DEBUG,
+#     force=True
+# )
+# logger = logging.getLogger(__name__)
 
 __all__ = ['cmd']
 
 POSIX = 'posix' in sys.builtin_module_names
 WIN32 = sys.platform == 'win32'
-
-if POSIX:
-    import select
-else:  # nocover
-    select = NotImplemented
 
 
 def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
@@ -398,7 +392,7 @@ def _proc_async_iter_stream(proc, stream, buffersize=1, timeout=None):
     """
     import queue
     import threading
-    logger.debug(f"Create and start thread for {id(stream)}")
+    # logger.debug(f"Create and start thread for {id(stream)}")
     out_queue = queue.Queue(maxsize=buffersize)
     control_queue = queue.Queue(maxsize=1)
     io_thread = threading.Thread(
@@ -426,7 +420,7 @@ def _enqueue_output_thread_worker(proc, stream, out_queue, control_queue, timeou
         timeout (None | float): amount of time to allow before stopping
     """
     import queue
-    logger.debug(f"Start worker for {id(stream)=} with {timeout=}")
+    # logger.debug(f"Start worker for {id(stream)=} with {timeout=}")
 
     def _check_if_stopped():  # nocover
         try:
@@ -435,7 +429,7 @@ def _enqueue_output_thread_worker(proc, stream, out_queue, control_queue, timeou
         except queue.Empty:
             ...
         else:
-            logger.debug(f"Thread acknowledges stop request for {id(stream)}")
+            # logger.debug(f"Thread acknowledges stop request for {id(stream)}")
             return True
 
     def enqueue(item):  # nocover
@@ -450,13 +444,13 @@ def _enqueue_output_thread_worker(proc, stream, out_queue, control_queue, timeou
             out_queue.put(item)
             return True
 
-        logger.debug('Waiting to put in item')
+        # logger.debug('Waiting to put in item')
         while True:
             if _check_if_stopped():
                 return False
             try:
                 out_queue.put(item, block=False)
-                logger.debug('Thread put in item')
+                # logger.debug('Thread put in item')
             except queue.Full:
                 pass
             else:
@@ -467,10 +461,10 @@ def _enqueue_output_thread_worker(proc, stream, out_queue, control_queue, timeou
         # Note: if the underlying process has buffered output, we may get this
         # line well after it is initially emitted and thus be stuck waiting
         # here for some time.
-        logger.debug(f"ENQUEUE Waiting for line {id(stream)}")
+        # logger.debug(f"ENQUEUE Waiting for line {id(stream)}")
         line = stream.readline()
 
-        logger.debug(f"ENQUEUE LIVE {id(stream)} {line!r}")
+        # logger.debug(f"ENQUEUE LIVE {id(stream)} {line!r}")
         if not enqueue(line):  # nocover
             return
 
@@ -481,11 +475,11 @@ def _enqueue_output_thread_worker(proc, stream, out_queue, control_queue, timeou
     # these lines. We don't have much control over if this happens or not, so
     # we will exclude them from coverage checks.
     for line in _textio_iterlines(stream):  # nocover
-        logger.debug(f"ENQUEUE FINAL {id(stream)} {line!r}")
+        # logger.debug(f"ENQUEUE FINAL {id(stream)} {line!r}")
         if not enqueue(line):  # nocover
             return
 
-    logger.debug(f"STREAM IS DONE {id(stream)}")
+    # logger.debug(f"STREAM IS DONE {id(stream)}")
     # signal that the stream is finished
     if not enqueue(None):  # nocover
         return
@@ -511,7 +505,7 @@ def _proc_iteroutput_thread(proc, timeout=None):
     """
     import queue
 
-    logger.debug("Create stdout/stderr streams")
+    # logger.debug("Create stdout/stderr streams")
     # Create threads that read stdout / stderr and queue up the output
     stdout_thread, stdout_queue, stdout_ctrl = _proc_async_iter_stream(proc, proc.stdout, timeout=timeout)
     stderr_thread, stderr_queue, stderr_ctrl = _proc_async_iter_stream(proc, proc.stderr, timeout=timeout)
@@ -527,7 +521,7 @@ def _proc_iteroutput_thread(proc, timeout=None):
     # read from the output asynchronously until
     while stdout_live or stderr_live:
         # Note: This function loop happens very quickly.
-        # logger.debug("Fast loop: check stdout / stderr threads")
+        # # logger.debug("Fast loop: check stdout / stderr threads")
 
         if timeout is not None:
             # Check for timeouts
@@ -571,6 +565,7 @@ def _proc_iteroutput_select(proc, timeout=None):
         Tuple[str, str]: oline, eline - stdout and stderr line
     """
     from itertools import zip_longest
+    import select
 
     if timeout is not None:
         from time import monotonic as _time
@@ -649,11 +644,11 @@ def _tee_output(proc, stdout=None, stderr=None, backend='thread',
 
     # TODO: handle timeout
     output_gen = _proc_iteroutput(proc, timeout=timeout)
-    logger.debug("Start waiting for buffered output")
+    # logger.debug("Start waiting for buffered output")
     for oline, eline in output_gen:
         if timeout is not None:
             if oline is subprocess.TimeoutExpired or eline is subprocess.TimeoutExpired:
-                logger.error("Timeout error triggered!")
+                # logger.error("Timeout error triggered!")
                 try:
                     out = ''.join(logged_out)
                 except UnicodeDecodeError:  # nocover
@@ -671,18 +666,18 @@ def _tee_output(proc, stdout=None, stderr=None, backend='thread',
                 proc.wait()
                 raise subprocess.TimeoutExpired(command_text, timeout, out, err)
         if oline:
-            logger.debug("Write oline to stdout.write and logged_out")
+            # logger.debug("Write oline to stdout.write and logged_out")
             if stdout:  # pragma: nobranch
                 stdout.write(oline)
                 stdout.flush()
             logged_out.append(oline)
         if eline:
-            logger.debug("Write eline to stderr.write and logged_err")
+            # logger.debug("Write eline to stderr.write and logged_err")
             if stderr:  # pragma: nobranch
                 stderr.write(eline)
                 stderr.flush()
             logged_err.append(eline)
-        logger.debug("Continue waiting for buffered output")
+        # logger.debug("Continue waiting for buffered output")
 
     # The motivation for this logic is unclear.
     # In what cases is the logged output returned as bytes or text?
