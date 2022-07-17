@@ -7,10 +7,17 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## Version 1.1.3 - Unreleased
 
+### Added
+* Added keywords argument to `ub.compatible`.
+
 ### Fixed
 * Race condition on win32 in `ubelt.symlink`
 * Issue with `ubelt.memoize_method` where the method name and docstring were
   not wrapped correctly.
+
+### Changed
+* `ub.compatible` no longer errors on positional only functions, instead it
+  returns the keyword-compatible arguments.
 
 
 ## Version 1.1.2 - Released 2022-06-30
