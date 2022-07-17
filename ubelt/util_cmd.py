@@ -295,30 +295,33 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
             stdout = sys.stdout
             stderr = sys.stderr
             proc = make_proc()
-            out, err = _tee_output(
-                proc=proc, stdout=stdout, stderr=stderr,
-                backend=tee_backend, timeout=timeout,
-                command_text=command_text)
-            (out_, err_) = proc.communicate(timeout=timeout)
+            with proc:
+                out, err = _tee_output(
+                    proc=proc, stdout=stdout, stderr=stderr,
+                    backend=tee_backend, timeout=timeout,
+                    command_text=command_text)
+                (out_, err_) = proc.communicate(timeout=timeout)
         else:
             proc = make_proc()
-            try:
-                (out, err) = proc.communicate(timeout=timeout)
-            except subprocess.TimeoutExpired as exc:
-                # Follow the error handling in the stdlib implementaton of
-                # subprocess.run
-                proc.kill()
-                if WIN32:  # nocover
-                    # Win32 needs a communicate after the kill to get the
-                    # output. See stdlib for details.
-                    exc.stdout, exc.stderr = proc.communicate()
-                else:
-                    # Posix implementations already handle the populate.
-                    proc.wait()
-                raise
-        # calling wait means that the process will terminate and it is safe to
-        # return a reference to the process object.
-        ret = proc.wait()
+            with proc:
+                try:
+                    (out, err) = proc.communicate(timeout=timeout)
+                except subprocess.TimeoutExpired as exc:
+                    # Follow the error handling in the stdlib implementaton of
+                    # subprocess.run
+                    proc.kill()
+                    if WIN32:  # nocover
+                        # Win32 needs a communicate after the kill to get the
+                        # output. See stdlib for details.
+                        exc.stdout, exc.stderr = proc.communicate()
+                    else:
+                        # Posix implementations already handle the populate.
+                        proc.wait()
+                    raise
+        # We used the popen context manager, which means that wait was called,
+        # the process has existed, so it is safe to return a reference to the
+        # process object.
+        ret = proc.poll()
         info = {
             'out': out,
             'err': err,
@@ -354,10 +357,15 @@ def _textio_iterlines(stream):
     Yields:
         str: a line read from the stream.
     """
-    line = stream.readline()
-    while line != '':
-        yield line
+    try:
         line = stream.readline()
+        while line != '':
+            yield line
+            line = stream.readline()
+    except ValueError:
+        # Ignore I/O operation on closed files, the process was likely
+        # killed.
+        ...
 
 
 def _proc_async_iter_stream(proc, stream, buffersize=1, timeout=None):
