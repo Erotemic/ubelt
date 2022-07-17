@@ -7,28 +7,48 @@ nicer than ``lambda x: x``.
 
 The :func:`inject_method` function "injects" another function into a class
 instance as a method. This is useful for monkey patching.
+
+The :func:`compatible` introspects a functions signature for accepted keyword
+arguments and returns the subset of a configuration dictionary that agrees with
+that signature.
 """
 
 
 def identity(arg=None, *args, **kwargs):
     """
-    The identity function. Simply returns the value of its first input.
+    Return the value of the first argument unchanged.
 
-    All other inputs are ignored. Defaults to None if called without args.
+    All other positional and keyword inputs are ignored. Defaults to None if
+    called without any args.
+
+    The name identity is used in the mathematical sense [WikiIdentity]_.  This
+    is slightly different than the pure identity function, which is defined
+    strictly with a single argument. This implementation allows but ignores
+    extra arguments, making it easier to use as a drop in replacement for
+    functions that accept extra configuration arguments that change their
+    behavior and aren't true inputs.
+
+    The value of this utility is a cleaner way to write ``lambda x: x`` or more
+    precisely ``lambda x=None, *a, **k: x`` or writing the function inline.
+    Unlike the lambda variant, this does not trigger common linter errors when
+    assigning it to a value.
 
     Args:
-        arg (Any, default=None): some value
-        *args: ignored
-        **kwargs: ignored
+        arg (Any, default=None): The value to return unchanged.
+        *args: Ignored
+        **kwargs: Ignored
 
     Returns:
-        Any: arg - the same value
+        Any: arg - The same value of the first positional argument.
+
+    References:
+        .. [WikiIdentity] https://en.wikipedia.org/wiki/Identity_function
 
     Example:
         >>> import ubelt as ub
         >>> ub.identity(42)
         42
-        >>> ub.identity(42, 42)
+        >>> ub.identity(42, 43)
         42
         >>> ub.identity()
         None
@@ -78,25 +98,45 @@ def inject_method(self, func, name=None):
     setattr(self, name, new_method)
 
 
-def compatible(config, func, start=0):
+def compatible(config, func, start=0, keywords=True):
     """
-    Take the subset of dict items that can be passed to function as kwargs
+    Take the "compatible" subset of a dictionary that a function will accept as
+    keyword arguments.
+
+    A common pattern is to track the configuration of a program in a single
+    dictionary. Often there will be functions that only require subsets of this
+    dictionary, and they will be written such that those items are passed via
+    keyword arguments. The :func:`ubelt.compatible` utility makes it easier
+    select only the relevant config variables. It does this by inspecting the
+    signature of the function to determine what keyword arguments it accepts,
+    and returns the dictionary intersection of the full config and the allowed
+    keywords. The user can then call the function with the normal ``**``
+    mechanism.
 
     Args:
         config (Dict[str, Any]):
-            a flat configuration dictionary that contains keyword arguments
-            that might be passed to a function.
+            A dictionary that contains keyword arguments that might be passed
+            to a function.
 
         func (Callable):
-            a function or method to check the arguments of
+            A function or method to check the arguments of
 
-        start (int, default=0):
+        start (int):
             Only take args after this position. Set to 1 if calling with an
-            unbound method to avoid the ``self`` argument.
+            unbound method to avoid the ``self`` argument. Defaults to 0.
+
+        keywords (bool | Iterable[str]):
+            If True (default), and ``**kwargs`` is in the signature, prevent
+            any filtering of the ``config`` dictionary. If False, then ignore
+            that ``**kwargs`` is in the signature and only return the subset of
+            ``config`` that matches the explicit signature. Otherwise if
+            specified as a non-string iterable of strings, assume these are the
+            allowed keys that are compatible with the way ``kwargs`` is handled
+            in the function.
 
     Returns:
         Dict[str, Any] :
-            a subset of ``config`` that only contains items compatible with the
+            A subset of ``config`` that only contains items compatible with the
             signature of ``func``.
 
     Example:
@@ -125,9 +165,16 @@ def compatible(config, func, start=0):
         ...   'd': 11, 'e': 13, 'f': 17,
         ... }
         >>> func(**ub.compatible(config, func))
+        442
+        >>> print(sorted(ub.compatible(config, func)))
+        ['a', 'b', 'c', 'd', 'e', 'f']
+        >>> print(sorted(ub.compatible(config, func, keywords=False)))
+        ['a', 'e', 'f']
+        >>> print(sorted(ub.compatible(config, func, keywords={'b'})))
+        ['a', 'b', 'e', 'f']
 
     Ignore:
-        # xdoctest: +REQUIRES(PY3)
+        # xdoctest: +REQUIRES(syntax:python>=3.6)  todo: new xdoctest directive?
         # Test case with positional only 3.6 +
         import ubelt as ub
         def func(a, e, /,  f):
@@ -136,9 +183,7 @@ def compatible(config, func, start=0):
           'a': 2, 'b': 3, 'c': 7,
           'd': 11, 'e': 13, 'f': 17,
         }
-        import pytest
-        with pytest.raises(ValueError):
-            func(**ub.compatible(config, func))
+        func(1, 2, **ub.compatible(config, func))
     """
     import inspect
     sig = inspect.signature(func)
@@ -148,20 +193,29 @@ def compatible(config, func, start=0):
         if arg.kind == inspect.Parameter.VAR_KEYWORD:
             has_kwargs = True
         elif arg.kind == inspect.Parameter.VAR_POSITIONAL:
-            # Ignore variadic positional args
-            pass
+            pass  # Ignore variadic positional args
         elif arg.kind == inspect.Parameter.POSITIONAL_ONLY:
-            raise ValueError('this does not work with positional only')
+            pass  # Ignore positional only arguments
         elif arg.kind in {inspect.Parameter.POSITIONAL_OR_KEYWORD,
                           inspect.Parameter.KEYWORD_ONLY}:
             argnames.append(arg.name)
         else:  # nocover
             raise TypeError(arg.kind)
 
-    if has_kwargs:
+    # Test if keywords is a non-string iterable
+    if not isinstance(keywords, (bool, str)):
+        try:
+            iter(keywords)
+        except Exception:
+            keywords = bool(keywords)
+        else:
+            argnames.extend(keywords)
+            keywords = False
+
+    if has_kwargs and keywords:
         # kwargs could be anything, so keep everything
         common = config
     else:
         common = {k: config[k] for k in argnames[start:]
-                  if k in config}  # dict-isect
+                  if k in config}  # dict-intersection
     return common
