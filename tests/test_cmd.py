@@ -1,8 +1,10 @@
 import pytest
 import sys
 import ubelt as ub
-import shlex
-PYEXE = shlex.quote(sys.executable)
+
+# import shlex
+# PYEXE = shlex.quote(sys.executable)
+PYEXE = sys.executable
 
 
 def test_cmd_stdout():
