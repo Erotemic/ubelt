@@ -14,6 +14,7 @@ Timerit is gone! Use the standalone and separate module :module:`timerit`.
 
 See Also:
     :mod:`tempora` - https://github.com/jaraco/tempora - time related utility functions from Jaraco
+    :mod:`pendulum` - https://github.com/sdispater/pendulum - drop in replacement for datetime
 """
 import time
 import sys
