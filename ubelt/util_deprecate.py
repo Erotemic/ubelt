@@ -6,7 +6,8 @@ easily mark features in their libraries as deprecated.
 
 
 def schedule_deprecation(modname, name='?', type='?', migration='',
-                         deprecate=None, error=None, remove=None):
+                         deprecate=None, error=None, remove=None,
+                         warncls=DeprecationWarning):
     """
     Deprecation machinery to help provide users with a smoother transition.
 
@@ -49,6 +50,10 @@ def schedule_deprecation(modname, name='?', type='?', migration='',
             AssertionError will be raised if this function is still present
             reminding the developer to remove the feature (or extend the remove
             version).
+
+        warncls (type):
+            This is the category of warning to use. Defaults to
+            :class:`DeprecationWarning`.
 
     Note:
         The :class:`DeprecationWarning` is not visible by default.
@@ -120,4 +125,4 @@ def schedule_deprecation(modname, name='?', type='?', migration='',
         if error is not None and current >= error:
             raise RuntimeError(msg)
         else:
-            warnings.warn(msg, DeprecationWarning)
+            warnings.warn(msg, warncls)
