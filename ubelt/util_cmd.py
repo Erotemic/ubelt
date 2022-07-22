@@ -254,7 +254,7 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
             info - information about command status.
             if detach is False ``info`` contains captured standard out,
             standard error, and the return code
-            if detach is False ``info`` contains a reference to the process.
+            if detach is True ``info`` contains a reference to the process.
 
     Note:
         Inputs can either be text or tuple based. On UNIX we ensure conversion
