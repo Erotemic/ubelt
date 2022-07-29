@@ -1,8 +1,9 @@
 """
 Simple ways to interact with the commandline without defining a full blown
 CLI. These are usually used for developer hacks. Any real interface should
-probably be defined using :py:mod:`argparse` or :py:mod:`click`. Be sure to
-ignore unknown arguments if you use them in conjunction with these functions.
+probably be defined using :py:mod:`argparse`, :py:mod:`click`, or
+:py:mod:`scriptconfig`. Be sure to ignore unknown arguments if you use them in
+conjunction with these functions.
 
 The :func:`argflag` function checks if a boolean ``--flag`` style CLI argument
 exists on the command line.
@@ -21,6 +22,11 @@ def argval(key, default=util_const.NoParam, argv=None):
     Get the value of a keyword argument specified on the command line.
 
     Values can be specified as ``<key> <value>`` or ``<key>=<value>``
+
+    The use-case for this function is to add hidden command line feature where
+    a developer can pass in a special value. This can be used to prototype a
+    command line interface, provide an easter egg, or add some other command
+    line parsing that wont be exposed in CLI help docs.
 
     Args:
         key (str | Tuple[str, ...]):
@@ -41,6 +47,26 @@ def argval(key, default=util_const.NoParam, argv=None):
     TODO:
         - [ ] Can we handle the case where the value is a list of long paths?
         - [ ] Should we default the first or last specified instance of the flag.
+
+    CommandLine:
+        xdoctest -m ubelt.util_arg argval:0 --verbose=2 --demo
+        xdoctest -m ubelt.util_arg argval:0 --verbose=2 --demo --devval
+        xdoctest -m ubelt.util_arg argval:0 --verbose=2 --demo --devval=1
+        xdoctest -m ubelt.util_arg argval:0 --verbose=2 --demo --devval=2
+        xdoctest -m ubelt.util_arg argval:0 --verbose=2 --demo --devval 3
+        xdoctest -m ubelt.util_arg argval:0 --verbose=2 --demo --devval "4 5 6"
+
+    Example:
+        >>> # xdoctest: +REQUIRES(--demo)
+        >>> # Everyday usage of this function might look like this where
+        >>> import ubelt as ub
+        >>> # grab a key/value pair if is given on the command line
+        >>> value = ub.argval('--devval', default='1')
+        >>> print('Checking if the hidden CLI key/value pair is given')
+        >>> if value != '1':
+        >>>     print(ub.color_text(
+        >>>         'A hidden developer secret: {!r}'.format(value), 'yellow'))
+        >>> print('Pass the hidden CLI key/value pair to see a secret message')
 
     Example:
         >>> import ubelt as ub
@@ -79,7 +105,8 @@ def argflag(key, argv=None):
     """
     Determines if a key is specified on the command line.
 
-    This is a functional alternative to ``key in sys.argv``.
+    This is a functional alternative to ``key in sys.argv``, but it also allows
+    for multiple aliases of the same flag to be specified.
 
     Args:
         key (str | Tuple[str, ...]):
@@ -90,6 +117,24 @@ def argflag(key, argv=None):
 
     Returns:
         bool: flag - True if the key (or any of the keys) was specified
+
+    CommandLine:
+        xdoctest -m ubelt.util_arg argflag:0 --verbose=2 --demo
+        xdoctest -m ubelt.util_arg argflag:0 --verbose=2 --demo --devflag
+        xdoctest -m ubelt.util_arg argflag:0 --verbose=2 --demo -df
+        xdoctest -m ubelt.util_arg argflag:0 --verbose=2 --demo --devflag2
+        xdoctest -m ubelt.util_arg argflag:0 --verbose=2 --demo -df2
+
+    Example:
+        >>> # xdoctest: +REQUIRES(--demo)
+        >>> # Everyday usage of this function might look like this
+        >>> import ubelt as ub
+        >>> # Check if either of these strings are in sys.argv
+        >>> flag = ub.argflag(('-df', '--devflag'))
+        >>> if flag:
+        >>>     print(ub.color_text(
+        >>>         'A hidden developer flag was given!', 'blue'))
+        >>> print('Pass the hidden CLI flag to see a secret message')
 
     Example:
         >>> import ubelt as ub
