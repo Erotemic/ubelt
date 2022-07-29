@@ -49,12 +49,12 @@ def argval(key, default=util_const.NoParam, argv=None):
         - [ ] Should we default the first or last specified instance of the flag.
 
     CommandLine:
-        xdoctest -m ubelt.util_arg argval:0 --verbose=2
-        xdoctest -m ubelt.util_arg argval:0 --verbose=2 --devval
-        xdoctest -m ubelt.util_arg argval:0 --verbose=2 --devval=1
-        xdoctest -m ubelt.util_arg argval:0 --verbose=2 --devval=2
-        xdoctest -m ubelt.util_arg argval:0 --verbose=2 --devval 3
-        xdoctest -m ubelt.util_arg argval:0 --verbose=2 --devval "4 5 6"
+        xdoctest -m ubelt.util_arg argval:0
+        xdoctest -m ubelt.util_arg argval:0 --devval
+        xdoctest -m ubelt.util_arg argval:0 --devval=1
+        xdoctest -m ubelt.util_arg argval:0 --devval=2
+        xdoctest -m ubelt.util_arg argval:0 --devval 3
+        xdoctest -m ubelt.util_arg argval:0 --devval "4 5 6"
 
     Example:
         >>> # Everyday usage of this function might look like this where
@@ -118,11 +118,11 @@ def argflag(key, argv=None):
         bool: flag - True if the key (or any of the keys) was specified
 
     CommandLine:
-        xdoctest -m ubelt.util_arg argflag:0 --verbose=2
-        xdoctest -m ubelt.util_arg argflag:0 --verbose=2 --devflag
-        xdoctest -m ubelt.util_arg argflag:0 --verbose=2 -df
-        xdoctest -m ubelt.util_arg argflag:0 --verbose=2 --devflag2
-        xdoctest -m ubelt.util_arg argflag:0 --verbose=2 -df2
+        xdoctest -m ubelt.util_arg argflag:0
+        xdoctest -m ubelt.util_arg argflag:0 --devflag
+        xdoctest -m ubelt.util_arg argflag:0 -df
+        xdoctest -m ubelt.util_arg argflag:0 --devflag2
+        xdoctest -m ubelt.util_arg argflag:0 -df2
 
     Example:
         >>> # Everyday usage of this function might look like this
