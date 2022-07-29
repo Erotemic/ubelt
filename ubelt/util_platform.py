@@ -123,6 +123,10 @@ def get_app_data_dir(appname, *args):
     Returns a writable directory for an application.
     This should be used for temporary deletable data.
 
+    Note:
+        New applications should prefer :func:`ubelt.util_path.Path.appdir` i.e.
+        ``ubelt.Path.appdir(appname, *args, type='data')``.
+
     Args:
         appname (str): the name of the application
         *args: any other subdirectories may be specified
@@ -140,6 +144,10 @@ def get_app_data_dir(appname, *args):
 def ensure_app_data_dir(appname, *args):
     """
     Calls :func:`get_app_data_dir` but ensures the directory exists.
+
+    Note:
+        New applications should prefer :func:`ubelt.util_path.Path.appdir` i.e.
+        ``ubelt.Path.appdir(appname, *args, type='data').ensuredir()``.
 
     Args:
         appname (str): the name of the application
@@ -167,6 +175,10 @@ def get_app_config_dir(appname, *args):
     Returns a writable directory for an application
     This should be used for persistent configuration files.
 
+    Note:
+        New applications should prefer :func:`ubelt.util_path.Path.appdir` i.e.
+        ``ubelt.Path.appdir(appname, *args, type='config')``.
+
     Args:
         appname (str): the name of the application
         *args: any other subdirectories may be specified
@@ -184,6 +196,10 @@ def get_app_config_dir(appname, *args):
 def ensure_app_config_dir(appname, *args):
     """
     Calls :func:`get_app_config_dir` but ensures the directory exists.
+
+    Note:
+        New applications should prefer :func:`ubelt.util_path.Path.appdir` i.e.
+        ``ubelt.Path.appdir(appname, *args, type='config').ensuredir()``.
 
     Args:
         appname (str): the name of the application
@@ -211,6 +227,10 @@ def get_app_cache_dir(appname, *args):
     Returns a writable directory for an application.
     This should be used for temporary deletable data.
 
+    Note:
+        New applications should prefer :func:`ubelt.util_path.Path.appdir` i.e.
+        ``ubelt.Path.appdir(appname, *args, type='cache')``.
+
     Args:
         appname (str): the name of the application
         *args: any other subdirectories may be specified
@@ -231,6 +251,10 @@ def get_app_cache_dir(appname, *args):
 def ensure_app_cache_dir(appname, *args):
     """
     Calls :func:`get_app_cache_dir` but ensures the directory exists.
+
+    Note:
+        New applications should prefer :func:`ubelt.util_path.Path.appdir` i.e.
+        ``ubelt.Path.appdir(appname, *args, type='cache').ensuredir()``.
 
     Args:
         appname (str): the name of the application
