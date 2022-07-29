@@ -290,7 +290,7 @@ class Executor(object):
         Calls the map function of the underlying backend.
 
         CommandLine:
-            xdoctest -m /home/joncrall/code/ubelt/ubelt/util_futures.py Executor.map
+            xdoctest -m ubelt.util_futures Executor.map
 
         Example:
             >>> import ubelt as ub
