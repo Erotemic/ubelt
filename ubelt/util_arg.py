@@ -45,19 +45,18 @@ def argval(key, default=util_const.NoParam, argv=None):
             multiple times, then the first value is returned.
 
     TODO:
-        - [ ] Can we handle the case where the value is a list of long paths?
+        - [x] Can we handle the case where the value is a list of long paths? - No
         - [ ] Should we default the first or last specified instance of the flag.
 
     CommandLine:
-        xdoctest -m ubelt.util_arg argval:0 --verbose=2 --demo
-        xdoctest -m ubelt.util_arg argval:0 --verbose=2 --demo --devval
-        xdoctest -m ubelt.util_arg argval:0 --verbose=2 --demo --devval=1
-        xdoctest -m ubelt.util_arg argval:0 --verbose=2 --demo --devval=2
-        xdoctest -m ubelt.util_arg argval:0 --verbose=2 --demo --devval 3
-        xdoctest -m ubelt.util_arg argval:0 --verbose=2 --demo --devval "4 5 6"
+        xdoctest -m ubelt.util_arg argval:0 --verbose=2
+        xdoctest -m ubelt.util_arg argval:0 --verbose=2 --devval
+        xdoctest -m ubelt.util_arg argval:0 --verbose=2 --devval=1
+        xdoctest -m ubelt.util_arg argval:0 --verbose=2 --devval=2
+        xdoctest -m ubelt.util_arg argval:0 --verbose=2 --devval 3
+        xdoctest -m ubelt.util_arg argval:0 --verbose=2 --devval "4 5 6"
 
     Example:
-        >>> # xdoctest: +REQUIRES(--demo)
         >>> # Everyday usage of this function might look like this where
         >>> import ubelt as ub
         >>> # grab a key/value pair if is given on the command line
@@ -119,14 +118,13 @@ def argflag(key, argv=None):
         bool: flag - True if the key (or any of the keys) was specified
 
     CommandLine:
-        xdoctest -m ubelt.util_arg argflag:0 --verbose=2 --demo
-        xdoctest -m ubelt.util_arg argflag:0 --verbose=2 --demo --devflag
-        xdoctest -m ubelt.util_arg argflag:0 --verbose=2 --demo -df
-        xdoctest -m ubelt.util_arg argflag:0 --verbose=2 --demo --devflag2
-        xdoctest -m ubelt.util_arg argflag:0 --verbose=2 --demo -df2
+        xdoctest -m ubelt.util_arg argflag:0 --verbose=2
+        xdoctest -m ubelt.util_arg argflag:0 --verbose=2 --devflag
+        xdoctest -m ubelt.util_arg argflag:0 --verbose=2 -df
+        xdoctest -m ubelt.util_arg argflag:0 --verbose=2 --devflag2
+        xdoctest -m ubelt.util_arg argflag:0 --verbose=2 -df2
 
     Example:
-        >>> # xdoctest: +REQUIRES(--demo)
         >>> # Everyday usage of this function might look like this
         >>> import ubelt as ub
         >>> # Check if either of these strings are in sys.argv
