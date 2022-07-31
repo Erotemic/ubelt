@@ -1,9 +1,20 @@
 """
-Introduces the Executor class that wraps the standard ThreadPoolExecutor,
-ProcessPoolExecutor, and the new SerialExecutor with a common interface and a
-backend that changes dynamically. This makes is easy to test if your code
-benefits from parallism, how much it benefits, and gives you the ability to
-disable if if you need to.
+Introduces the :class:`Executor` class that wraps the standard
+ThreadPoolExecutor, ProcessPoolExecutor, and the new SerialExecutor with a
+common interface and a configurable backend. This makes is easy to test if your
+code benefits from parallism, how much it benefits, and gives you the ability
+to disable if if you need to.
+
+
+The :class:`Executor` class lets you choose the right level of concurrency
+(which might be no concurrency). An excellent blog post on when to use
+threads, processes, or asyncio [ChooseTheRightConcurrency]_.
+
+Note that executor does not currently support asyncio, but this might be a
+feature added in the future, but its unclear how interoperable this would be.
+
+References:
+    .. [ChooseTheRightConcurrency] https://superfastpython.com/python-concurrency-choose-api/
 
 
 Example:
@@ -194,6 +205,40 @@ class SerialExecutor(object):
             yield f.result()
 
 
+# class AsyncIOExecutor:
+#     """
+#     Mimic concurrent.futures with asyncio
+#     This might not be possible. Defer...
+#     Example:
+#         from ubelt.util_futures import AsyncIOExecutor
+#         self = executor = AsyncIOExecutor()
+#         func = int
+#         args = ('1',)
+#         self.loop.run_in_executor(func, *args)
+#         future = self.loop.run_in_executor(None, func, *args)
+#     """
+#     def __init__(self):
+#         self.max_workers = 0
+#         self.loop = None
+#         import asyncio
+#         try:
+#             self.loop = asyncio.get_event_loop()
+#         except RuntimeError:
+#             loop = asyncio.new_event_loop()
+#             asyncio.set_event_loop(loop)
+#             self.loop = asyncio.get_event_loop()
+#     def __enter__(self):
+#         return self
+#     def __exit__(self, ex_type, ex_value, tb):
+#         pass
+#     def submit(self, func, *args, **kw):
+#         ...
+#     def shutdown(self):
+#         ...
+#     def map(self, fn, *iterables, **kwargs):
+#         ...
+
+
 class Executor(object):
     """
     Wrapper around a specific executor.
@@ -258,6 +303,9 @@ class Executor(object):
             backend = futures.ThreadPoolExecutor(max_workers=max_workers)
         elif mode == 'process':
             backend = futures.ProcessPoolExecutor(max_workers=max_workers)
+        # elif mode == 'asyncio':
+        #     # Experimental
+        #     backend = AsyncIOExecutor()
         else:
             raise KeyError(mode)
         self.backend = backend
