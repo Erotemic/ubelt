@@ -78,47 +78,61 @@ def symlink(real_path, link_path, overwrite=False, verbose=0):
 
     Example:
         >>> import ubelt as ub
-        >>> dpath = ub.ensure_app_cache_dir('ubelt', 'test_symlink0')
-        >>> real_path = join(dpath, 'real_file.txt')
-        >>> link_path = join(dpath, 'link_file.txt')
-        >>> [ub.delete(p) for p in [real_path, link_path]]
-        >>> ub.writeto(real_path, 'foo')
-        >>> result = symlink(real_path, link_path)
-        >>> assert ub.readfrom(result) == 'foo'
-        >>> [ub.delete(p) for p in [real_path, link_path]]
+        >>> dpath = ub.Path.appdir('ubelt', 'test_symlink0').delete().ensuredir()
+        >>> real_path = (dpath / 'real_file.txt')
+        >>> link_path = (dpath / 'link_file.txt')
+        >>> real_path.write_text('foo')
+        >>> result = ub.symlink(real_path, link_path)
+        >>> assert ub.Path(result).read_text() == 'foo'
+        >>> dpath.delete()  # clenaup
 
     Example:
         >>> import ubelt as ub
-        >>> from os.path import dirname
-        >>> dpath = ub.ensure_app_cache_dir('ubelt', 'test_symlink1')
-        >>> ub.delete(dpath)
-        >>> ub.ensuredir(dpath)
+        >>> from ubelt.util_links import _dirstats
+        >>> dpath = ub.Path.appdir('ubelt', 'test_symlink1').delete().ensuredir()
         >>> _dirstats(dpath)
-        >>> real_dpath = ub.ensuredir((dpath, 'real_dpath'))
-        >>> link_dpath = ub.augpath(real_dpath, base='link_dpath')
-        >>> real_path = join(dpath, 'afile.txt')
-        >>> link_path = join(dpath, 'afile.txt')
-        >>> [ub.delete(p) for p in [real_path, link_path]]
-        >>> ub.writeto(real_path, 'foo')
-        >>> result = symlink(real_dpath, link_dpath)
-        >>> assert ub.readfrom(link_path) == 'foo', 'read should be same'
-        >>> ub.writeto(link_path, 'bar')
+        >>> real_dpath = (dpath / 'real_dpath').ensuredir()
+        >>> link_dpath = real_dpath.augment(stem='link_dpath')
+        >>> real_path = (dpath / 'afile.txt')
+        >>> link_path = (dpath / 'afile.txt')
+        >>> real_path.write_text('foo')
+        >>> result = ub.symlink(real_dpath, link_dpath)
+        >>> assert link_path.read_text() == 'foo', 'read should be same'
+        >>> link_path.write_text('bar')
         >>> _dirstats(dpath)
-        >>> assert ub.readfrom(link_path) == 'bar', 'very bad bar'
-        >>> assert ub.readfrom(real_path) == 'bar', 'changing link did not change real'
-        >>> ub.writeto(real_path, 'baz')
+        >>> assert link_path.read_text() == 'bar', 'very bad bar'
+        >>> assert real_path.read_text() == 'bar', 'changing link did not change real'
+        >>> real_path.write_text('baz')
         >>> _dirstats(dpath)
-        >>> assert ub.readfrom(real_path) == 'baz', 'very bad baz'
-        >>> assert ub.readfrom(link_path) == 'baz', 'changing real did not change link'
+        >>> assert real_path.read_text() == 'baz', 'very bad baz'
+        >>> assert link_path.read_text() == 'baz', 'changing real did not change link'
         >>> ub.delete(link_dpath, verbose=1)
         >>> _dirstats(dpath)
-        >>> assert not exists(link_dpath), 'link should not exist'
-        >>> assert exists(real_path), 'real path should exist'
+        >>> assert not link_dpath.exists(), 'link should not exist'
+        >>> assert real_path.exists(), 'real path should exist'
         >>> _dirstats(dpath)
         >>> ub.delete(dpath, verbose=1)
         >>> _dirstats(dpath)
-        >>> assert not exists(real_path)
+        >>> assert not real_path.exists()
+
+    Example:
+        >>> # Specifying bad paths should error.
+        >>> import ubelt as ub
+        >>> import pytest
+        >>> dpath = ub.Path.appdir('ubelt', 'test_symlink2').ensuredir()
+        >>> real_path = dpath / 'real_file.txt'
+        >>> link_path = dpath / 'link_file.txt'
+        >>> real_path.write_text('foo')
+        >>> with pytest.raises(ValueError, match='link_path .* cannot be empty'):
+        >>>     ub.symlink(real_path, '')
+        >>> with pytest.raises(ValueError, match='real_path .* cannot be empty'):
+        >>>     ub.symlink('', link_path)
     """
+    if not real_path:
+        raise ValueError('The real_path argument cannot be empty')
+    if not link_path:
+        raise ValueError('The link_path argument cannot be empty')
+
     path = normpath(real_path)
     link = normpath(link_path)
 

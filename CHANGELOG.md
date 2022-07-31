@@ -23,6 +23,8 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ### Changed
 * `ub.compatible` no longer errors on positional only functions, instead it
   returns the keyword-compatible arguments.
+* An issue in `ubelt.symlink` with unintuitive behavior when an empty string
+  was given as the link path. This now raises an error.
 
 
 ## Version 1.1.2 - Released 2022-06-30
