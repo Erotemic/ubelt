@@ -14,10 +14,15 @@ sha1sum executable (or you dont want to use Popen). The solution is
 :func:`hash_file`
 
 The :func:`ubelt.util_hash.hash_data` function recursively hashes most builtin
-python data structures.
+python data structures. This is similar to the deephash functionality provided
+in [PypiDeepDiff]_.
 
 The :func:`ubelt.util_hash.hash_file` function hashes data on disk.  Both of
 the aforementioned functions have options for different hashers and alphabets.
+
+
+References:
+    .. [PypiDeepDiff] https://pypi.org/project/deepdiff/
 
 
 Example:

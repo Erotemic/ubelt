@@ -82,7 +82,7 @@ def dict_isect(
     ...
 
 
-def map_vals(func: Union[Callable[[VT], T], Mapping[VT, T]],
+def map_values(func: Union[Callable[[VT], T], Mapping[VT, T]],
              dict_: Dict[KT, VT]) -> Dict[KT, T]:
     ...
 
@@ -92,13 +92,14 @@ def map_keys(func: Union[Callable[[KT], T], Mapping[KT, T]],
     ...
 
 
-def sorted_vals(dict_: Dict[KT, VT],
+def sorted_values(dict_: Dict[KT, VT],
                 key: Union[Callable[[VT], Any], None] = None,
                 reverse: bool = False) -> OrderedDict[KT, VT]:
     ...
 
 
-sorted_values = sorted_vals
+sorted_vals = sorted_values
+map_vals = map_values
 
 
 def sorted_keys(dict_: Dict[KT, VT],

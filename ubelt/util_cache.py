@@ -110,6 +110,10 @@ Example:
     >>> # modifying or removing the file will cause the stamp to expire
     >>> expected_fpaths[0].write_text('corrupted')
     >>> assert self.expired()
+
+
+RelatedWork:
+    https://github.com/shaypal5/cachier
 """
 import os
 from os.path import join, normpath, basename, exists

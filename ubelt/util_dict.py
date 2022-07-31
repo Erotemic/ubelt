@@ -5,11 +5,12 @@ The :func:`dict_hist` function counts the number of discrete occurrences of hash
 items. Similarly :func:`find_duplicates` looks for indices of items that occur more
 than `k=1` times.
 
-The :func:`map_keys` and :func:`map_vals` functions are useful for transforming the keys
-and values of a dictionary with less syntax than a dict comprehension.
+The :func:`map_keys` and :func:`map_values` functions are useful for
+transforming the keys and values of a dictionary with less syntax than a dict
+comprehension.
 
-The :func:`dict_union`, :func:`dict_isect`, and :func:`dict_diff` functions
-are similar to the set equivalents.
+The :func:`dict_union`, :func:`dict_isect`, and :func:`dict_diff` functions are
+similar to the set equivalents.
 
 The :func:`dzip` function zips two iterables and packs them into a dictionary
 where the first iterable is used to generate keys and the second generates
@@ -25,6 +26,21 @@ for details on dealing with unique and non-unique values.
 The :func:`ddict` and :func:`odict` functions are alias for the commonly used
 :func:`collections.defaultdict` and :func:`collections.OrderedDict` classes.
 
+Related Work:
+    * Note that Python does support set operations on dictionary **views** [DictView]_ [Pep3106]_, but these methods can be inflexible and often leave you only with keys (and no dictionary subset operation), whereas the ubelt definition of these operations is more straightforward.
+    * There are several recipes for dictionaries that support set operations [SetDictRecipe1]_ [SetDictRecipe2]_.
+    * The :moduel:`dictmap` package contains a function similar to :func:`map_values` [GHDictMap]_.
+    * The :module:`dictdiffer` package contains tools for nested difference operations [PypiDictDiffer]_.
+    * There are lots of other python dictionary utility libraries [PyPIAddict]_.
+
+References:
+    .. [PyPIAddict] https://github.com/mewwts/addict
+    .. [SetDictRecipe1] https://gist.github.com/rossmacarthur/38fa948b175abb512e12c516cc3b936d
+    .. [SetDictRecipe2] https://code.activestate.com/recipes/577471-setdict/
+    .. [PypiDictDiffer] https://pypi.org/project/dictdiffer/
+    .. [DictView] https://docs.python.org/3.0/library/stdtypes.html#dictionary-view-objects
+    .. [Pep3106] https://peps.python.org/pep-3106/
+    .. [GHDictMap] https://github.com/ulisesojeda/dictionary_map
 """
 import operator as op
 import itertools as it
@@ -49,8 +65,10 @@ __all__ = [
     'invert_dict',
     'map_keys',
     'map_vals',
+    'map_values',
     'sorted_keys',
     'sorted_vals',
+    'sorted_values',
     'odict',
     'named_product',
     'varied_values',
@@ -66,7 +84,8 @@ class AutoDict(dict):
     """
     An infinitely nested default dict of dicts.
 
-    Implementation of Perl's autovivification feature.
+    Implementation of Perl's autovivification feature that follows
+    [SO_651794]_.
 
     SeeAlso:
         :class:`AutoOrderedDict` - the ordered version
@@ -525,7 +544,7 @@ def dict_isect(*args):
                          if k in common_keys)
 
 
-def map_vals(func, dict_):
+def map_values(func, dict_):
     """
     Apply a function to every value in a dictionary.
 
@@ -541,7 +560,7 @@ def map_vals(func, dict_):
     Example:
         >>> import ubelt as ub
         >>> dict_ = {'a': [1, 2, 3], 'b': []}
-        >>> newdict = ub.map_vals(len, dict_)
+        >>> newdict = ub.map_values(len, dict_)
         >>> assert newdict ==  {'a': 3, 'b': 0}
 
     Example:
@@ -549,7 +568,7 @@ def map_vals(func, dict_):
         >>> import ubelt as ub
         >>> dict_ = {'a': 0, 'b': 1}
         >>> func = [42, 21]
-        >>> newdict = ub.map_vals(func, dict_)
+        >>> newdict = ub.map_values(func, dict_)
         >>> assert newdict ==  {'a': 42, 'b': 21}
         >>> print(newdict)
     """
@@ -559,6 +578,8 @@ def map_vals(func, dict_):
     dictclass = OrderedDict if isinstance(dict_, OrderedDict) else dict
     newdict = dictclass(keyval_list)
     return newdict
+
+map_vals = map_values  # backwards compatibility
 
 
 def map_keys(func, dict_):
@@ -601,7 +622,7 @@ def map_keys(func, dict_):
     return newdict
 
 
-def sorted_vals(dict_, key=None, reverse=False):
+def sorted_values(dict_, key=None, reverse=False):
     """
     Return an ordered dictionary sorted by its values
 
@@ -622,13 +643,13 @@ def sorted_vals(dict_, key=None, reverse=False):
     Example:
         >>> import ubelt as ub
         >>> dict_ = {'spam': 2.62, 'eggs': 1.20, 'jam': 2.92}
-        >>> newdict = sorted_vals(dict_)
+        >>> newdict = sorted_values(dict_)
         >>> print(ub.repr2(newdict, nl=0))
         {'eggs': 1.2, 'spam': 2.62, 'jam': 2.92}
-        >>> newdict = sorted_vals(dict_, reverse=True)
+        >>> newdict = sorted_values(dict_, reverse=True)
         >>> print(ub.repr2(newdict, nl=0))
         {'jam': 2.92, 'spam': 2.62, 'eggs': 1.2}
-        >>> newdict = sorted_vals(dict_, key=lambda x: x % 1.6)
+        >>> newdict = sorted_values(dict_, key=lambda x: x % 1.6)
         >>> print(ub.repr2(newdict, nl=0))
         {'spam': 2.62, 'eggs': 1.2, 'jam': 2.92}
     """
@@ -641,7 +662,7 @@ def sorted_vals(dict_, key=None, reverse=False):
     return newdict
 
 
-sorted_values = sorted_vals  # ? Is this a better name?
+sorted_vals = sorted_values  # backwards compatibility
 
 
 def sorted_keys(dict_, key=None, reverse=False):

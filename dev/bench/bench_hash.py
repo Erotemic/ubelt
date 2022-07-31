@@ -59,7 +59,7 @@ def benchmark_hash_data():
         import kwplot
         kwplot.autompl()
         xdata = sorted(ub.peek(results.values()).keys())
-        ydata = ub.map_vals(lambda d: [d[x] for x in xdata], results)
+        ydata = ub.map_values(lambda d: [d[x] for x in xdata], results)
         kwplot.multi_plot(xdata, ydata, xlabel='N', ylabel='seconds', title='convert = {}'.format(convert))
         kwplot.show_if_requested()
 

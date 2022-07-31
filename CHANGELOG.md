@@ -25,6 +25,9 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
   returns the keyword-compatible arguments.
 * An issue in `ubelt.symlink` with unintuitive behavior when an empty string
   was given as the link path. This now raises an error.
+* The main implementations of `ubelt.sorted_vals` and `ubelt.map_vals` were
+  renamed to `ubelt.sorted_values` and `ubelt.map_values`, but the old names
+  are still available as aliases.
 
 
 ## Version 1.1.2 - Released 2022-06-30

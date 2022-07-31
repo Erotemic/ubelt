@@ -76,8 +76,8 @@ def test_group_items_callable():
     result1 = ub.group_items(items, groupids)
     result2 = ub.group_items(items, lut.__getitem__)
 
-    result1 = ub.map_vals(set, result1)
-    result2 = ub.map_vals(set, result2)
+    result1 = ub.map_values(set, result1)
+    result2 = ub.map_values(set, result2)
     assert result1 == result2
 
 

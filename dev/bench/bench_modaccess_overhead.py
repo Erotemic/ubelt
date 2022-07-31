@@ -39,7 +39,7 @@ def main():
     for m1, v1 in ti.rankings.items():
         for pos, label in enumerate(ub.argsort(v1), start=0):
             positions[label].append(pos)
-    average_position = ub.map_vals(lambda x: sum(x) / len(x), positions)
+    average_position = ub.map_values(lambda x: sum(x) / len(x), positions)
     print('average_position = {}'.format(ub.repr2(average_position)))
 
 
