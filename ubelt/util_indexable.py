@@ -1,6 +1,13 @@
 """
 The util_indexable module defines ``IndexableWalker`` which is a powerful
 way to iterate through nested Python containers.
+
+RelatedWork:
+    * [PypiDictDigger]_
+
+References:
+    .. [PypiDictDigger] https://pypi.org/project/dict_digger/
+    .. [PypiDeepDiff] https://pypi.org/project/deepdiff/
 """
 from math import isclose
 from collections.abc import Generator

@@ -94,8 +94,9 @@ from ubelt.util_cmd import (cmd,)
 from ubelt.util_dict import (AutoDict, AutoOrderedDict, ddict, dict_diff,
                              dict_hist, dict_isect, dict_subset, dict_union,
                              dzip, find_duplicates, group_items, invert_dict,
-                             map_keys, map_vals, named_product, odict,
-                             sorted_keys, sorted_vals, varied_values,)
+                             map_keys, map_vals, map_values, named_product,
+                             odict, sorted_keys, sorted_vals, sorted_values,
+                             varied_values,)
 from ubelt.util_deprecate import (schedule_deprecation,)
 from ubelt.util_download import (download, grabdata,)
 from ubelt.util_download_manager import (DownloadManager,)
@@ -147,15 +148,15 @@ __all__ = ['AutoDict', 'AutoOrderedDict', 'CacheStamp', 'Cacher',
            'highlight_code', 'hzcat', 'identity', 'import_module_from_name',
            'import_module_from_path', 'indent', 'indexable_allclose',
            'inject_method', 'invert_dict', 'iter_window', 'iterable',
-           'map_keys', 'map_vals', 'memoize', 'memoize_method',
+           'map_keys', 'map_vals', 'map_values', 'memoize', 'memoize_method',
            'memoize_property', 'modname_to_modpath', 'modpath_to_modname',
            'named_product', 'odict', 'orderedset', 'oset', 'paragraph', 'peek',
            'platform_cache_dir', 'platform_config_dir', 'platform_data_dir',
            'progiter', 'readfrom', 'repr2', 'schedule_deprecation',
-           'shrinkuser', 'sorted_keys', 'sorted_vals', 'split_archive',
-           'split_modpath', 'symlink', 'take', 'timeparse', 'timestamp',
-           'touch', 'unique', 'unique_flags', 'userhome', 'util_arg',
-           'util_cache', 'util_cmd', 'util_colors', 'util_const',
+           'shrinkuser', 'sorted_keys', 'sorted_vals', 'sorted_values',
+           'split_archive', 'split_modpath', 'symlink', 'take', 'timeparse',
+           'timestamp', 'touch', 'unique', 'unique_flags', 'userhome',
+           'util_arg', 'util_cache', 'util_cmd', 'util_colors', 'util_const',
            'util_deprecate', 'util_dict', 'util_download',
            'util_download_manager', 'util_format', 'util_func', 'util_futures',
            'util_hash', 'util_import', 'util_indexable', 'util_io',

@@ -905,8 +905,8 @@ Code that is completely optional, and only used in specific cases:
 Similar Tools
 -------------
 
-UBelt is one of many Python utility libraries. Other similar libraries are
-listed here.
+UBelt is one of many Python utility libraries. A selection of similar libraries
+are listed here.
 
 Libraries that contain a broad scope of utilities:
 
@@ -928,6 +928,10 @@ Libraries that contain one specific data structure or utility:
 * tqdm: progress bars - https://pypi.org/project/tqdm/
 * pooch: data downloading - https://pypi.org/project/pooch/
 * timerit: snippet timing for benchmarks - https://github.com/Erotemic/timerit
+
+
+Ubelt is included in the the [bestof-python list](https://github.com/ml-tooling/best-of-python), 
+which contains many other tools that you should check out.
 
 
 History:

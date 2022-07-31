@@ -232,7 +232,7 @@ def benchmark_dict_diff_impl():
     weight_rank_rows = []
     for method_name, ranks in weighted_rankings.items():
         weights = ub.dict_diff(ranks, ['total'])
-        p_rank = ub.map_vals(lambda w: w / ranks['total'], weights)
+        p_rank = ub.map_values(lambda w: w / ranks['total'], weights)
 
         for rank, w in p_rank.items():
             weight_rank_rows.append({'rank': rank, 'weight': w, 'name': method_name})
