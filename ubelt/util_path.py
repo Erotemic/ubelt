@@ -51,6 +51,7 @@ def augpath(path, suffix='', prefix='', ext=None, tail='', base=None,
 
         suffix (str):
             placed between the basename and extension
+            Note: this is referred to as stemsuffix in :func:`ub.Path.augment`.
 
         prefix (str):
             placed in front of the basename
@@ -63,7 +64,7 @@ def augpath(path, suffix='', prefix='', ext=None, tail='', base=None,
 
         base (str | None):
             if specified, replaces the basename without extension.
-            Note: this is referred to as stem in :class:`ub.Path`.
+            Note: this is referred to as stem in :func:`ub.Path.augment`.
 
         dpath (str | PathLike | None):
             if specified, replaces the specified "relative" directory, which by
@@ -400,8 +401,8 @@ class Path(_PathBase):
         >>> import ubelt as ub
         >>> dpath = ub.Path('~/.cache/ubelt/demo_path').expand().ensuredir()
         >>> fpath = dpath / 'text_file.txt'
-        >>> aug_fpath = fpath.augment(suffix='.aux', ext='.jpg').touch()
-        >>> aug_dpath = dpath.augment('demo_path2')
+        >>> aug_fpath = fpath.augment(stemsuffix='.aux', ext='.jpg').touch()
+        >>> aug_dpath = dpath.augment(stemsuffix='demo_path2')
         >>> assert aug_fpath.read_text() == ''
         >>> fpath.write_text('text data')
         >>> assert aug_fpath.exists()
@@ -553,6 +554,7 @@ class Path(_PathBase):
 
         Example:
             >>> # Compare our augpath(ext=...) versus pathlib with_suffix(...)
+            >>> import ubelt as ub
             >>> cases = [
             >>>     ub.Path('no_ext'),
             >>>     ub.Path('one.ext'),
@@ -564,12 +566,12 @@ class Path(_PathBase):
             >>>     ub.Path('.prefdot'),
             >>>     ub.Path('..doubleprefdot'),
             >>> ]
-            >>> for case in cases:
+            >>> for path in cases:
             >>>     print('--')
-            >>>     print('case = {}'.format(ub.repr2(case, nl=1)))
+            >>>     print('path = {}'.format(ub.repr2(path, nl=1)))
             >>>     ext = '.EXT'
-            >>>     method_pathlib = case.with_suffix(ext)
-            >>>     method_augment = case.augment(ext=ext)
+            >>>     method_pathlib = path.with_suffix(ext)
+            >>>     method_augment = path.augment(ext=ext)
             >>>     if method_pathlib == method_augment:
             >>>         print(ub.color_text('sagree', 'green'))
             >>>     else:
