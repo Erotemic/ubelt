@@ -557,6 +557,9 @@ def map_values(func, dict_):
     Returns:
         Dict[KT, T]: transformed dictionary
 
+    Notes:
+        Similar to :module:`dictmap.dict_map`
+
     Example:
         >>> import ubelt as ub
         >>> dict_ = {'a': [1, 2, 3], 'b': []}

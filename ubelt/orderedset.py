@@ -357,6 +357,7 @@ class OrderedSet(MutableSet, Sequence):
         by the first set.
 
         Example:
+            >>> from ubelt.orderedset import *  # NOQA
             >>> oset = OrderedSet.intersection(OrderedSet([0, 1, 2, 3]), [1, 2, 3])
             >>> print(oset)
             OrderedSet([1, 2, 3])
