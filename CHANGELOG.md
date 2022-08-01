@@ -28,6 +28,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 * The main implementations of `ubelt.sorted_vals` and `ubelt.map_vals` were
   renamed to `ubelt.sorted_values` and `ubelt.map_values`, but the old names
   are still available as aliases.
+* Positional arguments in `Path.augment` have been modified. 
 * In `Path.augment`, deprecate overloaded `suffix` and introduce `stemsuffix`
   as an alternative.
 
