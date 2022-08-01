@@ -456,8 +456,8 @@ class Path(_PathBase):
         else:
             raise KeyError(type)
 
-    def augment(self, suffix='', prefix='', ext=None, stem=None, dpath=None,
-                tail='', relative=None, multidot=False):
+    def augment(self, prefix='', stemsuffix='', ext=None, stem=None, dpath=None,
+                tail='', relative=None, multidot=False, suffix=''):
         """
         Create a new path with a different extension, basename, directory,
         prefix, and/or suffix.
@@ -465,11 +465,12 @@ class Path(_PathBase):
         See :func:`augpath` for more details.
 
         Args:
-            suffix (str):
-                Text placed between the stem and extension. Default to ''.
-
             prefix (str):
                 Text placed in front of the stem. Defaults to ''.
+
+            stemsuffix (str):
+                Text placed between the stem and extension. Default to ''.
+                Note: this is just called suffix in :func:`ub.augpath`.
 
             ext (str | None):
                 If specified, replaces the extension
@@ -495,6 +496,9 @@ class Path(_PathBase):
                 multiple dots. Specifically, if False, everything after the
                 last dot in the basename is the extension. If True, everything
                 after the first dot in the basename is the extension.
+
+            suffix (str):
+                DEPRECAETD
 
         SeeAlso:
             # Stdlib ways of augmenting
@@ -534,16 +538,60 @@ class Path(_PathBase):
             >>> suffix = '_suff'
             >>> prefix = 'pref_'
             >>> ext = '.baz'
-            >>> newpath = path.augment(suffix, prefix, ext=ext, stem='bar')
+            >>> newpath = path.augment(prefix=prefix, stemsuffix=suffix, ext=ext, stem='bar')
             >>> print('newpath = {!r}'.format(newpath))
             newpath = Path('pref_bar_suff.baz')
+
+        Example:
+            >>> import ubelt as ub
+            >>> path = ub.Path('foo.bar')
+            >>> stemsuffix = '_suff'
+            >>> prefix = 'pref_'
+            >>> ext = '.baz'
+            >>> newpath = path.augment(prefix=prefix, stemsuffix=stemsuffix, ext=ext, stem='bar')
+            >>> print('newpath = {!r}'.format(newpath))
+
+        Example:
+            >>> # Compare our augpath(ext=...) versus pathlib with_suffix(...)
+            >>> cases = [
+            >>>     ub.Path('no_ext'),
+            >>>     ub.Path('one.ext'),
+            >>>     ub.Path('double..dot'),
+            >>>     ub.Path('two.many.cooks'),
+            >>>     ub.Path('path.with.three.dots'),
+            >>>     ub.Path('traildot.'),
+            >>>     ub.Path('doubletraildot..'),
+            >>>     ub.Path('.prefdot'),
+            >>>     ub.Path('..doubleprefdot'),
+            >>> ]
+            >>> for case in cases:
+            >>>     print('--')
+            >>>     print('case = {}'.format(ub.repr2(case, nl=1)))
+            >>>     ext = '.EXT'
+            >>>     method_pathlib = case.with_suffix(ext)
+            >>>     method_augment = case.augment(ext=ext)
+            >>>     if method_pathlib == method_augment:
+            >>>         print(ub.color_text('sagree', 'green'))
+            >>>     else:
+            >>>         print(ub.color_text('disagree', 'red'))
+            >>>     print('path.with_suffix({}) = {}'.format(ext, ub.repr2(method_pathlib, nl=1)))
+            >>>     print('path.augment(ext={}) = {}'.format(ext, ub.repr2(method_augment, nl=1)))
+            >>>     print('--')
         """
-        if suffix or prefix:
+        if suffix:
+            from ubelt.util_deprecate import schedule_deprecation
+            schedule_deprecation(
+                'ubelt', 'suffix', 'arg',
+                deprecate='1.1.3', remove='2.0.0',
+                migration='Use stemsuffix instead',
+            )
+            if not stemsuffix:
+                stemsuffix = suffix
             import warnings
             warnings.warn(
                 'DEVELOPER NOTICE: The ubelt.Path.augment function may '
                 'experience a BACKWARDS INCOMPATIBLE update in the future '
-                'having to do with the prefix and suffix argument to ub.Path.augment '
+                'having to do with the suffix argument to ub.Path.augment '
                 'To avoid any issue use the ``ubelt.augment`` function '
                 'instead for now. If you see this warning, please make an '
                 'issue on https://github.com/Erotemic/ubelt/issues indicating '
@@ -552,7 +600,8 @@ class Path(_PathBase):
                 'depends on this feature then we will continue to support it as '
                 'is.'
             )
-        aug = augpath(self, suffix=suffix, prefix=prefix, ext=ext, base=stem,
+
+        aug = augpath(self, suffix=stemsuffix, prefix=prefix, ext=ext, base=stem,
                       dpath=dpath, relative=relative, multidot=multidot,
                       tail=tail)
         new = self.__class__(aug)
