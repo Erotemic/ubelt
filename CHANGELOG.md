@@ -5,7 +5,7 @@ We are currently working on porting this changelog to the specifications in
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
-## Version 1.1.3 - Unreleased
+## Version 1.2.0 - Unreleased
 
 ### Added
 * Added keywords argument to `ub.compatible`.
