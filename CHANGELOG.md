@@ -10,7 +10,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ### Added
 * Added keywords argument to `ub.compatible`.
 * Added `warncls` argument to `ub.schedule_deprecation`.
-* Experimental SetDict, UbeltDict and aliases sdict, udict.
+* Experimental SetDict, UDict and aliases sdict, udict.
 
 ### Fixed
 * Race condition on win32 in `ubelt.symlink`
