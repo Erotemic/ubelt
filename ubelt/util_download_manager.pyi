@@ -1,13 +1,15 @@
 from typing import Union
 from os import PathLike
+from typing import List
 import concurrent
 import concurrent.futures
 from _typeshed import Incomplete
 
 
 class DownloadManager:
+    download_root: Union[str, PathLike]
+    jobs: List[concurrent.futures.Future]
     pool: Incomplete
-    download_root: Incomplete
     cache: Incomplete
     dl_func: Incomplete
 

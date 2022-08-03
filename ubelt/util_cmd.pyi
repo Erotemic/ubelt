@@ -5,6 +5,7 @@ from typing import Dict
 from _typeshed import Incomplete
 
 POSIX: Incomplete
+WIN32: Incomplete
 
 
 def cmd(command: Union[str, List[str]],

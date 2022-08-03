@@ -70,14 +70,15 @@ class Path:
         ...
 
     def augment(self,
-                suffix: str = '',
                 prefix: str = '',
+                stemsuffix: str = '',
                 ext: Union[str, None] = None,
                 stem: Union[str, None] = None,
                 dpath: Union[str, PathLike, None] = None,
                 tail: Union[str, None] = '',
                 relative: Union[str, PathLike, None] = None,
-                multidot: bool = False) -> 'Path':
+                multidot: bool = False,
+                suffix: str = '') -> 'Path':
         ...
 
     def delete(self) -> 'Path':

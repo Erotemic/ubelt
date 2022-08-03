@@ -8,15 +8,16 @@ from typing import Any
 from typing import Optional
 from ubelt.util_const import NoParam
 from ubelt.util_const import NoParamType
+from collections import OrderedDict
 from typing import Mapping
 from typing import Set
 from collections import OrderedDict, defaultdict
 from collections.abc import Generator
 from typing import Any, TypeVar
 
-T = TypeVar("T")
 VT = TypeVar("VT")
 KT = TypeVar("KT")
+T = TypeVar("T")
 odict = OrderedDict
 ddict = defaultdict
 
@@ -61,7 +62,7 @@ def find_duplicates(items: Iterable[T],
 
 def dict_subset(dict_: Dict[KT, VT],
                 keys: Iterable[KT],
-                default: Union[Optional[object], NoParamType] = ...,
+                default: Union[Optional[object], NoParamType] = NoParam,
                 cls: Type[Dict] = OrderedDict) -> Dict[KT, VT]:
     ...
 
@@ -83,33 +84,41 @@ def dict_isect(
 
 
 def map_values(func: Union[Callable[[VT], T], Mapping[VT, T]],
-             dict_: Dict[KT, VT]) -> Dict[KT, T]:
+               dict_: Dict[KT, VT],
+               cls: Union[type, None] = None) -> Dict[KT, T]:
     ...
 
 
+map_vals = map_values
+
+
 def map_keys(func: Union[Callable[[KT], T], Mapping[KT, T]],
-             dict_: Dict[KT, VT]) -> Dict[T, VT]:
+             dict_: Dict[KT, VT],
+             cls: Union[type, None] = None) -> Dict[T, VT]:
     ...
 
 
 def sorted_values(dict_: Dict[KT, VT],
-                key: Union[Callable[[VT], Any], None] = None,
-                reverse: bool = False) -> OrderedDict[KT, VT]:
+                  key: Union[Callable[[VT], Any], None] = None,
+                  reverse: bool = False,
+                  cls: type = OrderedDict) -> OrderedDict[KT, VT]:
     ...
 
 
 sorted_vals = sorted_values
-map_vals = map_values
 
 
 def sorted_keys(dict_: Dict[KT, VT],
                 key: Union[Callable[[KT], Any], None] = None,
-                reverse: bool = False) -> OrderedDict[KT, VT]:
+                reverse: bool = False,
+                cls: type = OrderedDict) -> OrderedDict[KT, VT]:
     ...
 
 
-def invert_dict(dict_: Dict[KT, VT],
-                unique_vals: bool = True) -> Dict[VT, KT] | Dict[VT, Set[KT]]:
+def invert_dict(
+        dict_: Dict[KT, VT],
+        unique_vals: bool = True,
+        cls: Union[type, None] = None) -> Dict[VT, KT] | Dict[VT, Set[KT]]:
     ...
 
 
@@ -124,3 +133,74 @@ def varied_values(
         min_variations: int = 0,
         default: Union[VT, NoParamType] = NoParam) -> Dict[KT, List[VT]]:
     ...
+
+
+class SetDict(dict):
+
+    def __or__(self, other):
+        ...
+
+    def __and__(self, other):
+        ...
+
+    def __sub__(self, other):
+        ...
+
+    def __xor__(self, other):
+        ...
+
+    def union(self, *others) -> dict:
+        ...
+
+    def intersection(self, *others) -> dict:
+        ...
+
+    def difference(self, *others) -> dict:
+        ...
+
+    def symmetric_difference(self, *others) -> dict:
+        ...
+
+
+sdict = SetDict
+
+
+class UDict(SetDict):
+
+    def subdict(self,
+                keys: Iterable[KT],
+                default: Union[Optional[object], NoParamType] = NoParam):
+        ...
+
+    def invert(self,
+               unique_vals: bool = True) -> Dict[VT, KT] | Dict[VT, Set[KT]]:
+        ...
+
+    def map_keys(
+            self, func: Union[Callable[[VT], T], Mapping[VT,
+                                                         T]]) -> Dict[KT, T]:
+        ...
+
+    def map_values(
+            self, func: Union[Callable[[VT], T], Mapping[VT,
+                                                         T]]) -> Dict[KT, T]:
+        ...
+
+    def sorted_keys(self,
+                    key: Union[Callable[[KT], Any], None] = None,
+                    reverse: bool = False) -> OrderedDict[KT, VT]:
+        ...
+
+    def sorted_values(self,
+                      key: Union[Callable[[VT], Any], None] = None,
+                      reverse: bool = False) -> OrderedDict[KT, VT]:
+        ...
+
+    def peek_key(self, default: Union[T, NoParamType] = NoParam) -> KT:
+        ...
+
+    def peek_value(self, default: Union[T, NoParamType] = NoParam) -> VT:
+        ...
+
+
+udict = UDict
