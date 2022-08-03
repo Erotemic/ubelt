@@ -128,6 +128,9 @@ class CaptureStdout(CaptureStream):
         **kwargs : used for backwards compatibility with misspelled
             deprecated params.
 
+    SeeAlso:
+        :func:`contextlib.redirect_stdout`
+
     Example:
         >>> import ubelt as ub
         >>> self = ub.CaptureStdout(suppress=True)
