@@ -46,7 +46,7 @@ import operator as op
 import itertools as it
 from collections import OrderedDict
 from collections import defaultdict
-from ubelt import util_const
+# from ubelt import util_const
 from ubelt import util_list
 from ubelt.util_const import NoParam
 
@@ -72,6 +72,10 @@ __all__ = [
     'odict',
     'named_product',
     'varied_values',
+    'SetDict',
+    'UDict',
+    'sdict',
+    'udict',
 ]
 
 
@@ -374,7 +378,7 @@ def find_duplicates(items, k=2, key=None):
     return duplicates
 
 
-def dict_subset(dict_, keys, default=util_const.NoParam, cls=OrderedDict):
+def dict_subset(dict_, keys, default=NoParam, cls=OrderedDict):
     """
     Get a subset of a dictionary
 
@@ -544,7 +548,7 @@ def dict_isect(*args):
                          if k in common_keys)
 
 
-def map_values(func, dict_):
+def map_values(func, dict_, cls=None):
     """
     Apply a function to every value in a dictionary.
 
@@ -553,6 +557,9 @@ def map_values(func, dict_):
     Args:
         func (Callable[[VT], T] | Mapping[VT, T]): a function or indexable object
         dict_ (Dict[KT, VT]): a dictionary
+        cls (type | None): specifies the dict subclassof the result.
+            if unspecified will be dict or OrderedDict. This behavior may
+            change.
 
     Returns:
         Dict[KT, T]: transformed dictionary
@@ -578,14 +585,15 @@ def map_values(func, dict_):
     if not hasattr(func, '__call__'):
         func = func.__getitem__
     keyval_list = [(key, func(val)) for key, val in dict_.items()]
-    dictclass = OrderedDict if isinstance(dict_, OrderedDict) else dict
-    newdict = dictclass(keyval_list)
+    if cls is None:
+        cls = OrderedDict if isinstance(dict_, OrderedDict) else dict
+    newdict = cls(keyval_list)
     return newdict
 
 map_vals = map_values  # backwards compatibility
 
 
-def map_keys(func, dict_):
+def map_keys(func, dict_, cls=None):
     """
     Apply a function to every key in a dictionary.
 
@@ -595,6 +603,9 @@ def map_keys(func, dict_):
     Args:
         func (Callable[[KT], T] | Mapping[KT, T]): a function or indexable object
         dict_ (Dict[KT, VT]): a dictionary
+        cls (type | None): specifies the dict subclassof the result.
+            if unspecified will be dict or OrderedDict. This behavior may
+            change.
 
     Returns:
         Dict[T, VT]: transformed dictionary
@@ -618,14 +629,15 @@ def map_keys(func, dict_):
     if not hasattr(func, '__call__'):
         func = func.__getitem__
     keyval_list = [(func(key), val) for key, val in dict_.items()]
-    dictclass = OrderedDict if isinstance(dict_, OrderedDict) else dict
-    newdict = dictclass(keyval_list)
+    if cls is None:
+        cls = OrderedDict if isinstance(dict_, OrderedDict) else dict
+    newdict = cls(keyval_list)
     if len(newdict) != len(dict_):
         raise Exception('multiple input keys mapped to the same output key')
     return newdict
 
 
-def sorted_values(dict_, key=None, reverse=False):
+def sorted_values(dict_, key=None, reverse=False, cls=OrderedDict):
     """
     Return an ordered dictionary sorted by its values
 
@@ -639,6 +651,8 @@ def sorted_values(dict_, key=None, reverse=False):
 
         reverse (bool, default=False):
             if True returns in descending order
+
+        cls (type): specifies the dict return type
 
     Returns:
         OrderedDict[KT, VT]: new dictionary where the values are ordered
@@ -668,7 +682,7 @@ def sorted_values(dict_, key=None, reverse=False):
 sorted_vals = sorted_values  # backwards compatibility
 
 
-def sorted_keys(dict_, key=None, reverse=False):
+def sorted_keys(dict_, key=None, reverse=False, cls=OrderedDict):
     """
     Return an ordered dictionary sorted by its keys
 
@@ -682,6 +696,8 @@ def sorted_keys(dict_, key=None, reverse=False):
 
         reverse (bool, default=False):
             if True returns in descending order
+
+        cls (type): specifies the dict return type
 
     Returns:
         OrderedDict[KT, VT]: new dictionary where the keys are ordered
@@ -708,7 +724,7 @@ def sorted_keys(dict_, key=None, reverse=False):
     return newdict
 
 
-def invert_dict(dict_, unique_vals=True):
+def invert_dict(dict_, unique_vals=True, cls=None):
     """
     Swaps the keys and values in a dictionary.
 
@@ -717,6 +733,10 @@ def invert_dict(dict_, unique_vals=True):
 
         unique_vals (bool, default=True): if False, the values of the new
             dictionary are sets of the original keys.
+
+        cls (type | None): specifies the dict subclassof the result.
+            if unspecified will be dict or OrderedDict. This behavior may
+            change.
 
     Returns:
         Dict[VT, KT] | Dict[VT, Set[KT]]:
@@ -748,17 +768,20 @@ def invert_dict(dict_, unique_vals=True):
         >>> inverted = ub.invert_dict(dict_, unique_vals=False)
         >>> assert inverted == {0: {'b', 'c', 'd'}, 1: {'a'}, 2: {'f'}}
     """
+    if cls is None:
+        cls = OrderedDict if isinstance(dict_, OrderedDict) else dict
     if unique_vals:
-        if isinstance(dict_, OrderedDict):
-            inverted = OrderedDict((val, key) for key, val in dict_.items())
-        else:
+        # Wonder what byte code is better here?
+        if cls is dict:
             inverted = {val: key for key, val in dict_.items()}
+        else:
+            inverted = cls((val, key) for key, val in dict_.items())
     else:
         # Handle non-unique keys using groups
         inverted = defaultdict(set)
         for key, value in dict_.items():
             inverted[value].add(key)
-        inverted = dict(inverted)
+        inverted = cls(inverted)
     return inverted
 
 
@@ -1002,3 +1025,582 @@ def varied_values(longform, min_variations=0, default=NoParam):
             if len(values) <= min_variations:
                 varied.pop(key)
     return varied
+
+
+class SetDict(dict):
+    """
+    A dictionary subclass where all set operations are defined.
+
+    All of the set operations are defined in a key-wise fashion, that is it is
+    like performing the operation on sets of keys.
+
+    Value-wise or item-wise operations are in general not hashable and
+    therefore not supported. A heavier extension would be needed for that.
+
+    Example:
+        >>> import ubelt as ub
+        >>> primes = ub.sdict({v: f'prime_{v}' for v in [2, 3, 5, 7, 11]})
+        >>> evens = ub.sdict({v: f'even_{v}' for v in [0, 2, 4, 6, 8, 10]})
+        >>> odds = ub.sdict({v: f'odd_{v}' for v in [1, 3, 5, 7, 9, 11]})
+        >>> squares = ub.sdict({v: f'square_{v}' for v in [0, 1, 4, 9]})
+        >>> div3 = ub.sdict({v: f'div3_{v}' for v in [0, 3, 6, 9]})
+        >>> # All of the set methods are defined
+        >>> results1 = {}
+        >>> results1['ints'] = ints = odds.union(evens)
+        >>> results1['composites'] = ints.difference(primes)
+        >>> results1['even_primes'] = evens.intersection(primes)
+        >>> results1['odd_nonprimes_and_two'] = odds.symmetric_difference(primes)
+        >>> print('results1 = {}'.format(ub.repr2(results1, nl=2, sort=True)))
+        results1 = {
+            'composites': {
+                0: 'even_0',
+                1: 'odd_1',
+                4: 'even_4',
+                6: 'even_6',
+                8: 'even_8',
+                9: 'odd_9',
+                10: 'even_10',
+            },
+            'even_primes': {
+                2: 'even_2',
+            },
+            'ints': {
+                0: 'even_0',
+                1: 'odd_1',
+                2: 'even_2',
+                3: 'odd_3',
+                4: 'even_4',
+                5: 'odd_5',
+                6: 'even_6',
+                7: 'odd_7',
+                8: 'even_8',
+                9: 'odd_9',
+                10: 'even_10',
+                11: 'odd_11',
+            },
+            'odd_nonprimes_and_two': {
+                1: 'odd_1',
+                2: 'prime_2',
+                9: 'odd_9',
+            },
+        }
+        >>> # As well as their corresponding binary operators
+        >>> assert results1['ints'] == odds | evens
+        >>> assert results1['composites'] == ints - primes
+        >>> assert results1['even_primes'] == evens & primes
+        >>> assert results1['odd_nonprimes_and_two'] == odds ^ primes
+        >>> # These can also be used as classmethods
+        >>> assert results1['ints'] == ub.sdict.union(odds, evens)
+        >>> assert results1['composites'] == ub.sdict.difference(ints, primes)
+        >>> assert results1['even_primes'] == ub.sdict.intersection(evens, primes)
+        >>> assert results1['odd_nonprimes_and_two'] == ub.sdict.symmetric_difference(odds, primes)
+        >>> # The narry variants are also implemented
+        >>> results2 = {}
+        >>> results2['nary_union'] = ub.sdict.union(primes, div3, odds)
+        >>> results2['nary_difference'] = ub.sdict.difference(primes, div3, odds)
+        >>> results2['nary_intersection'] = ub.sdict.intersection(primes, div3, odds)
+        >>> # Note that the definition of symmetric difference might not be what you think in the nary case.
+        >>> results2['nary_symmetric_difference'] = ub.sdict.symmetric_difference(primes, div3, odds)
+        >>> print('results2 = {}'.format(ub.repr2(results2, nl=2, sort=True)))
+        results2 = {
+            'nary_difference': {
+                2: 'prime_2',
+            },
+            'nary_intersection': {
+                3: 'prime_3',
+            },
+            'nary_symmetric_difference': {
+                0: 'div3_0',
+                1: 'odd_1',
+                2: 'prime_2',
+                3: 'odd_3',
+                6: 'div3_6',
+            },
+            'nary_union': {
+                0: 'div3_0',
+                1: 'odd_1',
+                2: 'prime_2',
+                3: 'odd_3',
+                5: 'odd_5',
+                6: 'div3_6',
+                7: 'odd_7',
+                9: 'odd_9',
+                11: 'odd_11',
+            },
+        }
+
+    Example:
+        >>> # A neat thing about our implementation is that often the right
+        >>> # hand side is not required to be a dictionary, just something
+        >>> # that can be cast to a set.
+        >>> import ubelt as ub
+        >>> primes = ub.sdict({2: 'a', 3: 'b', 5: 'c', 7: 'd', 11: 'e'})
+        >>> assert primes - {2, 3} == {5: 'c', 7: 'd', 11: 'e'}
+        >>> assert primes & {2, 3} == {2: 'a', 3: 'b'}
+        >>> # Union does need to have a second dictionary
+        >>> import pytest
+        >>> with pytest.raises(AttributeError):
+        >>>     primes | {2, 3}
+
+    """
+
+    # We could just use the builtin variant for this specific operation
+    def __or__(self, other):
+        """ The | union operator """
+        return self.union(other)
+
+    def __and__(self, other):
+        """ The & intersection operator """
+        return self.intersection(other)
+
+    def __sub__(self, other):
+        """ The - difference operator """
+        return self.difference(other)
+
+    def __xor__(self, other):
+        """ The ^ symmetric_difference operator """
+        return self.symmetric_difference(other)
+
+    ### Main set operations
+
+    def union(self, *others):
+        """
+        Return the key-wise union of two or more dictionaries.
+
+        For items with intersecting keys, dictionaries towards the end of the
+        sequence are given precedence.
+
+        Args:
+            self (SetDict | dict):
+                if called as a static method this must be provided.
+
+            *others : other dictionary like objects that have an ``items``
+                method. (i.e. it must return an iterable of 2-tuples where the
+                first item is hashable.)
+
+        Returns:
+            dict : whatever the dictionary type of the first argument is
+
+        Example:
+            >>> import ubelt as ub
+            >>> a = ub.SetDict({k: 'A_' + chr(97 + k) for k in [2, 3, 5, 7]})
+            >>> b = ub.SetDict({k: 'B_' + chr(97 + k) for k in [2, 4, 0, 7]})
+            >>> c = ub.SetDict({k: 'C_' + chr(97 + k) for k in [2, 8, 3]})
+            >>> d = ub.SetDict({k: 'D_' + chr(97 + k) for k in [9, 10, 11]})
+            >>> e = ub.SetDict({k: 'E_' + chr(97 + k) for k in []})
+            >>> assert a | b == {2: 'B_c', 3: 'A_d', 5: 'A_f', 7: 'B_h', 4: 'B_e', 0: 'B_a'}
+            >>> a.union(b)
+            >>> a | b | c
+            >>> res = ub.SetDict.union(a, b, c, d, e)
+            >>> print(ub.repr2(res, sort=1, nl=0, si=1))
+            {0: B_a, 2: C_c, 3: C_d, 4: B_e, 5: A_f, 7: B_h, 8: C_i, 9: D_j, 10: D_k, 11: D_l}
+        """
+        cls = self.__class__
+        args = it.chain([self], others)
+        new = cls(it.chain.from_iterable(d.items() for d in args))
+        return new
+
+    def intersection(self, *others):
+        """
+        Return the key-wise intersection of two or more dictionaries.
+
+        All items returned will be from the first dictionary for keys that
+        exist in all other dictionaries / sets provided.
+
+        Args:
+            self (SetDict | dict):
+                if called as a static method this must be provided.
+
+            *others : other dictionary or set like objects that can
+                be coerced into a set of keys.
+
+        Returns:
+            dict : whatever the dictionary type of the first argument is
+
+        Example:
+            >>> import ubelt as ub
+            >>> a = ub.SetDict({k: 'A_' + chr(97 + k) for k in [2, 3, 5, 7]})
+            >>> b = ub.SetDict({k: 'B_' + chr(97 + k) for k in [2, 4, 0, 7]})
+            >>> c = ub.SetDict({k: 'C_' + chr(97 + k) for k in [2, 8, 3]})
+            >>> d = ub.SetDict({k: 'D_' + chr(97 + k) for k in [9, 10, 11]})
+            >>> e = ub.SetDict({k: 'E_' + chr(97 + k) for k in []})
+            >>> assert a & b == {2: 'A_c', 7: 'A_h'}
+            >>> a.intersection(b)
+            >>> a & b & c
+            >>> res = ub.SetDict.intersection(a, b, c, d, e)
+            >>> print(ub.repr2(res, sort=1, nl=0, si=1))
+            {}
+        """
+        cls = self.__class__
+        isect_keys = set(self.keys())
+        for v in others:
+            isect_keys.intersection_update(v)
+        new = cls((k, self[k]) for k in self if k in isect_keys)
+        return new
+
+    def difference(self, *others):
+        """
+        Return the key-wise difference between this dictionary and one or
+        more other dictionary / keys.
+
+        The returned items will be from the first dictionary, and will only
+        contain keys that do not appear in any of the other dictionaries /
+        sets.
+
+        Args:
+            self (SetDict | dict):
+                if called as a static method this must be provided.
+
+            *others : other dictionary or set like objects that can
+                be coerced into a set of keys.
+
+        Returns:
+            dict : whatever the dictionary type of the first argument is
+
+        Example:
+            >>> import ubelt as ub
+            >>> a = ub.SetDict({k: 'A_' + chr(97 + k) for k in [2, 3, 5, 7]})
+            >>> b = ub.SetDict({k: 'B_' + chr(97 + k) for k in [2, 4, 0, 7]})
+            >>> c = ub.SetDict({k: 'C_' + chr(97 + k) for k in [2, 8, 3]})
+            >>> d = ub.SetDict({k: 'D_' + chr(97 + k) for k in [9, 10, 11]})
+            >>> e = ub.SetDict({k: 'E_' + chr(97 + k) for k in []})
+            >>> assert a - b == {3: 'A_d', 5: 'A_f'}
+            >>> a.difference(b)
+            >>> a - b - c
+            >>> res = ub.SetDict.difference(a, b, c, d, e)
+            >>> print(ub.repr2(res, sort=1, nl=0, si=1))
+            {5: A_f}
+        """
+        cls = self.__class__
+        other_keys = set()
+        for v in others:
+            other_keys.update(v)
+        # Looping over original keys is important to maintain partial order.
+        new = cls((k, self[k]) for k in self.keys() if k not in other_keys)
+        return new
+
+    def symmetric_difference(self, *others):
+        """
+        Return the key-wise symmetric difference between this dictionary and
+        one or more other dictionaries.
+
+        Returns items that are (key-wise) in an odd number of the given
+        dictionaries. This is consistent with the standard n-ary definition of
+        symmetric difference [WikiSymDiff]_ and corresponds with the xor
+        operation.
+
+        It is unclear if this is the best definition, and I'm open to modifying
+        this API. See also [PySymDiff]_.
+
+        Args:
+            self (SetDict | dict):
+                if called as a static method this must be provided.
+
+            *others : other dictionary or set like objects that can
+                be coerced into a set of keys.
+
+        Returns:
+            dict : whatever the dictionary type of the first argument is
+
+        References:
+            .. [PySymDiff] https://www.geeksforgeeks.org/python-symmetric-difference-of-dictionaries/
+            .. [WikiSymDiff] https://en.wikipedia.org/wiki/Symmetric_difference
+
+        Example:
+            >>> import ubelt as ub
+            >>> a = ub.SetDict({k: 'A_' + chr(97 + k) for k in [2, 3, 5, 7]})
+            >>> b = ub.SetDict({k: 'B_' + chr(97 + k) for k in [2, 4, 0, 7]})
+            >>> c = ub.SetDict({k: 'C_' + chr(97 + k) for k in [2, 8, 3]})
+            >>> d = ub.SetDict({k: 'D_' + chr(97 + k) for k in [9, 10, 11]})
+            >>> e = ub.SetDict({k: 'E_' + chr(97 + k) for k in []})
+            >>> a ^ b
+            {3: 'A_d', 5: 'A_f', 4: 'B_e', 0: 'B_a'}
+            >>> a.symmetric_difference(b)
+            >>> a - b - c
+            >>> res = ub.SetDict.symmetric_difference(a, b, c, d, e)
+            >>> print(ub.repr2(res, sort=1, nl=0, si=1))
+            {0: B_a, 2: C_c, 4: B_e, 5: A_f, 8: C_i, 9: D_j, 10: D_k, 11: D_l}
+        """
+        from collections import defaultdict
+        cls = self.__class__
+        accum_count = defaultdict(lambda: 0)
+        accum_refs = {}
+        for d in it.chain([self], others):
+            for k in d.keys():
+                accum_count[k] += 1
+                accum_refs[k] = d
+        new = cls((k, accum_refs[k][k]) for k, count in accum_count.items()
+                  if count % 2 == 1)
+        return new
+
+
+sdict = SetDict
+
+
+# Might need to make these mixins for 3.6
+class UDict(SetDict):
+    """
+    A subclass of dict with ubelt enhancements
+
+    Ubelt dict, ultra-dict, not sure what the name is.
+
+    This builds on top of :class:`SetDict` which itself is a simple extension
+    that contains only that extra functionality. The extra invert, map, sorted,
+    and peek functions are less fundamental and there are at least reasonable
+    workarounds when they are not available.
+
+    The UDict class is a simple subclass of dict that provides the following upgrades:
+
+        * set operations - inherited from :class:`SetDict`
+            + intersection - find items in common
+            + union - merge dicts
+            + difference - find items in one but not the other
+            + symmetric_difference - find items that appear an odd number of times
+
+        * subdict - take a subset with optional default values. (
+            similar to intersection, but the later ignores non-common values)
+
+        * inversion -
+            + invert - swaps a dictionary keys and values (with options for
+                dealing with duplicates).
+
+        * mapping -
+           + map_keys - applies a function over each key and keeps the values the same
+           + map_values - applies a function over each key and keeps the values the same
+
+        * sorting -
+           + sorted_keys - returns a dictionary ordered by the keys
+           + sorted_values - returns a dictionary ordered by the values
+
+    IMO key-wise set operations on dictionaries are fundamentaly and sorely
+    missing from the stdlib, mapping is super convinient, sorting and inversion
+    are less common, but still useful to have.
+
+    Example:
+        >>> import ubelt as ub
+        >>> a = ub.udict({1: 20, 2: 20, 3: 30, 4: 40})
+        >>> b = ub.udict({0: 0, 2: 20, 4: 42})
+        >>> c = ub.udict({3: -1, 5: -1})
+        >>> # Demo key-wise set operations
+        >>> assert a & b == {2: 20, 4: 40}
+        >>> assert a - b == {1: 20, 3: 30}
+        >>> assert a ^ b == {1: 20, 3: 30, 0: 0}
+        >>> assert a | b == {1: 20, 2: 20, 3: 30, 4: 42, 0: 0}
+        >>> # Demo new n-ary set methods
+        >>> a.union(b, c) == {1: 20, 2: 20, 3: -1, 4: 42, 0: 0, 5: -1}
+        >>> a.intersection(b, c) == {}
+        >>> a.difference(b, c) == {1: 20}
+        >>> a.symmetric_difference(b, c) == {1: 20, 0: 0, 5: -1}
+        >>> # Demo new quality of life methods
+        >>> assert a.subdict({2, 4, 6, 8}, default=None) == {8: None, 2: 20, 4: 40, 6: None}
+        >>> assert a.invert() == {20: 2, 30: 3, 40: 4}
+        >>> assert a.invert(unique_vals=0) == {20: {1, 2}, 30: {3}, 40: {4}}
+        >>> assert a.peek_key() == ub.peek(a.keys())
+        >>> assert a.peek_value() == ub.peek(a.values())
+        >>> assert a.map_keys(lambda x: x * 10) == {10: 20, 20: 20, 30: 30, 40: 40}
+        >>> assert a.map_values(lambda x: x * 10) == {1: 200, 2: 200, 3: 300, 4: 400}
+    """
+
+    def subdict(self, keys, default=NoParam):
+        """
+        Get a subset of a dictionary
+
+        Args:
+            self (Dict[KT, VT]): superset dictionary
+
+            keys (Iterable[KT]): keys to take from ``dict_``
+
+            default (Optional[object] | NoParamType):
+                if specified uses default if keys are missing.
+
+        Raises:
+            KeyError : if a key does not exist and default is not specified
+
+        Example:
+            >>> import ubelt as ub
+            >>> a = ub.udict({k: 'A_' + chr(97 + k) for k in [2, 3, 5, 7]})
+            >>> s = a.subdict({2, 5})
+            >>> print('s = {}'.format(ub.repr2(s, nl=0)))
+            s = {2: 'A_c', 5: 'A_f'}
+            >>> import pytest
+            >>> with pytest.raises(KeyError):
+            >>>     s = a.subdict({2, 5, 100})
+            >>> s = a.subdict({2, 5, 100}, default='DEF')
+            >>> print('s = {}'.format(ub.repr2(s, nl=0)))
+            s = {2: 'A_c', 5: 'A_f', 100: 'DEF'}
+        """
+        cls = self.__class__
+        if default is NoParam:
+            new = cls([(k, self[k]) for k in keys])
+        else:
+            new = cls([(k, self.get(k, default)) for k in keys])
+        return new
+
+    def invert(self, unique_vals=True):
+        """
+        Swaps the keys and values in a dictionary.
+
+        Args:
+            dict_ (Dict[KT, VT]): dictionary to invert
+
+            unique_vals (bool, default=True): if False, the values of the new
+                dictionary are sets of the original keys.
+
+            cls (type | None): specifies the dict subclassof the result.
+                if unspecified will be dict or OrderedDict. This behavior may
+                change.
+
+        Returns:
+            Dict[VT, KT] | Dict[VT, Set[KT]]:
+                the inverted dictionary
+
+        Note:
+            The must values be hashable.
+
+            If the original dictionary contains duplicate values, then only one of
+            the corresponding keys will be returned and the others will be
+            discarded.  This can be prevented by setting ``unique_vals=False``,
+            causing the inverted keys to be returned in a set.
+
+        Example:
+            >>> import ubelt as ub
+            >>> inverted = ub.udict({'a': 1, 'b': 2}).invert()
+            >>> assert inverted == {1: 'a', 2: 'b'}
+        """
+        import ubelt as ub
+        return ub.invert_dict(self, unique_vals=unique_vals, cls=self.__class__)
+
+    def map_keys(self, func):
+        """
+        Apply a function to every value in a dictionary.
+
+        Creates a new dictionary with the same keys and modified values.
+
+        Args:
+            self (Dict[KT, VT]): a dictionary
+            func (Callable[[VT], T] | Mapping[VT, T]): a function or indexable object
+
+        Returns:
+            Dict[KT, T]: transformed dictionary
+
+        Example:
+            >>> import ubelt as ub
+            >>> new = ub.udict({'a': [1, 2, 3], 'b': []}).map_keys(ord)
+            >>> assert new == {97: [1, 2, 3], 98: []}
+        """
+        import ubelt as ub
+        return ub.map_keys(func, self, cls=self.__class__)
+
+    def map_values(self, func):
+        """
+        Apply a function to every value in a dictionary.
+
+        Creates a new dictionary with the same keys and modified values.
+
+        Args:
+            self (Dict[KT, VT]): a dictionary
+            func (Callable[[VT], T] | Mapping[VT, T]): a function or indexable object
+
+        Returns:
+            Dict[KT, T]: transformed dictionary
+
+        Example:
+            >>> import ubelt as ub
+            >>> newdict = ub.udict({'a': [1, 2, 3], 'b': []}).map_values(len)
+            >>> assert newdict ==  {'a': 3, 'b': 0}
+        """
+        import ubelt as ub
+        return ub.map_values(func, self, cls=self.__class__)
+
+    def sorted_keys(self, key=None, reverse=False):
+        """
+        Return an ordered dictionary sorted by its keys
+
+        Args:
+            self (Dict[KT, VT]):
+                dictionary to sort. The keys must be of comparable types.
+
+            key (Callable[[KT], Any] | None):
+                If given as a callable, customizes the sorting by ordering using
+                transformed keys.
+
+            reverse (bool, default=False):
+                if True returns in descending order
+
+        Returns:
+            OrderedDict[KT, VT]: new dictionary where the keys are ordered
+
+        Example:
+            >>> import ubelt as ub
+            >>> new = ub.udict({'spam': 2.62, 'eggs': 1.20, 'jam': 2.92}).sorted_keys()
+            >>> assert new == ub.odict([('eggs', 1.2), ('jam', 2.92), ('spam', 2.62)])
+        """
+        import ubelt as ub
+        return ub.sorted_keys(self, key=key, reverse=reverse, cls=self.__class__)
+
+    def sorted_values(self, key=None, reverse=False):
+        """
+        Return an ordered dictionary sorted by its values
+
+        Args:
+            self (Dict[KT, VT]):
+                dictionary to sort. The values must be of comparable types.
+
+            key (Callable[[VT], Any] | None):
+                If given as a callable, customizes the sorting by ordering using
+                transformed values.
+
+            reverse (bool, default=False):
+                if True returns in descending order
+
+        Returns:
+            OrderedDict[KT, VT]: new dictionary where the values are ordered
+
+        Example:
+            >>> import ubelt as ub
+            >>> new = ub.udict({'spam': 2.62, 'eggs': 1.20, 'jam': 2.92}).sorted_values()
+            >>> assert new == ub.odict([('eggs', 1.2), ('spam', 2.62), ('jam', 2.92)])
+        """
+        import ubelt as ub
+        return ub.sorted_values(self, key=key, reverse=reverse, cls=self.__class__)
+
+    def peek_key(self, default=NoParam):
+        """
+        Get the first key in the dictionary
+
+        Args:
+            self (Dict): a dictionary
+            default (T): default item to return if the iterable is empty,
+                otherwise a StopIteration error is raised
+
+        Returns:
+            KT: the first value or the default
+
+        Example:
+            >>> import ubelt as ub
+            >>> assert ub.udict({1: 2}).peek_key() == 1
+        """
+        import ubelt as ub
+        return ub.peek(self.keys(), default=default)
+
+    def peek_value(self, default=NoParam):
+        """
+        Get the first value in the dictionary
+
+        Args:
+            self (Dict[KT, VT]): a dictionary
+            default (T): default item to return if the iterable is empty,
+                otherwise a StopIteration error is raised
+
+        Returns:
+            VT: the first value or the default
+
+        Example:
+            >>> import ubelt as ub
+            >>> assert ub.udict({1: 2}).peek_value() == 2
+        """
+        import ubelt as ub
+        return ub.peek(self.values(), default=default)
+
+
+udict = UDict

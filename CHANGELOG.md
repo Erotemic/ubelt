@@ -10,6 +10,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ### Added
 * Added keywords argument to `ub.compatible`.
 * Added `warncls` argument to `ub.schedule_deprecation`.
+* Experimental SetDict, UbeltDict and aliases sdict, udict.
 
 ### Fixed
 * Race condition on win32 in `ubelt.symlink`
@@ -31,6 +32,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 * Positional arguments in `Path.augment` have been modified. 
 * In `Path.augment`, deprecate overloaded `suffix` and introduce `stemsuffix`
   as an alternative.
+* Added cls to a lot of util_dict funcs
 
 
 ## Version 1.1.2 - Released 2022-06-30

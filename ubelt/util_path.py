@@ -580,7 +580,7 @@ class Path(_PathBase):
             >>>     print('path.augment(ext={}) = {}'.format(ext, ub.repr2(method_augment, nl=1)))
             >>>     print('--')
         """
-        if suffix:
+        if suffix:  # nocover
             from ubelt.util_deprecate import schedule_deprecation
             schedule_deprecation(
                 'ubelt', 'suffix', 'arg',
