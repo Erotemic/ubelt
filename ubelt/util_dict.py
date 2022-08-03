@@ -1321,16 +1321,25 @@ class SetDict(dict):
             >>> print(ub.repr2(res, sort=1, nl=0, si=1))
             {0: B_a, 2: C_c, 4: B_e, 5: A_f, 8: C_i, 9: D_j, 10: D_k, 11: D_l}
         """
-        from collections import defaultdict
-        cls = self.__class__
-        accum_count = defaultdict(lambda: 0)
-        accum_refs = {}
-        for d in it.chain([self], others):
-            for k in d.keys():
-                accum_count[k] += 1
-                accum_refs[k] = d
-        new = cls((k, accum_refs[k][k]) for k, count in accum_count.items()
-                  if count % 2 == 1)
+        new = self.copy()
+        for d in others:
+            for k, v in d.items():
+                if k in new:
+                    new.pop(k)
+                else:
+                    new[k] = v
+        # Original implementation, not sure which is best, previous one
+        # probably uses less memory.
+        # from collections import defaultdict
+        # cls = self.__class__
+        # accum_count = defaultdict(lambda: 0)
+        # accum_refs = {}
+        # for d in it.chain([self], others):
+        #     for k in d.keys():
+        #         accum_count[k] += 1
+        #         accum_refs[k] = d
+        # new = cls((k, accum_refs[k][k]) for k, count in accum_count.items()
+        #           if count % 2 == 1)
         return new
 
 
