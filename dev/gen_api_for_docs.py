@@ -101,6 +101,10 @@ def count_ubelt_usage():
 
 if __name__ == '__main__':
     """
+    For Me:
+        ~/internal/dev/ubelt_stats_update.sh
+        ~/internal/dev/pkg_usage_stats_update.sh
+
     CommandLine:
         # For index.rst
         python ~/code/ubelt/dev/gen_api_for_docs.py

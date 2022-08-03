@@ -1,6 +1,15 @@
 """
 Functions for working with dictionaries.
 
+The :class:`UDict' is a subclass of :class:`dict` with quality of life
+improvements. It contains methods for n-ary key-wise set operations as well as
+support for the binary operators in addition to other methods for mapping,
+inversion, subdicts, and peeking. It can be accessed via the alias
+``ubelt.udict``.
+
+The :class:`SetDict` only contains the key-wise set extensions to dict. It can
+be accessed via the alias ``ubelt.sdict``.
+
 The :func:`dict_hist` function counts the number of discrete occurrences of hashable
 items. Similarly :func:`find_duplicates` looks for indices of items that occur more
 than `k=1` times.
@@ -1034,8 +1043,10 @@ class SetDict(dict):
     All of the set operations are defined in a key-wise fashion, that is it is
     like performing the operation on sets of keys.
 
-    Value-wise or item-wise operations are in general not hashable and
-    therefore not supported. A heavier extension would be needed for that.
+    Note:
+        The SetDict class only defines key-wise set operations.  Value-wise or
+        item-wise operations are in general not hashable and therefore not
+        supported. A heavier extension would be needed for that.
 
     Example:
         >>> import ubelt as ub
@@ -1347,8 +1358,6 @@ class UDict(SetDict):
     """
     A subclass of dict with ubelt enhancements
 
-    Ubelt dict, ultra-dict, not sure what the name is.
-
     This builds on top of :class:`SetDict` which itself is a simple extension
     that contains only that extra functionality. The extra invert, map, sorted,
     and peek functions are less fundamental and there are at least reasonable
@@ -1362,12 +1371,10 @@ class UDict(SetDict):
             + difference - find items in one but not the other
             + symmetric_difference - find items that appear an odd number of times
 
-        * subdict - take a subset with optional default values. (
-            similar to intersection, but the later ignores non-common values)
+        * subdict - take a subset with optional default values. (similar to intersection, but the later ignores non-common values)
 
         * inversion -
-            + invert - swaps a dictionary keys and values (with options for
-                dealing with duplicates).
+            + invert - swaps a dictionary keys and values (with options for dealing with duplicates).
 
         * mapping -
            + map_keys - applies a function over each key and keeps the values the same
@@ -1380,6 +1387,9 @@ class UDict(SetDict):
     IMO key-wise set operations on dictionaries are fundamentaly and sorely
     missing from the stdlib, mapping is super convinient, sorting and inversion
     are less common, but still useful to have.
+
+    TODO:
+        - [ ] UbeltDict, UltraDict, not sure what the name is.  We may just rename this to Dict,
 
     Example:
         >>> import ubelt as ub
@@ -1411,9 +1421,9 @@ class UDict(SetDict):
         Get a subset of a dictionary
 
         Args:
-            self (Dict[KT, VT]): superset dictionary
+            self (Dict[KT, VT]): dictionary or the implicit instance
 
-            keys (Iterable[KT]): keys to take from ``dict_``
+            keys (Iterable[KT]): keys to take from ``self``
 
             default (Optional[object] | NoParamType):
                 if specified uses default if keys are missing.
@@ -1446,7 +1456,7 @@ class UDict(SetDict):
         Swaps the keys and values in a dictionary.
 
         Args:
-            dict_ (Dict[KT, VT]): dictionary to invert
+            self (Dict[KT, VT]): dictionary or the implicit instance to invert
 
             unique_vals (bool, default=True): if False, the values of the new
                 dictionary are sets of the original keys.
@@ -1482,7 +1492,7 @@ class UDict(SetDict):
         Creates a new dictionary with the same keys and modified values.
 
         Args:
-            self (Dict[KT, VT]): a dictionary
+            self (Dict[KT, VT]): a dictionary or the implicit instance.
             func (Callable[[VT], T] | Mapping[VT, T]): a function or indexable object
 
         Returns:
@@ -1503,7 +1513,7 @@ class UDict(SetDict):
         Creates a new dictionary with the same keys and modified values.
 
         Args:
-            self (Dict[KT, VT]): a dictionary
+            self (Dict[KT, VT]): a dictionary or the implicit instance.
             func (Callable[[VT], T] | Mapping[VT, T]): a function or indexable object
 
         Returns:
@@ -1523,7 +1533,8 @@ class UDict(SetDict):
 
         Args:
             self (Dict[KT, VT]):
-                dictionary to sort. The keys must be of comparable types.
+                dictionary to sort or the implicit instance.
+                The keys must be of comparable types.
 
             key (Callable[[KT], Any] | None):
                 If given as a callable, customizes the sorting by ordering using
@@ -1549,7 +1560,8 @@ class UDict(SetDict):
 
         Args:
             self (Dict[KT, VT]):
-                dictionary to sort. The values must be of comparable types.
+                dictionary to sort or the implicit instance.
+                The values must be of comparable types.
 
             key (Callable[[VT], Any] | None):
                 If given as a callable, customizes the sorting by ordering using
@@ -1574,7 +1586,8 @@ class UDict(SetDict):
         Get the first key in the dictionary
 
         Args:
-            self (Dict): a dictionary
+            self (Dict): a dictionary or the implicit instance
+
             default (T | NoParamType): default item to return if the iterable is empty,
                 otherwise a StopIteration error is raised
 
@@ -1593,7 +1606,7 @@ class UDict(SetDict):
         Get the first value in the dictionary
 
         Args:
-            self (Dict[KT, VT]): a dictionary
+            self (Dict[KT, VT]): a dictionary or the implicit instance
             default (T | NoParamType): default item to return if the iterable is empty,
                 otherwise a StopIteration error is raised
 

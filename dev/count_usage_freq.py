@@ -87,9 +87,9 @@ def count_ubelt_usage():
             elif k.startswith('_util_'):
                 usage.pop(k, None)
             # ub._util_deprecated
-            from ubelt import _util_deprecated
-            if k in dir(_util_deprecated):
-                usage.pop(k, None)
+            # from ubelt import _util_deprecated
+            # if k in dir(_util_deprecated):
+            #     usage.pop(k, None)
 
     print(ub.repr2(usage, nl=1))
     return usage
