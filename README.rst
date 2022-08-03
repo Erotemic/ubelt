@@ -759,6 +759,68 @@ with these quality of life operations (and also inherits from
    >>> d1.peek_value()
    1
 
+Next time you have a default configuration dictionary like and you allow the
+developer to pass keyword arguments to modify these behaviors, consider using
+dictionary intersection (&) to separate out only the relevant parts and
+dictionary union (|) to update those relevant parts.  You can also use
+dictionary differences (-) if you need to check for unused arguments.
+
+.. code:: python 
+
+    import ubelt as ub
+    
+    def run_multiple_algos(**kwargs):
+        algo1_defaults = {'opt1': 10, 'opt2': 11}
+        algo2_defaults = {'src': './here/', 'dst': './there'}
+    
+        kwargs = ub.udict(kwargs)
+    
+        algo1_specified = kwargs & algo1_defaults
+        algo2_specified = kwargs & algo2_defaults
+    
+        algo1_config = algo1_defaults | algo1_specified
+        algo2_config = algo2_defaults | algo2_specified
+    
+        unused_kwargs = kwargs - (algo1_defaults | algo2_defaults)
+    
+        print('algo1_specified = {}'.format(ub.repr2(algo1_specified, nl=1)))
+        print('algo2_specified = {}'.format(ub.repr2(algo2_specified, nl=1)))
+        print(f'algo1_config={algo1_config}')
+        print(f'algo2_config={algo2_config}')
+        print(f'The following kwargs were unused {unused_kwargs}')
+    
+    print(chr(10))
+    print('-- Run with some specified --')
+    run_multiple_algos(src='box', opt2='fox')
+    print(chr(10))
+    print('-- Run with extra unspecified --')
+    run_multiple_algos(a=1, b=2)
+
+
+Produces: 
+
+.. code:: 
+
+    -- Run with some specified --
+    algo1_specified = {
+        'opt2': 'fox',
+    }
+    algo2_specified = {
+        'src': 'box',
+    }
+    algo1_config={'opt1': 10, 'opt2': 'fox'}
+    algo2_config={'src': 'box', 'dst': './there'}
+    The following kwargs were unused {}
+
+
+    -- Run with extra unspecified --
+    algo1_specified = {}
+    algo2_specified = {}
+    algo1_config={'opt1': 10, 'opt2': 11}
+    algo2_config={'src': './here/', 'dst': './there'}
+    The following kwargs were unused {'a': 1, 'b': 2}
+        
+
 
 Find Duplicates
 ---------------
