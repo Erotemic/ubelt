@@ -1,7 +1,7 @@
 """
 Functions for working with dictionaries.
 
-The :class:`UDict' is a subclass of :class:`dict` with quality of life
+The :class:`UDict` is a subclass of :class:`dict` with quality of life
 improvements. It contains methods for n-ary key-wise set operations as well as
 support for the binary operators in addition to other methods for mapping,
 inversion, subdicts, and peeking. It can be accessed via the alias
