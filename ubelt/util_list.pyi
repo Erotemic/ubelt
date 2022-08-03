@@ -10,9 +10,9 @@ from _typeshed import Incomplete
 from collections.abc import Generator
 from typing import Any, TypeVar
 
-T = TypeVar("T")
 VT = TypeVar("VT")
 KT = TypeVar("KT")
+T = TypeVar("T")
 
 
 class chunks:

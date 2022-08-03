@@ -1289,9 +1289,6 @@ class SetDict(dict):
         symmetric difference [WikiSymDiff]_ and corresponds with the xor
         operation.
 
-        It is unclear if this is the best definition, and I'm open to modifying
-        this API. See also [PySymDiff]_.
-
         Args:
             self (SetDict | dict):
                 if called as a static method this must be provided.
@@ -1303,7 +1300,6 @@ class SetDict(dict):
             dict : whatever the dictionary type of the first argument is
 
         References:
-            .. [PySymDiff] https://www.geeksforgeeks.org/python-symmetric-difference-of-dictionaries/
             .. [WikiSymDiff] https://en.wikipedia.org/wiki/Symmetric_difference
 
         Example:
@@ -1579,7 +1575,7 @@ class UDict(SetDict):
 
         Args:
             self (Dict): a dictionary
-            default (T): default item to return if the iterable is empty,
+            default (T | NoParamType): default item to return if the iterable is empty,
                 otherwise a StopIteration error is raised
 
         Returns:
@@ -1598,7 +1594,7 @@ class UDict(SetDict):
 
         Args:
             self (Dict[KT, VT]): a dictionary
-            default (T): default item to return if the iterable is empty,
+            default (T | NoParamType): default item to return if the iterable is empty,
                 otherwise a StopIteration error is raised
 
         Returns:

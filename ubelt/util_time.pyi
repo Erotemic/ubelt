@@ -17,11 +17,11 @@ def timeparse(stamp: str,
 
 
 class Timer:
+    elapsed: float
+    tstart: float
     label: Incomplete
     verbose: Incomplete
     newline: Incomplete
-    tstart: int
-    elapsed: int
     write: Incomplete
     flush: Incomplete
 

@@ -254,8 +254,8 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
     ProgIter does not use threading where as `tqdm` does.
 
     Attributes:
-        iterable (iterable):
-            An iterable iterable
+        iterable (List | Iterable):
+            A list or iterable to loop over
 
         desc (str):
             description label to show with progress
@@ -264,48 +264,52 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
             Maximum length of the process. If not specified, we estimate it
             from the iterable, if possible.
 
-        freq (int, default=1):
+        freq (int):
             How many iterations to wait between messages.
+            Defaults to 1.
 
-        adjust (bool, default=True):
+        adjust (bool):
             if True freq is adjusted based on time_thresh
+            Defaults to True.
 
-        eta_window (int, default=64):
-            number of previous measurements to use in eta calculation
+        eta_window (int):
+            number of previous measurements to use in eta calculation, default=64
 
-        clearline (bool, default=True):
+        clearline (bool):
             if True messages are printed on the same line otherwise each new
             progress message is printed on new line.
+            default=True
 
-        adjust (bool, default=True):
+        adjust (bool):
             if True `freq` is adjusted based on time_thresh. This may be
             overwritten depending on the setting of verbose.
+            default=True
 
-        time_thresh (float, default=2.0):
+        time_thresh (float):
             desired amount of time to wait between messages if adjust is True
-            otherwise does nothing
+            otherwise does nothing, default=2.0
 
-        show_times (bool, default=True):
-            shows rate and eta
+        show_times (bool):
+            shows rate and eta, default=True
 
-        show_wall (bool, default=False):
-            show wall time
+        show_wall (bool):
+            show wall time, default=False
 
-        initial (int, default=0):
-            starting index offset
+        initial (int):
+            starting index offset, default=0
 
-        stream (file, default=sys.stdout):
-            stream where progress information is written to
+        stream (typing.IO):
+            stream where progress information is written to, default=sys.stdout
 
-        enabled (bool, default=True): if False nothing happens.
+        enabled (bool): if False nothing happens. default=True
 
-        chunksize (int, optional):
+        chunksize (int | None):
             indicates that each iteration processes a batch of this size.
             Iteration rate is displayed in terms of single-items.
 
-        rel_adjust_limit (float, default=4.0):
+        rel_adjust_limit (float):
             Maximum factor update frequency can be adjusted by in a single
-            step.
+            step. default=4.0
 
         verbose (int):
             verbosity mode, which controls clearline, adjust, and enabled. The
