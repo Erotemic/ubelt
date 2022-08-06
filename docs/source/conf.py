@@ -28,6 +28,10 @@ Notes:
         ensure your github account is connected to readthedocs
         https://readthedocs.org/accounts/social/connections/
 
+
+Torch uses Katex, is there any value in that for ubelt?
+    sudo apt-get -y install katex
+
 """
 #
 # Configuration file for the Sphinx documentation builder.
@@ -95,11 +99,18 @@ version = '.'.join(release.split('.')[0:2])
 # ones.
 extensions = [
     'sphinx.ext.autodoc',
-    'sphinx.ext.viewcode',
-    'sphinx.ext.napoleon',
-    'sphinx.ext.intersphinx',
-    'sphinx.ext.todo',
     'sphinx.ext.autosummary',
+    'sphinx.ext.intersphinx',
+    'sphinx.ext.napoleon',
+    'sphinx.ext.todo',
+    'sphinx.ext.viewcode',
+
+    # 'sphinx.ext.doctest',
+    # 'sphinx.ext.coverage',
+    # 'sphinxcontrib.katex',
+    # 'sphinx.ext.autosectionlabel',
+    # 'sphinx_copybutton',
+    # 'sphinx_panels'
 ]
 
 todo_include_todos = True
@@ -268,8 +279,8 @@ class PatchedPythonDomain(PythonDomain):
         return return_value
 
 
-def process(app, what_: str, name: str, obj: Any, options: Any, lines:
-            List[str]) -> None:
+def process_docstring(app, what_: str, name: str, obj: Any, options: Any,
+                      lines: List[str]) -> None:
     """
     Custom process to transform docstring lines Remove "Ignore" blocks
 
@@ -350,7 +361,7 @@ def setup(app):
     if 1:
         # New Way
         # what = None
-        app.connect('autodoc-process-docstring', process)
+        app.connect('autodoc-process-docstring', process_docstring)
     else:
         # OLD WAY
         # https://stackoverflow.com/questions/26534184/can-sphinx-ignore-certain-tags-in-python-docstrings

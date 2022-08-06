@@ -1155,6 +1155,24 @@ class SetDict(dict):
 
     """
 
+    def copy(self):
+        """
+        Example:
+            >>> import ubelt as ub
+            >>> a = ub.sdict({1: 1, 2: 2, 3: 3})
+            >>> b = ub.udict({1: 1, 2: 2, 3: 3})
+            >>> c = a.copy()
+            >>> d = b.copy()
+            >>> assert c is not a
+            >>> assert d is not b
+            >>> assert d == b
+            >>> assert c == a
+            >>> list(map(type, [a, b, c, d]))
+            >>> assert isinstance(c, ub.sdict)
+            >>> assert isinstance(d, ub.udict)
+        """
+        return self.__class__(self)
+
     # We could just use the builtin variant for this specific operation
     def __or__(self, other):
         """ The | union operator """
@@ -1171,6 +1189,161 @@ class SetDict(dict):
     def __xor__(self, other):
         """ The ^ symmetric_difference operator """
         return self.symmetric_difference(other)
+
+    # - reverse versions
+
+    def __ror__(self, other):
+        """
+        Example:
+            >>> import ubelt as ub
+            >>> self = ub.sdict({1: 1, 2: 2, 3: 3})
+            >>> other = {1: 10, 2:20, 4: 40}
+            >>> d1 = self | other
+            >>> d2 = other | self
+            >>> print(f'd1={d1}')
+            >>> print(f'd2={d2}')
+            d1={1: 10, 2: 20, 3: 3, 4: 40}
+            d2={1: 1, 2: 2, 4: 40, 3: 3}
+        """
+        return SetDict.union(other, self)
+
+    def __rand__(self, other):
+        """
+        Example:
+            >>> import ubelt as ub
+            >>> self = ub.sdict({1: 1, 2: 2, 3: 3})
+            >>> other = {1: 10, 2:20, 4: 40}
+            >>> d1 = self & other
+            >>> d2 = other & self
+            >>> print(f'd1={d1}')
+            >>> print(f'd2={d2}')
+            d1={1: 1, 2: 2}
+            d2={1: 10, 2: 20}
+        """
+        return SetDict.intersection(other, self)
+
+    def __rsub__(self, other):
+        """
+        Example:
+            >>> import ubelt as ub
+            >>> self = ub.sdict({1: 1, 2: 2, 3: 3})
+            >>> other = {1: 10, 2:20, 4: 40}
+            >>> d1 = self - other
+            >>> d2 = other - self
+            >>> print(f'd1={d1}')
+            >>> print(f'd2={d2}')
+            d1={3: 3}
+            d2={4: 40}
+        """
+        return SetDict.difference(other, self)
+
+    def __rxor__(self, other):
+        """
+        Example:
+            >>> import ubelt as ub
+            >>> self = ub.sdict({1: 1, 2: 2, 3: 3})
+            >>> other = {1: 10, 2:20, 4: 40}
+            >>> d1 = self ^ other
+            >>> d2 = other ^ self
+            >>> print(f'd1={d1}')
+            >>> print(f'd2={d2}')
+            d1={3: 3, 4: 40}
+            d2={4: 40, 3: 3}
+        """
+        return SetDict.symmetric_difference(other, self)
+
+    # - inplace versions
+
+    def __ior__(self, other):
+        """
+        Example:
+            >>> import ubelt as ub
+            >>> self = orig_ref = ub.sdict({1: 1, 2: 2, 3: 3})
+            >>> orig_val = orig_ref.copy()
+            >>> other = {1: 10, 2:20, 4: 40}
+            >>> self |= other
+            >>> print(f'self={self}')
+            >>> assert self is orig_ref
+            >>> assert self == (orig_val | other)
+            self={1: 10, 2: 20, 3: 3, 4: 40}
+        """
+        self.update(other)
+        return self
+
+    def __iand__(self, other):
+        """
+        Example:
+            >>> import ubelt as ub
+            >>> self = orig_ref = ub.sdict({1: 1, 2: 2, 3: 3})
+            >>> orig_val = orig_ref.copy()
+            >>> other = {1: 10, 2:20, 4: 40}
+            >>> self &= other
+            >>> print(f'self={self}')
+            >>> assert self is orig_ref
+            >>> assert self == (orig_val & other)
+            self={1: 1, 2: 2}
+        """
+        result = self.intersection(other)
+        self.clear()
+        self.update(result)
+        return self
+
+    def __isub__(self, other):
+        """
+        Example:
+            >>> import ubelt as ub
+            >>> self = orig_ref = ub.sdict({1: 1, 2: 2, 3: 3})
+            >>> orig_val = orig_ref.copy()
+            >>> other = {1: 10, 2:20}
+            >>> self -= other
+            >>> print(f'self={self}')
+            >>> assert self is orig_ref
+            >>> assert self == (orig_val - other)
+            self={3: 3}
+
+            >>> import ubelt as ub
+            >>> self = orig_ref = ub.sdict({1: 1, 2: 2, 3: 3})
+            >>> orig_val = orig_ref.copy()
+            >>> other = [1]
+            >>> self -= other
+            >>> print(f'self={self}')
+            >>> assert self is orig_ref
+            >>> assert self == (orig_val - other)
+            self={2: 2, 3: 3}
+
+            >>> import ubelt as ub
+            >>> self = orig_ref = ub.sdict({1: 1, 2: 2, 3: 3})
+            >>> orig_val = orig_ref.copy()
+            >>> other = {1: 10, 2:20, 4: 40}
+            >>> self -= other
+            >>> print(f'self={self}')
+            >>> assert self is orig_ref
+            >>> assert self == (orig_val - other)
+        """
+        result = self.difference(other)
+        self.clear()
+        self.update(result)
+        # common = UDict.intersection(self, other)
+        # for k in common:
+        #     self.pop(k, None)
+        return self
+
+    def __ixor__(self, other):
+        """
+        Example:
+            >>> import ubelt as ub
+            >>> self = orig_ref = ub.sdict({1: 1, 2: 2, 3: 3})
+            >>> orig_val = orig_ref.copy()
+            >>> other = {1: 10, 2:20, 4: 40}
+            >>> self ^= other
+            >>> print(f'self={self}')
+            >>> assert self is orig_ref
+            >>> assert self == (orig_val ^ other)
+        """
+        result = self.symmetric_difference(other)
+        self.clear()
+        self.update(result)
+        return self
 
     ### Main set operations
 
