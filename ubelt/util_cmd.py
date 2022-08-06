@@ -34,6 +34,17 @@ Example:
 import sys
 import os
 
+
+__pitch__ = """
+The ubelt.cmd command is probably the easiest way to execute a command line program from Python. Unlike os.system, subprocess.check_output, and subprocess.call, The syntax for what you want to call is exactly the same no matter what type of configuration you are using.
+
+Either pass the text you would execute on the command line directly or break it up into a list where each item should be considered its own argument. This works regardless of if shell=True or shell=False, so if your command doesn't work with the safer shell=False, you can turn on shell=True without modifying anything else. You can capture output, print it to the screen, or namely --- something few other packages support --- both (via tee=True or verbose>1).
+
+You can also invoke the call via os.system instead of Popen by setting system=True (although this does come with all of the os.system benefits and restrictions).
+
+I'm biased because I wrote it, but subprocess-tee is the only other package I know of that comes close to getting this right.
+"""
+
 # import logging
 # logging.basicConfig(
 #     format='[%(asctime)s %(threadName)s %(levelname)s] %(message)s',

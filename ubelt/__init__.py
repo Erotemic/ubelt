@@ -24,7 +24,7 @@ Testing:
     xdoctest ubelt
 """
 
-__version__ = '1.2.1'
+__version__ = '1.2.2'
 
 __submodules__ = {
     'util_arg': None,
