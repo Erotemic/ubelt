@@ -42,7 +42,7 @@ Either pass the text you would execute on the command line directly or break it 
 
 You can also invoke the call via os.system instead of Popen by setting system=True (although this does come with all of the os.system benefits and restrictions).
 
-I'm biased because I wrote it, but subprocess-tee is the only other package I know of that comes close to getting this right.
+I'm biased because I wrote it, but subprocess-tee is the only other package I know of that comes close to getting this right. Maybe invoke?
 """
 
 # import logging
@@ -145,6 +145,7 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
         https://github.com/pycontribs/subprocess-tee
         https://github.com/mortoray/shelljob
         https://github.com/netinvent/command_runner
+        https://www.pyinvoke.org/prior-art.html
 
     References:
         .. [SO_11495783] https://stackoverflow.com/questions/11495783/redirect-subprocess-stderr-to-stdout
