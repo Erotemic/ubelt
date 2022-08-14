@@ -1,5 +1,4 @@
 import ubelt as ub
-from os.path import join
 
 
 def test_cache_stamp():
@@ -7,16 +6,16 @@ def test_cache_stamp():
     dpath = ub.Path.appdir('ubelt/tests', 'test-cache-stamp').ensuredir()
     ub.delete(dpath)
     ub.ensuredir(dpath)
-    product = join(dpath, 'expensive-to-compute.txt')
+    product = dpath / 'expensive-to-compute.txt'
     self = ub.CacheStamp('test1', dpath=dpath, depends='test1',
                          product=product, hasher=None)
     if self.expired():
-        ub.writeto(product, 'very expensive')
+        product.write_text('very expensive')
         self.renew()
     assert not self.expired()
     # corrupting the output WILL expire in non-robust mode if the size is
     # different.
-    ub.writeto(product, 'corrupted')
+    product.write_text('corrupted')
     assert self.expired()
     self.hasher = 'sha1'
     # but it will expire if we are in robust mode, even if the size is not
@@ -33,7 +32,7 @@ def test_cache_stamp_corrupt_product_nohasher():
     name = 'corrupt_product_nohasher'
     ub.delete(dpath)
     ub.ensuredir(dpath)
-    product = join(dpath, name + '.txt')
+    product = dpath / (name + '.txt')
     self = ub.CacheStamp(name, dpath=dpath, depends=name, product=product,
                          hasher=None)
     # Disable the new (as of 1.1.0) size and mtime checks
@@ -42,11 +41,11 @@ def test_cache_stamp_corrupt_product_nohasher():
     self._expire_checks['size'] = False
     self._expire_checks['mtime'] = False
     if self.expired():
-        ub.writeto(product, 'very expensive')
+        product.write_text('very expensive')
         self.renew()
     assert not self.expired()
     # corrupting the output will not expire in non-robust mode
-    ub.writeto(product, 'corrupted')
+    product.write_text('corrupted')
     assert not self.expired()
 
 
@@ -77,52 +76,51 @@ def test_cache_stamp_corrupt_product_hasher():
     name = 'corrupt_product_hasher'
     ub.delete(dpath)
     ub.ensuredir(dpath)
-    product = join(dpath, name + '.txt')
+    product = dpath / (name + '.txt')
     self = ub.CacheStamp(name, dpath=dpath, depends=name, product=product,
                          hasher='sha1')
     if self.expired():
-        ub.writeto(product, 'very expensive')
+        product.write_text('very expensive')
         self.renew()
     assert not self.expired()
     # corrupting the output will not expire in non-robust mode
-    ub.writeto(product, 'corrupted')
+    product.write_text('corrupted')
     assert self.expired()
 
 
 def test_cache_stamp_multiproduct():
-    from os.path import join
+    import os
     # stamp the computation of expensive-to-compute.txt
     dpath = ub.Path.appdir('ubelt/tests', 'test-cache-stamp').ensuredir()
     ub.delete(dpath)
     ub.ensuredir(dpath)
     product = [
-        join(dpath, 'product1.txt'),
-        join(dpath, 'product2.txt'),
-        join(dpath, 'product3.txt'),
+        dpath / 'product1.txt',
+        os.fspath(dpath / 'product2.txt'),
+        dpath / 'product3.txt',
     ]
     self = ub.CacheStamp('somedata', dpath=dpath, depends='someconfig',
                          product=product)
     if self.expired():
         for fpath in product:
-            ub.writeto(fpath, 'very expensive')
+            ub.Path(fpath).write_text('very expensive')
         self.renew()
     assert not self.expired()
-    ub.writeto(product[1], 'corrupted')
+    ub.Path(product[1]).write_text('corrupted')
     assert self.expired()
 
 
 def test_cache_stamp_noproduct():
-    from os.path import join
     # stamp the computation of expensive-to-compute.txt
     dpath = ub.Path.appdir('ubelt/tests', 'test-cache-stamp').ensuredir()
     ub.delete(dpath)
     ub.ensuredir(dpath)
     name = 'noproduct'
-    product = join(dpath, name + '.txt')
+    product = dpath / (name + '.txt')
     self = ub.CacheStamp('somedata', dpath=dpath, depends='someconfig', product=None)
     if self.expired():
-        ub.writeto(product, 'very expensive')
+        product.write_text('very expensive')
         self.renew()
     assert not self.expired()
-    ub.writeto(product, 'corrupted')
+    product.write_text('corrupted')
     assert not self.expired()
