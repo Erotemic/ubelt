@@ -609,21 +609,31 @@ def test_grabdata_same_fpath_different_url():
     url1 = _demo_url(128 * 11)
     url2 = _demo_url(128 * 12)
     url3 = _demo_url(128 * 13)
-    prefix1 = 'b7fa848cd088ae842a89ef'
-    prefix2 = '43f92597d7eb08b57c88b6'
-    # prefix3 = ''
+
+    def make_stat_dict(stat_obj):
+        # Convert the stat tuple to a dict we can manipulate
+        # and ignore access time
+        ignore_keys = {'st_atime', 'st_atime_ns'}
+        return {
+            k: getattr(stat_obj, k) for k in dir(stat_obj)
+            if k.startswith('st_') and k not in ignore_keys}
+
     fname = 'foobar'
-    fpath1 = ub.grabdata(url1, fname=fname, hash_prefix=prefix1, hasher='sha512', verbose=100)
-    stat1 = ub.Path(fpath1).stat()
+    fpath1 = ub.grabdata(url1, fname=fname, hash_prefix='b7fa848cd088ae842a89ef', hasher='sha512', verbose=100)
+    stat1 = make_stat_dict(ub.Path(fpath1).stat())
+
     # Should requesting a new url, even with the same fpath, cause redownload?
     fpath2 = ub.grabdata(url2, fname=fname, hash_prefix=None, hasher='sha512', verbose=100)
-    stat2 = ub.Path(fpath2).stat()
+    stat2 = make_stat_dict(ub.Path(fpath2).stat())
+
     fpath3 = ub.grabdata(url3, fname=fname, hash_prefix=None, hasher='sha512', verbose=100)
-    stat3 = ub.Path(fpath3).stat()
+    stat3 = make_stat_dict(ub.Path(fpath3).stat())
+
     assert stat1 != stat2, 'the stats will change because we did not specify a hash prefix'
     assert stat2 == stat3, 'we may change this behavior in the future'
-    fpath3 = ub.grabdata(url2, fname=fname, hash_prefix=prefix2, hasher='sha512', verbose=100)
-    stat3 = ub.Path(fpath3).stat()
+
+    fpath3 = ub.grabdata(url2, fname=fname, hash_prefix='43f92597d7eb08b57c88b6', hasher='sha512', verbose=100)
+    stat3 = make_stat_dict(ub.Path(fpath3).stat())
     assert stat1 != stat3, 'if we do specify a new hash, we should get a new download'
     assert url1 != url2, 'urls should be different'
     assert ub.allsame([fpath1, fpath2, fpath3]), 'all fpaths should be the same'

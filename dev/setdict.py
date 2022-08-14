@@ -588,16 +588,10 @@ class RorUDictType(type):
 
     @classmethod
     def __ror__(mcls, obj):
-        print('__ror__')
-        print(f'{mcls=} {type(mcls)=}')
-        print(f'{obj=} {type(obj)=}')
         return mcls.cls(obj)
 
     @classmethod
     def __or__(mcls, obj):
-        print('__or__')
-        print(f'{mcls=} {type(mcls)=}')
-        print(f'{obj=} {type(obj)=}')
         return mcls.cls(obj)
 
 
@@ -613,3 +607,16 @@ try:
     RorUDict | {'10': 10}
 except Exception as ex:
     print(f'ex={ex}')
+
+
+a = {1: 10, 2: 20, 3: 30, 5: 50, 7: 70, 11: 110}
+b = {1: 11, 2: 21, 3: 31, 5: 51, 8: 81, 13: 131}
+t1 = (RorUDict | a)
+t2 = (a | RorUDict)
+assert t1 == t2
+assert t1 is not t2
+assert isinstance(t1, RorUDictType.cls)
+assert isinstance(t2, RorUDictType.cls)
+
+(RorUDict | a) & b
+(a | RorUDict) & b
