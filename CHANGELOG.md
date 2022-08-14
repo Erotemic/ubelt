@@ -17,7 +17,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 * Reverse dunder methods of `ubelt.SetDict` now promote the type.
 * Add `cls` keyword argument to `ubelt.SetDict` methods.
 * Deprecate: `ensure_app_cache_dir`, `ensure_app_config_dir`, `ensure_app_data_dir`,
-  `get_app_cache_dir`, `get_app_config_dir`, `get_app_data_dir`, `readfrom`, `writeto`,
+  `get_app_cache_dir`, `get_app_config_dir`, `get_app_data_dir`, `readfrom`, `writeto`, `ensure_unicode`.
 
 ## Version 1.2.1 - Released 2022-08-06
 

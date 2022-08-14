@@ -34,6 +34,7 @@ from ubelt.util_platform import (
 )
 
 from ubelt.util_io import (readfrom, writeto,)
+from ubelt.util_str import (ensure_unicode,)
 
 
 __ignore__ = [
@@ -45,6 +46,7 @@ __ignore__ = [
     'get_app_data_dir',
     'readfrom',
     'writeto',
+    'ensure_unicode',
 ]
 
 __explicit__ = [
@@ -56,6 +58,7 @@ __explicit__ = [
     'get_app_data_dir',
     'readfrom',
     'writeto',
+    'ensure_unicode',
 ]
 
 
@@ -153,8 +156,7 @@ from ubelt.util_path import (Path, TempDir, augpath, ensuredir, expandpath,
 from ubelt.util_platform import (DARWIN, LINUX, POSIX, WIN32, find_exe,
                                  find_path, platform_cache_dir,
                                  platform_config_dir, platform_data_dir,)
-from ubelt.util_str import (codeblock, ensure_unicode, hzcat, indent,
-                            paragraph,)
+from ubelt.util_str import (codeblock, hzcat, indent, paragraph,)
 from ubelt.util_stream import (CaptureStdout, CaptureStream, TeeStringIO,)
 from ubelt.util_time import (Timer, timeparse, timestamp,)
 from ubelt.util_zip import (split_archive, zopen,)
