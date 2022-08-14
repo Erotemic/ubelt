@@ -237,8 +237,8 @@ class Cacher(object):
         if verbose is None:
             verbose = self.VERBOSE
         if dpath is None:  # pragma: no branch
-            from ubelt import util_platform
-            dpath = util_platform.get_app_cache_dir(appname)
+            from ubelt import util_path
+            dpath = os.fspath(util_path.Path(appname, type='cache'))
 
         if backend == 'auto':
             if ext == '.pkl':

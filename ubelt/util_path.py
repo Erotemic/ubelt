@@ -846,7 +846,7 @@ class Path(_PathBase):
             >>> base2 = ub.Path('base/2')
             >>> assert base + 'foo' == 'basefoo'
             >>> assert base_ + 'foo' == 'basefoo'
-            >>> assert base2 + 'foo' == str(base2 / 'foo')
+            >>> assert base2 + 'foo' == str(base2.augment(tail='foo'))
         """
         return os.fspath(self) + other
 

@@ -550,6 +550,15 @@ def test_download_with_progkw():
     assert len(cap.text.split('\n')) > 10
 
 
+def make_stat_dict(stat_obj):
+    # Convert the stat tuple to a dict we can manipulate
+    # and ignore access time
+    ignore_keys = {'st_atime', 'st_atime_ns'}
+    return {
+        k: getattr(stat_obj, k) for k in dir(stat_obj)
+        if k.startswith('st_') and k not in ignore_keys}
+
+
 def test_grabdata():
     import ubelt as ub
     import json
@@ -563,13 +572,13 @@ def test_grabdata():
     #
     print('1. Download the file once')
     fpath = ub.grabdata(url, fname=fname, hash_prefix=prefix1, hasher='sha512')
-    stat0 = ub.Path(fpath).stat()
+    stat0 = make_stat_dict(ub.Path(fpath).stat())
     stamp_fpath = ub.Path(fpath).augment(tail='.stamp_sha512.json')
     assert json.loads(stamp_fpath.read_text())['hash'][0].startswith(prefix1)
     #
     print("2. Rerun and check that the download doesn't happen again")
     fpath = ub.grabdata(url, fname=fname, hash_prefix=prefix1)
-    stat1 = ub.Path(fpath).stat()
+    stat1 = make_stat_dict(ub.Path(fpath).stat())
     assert stat0 == stat1, 'the file should not be modified'
     #
     print('3. Set redo=True, which should force a redownload')
@@ -578,7 +587,7 @@ def test_grabdata():
     for _ in range(num_tries):
         fpath = ub.grabdata(url, fname=fname, hash_prefix=prefix1, redo=True,
                             hasher='sha512')
-        stat2 = ub.Path(fpath).stat()
+        stat2 = make_stat_dict(ub.Path(fpath).stat())
         # Note: the precision of mtime is too low for this test work reliably
         # https://apenwarr.ca/log/20181113
         if stat2 != stat1:
@@ -609,14 +618,6 @@ def test_grabdata_same_fpath_different_url():
     url1 = _demo_url(128 * 11)
     url2 = _demo_url(128 * 12)
     url3 = _demo_url(128 * 13)
-
-    def make_stat_dict(stat_obj):
-        # Convert the stat tuple to a dict we can manipulate
-        # and ignore access time
-        ignore_keys = {'st_atime', 'st_atime_ns'}
-        return {
-            k: getattr(stat_obj, k) for k in dir(stat_obj)
-            if k.startswith('st_') and k not in ignore_keys}
 
     fname = 'foobar'
     fpath1 = ub.grabdata(url1, fname=fname, hash_prefix='b7fa848cd088ae842a89ef', hasher='sha512', verbose=100)
