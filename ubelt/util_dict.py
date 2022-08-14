@@ -1621,13 +1621,13 @@ class UDict(SetDict):
             >>> import ubelt as ub
             >>> a = ub.udict({k: 'A_' + chr(97 + k) for k in [2, 3, 5, 7]})
             >>> s = a.subdict({2, 5})
-            >>> print('s = {}'.format(ub.repr2(s, nl=0)))
+            >>> print('s = {}'.format(ub.repr2(s, nl=0, sort=1)))
             s = {2: 'A_c', 5: 'A_f'}
             >>> import pytest
             >>> with pytest.raises(KeyError):
             >>>     s = a.subdict({2, 5, 100})
             >>> s = a.subdict({2, 5, 100}, default='DEF')
-            >>> print('s = {}'.format(ub.repr2(s, nl=0)))
+            >>> print('s = {}'.format(ub.repr2(s, nl=0, sort=1)))
             s = {2: 'A_c', 5: 'A_f', 100: 'DEF'}
         """
         cls = self.__class__
@@ -1663,14 +1663,14 @@ class UDict(SetDict):
             >>> import ubelt as ub
             >>> a = ub.udict({k: 'A_' + chr(97 + k) for k in [2, 3, 5, 7]})
             >>> s = list(a.take({2, 5}))
-            >>> print('s = {}'.format(ub.repr2(s, nl=0)))
+            >>> print('s = {}'.format(ub.repr2(s, nl=0, sort=1)))
             s = ['A_c', 'A_f']
             >>> import pytest
             >>> with pytest.raises(KeyError):
             >>>     s = a.subdict({2, 5, 100})
             >>> s = list(a.take({2, 5, 100}, default='DEF'))
-            >>> print('s = {}'.format(ub.repr2(s, nl=0)))
-            s = ['A_c', 'DEF', 'A_f']
+            >>> print('s = {}'.format(ub.repr2(s, nl=0, sort=1)))
+            s = ['A_c', 'A_f', 'DEF']
         """
         if default is NoParam:
             for k in keys:
