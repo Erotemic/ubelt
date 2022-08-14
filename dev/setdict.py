@@ -579,3 +579,37 @@ def bench():
         odds.intersection(primes)
         odds.union(primes)
         """
+
+import ubelt as ub  # NOQA
+
+
+class RorUDictType(type):
+    cls = ub.UDict
+
+    @classmethod
+    def __ror__(mcls, obj):
+        print('__ror__')
+        print(f'{mcls=} {type(mcls)=}')
+        print(f'{obj=} {type(obj)=}')
+        return mcls.cls(obj)
+
+    @classmethod
+    def __or__(mcls, obj):
+        print('__or__')
+        print(f'{mcls=} {type(mcls)=}')
+        print(f'{obj=} {type(obj)=}')
+        return mcls.cls(obj)
+
+
+class RorUDict(RorUDictType.cls, metaclass=RorUDictType):
+    pass
+
+try:
+    type({'10': 10} | RorUDict)
+except Exception as ex:
+    print(f'ex={ex}')
+
+try:
+    RorUDict | {'10': 10}
+except Exception as ex:
+    print(f'ex={ex}')

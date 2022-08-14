@@ -7,6 +7,14 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## Version 1.2.2 - Unreleased 
 
+### Added
+
+* Add `ubelt.util_dict.UDict.take`.
+
+### Changed
+* Reverse dunder methods of `ubelt.SetDict` now promote the type.
+* Add `cls` keyword argument to `ubelt.SetDict` methods.
+
 
 ## Version 1.2.1 - Released 2022-08-06
 
