@@ -10,11 +10,14 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ### Added
 
 * Add `ubelt.util_dict.UDict.take`.
+* Added `__add__` `startswith` and `endswith` methods to `ubelt.Path` to make
+  it a better drop-in replacement for string based paths.
 
 ### Changed
 * Reverse dunder methods of `ubelt.SetDict` now promote the type.
 * Add `cls` keyword argument to `ubelt.SetDict` methods.
-
+* Deprecate: `ensure_app_cache_dir`, `ensure_app_config_dir`, `ensure_app_data_dir`,
+  `get_app_cache_dir`, `get_app_config_dir`, `get_app_data_dir`, `readfrom`, `writeto`,
 
 ## Version 1.2.1 - Released 2022-08-06
 

@@ -6,7 +6,7 @@ from os.path import os
 
 def test_touch():
     import ubelt as ub
-    dpath = ub.ensure_app_cache_dir('ubelt')
+    dpath = ub.Path.appdir('ubelt').ensuredir()
     fpath = join(dpath, 'touch_file')
     assert not exists(fpath)
     ub.touch(fpath, verbose=True)
@@ -16,7 +16,7 @@ def test_touch():
 
 def test_readwrite():
     import ubelt as ub
-    dpath = ub.ensure_app_cache_dir('ubelt')
+    dpath = ub.Path.appdir('ubelt').ensuredir()
     fpath = dpath + '/' + 'testwrite.txt'
     if exists(fpath):
         os.remove(fpath)

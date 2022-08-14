@@ -5,7 +5,7 @@ import ubelt as ub
 def test_pathlib():
     try:
         import pathlib
-        base = pathlib.Path(ub.ensure_app_cache_dir('ubelt'))
+        base = pathlib.Path(ub.Path.appdir('ubelt')).ensuredir()
         dpath = base.joinpath('test_pathlib_mkdir')
 
         # ensuredir
@@ -54,7 +54,7 @@ def test_augpath_dpath():
 
 
 def test_ensuredir_recreate():
-    base = ub.ensure_app_cache_dir('ubelt/tests')
+    base = ub.Path.appdir('ubelt/tests').ensuredir()
     folder = join(base, 'foo')
     member = join(folder, 'bar')
     ub.ensuredir(folder, recreate=True)
@@ -65,7 +65,7 @@ def test_ensuredir_recreate():
 
 
 def test_ensuredir_verbosity():
-    base = ub.ensure_app_cache_dir('ubelt/tests')
+    base = ub.Path.appdir('ubelt/tests').ensuredir()
 
     with ub.CaptureStdout() as cap:
         ub.ensuredir(join(base, 'foo'), verbose=0)

@@ -20,7 +20,7 @@ def test_download_no_fpath():
     #     pytest.skip('not running network tests')
     url = _demo_url()
 
-    dpath = ub.ensure_app_cache_dir('ubelt/tests/test_download')
+    dpath = ub.Path.appdir('ubelt/tests/test_download').ensuredir()
     fname = basename(url)
     fpath = join(dpath, fname)
 
@@ -40,7 +40,7 @@ def test_download_with_fpath():
     #     pytest.skip('not running network tests')
     url = _demo_url(1201)
 
-    dpath = ub.ensure_app_cache_dir('ubelt/tests/test_download')
+    dpath = ub.Path.appdir('ubelt/tests/test_download').ensuredir()
     fname = basename(url)
     fpath = join(dpath, fname)
 
@@ -65,7 +65,7 @@ def test_download_chunksize():
     #     pytest.skip('not running network tests')
     url = _demo_url()
 
-    dpath = ub.ensure_app_cache_dir('ubelt/tests/test_download')
+    dpath = ub.Path.appdir('ubelt/tests/test_download').ensuredir()
     fname = basename(url)
     fpath = join(dpath, fname)
 
@@ -86,7 +86,7 @@ def test_download_cover_hashers():
     #     pytest.skip('not running network tests')
     url = _demo_url()
 
-    dpath = ub.ensure_app_cache_dir('ubelt/tests/test_download')
+    dpath = ub.Path.appdir('ubelt/tests/test_download').ensuredir()
     fname = basename(url)
 
     # add coverage for different hashers
@@ -106,7 +106,7 @@ def test_download_hashalgo():
     #     pytest.skip('not running network tests')
     url = _demo_url()
 
-    dpath = ub.ensure_app_cache_dir('ubelt/tests/test_download')
+    dpath = ub.Path.appdir('ubelt/tests/test_download').ensuredir()
     fname = basename(url)
     fpath = join(dpath, fname)
 
@@ -132,7 +132,7 @@ def test_grabdata_cache():
     #     pytest.skip('not running network tests')
     url = _demo_url()
 
-    dpath = ub.ensure_app_cache_dir('ubelt/tests/test_download')
+    dpath = ub.Path.appdir('ubelt/tests/test_download').ensuredir()
     fname = basename(url)
     fpath = join(dpath, fname)
 
@@ -196,7 +196,7 @@ def test_grabdata_with_fpath():
     #     pytest.skip('not running network tests')
     url = _demo_url()
 
-    dpath = ub.ensure_app_cache_dir('ubelt/tests/test_download')
+    dpath = ub.Path.appdir('ubelt/tests/test_download').ensuredir()
     fname = basename(url)
     fpath = join(dpath, fname)
 
@@ -220,7 +220,7 @@ def test_grabdata_value_error():
     #     pytest.skip('not running network tests')
     url = _demo_url()
 
-    dpath = ub.ensure_app_cache_dir('ubelt/tests/test_download')
+    dpath = ub.Path.appdir('ubelt/tests/test_download').ensuredir()
     fname = basename(url)
     fpath = join(dpath, fname)
 
@@ -265,7 +265,7 @@ def test_download_bad_url():
     # if urllib_x._opener is None:
     #     urllib_x.install_opener(urllib_x.build_opener())
 
-    dpath = ub.ensure_app_cache_dir('ubelt/tests/test_download')
+    dpath = ub.Path.appdir('ubelt/tests/test_download').ensuredir()
     fname = basename(url)
     fpath = join(dpath, fname)
 
@@ -301,7 +301,7 @@ def test_grabdata_dpath_only():
     #     pytest.skip('not running network tests')
     url = _demo_url()
 
-    dpath = ub.ensure_app_cache_dir('ubelt/tests/test_download')
+    dpath = ub.Path.appdir('ubelt/tests/test_download').ensuredir()
     fname = basename(url)
     fpath = join(dpath, fname)
 
@@ -377,7 +377,7 @@ def test_deprecated_grabdata_args():
     with pytest.warns(DeprecationWarning):
         import hashlib
         url = _demo_url()
-        # dpath = ub.ensure_app_cache_dir('ubelt/tests/test_download')
+        # dpath = ub.Path.appdir('ubelt/tests/test_download').ensuredir()
         # fname = basename(url)
         # fpath = join(dpath, fname)
         got_fpath = ub.grabdata(
@@ -450,7 +450,7 @@ class SingletonTestServer(ub.NiceRepr):
         port = find_free_port()
         print('port = {!r}'.format(port))
 
-        dpath = ub.ensure_app_cache_dir('ubelt/tests/test_download/simple_server')
+        dpath = ub.Path.appdir('ubelt/tests/test_download/simple_server').ensuredir()
 
         if sys.version_info[0] == 2:
             server_cmd = [
@@ -542,7 +542,7 @@ def test_download_with_progkw():
     Test that progkw is properly passed through to ub.download
     """
     url = _demo_url(128 * 10)
-    dpath = ub.ensure_app_cache_dir('ubelt/tests/test_download')
+    dpath = ub.Path.appdir('ubelt/tests/test_download').ensuredir()
     fname = basename(url)
     fpath = join(dpath, fname)
     with ub.CaptureStdout() as cap:

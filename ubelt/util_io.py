@@ -46,7 +46,7 @@ def writeto(fpath, to_write, aslines=False, verbose=None):
         >>> import ubelt as ub
         >>> import os
         >>> from os.path import exists
-        >>> dpath = ub.ensure_app_cache_dir('ubelt')
+        >>> dpath = ub.Path.appdir('ubelt').ensuredir()
         >>> fpath = dpath + '/' + 'testwrite.txt'
         >>> if exists(fpath):
         >>>     os.remove(fpath)
@@ -61,7 +61,7 @@ def writeto(fpath, to_write, aslines=False, verbose=None):
         >>> import ubelt as ub
         >>> import os
         >>> from os.path import exists
-        >>> dpath = ub.ensure_app_cache_dir('ubelt')
+        >>> dpath = ub.Path.appdir('ubelt').ensuredir()
         >>> fpath = dpath + '/' + 'testwrite2.txt'
         >>> if exists(fpath):
         >>>     os.remove(fpath)
@@ -84,6 +84,12 @@ def writeto(fpath, to_write, aslines=False, verbose=None):
     """
     if verbose:
         print('Writing to text file: %r ' % (fpath,))
+
+    import ubelt as ub
+    ub.schedule_deprecation(
+        modname='ubelt', name='writeto', type='function',
+        migration='use ubelt.Path(...).write_text() instead',
+        deprecate='1.2.0', error='2.0.0', remove='2.1.0')
 
     with open(fpath, 'wb') as file:
         if aslines:
@@ -121,6 +127,11 @@ def readfrom(fpath, aslines=False, errors='replace', verbose=None):
         print('Reading text file: %r ' % (fpath,))
     if not exists(fpath):
         raise IOError('File %r does not exist' % (fpath,))
+    import ubelt as ub
+    ub.schedule_deprecation(
+        modname='ubelt', name='readfrom', type='function',
+        migration='use ubelt.Path(...).read_text() instead',
+        deprecate='1.2.0', error='2.0.0', remove='2.1.0')
     with open(fpath, 'rb') as file:
         if aslines:
             text = [line.decode('utf8', errors=errors)
@@ -160,7 +171,7 @@ def touch(fpath, mode=0o666, dir_fd=None, verbose=0, **kwargs):
     Example:
         >>> import ubelt as ub
         >>> from os.path import join
-        >>> dpath = ub.ensure_app_cache_dir('ubelt')
+        >>> dpath = ub.Path.appdir('ubelt').ensuredir()
         >>> fpath = join(dpath, 'touch_file')
         >>> assert not exists(fpath)
         >>> ub.touch(fpath)
@@ -201,7 +212,7 @@ def delete(path, verbose=False):
     Example:
         >>> import ubelt as ub
         >>> from os.path import join
-        >>> base = ub.ensure_app_cache_dir('ubelt', 'delete_test')
+        >>> base = ub.Path.appdir('ubelt', 'delete_test').ensuredir()
         >>> dpath1 = ub.ensuredir(join(base, 'dir'))
         >>> ub.ensuredir(join(base, 'dir', 'subdir'))
         >>> ub.touch(join(base, 'dir', 'to_remove1.txt'))
@@ -219,7 +230,7 @@ def delete(path, verbose=False):
     Example:
         >>> import ubelt as ub
         >>> from os.path import exists, join
-        >>> dpath = ub.ensure_app_cache_dir('ubelt', 'delete_test2')
+        >>> dpath = ub.Path.appdir('ubelt', 'delete_test2').ensuredir()
         >>> dpath1 = ub.ensuredir(join(dpath, 'dir'))
         >>> fpath1 = ub.touch(join(dpath1, 'to_remove.txt'))
         >>> assert exists(fpath1)

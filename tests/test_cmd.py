@@ -216,7 +216,7 @@ def test_cwd():
     import os
     import ubelt as ub
     if not sys.platform.startswith('win32'):
-        dpath = ub.ensure_app_cache_dir('ubelt/tests')
+        dpath = ub.Path.appdir('ubelt/tests').ensuredir()
         dpath = os.path.realpath(dpath)
         info = ub.cmd('pwd', cwd=dpath, shell=True)
         print('info = {}'.format(ub.repr2(info, nl=1)))

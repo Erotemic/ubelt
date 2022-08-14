@@ -40,7 +40,7 @@ Example:
 Example:
     >>> import ubelt as ub
     >>> from os.path import join
-    >>> fpath = ub.touch(join(ub.ensure_app_cache_dir('ubelt'), 'empty_file'))
+    >>> fpath = (ub.Path.appdir('ubelt/tests').ensuredir() / 'empty_file').touch()
     >>> ub.hash_file(fpath, hasher='sha1')
     da39a3ee5e6b4b0d3255bfef95601890afd80709
 
@@ -1159,7 +1159,7 @@ def hash_file(fpath, blocksize=1048576, stride=1, maxbytes=None,
     Example:
         >>> import ubelt as ub
         >>> from os.path import join
-        >>> dpath = ub.ensure_app_cache_dir('ubelt/tests/test-hash')
+        >>> dpath = ub.Path.appdir('ubelt/tests/test-hash').ensuredir()
         >>> fpath = ub.touch(join(dpath, 'empty_file'))
         >>> # Test that the output is the same as sha1sum executable
         >>> if ub.find_exe('sha1sum'):

@@ -355,7 +355,7 @@ def test_hash_data_custom_base():
 
 
 def test_hash_file():
-    fpath = join(ub.ensure_app_cache_dir('ubelt'), 'tmp.txt')
+    fpath = ub.Path.appdir('ubelt/tests').ensuredir() / 'tmp.txt'
     ub.writeto(fpath, 'foobar')
     hashid1_a = ub.hash_file(fpath, hasher='sha512', stride=1, blocksize=1)
     hashid2_a = ub.hash_file(fpath, hasher='sha512', stride=2, blocksize=1)

@@ -4,7 +4,7 @@ from os.path import join
 
 def test_cache_stamp():
     # stamp the computation of expensive-to-compute.txt
-    dpath = ub.ensure_app_cache_dir('ubelt/tests', 'test-cache-stamp')
+    dpath = ub.Path.appdir('ubelt/tests', 'test-cache-stamp').ensuredir()
     ub.delete(dpath)
     ub.ensuredir(dpath)
     product = join(dpath, 'expensive-to-compute.txt')
@@ -29,7 +29,7 @@ def test_cache_stamp():
 
 
 def test_cache_stamp_corrupt_product_nohasher():
-    dpath = ub.ensure_app_cache_dir('ubelt/tests', 'test-cache-stamp')
+    dpath = ub.Path.appdir('ubelt/tests', 'test-cache-stamp').ensuredir()
     name = 'corrupt_product_nohasher'
     ub.delete(dpath)
     ub.ensuredir(dpath)
@@ -52,7 +52,7 @@ def test_cache_stamp_corrupt_product_nohasher():
 
 def test_not_time_expired():
     # stamp the computation of expensive-to-compute.txt
-    dpath = ub.ensure_app_cache_dir('ubelt/tests', 'test-cache-stamp')
+    dpath = ub.Path.appdir('ubelt/tests', 'test-cache-stamp').ensuredir()
     ub.delete(dpath)
     ub.ensuredir(dpath)
     self = ub.CacheStamp('test1', dpath=dpath, depends='test1',
@@ -63,7 +63,7 @@ def test_not_time_expired():
 
 def test_time_expired():
     # stamp the computation of expensive-to-compute.txt
-    dpath = ub.ensure_app_cache_dir('ubelt/tests', 'test-cache-stamp')
+    dpath = ub.Path.appdir('ubelt/tests', 'test-cache-stamp').ensuredir()
     ub.delete(dpath)
     ub.ensuredir(dpath)
     self = ub.CacheStamp('test1', dpath=dpath, depends='test1',
@@ -73,7 +73,7 @@ def test_time_expired():
 
 
 def test_cache_stamp_corrupt_product_hasher():
-    dpath = ub.ensure_app_cache_dir('ubelt/tests', 'test-cache-stamp')
+    dpath = ub.Path.appdir('ubelt/tests', 'test-cache-stamp').ensuredir()
     name = 'corrupt_product_hasher'
     ub.delete(dpath)
     ub.ensuredir(dpath)
@@ -92,7 +92,7 @@ def test_cache_stamp_corrupt_product_hasher():
 def test_cache_stamp_multiproduct():
     from os.path import join
     # stamp the computation of expensive-to-compute.txt
-    dpath = ub.ensure_app_cache_dir('ubelt/tests', 'test-cache-stamp')
+    dpath = ub.Path.appdir('ubelt/tests', 'test-cache-stamp').ensuredir()
     ub.delete(dpath)
     ub.ensuredir(dpath)
     product = [
@@ -114,7 +114,7 @@ def test_cache_stamp_multiproduct():
 def test_cache_stamp_noproduct():
     from os.path import join
     # stamp the computation of expensive-to-compute.txt
-    dpath = ub.ensure_app_cache_dir('ubelt/tests', 'test-cache-stamp')
+    dpath = ub.Path.appdir('ubelt/tests', 'test-cache-stamp').ensuredir()
     ub.delete(dpath)
     ub.ensuredir(dpath)
     name = 'noproduct'

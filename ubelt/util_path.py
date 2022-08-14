@@ -290,7 +290,7 @@ def ensuredir(dpath, mode=0o1777, verbose=0, recreate=False):
     Example:
         >>> from ubelt.util_path import *  # NOQA
         >>> import ubelt as ub
-        >>> cache_dpath = ub.ensure_app_cache_dir('ubelt')
+        >>> cache_dpath = ub.Path.appdir('ubelt').ensuredir()
         >>> dpath = join(cache_dpath, 'ensuredir')
         >>> if exists(dpath):
         ...     os.rmdir(dpath)
@@ -449,13 +449,14 @@ class Path(_PathBase):
         """
         from ubelt import util_platform
         if type == 'cache':
-            return cls(util_platform.get_app_cache_dir(appname, *args))
+            base = util_platform.platform_cache_dir()
         elif type == 'config':
-            return cls(util_platform.get_app_config_dir(appname, *args))
+            base = util_platform.platform_config_dir()
         elif type == 'data':
-            return cls(util_platform.get_app_data_dir(appname, *args))
+            base = util_platform.platform_data_dir()
         else:
             raise KeyError(type)
+        return cls(base, appname, *args)
 
     def augment(self, prefix='', stemsuffix='', ext=None, stem=None, dpath=None,
                 tail='', relative=None, multidot=False, suffix=''):
@@ -623,7 +624,7 @@ class Path(_PathBase):
         Example:
             >>> import ubelt as ub
             >>> from os.path import join
-            >>> base = ub.Path(ub.ensure_app_cache_dir('ubelt', 'delete_test2'))
+            >>> base = ub.Path.appdir('ubelt', 'delete_test2')
             >>> dpath1 = (base / 'dir').ensuredir()
             >>> (base / 'dir' / 'subdir').ensuredir()
             >>> (base / 'dir' / 'to_remove1.txt').touch()
@@ -648,7 +649,7 @@ class Path(_PathBase):
 
         Example:
             >>> import ubelt as ub
-            >>> cache_dpath = ub.ensure_app_cache_dir('ubelt')
+            >>> cache_dpath = ub.Path.appdir('ubelt').ensuredir()
             >>> dpath = ub.Path(join(cache_dpath, 'ensuredir'))
             >>> if dpath.exists():
             ...     os.rmdir(dpath)
@@ -823,3 +824,55 @@ class Path(_PathBase):
                          followlinks=followlinks)
         for root, dnames, fnames in walker:
             yield (cls(root), dnames, fnames)
+
+    def __add__(self, other):
+        """
+        Returns a new string that directly appends to the end of this fspath
+        representation.
+
+        Returns:
+            str
+
+        Allows ubelt.Path to be a better drop-in replacement when working with
+        string-based paths.
+
+        Example:
+            >>> import ubelt as ub
+            >>> base = ub.Path('base')
+            >>> base_ = ub.Path('base/')
+            >>> base2 = ub.Path('base/2')
+            >>> assert base + 'foo' == 'basefoo'
+            >>> assert base_ + 'foo' == 'basefoo'
+            >>> assert base2 + 'foo' == 'base/2foo'
+        """
+        return os.fspath(self) + other
+
+    def endswith(self, suffix, *args):
+        """
+        Test if the fspath representation endswith a particular string
+
+        Allows ubelt.Path to be a better drop-in replacement when working with
+        string-based paths.
+
+        Example:
+            >>> import ubelt as ub
+            >>> base = ub.Path('base')
+            >>> assert base.endswith('se')
+            >>> assert not base.endswith('be')
+        """
+        return os.fspath(self).endswith(suffix, *args)
+
+    def startswith(self, suffix, *args):
+        """
+        Test if the fspath representation startswith a particular string
+
+        Allows ubelt.Path to be a better drop-in replacement when working with
+        string-based paths.
+
+        Example:
+            >>> import ubelt as ub
+            >>> base = ub.Path('base')
+            >>> assert base.startswith('base')
+            >>> assert not base.startswith('all your')
+        """
+        return os.fspath(self).startswith(suffix, *args)
