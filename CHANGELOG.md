@@ -10,7 +10,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ### Added
 
 * Add `ubelt.util_dict.UDict.take`.
-* Added `__add__` `startswith` and `endswith` methods to `ubelt.Path` to make
+* Added `__add__`, `__radd__`, `startswith`, and `endswith` methods to `ubelt.Path` to make
   it a better drop-in replacement for string based paths.
 
 ### Changed
