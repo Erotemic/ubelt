@@ -9,9 +9,9 @@ works without difficulty.
 Example:
     >>> import ubelt as ub
     >>> from os.path import normpath, join
-    >>> dpath = ub.ensure_app_cache_dir('ubelt', normpath('demo/symlink'))
-    >>> real_path = join(dpath, 'real_file.txt')
-    >>> link_path = join(dpath, 'link_file.txt')
+    >>> dpath = ub.Path.appdir('ubelt', normpath('demo/symlink')).ensuredir()
+    >>> real_path = dpath / 'real_file.txt'
+    >>> link_path = dpath / 'link_file.txt'
     >>> ub.touch(real_path)
     >>> result = ub.symlink(real_path, link_path, overwrite=True, verbose=3)
     >>> parts = result.split(os.path.sep)

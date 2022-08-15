@@ -20,7 +20,7 @@ def test_download_no_fpath():
     #     pytest.skip('not running network tests')
     url = _demo_url()
 
-    dpath = ub.ensure_app_cache_dir('ubelt/tests/test_download')
+    dpath = ub.Path.appdir('ubelt/tests/test_download').ensuredir()
     fname = basename(url)
     fpath = join(dpath, fname)
 
@@ -40,7 +40,7 @@ def test_download_with_fpath():
     #     pytest.skip('not running network tests')
     url = _demo_url(1201)
 
-    dpath = ub.ensure_app_cache_dir('ubelt/tests/test_download')
+    dpath = ub.Path.appdir('ubelt/tests/test_download').ensuredir()
     fname = basename(url)
     fpath = join(dpath, fname)
 
@@ -65,7 +65,7 @@ def test_download_chunksize():
     #     pytest.skip('not running network tests')
     url = _demo_url()
 
-    dpath = ub.ensure_app_cache_dir('ubelt/tests/test_download')
+    dpath = ub.Path.appdir('ubelt/tests/test_download').ensuredir()
     fname = basename(url)
     fpath = join(dpath, fname)
 
@@ -86,7 +86,7 @@ def test_download_cover_hashers():
     #     pytest.skip('not running network tests')
     url = _demo_url()
 
-    dpath = ub.ensure_app_cache_dir('ubelt/tests/test_download')
+    dpath = ub.Path.appdir('ubelt/tests/test_download').ensuredir()
     fname = basename(url)
 
     # add coverage for different hashers
@@ -106,7 +106,7 @@ def test_download_hashalgo():
     #     pytest.skip('not running network tests')
     url = _demo_url()
 
-    dpath = ub.ensure_app_cache_dir('ubelt/tests/test_download')
+    dpath = ub.Path.appdir('ubelt/tests/test_download').ensuredir()
     fname = basename(url)
     fpath = join(dpath, fname)
 
@@ -132,7 +132,7 @@ def test_grabdata_cache():
     #     pytest.skip('not running network tests')
     url = _demo_url()
 
-    dpath = ub.ensure_app_cache_dir('ubelt/tests/test_download')
+    dpath = ub.Path.appdir('ubelt/tests/test_download').ensuredir()
     fname = basename(url)
     fpath = join(dpath, fname)
 
@@ -196,7 +196,7 @@ def test_grabdata_with_fpath():
     #     pytest.skip('not running network tests')
     url = _demo_url()
 
-    dpath = ub.ensure_app_cache_dir('ubelt/tests/test_download')
+    dpath = ub.Path.appdir('ubelt/tests/test_download').ensuredir()
     fname = basename(url)
     fpath = join(dpath, fname)
 
@@ -220,7 +220,7 @@ def test_grabdata_value_error():
     #     pytest.skip('not running network tests')
     url = _demo_url()
 
-    dpath = ub.ensure_app_cache_dir('ubelt/tests/test_download')
+    dpath = ub.Path.appdir('ubelt/tests/test_download').ensuredir()
     fname = basename(url)
     fpath = join(dpath, fname)
 
@@ -265,7 +265,7 @@ def test_download_bad_url():
     # if urllib_x._opener is None:
     #     urllib_x.install_opener(urllib_x.build_opener())
 
-    dpath = ub.ensure_app_cache_dir('ubelt/tests/test_download')
+    dpath = ub.Path.appdir('ubelt/tests/test_download').ensuredir()
     fname = basename(url)
     fpath = join(dpath, fname)
 
@@ -301,7 +301,7 @@ def test_grabdata_dpath_only():
     #     pytest.skip('not running network tests')
     url = _demo_url()
 
-    dpath = ub.ensure_app_cache_dir('ubelt/tests/test_download')
+    dpath = ub.Path.appdir('ubelt/tests/test_download').ensuredir()
     fname = basename(url)
     fpath = join(dpath, fname)
 
@@ -377,7 +377,7 @@ def test_deprecated_grabdata_args():
     with pytest.warns(DeprecationWarning):
         import hashlib
         url = _demo_url()
-        # dpath = ub.ensure_app_cache_dir('ubelt/tests/test_download')
+        # dpath = ub.Path.appdir('ubelt/tests/test_download').ensuredir()
         # fname = basename(url)
         # fpath = join(dpath, fname)
         got_fpath = ub.grabdata(
@@ -450,7 +450,7 @@ class SingletonTestServer(ub.NiceRepr):
         port = find_free_port()
         print('port = {!r}'.format(port))
 
-        dpath = ub.ensure_app_cache_dir('ubelt/tests/test_download/simple_server')
+        dpath = ub.Path.appdir('ubelt/tests/test_download/simple_server').ensuredir()
 
         if sys.version_info[0] == 2:
             server_cmd = [
@@ -542,12 +542,21 @@ def test_download_with_progkw():
     Test that progkw is properly passed through to ub.download
     """
     url = _demo_url(128 * 10)
-    dpath = ub.ensure_app_cache_dir('ubelt/tests/test_download')
+    dpath = ub.Path.appdir('ubelt/tests/test_download').ensuredir()
     fname = basename(url)
     fpath = join(dpath, fname)
     with ub.CaptureStdout() as cap:
         ub.download(url, fpath=fpath, progkw={'verbose': 3, 'freq': 1, 'adjust': False}, chunksize=128)
     assert len(cap.text.split('\n')) > 10
+
+
+def make_stat_dict(stat_obj):
+    # Convert the stat tuple to a dict we can manipulate
+    # and ignore access time
+    ignore_keys = {'st_atime', 'st_atime_ns'}
+    return {
+        k: getattr(stat_obj, k) for k in dir(stat_obj)
+        if k.startswith('st_') and k not in ignore_keys}
 
 
 def test_grabdata():
@@ -563,13 +572,13 @@ def test_grabdata():
     #
     print('1. Download the file once')
     fpath = ub.grabdata(url, fname=fname, hash_prefix=prefix1, hasher='sha512')
-    stat0 = ub.Path(fpath).stat()
+    stat0 = make_stat_dict(ub.Path(fpath).stat())
     stamp_fpath = ub.Path(fpath).augment(tail='.stamp_sha512.json')
     assert json.loads(stamp_fpath.read_text())['hash'][0].startswith(prefix1)
     #
     print("2. Rerun and check that the download doesn't happen again")
     fpath = ub.grabdata(url, fname=fname, hash_prefix=prefix1)
-    stat1 = ub.Path(fpath).stat()
+    stat1 = make_stat_dict(ub.Path(fpath).stat())
     assert stat0 == stat1, 'the file should not be modified'
     #
     print('3. Set redo=True, which should force a redownload')
@@ -578,7 +587,7 @@ def test_grabdata():
     for _ in range(num_tries):
         fpath = ub.grabdata(url, fname=fname, hash_prefix=prefix1, redo=True,
                             hasher='sha512')
-        stat2 = ub.Path(fpath).stat()
+        stat2 = make_stat_dict(ub.Path(fpath).stat())
         # Note: the precision of mtime is too low for this test work reliably
         # https://apenwarr.ca/log/20181113
         if stat2 != stat1:
@@ -609,21 +618,23 @@ def test_grabdata_same_fpath_different_url():
     url1 = _demo_url(128 * 11)
     url2 = _demo_url(128 * 12)
     url3 = _demo_url(128 * 13)
-    prefix1 = 'b7fa848cd088ae842a89ef'
-    prefix2 = '43f92597d7eb08b57c88b6'
-    # prefix3 = ''
+
     fname = 'foobar'
-    fpath1 = ub.grabdata(url1, fname=fname, hash_prefix=prefix1, hasher='sha512', verbose=100)
-    stat1 = ub.Path(fpath1).stat()
+    fpath1 = ub.grabdata(url1, fname=fname, hash_prefix='b7fa848cd088ae842a89ef', hasher='sha512', verbose=100)
+    stat1 = make_stat_dict(ub.Path(fpath1).stat())
+
     # Should requesting a new url, even with the same fpath, cause redownload?
     fpath2 = ub.grabdata(url2, fname=fname, hash_prefix=None, hasher='sha512', verbose=100)
-    stat2 = ub.Path(fpath2).stat()
+    stat2 = make_stat_dict(ub.Path(fpath2).stat())
+
     fpath3 = ub.grabdata(url3, fname=fname, hash_prefix=None, hasher='sha512', verbose=100)
-    stat3 = ub.Path(fpath3).stat()
+    stat3 = make_stat_dict(ub.Path(fpath3).stat())
+
     assert stat1 != stat2, 'the stats will change because we did not specify a hash prefix'
     assert stat2 == stat3, 'we may change this behavior in the future'
-    fpath3 = ub.grabdata(url2, fname=fname, hash_prefix=prefix2, hasher='sha512', verbose=100)
-    stat3 = ub.Path(fpath3).stat()
+
+    fpath3 = ub.grabdata(url2, fname=fname, hash_prefix='43f92597d7eb08b57c88b6', hasher='sha512', verbose=100)
+    stat3 = make_stat_dict(ub.Path(fpath3).stat())
     assert stat1 != stat3, 'if we do specify a new hash, we should get a new download'
     assert url1 != url2, 'urls should be different'
     assert ub.allsame([fpath1, fpath2, fpath3]), 'all fpaths should be the same'

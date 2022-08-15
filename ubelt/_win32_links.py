@@ -52,7 +52,7 @@ def _win32_can_symlink(verbose=0, force=0, testing=0):
     import tempfile
     tempdir = tempfile.mkdtemp(suffix='_win32_can_symlink')
     # from ubelt import util_platform
-    # tempdir = util_platform.ensure_app_cache_dir('ubelt', '_win32_can_symlink')
+    # tempdir = util_platform.Path.appdir('ubelt', '_win32_can_symlink').ensuredir()
 
     try:
         util_io.delete(tempdir)
@@ -270,7 +270,7 @@ def _win32_junction(path, link, verbose=0):
     Example:
         >>> # xdoc: +REQUIRES(WIN32)
         >>> import ubelt as ub
-        >>> root = ub.ensure_app_cache_dir('ubelt', 'win32_junction')
+        >>> root = ub.Path.appdir('ubelt', 'win32_junction').ensuredir()
         >>> ub.delete(root)
         >>> ub.ensuredir(root)
         >>> fpath = join(root, 'fpath.txt')
@@ -334,7 +334,7 @@ def _win32_is_junction(path):
     Example:
         >>> # xdoc: +REQUIRES(WIN32)
         >>> import ubelt as ub
-        >>> root = ub.ensure_app_cache_dir('ubelt', 'win32_junction')
+        >>> root = ub.Path.appdir('ubelt', 'win32_junction').ensuredir()
         >>> ub.delete(root)
         >>> ub.ensuredir(root)
         >>> dpath = join(root, 'dpath')
@@ -361,7 +361,7 @@ def _win32_read_junction(path):
     Example:
         >>> # xdoc: +REQUIRES(WIN32)
         >>> import ubelt as ub
-        >>> root = ub.ensure_app_cache_dir('ubelt', 'win32_junction')
+        >>> root = ub.Path.appdir('ubelt', 'win32_junction').ensuredir()
         >>> ub.delete(root)
         >>> ub.ensuredir(root)
         >>> dpath = join(root, 'dpath')
@@ -469,7 +469,7 @@ def _win32_is_hardlinked(fpath1, fpath2):
     Example:
         >>> # xdoc: +REQUIRES(WIN32)
         >>> import ubelt as ub
-        >>> root = ub.ensure_app_cache_dir('ubelt', 'win32_hardlink')
+        >>> root = ub.Path.appdir('ubelt', 'win32_hardlink').ensuredir()
         >>> ub.delete(root)
         >>> ub.ensuredir(root)
         >>> fpath1 = join(root, 'fpath1')

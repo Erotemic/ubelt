@@ -198,13 +198,12 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
     Example:
         >>> import ubelt as ub
         >>> from os.path import join, exists
-        >>> fpath1 = join(ub.get_app_cache_dir('ubelt'), 'cmdout1.txt')
-        >>> fpath2 = join(ub.get_app_cache_dir('ubelt'), 'cmdout2.txt')
-        >>> ub.delete(fpath1)
-        >>> ub.delete(fpath2)
+        >>> dpath = ub.Path.appdir('ubelt', 'test').ensuredir()
+        >>> fpath1 = (dpath / 'cmdout1.txt').delete()
+        >>> fpath2 = (dpath / 'cmdout2.txt').delete()
         >>> # Start up two processes that run simultaneously in the background
-        >>> info1 = ub.cmd(('touch', fpath1), detach=True)
-        >>> info2 = ub.cmd('echo writing2 > ' + fpath2, shell=True, detach=True)
+        >>> info1 = ub.cmd(('touch', str(fpath1)), detach=True)
+        >>> info2 = ub.cmd('echo writing2 > ' + str(fpath2), shell=True, detach=True)
         >>> # Detached processes are running in the background
         >>> # We can run other code while we wait for them.
         >>> while not exists(fpath1):
@@ -219,8 +218,8 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
         >>> assert (info1['proc'].wait()) == 0
         >>> assert (info2['proc'].wait()) == 0
         >>> # Check that the process did what we expect
-        >>> assert ub.readfrom(fpath1) == ''
-        >>> assert ub.readfrom(fpath2).strip() == 'writing2'
+        >>> assert fpath1.read_text() == ''
+        >>> assert fpath2.read_text().strip() == 'writing2'
 
     Example:
         >>> # Can also use ub.cmd to call os.system

@@ -12,7 +12,7 @@ from ubelt import util_links
 
 
 def test_rel_dir_link():
-    dpath = ub.ensure_app_cache_dir('ubelt/tests/test_links', 'test_rel_dir_link')
+    dpath = ub.Path.appdir('ubelt/tests/test_links', 'test_rel_dir_link').ensuredir()
     ub.delete(dpath, verbose=2)
     ub.ensuredir(dpath, verbose=2)
 
@@ -57,7 +57,7 @@ def test_rel_dir_link():
 
 
 def test_rel_file_link():
-    dpath = ub.ensure_app_cache_dir('ubelt/tests/test_links', 'test_rel_file_link')
+    dpath = ub.Path.appdir('ubelt/tests/test_links', 'test_rel_file_link').ensuredir()
     ub.delete(dpath, verbose=2)
     ub.ensuredir(dpath, verbose=2)
 
@@ -113,7 +113,7 @@ def test_delete_symlinks():
         python -m ubelt.tests.test_links test_delete_symlinks
     """
     # TODO: test that we handle broken links
-    dpath = ub.ensure_app_cache_dir('ubelt/tests/test_links', 'test_delete_links')
+    dpath = ub.Path.appdir('ubelt/tests/test_links', 'test_delete_links').ensuredir()
 
     happy_dpath = join(dpath, 'happy_dpath')
     happy_dlink = join(dpath, 'happy_dlink')
@@ -217,58 +217,58 @@ def test_delete_symlinks():
 
 
 def test_modify_directory_symlinks():
-    dpath = ub.ensure_app_cache_dir('ubelt/tests/test_links', 'test_modify_symlinks')
+    dpath = ub.Path.appdir('ubelt/tests/test_links', 'test_modify_symlinks').ensuredir()
     ub.delete(dpath, verbose=2)
     ub.ensuredir(dpath, verbose=2)
 
-    happy_dpath = join(dpath, 'happy_dpath')
-    happy_dlink = join(dpath, 'happy_dlink')
+    happy_dpath = dpath / 'happy_dpath'
+    happy_dlink = dpath / 'happy_dlink'
     ub.ensuredir(happy_dpath, verbose=2)
 
     ub.symlink(happy_dpath, happy_dlink, verbose=2)
 
     # Test file inside directory symlink
-    file_path1 = join(happy_dpath, 'file.txt')
-    file_path2 = join(happy_dlink, 'file.txt')
+    file_path1 = happy_dpath / 'file.txt'
+    file_path2 = happy_dlink / 'file.txt'
 
     ub.touch(file_path1, verbose=2)
-    assert exists(file_path1)
-    assert exists(file_path2)
+    assert file_path1.exists()
+    assert file_path2.exists()
 
-    ub.writeto(file_path1, 'foo')
-    assert ub.readfrom(file_path1) == 'foo'
-    assert ub.readfrom(file_path2) == 'foo'
+    file_path1.write_text('foo')
+    assert file_path1.read_text() == 'foo'
+    assert file_path2.read_text() == 'foo'
 
-    ub.writeto(file_path2, 'bar')
-    assert ub.readfrom(file_path1) == 'bar'
-    assert ub.readfrom(file_path2) == 'bar'
+    file_path2.write_text('bar')
+    assert file_path1.read_text() == 'bar'
+    assert file_path2.read_text() == 'bar'
 
     ub.delete(file_path2, verbose=2)
-    assert not exists(file_path1)
-    assert not exists(file_path2)
+    assert not file_path1.exists()
+    assert not file_path2.exists()
 
     # Test directory inside directory symlink
-    dir_path1 = join(happy_dpath, 'dir')
-    dir_path2 = join(happy_dlink, 'dir')
+    dir_path1 = happy_dpath / 'dir'
+    dir_path2 = happy_dlink / 'dir'
 
     ub.ensuredir(dir_path1, verbose=2)
-    assert exists(dir_path1)
-    assert exists(dir_path2)
+    assert dir_path1.exists()
+    assert dir_path2.exists()
 
-    subfile_path1 = join(dir_path1, 'subfile.txt')
-    subfile_path2 = join(dir_path2, 'subfile.txt')
+    subfile_path1 = dir_path1 / 'subfile.txt'
+    subfile_path2 = dir_path2 / 'subfile.txt'
 
-    ub.writeto(subfile_path2, 'foo')
-    assert ub.readfrom(subfile_path1) == 'foo'
-    assert ub.readfrom(subfile_path2) == 'foo'
+    subfile_path1.write_text('foo')
+    assert subfile_path1.read_text() == 'foo'
+    assert subfile_path2.read_text() == 'foo'
 
-    ub.writeto(subfile_path1, 'bar')
-    assert ub.readfrom(subfile_path1) == 'bar'
-    assert ub.readfrom(subfile_path2) == 'bar'
+    subfile_path1.write_text('bar')
+    assert subfile_path1.read_text() == 'bar'
+    assert subfile_path2.read_text() == 'bar'
 
     ub.delete(dir_path1, verbose=2)
-    assert not exists(dir_path1)
-    assert not exists(dir_path2)
+    assert not dir_path1.exists()
+    assert not dir_path2.exists()
 
 
 def test_modify_file_symlinks():
@@ -277,21 +277,21 @@ def test_modify_file_symlinks():
         python -m ubelt.tests.test_links test_modify_symlinks
     """
     # TODO: test that we handle broken links
-    dpath = ub.ensure_app_cache_dir('ubelt/tests/test_links', 'test_modify_symlinks')
-    happy_fpath = join(dpath, 'happy_fpath.txt')
-    happy_flink = join(dpath, 'happy_flink.txt')
+    dpath = ub.Path.appdir('ubelt/tests/test_links', 'test_modify_symlinks').ensuredir()
+    happy_fpath = dpath / 'happy_fpath.txt'
+    happy_flink = dpath / 'happy_flink.txt'
     ub.touch(happy_fpath, verbose=2)
 
     ub.symlink(happy_fpath, happy_flink, verbose=2)
 
     # Test file symlink
-    ub.writeto(happy_fpath, 'foo')
-    assert ub.readfrom(happy_fpath) == 'foo'
-    assert ub.readfrom(happy_flink) == 'foo'
+    happy_fpath.write_text('foo')
+    assert happy_fpath.read_text() == 'foo'
+    assert happy_flink.read_text() == 'foo'
 
-    ub.writeto(happy_flink, 'bar')
-    assert ub.readfrom(happy_fpath) == 'bar'
-    assert ub.readfrom(happy_flink) == 'bar'
+    happy_flink.write_text('bar')
+    assert happy_fpath.read_text() == 'bar'
+    assert happy_flink.read_text() == 'bar'
 
 
 def test_broken_link():
@@ -299,7 +299,7 @@ def test_broken_link():
     CommandLine:
         python -m ubelt.tests.test_links test_broken_link
     """
-    dpath = ub.ensure_app_cache_dir('ubelt/tests/test_links', 'test_broken_link')
+    dpath = ub.Path.appdir('ubelt/tests/test_links', 'test_broken_link').ensuredir()
 
     ub.delete(dpath, verbose=2)
     ub.ensuredir(dpath, verbose=2)
@@ -335,7 +335,7 @@ def test_cant_overwrite_file_with_symlink():
         # Can't distinguish this case on windows
         pytest.skip()
 
-    dpath = ub.ensure_app_cache_dir('ubelt/tests/test_links', 'test_cant_overwrite_file_with_symlink')
+    dpath = ub.Path.appdir('ubelt/tests/test_links', 'test_cant_overwrite_file_with_symlink').ensuredir()
     ub.delete(dpath, verbose=2)
     ub.ensuredir(dpath, verbose=2)
 
@@ -365,7 +365,7 @@ def test_overwrite_symlink():
     """
 
     # TODO: test that we handle broken links
-    dpath = ub.ensure_app_cache_dir('ubelt/tests/test_links', 'test_overwrite_symlink')
+    dpath = ub.Path.appdir('ubelt/tests/test_links', 'test_overwrite_symlink').ensuredir()
     ub.delete(dpath, verbose=2)
     ub.ensuredir(dpath, verbose=2)
 

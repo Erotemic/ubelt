@@ -122,8 +122,8 @@ def color_text(text, color):
         >>> import ubelt as ub
         >>> if ub.modname_to_modpath('pygments'):
         >>>     # Colors text only if pygments is installed
-        >>>     ansi_text = ub.ensure_unicode(ub.color_text(text, 'red'))
-        >>>     prefix = ub.ensure_unicode('\x1b[31')
+        >>>     ansi_text = ub.color_text(text, 'red')
+        >>>     prefix = '\x1b[31'
         >>>     print('prefix = {!r}'.format(prefix))
         >>>     print('ansi_text = {!r}'.format(ansi_text))
         >>>     assert ansi_text.startswith(prefix)

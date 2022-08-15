@@ -1200,12 +1200,14 @@ class SetDict(dict):
             >>> other = {1: 10, 2:20, 4: 40}
             >>> d1 = self | other
             >>> d2 = other | self
+            >>> assert isinstance(d1, ub.SetDict), 'should use own type'
+            >>> assert isinstance(d2, ub.SetDict), 'should promote type'
             >>> print(f'd1={d1}')
             >>> print(f'd2={d2}')
             d1={1: 10, 2: 20, 3: 3, 4: 40}
             d2={1: 1, 2: 2, 4: 40, 3: 3}
         """
-        return SetDict.union(other, self)
+        return SetDict.union(other, self, cls=self.__class__)
 
     def __rand__(self, other):
         """
@@ -1215,12 +1217,14 @@ class SetDict(dict):
             >>> other = {1: 10, 2:20, 4: 40}
             >>> d1 = self & other
             >>> d2 = other & self
+            >>> assert isinstance(d1, ub.SetDict), 'should use own type'
+            >>> assert isinstance(d2, ub.SetDict), 'should promote type'
             >>> print(f'd1={d1}')
             >>> print(f'd2={d2}')
             d1={1: 1, 2: 2}
             d2={1: 10, 2: 20}
         """
-        return SetDict.intersection(other, self)
+        return SetDict.intersection(other, self, cls=self.__class__)
 
     def __rsub__(self, other):
         """
@@ -1230,12 +1234,14 @@ class SetDict(dict):
             >>> other = {1: 10, 2:20, 4: 40}
             >>> d1 = self - other
             >>> d2 = other - self
+            >>> assert isinstance(d1, ub.SetDict), 'should use own type'
+            >>> assert isinstance(d2, ub.SetDict), 'should promote type'
             >>> print(f'd1={d1}')
             >>> print(f'd2={d2}')
             d1={3: 3}
             d2={4: 40}
         """
-        return SetDict.difference(other, self)
+        return SetDict.difference(other, self, cls=self.__class__)
 
     def __rxor__(self, other):
         """
@@ -1245,12 +1251,14 @@ class SetDict(dict):
             >>> other = {1: 10, 2:20, 4: 40}
             >>> d1 = self ^ other
             >>> d2 = other ^ self
+            >>> assert isinstance(d1, ub.SetDict), 'should use own type'
+            >>> assert isinstance(d2, ub.SetDict), 'should promote type'
             >>> print(f'd1={d1}')
             >>> print(f'd2={d2}')
             d1={3: 3, 4: 40}
             d2={4: 40, 3: 3}
         """
-        return SetDict.symmetric_difference(other, self)
+        return SetDict.symmetric_difference(other, self, cls=self.__class__)
 
     # - inplace versions
 
@@ -1347,7 +1355,7 @@ class SetDict(dict):
 
     ### Main set operations
 
-    def union(self, *others):
+    def union(self, *others, cls=None):
         """
         Return the key-wise union of two or more dictionaries.
 
@@ -1361,6 +1369,9 @@ class SetDict(dict):
             *others : other dictionary like objects that have an ``items``
                 method. (i.e. it must return an iterable of 2-tuples where the
                 first item is hashable.)
+
+            cls (type):
+                the desired return dictionary type.
 
         Returns:
             dict : whatever the dictionary type of the first argument is
@@ -1379,12 +1390,12 @@ class SetDict(dict):
             >>> print(ub.repr2(res, sort=1, nl=0, si=1))
             {0: B_a, 2: C_c, 3: C_d, 4: B_e, 5: A_f, 7: B_h, 8: C_i, 9: D_j, 10: D_k, 11: D_l}
         """
-        cls = self.__class__
+        cls = cls or self.__class__
         args = it.chain([self], others)
         new = cls(it.chain.from_iterable(d.items() for d in args))
         return new
 
-    def intersection(self, *others):
+    def intersection(self, *others, cls=None):
         """
         Return the key-wise intersection of two or more dictionaries.
 
@@ -1397,6 +1408,9 @@ class SetDict(dict):
 
             *others : other dictionary or set like objects that can
                 be coerced into a set of keys.
+
+            cls (type):
+                the desired return dictionary type.
 
         Returns:
             dict : whatever the dictionary type of the first argument is
@@ -1415,14 +1429,14 @@ class SetDict(dict):
             >>> print(ub.repr2(res, sort=1, nl=0, si=1))
             {}
         """
-        cls = self.__class__
+        cls = cls or self.__class__
         isect_keys = set(self.keys())
         for v in others:
             isect_keys.intersection_update(v)
         new = cls((k, self[k]) for k in self if k in isect_keys)
         return new
 
-    def difference(self, *others):
+    def difference(self, *others, cls=None):
         """
         Return the key-wise difference between this dictionary and one or
         more other dictionary / keys.
@@ -1437,6 +1451,9 @@ class SetDict(dict):
 
             *others : other dictionary or set like objects that can
                 be coerced into a set of keys.
+
+            cls (type):
+                the desired return dictionary type.
 
         Returns:
             dict : whatever the dictionary type of the first argument is
@@ -1455,7 +1472,7 @@ class SetDict(dict):
             >>> print(ub.repr2(res, sort=1, nl=0, si=1))
             {5: A_f}
         """
-        cls = self.__class__
+        cls = cls or self.__class__
         other_keys = set()
         for v in others:
             other_keys.update(v)
@@ -1463,7 +1480,7 @@ class SetDict(dict):
         new = cls((k, self[k]) for k in self.keys() if k not in other_keys)
         return new
 
-    def symmetric_difference(self, *others):
+    def symmetric_difference(self, *others, cls=None):
         """
         Return the key-wise symmetric difference between this dictionary and
         one or more other dictionaries.
@@ -1479,6 +1496,9 @@ class SetDict(dict):
 
             *others : other dictionary or set like objects that can
                 be coerced into a set of keys.
+
+            cls (type):
+                the desired return dictionary type.
 
         Returns:
             dict : whatever the dictionary type of the first argument is
@@ -1501,25 +1521,14 @@ class SetDict(dict):
             >>> print(ub.repr2(res, sort=1, nl=0, si=1))
             {0: B_a, 2: C_c, 4: B_e, 5: A_f, 8: C_i, 9: D_j, 10: D_k, 11: D_l}
         """
-        new = self.copy()
+        cls = cls or self.__class__
+        new = cls(self)  # shallow copy
         for d in others:
             for k, v in d.items():
                 if k in new:
                     new.pop(k)
                 else:
                     new[k] = v
-        # Original implementation, not sure which is best, previous one
-        # probably uses less memory.
-        # from collections import defaultdict
-        # cls = self.__class__
-        # accum_count = defaultdict(lambda: 0)
-        # accum_refs = {}
-        # for d in it.chain([self], others):
-        #     for k in d.keys():
-        #         accum_count[k] += 1
-        #         accum_refs[k] = d
-        # new = cls((k, accum_refs[k][k]) for k, count in accum_count.items()
-        #           if count % 2 == 1)
         return new
 
 
@@ -1604,17 +1613,21 @@ class UDict(SetDict):
         Raises:
             KeyError : if a key does not exist and default is not specified
 
+        SeeAlso:
+            :func:`ubelt.util_dict.dict_subset`
+            :func:`ubelt.UDict.take`
+
         Example:
             >>> import ubelt as ub
             >>> a = ub.udict({k: 'A_' + chr(97 + k) for k in [2, 3, 5, 7]})
             >>> s = a.subdict({2, 5})
-            >>> print('s = {}'.format(ub.repr2(s, nl=0)))
+            >>> print('s = {}'.format(ub.repr2(s, nl=0, sort=1)))
             s = {2: 'A_c', 5: 'A_f'}
             >>> import pytest
             >>> with pytest.raises(KeyError):
             >>>     s = a.subdict({2, 5, 100})
             >>> s = a.subdict({2, 5, 100}, default='DEF')
-            >>> print('s = {}'.format(ub.repr2(s, nl=0)))
+            >>> print('s = {}'.format(ub.repr2(s, nl=0, sort=1)))
             s = {2: 'A_c', 5: 'A_f', 100: 'DEF'}
         """
         cls = self.__class__
@@ -1623,6 +1636,48 @@ class UDict(SetDict):
         else:
             new = cls([(k, self.get(k, default)) for k in keys])
         return new
+
+    def take(self, keys, default=NoParam):
+        """
+        Get values of an iterable of keys.
+
+        Args:
+            self (Dict[KT, VT]): dictionary or the implicit instance
+
+            keys (Iterable[KT]): keys to take from ``self``
+
+            default (Optional[object] | NoParamType):
+                if specified uses default if keys are missing.
+
+        Yields:
+            VT: a selected value within the dictionary
+
+        Raises:
+            KeyError : if a key does not exist and default is not specified
+
+        SeeAlso:
+            :func:`ubelt.util_list.take`
+            :func:`ubelt.UDict.subdict`
+
+        Example:
+            >>> import ubelt as ub
+            >>> a = ub.udict({k: 'A_' + chr(97 + k) for k in [2, 3, 5, 7]})
+            >>> s = list(a.take({2, 5}))
+            >>> print('s = {}'.format(ub.repr2(s, nl=0, sort=1)))
+            s = ['A_c', 'A_f']
+            >>> import pytest
+            >>> with pytest.raises(KeyError):
+            >>>     s = a.subdict({2, 5, 100})
+            >>> s = list(a.take({2, 5, 100}, default='DEF'))
+            >>> print('s = {}'.format(ub.repr2(s, nl=0, sort=1)))
+            s = ['A_c', 'A_f', 'DEF']
+        """
+        if default is NoParam:
+            for k in keys:
+                yield self[k]
+        else:
+            for k in keys:
+                yield self.get(k, default)
 
     def invert(self, unique_vals=True):
         """

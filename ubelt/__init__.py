@@ -26,6 +26,42 @@ Testing:
 
 __version__ = '1.2.2'
 
+# Deprecated functions
+from ubelt.util_platform import (
+    ensure_app_cache_dir, ensure_app_config_dir,
+    ensure_app_data_dir, get_app_cache_dir, get_app_config_dir,
+    get_app_data_dir,
+)
+
+from ubelt.util_io import (readfrom, writeto,)
+from ubelt.util_str import (ensure_unicode,)
+
+
+__ignore__ = [
+    'ensure_app_cache_dir',
+    'ensure_app_config_dir',
+    'ensure_app_data_dir',
+    'get_app_cache_dir',
+    'get_app_config_dir',
+    'get_app_data_dir',
+    'readfrom',
+    'writeto',
+    'ensure_unicode',
+]
+
+__explicit__ = [
+    'ensure_app_cache_dir',
+    'ensure_app_config_dir',
+    'ensure_app_data_dir',
+    'get_app_cache_dir',
+    'get_app_config_dir',
+    'get_app_data_dir',
+    'readfrom',
+    'writeto',
+    'ensure_unicode',
+]
+
+
 __submodules__ = {
     'util_arg': None,
     'util_cache': None,
@@ -103,7 +139,7 @@ from ubelt.util_download_manager import (DownloadManager,)
 from ubelt.util_func import (compatible, identity, inject_method,)
 from ubelt.util_format import (FormatterExtensions, repr2,)
 from ubelt.util_futures import (Executor, JobPool,)
-from ubelt.util_io import (delete, readfrom, touch, writeto,)
+from ubelt.util_io import (delete, touch,)
 from ubelt.util_links import (symlink,)
 from ubelt.util_list import (allsame, argmax, argmin, argsort, argunique,
                              boolmask, chunks, compress, flatten, iter_window,
@@ -117,14 +153,10 @@ from ubelt.util_memoize import (memoize, memoize_method, memoize_property,)
 from ubelt.util_mixins import (NiceRepr,)
 from ubelt.util_path import (Path, TempDir, augpath, ensuredir, expandpath,
                              shrinkuser, userhome,)
-from ubelt.util_platform import (DARWIN, LINUX, POSIX, WIN32,
-                                 ensure_app_cache_dir, ensure_app_config_dir,
-                                 ensure_app_data_dir, find_exe, find_path,
-                                 get_app_cache_dir, get_app_config_dir,
-                                 get_app_data_dir, platform_cache_dir,
+from ubelt.util_platform import (DARWIN, LINUX, POSIX, WIN32, find_exe,
+                                 find_path, platform_cache_dir,
                                  platform_config_dir, platform_data_dir,)
-from ubelt.util_str import (codeblock, ensure_unicode, hzcat, indent,
-                            paragraph,)
+from ubelt.util_str import (codeblock, hzcat, indent, paragraph,)
 from ubelt.util_stream import (CaptureStdout, CaptureStream, TeeStringIO,)
 from ubelt.util_time import (Timer, timeparse, timestamp,)
 from ubelt.util_zip import (split_archive, zopen,)

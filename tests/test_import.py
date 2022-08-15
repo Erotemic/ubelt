@@ -1,4 +1,5 @@
 import itertools as it
+import os
 from os.path import join
 import ubelt as ub
 import sys
@@ -10,17 +11,17 @@ def test_import_modpath_basic():
     assert 'testmod' not in sys.modules
 
     with ub.TempDir() as temp:
-        modpath = join(temp.dpath, 'testmod.py')
+        modpath = ub.Path(temp.dpath) / 'testmod.py'
         text = ub.codeblock(
             '''
             a = 'value'
             ''')
-        ub.writeto(modpath, text)
+        modpath.write_text(text)
         assert temp.dpath not in sys.path
         module = ub.import_module_from_path(modpath)
         assert temp.dpath not in sys.path, 'pythonpath should remain clean'
         assert module.a == 'value'
-        assert module.__file__ == modpath
+        assert module.__file__ == os.fspath(modpath)
         assert module.__name__ == 'testmod'
         assert 'testmod' in sys.modules
 
@@ -31,28 +32,28 @@ def test_import_modpath_package():
     temp = ub.TempDir().start()
     # with ub.TempDir() as temp:
     if True:
-        dpath = temp.dpath
+        dpath = ub.Path(temp.dpath)
 
         # Create a dummy package hierarchy
-        root = ub.ensuredir((dpath, '_tmproot373'))
-        sub1 = ub.ensuredir((root, 'sub1'))
-        sub2 = ub.ensuredir((sub1, 'sub2'))
+        root = (dpath / '_tmproot373').ensuredir()
+        sub1 = (root / 'sub1').ensuredir()
+        sub2 = (sub1 / 'sub2').ensuredir()
 
-        ub.touch(join(root, '__init__.py'))
-        ub.touch(join(sub1, '__init__.py'))
-        ub.touch(join(sub2, '__init__.py'))
+        (root / '__init__.py').touch()
+        (sub1 / '__init__.py').touch()
+        (sub2 / '__init__.py').touch()
 
-        modpath = join(sub2, 'testmod.py')
+        modpath = sub2 / 'testmod.py'
         text = ub.codeblock(
             '''
             a = 'value'
             ''')
-        ub.writeto(modpath, text)
+        modpath.write_text(text)
         assert temp.dpath not in sys.path
         module = ub.import_module_from_path(modpath)
         assert temp.dpath not in sys.path, 'pythonpath should remain clean'
         assert module.a == 'value'
-        assert module.__file__ == modpath
+        assert module.__file__ == os.fspath(modpath)
         assert module.__name__ == '_tmproot373.sub1.sub2.testmod'
         assert '_tmproot373.sub1.sub2.testmod' in sys.modules
         assert '_tmproot373.sub1.sub2' in sys.modules

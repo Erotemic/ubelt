@@ -32,7 +32,13 @@ Read the docs here: http://ubelt.readthedocs.io/en/latest/
 
 These are some of the tasks that ubelt's API enables:
 
-  - extended pathlib (ub.Path)
+  - extended pathlib with expand, ensuredir, endswith, augment, delete (ub.Path)
+
+  - get paths to cross platform data/cache/config directories  (ub.Path.appdir, ...)
+
+  - perform set operations on dictionaries (SetDict)
+
+  - a dictionary with extended helper methods like subdict, take, peek_value, invert, sorted_keys, sorted_vals (UDict)
 
   - hash common data structures like list, dict, int, str, etc. (hash_data)
 
@@ -56,35 +62,19 @@ These are some of the tasks that ubelt's API enables:
 
   - horizontally concatenate multiline strings (hzcat)
 
-  - make a directory if it doesn't exist (ensuredir)
-
-  - delete a file, link, or entire directory (delete)
-
   - create cross platform symlinks (symlink)
-
-  - expand environment variables and tildes in path strings (expandpath)
 
   - import a module using the path to that module (import_module_from_path)
 
   - check if a particular flag or value is on the command line (argflag, argval)
 
-  - get paths to cross platform data/cache/config directories  (ensure_app_cache_dir, ...)
-
   - memoize functions (memoize, memoize_method, memoize_property)
 
   - build ordered sets (oset)
 
-  - short defaultdict and OrderedDict aliases (ddict and odict)
-
-  - map a function over the keys or values of a dictionary (map_keys, map_vals)
-
-  - perform set operations on dictionaries (dict_union, dict_isect, dict_diff, dict_subset, ...)
-
-  - perform dictionary operations like histogram, inversion, and sorting (dict_hist, invert_dict, sorted_keys, sorted_vals)
-
   - argmax/min/sort on lists and dictionaries (argmin, argsort,) 
 
-  - find duplicates in a list (find_duplicates)
+  - get a histogram of items or find duplicates in a list (dict_hist, find_duplicates)
 
   - group a sequence of items by some criterion (group_items)
 
@@ -109,7 +99,7 @@ Ubelt is small. Its top-level API is defined using roughly 40 lines:
     from ubelt.util_func import (compatible, identity, inject_method,)
     from ubelt.util_format import (FormatterExtensions, repr2,)
     from ubelt.util_futures import (Executor, JobPool,)
-    from ubelt.util_io import (delete, readfrom, touch, writeto,)
+    from ubelt.util_io import (delete, touch,)
     from ubelt.util_links import (symlink,)
     from ubelt.util_list import (allsame, argmax, argmin, argsort, argunique,
                                  boolmask, chunks, compress, flatten, iter_window,
@@ -123,20 +113,15 @@ Ubelt is small. Its top-level API is defined using roughly 40 lines:
     from ubelt.util_mixins import (NiceRepr,)
     from ubelt.util_path import (Path, TempDir, augpath, ensuredir, expandpath,
                                  shrinkuser, userhome,)
-    from ubelt.util_platform import (DARWIN, LINUX, POSIX, WIN32,
-                                     ensure_app_cache_dir, ensure_app_config_dir,
-                                     ensure_app_data_dir, find_exe, find_path,
-                                     get_app_cache_dir, get_app_config_dir,
-                                     get_app_data_dir, platform_cache_dir,
+    from ubelt.util_platform import (DARWIN, LINUX, POSIX, WIN32, find_exe,
+                                     find_path, platform_cache_dir,
                                      platform_config_dir, platform_data_dir,)
-    from ubelt.util_str import (codeblock, ensure_unicode, hzcat, indent,
-                                paragraph,)
+    from ubelt.util_str import (codeblock, hzcat, indent, paragraph,)
     from ubelt.util_stream import (CaptureStdout, CaptureStream, TeeStringIO,)
     from ubelt.util_time import (Timer, timeparse, timestamp,)
     from ubelt.util_zip import (split_archive, zopen,)
     from ubelt.orderedset import (OrderedSet, oset,)
     from ubelt.progiter import (ProgIter,)
-
 
 
 Installation:
@@ -173,11 +158,6 @@ I chose these and provided some comment on why:
     ub.download  # download a file with a single command. Also see grabdata for the same thing, but caching from CacheStamp.
     ub.JobPool   # easy multi-threading / multi-procesing / or single-threaded processing
     ub.ProgIter  # a minimal progress iterator. It's single threaded, informative, and faster than tqdm.
-    ub.dict_isect  # like set intersection, but with dictionaries
-    ub.dict_union  # like set union, but with dictionaries
-    ub.dict_diff  # like set difference, but with dictionaries
-    ub.map_keys  # shorthand for ``dict(zip(map(func, d.keys()), d.values()))``
-    ub.map_vals  # shorthand for ``dict(zip(d.keys(), map(func, d.values())))``
     ub.memoize  # like ``functools.cache``, but uses ub.hash_data if the args are not hashable.
     ub.repr2  # readable representations of nested data structures
 
@@ -204,7 +184,6 @@ project. Note: this measure is biased towards older functions.
 `ubelt.ddict <https://ubelt.readthedocs.io/en/latest/ubelt.util_dict.html#ubelt.util_dict.ddict>`__                                                           225
 `ubelt.flatten <https://ubelt.readthedocs.io/en/latest/ubelt.util_list.html#ubelt.util_list.flatten>`__                                                       218
 `ubelt.peek <https://ubelt.readthedocs.io/en/latest/ubelt.util_list.html#ubelt.util_list.peek>`__                                                             202
-`ubelt.ensure_app_cache_dir <https://ubelt.readthedocs.io/en/latest/ubelt.util_platform.html#ubelt.util_platform.ensure_app_cache_dir>`__                     201
 `ubelt.NiceRepr <https://ubelt.readthedocs.io/en/latest/ubelt.util_mixins.html#ubelt.util_mixins.NiceRepr>`__                                                 195
 `ubelt.group_items <https://ubelt.readthedocs.io/en/latest/ubelt.util_dict.html#ubelt.util_dict.group_items>`__                                               192
 `ubelt.oset <https://ubelt.readthedocs.io/en/latest/ubelt.orderedset.html#ubelt.orderedset.oset>`__                                                           182
@@ -246,7 +225,6 @@ project. Note: this measure is biased towards older functions.
 `ubelt.map_keys <https://ubelt.readthedocs.io/en/latest/ubelt.util_dict.html#ubelt.util_dict.map_keys>`__                                                      36
 `ubelt.symlink <https://ubelt.readthedocs.io/en/latest/ubelt.util_links.html#ubelt.util_links.symlink>`__                                                      34
 `ubelt.sorted_vals <https://ubelt.readthedocs.io/en/latest/ubelt.util_dict.html#ubelt.util_dict.sorted_vals>`__                                                33
-`ubelt.ensure_unicode <https://ubelt.readthedocs.io/en/latest/ubelt.util_str.html#ubelt.util_str.ensure_unicode>`__                                            32
 `ubelt.find_exe <https://ubelt.readthedocs.io/en/latest/ubelt.util_platform.html#ubelt.util_platform.find_exe>`__                                              32
 `ubelt.memoize_property <https://ubelt.readthedocs.io/en/latest/ubelt.util_memoize.html#ubelt.util_memoize.memoize_property>`__                                31
 `ubelt.modname_to_modpath <https://ubelt.readthedocs.io/en/latest/ubelt.util_import.html#ubelt.util_import.modname_to_modpath>`__                              29
@@ -263,7 +241,6 @@ project. Note: this measure is biased towards older functions.
 `ubelt.sorted_keys <https://ubelt.readthedocs.io/en/latest/ubelt.util_dict.html#ubelt.util_dict.sorted_keys>`__                                                20
 `ubelt.Executor <https://ubelt.readthedocs.io/en/latest/ubelt.util_futures.html#ubelt.util_futures.Executor>`__                                                19
 `ubelt.touch <https://ubelt.readthedocs.io/en/latest/ubelt.util_io.html#ubelt.util_io.touch>`__                                                                17
-`ubelt.get_app_cache_dir <https://ubelt.readthedocs.io/en/latest/ubelt.util_platform.html#ubelt.util_platform.get_app_cache_dir>`__                            14
 `ubelt.AutoDict <https://ubelt.readthedocs.io/en/latest/ubelt.util_dict.html#ubelt.util_dict.AutoDict>`__                                                      13
 `ubelt.inject_method <https://ubelt.readthedocs.io/en/latest/ubelt.util_func.html#ubelt.util_func.inject_method>`__                                            13
 `ubelt.zopen <https://ubelt.readthedocs.io/en/latest/ubelt.util_zip.html#ubelt.util_zip.zopen>`__                                                              11
@@ -291,10 +268,6 @@ project. Note: this measure is biased towards older functions.
 `ubelt.platform_cache_dir <https://ubelt.readthedocs.io/en/latest/ubelt.util_platform.html#ubelt.util_platform.platform_cache_dir>`__                           0
 `ubelt.map_values <https://ubelt.readthedocs.io/en/latest/ubelt.util_dict.html#ubelt.util_dict.map_values>`__                                                   0
 `ubelt.indexable_allclose <https://ubelt.readthedocs.io/en/latest/ubelt.util_indexable.html#ubelt.util_indexable.indexable_allclose>`__                         0
-`ubelt.get_app_data_dir <https://ubelt.readthedocs.io/en/latest/ubelt.util_platform.html#ubelt.util_platform.get_app_data_dir>`__                               0
-`ubelt.get_app_config_dir <https://ubelt.readthedocs.io/en/latest/ubelt.util_platform.html#ubelt.util_platform.get_app_config_dir>`__                           0
-`ubelt.ensure_app_data_dir <https://ubelt.readthedocs.io/en/latest/ubelt.util_platform.html#ubelt.util_platform.ensure_app_data_dir>`__                         0
-`ubelt.ensure_app_config_dir <https://ubelt.readthedocs.io/en/latest/ubelt.util_platform.html#ubelt.util_platform.ensure_app_config_dir>`__                     0
 `ubelt.boolmask <https://ubelt.readthedocs.io/en/latest/ubelt.util_list.html#ubelt.util_list.boolmask>`__                                                       0
 `ubelt.UDict <https://ubelt.readthedocs.io/en/latest/ubelt.util_dict.html#ubelt.util_dict.UDict>`__                                                             0
 `ubelt.TempDir <https://ubelt.readthedocs.io/en/latest/ubelt.util_path.html#ubelt.util_path.TempDir>`__                                                         0
@@ -846,10 +819,14 @@ the standard place to dump those files differs depending if you are on
 Windows, Linux, or Mac. Ubelt offers a unified functions for determining
 what these paths are.
 
-The ``ub.ensure_app_cache_dir`` and ``ub.ensure_app_config_dir``
-functions find the correct platform-specific location for these files
-and ensures that the directories exist. (Note: replacing "ensure" with
-"get" will simply return the path, but not ensure that it exists)
+New in version 1.0.0: the ``ub.Path.appdir`` classmethod provides a way to
+achieve the above with a chainable object oriented interface.
+
+The ``ub.Path.appdir(..., type='cache')``, 
+``ub.Path.appdir(..., type='config')``, and 
+``ub.Path.appdir(..., type='data')``
+functions find the correct platform-specific location for these files and
+calling ``ensuredir`` ensures that the directories exist. 
 
 The config root directory is ``~/AppData/Roaming`` on Windows,
 ``~/.config`` on Linux and ``~/Library/Application Support`` on Mac. The
@@ -861,18 +838,7 @@ Example usage on Linux might look like this:
 .. code:: python
 
     >>> import ubelt as ub
-    >>> print(ub.shrinkuser(ub.ensure_app_cache_dir('my_app')))
-    ~/.cache/my_app
-    >>> print(ub.shrinkuser(ub.ensure_app_config_dir('my_app')))
-    ~/.config/my_app
-
-New in version 1.0.0: the ``ub.Path.appdir`` classmethod provides a way to
-achieve the above with a chainable object oriented interface.
-
-.. code:: python
-
-    >>> import ubelt as ub
-    >>> print(ub.Path.appdir('my_app').ensuredir().shrinkuser())
+    >>> print(ub.Path.appdir('my_app').ensuredir().shrinkuser())  # default is cache
     ~/.cache/my_app
     >>> print(ub.Path.appdir('my_app', type='config').ensuredir().shrinkuser())
     ~/.config/my_app
@@ -889,10 +855,10 @@ are not available)
 .. code:: python
 
     >>> import ubelt as ub
-    >>> dpath = ub.ensure_app_cache_dir('ubelt', 'demo_symlink')
-    >>> real_path = join(dpath, 'real_file.txt')
-    >>> link_path = join(dpath, 'link_file.txt')
-    >>> ub.writeto(real_path, 'foo')
+    >>> dpath = ub.Path('ubelt', 'demo_symlink')
+    >>> real_path = dpath / 'real_file.txt'
+    >>> link_path = dpath / 'link_file.txt'
+    >>> real_path.write_text('foo')
     >>> ub.symlink(real_path, link_path)
 
 

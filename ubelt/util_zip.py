@@ -112,7 +112,7 @@ class zopen(NiceRepr):
         >>> from ubelt.util_zip import *  # NOQA
         >>> import pickle
         >>> import ubelt as ub
-        >>> dpath = ub.ensure_app_cache_dir('ubelt/tests/util_zip')
+        >>> dpath = ub.Path.appdir('ubelt/tests/util_zip').ensuredir()
         >>> dpath = ub.Path(dpath)
         >>> data_fpath = dpath / 'test.pkl'
         >>> data = {'demo': 'data'}
@@ -147,7 +147,7 @@ class zopen(NiceRepr):
         >>> import ubelt as ub
         >>> import json
         >>> import zipfile
-        >>> dpath = ub.ensure_app_cache_dir('ubelt/tests/util_zip')
+        >>> dpath = ub.Path.appdir('ubelt/tests/util_zip').ensuredir()
         >>> infopath = join(dpath, 'info.json')
         >>> ub.writeto(infopath, '{"x": "1"}')
         >>> zippath = join(dpath, 'infozip.zip')
@@ -174,7 +174,7 @@ class zopen(NiceRepr):
         >>> import ubelt as ub
         >>> import json
         >>> import zipfile
-        >>> dpath = ub.ensure_app_cache_dir('ubelt/tests/util_zip')
+        >>> dpath = ub.Path.appdir('ubelt/tests/util_zip').ensuredir()
         >>> textpath = join(dpath, 'seekable_test.txt')
         >>> text = chr(10).join(['line{}'.format(i) for i in range(10)])
         >>> ub.writeto(textpath, text)
@@ -210,7 +210,7 @@ class zopen(NiceRepr):
         >>> from ubelt.util_zip import *  # NOQA
         >>> import ubelt as ub
         >>> import pytest
-        >>> dpath = ub.ensure_app_cache_dir('ubelt/tests/util_zip')
+        >>> dpath = ub.Path.appdir('ubelt/tests/util_zip').ensuredir()
         >>> with pytest.raises(OSError):
         >>>     self = zopen('', 'r')
         >>> # Test open non-zip exsting file

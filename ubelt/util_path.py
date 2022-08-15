@@ -290,7 +290,7 @@ def ensuredir(dpath, mode=0o1777, verbose=0, recreate=False):
     Example:
         >>> from ubelt.util_path import *  # NOQA
         >>> import ubelt as ub
-        >>> cache_dpath = ub.ensure_app_cache_dir('ubelt')
+        >>> cache_dpath = ub.Path.appdir('ubelt').ensuredir()
         >>> dpath = join(cache_dpath, 'ensuredir')
         >>> if exists(dpath):
         ...     os.rmdir(dpath)
@@ -449,13 +449,14 @@ class Path(_PathBase):
         """
         from ubelt import util_platform
         if type == 'cache':
-            return cls(util_platform.get_app_cache_dir(appname, *args))
+            base = util_platform.platform_cache_dir()
         elif type == 'config':
-            return cls(util_platform.get_app_config_dir(appname, *args))
+            base = util_platform.platform_config_dir()
         elif type == 'data':
-            return cls(util_platform.get_app_data_dir(appname, *args))
+            base = util_platform.platform_data_dir()
         else:
             raise KeyError(type)
+        return cls(base, appname, *args)
 
     def augment(self, prefix='', stemsuffix='', ext=None, stem=None, dpath=None,
                 tail='', relative=None, multidot=False, suffix=''):
@@ -623,7 +624,7 @@ class Path(_PathBase):
         Example:
             >>> import ubelt as ub
             >>> from os.path import join
-            >>> base = ub.Path(ub.ensure_app_cache_dir('ubelt', 'delete_test2'))
+            >>> base = ub.Path.appdir('ubelt', 'delete_test2')
             >>> dpath1 = (base / 'dir').ensuredir()
             >>> (base / 'dir' / 'subdir').ensuredir()
             >>> (base / 'dir' / 'to_remove1.txt').touch()
@@ -648,7 +649,7 @@ class Path(_PathBase):
 
         Example:
             >>> import ubelt as ub
-            >>> cache_dpath = ub.ensure_app_cache_dir('ubelt')
+            >>> cache_dpath = ub.Path.appdir('ubelt').ensuredir()
             >>> dpath = ub.Path(join(cache_dpath, 'ensuredir'))
             >>> if dpath.exists():
             ...     os.rmdir(dpath)
@@ -817,9 +818,130 @@ class Path(_PathBase):
             >>>     if 'CVS' in dirs:
             >>>         dirs.remove('CVS')  # don't visit CVS directories
         """
-        import os
         cls = self.__class__
         walker = os.walk(self, topdown=topdown, onerror=onerror,
                          followlinks=followlinks)
         for root, dnames, fnames in walker:
             yield (cls(root), dnames, fnames)
+
+    def __add__(self, other):
+        """
+        Returns a new string starting with this fspath representation.
+
+        Returns:
+            str
+
+        Allows ubelt.Path to be a better drop-in replacement when working with
+        string-based paths.
+
+        Note:
+            It is not recommended to write new code that uses this behavior.
+            This exists to make it easier to transition existing str-based
+            paths to pathlib.
+
+        Example:
+            >>> import ubelt as ub
+            >>> base = ub.Path('base')
+            >>> base_ = ub.Path('base/')
+            >>> base2 = ub.Path('base/2')
+            >>> assert base + 'foo' == 'basefoo'
+            >>> assert base_ + 'foo' == 'basefoo'
+            >>> assert base2 + 'foo' == str(base2.augment(tail='foo'))
+        """
+        return os.fspath(self) + other
+
+    def __radd__(self, other):
+        """
+        Returns a new string ending with this fspath representation.
+
+        Returns:
+            str
+
+        Allows ubelt.Path to be a better drop-in replacement when working with
+        string-based paths.
+
+        Note:
+            It is not recommended to write new code that uses this behavior.
+            This exists to make it easier to transition existing str-based
+            paths to pathlib.
+
+        Example:
+            >>> import ubelt as ub
+            >>> base = ub.Path('base')
+            >>> base_ = ub.Path('base/')
+            >>> base2 = ub.Path('base/2')
+            >>> assert 'foo' + base == 'foobase'
+            >>> assert 'foo' + base_ == 'foobase'
+            >>> assert 'foo' + base2 == str(base2.augment(dpath='foobase'))
+        """
+        return other + os.fspath(self)
+
+    def endswith(self, suffix, *args):
+        """
+        Test if the fspath representation endswith a particular string
+
+        Allows ubelt.Path to be a better drop-in replacement when working with
+        string-based paths.
+
+        Args:
+            suffix (str | Tuple[str, ...]):
+                One or more suffixes to test for
+
+            *args:
+                start (int): if specified begin testing at this position.
+                end (int): if specified stop testing at this position.
+
+        Returns:
+            bool: True if any of the suffixes are matched.
+
+        Example:
+            >>> import ubelt as ub
+            >>> base = ub.Path('base')
+            >>> assert base.endswith('se')
+            >>> assert not base.endswith('be')
+            >>> # test start / stop cases
+            >>> assert ub.Path('aabbccdd').endswith('cdd', 5)
+            >>> assert not ub.Path('aabbccdd').endswith('cdd', 6)
+            >>> assert ub.Path('aabbccdd').endswith('cdd', 5, 10)
+            >>> assert not ub.Path('aabbccdd').endswith('cdd', 5, 7)
+            >>> # test tuple case
+            >>> assert ub.Path('aabbccdd').endswith(('foo', 'cdd'))
+            >>> assert ub.Path('foo').endswith(('foo', 'cdd'))
+            >>> assert not ub.Path('bar').endswith(('foo', 'cdd'))
+        """
+        return os.fspath(self).endswith(suffix, *args)
+
+    def startswith(self, prefix, *args):
+        """
+        Test if the fspath representation startswith a particular string
+
+        Allows ubelt.Path to be a better drop-in replacement when working with
+        string-based paths.
+
+        Args:
+            prefix (str | Tuple[str, ...]):
+                One or more prefixes to test for
+
+            *args:
+                start (int): if specified begin testing at this position.
+                end (int): if specified stop testing at this position.
+
+        Returns:
+            bool: True if any of the prefixes are matched.
+
+        Example:
+            >>> import ubelt as ub
+            >>> base = ub.Path('base')
+            >>> assert base.startswith('base')
+            >>> assert not base.startswith('all your')
+            >>> # test start / stop cases
+            >>> assert ub.Path('aabbccdd').startswith('aab', 0)
+            >>> assert ub.Path('aabbccdd').startswith('aab', 0, 5)
+            >>> assert not ub.Path('aabbccdd').startswith('aab', 1, 5)
+            >>> assert not ub.Path('aabbccdd').startswith('aab', 0, 2)
+            >>> # test tuple case
+            >>> assert ub.Path('aabbccdd').startswith(('foo', 'aab'))
+            >>> assert ub.Path('foo').startswith(('foo', 'aab'))
+            >>> assert not ub.Path('bar').startswith(('foo', 'aab'))
+        """
+        return os.fspath(self).startswith(prefix, *args)
