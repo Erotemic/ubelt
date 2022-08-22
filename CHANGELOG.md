@@ -18,6 +18,10 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 * Add `cls` keyword argument to `ubelt.SetDict` methods.
 * Deprecate: `ensure_app_cache_dir`, `ensure_app_config_dir`, `ensure_app_data_dir`,
   `get_app_cache_dir`, `get_app_config_dir`, `get_app_data_dir`, `readfrom`, `writeto`, `ensure_unicode`.
+* Initial work on new Path methods for move and copy.
+
+### Fixed
+* Tentative fixes for new `__editable__` based install path with `ub.modname_to_modpath`
 
 ## Version 1.2.1 - Released 2022-08-06
 
