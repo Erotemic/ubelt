@@ -151,7 +151,8 @@ def hzcat(args, sep=''):
         raise ValueError('`sep` cannot contain newline characters')
 
     # TODO: ensure unicode data works correctly for python2
-    args = [unicodedata.normalize('NFC', ensure_unicode(val)) for val in args]
+    # args = [unicodedata.normalize('NFC', ensure_unicode(val)) for val in args]
+    args = [unicodedata.normalize('NFC', val) for val in args]
     arglines = [a.split('\n') for a in args]
     height = max(map(len, arglines))
     # Do vertical padding
