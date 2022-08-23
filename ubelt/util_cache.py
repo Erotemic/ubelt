@@ -117,7 +117,6 @@ RelatedWork:
 """
 import os
 from os.path import join, normpath, basename, exists
-# import warnings
 
 
 class Cacher(object):
@@ -293,11 +292,6 @@ class Cacher(object):
             cfgstr = self.cfgstr
 
         if cfgstr is None and self.enabled:
-            # This likely does not need to warn anymore. It is ok if no
-            # dependencies are specified. That is an expected use case.
-            # warnings.warn(
-            #     'No depends given in Cacher constructor or call for {}'.format(
-            #         self.fname), UserWarning)
             cfgstr = ''
         if self.fname is None:
             raise AssertionError('no fname specified in Cacher')
@@ -1095,6 +1089,9 @@ class CacheStamp(object):
 
     def _expires(self, now=None):
         """
+        Returns:
+            datetime.datetime: the absolute local time when the stamp expires
+
         Example:
             >>> import ubelt as ub
             >>> dpath = ub.Path.appdir('ubelt/tests/cache-stamp-expires')
@@ -1145,6 +1142,9 @@ class CacheStamp(object):
 
     def _new_certificate(self, cfgstr=None, product=None):
         """
+        Returns:
+            dict: certificate information
+
         Example:
             >>> import ubelt as ub
             >>> # Stamp the computation of expensive-to-compute.txt
@@ -1183,8 +1183,10 @@ class CacheStamp(object):
         certificate to disk.
 
         Returns:
-            dict: certificate information
+            None | dict: certificate information if enabled otherwise None.
         """
+        if not self.cacher.enabled:
+            return None
         if cfgstr is not None:  # nocover
             from ubelt import schedule_deprecation
             schedule_deprecation(

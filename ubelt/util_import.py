@@ -483,7 +483,8 @@ def _syspath_modname_to_modpath(modname, sys_path=None, exclude=None):
             # This makes some assumptions, which may not hold in general
             # We may need to fallback entirely on pkgutil, which would
             # ultimately be good. Hopefully the new standards mean it does not
-            # break with pytest anymore?
+            # break with pytest anymore? Nope, pytest still doesn't work right
+            # with it.
             finder_fpath = new_editable_paths[-1]
             mapping = _static_parse('MAPPING', finder_fpath)
             target = dirname(mapping[_pkg_name])
