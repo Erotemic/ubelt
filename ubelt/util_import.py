@@ -466,8 +466,10 @@ def _syspath_modname_to_modpath(modname, sys_path=None, exclude=None):
                     return modpath
 
     _pkg_name = _fname_we.split(os.path.sep)[0]
+    _pkg_name_hypen = _pkg_name.replace('_', '-')
 
-    _egglink_fname = _pkg_name + '.egg-link'
+    _egglink_fname1 = _pkg_name + '.egg-link'
+    _egglink_fname2 = _pkg_name_hypen + '.egg-link'
     _editable_fname_pth_pat = '__editable__.' + _pkg_name + '-*.pth'
     _editable_fname_finder_py_pat = '__editable___' + _pkg_name + '_*finder.py'
 
@@ -516,8 +518,14 @@ def _syspath_modname_to_modpath(modname, sys_path=None, exclude=None):
         # If file path checks fails, check for egg-link based modules
         # (Python usually puts egg links into sys.path, but if the user is
         #  providing the path then it is important to check them explicitly)
-        linkpath = join(dpath, _egglink_fname)
-        if isfile(linkpath):  # nocover
+        linkpath1 = join(dpath, _egglink_fname1)
+        linkpath2 = join(dpath, _egglink_fname2)
+        linkpath = None
+        if isfile(linkpath1):  # nocover
+            linkpath = linkpath1
+        elif isfile(linkpath2):  # nocover
+            linkpath = linkpath2
+        if linkpath is not None:  # nocover
             # We exclude this from coverage because its difficult to write a
             # unit test where we can enforce that there is a module installed
             # in development mode.

@@ -420,6 +420,10 @@ def setup_module(module):
     PUREPY_SRC_PROJECT.setup()
     GLOBAL_PROJECTS.append(PUREPY_SRC_PROJECT)
 
+    if 0:
+        for proj in GLOBAL_PROJECTS:
+            proj.analyze()
+
 
 def teardown_module(module):
     """ teardown any state that was previously setup with a setup_module
@@ -439,4 +443,6 @@ def test_import_of_editable_install():
     import ubelt as ub
     for PROJ in GLOBAL_PROJECTS:
         result = ub.modname_to_modpath(PROJ.mod_name)
+        print(f'result={result}')
         assert result is not None
+        assert PROJ.mod_dpath == ub.Path(result)
