@@ -11,6 +11,7 @@ What we could do is run the expensive test once, and serialize the outputs it
 produces so we can simply reconstruct the environment.
 """
 import os
+import sys
 
 
 class ProjectStructure():
@@ -396,13 +397,23 @@ class ProjectStructure():
 GLOBAL_PROJECTS = []
 
 
+def _check_skip_editable_module_tests():
+    if os.environ.get('UBELT_SKIP_EDITABLE_TESTS', ''):
+        import pytest
+        pytest.skip()
+
+    if sys.platform.startswith('win32'):
+        import pytest
+        pytest.skip()
+
+
 def setup_module(module):
     """ setup any state specific to the execution of the given module."""
     import uuid
     import ubelt as ub
-    if os.environ.get('UBELT_SKIP_EDITABLE_TESTS', ''):
-        import pytest
-        pytest.skip()
+
+    _check_skip_editable_module_tests()
+
     suffix = ub.hash_data(uuid.uuid4(), base='abc')[0:8]
     dpath = ub.Path.appdir('ubelt/tests/demo_packages').ensuredir()
 
@@ -429,17 +440,13 @@ def teardown_module(module):
     """ teardown any state that was previously setup with a setup_module
     method.
     """
-    if os.environ.get('UBELT_SKIP_EDITABLE_TESTS', ''):
-        import pytest
-        pytest.skip()
+    _check_skip_editable_module_tests()
     for PROJ in GLOBAL_PROJECTS:
         PROJ.teardown()
 
 
 def test_import_of_editable_install():
-    if os.environ.get('UBELT_SKIP_EDITABLE_TESTS', ''):
-        import pytest
-        pytest.skip()
+    _check_skip_editable_module_tests()
     import ubelt as ub
     for PROJ in GLOBAL_PROJECTS:
         result = ub.modname_to_modpath(PROJ.mod_name)
