@@ -468,8 +468,8 @@ def _syspath_modname_to_modpath(modname, sys_path=None, exclude=None):
     _pkg_name = _fname_we.split(os.path.sep)[0]
 
     _egglink_fname = _pkg_name + '.egg-link'
-    # _editable_fname_pth_pat = '__editable__.' + _pkg_name + '-*.pth'
-    _editable_fname_py_pat = '__editable___' + _pkg_name + '_*finder.py'
+    _editable_fname_pth_pat = '__editable__.' + _pkg_name + '-*.pth'
+    _editable_fname_finder_py_pat = '__editable___' + _pkg_name + '_*finder.py'
 
     found_modpath = None
     for dpath in candidate_dpaths:
@@ -478,18 +478,38 @@ def _syspath_modname_to_modpath(modname, sys_path=None, exclude=None):
             found_modpath = modpath
             break
 
-        new_editable_paths = sorted(glob.glob(join(dpath, _editable_fname_py_pat)))
-        if new_editable_paths:
+        # Attempt to handle PEP660 import hooks.
+        # We should look for a finder path first, because a pth might
+        # not contain a real path, but code to load the finder.
+        # Which one is used is defined in setuptools/editable_wheel.py
+        # It will depend on an "Editable Strategy".
+        # Basically a finder will be used for "complex" structures and
+        # basic pth will be used for "simple" structures (which means has a
+        # src/modname folder).
+        new_editable_finder_paths = sorted(glob.glob(join(dpath, _editable_fname_finder_py_pat)))
+        if new_editable_finder_paths:
             # This makes some assumptions, which may not hold in general
             # We may need to fallback entirely on pkgutil, which would
             # ultimately be good. Hopefully the new standards mean it does not
             # break with pytest anymore? Nope, pytest still doesn't work right
             # with it.
-            finder_fpath = new_editable_paths[-1]
+            finder_fpath = new_editable_finder_paths[-1]
             mapping = _static_parse('MAPPING', finder_fpath)
             target = dirname(mapping[_pkg_name])
             modpath = check_dpath(target)
-            if modpath:
+            if modpath:  # pragma: nobranch
+                found_modpath = modpath
+                break
+
+        # If a finder does not exist, then the __editable__ pth file might hold
+        # the path itself. Check for that.
+        new_editable_pth_paths = sorted(glob.glob(join(dpath, _editable_fname_pth_pat)))
+        if new_editable_pth_paths:
+            import pathlib
+            editable_pth = pathlib.Path(new_editable_pth_paths[-1])
+            target = editable_pth.read_text().strip().split('\n')[-1]
+            modpath = check_dpath(target)
+            if modpath:  # pragma: nobranch
                 found_modpath = modpath
                 break
 
@@ -501,6 +521,8 @@ def _syspath_modname_to_modpath(modname, sys_path=None, exclude=None):
             # We exclude this from coverage because its difficult to write a
             # unit test where we can enforce that there is a module installed
             # in development mode.
+            # Note: the new test_editable_modules.py test can do this, but
+            # this old method may no longer be supported.
 
             # TODO: ensure this is the correct way to parse egg-link files
             # https://setuptools.readthedocs.io/en/latest/formats.html#egg-links
@@ -832,6 +854,30 @@ def is_modname_importable(modname, sys_path=None, exclude=None):
 def _static_parse(varname, fpath):
     """
     Statically parse the a constant variable from a python file
+
+    Example:
+        >>> import ubelt as ub
+        >>> dpath = ub.Path.appdir('tests/import/staticparse').ensuredir()
+        >>> fpath = (dpath / 'foo.py')
+        >>> fpath.write_text('a = {1: 2}')
+        >>> assert _static_parse('a', fpath) == {1: 2}
+        >>> fpath.write_text('a = 2')
+        >>> assert _static_parse('a', fpath) == 2
+        >>> fpath.write_text('a = "3"')
+        >>> assert _static_parse('a', fpath) == "3"
+        >>> fpath.write_text('a = ["3", 5, 6]')
+        >>> assert _static_parse('a', fpath) == ["3", 5, 6]
+        >>> fpath.write_text('a = ("3", 5, 6)')
+        >>> assert _static_parse('a', fpath) == ("3", 5, 6)
+        >>> fpath.write_text('b = 10' + chr(10) + 'a = None')
+        >>> assert _static_parse('a', fpath) is None
+        >>> import pytest
+        >>> with pytest.raises(TypeError):
+        >>>     fpath.write_text('a = list(range(10))')
+        >>>     assert _static_parse('a', fpath) is None
+        >>> with pytest.raises(AttributeError):
+        >>>     fpath.write_text('a = list(range(10))')
+        >>>     assert _static_parse('c', fpath) is None
     """
     import ast
 
@@ -852,10 +898,8 @@ def _static_parse(varname, fpath):
     try:
         value = visitor.static_value
     except AttributeError:
-        import warnings
-
         value = 'Unknown {}'.format(varname)
-        warnings.warn(value)
+        raise AttributeError(value)
     return value
 
 

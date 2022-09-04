@@ -22,6 +22,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 * CacheStamp.renew now does nothing and returns None if the stamp is disabled.
 * AutoDict, SetDict, and UDict are now always ordered. In Python 3.6 it inherits from OrderedDict. Otherwise it uses regular dict, which will be ordered in 3.7+
 * AutoDict now inherits from UDict.
+* PathLike objects can now be used in args to ub.cmd when the command is an iterable.
 
 
 ### Deprecated

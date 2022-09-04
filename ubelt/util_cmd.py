@@ -243,7 +243,13 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
         command_tup = None
     else:
         import pipes
-        command_tup = command
+        command_parts = []
+        # Allow the user to specify paths as part of the command
+        for part in command:
+            if isinstance(part, os.PathLike):
+                part = os.fspath(part)
+            command_parts.append(part)
+        command_tup = tuple(command_parts)
         command_text = ' '.join(list(map(pipes.quote, command_tup)))
 
     if shell or sys.platform.startswith('win32'):

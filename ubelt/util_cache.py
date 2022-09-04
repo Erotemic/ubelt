@@ -1184,6 +1184,13 @@ class CacheStamp(object):
 
         Returns:
             None | dict: certificate information if enabled otherwise None.
+
+        Example:
+            >>> # Test that renew does nothing when the cacher is disabled
+            >>> import ubelt as ub
+            >>> dpath = ub.Path.appdir('ubelt/tests/cache-stamp-renew').ensuredir()
+            >>> self = ub.CacheStamp('foo', dpath=dpath, enabled=False)
+            >>> assert self.renew() is None
         """
         if not self.cacher.enabled:
             return None

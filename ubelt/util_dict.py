@@ -96,9 +96,9 @@ ddict = defaultdict
 
 # Use an ordered dictionary in < 3.7 as the base
 
-if sys.version_info[0:2] <= (3, 6):
+if sys.version_info[0:2] <= (3, 6):  # nocover
     DictBase = OrderedDict
-else:
+else:  # nocover
     DictBase = dict
 
 
@@ -1848,9 +1848,9 @@ class AutoDict(UDict):
 
 # DEPRECATED. This is no longer needed. AutoDict is always ordered
 
-if sys.version_info[0:2] <= (3, 6):
+if sys.version_info[0:2] <= (3, 6):  # nocover
     AutoOrderedDict = AutoDict
-else:
+else:  # nocover
     AutoOrderedDict = AutoDict
     # def __getattr__(key):
     #     if key == 'AutoOrderedDict':
