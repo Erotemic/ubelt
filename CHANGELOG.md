@@ -20,6 +20,13 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
   `get_app_cache_dir`, `get_app_config_dir`, `get_app_data_dir`, `readfrom`, `writeto`, `ensure_unicode`.
 * Initial work on new Path methods for move and copy.
 * CacheStamp.renew now does nothing and returns None if the stamp is disabled.
+* AutoDict, SetDict, and UDict are now always ordered. In Python 3.6 it inherits from OrderedDict. Otherwise it uses regular dict, which will be ordered in 3.7+
+* AutoDict now inherits from UDict.
+
+
+### Deprecated
+* deprecate AutoOrderedDict, which is now indistinguishable from AutoDict
+
 
 ### Fixed
 * Tentative fixes for new `__editable__` based install path with `ub.modname_to_modpath`

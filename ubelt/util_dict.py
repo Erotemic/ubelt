@@ -51,6 +51,7 @@ References:
     .. [Pep3106] https://peps.python.org/pep-3106/
     .. [GHDictMap] https://github.com/ulisesojeda/dictionary_map
 """
+import sys
 import operator as op
 import itertools as it
 from collections import OrderedDict
@@ -93,74 +94,12 @@ odict = OrderedDict
 ddict = defaultdict
 
 
-class AutoDict(dict):
-    """
-    An infinitely nested default dict of dicts.
+# Use an ordered dictionary in < 3.7 as the base
 
-    Implementation of Perl's autovivification feature that follows
-    [SO_651794]_.
-
-    SeeAlso:
-        :class:`AutoOrderedDict` - the ordered version
-
-    References:
-        .. [SO_651794] http://stackoverflow.com/questions/651794/init-dict-of-dicts
-
-    Example:
-        >>> import ubelt as ub
-        >>> auto = ub.AutoDict()
-        >>> auto[0][10][100] = None
-        >>> assert str(auto) == '{0: {10: {100: None}}}'
-    """
-    _base = dict
-
-    def __getitem__(self, key):
-        try:
-            # value = super(AutoDict, self).__getitem__(key)
-            value = self._base.__getitem__(self, key)
-        except KeyError:
-            value = self[key] = type(self)()
-        return value
-
-    def to_dict(self):
-        """
-        Recursively casts a AutoDict into a regular dictionary. All nested
-        AutoDict values are also converted.
-
-        Returns:
-            dict: a copy of this dict without autovivification
-
-        Example:
-            >>> from ubelt.util_dict import AutoDict
-            >>> auto = AutoDict()
-            >>> auto[1] = 1
-            >>> auto['n1'] = AutoDict()
-            >>> static = auto.to_dict()
-            >>> assert not isinstance(static, AutoDict)
-            >>> assert not isinstance(static['n1'], AutoDict)
-        """
-        return self._base(
-            (key, (value.to_dict() if isinstance(value, AutoDict) else value))
-            for key, value in self.items())
-
-
-class AutoOrderedDict(OrderedDict, AutoDict):
-    """
-    An infinitely nested default dict of dicts that maintains the ordering
-    of items.
-
-    SeeAlso:
-        :class:`AutoDict` - the unordered version of this class
-
-    Example:
-        >>> import ubelt as ub
-        >>> auto = ub.AutoOrderedDict()
-        >>> auto[0][3] = 3
-        >>> auto[0][2] = 2
-        >>> auto[0][1] = 1
-        >>> assert list(auto[0].values()) == [3, 2, 1]
-    """
-    _base = OrderedDict
+if sys.version_info[0:2] <= (3, 6):
+    DictBase = OrderedDict
+else:
+    DictBase = dict
 
 
 def dzip(items1, items2, cls=dict):
@@ -1848,5 +1787,80 @@ class UDict(SetDict):
         import ubelt as ub
         return ub.peek(self.values(), default=default)
 
+
+class AutoDict(UDict):
+    """
+    An infinitely nested default dict of dicts.
+
+    Implementation of Perl's autovivification feature that follows
+    [SO_651794]_.
+
+    References:
+        .. [SO_651794] http://stackoverflow.com/questions/651794/init-dict-of-dicts
+
+    Example:
+        >>> import ubelt as ub
+        >>> auto = ub.AutoDict()
+        >>> auto[0][10][100] = None
+        >>> assert str(auto) == '{0: {10: {100: None}}}'
+    """
+    _base = UDict
+
+    def __getitem__(self, key):
+        try:
+            # value = super(AutoDict, self).__getitem__(key)
+            value = self._base.__getitem__(self, key)
+        except KeyError:
+            value = self[key] = self.__class__()
+        return value
+
+    def to_dict(self):
+        """
+        Recursively casts a AutoDict into a regular dictionary. All directly
+        nested AutoDict values are also converted.
+
+        This effectively de-defaults the structure.
+
+        Returns:
+            dict: a copy of this dict without autovivification
+
+        Example:
+            >>> import ubelt as ub
+            >>> auto = ub.AutoDict()
+            >>> auto[1] = 1
+            >>> auto['n1'] = ub.AutoDict()
+            >>> static = auto.to_dict()
+            >>> assert not isinstance(static, ub.AutoDict)
+            >>> assert not isinstance(static['n1'], ub.AutoDict)
+
+        Example:
+            >>> import ubelt as ub
+            >>> auto = ub.AutoOrderedDict()
+            >>> auto[0][3] = 3
+            >>> auto[0][2] = 2
+            >>> auto[0][1] = 1
+            >>> assert list(auto[0].values()) == [3, 2, 1]
+        """
+        return self._base(
+            (key, (value.to_dict() if isinstance(value, AutoDict) else value))
+            for key, value in self.items())
+
+
+# DEPRECATED. This is no longer needed. AutoDict is always ordered
+
+if sys.version_info[0:2] <= (3, 6):
+    AutoOrderedDict = AutoDict
+else:
+    AutoOrderedDict = AutoDict
+    # def __getattr__(key):
+    #     if key == 'AutoOrderedDict':
+    #         import ubelt as ub
+    #         ub.schedule_deprecation(
+    #             modname='ubelt', name='AutoOrderedDict', type='class',
+    #             migration='use AutoDict instead',
+    #             deprecate='1.2.0', error='2.0.0', remove='2.1.0')
+    #         return AutoDict
+    #     else:
+    #         raise AttributeError(key)
 
 udict = UDict
