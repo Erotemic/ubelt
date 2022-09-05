@@ -945,3 +945,64 @@ class Path(_PathBase):
             >>> assert not ub.Path('bar').startswith(('foo', 'aab'))
         """
         return os.fspath(self).startswith(prefix, *args)
+
+    # TODO: add more shutil functionality
+    # This is discussed in https://peps.python.org/pep-0428/#filesystem-modification
+    if 0:
+        # Stub out potential new functionality
+        def copy(self, dst, follow_file_symlinks=True,
+                 follow_dir_symlinks=True,
+                 copy_bits='stats'):
+            """
+            Copy this file or directory to dst.
+
+            Args:
+                dst (str | PathLike):
+                    if `src` is a file and `dst` is a directory, copies this to `dst / src.name`
+                    if `src` is a file and `dst` does not exist, copies this to `dst`
+
+                    todo if `src` is a directory and `dst` is a directory, copies this to `dst / src.name`
+                    todo if `src` is a directory and `dst` does not exist, copies this to `dst`
+
+                follow_file_symlinks (bool):
+                    If True and src is a link, the link will be resolved before
+                    it is copied (i.e. the data is duplicated), otherwise just
+                    the link itself will be copied.
+
+                follow_dir_symlinks (bool):
+                    if True when src is a directory and contains symlinks to
+                    other directories, the contents of the linked data are
+                    copied, otherwise when False only the link itself is
+                    copied.
+
+                copy_bits (str | None):
+                    Indicates what metadata bits to copy. This can be 'stats'
+                    which tries to copy all metadata (i.e. like shutil.copy2),
+                    'mode' which copies just the permission bits (i.e. like
+                    shutil.copy), or None, which ignores all metadata (i.e.
+                    like shutil.copyfile).
+
+            """
+            import shutil
+            from functools import partial
+            if copy_bits is None:
+                copyfunction = partial(shutil.copyfile, follow_symlinks=follow_file_symlinks)
+            elif copy_bits == 'stats':
+                copyfunction = partial(shutil.copy2, follow_symlinks=follow_file_symlinks)
+            elif copy_bits == 'mode':
+                copyfunction = partial(shutil.copy, follow_symlinks=follow_file_symlinks)
+            else:
+                raise KeyError(copy_bits)
+
+            if self.is_dir():
+                shutil.copytree(
+                    self, dst, copyfunction=copyfunction,
+                    symlinks=not follow_dir_symlinks)
+            elif self.is_file():
+                dst = copyfunction(self, dst)
+            else:
+                raise Exception
+
+        def move(self, dst):
+            import shutil
+            shutil.move(self, dst)
