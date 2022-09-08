@@ -3,27 +3,21 @@ import ubelt as ub
 
 
 def test_pathlib():
-    try:
-        import pathlib
-        base = pathlib.Path(ub.Path.appdir('ubelt')).ensuredir()
-        dpath = base.joinpath('test_pathlib_mkdir')
+    import pathlib
+    base = pathlib.Path(ub.Path.appdir('ubelt').ensuredir())
+    dpath = base.joinpath('test_pathlib_mkdir')
 
-        # ensuredir
-        ub.delete(dpath)
-        assert not dpath.exists()
-        got = ub.ensuredir(dpath)
-        assert got.exists()
+    # ensuredir
+    ub.delete(dpath)
+    assert not dpath.exists()
+    got = ub.ensuredir(dpath)
+    assert got.exists()
 
-        # shrinkuser
-        assert ub.shrinkuser(base) == '~/.cache/ubelt'
+    # shrinkuser
+    assert ub.shrinkuser(base) == '~/.cache/ubelt'
 
-        assert ub.augpath(base, prefix='foo') == '/home/joncrall/.cache/fooubelt'
-
-        ub.expandpath(base)
-
-    except Exception:
-        import pytest
-        pytest.skip('pathlib is not installed')
+    assert ub.augpath(base, prefix='foo') == str(ub.Path('~/.cache/fooubelt').expand())
+    ub.expandpath(base)
 
 
 def test_tempdir():
