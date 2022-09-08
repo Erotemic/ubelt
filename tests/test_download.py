@@ -452,14 +452,11 @@ class SingletonTestServer(ub.NiceRepr):
 
         dpath = ub.Path.appdir('ubelt/tests/test_download/simple_server').ensuredir()
 
-        if sys.version_info[0] == 2:
-            server_cmd = [
-                'python', '-m', 'SimpleHTTPServer', str(port)
-            ]
-        else:
-            server_cmd = [
-                'python', '-m', 'http.server', str(port)
-            ]
+        pyexe = sys.executable
+
+        server_cmd = [
+            pyexe, '-m', 'http.server', str(port)
+        ]
         info = ub.cmd(server_cmd, detach=True, cwd=dpath)
         proc = info['proc']
         self.proc = proc
