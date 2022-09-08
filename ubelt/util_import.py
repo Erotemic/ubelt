@@ -406,6 +406,9 @@ def _syspath_modname_to_modpath(modname, sys_path=None, exclude=None):
 
     Example:
         >>> # test what happens when the module is not visible in the path
+        >>> # xdoctest: +SKIP('')
+        >>> from ubelt.util_import import *  # NOQA
+        >>> from ubelt.util_import import _syspath_modname_to_modpath
         >>> modname = 'xdoctest.static_analysis'
         >>> modpath = _syspath_modname_to_modpath(modname)
         >>> exclude = [split_modpath(modpath)[0]]
@@ -498,10 +501,11 @@ def _syspath_modname_to_modpath(modname, sys_path=None, exclude=None):
             finder_fpath = new_editable_finder_paths[-1]
             mapping = _static_parse('MAPPING', finder_fpath)
             target = dirname(mapping[_pkg_name])
-            modpath = check_dpath(target)
-            if modpath:  # pragma: nobranch
-                found_modpath = modpath
-                break
+            if not exclude or normalize(target) not in real_exclude:
+                modpath = check_dpath(target)
+                if modpath:  # pragma: nobranch
+                    found_modpath = modpath
+                    break
 
         # If a finder does not exist, then the __editable__ pth file might hold
         # the path itself. Check for that.
@@ -510,10 +514,11 @@ def _syspath_modname_to_modpath(modname, sys_path=None, exclude=None):
             import pathlib
             editable_pth = pathlib.Path(new_editable_pth_paths[-1])
             target = editable_pth.read_text().strip().split('\n')[-1]
-            modpath = check_dpath(target)
-            if modpath:  # pragma: nobranch
-                found_modpath = modpath
-                break
+            if not exclude or normalize(target) not in real_exclude:
+                modpath = check_dpath(target)
+                if modpath:  # pragma: nobranch
+                    found_modpath = modpath
+                    break
 
         # If file path checks fails, check for egg-link based modules
         # (Python usually puts egg links into sys.path, but if the user is
