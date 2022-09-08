@@ -1068,7 +1068,7 @@ class Path(_PathBase):
             >>> print('paths = {}'.format(ub.repr2(paths, nl=1)))
             >>> assert all(p.exists() for p in paths.values())
             >>> # xdev.tree_repr(dpath, max_files=10)
-            >>> dpath0.move(dpath / 'dpath1')
+            >>> paths['dpath0'].move(dpath / 'dpath1')
             >>> # xdev.tree_repr(dpath, max_files=10)
 
         Ignore:
