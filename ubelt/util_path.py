@@ -946,63 +946,137 @@ class Path(_PathBase):
         """
         return os.fspath(self).startswith(prefix, *args)
 
-    # TODO: add more shutil functionality
+    # More shutil functionality
     # This is discussed in https://peps.python.org/pep-0428/#filesystem-modification
-    if 0:
-        # Stub out potential new functionality
-        def copy(self, dst, follow_file_symlinks=True,
-                 follow_dir_symlinks=True,
-                 copy_bits='stats'):
-            """
-            Copy this file or directory to dst.
 
-            Args:
-                dst (str | PathLike):
-                    if `src` is a file and `dst` is a directory, copies this to `dst / src.name`
-                    if `src` is a file and `dst` does not exist, copies this to `dst`
+    def _request_copy_function(self, follow_file_symlinks=True,
+                               follow_dir_symlinks=True, copy_bits='stats'):
+        """
+        Get a copy_function based on specified capabilities
+        """
+        import shutil
+        from functools import partial
+        if copy_bits is None:
+            copy_function = partial(shutil.copyfile, follow_symlinks=follow_file_symlinks)
+        elif copy_bits == 'stats':
+            copy_function = partial(shutil.copy2, follow_symlinks=follow_file_symlinks)
+        elif copy_bits == 'mode':
+            copy_function = partial(shutil.copy, follow_symlinks=follow_file_symlinks)
+        else:
+            raise KeyError(copy_bits)
+        return copy_function
 
-                    todo if `src` is a directory and `dst` is a directory, copies this to `dst / src.name`
-                    todo if `src` is a directory and `dst` does not exist, copies this to `dst`
+    def copy(self, dst, follow_file_symlinks=True, follow_dir_symlinks=True,
+             copy_bits='stats', dirs_exist_ok=False):
+        """
+        Copy this file or directory to dst.
 
-                follow_file_symlinks (bool):
-                    If True and src is a link, the link will be resolved before
-                    it is copied (i.e. the data is duplicated), otherwise just
-                    the link itself will be copied.
+        This is implemented with a combination of :func:`shutil.copy`,
+        :func:`shutil.copy2`, and :func:`shutil.copytree`.
 
-                follow_dir_symlinks (bool):
-                    if True when src is a directory and contains symlinks to
-                    other directories, the contents of the linked data are
-                    copied, otherwise when False only the link itself is
-                    copied.
+        Args:
+            dst (str | PathLike):
+                if `src` is a file and `dst` is a directory, copies this to `dst / src.name`
+                if `src` is a file and `dst` does not exist, copies this to `dst`
 
-                copy_bits (str | None):
-                    Indicates what metadata bits to copy. This can be 'stats'
-                    which tries to copy all metadata (i.e. like shutil.copy2),
-                    'mode' which copies just the permission bits (i.e. like
-                    shutil.copy), or None, which ignores all metadata (i.e.
-                    like shutil.copyfile).
+                todo if `src` is a directory and `dst` is a directory, copies this to `dst / src.name`
+                todo if `src` is a directory and `dst` does not exist, copies this to `dst`
+                todo: what is the most natural way to implement this?
 
-            """
-            import shutil
-            from functools import partial
-            if copy_bits is None:
-                copyfunction = partial(shutil.copyfile, follow_symlinks=follow_file_symlinks)
-            elif copy_bits == 'stats':
-                copyfunction = partial(shutil.copy2, follow_symlinks=follow_file_symlinks)
-            elif copy_bits == 'mode':
-                copyfunction = partial(shutil.copy, follow_symlinks=follow_file_symlinks)
-            else:
-                raise KeyError(copy_bits)
+            follow_file_symlinks (bool):
+                If True and src is a link, the link will be resolved before
+                it is copied (i.e. the data is duplicated), otherwise just
+                the link itself will be copied.
 
-            if self.is_dir():
-                shutil.copytree(
-                    self, dst, copyfunction=copyfunction,
-                    symlinks=not follow_dir_symlinks)
-            elif self.is_file():
-                dst = copyfunction(self, dst)
-            else:
-                raise Exception
+            follow_dir_symlinks (bool):
+                if True when src is a directory and contains symlinks to
+                other directories, the contents of the linked data are
+                copied, otherwise when False only the link itself is
+                copied.
 
-        def move(self, dst):
-            import shutil
-            shutil.move(self, dst)
+            copy_bits (str | None):
+                Indicates what metadata bits to copy. This can be 'stats'
+                which tries to copy all metadata (i.e. like shutil.copy2),
+                'mode' which copies just the permission bits (i.e. like
+                shutil.copy), or None, which ignores all metadata (i.e.
+                like shutil.copyfile).
+
+            dirs_exist_ok (bool):
+                only relevant when self is a directory.
+
+        Example:
+            >>> import ubelt as ub
+            >>> root = ub.Path.appdir('ubelt', 'tests', 'path', 'copy').delete().ensuredir()
+            >>> paths = {}
+            >>> dpath = (root / 'orig').ensuredir()
+            >>> clone0 = (root / 'dst_is_explicit').ensuredir()
+            >>> clone1 = (root / 'dst_is_parent').ensuredir()
+            >>> paths['fpath'] = (dpath / 'file0.txt').touch()
+            >>> paths['empty_dpath'] = (dpath / 'empty_dpath').ensuredir()
+            >>> paths['nested_dpath'] = (dpath / 'nested_dpath').ensuredir()
+            >>> (dpath / 'nested_dpath/d0').ensuredir()
+            >>> (dpath / 'nested_dpath/d0/f1.txt').touch()
+            >>> (dpath / 'nested_dpath/d0/f2.txt').touch()
+            >>> print('paths = {}'.format(ub.repr2(paths, nl=1)))
+            >>> assert all(p.exists() for p in paths.values())
+            >>> paths['fpath'].copy(clone0 / 'file0.txt')
+            >>> paths['fpath'].copy(clone1)
+            >>> paths['empty_dpath'].copy(clone0 / 'empty_dpath')
+            >>> paths['empty_dpath'].copy((clone1 / 'empty_dpath_alt').ensuredir(), dirs_exist_ok=True)
+            >>> paths['nested_dpath'].copy(clone0 / 'nested_dpath')
+            >>> paths['nested_dpath'].copy((clone1 / 'nested_dpath_alt').ensuredir(), dirs_exist_ok=True)
+            >>> # paths['nested_dpath'].copy(clone1)
+
+        Ignore:
+            import xdev
+            xdev.tree_repr(dpath, max_files=10)
+            xdev.tree_repr(clone0, max_files=10)
+            xdev.tree_repr(clone1, max_files=10)
+        """
+        import shutil
+        copy_function = self._request_copy_function(
+            follow_file_symlinks=follow_file_symlinks,
+            follow_dir_symlinks=follow_dir_symlinks, copy_bits=copy_bits)
+        if self.is_dir():
+            shutil.copytree(
+                self, dst, copy_function=copy_function,
+                symlinks=not follow_dir_symlinks, dirs_exist_ok=dirs_exist_ok)
+        elif self.is_file():
+            dst = copy_function(self, dst)
+        else:
+            raise Exception
+
+    def move(self, dst, follow_file_symlinks=True, follow_dir_symlinks=True, copy_bits='stats'):
+        """
+        Move a file from one location to another, or recursively move a
+        directory from one location to another.
+
+        This is implemented via :func:`shutil.move`.
+
+        Args:
+            dst (str | PathLike):
+
+        Example:
+            >>> import ubelt as ub
+            >>> dpath = ub.Path.appdir('ubelt', 'tests', 'path', 'move').delete().ensuredir()
+            >>> paths = {}
+            >>> paths['dpath0'] = (dpath / 'dpath0').ensuredir()
+            >>> paths['dpath00'] = (dpath / 'dpath0' / 'sub0').ensuredir()
+            >>> paths['fpath000'] = (dpath / 'dpath0' / 'sub0' / 'f0.txt').touch()
+            >>> paths['fpath001'] = (dpath / 'dpath0' / 'sub0' / 'f1.txt').touch()
+            >>> paths['dpath01'] = (dpath / 'dpath0' / 'sub1').ensuredir()
+            >>> print('paths = {}'.format(ub.repr2(paths, nl=1)))
+            >>> assert all(p.exists() for p in paths.values())
+            >>> # xdev.tree_repr(dpath, max_files=10)
+            >>> dpath0.move(dpath / 'dpath1')
+            >>> # xdev.tree_repr(dpath, max_files=10)
+
+        Ignore:
+            import xdev
+            xdev.tree_repr(dpath)
+        """
+        import shutil
+        copy_function = self._request_copy_function(
+            follow_file_symlinks=follow_file_symlinks,
+            follow_dir_symlinks=follow_dir_symlinks, copy_bits=copy_bits)
+        shutil.move(self, dst, copy_function=copy_function)
