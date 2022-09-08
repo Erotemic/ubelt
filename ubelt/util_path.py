@@ -169,10 +169,18 @@ def userhome(username=None):
 
     Example:
         >>> from ubelt.util_path import *  # NOQA
+        >>> import ubelt as ub
         >>> import getpass
         >>> username = getpass.getuser()
-        >>> assert userhome() == expanduser('~')
-        >>> assert userhome(username) == expanduser('~')
+        >>> userhome_target = expanduser('~')
+        >>> userhome_got1 = ub.userhome()
+        >>> userhome_got2 = ub.userhome(username)
+        >>> print(f'username={username}')
+        >>> print(f'userhome_got1={userhome_got1}')
+        >>> print(f'userhome_got2={userhome_got2}')
+        >>> print(f'userhome_target={userhome_target}')
+        >>> assert userhome_got1 == userhome_target
+        >>> assert userhome_got2 == userhome_target
     """
     if username is None:
         # get home directory for the current user
