@@ -96,7 +96,7 @@ class IndexableWalker(Generator):
     Example:
         >>> # Test sending false for every data item
         >>> import ubelt as ub
-        >>> data = {1: [1, 2, 3], 2: np.array([1, 2, 3])}
+        >>> data = {1: [1, 2, 3], 2: [1, 2, 3]}
         >>> walker = ub.IndexableWalker(data)
         >>> # Sending false means you wont traverse any further on that path
         >>> num_iters_v1 = 0
@@ -110,7 +110,7 @@ class IndexableWalker(Generator):
         >>>     print('[v2] walk path = {}'.format(ub.repr2(path, nl=0)))
         >>>     num_iters_v2 += 1
         >>> assert num_iters_v1 == 2
-        >>> assert num_iters_v2 == 5
+        >>> assert num_iters_v2 == 8
 
     Example:
         >>> # Test numpy
