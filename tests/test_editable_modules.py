@@ -400,11 +400,15 @@ GLOBAL_PROJECTS = []
 def _check_skip_editable_module_tests():
     if os.environ.get('UBELT_SKIP_EDITABLE_TESTS', ''):
         import pytest
-        pytest.skip()
+        pytest.skip('User requested skip editable tests')
 
     if sys.platform.startswith('win32'):
         import pytest
-        pytest.skip()
+        pytest.skip('skip editable module tests on Win32')
+
+    if sys.platform.startswith('freebsd'):
+        import pytest
+        pytest.skip('skip editable module tests on FreeBSD')
 
 
 def setup_module(module):
