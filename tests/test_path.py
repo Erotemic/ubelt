@@ -17,7 +17,6 @@ def test_pathlib():
     assert ub.shrinkuser(base).startswith('~')
 
     assert ub.augpath(base, prefix='foo').endswith('fooubelt')
-    assert ub.augpath(base, prefix='foo').startswith('~')
     assert not ub.expandpath(base).startswith('~')
 
 

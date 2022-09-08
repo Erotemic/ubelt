@@ -452,7 +452,10 @@ class SingletonTestServer(ub.NiceRepr):
 
         dpath = ub.Path.appdir('ubelt/tests/test_download/simple_server').ensuredir()
 
-        pyexe = sys.executable
+        if sys.platform.startswith('win32'):
+            pyexe = 'python'
+        else:
+            pyexe = sys.executable
 
         server_cmd = [
             pyexe, '-m', 'http.server', str(port)
