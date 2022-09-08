@@ -212,8 +212,7 @@ def test_comparisons():
     assert OrderedSet([1, 2]) > OrderedSet([1])
 
     # MutableSet subclasses aren't comparable to set on 3.3.
-    if tuple(sys.version_info) >= (3, 4):
-        assert OrderedSet([1, 2]) > {1}
+    assert OrderedSet([1, 2]) > {1}
 
 
 def test_unordered_equality():
