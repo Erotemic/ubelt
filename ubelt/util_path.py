@@ -26,6 +26,7 @@ import os
 import sys
 from ubelt import util_io
 import pathlib
+import warnings
 
 
 __all__ = [
@@ -974,7 +975,7 @@ class Path(_PathBase):
             raise KeyError(meta)
         return copy_function
 
-    def copy(self, dst, follow_file_symlinks=True, follow_dir_symlinks=True,
+    def copy(self, dst, follow_file_symlinks=False, follow_dir_symlinks=False,
              meta='stats', dirs_exist_ok=False):
         """
         Copy this file or directory to dst.
@@ -1086,6 +1087,8 @@ class Path(_PathBase):
             xdev.tree_repr(clone0, max_files=10)
             xdev.tree_repr(clone1, max_files=10)
         """
+        warnings.warn('The ub.Path.copy function is experimental and may change! '
+                      'Do not rely on this behavior yet!')
         import shutil
         copy_function = self._request_copy_function(
             follow_file_symlinks=follow_file_symlinks,
@@ -1110,7 +1113,9 @@ class Path(_PathBase):
         Move a file from one location to another, or recursively move a
         directory from one location to another.
 
-        This is implemented via :func:`shutil.move`.
+        This is implemented via :func:`shutil.move`, which depends heavily on
+        os.rename semantics. This can differ, but I don't have good references
+        on it right now. The tests do demonstrate a weird pattern.
 
         Args:
             dst (str | PathLike):
@@ -1155,6 +1160,20 @@ class Path(_PathBase):
             import xdev
             xdev.tree_repr(dpath)
         """
+        warnings.warn('The ub.Path.move function is experimental and may change! '
+                      'Do not rely on this behavior yet!')
+
+        # Behave more like POSIX move to avoid potential confusing behavior
+        if exists(dst):
+            raise IOError(
+                'Moves are only allowed to locations that dont exist')
+        # if os.path.isdir(dst):
+        #     with os.scandir(dst) as itr:
+        #         is_empty = next(itr, None) is None
+        #     if not is_empty:
+        #         raise IOError(f'Cannot move {self!r} to {dst!r}. '
+        #                       'Directory not empty')
+
         import shutil
         copy_function = self._request_copy_function(
             follow_file_symlinks=follow_file_symlinks,
