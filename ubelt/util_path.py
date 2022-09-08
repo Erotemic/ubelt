@@ -984,12 +984,13 @@ class Path(_PathBase):
 
         Args:
             dst (str | PathLike):
-                if `src` is a file and `dst` is a directory, copies this to `dst / src.name`
                 if `src` is a file and `dst` does not exist, copies this to `dst`
+                if `src` is a file and `dst` is a directory, copies this to `dst / src.name`
 
-                todo if `src` is a directory and `dst` is a directory, copies this to `dst / src.name`
-                todo if `src` is a directory and `dst` does not exist, copies this to `dst`
-                todo: what is the most natural way to implement this?
+                if `src` is a directory and `dst` does not exist, copies this to `dst`
+                if `src` is a directory and `dst` is a directory, errors unless
+                    dirs_exist_ok is True, in which copies this to `dst` and
+                    overwrites anything conflicting path.
 
             follow_file_symlinks (bool):
                 If True and src is a link, the link will be resolved before
@@ -1011,6 +1012,50 @@ class Path(_PathBase):
 
             dirs_exist_ok (bool):
                 only relevant when self is a directory.
+
+        Returns:
+            Path: where the path was actually copied to
+
+        Ignore:
+            # Enumerate cases
+
+            rows = [
+                {'src': 'no-exist', 'dst': 'no-exist', 'result': 'error'},
+                {'src': 'no-exist', 'dst': 'file',     'result': 'error'},
+                {'src': 'no-exist', 'dst': 'dir',      'result': 'error'},
+
+                {'src': 'file', 'dst': 'no-exist', 'result': 'dst'},
+                {'src': 'file', 'dst': 'dir',      'result': 'dst / src.name'},
+                {'src': 'file', 'dst': 'file',     'result': 'dst'},
+
+                {'src': 'dir', 'dst': 'no-exist', 'result': 'dst'},
+                {'src': 'dir', 'dst': 'dir',      'result': '?dst or dst/src.name?'},
+                {'src': 'dir', 'dst': 'file',     'result': 'error'},
+            ]
+            df = pd.DataFrame(rows)
+            piv = df.pivot(['src'], ['dst'], 'result')
+
+            import pandas as pd
+            df = pd.DataFrame(index=file_cases, columns=file_cases)
+            df.index.name = 'src'
+            df.columns.name = 'src'
+            df.loc['no-exist', :]  = 'error'
+            df.loc['file', 'file'] = 'copyfile'
+            df.loc['file', 'no-exist'] = 'copyfile'
+            df.loc['file', 'dir'] = 'dir / file.name'
+            df.loc['dir', 'file'] = 'error'
+            df.loc['dir', 'no-exist'] = 'copytree'
+            df.loc['dir', 'dir'] = 'error-or-overwrite'
+            print(df.to_markdown())
+
+        TextArt:
+
+            | src      | no-exist   | file     | dir                |
+            |:---------|:-----------|:---------|:-------------------|
+            | no-exist | error      | error    | error              |
+            | file     | copyfile   | copyfile | dir / file.name    |
+            | dir      | copytree   | error    | error-or-overwrite |
+
 
         Example:
             >>> import ubelt as ub
@@ -1046,15 +1091,21 @@ class Path(_PathBase):
             follow_file_symlinks=follow_file_symlinks,
             follow_dir_symlinks=follow_dir_symlinks, copy_bits=copy_bits)
         if self.is_dir():
-            shutil.copytree(
+            if sys.version_info[0:2] < (3, 8):
+                copytree = _compat_copytree
+            else:
+                copytree = shutil.copytree
+            dst = copytree(
                 self, dst, copy_function=copy_function,
                 symlinks=not follow_dir_symlinks, dirs_exist_ok=dirs_exist_ok)
         elif self.is_file():
             dst = copy_function(self, dst)
         else:
             raise Exception
+        return Path(dst)
 
-    def move(self, dst, follow_file_symlinks=True, follow_dir_symlinks=True, copy_bits='stats'):
+    def move(self, dst, follow_file_symlinks=True, follow_dir_symlinks=True,
+             copy_bits='stats'):
         """
         Move a file from one location to another, or recursively move a
         directory from one location to another.
@@ -1063,6 +1114,27 @@ class Path(_PathBase):
 
         Args:
             dst (str | PathLike):
+
+            follow_file_symlinks (bool):
+                If True and src is a link, the link will be resolved before
+                it is copied (i.e. the data is duplicated), otherwise just
+                the link itself will be copied.
+
+            follow_dir_symlinks (bool):
+                if True when src is a directory and contains symlinks to
+                other directories, the contents of the linked data are
+                copied, otherwise when False only the link itself is
+                copied.
+
+            copy_bits (str | None):
+                Indicates what metadata bits to copy. This can be 'stats'
+                which tries to copy all metadata (i.e. like shutil.copy2),
+                'mode' which copies just the permission bits (i.e. like
+                shutil.copy), or None, which ignores all metadata (i.e.
+                like shutil.copyfile).
+
+        Returns:
+            Path: where the path was actually moved to
 
         Example:
             >>> import ubelt as ub
@@ -1087,4 +1159,85 @@ class Path(_PathBase):
         copy_function = self._request_copy_function(
             follow_file_symlinks=follow_file_symlinks,
             follow_dir_symlinks=follow_dir_symlinks, copy_bits=copy_bits)
-        shutil.move(self, dst, copy_function=copy_function)
+        real_dst = shutil.move(self, dst, copy_function=copy_function)
+        return Path(real_dst)
+
+if sys.version_info[0:2] < (3, 8):
+
+    # Vendor in a nearly modern copytree for Python 3.6 and 3.7
+    def _compat_copytree(src, dst, symlinks=False, ignore=None,
+                         copy_function=None, ignore_dangling_symlinks=False,
+                         dirs_exist_ok=False):
+        """
+        A vendored shutil.copytree for older pythons based on the 3.10
+        implementation
+        """
+        import stat
+        from shutil import Error, copystat, copy2, copy
+        with os.scandir(src) as itr:
+            entries = list(itr)
+
+        if ignore is not None:
+            ignored_names = ignore(os.fspath(src), [x.name for x in entries])
+        else:
+            ignored_names = set()
+
+        os.makedirs(dst, exist_ok=dirs_exist_ok)
+        errors = []
+        use_srcentry = copy_function is copy2 or copy_function is copy
+
+        for srcentry in entries:
+            if srcentry.name in ignored_names:
+                continue
+            srcname = os.path.join(src, srcentry.name)
+            dstname = os.path.join(dst, srcentry.name)
+            srcobj = srcentry if use_srcentry else srcname
+            try:
+                is_symlink = srcentry.is_symlink()
+                if is_symlink and os.name == 'nt':
+                    # Special check for directory junctions, which appear as
+                    # symlinks but we want to recurse.
+                    lstat = srcentry.stat(follow_symlinks=False)
+                    if lstat.st_reparse_tag == stat.IO_REPARSE_TAG_MOUNT_POINT:
+                        is_symlink = False
+                if is_symlink:
+                    linkto = os.readlink(srcname)
+                    if symlinks:
+                        # We can't just leave it to `copy_function` because legacy
+                        # code with a custom `copy_function` may rely on copytree
+                        # doing the right thing.
+                        os.symlink(linkto, dstname)
+                        copystat(srcobj, dstname, follow_symlinks=not symlinks)
+                    else:
+                        # ignore dangling symlink if the flag is on
+                        if not os.path.exists(linkto) and ignore_dangling_symlinks:
+                            continue
+                        # otherwise let the copy occur. copy2 will raise an error
+                        if srcentry.is_dir():
+                            _compat_copytree(srcobj, dstname, symlinks, ignore,
+                                             copy_function,
+                                             dirs_exist_ok=dirs_exist_ok)
+                        else:
+                            copy_function(srcobj, dstname)
+                elif srcentry.is_dir():
+                    _compat_copytree(srcobj, dstname, symlinks, ignore,
+                                     copy_function,
+                                     dirs_exist_ok=dirs_exist_ok)
+                else:
+                    # Will raise a SpecialFileError for unsupported file types
+                    copy_function(srcobj, dstname)
+            # catch the Error from the recursive copytree so that we can
+            # continue with other files
+            except Error as err:
+                errors.extend(err.args[0])
+            except OSError as why:
+                errors.append((srcname, dstname, str(why)))
+        try:
+            copystat(src, dst)
+        except OSError as why:
+            # Copying file access times may fail on Windows
+            if getattr(why, 'winerror', None) is None:
+                errors.append((src, dst, str(why)))
+        if errors:
+            raise Error(errors)
+        return dst
