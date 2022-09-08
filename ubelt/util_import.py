@@ -406,7 +406,6 @@ def _syspath_modname_to_modpath(modname, sys_path=None, exclude=None):
 
     Example:
         >>> # test what happens when the module is not visible in the path
-        >>> # xdoctest: +SKIP('')
         >>> from ubelt.util_import import *  # NOQA
         >>> from ubelt.util_import import _syspath_modname_to_modpath
         >>> modname = 'xdoctest.static_analysis'
