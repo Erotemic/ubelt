@@ -1091,7 +1091,7 @@ class Path(_PathBase):
             follow_file_symlinks=follow_file_symlinks,
             follow_dir_symlinks=follow_dir_symlinks, meta=meta)
         if self.is_dir():
-            if sys.version_info[0:2] < (3, 8):
+            if sys.version_info[0:2] < (3, 8):  # nocover
                 copytree = _compat_copytree
             else:
                 copytree = shutil.copytree
@@ -1162,7 +1162,7 @@ class Path(_PathBase):
         real_dst = shutil.move(self, dst, copy_function=copy_function)
         return Path(real_dst)
 
-if sys.version_info[0:2] < (3, 8):
+if sys.version_info[0:2] < (3, 8):  # nocover
 
     # Vendor in a nearly modern copytree for Python 3.6 and 3.7
     def _compat_copytree(src, dst, symlinks=False, ignore=None,
