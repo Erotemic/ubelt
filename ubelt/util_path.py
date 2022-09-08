@@ -958,24 +958,24 @@ class Path(_PathBase):
     # This is discussed in https://peps.python.org/pep-0428/#filesystem-modification
 
     def _request_copy_function(self, follow_file_symlinks=True,
-                               follow_dir_symlinks=True, copy_bits='stats'):
+                               follow_dir_symlinks=True, meta='stats'):
         """
         Get a copy_function based on specified capabilities
         """
         import shutil
         from functools import partial
-        if copy_bits is None:
+        if meta is None:
             copy_function = partial(shutil.copyfile, follow_symlinks=follow_file_symlinks)
-        elif copy_bits == 'stats':
+        elif meta == 'stats':
             copy_function = partial(shutil.copy2, follow_symlinks=follow_file_symlinks)
-        elif copy_bits == 'mode':
+        elif meta == 'mode':
             copy_function = partial(shutil.copy, follow_symlinks=follow_file_symlinks)
         else:
-            raise KeyError(copy_bits)
+            raise KeyError(meta)
         return copy_function
 
     def copy(self, dst, follow_file_symlinks=True, follow_dir_symlinks=True,
-             copy_bits='stats', dirs_exist_ok=False):
+             meta='stats', dirs_exist_ok=False):
         """
         Copy this file or directory to dst.
 
@@ -1003,7 +1003,7 @@ class Path(_PathBase):
                 copied, otherwise when False only the link itself is
                 copied.
 
-            copy_bits (str | None):
+            meta (str | None):
                 Indicates what metadata bits to copy. This can be 'stats'
                 which tries to copy all metadata (i.e. like shutil.copy2),
                 'mode' which copies just the permission bits (i.e. like
@@ -1089,7 +1089,7 @@ class Path(_PathBase):
         import shutil
         copy_function = self._request_copy_function(
             follow_file_symlinks=follow_file_symlinks,
-            follow_dir_symlinks=follow_dir_symlinks, copy_bits=copy_bits)
+            follow_dir_symlinks=follow_dir_symlinks, meta=meta)
         if self.is_dir():
             if sys.version_info[0:2] < (3, 8):
                 copytree = _compat_copytree
@@ -1105,7 +1105,7 @@ class Path(_PathBase):
         return Path(dst)
 
     def move(self, dst, follow_file_symlinks=True, follow_dir_symlinks=True,
-             copy_bits='stats'):
+             meta='stats'):
         """
         Move a file from one location to another, or recursively move a
         directory from one location to another.
@@ -1126,7 +1126,7 @@ class Path(_PathBase):
                 copied, otherwise when False only the link itself is
                 copied.
 
-            copy_bits (str | None):
+            meta (str | None):
                 Indicates what metadata bits to copy. This can be 'stats'
                 which tries to copy all metadata (i.e. like shutil.copy2),
                 'mode' which copies just the permission bits (i.e. like
@@ -1158,7 +1158,7 @@ class Path(_PathBase):
         import shutil
         copy_function = self._request_copy_function(
             follow_file_symlinks=follow_file_symlinks,
-            follow_dir_symlinks=follow_dir_symlinks, copy_bits=copy_bits)
+            follow_dir_symlinks=follow_dir_symlinks, meta=meta)
         real_dst = shutil.move(self, dst, copy_function=copy_function)
         return Path(real_dst)
 
