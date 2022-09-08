@@ -14,10 +14,11 @@ def test_pathlib():
     assert got.exists()
 
     # shrinkuser
-    assert ub.shrinkuser(base) == '~/.cache/ubelt'
+    assert ub.shrinkuser(base).startswith('~')
 
-    assert ub.augpath(base, prefix='foo') == str(ub.Path('~/.cache/fooubelt').expand())
-    ub.expandpath(base)
+    assert ub.augpath(base, prefix='foo').endswith('fooubelt')
+    assert ub.augpath(base, prefix='foo').startswith('~')
+    assert not ub.expandpath(base).startswith('~')
 
 
 def test_tempdir():
