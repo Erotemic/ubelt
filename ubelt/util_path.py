@@ -976,7 +976,7 @@ class Path(_PathBase):
         return copy_function
 
     def copy(self, dst, follow_file_symlinks=False, follow_dir_symlinks=False,
-             meta='stats', dirs_exist_ok=False):
+             meta='stats', overwrite=False):
         """
         Copy this file or directory to dst.
 
@@ -990,7 +990,7 @@ class Path(_PathBase):
 
                 if `src` is a directory and `dst` does not exist, copies this to `dst`
                 if `src` is a directory and `dst` is a directory, errors unless
-                    dirs_exist_ok is True, in which copies this to `dst` and
+                    overwrite is True, in which copies this to `dst` and
                     overwrites anything conflicting path.
 
             follow_file_symlinks (bool):
@@ -1011,8 +1011,13 @@ class Path(_PathBase):
                 shutil.copy), or None, which ignores all metadata (i.e.
                 like shutil.copyfile).
 
-            dirs_exist_ok (bool):
-                only relevant when self is a directory.
+            overwrite (bool):
+                if False, and target file exists, this will raise an error,
+                otherwise the file will be overwritten.
+
+        Note:
+            The defaults and behavior here are noticably different (and
+            hopefully more sane) than :func:`shutil.copy`.
 
         Returns:
             Path: where the path was actually copied to
@@ -1076,14 +1081,13 @@ class Path(_PathBase):
             >>> paths['fpath'].copy(clone0 / 'file0.txt')
             >>> paths['fpath'].copy(clone1)
             >>> paths['empty_dpath'].copy(clone0 / 'empty_dpath')
-            >>> paths['empty_dpath'].copy((clone1 / 'empty_dpath_alt').ensuredir(), dirs_exist_ok=True)
+            >>> paths['empty_dpath'].copy((clone1 / 'empty_dpath_alt').ensuredir(), overwrite=True)
             >>> paths['nested_dpath'].copy(clone0 / 'nested_dpath')
-            >>> paths['nested_dpath'].copy((clone1 / 'nested_dpath_alt').ensuredir(), dirs_exist_ok=True)
-            >>> # paths['nested_dpath'].copy(clone1)
+            >>> paths['nested_dpath'].copy((clone1 / 'nested_dpath_alt').ensuredir(), overwrite=True)
 
         Ignore:
             import xdev
-            xdev.tree_repr(dpath, max_files=10)
+            xdev.tree_repr(dpath)
             xdev.tree_repr(clone0, max_files=10)
             xdev.tree_repr(clone1, max_files=10)
         """
@@ -1100,8 +1104,16 @@ class Path(_PathBase):
                 copytree = shutil.copytree
             dst = copytree(
                 self, dst, copy_function=copy_function,
-                symlinks=not follow_dir_symlinks, dirs_exist_ok=dirs_exist_ok)
+                symlinks=not follow_dir_symlinks, dirs_exist_ok=overwrite)
         elif self.is_file():
+            if not overwrite:
+                dst = Path(dst)
+                if dst.is_dir():
+                    real_dst = dst / self.name
+                else:
+                    real_dst = dst
+                if real_dst.exists():
+                    raise FileExistsError('Cannot overwrite existing file unless overwrite=True')
             dst = copy_function(self, dst)
         else:
             raise Exception
@@ -1138,6 +1150,15 @@ class Path(_PathBase):
                 shutil.copy), or None, which ignores all metadata (i.e.
                 like shutil.copyfile).
 
+        Note:
+            The defaults and behavior here are noticably different (and
+            hopefully more sane) than :func:`shutil.move`.
+
+        Note:
+            This method will refuse to overwrite anything.
+            Either copy the data, and then delete the original, or us
+            :func:`shutil.move` directly at your own risk.
+
         Returns:
             Path: where the path was actually moved to
 
@@ -1165,7 +1186,7 @@ class Path(_PathBase):
 
         # Behave more like POSIX move to avoid potential confusing behavior
         if exists(dst):
-            raise IOError(
+            raise FileExistsError(
                 'Moves are only allowed to locations that dont exist')
         # if os.path.isdir(dst):
         #     with os.scandir(dst) as itr:

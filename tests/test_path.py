@@ -340,6 +340,20 @@ def test_copy_basic():
     empty_dpath.copy(empty_dpath.augment(prefix='copied_'))
     full_dpath.copy(full_dpath.augment(prefix='copied_'))
 
+    # Doing it again will fail
+    import pytest
+    with pytest.raises(IOError):
+        fpath.copy(fpath.augment(prefix='copied_'))
+    with pytest.raises(IOError):
+        empty_dpath.copy(empty_dpath.augment(prefix='copied_'))
+    with pytest.raises(IOError):
+        full_dpath.copy(full_dpath.augment(prefix='copied_'))
+
+    # But with overwrite=True it is ok
+    fpath.copy(fpath.augment(prefix='copied_'), overwrite=True)
+    empty_dpath.copy(empty_dpath.augment(prefix='copied_'), overwrite=True)
+    full_dpath.copy(full_dpath.augment(prefix='copied_'), overwrite=True)
+
     if DEBUG_PATH:
         print('AFTER COPY')
         import xdev
@@ -366,8 +380,7 @@ def test_copy_meta():
         empty_dpath.copy(empty_dpath.augment(prefix=prefix))
         full_dpath.copy(full_dpath.augment(prefix=prefix))
 
-    # TODO: test that the metadata really did copy as intended
-
+    # TODO: verify that the metadata really did copy as intended
     if DEBUG_PATH:
         print('AFTER COPY')
         import xdev
@@ -489,7 +502,7 @@ def test_copy_dir_to_existing_dir_noconflict():
         print('BEFORE MOVE')
         xdev.tree_repr(base)
 
-    root.copy(dst1, dirs_exist_ok=True)
+    root.copy(dst1, overwrite=True)
 
     if ub.POSIX:
         # We behave like posix copy with T here.
@@ -542,7 +555,7 @@ def test_copy_dir_to_existing_dir_withconflict():
         print('BEFORE MOVE')
         xdev.tree_repr(base)
 
-    root.copy(dst1, dirs_exist_ok=True)
+    root.copy(dst1, overwrite=True)
 
     if ub.POSIX:
         ub.cmd(f'cp -r {root} {dst2}', verbose=2, check=1)
