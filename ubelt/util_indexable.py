@@ -32,13 +32,14 @@ class IndexableWalker(Generator):
             subclass with similar nested indexing abilities.
 
     Example:
+        >>> import ubelt as ub
         >>> # Given Nested Data
         >>> data = {
         >>>     'foo': {'bar': 1},
         >>>     'baz': [{'biz': 3}, {'buz': [4, 5, 6]}],
         >>> }
         >>> # Create an IndexableWalker
-        >>> walker = IndexableWalker(data)
+        >>> walker = ub.IndexableWalker(data)
         >>> # We iterate over the data as if it was flat
         >>> # ignore the <want> string due to order issues on older Pythons
         >>> # xdoctest: +IGNORE_WANT
@@ -81,7 +82,7 @@ class IndexableWalker(Generator):
         >>> data['baz'] = 3
         >>> print('data = {}'.format(ub.repr2(data, nl=True)))
         >>> # We can walk through every node in the nested tree
-        >>> walker = IndexableWalker(data)
+        >>> walker = ub.IndexableWalker(data)
         >>> for path, value in walker:
         >>>     print('walk path = {}'.format(ub.repr2(path, nl=0)))
         >>>     if path[-1] == 'c':
@@ -94,19 +95,48 @@ class IndexableWalker(Generator):
 
     Example:
         >>> # Test sending false for every data item
+        >>> import ubelt as ub
+        >>> data = {1: [1, 2, 3], 2: np.array([1, 2, 3])}
+        >>> walker = ub.IndexableWalker(data)
+        >>> # Sending false means you wont traverse any further on that path
+        >>> num_iters_v1 = 0
+        >>> for path, value in walker:
+        >>>     print('[v1] walk path = {}'.format(ub.repr2(path, nl=0)))
+        >>>     walker.send(False)
+        >>>     num_iters_v1 += 1
+        >>> num_iters_v2 = 0
+        >>> for path, value in walker:
+        >>>     # When we dont send false we walk all the way down
+        >>>     print('[v2] walk path = {}'.format(ub.repr2(path, nl=0)))
+        >>>     num_iters_v2 += 1
+        >>> assert num_iters_v1 == 2
+        >>> assert num_iters_v2 == 5
+
+    Example:
+        >>> # Test numpy
         >>> # xdoctest: +REQUIRES(CPython)
         >>> # xdoctest: +REQUIRES(module:numpy)
         >>> import ubelt as ub
         >>> import numpy as np
-        >>> data = {1: 1}
-        >>> walker = IndexableWalker(data)
+        >>> # By default we don't recurse into ndarrays because they
+        >>> # Are registered as an indexable class
+        >>> data = {2: np.array([1, 2, 3])}
+        >>> walker = ub.IndexableWalker(data)
+        >>> num_iters = 0
         >>> for path, value in walker:
         >>>     print('walk path = {}'.format(ub.repr2(path, nl=0)))
-        >>>     walker.send(False)
-        >>> data = {}
-        >>> walker = IndexableWalker(data)
+        >>>     num_iters += 1
+        >>> assert num_iters == 1
+        >>> # Currently to use top-level ndarrays, you need to extend what the
+        >>> # list class is. This API may change in the future to be easier
+        >>> # to work with.
+        >>> data = np.random.rand(3, 5)
+        >>> walker = ub.IndexableWalker(data, list_cls=(list, tuple, np.ndarray))
+        >>> num_iters = 0
         >>> for path, value in walker:
-        >>>     walker.send(False)
+        >>>     print('walk path = {}'.format(ub.repr2(path, nl=0)))
+        >>>     num_iters += 1
+        >>> assert num_iters == 3 + 3 * 5
     """
 
     def __init__(self, data, dict_cls=(dict,), list_cls=(list, tuple)):
@@ -256,16 +286,16 @@ class IndexableWalker(Generator):
                         stack.append((value, path))
 
 
-def indexable_allclose(dct1, dct2, rel_tol=1e-9, abs_tol=0.0, return_info=False):
+def indexable_allclose(items1, items2, rel_tol=1e-9, abs_tol=0.0, return_info=False):
     """
     Walks through two nested data structures and ensures that everything is
     roughly the same.
 
     Args:
-        dct1 (dict):
+        items1 (dict | list | tuple):
             a nested indexable item
 
-        dct2 (dict):
+        items2 (dict | list | tuple):
             a nested indexable item
 
         rel_tol (float):
@@ -286,17 +316,17 @@ def indexable_allclose(dct1, dct2, rel_tol=1e-9, abs_tol=0.0, return_info=False)
 
     Example:
         >>> import ubelt as ub
-        >>> dct1 = {
+        >>> items1 = {
         >>>     'foo': [1.222222, 1.333],
         >>>     'bar': 1,
         >>>     'baz': [],
         >>> }
-        >>> dct2 = {
+        >>> items2 = {
         >>>     'foo': [1.22222, 1.333],
         >>>     'bar': 1,
         >>>     'baz': [],
         >>> }
-        >>> flag, return_info =  ub.indexable_allclose(dct1, dct2, return_info=True)
+        >>> flag, return_info =  ub.indexable_allclose(items1, items2, return_info=True)
         >>> print('return_info = {}'.format(ub.repr2(return_info, nl=1)))
         >>> print('flag = {!r}'.format(flag))
 
@@ -310,17 +340,17 @@ def indexable_allclose(dct1, dct2, rel_tol=1e-9, abs_tol=0.0, return_info=False)
         >>> assert not flag
 
         >>> import ubelt as ub
-        >>> dct1 = {
+        >>> items1 = {
         >>>     'foo': [1.0000000000000000000000001, 1.],
         >>>     'bar': 1,
         >>>     'baz': [],
         >>> }
-        >>> dct2 = {
+        >>> items2 = {
         >>>     'foo': [0.9999999999999999, 1.],
         >>>     'bar': 1,
         >>>     'baz': [],
         >>> }
-        >>> flag, return_info =  ub.indexable_allclose(dct1, dct2, return_info=True)
+        >>> flag, return_info =  ub.indexable_allclose(items1, items2, return_info=True)
         >>> print('return_info = {}'.format(ub.repr2(return_info, nl=1)))
         >>> print('flag = {!r}'.format(flag))
 
@@ -340,9 +370,21 @@ def indexable_allclose(dct1, dct2, rel_tol=1e-9, abs_tol=0.0, return_info=False)
         >>> flag, return_info =  ub.indexable_allclose([], [1], return_info=True)
         >>> print('return_info = {!r}'.format(return_info))
         >>> print('flag = {!r}'.format(flag))
+
+    Example:
+        >>> # xdoctest: +REQUIRES(module:numpy)
+        >>> # xdoctest: +SKIP("numpy currently does not work nicely")
+        >>> import ubelt as ub
+        >>> import numpy as np
+        >>> a = np.random.rand(3, 5)
+        >>> b = np.random.rand(3, 5)
+        >>> flag, return_info =  ub.indexable_allclose(a, b, return_info=True)
+        >>> print('return_info = {!r}'.format(return_info))
+        >>> print('flag = {!r}'.format(flag))
     """
-    walker1 = IndexableWalker(dct1)
-    walker2 = IndexableWalker(dct2)
+    walker1 = IndexableWalker(items1)
+    walker2 = IndexableWalker(items2)
+
     flat_items1 = [
         (path, value) for path, value in walker1
         if not isinstance(value, walker1.indexable_cls) or len(value) == 0]
@@ -369,8 +411,9 @@ def indexable_allclose(dct1, dct2, rel_tol=1e-9, abs_tol=0.0, return_info=False)
 
             flag = (v1 == v2)
             if not flag:
-                if isinstance(v1, float) and isinstance(v2, float) and isclose(v1, v2):
-                    flag = True
+                if isinstance(v1, float) and isinstance(v2, float):
+                    if isclose(v1, v2, rel_tol=rel_tol, abs_tol=abs_tol):
+                        flag = True
             if flag:
                 passlist.append(p1)
             else:

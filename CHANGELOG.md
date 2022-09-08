@@ -5,6 +5,11 @@ We are currently working on porting this changelog to the specifications in
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## Version 1.2.3 - Unreleased 
+
+### Fixed
+* Issue in `indexable_allclose` where tolerances were not respected.
+
 ## Version 1.2.2 - Released 2022-09-05 
 
 ### Added
