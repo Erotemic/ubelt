@@ -51,9 +51,10 @@ __all__ = [
 
 # References:
 # https://stackoverflow.com/questions/446209/possible-values-from-sys-platform
-WIN32  = sys.platform == 'win32'  # type: bool
-LINUX  = sys.platform.startswith('linux')  # type: bool
-DARWIN = sys.platform == 'darwin'  # type: bool
+WIN32   = sys.platform == 'win32'  # type: bool
+LINUX   = sys.platform.startswith('linux')  # type: bool
+FREEBSD = sys.platform.startswith('freebsd')  # type: bool
+DARWIN  = sys.platform == 'darwin'  # type: bool
 POSIX = 'posix' in sys.builtin_module_names  # type: bool
 
 
@@ -64,7 +65,7 @@ def platform_data_dir():
     Returns:
         str : path to the data dir used by the current operating system
     """
-    if LINUX:  # nocover
+    if POSIX:  # nocover
         dpath_ = os.environ.get('XDG_DATA_HOME', '~/.local/share')
     elif DARWIN:  # nocover
         dpath_  = '~/Library/Application Support'
@@ -84,7 +85,7 @@ def platform_config_dir():
     Returns:
         str : path to the cache dir used by the current operating system
     """
-    if LINUX:  # nocover
+    if POSIX:  # nocover
         dpath_ = os.environ.get('XDG_CONFIG_HOME', '~/.config')
     elif DARWIN:  # nocover
         dpath_  = '~/Library/Application Support'
@@ -104,7 +105,7 @@ def platform_cache_dir():
     Returns:
         str : path to the cache dir used by the current operating system
     """
-    if LINUX:  # nocover
+    if POSIX:  # nocover
         dpath_ = os.environ.get('XDG_CACHE_HOME', '~/.cache')
     elif DARWIN:  # nocover
         dpath_  = '~/Library/Caches'

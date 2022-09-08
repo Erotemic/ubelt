@@ -7,8 +7,15 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## Version 1.2.3 - Unreleased 
 
+### Added 
+* Support for FreeBSD in `util_platform`
+* `ub.Path.copy` and `ub.Path.move`
+* Tentative Python 3.11 support
+
 ### Fixed
 * Issue in `indexable_allclose` where tolerances were not respected.
+* Issue in `modname_to_modpath` with exclude and editable installs.
+
 
 ## Version 1.2.2 - Released 2022-09-05 
 
