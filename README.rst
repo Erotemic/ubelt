@@ -1003,6 +1003,7 @@ Libraries that contain a broad scope of utilities:
 * Boltons: https://github.com/mahmoud/boltons
 * Toolz: https://github.com/pytoolz/toolz
 * CyToolz: https://github.com/pytoolz/cytoolz/
+* UnStdLib: https://github.com/shazow/unstdlib.py
 
 Libraries that contain a specific scope of utilities:
 

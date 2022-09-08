@@ -12,6 +12,9 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 * `ub.Path.copy` and `ub.Path.move`
 * Tentative Python 3.11 support
 
+### Changed
+* `ub.schedule_deprecation` can now accept the strings "soon" or "now".
+
 ### Fixed
 * Issue in `indexable_allclose` where tolerances were not respected.
 * Issue in `modname_to_modpath` with exclude and editable installs.

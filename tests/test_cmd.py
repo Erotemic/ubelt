@@ -55,6 +55,14 @@ def test_cmd_stderr():
     assert result['err'].strip() == 'hello stderr'
 
 
+def test_cmd_with_pathlib():
+    if not ub.POSIX:
+        pytest.skip(reason='posix only')
+    fpath = ub.Path(ub.__file__)
+    result = ub.cmd(['ls', fpath])
+    assert str(fpath) in result['out']
+
+
 def test_cmd_tee_auto():
     """
     pytest ubelt/tests/test_cmd.py -k tee_backend

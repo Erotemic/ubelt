@@ -500,7 +500,7 @@ def _syspath_modname_to_modpath(modname, sys_path=None, exclude=None):
             finder_fpath = new_editable_finder_paths[-1]
             mapping = _static_parse('MAPPING', finder_fpath)
             target = dirname(mapping[_pkg_name])
-            if not exclude or normalize(target) not in real_exclude:
+            if not exclude or normalize(target) not in real_exclude:  # pragma: nobranch
                 modpath = check_dpath(target)
                 if modpath:  # pragma: nobranch
                     found_modpath = modpath
