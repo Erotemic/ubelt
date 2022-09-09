@@ -20,7 +20,7 @@ dev_status = "stable"
 
 
 [tool.pytest.ini_options]
-addopts = "-p no:doctest --xdoctest --xdoctest-style=google --ignore-glob=setup.py"
+addopts = "-p no:doctest --xdoctest --xdoctest-style=google --ignore-glob=setup.py --ignore-glob=docs"
 norecursedirs = ".git ignore build __pycache__ dev _skbuild"
 filterwarnings = [
     "default",
