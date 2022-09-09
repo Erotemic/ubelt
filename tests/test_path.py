@@ -464,6 +464,8 @@ def test_copy_dir_to_non_existing():
         # Our copy should behave like the posix copy
         case1 = [(f, d) for (r, f, d) in (base / 'our_copy').walk()]
         case2 = [(f, d) for (r, f, d) in (base / 'posix_copy').walk()]
+        print('case1 = {}'.format(ub.repr2(case1, nl=1)))
+        print('case2 = {}'.format(ub.repr2(case2, nl=1)))
         assert case1 == case2
 
     base.delete()
@@ -590,6 +592,9 @@ def test_copy_dir_to_existing_dir_withconflict():
         case1 = [(f, d) for (r, f, d) in (base / 'our_copy').walk()]
         case2 = [(f, d) for (r, f, d) in (base / 'posix_copy').walk()]
         case3 = [(f, d) for (r, f, d) in (base / 'posix_copyT').walk()]
+        print('case1 = {}'.format(ub.repr2(case1, nl=1)))
+        print('case3 = {}'.format(ub.repr2(case3, nl=1)))
+        print('case2 = {}'.format(ub.repr2(case2, nl=1)))
         assert case1 == case3
         assert case1 != case2
     base.delete()
