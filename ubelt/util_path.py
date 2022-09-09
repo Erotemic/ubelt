@@ -1405,8 +1405,12 @@ if sys.version_info[0:2] < (3, 8):  # nocover
                 if is_symlink and os.name == 'nt':
                     # Special check for directory junctions, which appear as
                     # symlinks but we want to recurse.
-                    lstat = srcentry.stat(follow_symlinks=False)
-                    if lstat.st_reparse_tag == stat.IO_REPARSE_TAG_MOUNT_POINT:
+                    # Not available on 3.6, use our impl instead
+                    # lstat = srcentry.stat(follow_symlinks=False)
+                    # if lstat.st_reparse_tag == stat.IO_REPARSE_TAG_MOUNT_POINT:
+                    #   is_symlink = False
+                    from ubelt._win32_links import _win32_is_junction
+                    if _win32_is_junction(srcentry):
                         is_symlink = False
                 if is_symlink:
                     linkto = os.readlink(srcname)
