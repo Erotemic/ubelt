@@ -41,7 +41,7 @@ def symlink(real_path, link_path, overwrite=False, verbose=0):
     hard link or junction if symlinks are not supported.
 
     Args:
-        path (str | PathLike): path to real file or directory
+        real_path (str | PathLike): path to real file or directory
 
         link_path (str | PathLike): path to desired location for symlink
 

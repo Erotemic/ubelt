@@ -492,30 +492,39 @@ class Path(_PathBase):
 
         * :py:meth:`pathlib.Path.samefile`
         * :py:meth:`pathlib.Path.iterdir`
+
         * :py:meth:`pathlib.Path.glob`
         * :py:meth:`pathlib.Path.rglob`
-        * :py:meth:`pathlib.Path.absolute`
+
         * :py:meth:`pathlib.Path.resolve`
+
+        * :py:meth:`pathlib.Path.lstat`
         * :py:meth:`pathlib.Path.stat`
         * :py:meth:`pathlib.Path.owner`
         * :py:meth:`pathlib.Path.group`
+
         * :py:meth:`pathlib.Path.open`
         * :py:meth:`pathlib.Path.read_bytes`
         * :py:meth:`pathlib.Path.read_text`
         * :py:meth:`pathlib.Path.write_bytes`
         * :py:meth:`pathlib.Path.write_text`
         * :py:meth:`pathlib.Path.readlink`
+
         * :py:meth:`pathlib.Path.mkdir` - we recommend :py:meth:`ubelt.Path.ensuredir` instead.
+
         * :py:meth:`pathlib.Path.chmod`
         * :py:meth:`pathlib.Path.lchmod`
+
         * :py:meth:`pathlib.Path.unlink`
         * :py:meth:`pathlib.Path.rmdir`
-        * :py:meth:`pathlib.Path.lstat`
+
         * :py:meth:`pathlib.Path.rename`
         * :py:meth:`pathlib.Path.replace`
+
         * :py:meth:`pathlib.Path.symlink_to`
         * :py:meth:`pathlib.Path.hardlink_to`
-        * :py:meth:`pathlib.Path.link_to`
+        * :py:meth:`pathlib.Path.link_to` - deprecated
+
         * :py:meth:`pathlib.Path.exists`
         * :py:meth:`pathlib.Path.is_dir`
         * :py:meth:`pathlib.Path.is_file`
@@ -525,19 +534,24 @@ class Path(_PathBase):
         * :py:meth:`pathlib.Path.is_char_device`
         * :py:meth:`pathlib.Path.is_fifo`
         * :py:meth:`pathlib.Path.is_socket`
+
         * :py:meth:`pathlib.Path.expanduser` - we recommend :py:meth:`ubelt.Path.expand` instead.
 
         * :py:meth:`pathlib.PurePath.as_posix`
         * :py:meth:`pathlib.PurePath.as_uri`
+
         * :py:meth:`pathlib.PurePath.with_name` - we recommend :py:meth:`ubelt.Path.augment` instead.
         * :py:meth:`pathlib.PurePath.with_stem`  - we recommend :py:meth:`ubelt.Path.augment` instead.
         * :py:meth:`pathlib.PurePath.with_suffix` - we recommend :py:meth:`ubelt.Path.augment` instead.
+
         * :py:meth:`pathlib.PurePath.relative_to`
-        * :py:meth:`pathlib.PurePath.is_relative_to`
 
         * :py:meth:`pathlib.PurePath.joinpath`
+
+        * :py:meth:`pathlib.PurePath.is_relative_to`
         * :py:meth:`pathlib.PurePath.is_absolute`
         * :py:meth:`pathlib.PurePath.is_reserved`
+
         * :py:meth:`pathlib.PurePath.match`
     """
     __slots__ = ()
