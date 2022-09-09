@@ -38,8 +38,8 @@ The :func:`ddict` and :func:`odict` functions are alias for the commonly used
 Related Work:
     * Note that Python does support set operations on dictionary **views** [DictView]_ [Pep3106]_, but these methods can be inflexible and often leave you only with keys (and no dictionary subset operation), whereas the ubelt definition of these operations is more straightforward.
     * There are several recipes for dictionaries that support set operations [SetDictRecipe1]_ [SetDictRecipe2]_.
-    * The :moduel:`dictmap` package contains a function similar to :func:`map_values` [GHDictMap]_.
-    * The :module:`dictdiffer` package contains tools for nested difference operations [PypiDictDiffer]_.
+    * The :py:mod:`dictmap` package contains a function similar to :func:`map_values` [GHDictMap]_.
+    * The :py:mod:`dictdiffer` package contains tools for nested difference operations [PypiDictDiffer]_.
     * There are lots of other python dictionary utility libraries [PyPIAddict]_.
 
 References:
@@ -513,7 +513,7 @@ def map_values(func, dict_, cls=None):
         Dict[KT, T]: transformed dictionary
 
     Notes:
-        Similar to :module:`dictmap.dict_map`
+        Similar to :py:mod:`dictmap.dict_map`
 
     Example:
         >>> import ubelt as ub

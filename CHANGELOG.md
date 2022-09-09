@@ -14,6 +14,8 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### Changed
 * `ub.schedule_deprecation` can now accept the strings "soon" or "now".
+* `ub.Path.apppdir` can now be called without arguments.
+* Deprecate `TempDir`
 
 ### Fixed
 * Issue in `indexable_allclose` where tolerances were not respected.
