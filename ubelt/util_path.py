@@ -1,5 +1,15 @@
 """
-Functions for working with filesystem paths.
+Path and filesystem utilities.
+
+The :class:`Path` object is an extension of :class:`pathlib.Path` that contains
+extra convenience methods corresponding to the extra functional methods in this
+module. (New in 0.11.0). See the class documentation for more details.
+
+This module also defines functional path-related utilities, but moving forward
+users should prefer using :class:`Path` over standalone functional methods. The
+functions methods will still be available for the forseable future, but their
+functionality is made redundant by :class:`Path`. For completeness these
+functions are listed
 
 The :func:`expandpath` function expands the tilde to $HOME and environment
 variables to their values.
@@ -15,9 +25,9 @@ the operating system.
 
 The :func:`ensuredir` function operates like ``mkdir -p`` in unix.
 
-The :class:`Path` object is an extension of :class:`pathlib.Path` that contains
-extra convenience methods corresponding to the extra functional methods in this
-module.
+Note:
+    In the future the part of this module that defines Path may be renamed to
+    util_pathlib.
 """
 from os.path import (
     dirname, exists, expanduser, expandvars, join, normpath, split, splitext,
@@ -354,6 +364,13 @@ class TempDir(object):
         >>> assert not exists(dpath)
     """
     def __init__(self):
+        import ubelt as ub
+        ub.schedule_deprecation(
+            modname='ubelt',
+            migration='Use tempfile instead', name='TempDir',
+            type='class', deprecate='1.2.0', error='1.4.0',
+            remove='1.5.0',
+        )
         self.dpath = None
 
     def __del__(self):
@@ -387,34 +404,59 @@ _PathBase = pathlib.WindowsPath if os.name == 'nt' else pathlib.PosixPath
 
 class Path(_PathBase):
     """
-    An extension of :class:`pathlib.Path` with extra convenience methods
+    This class extends :class:`pathlib.Path` with extra functionality and
+    convenience methods.
+
+    New methods are designed to support chaining.
+
+    In addition to new methods this class supports the addition (``+``)
+    operator via which allows for better drop-in compatibility with code using
+    existing string-based paths.
 
     Note:
-        New methods are:
-            * augment
-            * ensuredir
-            * expand
-            * expandvars
-            * ls
-            * shrinkuser
-            * walk
+        On windows this inherits from :class:`pathlib.WindowsPath`.
 
-        New classmethods are:
-            * appdir
+    New methods are
 
-        Modified methods are:
-            * touch
+        * :py:meth:`ubelt.Path.ensuredir` - Like mkdir but with easier defaults.
+
+        * :py:meth:`ubelt.Path.delete` - Previously pathlib could only remove one file at a time.
+
+        * :py:meth:`ubelt.Path.copy` - Pathlib has no similar functionality.
+
+        * :py:meth:`ubelt.Path.move` - Pathlib has no similar functionality.
+
+        * :py:meth:`ubelt.Path.augment` - Unifies and extends disparate functionality across pathlib.
+
+        * :py:meth:`ubelt.Path.expand` - Unifies existing environ and home expansion.
+
+        * :py:meth:`ubelt.Path.ls` - Like iterdir, but more interactive.
+
+        * :py:meth:`ubelt.Path.shrinkuser` - Python has no similar functionality.
+
+        * :py:meth:`ubelt.Path.walk` - Pathlib had no similar functionality.
+
+    New classmethods are
+
+        * :py:meth:`ubelt.Path.appdir` - application directories
+
+    Modified methods are
+
+        * :py:meth:`ubelt.Path.touch` - returns self to support chaining
 
     Example:
         >>> # Ubelt extends pathlib functionality
         >>> import ubelt as ub
+        >>> # Chain expansion and mkdir with cumbersome args.
         >>> dpath = ub.Path('~/.cache/ubelt/demo_path').expand().ensuredir()
         >>> fpath = dpath / 'text_file.txt'
+        >>> # Augment is concise and chainable
         >>> aug_fpath = fpath.augment(stemsuffix='.aux', ext='.jpg').touch()
         >>> aug_dpath = dpath.augment(stemsuffix='demo_path2')
         >>> assert aug_fpath.read_text() == ''
         >>> fpath.write_text('text data')
         >>> assert aug_fpath.exists()
+        >>> # Delete is akin to "rm -rf" and is also chainable.
         >>> assert not aug_fpath.delete().exists()
         >>> assert dpath.exists()
         >>> assert not dpath.delete().exists()
@@ -426,22 +468,124 @@ class Path(_PathBase):
         ~/.cache/ubelt/demo_path
         ~/.cache/ubelt/demo_path/text_file.aux.jpg
         ~/.cache/ubelt/demo_pathdemo_path2
+
+    Inherited unmodified properties from :class:`pathlib.Path` are:
+
+        * :py:data:`pathlib.PurePath.anchor`
+        * :py:data:`pathlib.PurePath.name`
+        * :py:data:`pathlib.PurePath.parts`
+        * :py:data:`pathlib.PurePath.parts`
+        * :py:data:`pathlib.PurePath.parent`
+        * :py:data:`pathlib.PurePath.parents`
+        * :py:data:`pathlib.PurePath.suffix`
+        * :py:data:`pathlib.PurePath.suffixes`
+        * :py:data:`pathlib.PurePath.stem`
+        * :py:data:`pathlib.PurePath.drive`
+        * :py:data:`pathlib.PurePath.root`
+
+    Inherited unmodified classmethods from :class:`pathlib.Path` are:
+
+        * :py:meth:`pathlib.Path.cwd`
+        * :py:meth:`pathlib.Path.home`
+
+    Inherited unmodified methods from :class:`pathlib.Path` are:
+
+        * :py:meth:`pathlib.Path.samefile`
+        * :py:meth:`pathlib.Path.iterdir`
+        * :py:meth:`pathlib.Path.glob`
+        * :py:meth:`pathlib.Path.rglob`
+        * :py:meth:`pathlib.Path.absolute`
+        * :py:meth:`pathlib.Path.resolve`
+        * :py:meth:`pathlib.Path.stat`
+        * :py:meth:`pathlib.Path.owner`
+        * :py:meth:`pathlib.Path.group`
+        * :py:meth:`pathlib.Path.open`
+        * :py:meth:`pathlib.Path.read_bytes`
+        * :py:meth:`pathlib.Path.read_text`
+        * :py:meth:`pathlib.Path.write_bytes`
+        * :py:meth:`pathlib.Path.write_text`
+        * :py:meth:`pathlib.Path.readlink`
+        * :py:meth:`pathlib.Path.mkdir` - we recommend :py:meth:`ubelt.Path.ensuredir` instead.
+        * :py:meth:`pathlib.Path.chmod`
+        * :py:meth:`pathlib.Path.lchmod`
+        * :py:meth:`pathlib.Path.unlink`
+        * :py:meth:`pathlib.Path.rmdir`
+        * :py:meth:`pathlib.Path.lstat`
+        * :py:meth:`pathlib.Path.rename`
+        * :py:meth:`pathlib.Path.replace`
+        * :py:meth:`pathlib.Path.symlink_to`
+        * :py:meth:`pathlib.Path.hardlink_to`
+        * :py:meth:`pathlib.Path.link_to`
+        * :py:meth:`pathlib.Path.exists`
+        * :py:meth:`pathlib.Path.is_dir`
+        * :py:meth:`pathlib.Path.is_file`
+        * :py:meth:`pathlib.Path.is_mount`
+        * :py:meth:`pathlib.Path.is_symlink`
+        * :py:meth:`pathlib.Path.is_block_device`
+        * :py:meth:`pathlib.Path.is_char_device`
+        * :py:meth:`pathlib.Path.is_fifo`
+        * :py:meth:`pathlib.Path.is_socket`
+        * :py:meth:`pathlib.Path.expanduser` - we recommend :py:meth:`ubelt.Path.expand` instead.
+
+        * :py:meth:`pathlib.PurePath.as_posix`
+        * :py:meth:`pathlib.PurePath.as_uri`
+        * :py:meth:`pathlib.PurePath.with_name` - we recommend :py:meth:`ubelt.Path.augment` instead.
+        * :py:meth:`pathlib.PurePath.with_stem`  - we recommend :py:meth:`ubelt.Path.augment` instead.
+        * :py:meth:`pathlib.PurePath.with_suffix` - we recommend :py:meth:`ubelt.Path.augment` instead.
+        * :py:meth:`pathlib.PurePath.relative_to`
+        * :py:meth:`pathlib.PurePath.is_relative_to`
+
+        * :py:meth:`pathlib.PurePath.joinpath`
+        * :py:meth:`pathlib.PurePath.is_absolute`
+        * :py:meth:`pathlib.PurePath.is_reserved`
+        * :py:meth:`pathlib.PurePath.match`
     """
     __slots__ = ()
 
     @classmethod
-    def appdir(cls, appname, *args, type='cache'):
+    def appdir(cls, appname=None, *args, type='cache'):
         """
-        Returns an operating system appropriate writable directory for an
-        application to be used for cache, configs, or data.
+        Returns a standard platform specific directory for an application to
+        use as cache, config, or data.
+
+        The default root location depends on the platform and is specified the
+        the following table:
+
+        TextArt:
+
+                   | POSIX            | Windows        | MacOSX
+            data   | $XDG_DATA_HOME   | %APPDATA%      | ~/Library/Application Support
+            config | $XDG_CONFIG_HOME | %APPDATA%      | ~/Library/Application Support
+            cache  | $XDG_CACHE_HOME  | %LOCALAPPDATA% | ~/Library/Caches
+
+
+            If an environment variable is not specified the defaults are:
+                APPDATA      = ~/AppData/Roaming
+                LOCALAPPDATA = ~/AppData/Local
+
+                XDG_DATA_HOME   = ~/.local/share
+                XDG_CACHE_HOME  = ~/.cache
+                XDG_CONFIG_HOME = ~/.config
 
         Args:
-            appname (str): the name of the application
-            *args[str] : optional subdirs
-            type (str): can be 'cache', 'config', or 'data'.
+            appname (str | None):
+                The name of the application.
+
+            *args : optional subdirs
+
+            type (str):
+                the type of data the expected to be stored in this application
+                directory. Valid options are 'cache', 'config', or 'data'.
 
         Returns:
-            Path: a new path object
+            Path: a new path object for the specified application directory.
+
+        SeeAlso:
+            This provides functionality similar to the
+            `appdirs <https://pypi.org/project/appdirs/>`_ -
+            and
+            `platformdirs <https://platformdirs.readthedocs.io/en/latest/api.html>`_ -
+            packages.
 
         Example:
             >>> # xdoctest: +IGNORE_WANT
@@ -455,6 +599,13 @@ class Path(_PathBase):
             >>> import pytest
             >>> with pytest.raises(KeyError):
             >>>     ub.Path.appdir('ubelt', type='other')
+
+        Example:
+            >>> # xdoctest: +IGNORE_WANT
+            >>> import ubelt as ub
+            >>> # Can now call appdir without any arguments
+            >>> print(ub.Path.appdir().shrinkuser())
+            ~/.cache
         """
         from ubelt import util_platform
         if type == 'cache':
@@ -465,7 +616,11 @@ class Path(_PathBase):
             base = util_platform.platform_data_dir()
         else:
             raise KeyError(type)
-        return cls(base, appname, *args)
+
+        if appname is None:
+            return cls(base, *args)
+        else:
+            return cls(base, appname, *args)
 
     def augment(self, prefix='', stemsuffix='', ext=None, stem=None, dpath=None,
                 tail='', relative=None, multidot=False, suffix=''):
@@ -512,9 +667,9 @@ class Path(_PathBase):
                 DEPRECAETD
 
         SeeAlso:
-            # Stdlib ways of augmenting
-            pathlib.Path.with_stem
-            pathlib.Path.with_suffix
+            :py:meth:`pathlib.Path.with_stem`
+            :py:meth:`pathlib.Path.with_name`
+            :py:meth:`pathlib.Path.with_suffix`
 
         Returns:
             Path: augmented path
@@ -524,6 +679,8 @@ class Path(_PathBase):
 
             THE INITIAL RELEASE OF Path.augment suffered from an unfortunate
             variable naming decision that conflicts with pathlib.Path
+
+            .. code:: python
 
             p = ub.Path('the.entire.fname.or.dname.is.the.name.exe')
             print(f'p     ={p}')
@@ -674,7 +831,7 @@ class Path(_PathBase):
         """
         Expands user tilde and environment variables.
 
-        Concise alias of `Path(os.path.expandvars(self.expanduser()))`
+        Concise alias of ``Path(os.path.expandvars(self.expanduser()))``
 
         Returns:
             Path: path with expanded environment variables and tildes
@@ -740,7 +897,9 @@ class Path(_PathBase):
 
     def shrinkuser(self, home='~'):
         """
-        Inverse of :func:`os.path.expanduser`.
+        Shrinks your home dir by replacing it with a tilde.
+
+        This is the inverse of :func:`os.path.expanduser`.
 
         Args:
             home (str): symbol used to replace the home path.
@@ -770,7 +929,7 @@ class Path(_PathBase):
         Returns:
             Path: returns itself
 
-        Notes:
+        Note:
             The :func:`ubelt.util_io.touch` function currently has a slightly
             different implementation. This uses whatever the pathlib version
             is. This may change in the future.
@@ -783,7 +942,7 @@ class Path(_PathBase):
 
     def walk(self, topdown=True, onerror=None, followlinks=False):
         """
-        A variant of os.walk for pathlib
+        A variant of :func:`os.walk` for pathlib
 
         Args:
             topdown (bool):
@@ -980,8 +1139,53 @@ class Path(_PathBase):
         """
         Copy this file or directory to dst.
 
-        This is implemented with a combination of :func:`shutil.copy`,
-        :func:`shutil.copy2`, and :func:`shutil.copytree`.
+        By default files are never overwritten and symlinks are copied as-is.
+
+
+        At a basic level (i.e. ignoring symlinks) for each path argument
+        (``src`` and ``dst``) these can either be files, directories, or not
+        exist. Given these three states, the following table summarizes how
+        this function copies this path to its destination.
+
+        TextArt:
+
+            +----------+------------------------+------------------------+------------+
+            | dst      | dir                    | file                   | no-exist   |
+            +----------+                        |                        |            |
+            | src      |                        |                        |            |
+            +==========+========================+========================+============+
+            | dir      | error-or-overwrite-dst | error                  | dst        |
+            +----------+------------------------+------------------------+------------+
+            | file     | dst / src.name         | error-or-overwrite-dst | dst        |
+            +----------+------------------------+------------------------+------------+
+            | no-exist | error                  | error                  | error      |
+            +----------+------------------------+------------------------+------------+
+
+        In general, the contents of src will be the contents of dst, except for
+        the one case where a file is copied into an existing directory. In this
+        case the name is used to construct a fully qualified destination.
+
+        Ignore:
+            # Enumerate cases
+            rows = [
+                {'src': 'no-exist', 'dst': 'no-exist', 'result': 'error'},
+                {'src': 'no-exist', 'dst': 'file',     'result': 'error'},
+                {'src': 'no-exist', 'dst': 'dir',      'result': 'error'},
+
+                {'src': 'file', 'dst': 'no-exist', 'result': 'dst'},
+                {'src': 'file', 'dst': 'dir',      'result': 'dst / src.name'},
+                {'src': 'file', 'dst': 'file',     'result': 'error-or-overwrite-dst'},
+
+                {'src': 'dir', 'dst': 'no-exist', 'result': 'dst'},
+                {'src': 'dir', 'dst': 'dir',      'result': 'error-or-overwrite-dst'},
+                {'src': 'dir', 'dst': 'file',     'result': 'error'},
+            ]
+            import pandas as pd
+            df = pd.DataFrame(rows)
+            piv = df.pivot(['src'], ['dst'], 'result')
+            print(piv.to_markdown(tablefmt="presto"))
+            print(piv.to_markdown(tablefmt="pretty", index=True))
+            print(piv.to_markdown(tablefmt="grid", index=True))
 
         Args:
             dst (str | PathLike):
@@ -990,8 +1194,8 @@ class Path(_PathBase):
 
                 if `src` is a directory and `dst` does not exist, copies this to `dst`
                 if `src` is a directory and `dst` is a directory, errors unless
-                    overwrite is True, in which copies this to `dst` and
-                    overwrites anything conflicting path.
+                overwrite is True, in which case, copies this to `dst` and
+                overwrites anything conflicting path.
 
             follow_file_symlinks (bool):
                 If True and src is a link, the link will be resolved before
@@ -1005,63 +1209,24 @@ class Path(_PathBase):
                 copied.
 
             meta (str | None):
-                Indicates what metadata bits to copy. This can be 'stats'
-                which tries to copy all metadata (i.e. like shutil.copy2),
+                Indicates what metadata bits to copy. This can be 'stats' which
+                tries to copy all metadata (i.e. like :py:func:`shutil.copy2`),
                 'mode' which copies just the permission bits (i.e. like
-                shutil.copy), or None, which ignores all metadata (i.e.
-                like shutil.copyfile).
+                :py:func:`shutil.copy`), or None, which ignores all metadata
+                (i.e.  like :py:func:`shutil.copyfile`).
 
             overwrite (bool):
                 if False, and target file exists, this will raise an error,
                 otherwise the file will be overwritten.
 
-        Note:
-            The defaults and behavior here are noticably different (and
-            hopefully more sane) than :func:`shutil.copy`.
-
         Returns:
             Path: where the path was actually copied to
 
-        Ignore:
-            # Enumerate cases
-
-            rows = [
-                {'src': 'no-exist', 'dst': 'no-exist', 'result': 'error'},
-                {'src': 'no-exist', 'dst': 'file',     'result': 'error'},
-                {'src': 'no-exist', 'dst': 'dir',      'result': 'error'},
-
-                {'src': 'file', 'dst': 'no-exist', 'result': 'dst'},
-                {'src': 'file', 'dst': 'dir',      'result': 'dst / src.name'},
-                {'src': 'file', 'dst': 'file',     'result': 'dst'},
-
-                {'src': 'dir', 'dst': 'no-exist', 'result': 'dst'},
-                {'src': 'dir', 'dst': 'dir',      'result': '?dst or dst/src.name?'},
-                {'src': 'dir', 'dst': 'file',     'result': 'error'},
-            ]
-            df = pd.DataFrame(rows)
-            piv = df.pivot(['src'], ['dst'], 'result')
-
-            import pandas as pd
-            df = pd.DataFrame(index=file_cases, columns=file_cases)
-            df.index.name = 'src'
-            df.columns.name = 'src'
-            df.loc['no-exist', :]  = 'error'
-            df.loc['file', 'file'] = 'copyfile'
-            df.loc['file', 'no-exist'] = 'copyfile'
-            df.loc['file', 'dir'] = 'dir / file.name'
-            df.loc['dir', 'file'] = 'error'
-            df.loc['dir', 'no-exist'] = 'copytree'
-            df.loc['dir', 'dir'] = 'error-or-overwrite'
-            print(df.to_markdown())
-
-        TextArt:
-
-            | src      | no-exist   | file     | dir                |
-            |:---------|:-----------|:---------|:-------------------|
-            | no-exist | error      | error    | error              |
-            | file     | copyfile   | copyfile | dir / file.name    |
-            | dir      | copytree   | error    | error-or-overwrite |
-
+        Note:
+            This is implemented with a combination of :func:`shutil.copy`,
+            :func:`shutil.copy2`, and :func:`shutil.copytree`, but the The
+            defaults and behavior here are noticably different (and hopefully
+            safer and more intuitive).
 
         Example:
             >>> import ubelt as ub
@@ -1119,18 +1284,19 @@ class Path(_PathBase):
             raise Exception
         return Path(dst)
 
-    def move(self, dst, follow_file_symlinks=True, follow_dir_symlinks=True,
+    def move(self, dst, follow_file_symlinks=False, follow_dir_symlinks=False,
              meta='stats'):
         """
         Move a file from one location to another, or recursively move a
         directory from one location to another.
 
-        This is implemented via :func:`shutil.move`, which depends heavily on
-        os.rename semantics. This can differ, but I don't have good references
-        on it right now. The tests do demonstrate a weird pattern.
+        This method will refuse to overwrite anything, and there is currently
+        no overwrite option for technical reasons. This may change in the
+        future.
 
         Args:
             dst (str | PathLike):
+                A non-existing path where this file will be moved.
 
             follow_file_symlinks (bool):
                 If True and src is a link, the link will be resolved before
@@ -1144,20 +1310,22 @@ class Path(_PathBase):
                 copied.
 
             meta (str | None):
-                Indicates what metadata bits to copy. This can be 'stats'
-                which tries to copy all metadata (i.e. like shutil.copy2),
-                'mode' which copies just the permission bits (i.e. like
-                shutil.copy), or None, which ignores all metadata (i.e.
-                like shutil.copyfile).
-
-        Note:
-            The defaults and behavior here are noticably different (and
-            hopefully more sane) than :func:`shutil.move`.
+                Indicates what metadata bits to copy. This can be 'stats' which
+                tries to copy all metadata (i.e. like shutil.copy2), 'mode'
+                which copies just the permission bits (i.e. like shutil.copy),
+                or None, which ignores all metadata (i.e.  like
+                shutil.copyfile).
 
         Note:
             This method will refuse to overwrite anything.
-            Either copy the data, and then delete the original, or us
-            :func:`shutil.move` directly at your own risk.
+
+            This is implemented via :func:`shutil.move`, which depends heavily
+            on :func:`os.rename` semantics. For this reason, this function
+            error if it would overwrite any data. If you want an overwriting
+            variant of move we recommend you either either copy the data, and
+            then delete the original (potentially inefficient), or use
+            :func:`shutil.move` directly if you know how :func:`os.rename`
+            works on your system.
 
         Returns:
             Path: where the path was actually moved to
