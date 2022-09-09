@@ -393,6 +393,17 @@ class ProjectStructure():
         else:
             console.print('[yellow] Package does not seem installed, so skipping import test')
 
+    def serialize_install(self):
+        # TODO: serialize this step to make it fast
+        import distutils.sysconfig
+        import ubelt as ub
+        site_dpath = ub.Path(distutils.sysconfig.get_python_lib())
+        egg_link_fpaths = list(site_dpath.glob(self.mod_name.replace('_', '*') + '*.egg-link'))
+        editable_fpaths = list(site_dpath.glob('__editable__*' + self.mod_name.replace('_', '*') + '*'))
+        easy_install_fpath = site_dpath / 'easy-install.pth'
+        print(f'egg_link_fpaths={egg_link_fpaths}')
+        print(f'editable_fpaths={editable_fpaths}')
+
 
 GLOBAL_PROJECTS = []
 
@@ -427,6 +438,10 @@ def setup_module(module):
                                           mod_name=mod_name, use_src=True)
     PUREPY_SRC_PROJECT.setup()
     GLOBAL_PROJECTS.append(PUREPY_SRC_PROJECT)
+
+    if 0:
+        self = PUREPY_SRC_PROJECT
+        self.serialize()
 
     # Define pure python module with the package at root level
     mod_name = 'purepy_root_demo_pkg_' + suffix
