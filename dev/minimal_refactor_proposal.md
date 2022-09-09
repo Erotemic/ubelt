@@ -32,6 +32,12 @@ We seek the best of both worlds. Consider if ubelt was broken into subpackages:
 
 What would the name of the stand alone packages be?
 
+Some packages might get standalone love: progiter, thats about it. But misc
+ones could be prefixed with ub or something.
+
+Given this splitup, the ubelt package would point at each member and depend on
+it.  It would expose it as normal.
+
 
 Lets try and take a subset of ubelt and map them to packages.
 
@@ -95,6 +101,7 @@ find_duplicates
 varied_values 
 argmax
 argmin
+argsort
 argunique
 boolmask?
 unique_flags?
@@ -121,13 +128,11 @@ indexable_allclose
 do NiceRepr, NoParam, 
 
 
-argsort
+ubtime:
 
-
-
-timestamp
-Timer
-timeparse
+    timestamp
+    Timer
+    timeparse
 
 
 ### Cut
