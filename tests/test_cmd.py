@@ -57,7 +57,7 @@ def test_cmd_stderr():
 
 def test_cmd_with_pathlib():
     if not ub.POSIX:
-        pytest.skip(reason='posix only')
+        pytest.skip('posix only')
     fpath = ub.Path(ub.__file__)
     result = ub.cmd(['ls', fpath])
     assert str(fpath) in result['out']
@@ -81,7 +81,7 @@ def test_cmd_tee_thread():
     """
     if 'tqdm' in sys.modules:
         if tuple(map(int, sys.modules['tqdm'].__version__.split('.'))) < (4, 19):
-            pytest.skip(reason='threads cause issues with early tqdms')
+            pytest.skip('threads cause issues with early tqdms')
 
     import threading
     # check which threads currently exist (ideally 1)
