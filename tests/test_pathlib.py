@@ -51,15 +51,25 @@ def _demo_directory_structure():
     to_rel_symlink.append((base / 'root/inside_dir'                 , base / 'root/links/rel_inside_dlink'))
     to_rel_symlink.append((base / 'root/links/rel_cyclic'           , (base / 'root/links/rel_cyclic/n1/n2/').ensuredir() / 'rel_loop'))
 
-    import os
-    for real, link in to_abs_symlink:
-        # link.symlink_to(real)
-        ub.symlink(real, link)
+    try:
+        # TODO: the implementation of ubelt.symlink might be wrong when the
+        # link target is relative.
+        import os
+        for real, link in to_abs_symlink:
+            link.symlink_to(real)
+            # ub.symlink(real, link, verbose=1)
 
-    for real, link in to_rel_symlink:
-        rel_real = os.path.relpath(real, link.parent)
-        # link.symlink_to(rel_real)
-        ub.symlink(rel_real, link)
+        for real, link in to_rel_symlink:
+            rel_real = os.path.relpath(real, link.parent)
+            link.symlink_to(rel_real)
+            # ub.symlink(rel_real, link, verbose=1)
+    except Exception:
+        import pytest
+        pytest.skip('unable to symlink')
+
+    if 0:
+        import xdev
+        xdev.tree_repr(base)
     return base
 
 
@@ -78,13 +88,12 @@ def test_move_dir_to_non_existing():
         import xdev
         xdev.tree_repr(base)
 
-    dst = root.move(base / 'our_move')
+    root.move(base / 'our_move')
 
     if ub.LINUX:
         ub.cmd(f'mv {root2} {base}/linux_move', verbose=2, check=1)
         ub.cmd(f'mv -T {root3} {base}/linux_moveT', verbose=2, check=1)
 
-    print(f'dst={dst}')
     if DEBUG_PATH:
         import xdev
         xdev.tree_repr(base)
