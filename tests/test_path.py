@@ -167,9 +167,9 @@ def test_move_dir_to_non_existing():
 
     if ub.POSIX:
         # We behave like POSIX mv here in both cases here
-        case1 = [(sorted(f), sorted(d)) for (r, f, d) in (base / 'posix_move').walk()]
-        case2 = [(sorted(f), sorted(d)) for (r, f, d) in (base / 'posix_moveT').walk()]
-        case3 = [(sorted(f), sorted(d)) for (r, f, d) in (base / 'our_move').walk()]
+        case1 = _comparable_walk(base / 'posix_move')
+        case2 = _comparable_walk(base / 'posix_moveT')
+        case3 = _comparable_walk(base / 'our_move')
         assert case1 == case2 == case3
 
     base.delete()
@@ -202,9 +202,9 @@ def test_move_to_nested_non_existing():
     if ub.POSIX:
         # We behave like POSIX mv here in both cases here
         # up to the fact that we will always create the dir, whereas mv wont
-        case1 = [(sorted(f), sorted(d)) for (r, f, d) in (base / 'posix/move').walk()]
-        case2 = [(sorted(f), sorted(d)) for (r, f, d) in (base / 'posix/moveT').walk()]
-        case3 = [(sorted(f), sorted(d)) for (r, f, d) in (base / 'our/move').walk()]
+        case1 = _comparable_walk(base / 'posix/move')
+        case2 = _comparable_walk(base / 'posix/moveT')
+        case3 = _comparable_walk(base / 'our/move')
         assert case1 == case2 == case3
 
     base.delete()
@@ -462,8 +462,8 @@ def test_copy_dir_to_non_existing():
 
     if ub.POSIX:
         # Our copy should behave like the posix copy
-        case1 = [(sorted(f), sorted(d)) for (r, f, d) in (base / 'our_copy').walk()]
-        case2 = [(sorted(f), sorted(d)) for (r, f, d) in (base / 'posix_copy').walk()]
+        case1 = _comparable_walk(base / 'our_copy')
+        case2 = _comparable_walk(base / 'posix_copy')
         print('case1 = {}'.format(ub.repr2(case1, nl=1)))
         print('case2 = {}'.format(ub.repr2(case2, nl=1)))
         assert case1 == case2
@@ -518,9 +518,9 @@ def test_copy_dir_to_existing_dir_noconflict():
 
     if ub.POSIX:
         # Our copy should behave like the posix copy
-        case1 = [(sorted(f), sorted(d)) for (r, f, d) in (base / 'our_copy').walk()]
-        case2 = [(sorted(f), sorted(d)) for (r, f, d) in (base / 'posix_copy').walk()]
-        case3 = [(sorted(f), sorted(d)) for (r, f, d) in (base / 'posix_copyT').walk()]
+        case1 = _comparable_walk(base / 'our_copy')
+        case2 = _comparable_walk(base / 'posix_copy')
+        case3 = _comparable_walk(base / 'posix_copyT')
         assert case1 == case3
         assert case1 != case2
     base.delete()
@@ -589,12 +589,16 @@ def test_copy_dir_to_existing_dir_withconflict():
 
     if ub.POSIX:
         # Our copy should behave like the posix copy
-        case1 = [(sorted(f), sorted(d)) for (r, f, d) in (base / 'our_copy').walk()]
-        case2 = [(sorted(f), sorted(d)) for (r, f, d) in (base / 'posix_copy').walk()]
-        case3 = [(sorted(f), sorted(d)) for (r, f, d) in (base / 'posix_copyT').walk()]
+        case1 = _comparable_walk(base / 'our_copy')
+        case2 = _comparable_walk(base / 'posix_copy')
+        case3 = _comparable_walk(base / 'posix_copyT')
         print('case1 = {}'.format(ub.repr2(case1, nl=1)))
         print('case3 = {}'.format(ub.repr2(case3, nl=1)))
         print('case2 = {}'.format(ub.repr2(case2, nl=1)))
         assert case1 == case3
         assert case1 != case2
     base.delete()
+
+
+def _comparable_walk(p):
+    return sorted([(tuple(sorted(f)), tuple(sorted(d))) for (r, f, d) in (p).walk()])
