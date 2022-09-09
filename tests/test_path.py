@@ -146,7 +146,7 @@ def test_move_dir_to_non_existing():
     base = _demo_directory_structure()
     root = base / 'root'
 
-    if ub.POSIX:
+    if ub.LINUX:
         root2 = root.copy(root.augment(tail='2'))
         root3 = root.copy(root.augment(tail='3'))
 
@@ -156,19 +156,19 @@ def test_move_dir_to_non_existing():
 
     dst = root.move(base / 'our_move')
 
-    if ub.POSIX:
-        ub.cmd(f'mv {root2} {base}/posix_move', verbose=2, check=1)
-        ub.cmd(f'mv -T {root3} {base}/posix_moveT', verbose=2, check=1)
+    if ub.LINUX:
+        ub.cmd(f'mv {root2} {base}/linux_move', verbose=2, check=1)
+        ub.cmd(f'mv -T {root3} {base}/linux_moveT', verbose=2, check=1)
 
     print(f'dst={dst}')
     if DEBUG_PATH:
         import xdev
         xdev.tree_repr(base)
 
-    if ub.POSIX:
-        # We behave like POSIX mv here in both cases here
-        case1 = _comparable_walk(base / 'posix_move')
-        case2 = _comparable_walk(base / 'posix_moveT')
+    if ub.LINUX:
+        # We behave like Linux mv here in both cases here
+        case1 = _comparable_walk(base / 'linux_move')
+        case2 = _comparable_walk(base / 'linux_moveT')
         case3 = _comparable_walk(base / 'our_move')
         assert case1 == case2 == case3
 
@@ -179,7 +179,7 @@ def test_move_to_nested_non_existing():
     base = _demo_directory_structure()
     root = base / 'root'
 
-    if ub.POSIX:
+    if ub.LINUX:
         root2 = root.copy(root.augment(tail='2'))
         root3 = root.copy(root.augment(tail='3'))
 
@@ -190,20 +190,20 @@ def test_move_to_nested_non_existing():
     # shutil move will make the parent directory if it doesn't exist.
     root.move(base / 'our/move')
 
-    if ub.POSIX:
+    if ub.LINUX:
         # Posix fails unless the parent exists
-        (base / 'posix').ensuredir()
-        ub.cmd(f'mv -v {root2} {base}/posix/move', verbose=2, check=1)
-        ub.cmd(f'mv -Tv {root3} {base}/posix/moveT', verbose=2, check=1)
+        (base / 'linux').ensuredir()
+        ub.cmd(f'mv -v {root2} {base}/linux/move', verbose=2, check=1)
+        ub.cmd(f'mv -Tv {root3} {base}/linux/moveT', verbose=2, check=1)
     if DEBUG_PATH:
         import xdev
         xdev.tree_repr(base)
 
-    if ub.POSIX:
-        # We behave like POSIX mv here in both cases here
+    if ub.LINUX:
+        # We behave like Linux mv here in both cases here
         # up to the fact that we will always create the dir, whereas mv wont
-        case1 = _comparable_walk(base / 'posix/move')
-        case2 = _comparable_walk(base / 'posix/moveT')
+        case1 = _comparable_walk(base / 'linux/move')
+        case2 = _comparable_walk(base / 'linux/moveT')
         case3 = _comparable_walk(base / 'our/move')
         assert case1 == case2 == case3
 
@@ -216,11 +216,11 @@ def test_move_dir_to_existing_dir_noconflict():
 
     (base / 'our_move').ensuredir()
 
-    if ub.POSIX:
+    if ub.LINUX:
         root2 = root.copy(root.augment(tail='2'))
         root3 = root.copy(root.augment(tail='3'))
-        (base / 'posix_move').ensuredir()
-        (base / 'posix_moveT').ensuredir()
+        (base / 'linux_move').ensuredir()
+        (base / 'linux_moveT').ensuredir()
 
     if DEBUG_PATH:
         import xdev
@@ -228,13 +228,13 @@ def test_move_dir_to_existing_dir_noconflict():
 
     import pytest
     with pytest.raises(IOError):
-        # shutil.move behaves similar to posix with -T
+        # shutil.move behaves similar to linux with -T
         # We are just going to disallow this case
         root.move(base / 'our_move')
 
-    if ub.POSIX:
-        ub.cmd(f'mv {root2} {base}/posix_move', verbose=2, check=1)
-        ub.cmd(f'mv -T {root3} {base}/posix_moveT', verbose=2, check=1)
+    if ub.LINUX:
+        ub.cmd(f'mv {root2} {base}/linux_move', verbose=2, check=1)
+        ub.cmd(f'mv -T {root3} {base}/linux_moveT', verbose=2, check=1)
 
     if DEBUG_PATH:
         import xdev
@@ -250,13 +250,13 @@ def test_move_dir_to_existing_dir_withconflict():
     bluntobject = (root / 'will_they_wont_they.txt')
     bluntobject.write_text('smash!')
 
-    if ub.POSIX:
+    if ub.LINUX:
         root2 = root.copy(root.augment(tail='2'))
         root3 = root.copy(root.augment(tail='3'))  # NOQA
 
     dst1 = (base / 'our_move').ensuredir()
-    dst2 = (base / 'posix_move').ensuredir()
-    dst3 = (base / 'posix_move_T').ensuredir()
+    dst2 = (base / 'linux_move').ensuredir()
+    dst3 = (base / 'linux_move_T').ensuredir()
 
     toclobber1 = (dst1 / 'will_they_wont_they.txt')
     toclobber1.write_text('I hope nobody clobbers me!')
@@ -285,7 +285,7 @@ def test_move_dir_to_existing_dir_withconflict():
         root.move(dst1)
 
     if 0:
-        if ub.POSIX:
+        if ub.LINUX:
             ub.cmd(f'mv -v {root2} {dst2}', verbose=2, check=1)
             # The mv command wont move a non-empty directory!
             # Maybe we shouldn't either.
@@ -302,7 +302,7 @@ def test_move_dir_to_existing_dir_withconflict():
         assert got != 'smash!'
         assert not bluntobject.exists()
 
-        if ub.POSIX:
+        if ub.LINUX:
             got2 = toclobber3.read_text()
             assert got2 == 'smash!'
 
@@ -311,7 +311,7 @@ def test_move_dir_to_existing_dir_withconflict():
         assert disjoint1.exists()
         assert disjoint1.read_text() == 'I should be disjoint!'
 
-        if ub.POSIX:
+        if ub.LINUX:
             assert disjoint2.exists()
             assert disjoint2.read_text() == 'I should be disjoint!'
             assert disjoint3.exists()
@@ -451,8 +451,8 @@ def test_copy_dir_to_non_existing():
 
     dst = root.copy(base / 'our_copy')
 
-    if ub.POSIX:
-        ub.cmd(f'cp -r {root} {base}/posix_copy', verbose=2)
+    if ub.LINUX:
+        ub.cmd(f'cp -r {root} {base}/linux_copy', verbose=2)
 
     print(f'dst={dst}')
     if DEBUG_PATH:
@@ -460,10 +460,10 @@ def test_copy_dir_to_non_existing():
         import xdev
         xdev.tree_repr(base)
 
-    if ub.POSIX:
-        # Our copy should behave like the posix copy
+    if ub.LINUX:
+        # Our copy should behave like the linux copy
         case1 = _comparable_walk(base / 'our_copy')
-        case2 = _comparable_walk(base / 'posix_copy')
+        case2 = _comparable_walk(base / 'linux_copy')
         print('case1 = {}'.format(ub.repr2(case1, nl=1)))
         print('case2 = {}'.format(ub.repr2(case2, nl=1)))
         assert case1 == case2
@@ -496,8 +496,8 @@ def test_copy_dir_to_existing_dir_noconflict():
     (root / 'links' / 'rel_cyclic').delete()
 
     dst1 = (base / 'our_copy').ensuredir()
-    dst2 = (base / 'posix_copy').ensuredir()
-    dst3 = (base / 'posix_copyT').ensuredir()
+    dst2 = (base / 'linux_copy').ensuredir()
+    dst3 = (base / 'linux_copyT').ensuredir()
 
     if DEBUG_PATH:
         import xdev
@@ -506,8 +506,8 @@ def test_copy_dir_to_existing_dir_noconflict():
 
     root.copy(dst1, overwrite=True)
 
-    if ub.POSIX:
-        # We behave like posix copy with T here.
+    if ub.LINUX:
+        # We behave like linux copy with T here.
         ub.cmd(f'cp -r {root} {dst2}', verbose=2)
         ub.cmd(f'cp -r -T {root} {dst3}', verbose=2)
 
@@ -516,11 +516,11 @@ def test_copy_dir_to_existing_dir_noconflict():
         print('AFTER MOVE')
         xdev.tree_repr(base)
 
-    if ub.POSIX:
-        # Our copy should behave like the posix copy
+    if ub.LINUX:
+        # Our copy should behave like the linux copy
         case1 = _comparable_walk(base / 'our_copy')
-        case2 = _comparable_walk(base / 'posix_copy')
-        case3 = _comparable_walk(base / 'posix_copyT')
+        case2 = _comparable_walk(base / 'linux_copy')
+        case3 = _comparable_walk(base / 'linux_copyT')
         assert case1 == case3
         assert case1 != case2
     base.delete()
@@ -534,8 +534,8 @@ def test_copy_dir_to_existing_dir_withconflict():
     bluntobject.write_text('smash!')
 
     dst1 = (base / 'our_copy').ensuredir()
-    dst2 = (base / 'posix_copy').ensuredir()
-    dst3 = (base / 'posix_copyT').ensuredir()
+    dst2 = (base / 'linux_copy').ensuredir()
+    dst3 = (base / 'linux_copyT').ensuredir()
 
     toclobber1 = (dst1 / 'will_they_wont_they.txt')
     toclobber1.write_text('I hope nobody clobbers me!')
@@ -559,7 +559,7 @@ def test_copy_dir_to_existing_dir_withconflict():
 
     root.copy(dst1, overwrite=True)
 
-    if ub.POSIX:
+    if ub.LINUX:
         ub.cmd(f'cp -r {root} {dst2}', verbose=2, check=1)
         ub.cmd(f'cp -r -T {root} {dst3}', verbose=2, check=1)
 
@@ -572,7 +572,7 @@ def test_copy_dir_to_existing_dir_withconflict():
     got = toclobber1.read_text()
     assert got == 'smash!'
 
-    if ub.POSIX:
+    if ub.LINUX:
         got2 = toclobber3.read_text()
         assert got2 == 'smash!'
 
@@ -581,17 +581,17 @@ def test_copy_dir_to_existing_dir_withconflict():
     assert disjoint1.exists()
     assert disjoint1.read_text() == 'I should be disjoint!'
 
-    if ub.POSIX:
+    if ub.LINUX:
         assert disjoint2.exists()
         assert disjoint2.read_text() == 'I should be disjoint!'
         assert disjoint3.exists()
         assert disjoint3.read_text() == 'I should be disjoint!'
 
-    if ub.POSIX:
-        # Our copy should behave like the posix copy
+    if ub.LINUX:
+        # Our copy should behave like the linux copy
         case1 = _comparable_walk(base / 'our_copy')
-        case2 = _comparable_walk(base / 'posix_copy')
-        case3 = _comparable_walk(base / 'posix_copyT')
+        case2 = _comparable_walk(base / 'linux_copy')
+        case3 = _comparable_walk(base / 'linux_copyT')
         print('case1 = {}'.format(ub.repr2(case1, nl=1)))
         print('case3 = {}'.format(ub.repr2(case3, nl=1)))
         print('case2 = {}'.format(ub.repr2(case2, nl=1)))
