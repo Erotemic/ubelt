@@ -491,7 +491,7 @@ def _syspath_modname_to_modpath(modname, sys_path=None, exclude=None):
         # basic pth will be used for "simple" structures (which means has a
         # src/modname folder).
         new_editable_finder_paths = sorted(glob.glob(join(dpath, _editable_fname_finder_py_pat)))
-        if new_editable_finder_paths:
+        if new_editable_finder_paths:  # nocover
             # This makes some assumptions, which may not hold in general
             # We may need to fallback entirely on pkgutil, which would
             # ultimately be good. Hopefully the new standards mean it does not
@@ -509,7 +509,9 @@ def _syspath_modname_to_modpath(modname, sys_path=None, exclude=None):
         # If a finder does not exist, then the __editable__ pth file might hold
         # the path itself. Check for that.
         new_editable_pth_paths = sorted(glob.glob(join(dpath, _editable_fname_pth_pat)))
-        if new_editable_pth_paths:
+        if new_editable_pth_paths:  # nocover
+            # Disable coverage because the test that covers this is too slow.
+            # It can be made faster, re-enable when that lands.
             import pathlib
             editable_pth = pathlib.Path(new_editable_pth_paths[-1])
             target = editable_pth.read_text().strip().split('\n')[-1]

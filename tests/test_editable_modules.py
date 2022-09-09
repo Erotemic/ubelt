@@ -409,9 +409,10 @@ GLOBAL_PROJECTS = []
 
 
 def _check_skip_editable_module_tests():
-    if os.environ.get('UBELT_SKIP_EDITABLE_TESTS', ''):
+    UBELT_DO_EDITABLE_TESTS = os.environ.get('UBELT_DO_EDITABLE_TESTS', '')
+    if not UBELT_DO_EDITABLE_TESTS:
         import pytest
-        pytest.skip('User requested skip editable tests')
+        pytest.skip('UBELT_DO_EDITABLE_TESTS is not enabled')
 
     if sys.platform.startswith('win32'):
         import pytest
