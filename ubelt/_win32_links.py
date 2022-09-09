@@ -345,6 +345,7 @@ def _win32_is_junction(path):
         >>> assert _win32_is_junction(dpath) is False
         >>> assert _win32_is_junction('notafile') is False
     """
+    path = os.fspath(path)
     if not exists(path):
         if os.path.isdir(path):
             if not os.path.islink(path):
@@ -372,6 +373,7 @@ def _win32_read_junction(path):
         >>> pointed = _win32_read_junction(path)
         >>> print('pointed = {!r}'.format(pointed))
     """
+    path = os.fspath(path)
     if not jwfs.is_reparse_point(path):
         raise ValueError('not a junction')
 
