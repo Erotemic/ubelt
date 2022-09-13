@@ -7,7 +7,7 @@ easily mark features in their libraries as deprecated.
 
 def schedule_deprecation(modname, name='?', type='?', migration='',
                          deprecate=None, error=None, remove=None,
-                         warncls=DeprecationWarning):
+                         warncls=DeprecationWarning, stacklevel=1):
     """
     Deprecation machinery to help provide users with a smoother transition.
 
@@ -57,6 +57,10 @@ def schedule_deprecation(modname, name='?', type='?', migration='',
         warncls (type):
             This is the category of warning to use. Defaults to
             :class:`DeprecationWarning`.
+
+        stacklevel (int):
+            The stacklevel can be used by wrapper functions to indicate where
+            the warning is occurring.
 
     Returns:
         str : the constructed message
@@ -194,6 +198,6 @@ def schedule_deprecation(modname, name='?', type='?', migration='',
         raise RuntimeError(msg)
 
     if deprecate_now:
-        warnings.warn(msg, warncls)
+        warnings.warn(msg, warncls, stacklevel=1 + stacklevel)
 
     return msg
