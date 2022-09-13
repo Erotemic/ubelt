@@ -13,7 +13,8 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 * Tentative Python 3.11 support
 
 ### Changed
-* `ub.schedule_deprecation` can now accept the strings "soon" or "now".
+* `ub.schedule_deprecation` can now accept the strings "soon" or "now" for "when" arguments.
+* `ub.schedule_deprecation` can now accept `stacklevel` as as an argument.
 * `ub.Path.apppdir` can now be called without arguments.
 * Deprecate `TempDir`
 
