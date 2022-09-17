@@ -72,7 +72,7 @@ class PythonPathContext(object):
         >>>     self.__exit__(None, None, None)
     """
     def __init__(self, dpath, index=0):
-        self.dpath = dpath
+        self.dpath = os.fspath(dpath)
         self.index = index
 
     def __enter__(self):
