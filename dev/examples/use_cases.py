@@ -82,3 +82,9 @@ def multiple_items_from_a_dictionary():
     """
     for row in rows:
         mean, std, sum, min, max = ub.take(row, ['mean', 'std', 'sum', 'min', 'max'])
+
+    """
+    And now even better:
+    """
+    for row in map(ub.udict, rows):
+        mean, std, sum, min, max = row.take(['mean', 'std', 'sum', 'min', 'max'])
