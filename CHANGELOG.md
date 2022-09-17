@@ -17,10 +17,12 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 * `ub.schedule_deprecation` can now accept `stacklevel` as as an argument.
 * `ub.Path.apppdir` can now be called without arguments.
 * Deprecate `TempDir`
+* `ub.Timer` can now accept `ns` as a keyword to enable nanosecond resolution.
 
 ### Fixed
 * Issue in `indexable_allclose` where tolerances were not respected.
 * Issue in `modname_to_modpath` with exclude and editable installs.
+* Incompatibility with pathlib in `PythonPathContext`
 
 
 ## Version 1.2.2 - Released 2022-09-05 

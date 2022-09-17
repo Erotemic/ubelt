@@ -478,10 +478,16 @@ class Timer(object):
     Args:
         label (str, default=''):
             identifier for printing
+
         verbose (int, default=None):
-            verbosity flag, defaults to True if label is given
+            verbosity flag, defaults to True if label is given, otherwise 0.
+
         newline (bool, default=True):
-            if False and verbose, print tic and toc on the same line
+            if False and verbose, print tic and toc on the same line.
+
+        ns (bool, default=False):
+            if True, a nano-second resolution timer to avoid precision loss
+            caused by the float type.
 
     Attributes:
         elapsed (float): number of seconds measured by the context manager
@@ -490,7 +496,8 @@ class Timer(object):
     Example:
         >>> # Create and start the timer using the context manager
         >>> import math
-        >>> timer = Timer('Timer test!', verbose=1)
+        >>> import ubelt as ub
+        >>> timer = ub.Timer('Timer test!', verbose=1)
         >>> with timer:
         >>>     math.factorial(10)
         >>> assert timer.elapsed > 0
@@ -499,17 +506,31 @@ class Timer(object):
 
     Example:
         >>> # Create and start the timer using the tic/toc interface
-        >>> timer = Timer().tic()
+        >>> import ubelt as ub
+        >>> timer = ub.Timer().tic()
         >>> elapsed1 = timer.toc()
         >>> elapsed2 = timer.toc()
         >>> elapsed3 = timer.toc()
         >>> assert elapsed1 <= elapsed2
         >>> assert elapsed2 <= elapsed3
+
+    Example:
+        >>> # In Python 3.7+ nanosecond resolution can be enabled
+        >>> import ubelt as ub
+        >>> import sys
+        >>> if sys.version_info <= (3, 6):
+        >>>     import pytest
+        >>>     pytest.skip()
+        >>> # xdoctest +REQUIRES(Python>=3.7)  # fixme directive doesnt exist yet
+        >>> timer = ub.Timer(label='perf_counter_ns', ns=True).tic()
+        >>> elapsed1 = timer.toc()
+        >>> elapsed2 = timer.toc()
+        >>> assert elapsed1 <= elapsed2
+        >>> assert isinstance(elapsed1, int)
     """
-    # TODO: If sys.version >= 3.7, then use time.perf_counter_ns
     _default_time = time.perf_counter
 
-    def __init__(self, label='', verbose=None, newline=True):
+    def __init__(self, label='', verbose=None, newline=True, ns=False):
         if verbose is None:
             verbose = bool(label)
         self.label = label
@@ -519,7 +540,11 @@ class Timer(object):
         self.elapsed = -1
         self.write = sys.stdout.write
         self.flush = sys.stdout.flush
-        self._time = self._default_time
+        self.ns = ns
+        if self.ns:
+            self._time = time.perf_counter_ns
+        else:
+            self._time = self._default_time
 
     def tic(self):
         """ starts the timer """
@@ -536,7 +561,10 @@ class Timer(object):
         """ stops the timer """
         elapsed = self._time() - self.tstart
         if self.verbose:
-            self.write('...toc(%r)=%.4fs\n' % (self.label, elapsed))
+            if self.ns:
+                self.write('...toc(%r)=%.4fs\n' % (self.label, elapsed / 1e9))
+            else:
+                self.write('...toc(%r)=%.4fs\n' % (self.label, elapsed))
             self.flush()
         return elapsed
 
