@@ -578,6 +578,7 @@ class Cacher(object):
         meta_fpath = data_fpath + '.meta'
 
         # Also save metadata file to reconstruct hashing
+        # This may be deprecated in the future.
         with open(meta_fpath, 'a') as file_:
             # TODO: maybe append this in json or YML format?
             file_.write('\n\nsaving {}\n'.format(util_time.timestamp()))
@@ -748,13 +749,11 @@ class CacheStamp(object):
 
         depends (str | List[str] | None):
             Indicate dependencies of this cache.  If the dependencies change,
-            then the cache is recomputed.  New to CacheStamp in version 0.9.2,
-            replaces ``cfgstr``.
+            then the cache is recomputed.  New to CacheStamp in version 0.9.2.
 
         meta (object | None):
-            Metadata that is also saved with the ``cfgstr``.  This can be
-            useful to indicate how the ``cfgstr`` was constructed.  New to
-            CacheStamp in version 0.9.2.  Note: this is a candidate for
+            Metadata that is also saved as a sidecar file.
+            New to CacheStamp in version 0.9.2.  Note: this is a candidate for
             deprecation.
 
         expires (str | int | datetime.datetime | datetime.timedelta | None):
@@ -772,8 +771,7 @@ class CacheStamp(object):
             File extension for the cache format. Can be ``'.pkl'`` or
             ``'.json'``.
 
-        cfgstr (str | None):
-            DEPRECATED in favor or depends.
+        cfgstr (str | None): DEPRECATED.
 
     Notes:
         The size, mtime, and hash mechanism is similar to how Makefile and redo
@@ -906,12 +904,9 @@ class CacheStamp(object):
         expiration criteria are met.
 
         Args:
-            cfgstr (str | None): overrides the instance-level cfgstr.
-                DEPRECATED do not use.
+            cfgstr (Any): DEPRECATED
 
-            product (str | PathLike | Sequence[str | PathLike] | None):
-                override the default product if specified.
-                DEPRECATED do not use.
+            product (Any): DEPRECATED
 
         Returns:
             bool | str:
