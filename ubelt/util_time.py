@@ -518,7 +518,7 @@ class Timer(object):
         >>> # In Python 3.7+ nanosecond resolution can be enabled
         >>> import ubelt as ub
         >>> import sys
-        >>> if sys.version_info <= (3, 6):
+        >>> if sys.version_info[0:2] <= (3, 6):
         >>>     import pytest
         >>>     pytest.skip()
         >>> # xdoctest +REQUIRES(Python>=3.7)  # fixme directive doesnt exist yet
