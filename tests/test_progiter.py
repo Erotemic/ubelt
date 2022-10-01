@@ -1,9 +1,10 @@
 """
-pytest ubelt/tests/test_progiter.py
+pytest tests/test_progiter.py
 """
 from io import StringIO
 from xdoctest.utils import strip_ansi
-from ubelt.progiter import ProgIter
+from xdoctest.utils import CaptureStdout
+from progiter import ProgIter
 import sys
 
 
@@ -41,29 +42,27 @@ def test_rate_format_string():
 
 def test_rate_format():
     # Define a function that takes some time
-    import ubelt as ub
     file = StringIO()
-    prog = ub.ProgIter(file=file)
+    prog = ProgIter(file=file)
     prog.begin()
 
     prog._iters_per_second = .000001
-    msg = prog.format_message()
+    msg = prog.format_message()[1]
     rate_part = msg.split('rate=')[1].split(' Hz')[0]
     assert rate_part == '1e-06'
 
     prog._iters_per_second = .1
-    msg = prog.format_message()
+    msg = prog.format_message()[1]
     rate_part = msg.split('rate=')[1].split(' Hz')[0]
     assert rate_part == '0.10'
 
     prog._iters_per_second = 10000
-    msg = prog.format_message()
+    msg = prog.format_message()[1]
     rate_part = msg.split('rate=')[1].split(' Hz')[0]
     assert rate_part == '10000.00'
 
 
 def test_progiter():
-    from ubelt import Timer
     # Define a function that takes some time
     def is_prime(n):
         return n >= 2 and not any(n % i == 0 for i in range(2, n))
@@ -86,8 +85,7 @@ def test_progiter():
         print(file.read())
 
     total = 200
-    # N = 5000
-    N = 500
+    N = 5000
     N0 = N - total
     print('N = %r' % (N,))
     print('N0 = %r' % (N0,))
@@ -98,7 +96,7 @@ def test_progiter():
           'insignificant')
     print('this is verbosity mode verbose=0')
     sequence = (is_prime(n) for n in range(N0, N))
-    with Timer('demo0'):
+    if True:
         psequence = ProgIter(sequence, total=total, desc='demo0',
                              enabled=False)
         list(psequence)
@@ -107,7 +105,7 @@ def test_progiter():
     print('Demo #1: progress is shown by default in the same line')
     print('this is verbosity mode verbose=1')
     sequence = (is_prime(n) for n in range(N0, N))
-    with Timer('demo1'):
+    if True:
         psequence = ProgIter(sequence, total=total, desc='demo1')
         list(psequence)
 
@@ -118,7 +116,7 @@ def test_progiter():
     print('Progress is only printed as needed')
     print('Notice the adjustment behavior of the print frequency')
     print('this is verbosity mode verbose=2')
-    with Timer('demo2'):
+    if True:
         sequence = (is_prime(n) for n in range(N0, N))
         psequence = ProgIter(sequence, total=total, clearline=False,
                              desc='demo2')
@@ -130,7 +128,7 @@ def test_progiter():
     print('Demo #3: Adjustments can be turned off to give constant feedback')
     print('this is verbosity mode verbose=3')
     sequence = (is_prime(n) for n in range(N0, N))
-    with Timer('demo3'):
+    if True:
         psequence = ProgIter(sequence, total=total, adjust=False,
                              clearline=False, freq=100, desc='demo3')
         list(psequence)
@@ -138,8 +136,7 @@ def test_progiter():
 
 def test_progiter_offset_10():
     """
-    pytest -s  ~/code/ubelt/ubelt/tests/test_progiter.py::test_progiter_offset_10
-    xdoctest ~/code/ubelt/tests/test_progiter.py test_progiter_offset_10
+    pytest -s  ~/code/progiter/tests/test_progiter.py::test_progiter_offset_10
     """
     # Define a function that takes some time
     file = StringIO()
@@ -152,14 +149,12 @@ def test_progiter_offset_10():
         # on windows \r seems to be mixed up with ansi sequences
         from xdoctest.utils import strip_ansi
         got = [strip_ansi(line).strip() for line in got]
-    print('want = {!r}'.format(want))
-    print('got = {!r}'.format(got))
     assert got == want
 
 
 def test_progiter_offset_0():
     """
-    pytest -s  ~/code/ubelt/ubelt/tests/test_progiter.py::test_progiter_offset_0
+    pytest -s  ~/code/progiter/tests/test_progiter.py::test_progiter_offset_0
     """
     # Define a function that takes some time
     file = StringIO()
@@ -180,12 +175,12 @@ def time_progiter_overhead():
     # Time the overhead of this function
     import timeit
     import textwrap
-    import ubelt as ub
     setup = textwrap.dedent(
         '''
         from sklearn.externals.progiter import ProgIter
         import numpy as np
         import time
+        from six.moves import StringIO, range
         import utool as ut
         N = 500
         file = StringIO()
@@ -257,7 +252,7 @@ def time_progiter_overhead():
     # work = work_strs[1]
 
     number = 10000
-    prog = ub.ProgIter(desc='timing', adjust=True)
+    prog = ProgIter(desc='timing', adjust=True)
     for key, stmt in prog(statements.items()):
         prog.set_extra(key)
         secs = timeit.timeit(stmt.format(work=work), setup, number=number)
@@ -290,26 +285,28 @@ def test_initial():
     """
     file = StringIO()
     prog = ProgIter(initial=9001, file=file, show_times=False, clearline=False)
-    message = prog.format_message()
-    assert strip_ansi(message) == ' 9001/?... \n'
+    message = prog.format_message()[1]
+    assert strip_ansi(message) == ' 9001/?... '
 
 
 def test_clearline():
     """
     Make sure a question mark is printed if the total is unknown
 
-    pytest ubelt/tests/test_progiter.py::test_clearline
+    pytest tests/test_progiter.py::test_clearline
     """
     file = StringIO()
     # Clearline=False version should simply have a newline at the end.
     prog = ProgIter(file=file, show_times=False, clearline=False)
-    message = prog.format_message()
-    assert strip_ansi(message).strip(' ') == '0/?... \n'
-    # Clearline=True version should carrage return at the beginning and have no
+    before, message, after = prog.format_message()
+    assert before == ''
+    assert strip_ansi(message).strip(' ') == '0/?...'
+    # Clearline=True version should carrage return at the begining and have no
     # newline at the end.
     prog = ProgIter(file=file, show_times=False, clearline=True)
-    message = prog.format_message()
-    assert strip_ansi(message).strip(' ') == '\r    0/?...'
+    before, message, after = prog.format_message()
+    assert before == '\r'
+    assert strip_ansi(message).strip(' ') == '0/?...'
 
 
 def test_disabled():
@@ -372,12 +369,11 @@ def test_tqdm_compatibility():
     for _ in prog:
         pass
 
-    import ubelt as ub
-    with ub.CaptureStdout() as cap:
+    with CaptureStdout() as cap:
         ProgIter.write('foo')
     assert cap.text.strip() == 'foo'
 
-    with ub.CaptureStdout() as cap:
+    with CaptureStdout() as cap:
         prog = ProgIter(show_times=False)
         prog.set_description('new desc', refresh=False)
         prog.begin()
@@ -386,14 +382,14 @@ def test_tqdm_compatibility():
     assert prog.label == 'new desc'
     assert 'new desc' in cap.text.strip()
 
-    with ub.CaptureStdout() as cap:
+    with CaptureStdout() as cap:
         prog = ProgIter(show_times=False)
         prog.set_description('new desc', refresh=True)
         prog.close()
     assert prog.label == 'new desc'
     assert 'new desc' in cap.text.strip()
 
-    with ub.CaptureStdout() as cap:
+    with CaptureStdout() as cap:
         prog = ProgIter(show_times=False)
         prog.set_description_str('new desc')
         prog.begin()
@@ -402,9 +398,8 @@ def test_tqdm_compatibility():
     assert prog.label == 'new desc'
     assert 'new desc' in cap.text.strip()
 
-    import ubelt as ub
-    with ub.CaptureStdout() as cap:
-        prog = ub.ProgIter(show_times=False)
+    with CaptureStdout() as cap:
+        prog = ProgIter(show_times=False)
         prog.set_postfix({'foo': 'bar'}, baz='biz', x=object(), y=2)
         prog.begin()
     assert prog.length is None
@@ -413,17 +408,12 @@ def test_tqdm_compatibility():
     assert 'y=2' in cap.text.strip()
     assert 'x=<object' in cap.text.strip()
 
-    import ubelt as ub
-    with ub.CaptureStdout() as cap:
-        prog = ub.ProgIter(show_times=False)
+    with CaptureStdout() as cap:
+        prog = ProgIter(show_times=False)
         prog.set_postfix_str('bar baz', refresh=False)
     assert 'bar baz' not in cap.text.strip()
 
 
 if __name__ == '__main__':
-    r"""
-    CommandLine:
-        pytest ubelt/tests/test_progiter.py
-    """
     import pytest
     pytest.main([__file__])
