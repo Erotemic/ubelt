@@ -4,7 +4,7 @@ pytest tests/test_progiter.py
 from io import StringIO
 from xdoctest.utils import strip_ansi
 from xdoctest.utils import CaptureStdout
-from progiter import ProgIter
+from ubelt.progiter import ProgIter
 import sys
 
 
@@ -136,7 +136,7 @@ def test_progiter():
 
 def test_progiter_offset_10():
     """
-    pytest -s  ~/code/progiter/tests/test_progiter.py::test_progiter_offset_10
+    pytest -s  tests/test_progiter.py::test_progiter_offset_10
     """
     # Define a function that takes some time
     file = StringIO()
@@ -154,7 +154,7 @@ def test_progiter_offset_10():
 
 def test_progiter_offset_0():
     """
-    pytest -s  ~/code/progiter/tests/test_progiter.py::test_progiter_offset_0
+    pytest -s  tests/test_progiter.py::test_progiter_offset_0
     """
     # Define a function that takes some time
     file = StringIO()
