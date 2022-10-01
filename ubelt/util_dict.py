@@ -1755,7 +1755,7 @@ class UDict(SetDict):
         Args:
             self (Dict): a dictionary or the implicit instance
 
-            default (T | NoParamType): default item to return if the iterable is empty,
+            default (KT | NoParamType): default item to return if the iterable is empty,
                 otherwise a StopIteration error is raised
 
         Returns:
@@ -1774,7 +1774,7 @@ class UDict(SetDict):
 
         Args:
             self (Dict[KT, VT]): a dictionary or the implicit instance
-            default (T | NoParamType): default item to return if the iterable is empty,
+            default (VT | NoParamType): default item to return if the iterable is empty,
                 otherwise a StopIteration error is raised
 
         Returns:

@@ -196,10 +196,10 @@ class UDict(SetDict):
                       reverse: bool = False) -> OrderedDict[KT, VT]:
         ...
 
-    def peek_key(self, default: Union[T, NoParamType] = NoParam) -> KT:
+    def peek_key(self, default: Union[KT, NoParamType] = NoParam) -> KT:
         ...
 
-    def peek_value(self, default: Union[T, NoParamType] = NoParam) -> VT:
+    def peek_value(self, default: Union[VT, NoParamType] = NoParam) -> VT:
         ...
 
 
