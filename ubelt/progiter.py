@@ -694,14 +694,14 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
             msg_body = [
                 ('{desc}'),
                 (' {percent:03.2f}% of ' + str(self.chunksize) + 'x'),
-                ('?' if length_unknown else text_type(self.total)),
+                ('?' if length_unknown else str(self.total)),
                 ('...'),
             ]
         else:
             msg_body = [
                 ('{desc}'),
                 (' {iter_idx:' + str(n_chrs) + 'd}/'),
-                ('?' if length_unknown else text_type(self.total)),
+                ('?' if length_unknown else str(self.total)),
                 ('...'),
             ]
 
