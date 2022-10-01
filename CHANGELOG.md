@@ -18,11 +18,13 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 * `ub.Path.apppdir` can now be called without arguments.
 * Deprecate `TempDir`
 * `ub.Timer` can now accept `ns` as a keyword to enable nanosecond resolution.
+* `ProgIter.format_message` return value has changed.
 
 ### Fixed
 * Issue in `indexable_allclose` where tolerances were not respected.
 * Issue in `modname_to_modpath` with exclude and editable installs.
 * Incompatibility with pathlib in `PythonPathContext`
+* Fixed issue in progiter with line clears
 
 
 ## Version 1.2.2 - Released 2022-09-05 
