@@ -107,6 +107,7 @@ default_timer = time.perf_counter
 CLEAR_BEFORE = '\r'
 AT_END = '\n'
 
+
 def _infer_length(iterable):
     """
     Try and infer the length using the PEP 424 length hint if available.
