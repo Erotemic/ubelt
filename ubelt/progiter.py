@@ -106,8 +106,6 @@ default_timer = time.perf_counter
 
 CLEAR_BEFORE = '\r'
 AT_END = '\n'
-CLEAR_AFTER = ''
-
 
 def _infer_length(iterable):
     """
@@ -418,6 +416,8 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
         # if characters have been written with no newline yet.
         self._cursor_at_newline = True
 
+        self._prev_msg_len = 0  # used to ensure lines are fully cleared
+
         self._reset_internals()
 
     def __call__(self, iterable):
@@ -435,7 +435,7 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
         self.begin()
         return self
 
-    def __exit__(self, type, value, trace):
+    def __exit__(self, type_, value, trace):
         if trace is not None:
             return False
         else:
@@ -538,7 +538,7 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
 
     def start(self):  # nocover
         """
-        Alias of :func:`ubelt.progiter.ProgIter.begin`
+        Alias of :func:`ProgIter.begin`
         """
         return self.begin()
 
@@ -669,16 +669,16 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
 
         Example:
             >>> self = ProgIter(show_times=True)
-            >>> print(self._build_message_template().strip())
-            {desc} {iter_idx:4d}/?...{extra} rate={rate:{rate_format}} Hz, total={total} ...
+            >>> print(self._build_message_template()[1].strip())
+            {desc} {iter_idx:4d}/?...{extra} rate={rate:{rate_format}} Hz, total={total}...
 
             >>> self = ProgIter(show_times=False)
-            >>> print(self._build_message_template().strip())
+            >>> print(self._build_message_template()[1].strip())
             {desc} {iter_idx:4d}/?...{extra}
 
             >>> self = ProgIter(total=0, show_times=True)
-            >>> print(self._build_message_template().strip())
-            {desc} {iter_idx:1d}/0...{extra} rate={rate:{rate_format}} Hz, total={total} ...
+            >>> print(self._build_message_template()[1].strip())
+            {desc} {iter_idx:1d}/0...{extra} rate={rate:{rate_format}} Hz, total={total}...
         """
         from math import log10, floor
         length_unknown = self.total is None or self.total < 0
@@ -694,14 +694,14 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
             msg_body = [
                 ('{desc}'),
                 (' {percent:03.2f}% of ' + str(self.chunksize) + 'x'),
-                ('?' if length_unknown else str(self.total)),
+                ('?' if length_unknown else text_type(self.total)),
                 ('...'),
             ]
         else:
             msg_body = [
                 ('{desc}'),
                 (' {iter_idx:' + str(n_chrs) + 'd}/'),
-                ('?' if length_unknown else str(self.total)),
+                ('?' if length_unknown else text_type(self.total)),
                 ('...'),
             ]
 
@@ -721,37 +721,37 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
             msg_body += [
                 (', wall={wall}'),
             ]
+
         if self.clearline:
-            msg_body = [CLEAR_BEFORE] + msg_body + [CLEAR_AFTER]
+            parts = (CLEAR_BEFORE, ''.join(msg_body), '')
         else:
-            msg_body = msg_body + [AT_END]
-        msg_fmtstr_time = ''.join(msg_body)
-        return msg_fmtstr_time
+            parts = ('', ''.join(msg_body), AT_END)
+        return parts
 
     def format_message(self):
         r"""
-        builds a formatted progress message with the current values.
+        builds a formatted progres message with the current values.
         This contains the special characters needed to clear lines.
 
         Example:
             >>> self = ProgIter(clearline=False, show_times=False)
-            >>> print(repr(self.format_message()))
-            '    0/?... \n'
+            >>> print(repr(self.format_message()[1]))
+            '    0/?... '
             >>> self.begin()
             >>> self.step()
-            >>> print(repr(self.format_message()))
-            ' 1/?... \n'
+            >>> print(repr(self.format_message()[1]))
+            ' 1/?... '
 
         Example:
             >>> self = ProgIter(chunksize=10, total=100, clearline=False,
             >>>                 show_times=False, microseconds=True)
             >>> # hack, microseconds=True for coverage, needs real test
-            >>> print(repr(self.format_message()))
-            ' 0.00% of 10x100... \n'
+            >>> print(repr(self.format_message()[1]))
+            ' 0.00% of 10x100... '
             >>> self.begin()
             >>> self.update()  # tqdm alternative to step
-            >>> print(repr(self.format_message()))
-            ' 1.00% of 10x100... \n'
+            >>> print(repr(self.format_message()[1]))
+            ' 1.00% of 10x100... '
         """
         from datetime import timedelta
         if self._est_seconds_left is None:
@@ -767,9 +767,11 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
         else:
             total = str(timedelta(seconds=int(self._total_seconds)))
 
+        before, fmtstr, after = self._msg_fmtstr
+
         # similar to tqdm.format_meter
         if self.chunksize and self.total:
-            msg = self._msg_fmtstr.format(
+            msg = fmtstr.format(
                 desc=self.desc,
                 percent=self._now_idx / self.total * 100,
                 rate=self._iters_per_second * self.chunksize,
@@ -779,7 +781,7 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
                 extra=self.extra,
             )
         else:
-            msg = self._msg_fmtstr.format(
+            msg = fmtstr.format(
                 desc=self.desc,
                 iter_idx=self._now_idx,
                 rate=self._iters_per_second,
@@ -788,7 +790,8 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
                 wall=time.strftime('%Y-%m-%d %H:%M ') + time.tzname[0] if self.show_wall else None,
                 extra=self.extra,
             )
-        return msg
+
+        return before, msg, after
 
     def ensure_newline(self):
         """
@@ -821,14 +824,21 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
         """
         if not self._cursor_at_newline:
             self._write(AT_END)
+            self._prev_msg_len = 0
             self._cursor_at_newline = True
 
     def display_message(self):
         """
         Writes current progress to the output stream
         """
-        msg = self.format_message()
-        self._write(msg)
+        before, msg, after = self.format_message()
+        msg_len = len(msg)  # TODO account for unicode
+        if self.clearline:
+            padding = self._prev_msg_len - msg_len
+            if padding > 0:
+                msg = msg + ' ' * padding
+        self._write(''.join([before, msg, after]))
+        self._prev_msg_len = msg_len
         self._tryflush()
         self._cursor_at_newline = not self.clearline
 
