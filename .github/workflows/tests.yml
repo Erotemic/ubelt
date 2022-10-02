@@ -3,7 +3,7 @@
 # Based on ~/code/xcookie/xcookie/rc/tests.yml.in
 # Now based on ~/code/xcookie/xcookie/builders/github_actions.py
 
-name: Tests
+name: PurePy Build and Test
 
 on:
   push:
@@ -14,9 +14,10 @@ jobs:
   lint_job:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
-    - uses: actions/setup-python@v4
-      name: Set up Python 3.8
+    - name: Checkout source
+      uses: actions/checkout@v3
+    - name: Set up Python 3.8
+      uses: actions/setup-python@v4.2.0
       with:
         python-version: 3.8
     - name: Install dependencies
@@ -36,9 +37,10 @@ jobs:
     name: Test sdist Python 3.8
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
-    - uses: actions/setup-python@v4
-      name: Set up Python 3.8
+    - name: Checkout source
+      uses: actions/checkout@v3
+    - name: Set up Python 3.8
+      uses: actions/setup-python@v4.2.0
       with:
         python-version: 3.8
     - name: Upgrade pip
@@ -46,7 +48,6 @@ jobs:
         python -m pip install --upgrade pip
         python -m pip install -r requirements/tests.txt
         python -m pip install -r requirements/runtime.txt
-        true
     - name: Build sdist
       shell: bash
       run: |-
@@ -61,99 +62,140 @@ jobs:
       run: |-
         pwd
         ls -al
-        MOD_DPATH=$(python -c "import ubelt, os; print(os.path.dirname(ubelt.__file__))")
-        echo "MOD_DPATH = $MOD_DPATH"
-        python -m pytest -p pytester -p no:doctest --xdoctest --cov=ubelt --cov-config=pyproject.toml $MOD_DPATH ./tests
-    - name: Test full loose sdist
-      run: |-
-        pwd
-        ls -al
-        python -m pip install -r requirements/optional.txt
-        true
-        MOD_DPATH=$(python -c "import ubelt, os; print(os.path.dirname(ubelt.__file__))")
-        echo "MOD_DPATH = $MOD_DPATH"
         # Run in a sandboxed directory
-        WORKSPACE_DNAME="testsrcdir_${CI_PYTHON_VERSION}_${GITHUB_RUN_ID}_${RUNNER_OS}"
+        WORKSPACE_DNAME="testsrcdir_minimal_${CI_PYTHON_VERSION}_${GITHUB_RUN_ID}_${RUNNER_OS}"
         mkdir -p $WORKSPACE_DNAME
         cd $WORKSPACE_DNAME
         # Run the tests
         # Get path to installed package
         MOD_DPATH=$(python -c "import ubelt, os; print(os.path.dirname(ubelt.__file__))")
         echo "MOD_DPATH = $MOD_DPATH"
-        python -m pytest -p pytester -p no:doctest --xdoctest --cov-config=../pyproject.toml $MOD_DPATH ../tests
+        python -m pytest --cov={self.mod_name} $MOD_DPATH ../tests
+        cd ..
+    - name: Test full loose sdist
+      run: |-
+        pwd
+        ls -al
+        true
+        # Run in a sandboxed directory
+        WORKSPACE_DNAME="testsrcdir_full_${CI_PYTHON_VERSION}_${GITHUB_RUN_ID}_${RUNNER_OS}"
+        mkdir -p $WORKSPACE_DNAME
+        cd $WORKSPACE_DNAME
+        # Run the tests
+        # Get path to installed package
+        MOD_DPATH=$(python -c "import ubelt, os; print(os.path.dirname(ubelt.__file__))")
+        echo "MOD_DPATH = $MOD_DPATH"
+        python -m pytest --cov={self.mod_name} $MOD_DPATH ../tests
         cd ..
     - name: Upload sdist artifact
       uses: actions/upload-artifact@v3
       with:
         name: wheels
         path: ./wheelhouse/*.tar.gz
-  build_and_test_wheels:
+  build_and_test_purepy_wheels:
     name: ${{ matrix.python-version }} on ${{ matrix.os }}, arch=${{ matrix.arch }} with ${{ matrix.install-extras }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os:
-        - windows-latest
-        - ubuntu-latest
-        - macOS-latest
-        python-version:
-        - '3.6'
-        - '3.7'
-        - '3.8'
-        - '3.9'
-        - '3.10'
-        - '3.11.0-rc.1'
-        - pypy-3.7
-        install-extras:
-        - tests
-        - tests,optional
         arch:
         - auto
         include:
         - python-version: '3.6'
-          os: windows-latest
-          install-extras: tests-strict,runtime-strict
-        - python-version: '3.10'
-          os: windows-latest
-          install-extras: tests-strict,runtime-strict
-        - python-version: '3.6'
-          os: windows-latest
-          install-extras: tests-strict,runtime-strict,optional-strict
-        - python-version: '3.10'
-          os: windows-latest
-          install-extras: tests-strict,runtime-strict,optional-strict
-        - python-version: '3.6'
-          os: ubuntu-latest
-          install-extras: tests-strict,runtime-strict
-        - python-version: '3.10'
           os: ubuntu-latest
           install-extras: tests-strict,runtime-strict
         - python-version: '3.6'
-          os: ubuntu-latest
-          install-extras: tests-strict,runtime-strict,optional-strict
-        - python-version: '3.10'
-          os: ubuntu-latest
-          install-extras: tests-strict,runtime-strict,optional-strict
-        - python-version: '3.6'
-          os: macOS-latest
-          install-extras: tests-strict,runtime-strict
-        - python-version: '3.10'
           os: macOS-latest
           install-extras: tests-strict,runtime-strict
         - python-version: '3.6'
+          os: windows-latest
+          install-extras: tests-strict,runtime-strict
+        - python-version: '3.11'
+          os: ubuntu-latest
+          install-extras: tests-strict,runtime-strict,optional-strict
+        - python-version: '3.11'
           os: macOS-latest
           install-extras: tests-strict,runtime-strict,optional-strict
+        - python-version: '3.11'
+          os: windows-latest
+          install-extras: tests-strict,runtime-strict,optional-strict
+        - python-version: '3.11'
+          os: macOS-latest
+          install-extras: tests
+        - python-version: '3.11'
+          os: windows-latest
+          install-extras: tests
+        - python-version: '3.6'
+          os: ubuntu-latest
+          install-extras: tests,optional
+        - python-version: '3.7'
+          os: ubuntu-latest
+          install-extras: tests,optional
+        - python-version: '3.8'
+          os: ubuntu-latest
+          install-extras: tests,optional
+        - python-version: '3.9'
+          os: ubuntu-latest
+          install-extras: tests,optional
+        - python-version: '3.10'
+          os: ubuntu-latest
+          install-extras: tests,optional
+        - python-version: '3.11'
+          os: ubuntu-latest
+          install-extras: tests,optional
+        - python-version: '3.6'
+          os: macOS-latest
+          install-extras: tests,optional
+        - python-version: '3.7'
+          os: macOS-latest
+          install-extras: tests,optional
+        - python-version: '3.8'
+          os: macOS-latest
+          install-extras: tests,optional
+        - python-version: '3.9'
+          os: macOS-latest
+          install-extras: tests,optional
         - python-version: '3.10'
           os: macOS-latest
-          install-extras: tests-strict,runtime-strict,optional-strict
+          install-extras: tests,optional
+        - python-version: '3.11'
+          os: macOS-latest
+          install-extras: tests,optional
+        - python-version: '3.6'
+          os: windows-latest
+          install-extras: tests,optional
+        - python-version: '3.7'
+          os: windows-latest
+          install-extras: tests,optional
+        - python-version: '3.8'
+          os: windows-latest
+          install-extras: tests,optional
+        - python-version: '3.9'
+          os: windows-latest
+          install-extras: tests,optional
+        - python-version: '3.10'
+          os: windows-latest
+          install-extras: tests,optional
+        - python-version: '3.11'
+          os: windows-latest
+          install-extras: tests,optional
+        - python-version: pypy-3.7
+          os: ubuntu-latest
+          install-extras: tests,optional
+        - python-version: pypy-3.7
+          os: macOS-latest
+          install-extras: tests,optional
+        - python-version: pypy-3.7
+          os: windows-latest
+          install-extras: tests,optional
     steps:
-    - uses: actions/checkout@v3
+    - name: Checkout source
+      uses: actions/checkout@v3
     - name: Enable MSVC 64bit
       uses: ilammy/msvc-dev-cmd@v1
-      if: matrix.os == 'windows-latest' && matrix.cibw_build != 'cp3*-win32'
+      if: matrix.os == 'windows-latest' && matrix.cibw_skip == '*-win32'
     - name: Enable MSVC 32bit
       uses: ilammy/msvc-dev-cmd@v1
-      if: matrix.os == 'windows-latest' && matrix.cibw_build == 'cp3*-win32'
+      if: matrix.os == 'windows-latest' && matrix.cibw_skip == '*-win_amd64'
       with:
         arch: x86
     - name: Set up QEMU
@@ -161,14 +203,15 @@ jobs:
       if: runner.os == 'Linux' && matrix.arch != 'auto'
       with:
         platforms: all
-    - uses: actions/setup-python@v4
+    - name: Setup Python
+      uses: actions/setup-python@v4.2.0
       with:
         python-version: ${{ matrix.python-version }}
     - name: Build pure wheel
       shell: bash
       run: |-
         python -m pip install pip -U
-        python -m pip install setuptools>=0.8 wheel build
+        python -m pip install setuptools>=0.8 build
         python -m build --wheel --outdir wheelhouse
     - name: Test wheel with ${{ matrix.install-extras }}
       shell: bash
@@ -194,8 +237,8 @@ jobs:
     - name: Show built files
       shell: bash
       run: ls -la wheelhouse
-    - uses: actions/setup-python@v4
-      name: Set up Python 3.8 to combine coverage Linux
+    - name: Set up Python 3.8 to combine coverage Linux
+      uses: actions/setup-python@v4.2.0
       if: runner.os == 'Linux'
       with:
         python-version: 3.8
@@ -227,8 +270,8 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && ! startsWith(github.event.ref, 'refs/tags') && ! startsWith(github.event.ref, 'refs/heads/release')
     needs:
-    - build_and_test_wheels
     - build_and_test_sdist
+    - build_and_test_purepy_wheels
     steps:
     - name: Checkout source
       uses: actions/checkout@v3
@@ -245,24 +288,23 @@ jobs:
         TWINE_REPOSITORY_URL: https://test.pypi.org/legacy/
         TWINE_USERNAME: ${{ secrets.TEST_TWINE_USERNAME }}
         TWINE_PASSWORD: ${{ secrets.TEST_TWINE_PASSWORD }}
-        CI_SECRET: ${{ secrets.EROTEMIC_CI_SECRET }}
+        CI_SECRET: ${{ secrets.CI_SECRET }}
       run: |-
         GPG_EXECUTABLE=gpg
         $GPG_EXECUTABLE --version
         openssl version
         $GPG_EXECUTABLE --list-keys
         echo "Decrypting Keys"
-        CIS=$CI_SECRET openssl enc -aes-256-cbc -pbkdf2 -md SHA512 -pass env:CIS -d -a -in dev/ci_public_gpg_key.pgp.enc | $GPG_EXECUTABLE --import
-        CIS=$CI_SECRET openssl enc -aes-256-cbc -pbkdf2 -md SHA512 -pass env:CIS -d -a -in dev/gpg_owner_trust.enc | $GPG_EXECUTABLE --import-ownertrust
-        CIS=$CI_SECRET openssl enc -aes-256-cbc -pbkdf2 -md SHA512 -pass env:CIS -d -a -in dev/ci_secret_gpg_subkeys.pgp.enc | $GPG_EXECUTABLE --import
+        openssl enc -aes-256-cbc -pbkdf2 -md SHA512 -pass env:CI_SECRET -d -a -in dev/ci_public_gpg_key.pgp.enc | $GPG_EXECUTABLE --import
+        openssl enc -aes-256-cbc -pbkdf2 -md SHA512 -pass env:CI_SECRET -d -a -in dev/gpg_owner_trust.enc | $GPG_EXECUTABLE --import-ownertrust
+        openssl enc -aes-256-cbc -pbkdf2 -md SHA512 -pass env:CI_SECRET -d -a -in dev/ci_secret_gpg_subkeys.pgp.enc | $GPG_EXECUTABLE --import
         echo "Finish Decrypt Keys"
         $GPG_EXECUTABLE --list-keys || true
         $GPG_EXECUTABLE --list-keys  || echo "first invocation of gpg creates directories and returns 1"
         $GPG_EXECUTABLE --list-keys
         VERSION=$(python -c "import setup; print(setup.VERSION)")
         pip install twine
-        pip install six pyopenssl ndg-httpsclient pyasn1 -U --user
-        pip install requests[security] twine --user
+        pip install urllib3 requests[security] twine
         GPG_KEYID=$(cat dev/public_gpg_key)
         echo "GPG_KEYID = '$GPG_KEYID'"
         DO_GPG=True GPG_KEYID=$GPG_KEYID TWINE_REPOSITORY_URL=${TWINE_REPOSITORY_URL} TWINE_PASSWORD=$TWINE_PASSWORD TWINE_USERNAME=$TWINE_USERNAME GPG_EXECUTABLE=$GPG_EXECUTABLE DO_UPLOAD=True DO_TAG=False ./publish.sh
@@ -271,8 +313,8 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && (startsWith(github.event.ref, 'refs/tags') || startsWith(github.event.ref, 'refs/heads/release'))
     needs:
-    - build_and_test_wheels
     - build_and_test_sdist
+    - build_and_test_purepy_wheels
     steps:
     - name: Checkout source
       uses: actions/checkout@v3
@@ -289,24 +331,23 @@ jobs:
         TWINE_REPOSITORY_URL: https://upload.pypi.org/legacy/
         TWINE_USERNAME: ${{ secrets.TWINE_USERNAME }}
         TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
-        CI_SECRET: ${{ secrets.EROTEMIC_CI_SECRET }}
+        CI_SECRET: ${{ secrets.CI_SECRET }}
       run: |-
         GPG_EXECUTABLE=gpg
         $GPG_EXECUTABLE --version
         openssl version
         $GPG_EXECUTABLE --list-keys
         echo "Decrypting Keys"
-        CIS=$CI_SECRET openssl enc -aes-256-cbc -pbkdf2 -md SHA512 -pass env:CIS -d -a -in dev/ci_public_gpg_key.pgp.enc | $GPG_EXECUTABLE --import
-        CIS=$CI_SECRET openssl enc -aes-256-cbc -pbkdf2 -md SHA512 -pass env:CIS -d -a -in dev/gpg_owner_trust.enc | $GPG_EXECUTABLE --import-ownertrust
-        CIS=$CI_SECRET openssl enc -aes-256-cbc -pbkdf2 -md SHA512 -pass env:CIS -d -a -in dev/ci_secret_gpg_subkeys.pgp.enc | $GPG_EXECUTABLE --import
+        openssl enc -aes-256-cbc -pbkdf2 -md SHA512 -pass env:CI_SECRET -d -a -in dev/ci_public_gpg_key.pgp.enc | $GPG_EXECUTABLE --import
+        openssl enc -aes-256-cbc -pbkdf2 -md SHA512 -pass env:CI_SECRET -d -a -in dev/gpg_owner_trust.enc | $GPG_EXECUTABLE --import-ownertrust
+        openssl enc -aes-256-cbc -pbkdf2 -md SHA512 -pass env:CI_SECRET -d -a -in dev/ci_secret_gpg_subkeys.pgp.enc | $GPG_EXECUTABLE --import
         echo "Finish Decrypt Keys"
         $GPG_EXECUTABLE --list-keys || true
         $GPG_EXECUTABLE --list-keys  || echo "first invocation of gpg creates directories and returns 1"
         $GPG_EXECUTABLE --list-keys
         VERSION=$(python -c "import setup; print(setup.VERSION)")
         pip install twine
-        pip install six pyopenssl ndg-httpsclient pyasn1 -U --user
-        pip install requests[security] twine --user
+        pip install urllib3 requests[security] twine
         GPG_KEYID=$(cat dev/public_gpg_key)
         echo "GPG_KEYID = '$GPG_KEYID'"
         DO_GPG=True GPG_KEYID=$GPG_KEYID TWINE_REPOSITORY_URL=${TWINE_REPOSITORY_URL} TWINE_PASSWORD=$TWINE_PASSWORD TWINE_USERNAME=$TWINE_USERNAME GPG_EXECUTABLE=$GPG_EXECUTABLE DO_UPLOAD=True DO_TAG=False ./publish.sh

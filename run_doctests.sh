@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-xdoctest ubelt --style=google all
+xdoctest ubelt --style=google all "$@"

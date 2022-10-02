@@ -123,11 +123,11 @@ setup_package_environs(){
 setup_package_environs_gitlab_kitware(){
     echo '
     export VARNAME_CI_SECRET="CI_KITWARE_SECRET"
-    export VARNAME_TWINE_USERNAME="TWINE_USERNAME"
-    export VARNAME_TWINE_PASSWORD="TWINE_PASSWORD"
-    export VARNAME_TEST_TWINE_USERNAME="TEST_TWINE_USERNAME"
-    export VARNAME_TEST_TWINE_PASSWORD="TEST_TWINE_PASSWORD"
+    export VARNAME_TWINE_PASSWORD="EROTEMIC_PYPI_MASTER_TOKEN"
+    export VARNAME_TEST_TWINE_PASSWORD="EROTEMIC_TEST_PYPI_MASTER_TOKEN"
     export VARNAME_PUSH_TOKEN="GITLAB_KITWARE_TOKEN"
+    export VARNAME_TWINE_USERNAME="EROTEMIC_PYPI_MASTER_TOKEN_USERNAME"
+    export VARNAME_TEST_TWINE_USERNAME="EROTEMIC_TEST_PYPI_MASTER_TOKEN_USERNAME"
     export GPG_IDENTIFIER="=Erotemic-CI <erotemic@gmail.com>"
     ' | python -c "import sys; from textwrap import dedent; print(dedent(sys.stdin.read()).strip(chr(10)))" > dev/secrets_configuration.sh
     git add dev/secrets_configuration.sh
@@ -136,10 +136,10 @@ setup_package_environs_gitlab_kitware(){
 setup_package_environs_github_erotemic(){
     echo '
     export VARNAME_CI_SECRET="EROTEMIC_CI_SECRET"
-    export VARNAME_TWINE_USERNAME="TWINE_USERNAME"
-    export VARNAME_TWINE_PASSWORD="TWINE_PASSWORD"
-    export VARNAME_TEST_TWINE_USERNAME="TEST_TWINE_USERNAME"
-    export VARNAME_TEST_TWINE_PASSWORD="TEST_TWINE_PASSWORD"
+    export VARNAME_TWINE_PASSWORD="EROTEMIC_PYPI_MASTER_TOKEN"
+    export VARNAME_TEST_TWINE_PASSWORD="EROTEMIC_TEST_PYPI_MASTER_TOKEN"
+    export VARNAME_TWINE_USERNAME="EROTEMIC_PYPI_MASTER_TOKEN_USERNAME"
+    export VARNAME_TEST_TWINE_USERNAME="EROTEMIC_TEST_PYPI_MASTER_TOKEN_USERNAME"
     export GPG_IDENTIFIER="=Erotemic-CI <erotemic@gmail.com>"
     ' | python -c "import sys; from textwrap import dedent; print(dedent(sys.stdin.read()).strip(chr(10)))" > dev/secrets_configuration.sh
     git add dev/secrets_configuration.sh
@@ -148,9 +148,11 @@ setup_package_environs_github_erotemic(){
 setup_package_environs_github_pyutils(){
     echo '
     export VARNAME_CI_SECRET="PYUTILS_CI_SECRET"
+    export VARNAME_TWINE_PASSWORD="PYUTILS_PYPI_MASTER_TOKEN"
+    export VARNAME_TEST_TWINE_PASSWORD="PYUTILS_TEST_PYPI_MASTER_TOKEN"
+    export VARNAME_TWINE_USERNAME="PYUTILS_PYPI_MASTER_TOKEN_USERNAME"
+    export VARNAME_TEST_TWINE_USERNAME="PYUTILS_TEST_PYPI_MASTER_TOKEN_USERNAME"
     export GPG_IDENTIFIER="=PyUtils-CI <openpyutils@gmail.com>"
-    export VARNAME_TWINE_PASSWORD="PYUTILS_TWINE_PASSWORD"
-    export VARNAME_TWINE_PASSWORD="PYUTILS_TWINE_PASSWORD"
     ' | python -c "import sys; from textwrap import dedent; print(dedent(sys.stdin.read()).strip(chr(10)))" > dev/secrets_configuration.sh
     git add dev/secrets_configuration.sh
 
@@ -166,11 +168,37 @@ upload_github_secrets(){
     #printf "%s" "$GITHUB_TOKEN" | gh auth login --hostname Github.com --with-token 
     gh auth login 
     source dev/secrets_configuration.sh
-    gh secret set "$VARNAME_CI_SECRET" -b"${!VARNAME_CI_SECRET}"
-    gh secret set "$VARNAME_TWINE_USERNAME" -b"${!VARNAME_TWINE_USERNAME}"
-    gh secret set "$VARNAME_TWINE_PASSWORD" -b"${!VARNAME_TWINE_PASSWORD}"
-    gh secret set "$VARNAME_TEST_TWINE_PASSWORD" -b"${!VARNAME_TEST_TWINE_PASSWORD}"
-    gh secret set "$VARNAME_TEST_TWINE_USERNAME" -b"${!VARNAME_TEST_TWINE_USERNAME}"
+    gh secret set "TWINE_USERNAME" -b"${!VARNAME_TWINE_USERNAME}"
+    gh secret set "TEST_TWINE_USERNAME" -b"${!VARNAME_TEST_TWINE_USERNAME}"
+    toggle_setx_enter
+    gh secret set "CI_SECRET" -b"${!VARNAME_CI_SECRET}"
+    gh secret set "TWINE_PASSWORD" -b"${!VARNAME_TWINE_PASSWORD}"
+    gh secret set "TEST_TWINE_PASSWORD" -b"${!VARNAME_TEST_TWINE_PASSWORD}"
+    toggle_setx_exit
+}
+
+
+toggle_setx_enter(){
+    # Can we do something like a try/finally?
+    # https://stackoverflow.com/questions/15656492/writing-try-catch-finally-in-shell
+    echo "Enter sensitive area"
+    if [[ -n "${-//[^x]/}" ]]; then
+        __context_1_toggle_setx=1
+    else
+        __context_1_toggle_setx=0
+    fi
+    if [[ "$__context_1_toggle_setx" == "1" ]]; then
+        echo "Setx was on, disable temporarilly"
+        set +x
+    fi
+}
+
+toggle_setx_exit(){
+    echo "Exit sensitive area"
+    # Can we guarentee this will happen?
+    if [[ "$__context_1_toggle_setx" == "1" ]]; then
+        set -x
+    fi
 }
 
 
@@ -210,7 +238,7 @@ upload_gitlab_group_secrets(){
     fi
 
     source dev/secrets_configuration.sh
-    SECRET_VARNAME_ARR=(VARNAME_CI_SECRET VARNAME_TWINE_USERNAME VARNAME_TWINE_PASSWORD VARNAME_TEST_TWINE_PASSWORD VARNAME_TEST_TWINE_USERNAME VARNAME_PUSH_TOKEN)
+    SECRET_VARNAME_ARR=(VARNAME_CI_SECRET VARNAME_TWINE_PASSWORD VARNAME_TEST_TWINE_PASSWORD VARNAME_TWINE_USERNAME VARNAME_TEST_TWINE_USERNAME VARNAME_PUSH_TOKEN)
     for SECRET_VARNAME_PTR in "${SECRET_VARNAME_ARR[@]}"; do
         SECRET_VARNAME=${!SECRET_VARNAME_PTR}
         echo ""
@@ -228,6 +256,8 @@ upload_gitlab_group_secrets(){
         if [[ "$REMOTE_VALUE" == "" ]]; then
             # New variable
             echo "Remove variable does not exist, posting"
+
+            toggle_setx_enter
             curl --request POST --header "PRIVATE-TOKEN: $PRIVATE_GITLAB_TOKEN" "$HOST/api/v4/groups/$GROUP_ID/variables" \
                     --form "key=${SECRET_VARNAME}" \
                     --form "value=${LOCAL_VALUE}" \
@@ -235,11 +265,14 @@ upload_gitlab_group_secrets(){
                     --form "masked=true" \
                     --form "environment_scope=*" \
                     --form "variable_type=env_var" 
+            toggle_setx_exit
         elif [[ "$REMOTE_VALUE" != "$LOCAL_VALUE" ]]; then
             echo "Remove variable does not agree, putting"
             # Update variable value
+            toggle_setx_enter
             curl --request PUT --header "PRIVATE-TOKEN: $PRIVATE_GITLAB_TOKEN" "$HOST/api/v4/groups/$GROUP_ID/variables/$SECRET_VARNAME" \
                     --form "value=${LOCAL_VALUE}" 
+            toggle_setx_exit
         else
             echo "Remote value agrees with local"
         fi
@@ -269,18 +302,25 @@ upload_gitlab_repo_secrets(){
     fi
 
     TMP_DIR=$(mktemp -d -t ci-XXXXXXXXXX)
+    toggle_setx_enter
     curl --header "PRIVATE-TOKEN: $PRIVATE_GITLAB_TOKEN" "$HOST/api/v4/groups" > "$TMP_DIR/all_group_info"
+    toggle_setx_exit
     GROUP_ID=$(cat "$TMP_DIR/all_group_info" | jq ". | map(select(.path==\"$GROUP_NAME\")) | .[0].id")
     echo "GROUP_ID = $GROUP_ID"
 
+    toggle_setx_enter
     curl --header "PRIVATE-TOKEN: $PRIVATE_GITLAB_TOKEN" "$HOST/api/v4/groups/$GROUP_ID" > "$TMP_DIR/group_info"
+    toggle_setx_exit
+    GROUP_ID=$(cat "$TMP_DIR/all_group_info" | jq ". | map(select(.path==\"$GROUP_NAME\")) | .[0].id")
     cat "$TMP_DIR/group_info" | jq
 
     PROJECT_ID=$(cat "$TMP_DIR/group_info" | jq ".projects | map(select(.path==\"$PROJECT_NAME\")) | .[0].id")
     echo "PROJECT_ID = $PROJECT_ID"
 
     # Get group-level secret variables
+    toggle_setx_enter
     curl --header "PRIVATE-TOKEN: $PRIVATE_GITLAB_TOKEN" "$HOST/api/v4/projects/$PROJECT_ID/variables" > "$TMP_DIR/project_vars"
+    toggle_setx_exit
     cat "$TMP_DIR/project_vars" | jq '.[] | .key'
     if [[ "$?" != "0" ]]; then
         echo "Failed to access project level variables. Probably a permission issue"
@@ -288,7 +328,7 @@ upload_gitlab_repo_secrets(){
 
     LIVE_MODE=1
     source dev/secrets_configuration.sh
-    SECRET_VARNAME_ARR=(VARNAME_CI_SECRET VARNAME_TWINE_USERNAME VARNAME_TWINE_PASSWORD VARNAME_TEST_TWINE_PASSWORD VARNAME_TEST_TWINE_USERNAME VARNAME_PUSH_TOKEN)
+    SECRET_VARNAME_ARR=(VARNAME_CI_SECRET VARNAME_TWINE_PASSWORD VARNAME_TEST_TWINE_PASSWORD VARNAME_TWINE_USERNAME VARNAME_TEST_TWINE_USERNAME VARNAME_PUSH_TOKEN)
     for SECRET_VARNAME_PTR in "${SECRET_VARNAME_ARR[@]}"; do
         SECRET_VARNAME=${!SECRET_VARNAME_PTR}
         echo ""
