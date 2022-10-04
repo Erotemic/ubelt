@@ -19,6 +19,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 * Deprecate `TempDir`
 * `ub.Timer` can now accept `ns` as a keyword to enable nanosecond resolution.
 * `ProgIter.format_message` return value has changed.
+* `ub.Path.mkdir` now returns itself
 
 ### Fixed
 * Issue in `indexable_allclose` where tolerances were not respected.
