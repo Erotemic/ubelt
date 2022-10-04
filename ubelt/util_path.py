@@ -841,6 +841,24 @@ class Path(_PathBase):
         self.mkdir(mode=mode, parents=True, exist_ok=True)
         return self
 
+    def mkdir(self, mode=511, parents=False, exist_ok=False):
+        """
+        Create a new directory at this given path.
+
+        Note:
+            The ubelt variant is the same, except it returns the path as well.
+
+        Args:
+            mode (int) : perms
+            parents (bool) : create parents
+            exist_ok (bool) : fail if exists
+
+        Returns:
+            Path: returns itself
+        """
+        super().mkdir(mode=mode, parents=parents, exist_ok=exist_ok)
+        return self
+
     def expand(self):
         """
         Expands user tilde and environment variables.
