@@ -47,17 +47,17 @@ def test_rate_format():
     prog.begin()
 
     prog._iters_per_second = .000001
-    msg = prog.format_message()[1]
+    msg = prog.format_message()
     rate_part = msg.split('rate=')[1].split(' Hz')[0]
     assert rate_part == '1e-06'
 
     prog._iters_per_second = .1
-    msg = prog.format_message()[1]
+    msg = prog.format_message()
     rate_part = msg.split('rate=')[1].split(' Hz')[0]
     assert rate_part == '0.10'
 
     prog._iters_per_second = 10000
-    msg = prog.format_message()[1]
+    msg = prog.format_message()
     rate_part = msg.split('rate=')[1].split(' Hz')[0]
     assert rate_part == '10000.00'
 
@@ -285,7 +285,7 @@ def test_initial():
     """
     file = StringIO()
     prog = ProgIter(initial=9001, file=file, show_times=False, clearline=False)
-    message = prog.format_message()[1]
+    message = prog.format_message_parts()[1]
     assert strip_ansi(message) == ' 9001/?... '
 
 
@@ -298,13 +298,13 @@ def test_clearline():
     file = StringIO()
     # Clearline=False version should simply have a newline at the end.
     prog = ProgIter(file=file, show_times=False, clearline=False)
-    before, message, after = prog.format_message()
+    before, message, after = prog.format_message_parts()
     assert before == ''
     assert strip_ansi(message).strip(' ') == '0/?...'
     # Clearline=True version should carrage return at the begining and have no
     # newline at the end.
     prog = ProgIter(file=file, show_times=False, clearline=True)
-    before, message, after = prog.format_message()
+    before, message, after = prog.format_message_parts()
     assert before == '\r'
     assert strip_ansi(message).strip(' ') == '0/?...'
 

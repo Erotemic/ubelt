@@ -730,28 +730,36 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
         return parts
 
     def format_message(self):
+        """
+        Exists only for backwards compatibility.
+
+        See `format_message_parts` for more recent API.
+        """
+        return ''.join(self.format_message_parts())
+
+    def format_message_parts(self):
         r"""
         builds a formatted progres message with the current values.
         This contains the special characters needed to clear lines.
 
         Example:
             >>> self = ProgIter(clearline=False, show_times=False)
-            >>> print(repr(self.format_message()[1]))
+            >>> print(repr(self.format_message_parts()[1]))
             '    0/?... '
             >>> self.begin()
             >>> self.step()
-            >>> print(repr(self.format_message()[1]))
+            >>> print(repr(self.format_message_parts()[1]))
             ' 1/?... '
 
         Example:
             >>> self = ProgIter(chunksize=10, total=100, clearline=False,
             >>>                 show_times=False, microseconds=True)
             >>> # hack, microseconds=True for coverage, needs real test
-            >>> print(repr(self.format_message()[1]))
+            >>> print(repr(self.format_message_parts()[1]))
             ' 0.00% of 10x100... '
             >>> self.begin()
             >>> self.update()  # tqdm alternative to step
-            >>> print(repr(self.format_message()[1]))
+            >>> print(repr(self.format_message_parts()[1]))
             ' 1.00% of 10x100... '
         """
         from datetime import timedelta
@@ -832,7 +840,7 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
         """
         Writes current progress to the output stream
         """
-        before, msg, after = self.format_message()
+        before, msg, after = self.format_message_parts()
         msg_len = len(msg)  # TODO account for unicode
         if self.clearline:
             padding = self._prev_msg_len - msg_len
