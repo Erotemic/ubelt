@@ -1,28 +1,28 @@
 """
-Defines the function :func:`repr2`, which allows for a bit more customization
+Defines the function :func:`utext`, which allows for a bit more customization
 than :func:`repr` or :func:`pprint`. See the docstring for more details.
 
 
-Two main goals of repr2 are to provide nice string representations of nested
+Two main goals of utext are to provide nice string representations of nested
 data structures and make those "eval-able" whenever possible. As an example
 take the value ``float('inf')``, which normally has a non-evalable repr of
 ``inf``:
 
 >>> import ubelt as ub
->>> ub.repr2(float('inf'))
+>>> ub.utext(float('inf'))
 "float('inf')"
 
 The ``newline`` (or ``nl``) keyword argument can control how deep in the
 nesting newlines are allowed.
 
->>> print(ub.repr2({1: float('nan'), 2: float('inf'), 3: 3.0}))
+>>> print(ub.utext({1: float('nan'), 2: float('inf'), 3: 3.0}))
 {
     1: float('nan'),
     2: float('inf'),
     3: 3.0,
 }
 
->>> print(ub.repr2({1: float('nan'), 2: float('inf'), 3: 3.0}, nl=0))
+>>> print(ub.utext({1: float('nan'), 2: float('inf'), 3: 3.0}, nl=0))
 {1: float('nan'), 2: float('inf'), 3: 3.0}
 
 
@@ -35,27 +35,27 @@ extensions keyword argument (although this will be a global change).
 >>> @extensions.register(float)
 >>> def my_float_formater(data, **kw):
 >>>     return "monkey({})".format(data)
->>> print(ub.repr2({1: float('nan'), 2: float('inf'), 3: 3.0}, nl=0, extensions=extensions))
+>>> print(ub.utext({1: float('nan'), 2: float('inf'), 3: 3.0}, nl=0, extensions=extensions))
 {1: monkey(nan), 2: monkey(inf), 3: monkey(3.0)}
 
 As of ubelt 1.1.0 you can now access and update the default extensions via the
-repr2 function itself.
+utext function itself.
 
 >>> # xdoctest: +SKIP
 >>> # We skip this at test time to not modify global state
->>> @ub.repr2.EXTENSIONS.register(float)
+>>> @ub.utext.EXTENSIONS.register(float)
 >>> def my_float_formater(data, **kw):
 >>>     return "monkey2({})".format(data)
->>> print(ub.repr2({1: float('nan'), 2: float('inf'), 3: 3.0}, nl=0))
+>>> print(ub.utext({1: float('nan'), 2: float('inf'), 3: 3.0}, nl=0))
 """
 import collections
 from ubelt import util_str
 from ubelt import util_list
 
-__all__ = ['repr2', 'FormatterExtensions']
+__all__ = ['repr2', 'utext', 'FormatterExtensions']
 
 
-def repr2(data, **kwargs):
+def utext(data, **kwargs):
     """
     Makes a pretty string representation of ``data``.
 
@@ -132,25 +132,12 @@ def repr2(data, **kwargs):
             which are currently not configurable. This may be modified in the
             future.
 
-        sort (bool | callable, default=None):
-            if None, then sort unordered collections, but keep the ordering of
-            ordered collections. This option attempts to be deterministic in
+        sort (bool | callable, default='auto'):
+            if 'auto', then sort unordered collections, but keep the ordering
+            of ordered collections. This option attempts to be deterministic in
             most cases.
 
-            New in 0.8.0: if ``sort`` is callable, it will be used as a
-            key-function to sort all collections.
-
-            if False, then nothing will be sorted, and the representation of
-            unordered collections will be arbitrary and possibly
-            non-determenistic.
-
-            if True, attempts to sort all collections in the returned text.
-            Currently if True this WILL sort lists.
-            Currently if True this WILL NOT sort OrderedDicts.
-
-            NOTE:
-                The previous behavior may not be intuitive, as such the
-                behavior of this arg is subject to change.
+            if True, then ALL collections will be sorted in the returned text.
 
         suppress_small (bool):
             passed to :func:`numpy.array2string` for ndarrays
@@ -196,32 +183,37 @@ def repr2(data, **kwargs):
         ...     'one_tup': tuple([1]),
         ...     'simple_dict': {'spam': 'eggs', 'ham': 'jam'},
         ...     'simple_list': [1, 2, 'red', 'blue'],
-        ...     'odict': ub.odict([(1, '1'), (2, '2')]),
+        ...     'odict': ub.odict([(2, '1'), (1, '2')]),
         ... }
         >>> # In the interest of saving space we are only going to show the
         >>> # output for the first example.
-        >>> result = ub.repr2(dict_, nl=1, precision=2)
+        >>> result = ub.utext(dict_, nl=1, precision=2)
+        >>> import pytest
+        >>> import sys
+        >>> if sys.version_info[0:2] <= (3, 6):
+        >>>     # dictionary order is not guaranteed in 3.6 use repr2 instead
+        >>>     pytest.skip()
         >>> print(result)
         {
             'custom_types': [slice(0, 1, None), 0.33],
             'nest_dict': {'k1': [1, 2, {3: {4, 5}}], 'key2': [1, 2, {3: {4, 5}}], 'key3': [1, 2, {3: {4, 5}}]},
             'nest_dict2': {'k': [1, 2, {3: {4, 5}}]},
             'nested_tuples': [(1,), (2, 3), {4, 5, 6}],
-            'odict': {1: '1', 2: '2'},
             'one_tup': (1,),
-            'simple_dict': {'ham': 'jam', 'spam': 'eggs'},
+            'simple_dict': {'spam': 'eggs', 'ham': 'jam'},
             'simple_list': [1, 2, 'red', 'blue'],
+            'odict': {2: '1', 1: '2'},
         }
         >>> # You can try the rest yourself.
-        >>> result = ub.repr2(dict_, nl=3, precision=2); print(result)
-        >>> result = ub.repr2(dict_, nl=2, precision=2); print(result)
-        >>> result = ub.repr2(dict_, nl=1, precision=2, itemsep='', explicit=True); print(result)
-        >>> result = ub.repr2(dict_, nl=1, precision=2, nobr=1, itemsep='', explicit=True); print(result)
-        >>> result = ub.repr2(dict_, nl=3, precision=2, cbr=True); print(result)
-        >>> result = ub.repr2(dict_, nl=3, precision=2, si=True); print(result)
-        >>> result = ub.repr2(dict_, nl=3, sort=True); print(result)
-        >>> result = ub.repr2(dict_, nl=3, sort=False, trailing_sep=False); print(result)
-        >>> result = ub.repr2(dict_, nl=3, sort=False, trailing_sep=False, nobr=True); print(result)
+        >>> result = ub.utext(dict_, nl=3, precision=2); print(result)
+        >>> result = ub.utext(dict_, nl=2, precision=2); print(result)
+        >>> result = ub.utext(dict_, nl=1, precision=2, itemsep='', explicit=True); print(result)
+        >>> result = ub.utext(dict_, nl=1, precision=2, nobr=1, itemsep='', explicit=True); print(result)
+        >>> result = ub.utext(dict_, nl=3, precision=2, cbr=True); print(result)
+        >>> result = ub.utext(dict_, nl=3, precision=2, si=True); print(result)
+        >>> result = ub.utext(dict_, nl=3, sort=True); print(result)
+        >>> result = ub.utext(dict_, nl=3, sort=False, trailing_sep=False); print(result)
+        >>> result = ub.utext(dict_, nl=3, sort=False, trailing_sep=False, nobr=True); print(result)
 
     Example:
         >>> import ubelt as ub
@@ -231,26 +223,26 @@ def repr2(data, **kwargs):
         ...     else:
         ...         return {'n{}'.format(d): _nest(d - 1, w + 1), 'm{}'.format(d): _nest(d - 1, w + 1)}
         >>> dict_ = _nest(d=4, w=1)
-        >>> result = ub.repr2(dict_, nl=6, precision=2, cbr=1)
+        >>> result = ub.utext(dict_, nl=6, precision=2, cbr=1)
         >>> print('---')
         >>> print(result)
-        >>> result = ub.repr2(dict_, nl=-1, precision=2)
+        >>> result = ub.utext(dict_, nl=-1, precision=2)
         >>> print('---')
         >>> print(result)
 
     Example:
         >>> import ubelt as ub
         >>> data = {'a': 100, 'b': [1, '2', 3], 'c': {20:30, 40: 'five'}}
-        >>> print(ub.repr2(data, nl=1))
+        >>> print(ub.utext(data, nl=1))
         {
             'a': 100,
             'b': [1, '2', 3],
             'c': {20: 30, 40: 'five'},
         }
         >>> # Compact is useful for things like timerit.Timerit labels
-        >>> print(ub.repr2(data, compact=True))
+        >>> print(ub.utext(data, compact=True))
         a=100,b=[1,2,3],c={20=30,40=five}
-        >>> print(ub.repr2(data, compact=True, nobr=False))
+        >>> print(ub.utext(data, compact=True, nobr=False))
         {a=100,b=[1,2,3],c={20=30,40=five}}
     """
     custom_extensions = kwargs.get('extensions', None)
@@ -296,6 +288,43 @@ def repr2(data, **kwargs):
         return outstr
 
 
+def repr2(data, **kwargs):
+    """
+    Deprecated for utext
+
+    Example:
+        >>> # Test that repr2 remains backwards compatible
+        >>> import ubelt as ub
+        >>> dict_ = {
+        ...     'custom_types': [slice(0, 1, None), 1/3],
+        ...     'nest_dict': {'k1': [1, 2, {3: {4, 5}}],
+        ...                   'key2': [1, 2, {3: {4, 5}}],
+        ...                   'key3': [1, 2, {3: {4, 5}}],
+        ...                   },
+        ...     'nest_dict2': {'k': [1, 2, {3: {4, 5}}]},
+        ...     'nested_tuples': [tuple([1]), tuple([2, 3]), frozenset([4, 5, 6])],
+        ...     'one_tup': tuple([1]),
+        ...     'simple_dict': {'spam': 'eggs', 'ham': 'jam'},
+        ...     'simple_list': [1, 2, 'red', 'blue'],
+        ...     'odict': ub.odict([(2, '1'), (1, '2')]),
+        ... }
+        >>> result = ub.repr2(dict_, nl=1, precision=2)
+        >>> print(result)
+        {
+            'custom_types': [slice(0, 1, None), 0.33],
+            'nest_dict': {'k1': [1, 2, {3: {4, 5}}], 'key2': [1, 2, {3: {4, 5}}], 'key3': [1, 2, {3: {4, 5}}]},
+            'nest_dict2': {'k': [1, 2, {3: {4, 5}}]},
+            'nested_tuples': [(1,), (2, 3), {4, 5, 6}],
+            'odict': {2: '1', 1: '2'},
+            'one_tup': (1,),
+            'simple_dict': {'ham': 'jam', 'spam': 'eggs'},
+            'simple_list': [1, 2, 'red', 'blue'],
+        }
+    """
+    kwargs['_dict_sort_behavior'] = kwargs.get('_dict_sort_behavior', 'old')
+    return utext(data, **kwargs)
+
+
 def _rectify_root_info(_root_info):
     if _root_info is None:
         _root_info = {
@@ -319,7 +348,7 @@ class FormatterExtensions(object):
 
     This module (:mod:`ubelt.util_format`) maintains a global set of basic
     extensions, but it is also possible to create a locally scoped set of
-    extensions and explicitly pass it to repr2. The following example
+    extensions and explicitly pass it to utext. The following example
     demonstrates this.
 
     Example:
@@ -336,7 +365,7 @@ class FormatterExtensions(object):
         >>> # Repr2 will now respect the passed custom extensions
         >>> # Note that the global extensions will still be respected
         >>> # unless they are overloaded.
-        >>> print(ub.repr2(data, nl=-1, precision=1, extensions=extensions))
+        >>> print(ub.utext(data, nl=-1, precision=1, extensions=extensions))
         {
             'a': [1, 2.2, I can do anything here],
             'b': I can do anything here
@@ -345,7 +374,7 @@ class FormatterExtensions(object):
         >>> @extensions.register((float, int))
         >>> def format_myobject(data, **kwargs):
         >>>     return str((data + 10) // 2)
-        >>> print(ub.repr2(data, nl=-1, precision=1, extensions=extensions))
+        >>> print(ub.utext(data, nl=-1, precision=1, extensions=extensions))
         {
             'a': [5, 6.0, I can do anything here],
             'b': I can do anything here
@@ -373,7 +402,7 @@ class FormatterExtensions(object):
 
     def register(self, key):
         """
-        Registers a custom formatting function with ub.repr2
+        Registers a custom formatting function with ub.utext
 
         Args:
             key (Type | Tuple[Type] | str): indicator of the type
@@ -424,8 +453,8 @@ class FormatterExtensions(object):
             >>> rng = np.random.RandomState(0)
             >>> data = pd.DataFrame(rng.rand(3, 3))
             >>> print(ub.repr2(data))
-            >>> print(ub.repr2(data, precision=2))
-            >>> print(ub.repr2({'akeyfdfj': data}, precision=2))
+            >>> print(ub.utext(data, precision=2))
+            >>> print(ub.utext({'akeyfdfj': data}, precision=2))
         """
         @self.register('DataFrame')
         def format_pandas(data, **kwargs):  # nocover
@@ -447,8 +476,8 @@ class FormatterExtensions(object):
     #             >>> data = np.array([[.2, 42, 5], [21.2, 3, .4]])
     #             >>> data = torch.from_numpy(data)
     #             >>> data = torch.rand(100, 100)
-    #             >>> print('data = {}'.format(ub.repr2(data, nl=1)))
-    #             >>> print(ub.repr2(data))
+    #             >>> print('data = {}'.format(ub.utext(data, nl=1)))
+    #             >>> print(ub.utext(data))
 
     #         """
     #         import numpy as np
@@ -475,22 +504,22 @@ class FormatterExtensions(object):
             >>> # xdoctest: +IGNORE_WHITESPACE
             >>> import numpy as np
             >>> data = np.array([[.2, 42, 5], [21.2, 3, .4]])
-            >>> print(ub.repr2(data))
+            >>> print(ub.utext(data))
             np.array([[ 0.2, 42. ,  5. ],
                       [21.2,  3. ,  0.4]], dtype=np.float64)
-            >>> print(ub.repr2(data, with_dtype=False))
+            >>> print(ub.utext(data, with_dtype=False))
             np.array([[ 0.2, 42. ,  5. ],
                       [21.2,  3. ,  0.4]])
-            >>> print(ub.repr2(data, strvals=True))
+            >>> print(ub.utext(data, strvals=True))
             [[ 0.2, 42. ,  5. ],
              [21.2,  3. ,  0.4]]
             >>> data = np.empty((0, 10), dtype=np.float64)
-            >>> print(ub.repr2(data, strvals=False))
+            >>> print(ub.utext(data, strvals=False))
             np.empty((0, 10), dtype=np.float64)
-            >>> print(ub.repr2(data, strvals=True))
+            >>> print(ub.utext(data, strvals=True))
             []
             >>> data = np.ma.empty((0, 10), dtype=np.float64)
-            >>> print(ub.repr2(data, strvals=False))
+            >>> print(ub.utext(data, strvals=False))
             np.ma.empty((0, 10), dtype=np.float64)
         """
 
@@ -576,7 +605,7 @@ class FormatterExtensions(object):
                 # NOTE: sometimes this function is used to make json objects
                 # how can we ensure that this doesn't break things?
                 # Turns out json, never handled these cases. In the future we
-                # may want to add a json flag to repr2 to encourage it to
+                # may want to add a json flag to utext to encourage it to
                 # output json-like representations.
                 # json.loads("[0, 1, 2, nan]")
                 # json.loads("[Infinity, NaN]")
@@ -860,7 +889,7 @@ def _dict_itemstrs(dict_, **kwargs):
     Example:
         >>> from ubelt.util_format import *
         >>> dict_ =  {'b': .1, 'l': 'st', 'g': 1.0, 's': 10, 'm': 0.9, 'w': .5}
-        >>> kwargs = {'strkeys': True}
+        >>> kwargs = {'strkeys': True, 'sort': True}
         >>> itemstrs, _ = _dict_itemstrs(dict_, **kwargs)
         >>> char_order = [p[0] for p in itemstrs]
         >>> assert char_order == ['b', 'g', 'l', 'm', 's', 'w']
@@ -881,11 +910,11 @@ def _dict_itemstrs(dict_, **kwargs):
         if explicit or kwargs.get('strkeys', default_strkeys):
             key_str = str(key)
         else:
-            key_str = repr2(key, precision=precision, newlines=0)
+            key_str = utext(key, precision=precision, newlines=0)
 
         prefix = key_str + kvsep
         kwargs['_return_info'] = True
-        val_str, _leaf_info = repr2(val, **kwargs)
+        val_str, _leaf_info = utext(val, **kwargs)
 
         # If the first line does not end with an open nest char
         # (e.g. for ndarrays), otherwise we need to worry about
@@ -917,18 +946,28 @@ def _dict_itemstrs(dict_, **kwargs):
     }
 
     sort = kwargs.get('sort', None)
-    if sort is None:
-        # if sort is None, force orderings on unordered collections like dicts,
-        # but keep ordering of ordered collections like OrderedDicts.
-        # NOTE: WE WANT TO CHANGE THIS TO FALSE BY DEFAULT.
-        # MIGHT REQUIRE DEPRECATING PYTHON 3.6 SUPPORT
-        sort = True  # LEGACY UBELT BEHAVIOR
-        # HOW TO WE INTRODUCE A BACKWARDS COMPATIBLE WAY TO MAKE THIS CHANGE?
-        # sort = False  # cannot make this change safely
+    if sort == 'auto':
+        sort = None
 
-    if isinstance(dict_, collections.OrderedDict):
-        # never sort ordered dicts; they are perfect just the way they are!
-        sort = False
+    dict_sort_behavior = kwargs.get('_dict_sort_behavior', 'new')
+    if dict_sort_behavior == 'old':
+        if sort is None:
+            # if sort is None, force orderings on unordered collections like dicts,
+            # but keep ordering of ordered collections like OrderedDicts.
+            # NOTE: WE WANT TO CHANGE THIS TO FALSE BY DEFAULT.
+            # MIGHT REQUIRE DEPRECATING PYTHON 3.6 SUPPORT
+            sort = True  # LEGACY UBELT BEHAVIOR
+            # HOW TO WE INTRODUCE A BACKWARDS COMPATIBLE WAY TO MAKE THIS CHANGE?
+            # sort = False  # cannot make this change safely
+
+        if isinstance(dict_, collections.OrderedDict):
+            # never sort ordered dicts; they are perfect just the way they are!
+            sort = False
+    else:
+        if sort is None:
+            # Dictionaries are sorted by default in 3.7+ so never sort dictionaries
+            sort = False
+
     if sort:
         key = sort if callable(sort) else None
         itemstrs = _sort_itemstrs(items, itemstrs, key)
@@ -945,7 +984,7 @@ def _list_itemstrs(list_, **kwargs):
     """
     items = list(list_)
     kwargs['_return_info'] = True
-    _tups = [repr2(item, **kwargs) for item in items]
+    _tups = [utext(item, **kwargs) for item in items]
     itemstrs = [t[0] for t in _tups]
     max_height = max([t[1]['max_height'] for t in _tups]) if _tups else 0
     _leaf_info = {
@@ -953,6 +992,9 @@ def _list_itemstrs(list_, **kwargs):
     }
 
     sort = kwargs.get('sort', None)
+    if sort == 'auto':
+        sort = None
+
     if sort is None:
         # if sort is None, force orderings on unordered collections like sets,
         # but keep ordering of ordered collections like lists.
@@ -1175,7 +1217,10 @@ def _align_lines(line_list, character='=', replchar=None, pos=0):
     return new_lines
 
 
-# Give the repr2 function itself a reference to the default extensions
+# Give the utext function itself a reference to the default extensions
 # register method so the user can modify them without accessing this module
-repr2.extensions = _FORMATTER_EXTENSIONS
-repr2.register = _FORMATTER_EXTENSIONS.register
+utext.extensions = _FORMATTER_EXTENSIONS
+utext.register = _FORMATTER_EXTENSIONS.register
+
+repr2.extensions = utext.extensions
+repr2.register = utext.register
