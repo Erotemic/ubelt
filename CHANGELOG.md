@@ -11,6 +11,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 * Support for FreeBSD in `util_platform`
 * `ub.Path.copy` and `ub.Path.move`
 * Tentative Python 3.11 support
+* `ub.utext` which is a repr2 with new defaults.
 
 ### Changed
 * `ub.schedule_deprecation` can now accept the strings "soon" or "now" for "when" arguments.
