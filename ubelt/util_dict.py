@@ -211,6 +211,9 @@ def dict_hist(items, weights=None, ordered=False, labels=None):
             dictionary where the keys are unique elements from ``items``, and
             the values are the number of times the item appears in ``items``.
 
+    SeeAlso:
+        collections.Counter
+
     Example:
         >>> import ubelt as ub
         >>> items = [1, 2, 39, 900, 1232, 900, 1232, 2, 2, 2, 900]
@@ -241,10 +244,16 @@ def dict_hist(items, weights=None, ordered=False, labels=None):
     else:
         hist_ = {k: 0 for k in labels}
     if weights is None:
-        weights = it.repeat(1)
-    # Accumulate frequency
-    for item, weight in zip(items, weights):
-        hist_[item] += weight
+        # Accumulate discrete frequency.
+        # In this case we can use an optimized C routine in the stdlib
+        from collections import Counter
+        hist_ = Counter(hist_)
+        hist_.update(items)
+        # weights = it.repeat(1)  # old way is 2x slower
+    else:
+        # Accumulate weighted frequency
+        for item, weight in zip(items, weights):
+            hist_[item] += weight
     if ordered:
         # Order by value
         getval = op.itemgetter(1)
