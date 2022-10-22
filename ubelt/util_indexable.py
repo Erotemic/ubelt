@@ -31,6 +31,17 @@ class IndexableWalker(Generator):
         * https://pypi.org/project/python-benedict/ - implements a dictionary
             subclass with similar nested indexing abilities.
 
+    Attributes:
+        data (dict | list | tuple): the wrapped indexable data
+
+        dict_cls (Tuple[type]):
+            the types that should be considered dictionary mappings for the
+            purpose of nested iteration.
+
+        list_cls (Tuple[type]):
+            the types that should be considered list-like for the purposes
+            of nested iteration.
+
     Example:
         >>> import ubelt as ub
         >>> # Given Nested Data
