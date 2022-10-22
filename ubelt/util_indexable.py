@@ -285,11 +285,163 @@ class IndexableWalker(Generator):
                     if isinstance(value, self.indexable_cls):
                         stack.append((value, path))
 
+    def allclose(self, other, rel_tol=1e-9, abs_tol=0.0, return_info=False):
+        """
+        Walks through this and another nested data structures and checks if
+        everything is roughly the same.
+
+        Args:
+            other (IndexableWalker):
+                a wrapped nested indexable item to compare against
+
+            rel_tol (float):
+                maximum difference for being considered "close", relative to the
+                magnitude of the input values
+
+            abs_tol (float):
+                maximum difference for being considered "close", regardless of the
+                magnitude of the input values
+
+            return_info (bool, default=False): if true, return extra info dict
+
+        Returns:
+            bool | Tuple[bool, Dict] :
+                A boolean result if ``return_info`` is false, otherwise a tuple of
+                the boolean result and an "info" dict containing detailed results
+                indicating what matched and what did not.
+
+        Example:
+            >>> import ubelt as ub
+            >>> items1 = ub.IndexableWalker({
+            >>>     'foo': [1.222222, 1.333],
+            >>>     'bar': 1,
+            >>>     'baz': [],
+            >>> })
+            >>> items2 = ub.IndexableWalker({
+            >>>     'foo': [1.22222, 1.333],
+            >>>     'bar': 1,
+            >>>     'baz': [],
+            >>> })
+            >>> flag, return_info =  items1.allclose(items2, return_info=True)
+            >>> print('return_info = {}'.format(ub.repr2(return_info, nl=1)))
+            >>> print('flag = {!r}'.format(flag))
+            >>> for p1, v1, v2  in return_info['faillist']:
+            >>>     v1_ = items1[p1]
+            >>>     print('*fail p1, v1, v2 = {}, {}, {}'.format(p1, v1, v2))
+            >>> for p1 in return_info['passlist']:
+            >>>     v1_ = items1[p1]
+            >>>     print('*pass p1, v1_ = {}, {}'.format(p1, v1_))
+            >>> assert not flag
+
+            >>> import ubelt as ub
+            >>> items1 = ub.IndexableWalker({
+            >>>     'foo': [1.0000000000000000000000001, 1.],
+            >>>     'bar': 1,
+            >>>     'baz': [],
+            >>> })
+            >>> items2 = ub.IndexableWalker({
+            >>>     'foo': [0.9999999999999999, 1.],
+            >>>     'bar': 1,
+            >>>     'baz': [],
+            >>> })
+            >>> flag, return_info =  items1.allclose(items2, return_info=True)
+            >>> print('return_info = {}'.format(ub.repr2(return_info, nl=1)))
+            >>> print('flag = {!r}'.format(flag))
+            >>> assert flag
+
+        Example:
+            >>> import ubelt as ub
+            >>> flag, return_info =  ub.IndexableWalker([]).allclose(ub.IndexableWalker([]), return_info=True)
+            >>> print('return_info = {!r}'.format(return_info))
+            >>> print('flag = {!r}'.format(flag))
+            >>> assert flag
+
+        Example:
+            >>> import ubelt as ub
+            >>> flag =  ub.IndexableWalker([]).allclose(ub.IndexableWalker([]), return_info=False)
+            >>> print('flag = {!r}'.format(flag))
+            >>> assert flag
+
+        Example:
+            >>> import ubelt as ub
+            >>> flag, return_info =  ub.IndexableWalker([]).allclose(ub.IndexableWalker([1]), return_info=True)
+            >>> print('return_info = {!r}'.format(return_info))
+            >>> print('flag = {!r}'.format(flag))
+            >>> assert not flag
+
+        Example:
+            >>> # xdoctest: +REQUIRES(module:numpy)
+            >>> import ubelt as ub
+            >>> import numpy as np
+            >>> a = np.random.rand(3, 5)
+            >>> b = np.random.rand(3, 5)
+            >>> wa = ub.IndexableWalker(a, list_cls=(np.ndarray,))
+            >>> wb = ub.IndexableWalker(b, list_cls=(np.ndarray,))
+            >>> flag, return_info =  wa.allclose(wb, return_info=True)
+            >>> print('return_info = {!r}'.format(return_info))
+            >>> print('flag = {!r}'.format(flag))
+        """
+        walker1 = self
+        walker2 = other
+
+        flat_items1 = [
+            (path, value) for path, value in walker1
+            if not isinstance(value, walker1.indexable_cls) or len(value) == 0]
+        flat_items2 = [
+            (path, value) for path, value in walker2
+            if not isinstance(value, walker1.indexable_cls) or len(value) == 0]
+
+        flat_items1 = sorted(flat_items1)
+        flat_items2 = sorted(flat_items2)
+
+        if len(flat_items1) != len(flat_items2):
+            info = {
+                'faillist': ['length mismatch']
+            }
+            final_flag = False
+        else:
+            passlist = []
+            faillist = []
+
+            for t1, t2 in zip(flat_items1, flat_items2):
+                p1, v1 = t1
+                p2, v2 = t2
+                assert p1 == p2, 'paths to the nested items should be the same'
+
+                flag = (v1 == v2)
+                if not flag:
+                    if isinstance(v1, float) and isinstance(v2, float):
+                        if isclose(v1, v2, rel_tol=rel_tol, abs_tol=abs_tol):
+                            flag = True
+                if flag:
+                    passlist.append(p1)
+                else:
+                    faillist.append((p1, v1, v2))
+
+            final_flag = len(faillist) == 0
+            info = {
+                'passlist': passlist,
+                'faillist': faillist,
+            }
+
+        if return_info:
+            info.update({
+                'walker1': walker1,
+                'walker2': walker2,
+            })
+            return final_flag, info
+        else:
+            return final_flag
+
 
 def indexable_allclose(items1, items2, rel_tol=1e-9, abs_tol=0.0, return_info=False):
     """
     Walks through two nested data structures and ensures that everything is
     roughly the same.
+
+    NOTE:
+        Deprecated. Instead use:
+            ub.IndexableWalker(items1).allclose(ub.IndexableWalker(items2))
 
     Args:
         items1 (dict | list | tuple):
@@ -329,107 +481,21 @@ def indexable_allclose(items1, items2, rel_tol=1e-9, abs_tol=0.0, return_info=Fa
         >>> flag, return_info =  ub.indexable_allclose(items1, items2, return_info=True)
         >>> print('return_info = {}'.format(ub.repr2(return_info, nl=1)))
         >>> print('flag = {!r}'.format(flag))
-
-        >>> walker1 = return_info['walker1']
-        >>> for p1, v1, v2  in return_info['faillist']:
-        >>>     v1_ = walker1[p1]
-        >>>     print('*fail p1, v1, v2 = {}, {}, {}'.format(p1, v1, v2))
-        >>> for p1 in return_info['passlist']:
-        >>>     v1_ = walker1[p1]
-        >>>     print('*pass p1, v1_ = {}, {}'.format(p1, v1_))
-        >>> assert not flag
-
-        >>> import ubelt as ub
-        >>> items1 = {
-        >>>     'foo': [1.0000000000000000000000001, 1.],
-        >>>     'bar': 1,
-        >>>     'baz': [],
-        >>> }
-        >>> items2 = {
-        >>>     'foo': [0.9999999999999999, 1.],
-        >>>     'bar': 1,
-        >>>     'baz': [],
-        >>> }
-        >>> flag, return_info =  ub.indexable_allclose(items1, items2, return_info=True)
-        >>> print('return_info = {}'.format(ub.repr2(return_info, nl=1)))
-        >>> print('flag = {!r}'.format(flag))
-
-    Example:
-        >>> import ubelt as ub
-        >>> flag, return_info =  ub.indexable_allclose([], [], return_info=True)
-        >>> print('return_info = {!r}'.format(return_info))
-        >>> print('flag = {!r}'.format(flag))
-
-    Example:
-        >>> import ubelt as ub
-        >>> flag =  ub.indexable_allclose([], [], return_info=False)
-        >>> print('flag = {!r}'.format(flag))
-
-    Example:
-        >>> import ubelt as ub
-        >>> flag, return_info =  ub.indexable_allclose([], [1], return_info=True)
-        >>> print('return_info = {!r}'.format(return_info))
-        >>> print('flag = {!r}'.format(flag))
-
-    Example:
-        >>> # xdoctest: +REQUIRES(module:numpy)
-        >>> # xdoctest: +SKIP("numpy currently does not work nicely")
-        >>> import ubelt as ub
-        >>> import numpy as np
-        >>> a = np.random.rand(3, 5)
-        >>> b = np.random.rand(3, 5)
-        >>> flag, return_info =  ub.indexable_allclose(a, b, return_info=True)
-        >>> print('return_info = {!r}'.format(return_info))
-        >>> print('flag = {!r}'.format(flag))
     """
+    import ubelt as ub
+    ub.schedule_deprecation(
+        'ubelt', 'indexable_allclose', 'function',
+        migration=(
+            'Use `ub.IndexableWalker(items1).allclose(ub.IndexableWalker(items2))` instead'
+        ))
     walker1 = IndexableWalker(items1)
     walker2 = IndexableWalker(items2)
+    return walker1.isclose(walker2, rel_tol=rel_tol, abs_tol=abs_tol,
+                           return_info=return_info)
 
-    flat_items1 = [
-        (path, value) for path, value in walker1
-        if not isinstance(value, walker1.indexable_cls) or len(value) == 0]
-    flat_items2 = [
-        (path, value) for path, value in walker2
-        if not isinstance(value, walker1.indexable_cls) or len(value) == 0]
 
-    flat_items1 = sorted(flat_items1)
-    flat_items2 = sorted(flat_items2)
-
-    if len(flat_items1) != len(flat_items2):
-        info = {
-            'faillist': ['length mismatch']
-        }
-        final_flag = False
-    else:
-        passlist = []
-        faillist = []
-
-        for t1, t2 in zip(flat_items1, flat_items2):
-            p1, v1 = t1
-            p2, v2 = t2
-            assert p1 == p2
-
-            flag = (v1 == v2)
-            if not flag:
-                if isinstance(v1, float) and isinstance(v2, float):
-                    if isclose(v1, v2, rel_tol=rel_tol, abs_tol=abs_tol):
-                        flag = True
-            if flag:
-                passlist.append(p1)
-            else:
-                faillist.append((p1, v1, v2))
-
-        final_flag = len(faillist) == 0
-        info = {
-            'passlist': passlist,
-            'faillist': faillist,
-        }
-
-    if return_info:
-        info.update({
-            'walker1': walker1,
-            'walker2': walker2,
-        })
-        return final_flag, info
-    else:
-        return final_flag
+# class Indexable(IndexableWalker):
+#     """
+#     In the future IndexableWalker may simply change to Indexable
+#     """
+#     ...

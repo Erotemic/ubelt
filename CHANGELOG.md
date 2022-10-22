@@ -12,6 +12,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 * `ub.Path.copy` and `ub.Path.move`
 * Tentative Python 3.11 support
 * `ub.utext` which is a repr2 with new defaults.
+* `ub.IndexableWalker.allclose` method to replace `indexable_allclose`
 
 ### Changed
 * `ub.schedule_deprecation` can now accept the strings "soon" or "now" for "when" arguments.
@@ -29,6 +30,10 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 * Incompatibility with pathlib in `PythonPathContext`
 * Fixed issue in progiter with line clears
 * Issue in `import_module_from_modname` with editable installs where it would try to match modules that had the requested module as a prefix.
+
+
+### Deprecated
+* `ub.indexable_allclose`. Use `ub.IndexableWalker.allclose` instead.
 
 
 ## Version 1.2.2 - Released 2022-09-05 
