@@ -501,8 +501,8 @@ def indexable_allclose(items1, items2, rel_tol=1e-9, abs_tol=0.0, return_info=Fa
         ))
     walker1 = IndexableWalker(items1)
     walker2 = IndexableWalker(items2)
-    return walker1.isclose(walker2, rel_tol=rel_tol, abs_tol=abs_tol,
-                           return_info=return_info)
+    return walker1.allclose(walker2, rel_tol=rel_tol, abs_tol=abs_tol,
+                            return_info=return_info)
 
 
 # class Indexable(IndexableWalker):
