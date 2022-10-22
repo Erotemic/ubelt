@@ -196,7 +196,7 @@ def dict_hist(items, weights=None, ordered=False, labels=None):
             hashable items (usually containing duplicates)
 
         weights (Iterable[float], default=None):
-            Corresponding weights for each item.
+            Corresponding weights for each item, defaults to 1 if unspecified.
 
         ordered (bool, default=False):
             If True the result is ordered by frequency.
@@ -212,7 +212,7 @@ def dict_hist(items, weights=None, ordered=False, labels=None):
             the values are the number of times the item appears in ``items``.
 
     SeeAlso:
-        collections.Counter
+        :class:`collections.Counter`
 
     Example:
         >>> import ubelt as ub
@@ -223,15 +223,12 @@ def dict_hist(items, weights=None, ordered=False, labels=None):
 
     Example:
         >>> import ubelt as ub
+        >>> import pytest
         >>> items = [1, 2, 39, 900, 1232, 900, 1232, 2, 2, 2, 900]
         >>> hist1 = ub.dict_hist(items)
         >>> hist2 = ub.dict_hist(items, ordered=True)
-        >>> try:
+        >>> with pytest.raises(KeyError):
         >>>     hist3 = ub.dict_hist(items, labels=[])
-        >>> except KeyError:
-        >>>     pass
-        >>> else:
-        >>>     raise AssertionError('expected key error')
         >>> weights = [1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1]
         >>> hist4 = ub.dict_hist(items, weights=weights)
         >>> print(ub.repr2(hist1, nl=0))
@@ -239,18 +236,19 @@ def dict_hist(items, weights=None, ordered=False, labels=None):
         >>> print(ub.repr2(hist4, nl=0))
         {1: 1, 2: 4, 39: 1, 900: 1, 1232: 0}
     """
-    if labels is None:
-        hist_ = defaultdict(lambda: 0)
-    else:
-        hist_ = {k: 0 for k in labels}
-    if weights is None:
+    if weights is None and labels is None:
         # Accumulate discrete frequency.
-        # In this case we can use an optimized C routine in the stdlib
+        # In this special case we use an optimized stdlib routine
         from collections import Counter
-        hist_ = Counter(hist_)
+        hist_ = Counter()
         hist_.update(items)
-        # weights = it.repeat(1)  # old way is 2x slower
     else:
+        if labels is None:
+            hist_ = defaultdict(lambda: 0)
+        else:
+            hist_ = {k: 0 for k in labels}
+        if weights is None:
+            weights = it.repeat(1)  # 2x slower than Counter
         # Accumulate weighted frequency
         for item, weight in zip(items, weights):
             hist_[item] += weight
@@ -354,6 +352,7 @@ def dict_subset(dict_, keys, default=NoParam, cls=OrderedDict):
 
     SeeAlso:
         :func:`dict_isect` - similar functionality, but ignores missing keys
+        ::py:meth:`UDict.subdict` - object oriented version of this function
 
     Example:
         >>> import ubelt as ub
@@ -397,6 +396,7 @@ def dict_union(*args):
         :func:`collections.ChainMap` - a standard python builtin data structure
         that provides a view that treats multiple dicts as a single dict.
         `<https://docs.python.org/3/library/collections.html#chainmap-objects>`_
+        ::py:meth:`UDict.union` - object oriented version of this function
 
     Example:
         >>> import ubelt as ub
@@ -433,9 +433,8 @@ def dict_diff(*args):
         Dict[KT, VT] | OrderedDict[KT, VT] :
             OrderedDict if the first argument is an OrderedDict, otherwise dict
 
-    TODO:
-        - [ ] Add inplace keyword argument, which modifies the first dictionary
-          inplace.
+    SeeAlso:
+        ::py:meth:`UDict.difference` - object oriented version of this function
 
     Example:
         >>> import ubelt as ub
@@ -475,6 +474,9 @@ def dict_isect(*args):
     Returns:
         Dict[KT, VT] | OrderedDict[KT, VT] :
             OrderedDict if the first argument is an OrderedDict, otherwise dict
+
+    SeeAlso:
+        ::py:meth:`UDict.intersection` - object oriented version of this function
 
     Note:
         This function can be used as an alternative to :func:`dict_subset`
@@ -517,6 +519,9 @@ def map_values(func, dict_, cls=None):
         cls (type | None): specifies the dict subclassof the result.
             if unspecified will be dict or OrderedDict. This behavior may
             change.
+
+    SeeAlso:
+        ::py:meth:`UDict.map_values` - object oriented version of this function
 
     Returns:
         Dict[KT, T]: transformed dictionary
@@ -563,6 +568,9 @@ def map_keys(func, dict_, cls=None):
         cls (type | None): specifies the dict subclassof the result.
             if unspecified will be dict or OrderedDict. This behavior may
             change.
+
+    SeeAlso:
+        ::py:meth:`UDict.map_keys` - object oriented version of this function
 
     Returns:
         Dict[T, VT]: transformed dictionary
@@ -611,6 +619,9 @@ def sorted_values(dict_, key=None, reverse=False, cls=OrderedDict):
 
         cls (type): specifies the dict return type
 
+    SeeAlso:
+        ::py:meth:`UDict.sorted_values` - object oriented version of this function
+
     Returns:
         OrderedDict[KT, VT]: new dictionary where the values are ordered
 
@@ -656,6 +667,9 @@ def sorted_keys(dict_, key=None, reverse=False, cls=OrderedDict):
 
         cls (type): specifies the dict return type
 
+    SeeAlso:
+        ::py:meth:`UDict.sorted_keys` - object oriented version of this function
+
     Returns:
         OrderedDict[KT, VT]: new dictionary where the keys are ordered
 
@@ -694,6 +708,9 @@ def invert_dict(dict_, unique_vals=True, cls=None):
         cls (type | None): specifies the dict subclassof the result.
             if unspecified will be dict or OrderedDict. This behavior may
             change.
+
+    SeeAlso:
+        ::py:meth:`UDict.invert` - object oriented version of this function
 
     Returns:
         Dict[VT, KT] | Dict[VT, Set[KT]]:
