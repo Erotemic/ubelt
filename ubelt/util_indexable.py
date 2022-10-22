@@ -385,10 +385,19 @@ class IndexableWalker(Generator):
             >>> import ubelt as ub
             >>> import numpy as np
             >>> a = np.random.rand(3, 5)
-            >>> b = np.random.rand(3, 5)
+            >>> b = a + 1
             >>> wa = ub.IndexableWalker(a, list_cls=(np.ndarray,))
             >>> wb = ub.IndexableWalker(b, list_cls=(np.ndarray,))
             >>> flag, return_info =  wa.allclose(wb, return_info=True)
+            >>> print('return_info = {!r}'.format(return_info))
+            >>> print('flag = {!r}'.format(flag))
+            >>> assert not flag
+            >>> a = np.random.rand(3, 5)
+            >>> b = a.copy() + 1e-17
+            >>> wa = ub.IndexableWalker([a], list_cls=(np.ndarray, list))
+            >>> wb = ub.IndexableWalker([b], list_cls=(np.ndarray, list))
+            >>> flag, return_info =  wa.allclose(wb, return_info=True)
+            >>> assert flag
             >>> print('return_info = {!r}'.format(return_info))
             >>> print('flag = {!r}'.format(flag))
         """
