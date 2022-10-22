@@ -1,28 +1,28 @@
 """
-Defines the function :func:`utext`, which allows for a bit more customization
+Defines the function :func:`urepr`, which allows for a bit more customization
 than :func:`repr` or :func:`pprint`. See the docstring for more details.
 
 
-Two main goals of utext are to provide nice string representations of nested
+Two main goals of urepr are to provide nice string representations of nested
 data structures and make those "eval-able" whenever possible. As an example
 take the value ``float('inf')``, which normally has a non-evalable repr of
 ``inf``:
 
 >>> import ubelt as ub
->>> ub.utext(float('inf'))
+>>> ub.urepr(float('inf'))
 "float('inf')"
 
 The ``newline`` (or ``nl``) keyword argument can control how deep in the
 nesting newlines are allowed.
 
->>> print(ub.utext({1: float('nan'), 2: float('inf'), 3: 3.0}))
+>>> print(ub.urepr({1: float('nan'), 2: float('inf'), 3: 3.0}))
 {
     1: float('nan'),
     2: float('inf'),
     3: 3.0,
 }
 
->>> print(ub.utext({1: float('nan'), 2: float('inf'), 3: 3.0}, nl=0))
+>>> print(ub.urepr({1: float('nan'), 2: float('inf'), 3: 3.0}, nl=0))
 {1: float('nan'), 2: float('inf'), 3: 3.0}
 
 
@@ -35,27 +35,27 @@ extensions keyword argument (although this will be a global change).
 >>> @extensions.register(float)
 >>> def my_float_formater(data, **kw):
 >>>     return "monkey({})".format(data)
->>> print(ub.utext({1: float('nan'), 2: float('inf'), 3: 3.0}, nl=0, extensions=extensions))
+>>> print(ub.urepr({1: float('nan'), 2: float('inf'), 3: 3.0}, nl=0, extensions=extensions))
 {1: monkey(nan), 2: monkey(inf), 3: monkey(3.0)}
 
 As of ubelt 1.1.0 you can now access and update the default extensions via the
-utext function itself.
+urepr function itself.
 
 >>> # xdoctest: +SKIP
 >>> # We skip this at test time to not modify global state
->>> @ub.utext.EXTENSIONS.register(float)
+>>> @ub.urepr.EXTENSIONS.register(float)
 >>> def my_float_formater(data, **kw):
 >>>     return "monkey2({})".format(data)
->>> print(ub.utext({1: float('nan'), 2: float('inf'), 3: 3.0}, nl=0))
+>>> print(ub.urepr({1: float('nan'), 2: float('inf'), 3: 3.0}, nl=0))
 """
 import collections
 from ubelt import util_str
 from ubelt import util_list
 
-__all__ = ['repr2', 'utext', 'FormatterExtensions']
+__all__ = ['repr2', 'urepr', 'FormatterExtensions']
 
 
-def utext(data, **kwargs):
+def urepr(data, **kwargs):
     """
     Makes a pretty string representation of ``data``.
 
@@ -187,7 +187,7 @@ def utext(data, **kwargs):
         ... }
         >>> # In the interest of saving space we are only going to show the
         >>> # output for the first example.
-        >>> result = ub.utext(dict_, nl=1, precision=2)
+        >>> result = ub.urepr(dict_, nl=1, precision=2)
         >>> import pytest
         >>> import sys
         >>> if sys.version_info[0:2] <= (3, 6):
@@ -205,15 +205,15 @@ def utext(data, **kwargs):
             'odict': {2: '1', 1: '2'},
         }
         >>> # You can try the rest yourself.
-        >>> result = ub.utext(dict_, nl=3, precision=2); print(result)
-        >>> result = ub.utext(dict_, nl=2, precision=2); print(result)
-        >>> result = ub.utext(dict_, nl=1, precision=2, itemsep='', explicit=True); print(result)
-        >>> result = ub.utext(dict_, nl=1, precision=2, nobr=1, itemsep='', explicit=True); print(result)
-        >>> result = ub.utext(dict_, nl=3, precision=2, cbr=True); print(result)
-        >>> result = ub.utext(dict_, nl=3, precision=2, si=True); print(result)
-        >>> result = ub.utext(dict_, nl=3, sort=True); print(result)
-        >>> result = ub.utext(dict_, nl=3, sort=False, trailing_sep=False); print(result)
-        >>> result = ub.utext(dict_, nl=3, sort=False, trailing_sep=False, nobr=True); print(result)
+        >>> result = ub.urepr(dict_, nl=3, precision=2); print(result)
+        >>> result = ub.urepr(dict_, nl=2, precision=2); print(result)
+        >>> result = ub.urepr(dict_, nl=1, precision=2, itemsep='', explicit=True); print(result)
+        >>> result = ub.urepr(dict_, nl=1, precision=2, nobr=1, itemsep='', explicit=True); print(result)
+        >>> result = ub.urepr(dict_, nl=3, precision=2, cbr=True); print(result)
+        >>> result = ub.urepr(dict_, nl=3, precision=2, si=True); print(result)
+        >>> result = ub.urepr(dict_, nl=3, sort=True); print(result)
+        >>> result = ub.urepr(dict_, nl=3, sort=False, trailing_sep=False); print(result)
+        >>> result = ub.urepr(dict_, nl=3, sort=False, trailing_sep=False, nobr=True); print(result)
 
     Example:
         >>> import ubelt as ub
@@ -223,26 +223,26 @@ def utext(data, **kwargs):
         ...     else:
         ...         return {'n{}'.format(d): _nest(d - 1, w + 1), 'm{}'.format(d): _nest(d - 1, w + 1)}
         >>> dict_ = _nest(d=4, w=1)
-        >>> result = ub.utext(dict_, nl=6, precision=2, cbr=1)
+        >>> result = ub.urepr(dict_, nl=6, precision=2, cbr=1)
         >>> print('---')
         >>> print(result)
-        >>> result = ub.utext(dict_, nl=-1, precision=2)
+        >>> result = ub.urepr(dict_, nl=-1, precision=2)
         >>> print('---')
         >>> print(result)
 
     Example:
         >>> import ubelt as ub
         >>> data = {'a': 100, 'b': [1, '2', 3], 'c': {20:30, 40: 'five'}}
-        >>> print(ub.utext(data, nl=1))
+        >>> print(ub.urepr(data, nl=1))
         {
             'a': 100,
             'b': [1, '2', 3],
             'c': {20: 30, 40: 'five'},
         }
         >>> # Compact is useful for things like timerit.Timerit labels
-        >>> print(ub.utext(data, compact=True))
+        >>> print(ub.urepr(data, compact=True))
         a=100,b=[1,2,3],c={20=30,40=five}
-        >>> print(ub.utext(data, compact=True, nobr=False))
+        >>> print(ub.urepr(data, compact=True, nobr=False))
         {a=100,b=[1,2,3],c={20=30,40=five}}
     """
     custom_extensions = kwargs.get('extensions', None)
@@ -290,7 +290,7 @@ def utext(data, **kwargs):
 
 def repr2(data, **kwargs):
     """
-    Deprecated for utext
+    Deprecated for urepr
 
     Example:
         >>> # Test that repr2 remains backwards compatible
@@ -322,7 +322,7 @@ def repr2(data, **kwargs):
         }
     """
     kwargs['_dict_sort_behavior'] = kwargs.get('_dict_sort_behavior', 'old')
-    return utext(data, **kwargs)
+    return urepr(data, **kwargs)
 
 
 def _rectify_root_info(_root_info):
@@ -348,7 +348,7 @@ class FormatterExtensions(object):
 
     This module (:mod:`ubelt.util_format`) maintains a global set of basic
     extensions, but it is also possible to create a locally scoped set of
-    extensions and explicitly pass it to utext. The following example
+    extensions and explicitly pass it to urepr. The following example
     demonstrates this.
 
     Example:
@@ -365,7 +365,7 @@ class FormatterExtensions(object):
         >>> # Repr2 will now respect the passed custom extensions
         >>> # Note that the global extensions will still be respected
         >>> # unless they are overloaded.
-        >>> print(ub.utext(data, nl=-1, precision=1, extensions=extensions))
+        >>> print(ub.urepr(data, nl=-1, precision=1, extensions=extensions))
         {
             'a': [1, 2.2, I can do anything here],
             'b': I can do anything here
@@ -374,7 +374,7 @@ class FormatterExtensions(object):
         >>> @extensions.register((float, int))
         >>> def format_myobject(data, **kwargs):
         >>>     return str((data + 10) // 2)
-        >>> print(ub.utext(data, nl=-1, precision=1, extensions=extensions))
+        >>> print(ub.urepr(data, nl=-1, precision=1, extensions=extensions))
         {
             'a': [5, 6.0, I can do anything here],
             'b': I can do anything here
@@ -402,7 +402,7 @@ class FormatterExtensions(object):
 
     def register(self, key):
         """
-        Registers a custom formatting function with ub.utext
+        Registers a custom formatting function with ub.urepr
 
         Args:
             key (Type | Tuple[Type] | str): indicator of the type
@@ -453,8 +453,8 @@ class FormatterExtensions(object):
             >>> rng = np.random.RandomState(0)
             >>> data = pd.DataFrame(rng.rand(3, 3))
             >>> print(ub.repr2(data))
-            >>> print(ub.utext(data, precision=2))
-            >>> print(ub.utext({'akeyfdfj': data}, precision=2))
+            >>> print(ub.urepr(data, precision=2))
+            >>> print(ub.urepr({'akeyfdfj': data}, precision=2))
         """
         @self.register('DataFrame')
         def format_pandas(data, **kwargs):  # nocover
@@ -476,8 +476,8 @@ class FormatterExtensions(object):
     #             >>> data = np.array([[.2, 42, 5], [21.2, 3, .4]])
     #             >>> data = torch.from_numpy(data)
     #             >>> data = torch.rand(100, 100)
-    #             >>> print('data = {}'.format(ub.utext(data, nl=1)))
-    #             >>> print(ub.utext(data))
+    #             >>> print('data = {}'.format(ub.urepr(data, nl=1)))
+    #             >>> print(ub.urepr(data))
 
     #         """
     #         import numpy as np
@@ -504,22 +504,22 @@ class FormatterExtensions(object):
             >>> # xdoctest: +IGNORE_WHITESPACE
             >>> import numpy as np
             >>> data = np.array([[.2, 42, 5], [21.2, 3, .4]])
-            >>> print(ub.utext(data))
+            >>> print(ub.urepr(data))
             np.array([[ 0.2, 42. ,  5. ],
                       [21.2,  3. ,  0.4]], dtype=np.float64)
-            >>> print(ub.utext(data, with_dtype=False))
+            >>> print(ub.urepr(data, with_dtype=False))
             np.array([[ 0.2, 42. ,  5. ],
                       [21.2,  3. ,  0.4]])
-            >>> print(ub.utext(data, strvals=True))
+            >>> print(ub.urepr(data, strvals=True))
             [[ 0.2, 42. ,  5. ],
              [21.2,  3. ,  0.4]]
             >>> data = np.empty((0, 10), dtype=np.float64)
-            >>> print(ub.utext(data, strvals=False))
+            >>> print(ub.urepr(data, strvals=False))
             np.empty((0, 10), dtype=np.float64)
-            >>> print(ub.utext(data, strvals=True))
+            >>> print(ub.urepr(data, strvals=True))
             []
             >>> data = np.ma.empty((0, 10), dtype=np.float64)
-            >>> print(ub.utext(data, strvals=False))
+            >>> print(ub.urepr(data, strvals=False))
             np.ma.empty((0, 10), dtype=np.float64)
         """
 
@@ -605,7 +605,7 @@ class FormatterExtensions(object):
                 # NOTE: sometimes this function is used to make json objects
                 # how can we ensure that this doesn't break things?
                 # Turns out json, never handled these cases. In the future we
-                # may want to add a json flag to utext to encourage it to
+                # may want to add a json flag to urepr to encourage it to
                 # output json-like representations.
                 # json.loads("[0, 1, 2, nan]")
                 # json.loads("[Infinity, NaN]")
@@ -910,11 +910,11 @@ def _dict_itemstrs(dict_, **kwargs):
         if explicit or kwargs.get('strkeys', default_strkeys):
             key_str = str(key)
         else:
-            key_str = utext(key, precision=precision, newlines=0)
+            key_str = urepr(key, precision=precision, newlines=0)
 
         prefix = key_str + kvsep
         kwargs['_return_info'] = True
-        val_str, _leaf_info = utext(val, **kwargs)
+        val_str, _leaf_info = urepr(val, **kwargs)
 
         # If the first line does not end with an open nest char
         # (e.g. for ndarrays), otherwise we need to worry about
@@ -984,7 +984,7 @@ def _list_itemstrs(list_, **kwargs):
     """
     items = list(list_)
     kwargs['_return_info'] = True
-    _tups = [utext(item, **kwargs) for item in items]
+    _tups = [urepr(item, **kwargs) for item in items]
     itemstrs = [t[0] for t in _tups]
     max_height = max([t[1]['max_height'] for t in _tups]) if _tups else 0
     _leaf_info = {
@@ -1217,10 +1217,10 @@ def _align_lines(line_list, character='=', replchar=None, pos=0):
     return new_lines
 
 
-# Give the utext function itself a reference to the default extensions
+# Give the urepr function itself a reference to the default extensions
 # register method so the user can modify them without accessing this module
-utext.extensions = _FORMATTER_EXTENSIONS
-utext.register = _FORMATTER_EXTENSIONS.register
+urepr.extensions = _FORMATTER_EXTENSIONS
+urepr.register = _FORMATTER_EXTENSIONS.register
 
-repr2.extensions = utext.extensions
-repr2.register = utext.register
+repr2.extensions = urepr.extensions
+repr2.register = urepr.register

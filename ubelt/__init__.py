@@ -137,7 +137,7 @@ from ubelt.util_deprecate import (schedule_deprecation,)
 from ubelt.util_download import (download, grabdata,)
 from ubelt.util_download_manager import (DownloadManager,)
 from ubelt.util_func import (compatible, identity, inject_method,)
-from ubelt.util_format import (FormatterExtensions, repr2, utext,)
+from ubelt.util_format import (FormatterExtensions, repr2, urepr,)
 from ubelt.util_futures import (Executor, JobPool,)
 from ubelt.util_io import (delete, touch,)
 from ubelt.util_links import (symlink,)
@@ -188,7 +188,7 @@ __all__ = ['AutoDict', 'AutoOrderedDict', 'CacheStamp', 'Cacher',
            'repr2', 'schedule_deprecation', 'sdict', 'shrinkuser',
            'sorted_keys', 'sorted_vals', 'sorted_values', 'split_archive',
            'split_modpath', 'symlink', 'take', 'timeparse', 'timestamp',
-           'touch', 'udict', 'unique', 'unique_flags', 'userhome', 'utext',
+           'touch', 'udict', 'unique', 'unique_flags', 'userhome', 'urepr',
            'util_arg', 'util_cache', 'util_cmd', 'util_colors', 'util_const',
            'util_deprecate', 'util_dict', 'util_download',
            'util_download_manager', 'util_format', 'util_func', 'util_futures',
