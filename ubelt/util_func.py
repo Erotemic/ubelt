@@ -219,3 +219,10 @@ def compatible(config, func, start=0, keywords=True):
         common = {k: config[k] for k in argnames[start:]
                   if k in config}  # dict-intersection
     return common
+
+
+# class Function:
+#     """
+#     TODO
+#     """
+#     ...

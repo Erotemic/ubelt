@@ -878,3 +878,77 @@ def peek(iterable, default=util_const.NoParam):
         return next(iter(iterable))
     else:
         return next(iter(iterable), default)
+
+
+# Stubs for potential future object oriented wrappers
+# class IterableMixin:
+#     """
+#         from ubelt.util_list import List
+#         self = List()
+#         self.append(1)
+#         self += List([1, 2, 3])
+#         self += List([5, 7])
+
+#         list(self.unique())
+#         list(self.argunique())
+
+#         list(self.chunks(num=2))
+#         list(self.chunks(size=2))
+
+#         list(self.window(3))
+
+#         list(self.take([0, 2, 3]))
+#         list(self.compress([0, 1, 0, 1]))
+#     """
+#     unique = unique
+
+#     def chunks(self, size=None, num=None, bordermode='none'):
+#         chunks.__doc__
+#         return chunks(self, chunksize=size, nchunks=num, total=len(self), bordermode=bordermode)
+#
+#     histogram = util_dict.dict_hist
+#     duplicates = util_dict.find_duplicates
+#     group_items = util_dict.find_duplicates
+
+
+# class OrderedIterableMixin(IterableMixin):
+#     compress = compress
+#     argunique = argunique
+#     window = iter_window
+
+
+# class UList(list, OrderedIterableMixin):
+#     """
+#     Ignore:
+#         from ubelt.util_list import List
+#         self = List()
+#         self.append(1)
+#         self += List([1, 2, 3])
+#         self += List([5, 7])
+
+#         self.argsort()
+#         self.argmax()
+#         self.argmin()
+
+#         list(List([self, [2, 3, 3]]).flatten())
+#         self.allsame()
+#         self.peek()
+#     """
+#     peek = peek
+#     take = take
+
+#     flatten = flatten
+
+#     allsame = allsame
+
+#     argsort = argsort
+#     argmax = argmax
+#     argmin = argmin
+
+
+# class USet(set, IterableMixin):
+#     ...
+
+
+# class Set(set, IterableMixin):
+#     ...

@@ -15,6 +15,7 @@ Timerit is gone! Use the standalone and separate module :module:`timerit`.
 See Also:
     :mod:`tempora` - https://github.com/jaraco/tempora - time related utility functions from Jaraco
     :mod:`pendulum` - https://github.com/sdispater/pendulum - drop in replacement for datetime
+    :mod:`arrow` - https://github.com/arrow-py/arrow
 """
 import time
 import sys
@@ -576,3 +577,20 @@ class Timer(object):
         self.elapsed = self.toc()
         if trace is not None:
             return False
+
+
+# class Time:
+#     """
+#     Stub for potential future time object
+#     """
+#     def __init__(cls, datetime):
+#         ...
+#     @classmethod
+#     def coerce(cls, data):
+#         ...
+#     @classmethod
+#     def parse(cls, stamp):
+#         ...
+#
+# class TimeDelta:
+#     ...
