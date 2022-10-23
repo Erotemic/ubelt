@@ -719,3 +719,11 @@ def _tee_output(proc, stdout=None, stderr=None, backend='thread',
         err = '\n'.join(_.decode('utf-8') for _ in logged_err)
 
     return out, err
+
+
+# Stub for possible object oriented interface
+# class Command:
+#     """
+#     TODO
+#     """
+#     ...

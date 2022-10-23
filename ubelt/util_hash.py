@@ -1228,3 +1228,13 @@ def hash_file(fpath, blocksize=1048576, stride=1, maxbytes=None,
 # register method so the user can modify them without accessing this module
 hash_data.extensions = _HASHABLE_EXTENSIONS
 hash_data.register = _HASHABLE_EXTENSIONS.register
+
+
+# class Hasher:
+#     """
+#     TODO
+#     """
+#     def __init__(self, hasher):
+#         ...
+#     hash_data = ...
+#     hash_file = ...
