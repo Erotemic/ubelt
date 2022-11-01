@@ -412,8 +412,20 @@ def _syspath_modname_to_modpath(modname, sys_path=None, exclude=None):
         >>> modpath = _syspath_modname_to_modpath(modname)
         >>> exclude = [split_modpath(modpath)[0]]
         >>> found = _syspath_modname_to_modpath(modname, exclude=exclude)
-        >>> # this only works if installed in dev mode, pypi fails
-        >>> assert found is None, 'should not have found {} because we excluded'.format(found, exclude)
+        >>> if found is not None:
+        >>>     # Note: the basic form of this test may fail if there are
+        >>>     # multiple versions of the package installed. Try and fix that.
+        >>>     other = split_modpath(found)[0]
+        >>>     assert other not in exclude
+        >>>     exclude.append(other)
+        >>>     found = _syspath_modname_to_modpath(modname, exclude=exclude)
+        >>> if found is not None:
+        >>>     raise AssertionError(
+        >>>         'should not have found {}.'.format(found) +
+        >>>         ' because we excluded: {}.'.format(exclude) +
+        >>>         ' cwd={} '.format(os.getcwd()) +
+        >>>         ' sys.path={} '.format(sys.path)
+        >>>     )
     """
     import glob
 
