@@ -434,6 +434,7 @@ class JobPool(object):
         Args:
             timeout (float | None):
                 Specify the the maximum number of seconds to wait for a job.
+                Note: this is ignored in serial mode.
 
             desc (str | None):
                 if specified, reports progress with a
@@ -469,7 +470,7 @@ class JobPool(object):
             >>> pool.shutdown()
         """
         import ubelt as ub
-        job_iter = as_completed(self.jobs)
+        job_iter = as_completed(self.jobs, timeout=timeout)
         if desc is not None:
             if progkw is None:
                 progkw = {}

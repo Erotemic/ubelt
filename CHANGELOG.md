@@ -30,6 +30,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 * Incompatibility with pathlib in `PythonPathContext`
 * Fixed issue in progiter with line clears
 * Issue in `import_module_from_modname` with editable installs where it would try to match modules that had the requested module as a prefix.
+* The `timeout` argument is now respected in the thread / process case of `JobPool` 
 
 
 ### Deprecated
