@@ -36,11 +36,11 @@ class IndexableWalker(Generator):
 
         dict_cls (Tuple[type]):
             the types that should be considered dictionary mappings for the
-            purpose of nested iteration.
+            purpose of nested iteration. Defaults to ``dict``.
 
         list_cls (Tuple[type]):
             the types that should be considered list-like for the purposes
-            of nested iteration.
+            of nested iteration. Defaults to ``(list, tuple)``.
 
     Example:
         >>> import ubelt as ub
