@@ -57,7 +57,6 @@ import itertools as it
 from collections import OrderedDict
 from collections import defaultdict
 # from ubelt import util_const
-from ubelt import util_list
 from ubelt.util_const import NoParam
 
 __all__ = [
@@ -362,6 +361,7 @@ def dict_subset(dict_, keys, default=NoParam, cls=OrderedDict):
         >>> print(ub.repr2(subdict_, nl=0))
         {'K': 3, 'dcvs_clip_max': 0.2}
     """
+    from ubelt import util_list
     keys = list(keys)
     items = util_list.take(dict_, keys, default)
     subdict_ = cls(list(zip(keys, items)))
