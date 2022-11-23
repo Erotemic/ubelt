@@ -1,10 +1,14 @@
-from typing import Union
 from typing import Type
 from typing import Tuple
+from typing import Union
 from typing import Callable
 
 
-def repr2(data: object, **kwargs) -> str:
+def urepr(data: object, **kwargs) -> str:
+    ...
+
+
+def repr2(data, **kwargs):
     ...
 
 

@@ -12,7 +12,7 @@ Requirements:
 
 CommandLine:
     # Run script to parse google-style docstrings and write pyi files
-    python ~/code/ubelt/dev/gen_typed_stubs.py
+    python ~/code/ubelt/dev/maintain/gen_typed_stubs.py
 
     # Run mypy to check that type annotations are correct
     mypy ubelt
@@ -180,17 +180,17 @@ def generate_typed_stubs():
 
             print('mod.path = {!r}'.format(mod.path))
 
-            known_one_letter_types = {
+            known_one_letter_types = [
                 # 'T', 'K', 'A', 'B', 'C', 'V',
                 'DT', 'KT', 'VT', 'T'
-            }
-            for type_var_name in set(gen.import_tracker.required_names) & set(known_one_letter_types):
+            ]
+            for type_var_name in sorted(set(gen.import_tracker.required_names) & set(known_one_letter_types)):
                 gen.add_typing_import('TypeVar')
                 # gen.add_import_line('from typing import {}\n'.format('TypeVar'))
                 gen._output = ['{} = TypeVar("{}")\n'.format(type_var_name, type_var_name)] + gen._output
 
             custom_types = {'Hasher'}
-            for type_var_name in set(gen.import_tracker.required_names) & set(custom_types):
+            for type_var_name in sorted(set(gen.import_tracker.required_names) & set(custom_types)):
                 gen.add_typing_import('TypeVar')
                 # gen.add_import_line('from typing import {}\n'.format('TypeVar'))
                 gen._output = ['{} = TypeVar("{}")\n'.format(type_var_name, type_var_name)] + gen._output
@@ -200,6 +200,10 @@ def generate_typed_stubs():
             #     gen.add_typing_import('TypeVar')
             #     # hack for variable inheritence
             #     gen._output = ['import pathlib\nimport os\n', "_PathBase = pathlib.WindowsPath if os.name == 'nt' else pathlib.PosixPath\n"] + gen._output
+
+            if mod.path.endswith('util_dict.py'):
+                # hack for util_dict
+                gen.add_import_line('import sys\n')
 
             text = ''.join(gen.output())
             # Hack to remove lines caused by Py2 compat
@@ -211,6 +215,11 @@ def generate_typed_stubs():
             text = text.replace('string_types: Any\n', '')
             text = text.replace('PY2: Any\n', '')
             text = text.replace('__win32_can_symlink__: Any\n', '')
+
+            if 'DictBase' in text:
+                # Hack for util_dict
+                text = text.replace('DictBase = OrderedDict\n', '')
+                text = text.replace('DictBase = dict\n', 'DictBase = OrderedDict if sys.version_info[0:2] <= (3, 6) else dict')
             # text = text.replace('odict = OrderedDict', '')
             # text = text.replace('ddict = defaultdict', '')
 
@@ -306,6 +315,9 @@ class ExtendedStubGenerator(StubGenerator):
             if 'ModuleType' in info['type']:
                 self.add_import_line('from types import {}\n'.format('ModuleType'))
                 # types.ModuleType
+
+            if 'NoParamType' in info['type']:
+                self.add_import_line('from ubelt.util_const import {}\n'.format('NoParamType'))
 
             if 'hashlib._hashlib' in info['type']:
                 self.add_import_line('import hashlib._hashlib\n')
@@ -504,6 +516,6 @@ class ExtendedStubGenerator(StubGenerator):
 if __name__ == '__main__':
     """
     CommandLine:
-        python ~/code/ubelt/dev/gen_typed_stubs.py
+        python ~/code/ubelt/dev/maintain/gen_typed_stubs.py
     """
     generate_typed_stubs()

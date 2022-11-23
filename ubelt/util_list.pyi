@@ -1,8 +1,7 @@
-from typing import Union
 from typing import Mapping
 from typing import Sequence
+from typing import Union
 from typing import Iterable
-from typing import Any
 from typing import Callable
 from typing import Iterator
 from typing import List
@@ -11,8 +10,8 @@ from collections.abc import Generator
 from typing import Any, TypeVar
 
 VT = TypeVar("VT")
-KT = TypeVar("KT")
 T = TypeVar("T")
+KT = TypeVar("KT")
 
 
 class chunks:
@@ -52,7 +51,7 @@ class chunks:
         ...
 
 
-def iterable(obj: object, strok: bool = False) -> bool:
+def iterable(obj: object, strok: bool = ...) -> bool:
     ...
 
 
@@ -71,28 +70,28 @@ def flatten(nested: Iterable[Iterable[Any]]) -> Iterable[Any]:
 
 
 def unique(items: Iterable[T],
-           key: Callable[[T], Any] = None) -> Generator[T, None, None]:
+           key: Callable[[T], Any] = ...) -> Generator[T, None, None]:
     ...
 
 
 def argunique(items: Sequence[VT],
-              key: Callable[[VT], Any] = None) -> Iterator[int]:
+              key: Callable[[VT], Any] = ...) -> Iterator[int]:
     ...
 
 
 def unique_flags(items: Sequence[VT],
-                 key: Union[Callable[[VT], Any], None] = None) -> List[bool]:
+                 key: Union[Callable[[VT], Any], None] = ...) -> List[bool]:
     ...
 
 
-def boolmask(indices: List[int], maxval: int = None) -> List[bool]:
+def boolmask(indices: List[int], maxval: int = ...) -> List[bool]:
     ...
 
 
 def iter_window(iterable: Iterable[T],
-                size: int = 2,
-                step: int = 1,
-                wrap: bool = False) -> Iterable[T]:
+                size: int = ...,
+                step: int = ...,
+                wrap: bool = ...) -> Iterable[T]:
     ...
 
 
@@ -101,18 +100,18 @@ def allsame(iterable: Iterable[T], eq: Callable[[T, T], bool] = ...) -> bool:
 
 
 def argsort(indexable: Union[Iterable[VT], Mapping[KT, VT]],
-            key: Union[Callable[[VT], VT], None] = None,
-            reverse: bool = False) -> List[int] | List[KT]:
+            key: Union[Callable[[VT], VT], None] = ...,
+            reverse: bool = ...) -> List[int] | List[KT]:
     ...
 
 
 def argmax(indexable: Union[Iterable[VT], Mapping[KT, VT]],
-           key: Callable[[VT], Any] = None) -> int | KT:
+           key: Callable[[VT], Any] = ...) -> int | KT:
     ...
 
 
 def argmin(indexable: Union[Iterable[VT], Mapping[KT, VT]],
-           key: Callable[[VT], VT] = None) -> int | KT:
+           key: Callable[[VT], VT] = ...) -> int | KT:
     ...
 
 

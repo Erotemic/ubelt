@@ -12,7 +12,7 @@ class memoize_method:
     def __init__(self, func) -> None:
         ...
 
-    def __get__(self, instance: object, cls: type = None):
+    def __get__(self, instance: object, cls: type = ...):
         ...
 
     def __call__(self, *args, **kwargs):

@@ -1,7 +1,5 @@
-import concurrent
 import concurrent.futures
 from typing import Callable
-from typing import Any
 from typing import Union
 from typing import List
 import concurrent.futures
@@ -89,9 +87,9 @@ class JobPool:
 
     def as_completed(
         self,
-        timeout: Union[float, None] = None,
-        desc: Union[str, None] = None,
-        progkw: Union[dict, None] = None
+        timeout: Union[float, None] = ...,
+        desc: Union[str, None] = ...,
+        progkw: Union[dict, None] = ...
     ) -> Generator[concurrent.futures.Future, None, None]:
         ...
 

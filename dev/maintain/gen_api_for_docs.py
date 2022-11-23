@@ -3,7 +3,7 @@
 def count_ubelt_usage():
     """
     import sys, ubelt
-    sys.path.append(ubelt.expandpath('~/code/ubelt/dev'))
+    sys.path.append(ubelt.expandpath('~/code/ubelt/dev/mainatin'))
     from gen_api_for_docs import *  # NOQA
     """
     from count_usage_freq import count_ubelt_usage
@@ -107,13 +107,13 @@ if __name__ == '__main__':
 
     CommandLine:
         # For index.rst
-        python ~/code/ubelt/dev/gen_api_for_docs.py
+        python ~/code/ubelt/dev/maintain/gen_api_for_docs.py
 
         # For README
-        python ~/code/ubelt/dev/gen_api_for_docs.py --url-mode
+        python ~/code/ubelt/dev/maintain/gen_api_for_docs.py --url-mode
 
         # First run and copy the table:
-        python ~/code/ubelt/dev/count_usage_freq.py
+        python ~/code/ubelt/dev/maintain/count_usage_freq.py
 
         # Then edit: TODO make less manual
         ~/code/ubelt/docs/source/index.rst
