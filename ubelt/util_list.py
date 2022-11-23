@@ -25,6 +25,7 @@ import operator
 from collections import abc as collections_abc
 from itertools import zip_longest
 from ubelt import util_const
+from ubelt import util_dict
 
 __all__ = [
     'allsame', 'argmax', 'argmin', 'argsort', 'argunique', 'boolmask',
@@ -881,69 +882,79 @@ def peek(iterable, default=util_const.NoParam):
 
 
 # Stubs for potential future object oriented wrappers
-# class IterableMixin:
-#     """
-#         from ubelt.util_list import List
-#         self = List()
-#         self.append(1)
-#         self += List([1, 2, 3])
-#         self += List([5, 7])
+class IterableMixin:
+    """
 
-#         list(self.unique())
-#         list(self.argunique())
+    """
+    unique = unique
 
-#         list(self.chunks(num=2))
-#         list(self.chunks(size=2))
+    # chunks = chunks
+    histogram = util_dict.dict_hist
+    duplicates = util_dict.find_duplicates
+    group = util_dict.group_items
 
-#         list(self.window(3))
+    def chunks(self, size=None, num=None, bordermode='none'):
+        return chunks(self, chunksize=size, nchunks=num, total=len(self), bordermode=bordermode)
 
-#         list(self.take([0, 2, 3]))
-#         list(self.compress([0, 1, 0, 1]))
-#     """
-#     unique = unique
+    # def histogram(self, weights=None, ordered=False, labels=None):
+    #     util_dict.dict_hist.__doc__
+    #     return util_dict.dict_hist(self, weights=weights, ordered=ordered)
 
-#     def chunks(self, size=None, num=None, bordermode='none'):
-#         chunks.__doc__
-#         return chunks(self, chunksize=size, nchunks=num, total=len(self), bordermode=bordermode)
-#
-#     histogram = util_dict.dict_hist
-#     duplicates = util_dict.find_duplicates
-#     group_items = util_dict.find_duplicates
+    # def duplicates(self, k=2, key=None):
+    #     util_dict.find_duplicates.__doc__
+    #     return util_dict.find_duplicates(self, k=k, key=key)
+
+    # def group(self, key):
+    #     util_dict.group_items.__doc__
+    #     return util_dict.group_items(self, key=key)
 
 
-# class OrderedIterableMixin(IterableMixin):
-#     compress = compress
-#     argunique = argunique
-#     window = iter_window
+class OrderedIterableMixin(IterableMixin):
+    compress = compress
+    argunique = argunique
+    window = iter_window
 
 
-# class UList(list, OrderedIterableMixin):
-#     """
-#     Ignore:
-#         from ubelt.util_list import List
-#         self = List()
-#         self.append(1)
-#         self += List([1, 2, 3])
-#         self += List([5, 7])
+class UList(list, OrderedIterableMixin):
+    """
+    Example:
+        >>> from ubelt.util_list import UList
+        >>> self = UList()
+        >>> self.append(1)
+        >>> self += UList([1, 2, 3])
+        >>> self += UList([5, 7])
+        >>> #
+        >>> print(f'unique: {list(self.unique())}')
+        >>> print(f'argunique: {list(self.argunique())}')
+        >>> #
+        >>> print(f'chunks: {list(self.chunks(num=2))}')
+        >>> print(f'chunks: {list(self.chunks(size=2))}')
+        >>> #
+        >>> print(f'window: {list(self.window(3))}')
+        >>> #
+        >>> print(f'take: {list(self.take([0, 2, 3]))}')
+        >>> print(f'compress: {list(self.compress([0, 1, 0, 1]))}')
+        >>> #
+        >>> print(f'argsort: {self.argsort()}')
+        >>> print(f'argmax: {self.argmax()}')
+        >>> print(f'argmin: {self.argmin()}')
+        >>> print(f'flatten: {list(UList([self, [2, 3, 3]]).flatten())}')
+        >>> print(f'allsame: {self.allsame()}')
+        >>> print(f'peek: {self.peek()}')
+        >>> print(f'histogram: {self.histogram()}')
+        >>> print(f'group: {self.group(key=lambda x: x % 2)}')
+        >>> print(f'duplicates: {self.duplicates()}')
+    """
+    peek = peek
+    take = take
 
-#         self.argsort()
-#         self.argmax()
-#         self.argmin()
+    flatten = flatten
 
-#         list(List([self, [2, 3, 3]]).flatten())
-#         self.allsame()
-#         self.peek()
-#     """
-#     peek = peek
-#     take = take
+    allsame = allsame
 
-#     flatten = flatten
-
-#     allsame = allsame
-
-#     argsort = argsort
-#     argmax = argmax
-#     argmin = argmin
+    argsort = argsort
+    argmax = argmax
+    argmin = argmin
 
 
 # class USet(set, IterableMixin):
