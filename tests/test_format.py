@@ -370,6 +370,33 @@ def test_format_inf():
         assert 'np.nan' not in text2 and 'nan' in text2
 
 
+def test_autosort():
+    import ubelt as ub
+    import sys
+    dict_ = {
+        'k2': [[9, 2, 3], [4, 5, 2]],
+        'k1': [[1, 7, 3], [8, 5, 6]],
+    }
+    if sys.version_info[0:2] >= (3, 7):
+        assert ub.repr2(dict_, sort='auto', nl=1) == ub.codeblock(
+            '''
+            {
+                'k1': [[1, 7, 3], [8, 5, 6]],
+                'k2': [[9, 2, 3], [4, 5, 2]],
+            }
+            ''')
+
+    if sys.version_info[0:2] >= (3, 7):
+        from collections import OrderedDict
+        dict_ = OrderedDict(sorted(dict_.items())[::-1])
+        assert ub.urepr(dict_, sort='auto', nl=1) == ub.codeblock(
+            '''
+            {
+                'k2': [[9, 2, 3], [4, 5, 2]],
+                'k1': [[1, 7, 3], [8, 5, 6]],
+            }
+            ''')
+
 if __name__ == '__main__':
     """
     CommandLine:
