@@ -220,17 +220,23 @@ jobs:
         CI_PYTHON_VERSION: py${{ matrix.python-version }}
       run: |-
         # Find the path to the wheel
-        WHEEL_FPATH=$(ls wheelhouse/ubelt*.whl)
+        pip install tomli pkginfo
+        MOD_NAME=ubelt
+        WHEEL_FPATH=$(python -c "import pathlib; print(sorted(pathlib.Path('wheelhouse').glob('$MOD_NAME*.whl'))[-1])")
+        MOD_VERSION=$(python -c "from pkginfo import Wheel; print(Wheel('$WHEEL_FPATH').version)")
+        echo "MOD_NAME=$MOD_NAME"
+        echo "WHEEL_FPATH=$WHEEL_FPATH"
+        echo "MOD_VERSION=$MOD_VERSION"
         # Install the wheel
-        python -m pip install ${WHEEL_FPATH}[${INSTALL_EXTRAS}]
+        pip install "$MOD_NAME[$INSTALL_EXTRAS]==$MOD_VERSION" -f wheelhouse
         # Create a sandboxed directory
         WORKSPACE_DNAME="testdir_${CI_PYTHON_VERSION}_${GITHUB_RUN_ID}_${RUNNER_OS}"
         mkdir -p $WORKSPACE_DNAME
         cd $WORKSPACE_DNAME
         # Get the path to the installed package and run the tests
-        MOD_DPATH=$(python -c "import ubelt, os; print(os.path.dirname(ubelt.__file__))")
+        MOD_DPATH=$(python -c "import {self.mod_name}, os; print(os.path.dirname({self.mod_name}.__file__))")
         echo "MOD_DPATH = $MOD_DPATH"
-        python -m pytest -p pytester -p no:doctest --xdoctest --cov-config ../pyproject.toml --cov-report term --cov=ubelt $MOD_DPATH ../tests
+        python -m pytest -p pytester -p no:doctest --xdoctest --cov-config ../pyproject.toml --cov-report term --cov="$MOD_NAME" "$MOD_DPATH" ../tests
         # Move coverage file to a new name
         mv .coverage "../.coverage.$WORKSPACE_DNAME"
         cd ..
