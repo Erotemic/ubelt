@@ -3,7 +3,7 @@ if __name__ == '__main__':
     import pytest
     import sys
     package_name = 'ubelt'
-    mod_dpath = package_name
+    mod_dpath = 'ubelt'
     test_dpath = 'tests'
     pytest_args = [
         '--cov-config', 'pyproject.toml',
