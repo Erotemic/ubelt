@@ -1,7 +1,7 @@
 from typing import List
 from typing import Tuple
-from typing import Any
 from typing import Dict
+from typing import Union
 from _typeshed import Incomplete
 from collections.abc import Generator
 from typing import Any
@@ -40,10 +40,17 @@ class IndexableWalker(Generator):
     def __delitem__(self, path: List) -> None:
         ...
 
+    def allclose(self,
+                 other: IndexableWalker,
+                 rel_tol: float = ...,
+                 abs_tol: float = ...,
+                 return_info: bool = ...) -> bool | Tuple[bool, Dict]:
+        ...
 
-def indexable_allclose(dct1: dict,
-                       dct2: dict,
-                       rel_tol: float = 1e-09,
-                       abs_tol: float = 0.0,
-                       return_info: bool = False) -> bool | Tuple[bool, Dict]:
+
+def indexable_allclose(items1: Union[dict, list, tuple],
+                       items2: Union[dict, list, tuple],
+                       rel_tol: float = ...,
+                       abs_tol: float = ...,
+                       return_info: bool = ...) -> bool | Tuple[bool, Dict]:
     ...

@@ -1,7 +1,6 @@
-from typing import Union
 from typing import Tuple
+from typing import Union
 from typing import Callable
-from ubelt.util_const import NoParam
 from ubelt.util_const import NoParamType
 from typing import List
 from os import PathLike
@@ -68,18 +67,18 @@ class _HashTracer:
 
 
 def hash_data(data: object,
-              hasher: Union[str, Hasher, NoParamType] = NoParam,
-              base: Union[List[str], str, NoParamType] = NoParam,
-              types: bool = False,
-              convert: bool = False,
-              extensions: HashableExtensions = None) -> str:
+              hasher: Union[str, Hasher, NoParamType] = ...,
+              base: Union[List[str], str, NoParamType] = ...,
+              types: bool = ...,
+              convert: bool = ...,
+              extensions: HashableExtensions = ...) -> str:
     ...
 
 
 def hash_file(fpath: PathLike,
-              blocksize: int = 1048576,
-              stride: int = 1,
-              maxbytes: Union[int, None] = None,
-              hasher: Union[str, Hasher, NoParamType] = NoParam,
-              base: Union[List[str], str, NoParamType] = NoParam):
+              blocksize: int = ...,
+              stride: int = ...,
+              maxbytes: Union[int, None] = ...,
+              hasher: Union[str, Hasher, NoParamType] = ...,
+              base: Union[List[str], str, NoParamType] = ...):
     ...

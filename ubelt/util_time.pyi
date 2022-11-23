@@ -1,34 +1,36 @@
-from typing import Union
 import datetime
+from typing import Union
 from _typeshed import Incomplete
 
 
-def timestamp(datetime: Union[datetime.datetime, datetime.date, None] = None,
-              precision: int = 0,
-              default_timezone: Union[str, datetime.timezone] = 'local',
-              allow_dateutil: bool = True) -> str:
+def timestamp(datetime: Union[datetime.datetime, datetime.date, None] = ...,
+              precision: int = ...,
+              default_timezone: Union[str, datetime.timezone] = ...,
+              allow_dateutil: bool = ...) -> str:
     ...
 
 
 def timeparse(stamp: str,
-              default_timezone: str = 'local',
-              allow_dateutil: bool = True) -> datetime.datetime:
+              default_timezone: str = ...,
+              allow_dateutil: bool = ...) -> datetime.datetime:
     ...
 
 
 class Timer:
-    elapsed: float
-    tstart: float
     label: Incomplete
     verbose: Incomplete
     newline: Incomplete
+    tstart: int
+    elapsed: int
     write: Incomplete
     flush: Incomplete
+    ns: Incomplete
 
     def __init__(self,
                  label: str = ...,
                  verbose: Incomplete | None = ...,
-                 newline: bool = ...) -> None:
+                 newline: bool = ...,
+                 ns: bool = ...) -> None:
         ...
 
     def tic(self):

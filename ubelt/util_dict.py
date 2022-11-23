@@ -1873,20 +1873,5 @@ class AutoDict(UDict):
 
 
 # DEPRECATED. This is no longer needed. AutoDict is always ordered
-
-if sys.version_info[0:2] <= (3, 6):  # nocover
-    AutoOrderedDict = AutoDict
-else:  # nocover
-    AutoOrderedDict = AutoDict
-    # def __getattr__(key):
-    #     if key == 'AutoOrderedDict':
-    #         import ubelt as ub
-    #         ub.schedule_deprecation(
-    #             modname='ubelt', name='AutoOrderedDict', type='class',
-    #             migration='use AutoDict instead',
-    #             deprecate='1.2.0', error='2.0.0', remove='2.1.0')
-    #         return AutoDict
-    #     else:
-    #         raise AttributeError(key)
-
+AutoOrderedDict = AutoDict
 udict = UDict
