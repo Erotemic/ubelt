@@ -917,6 +917,8 @@ class OrderedIterableMixin(IterableMixin):
 
 class UList(list, OrderedIterableMixin):
     """
+    An extended list class that features additional helper methods.
+
     Example:
         >>> from ubelt.util_list import UList
         >>> self = UList()

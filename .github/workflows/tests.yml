@@ -220,14 +220,15 @@ jobs:
         CI_PYTHON_VERSION: py${{ matrix.python-version }}
       run: |-
         # Find the path to the wheel
+        ls wheelhouse
         pip install tomli pkginfo
         MOD_NAME=ubelt
-        WHEEL_FPATH=$(python -c "import pathlib; print(sorted(pathlib.Path('wheelhouse').glob('$MOD_NAME*.whl'))[-1])")
-        MOD_VERSION=$(python -c "from pkginfo import Wheel; print(Wheel('$WHEEL_FPATH').version)")
         echo "MOD_NAME=$MOD_NAME"
+        WHEEL_FPATH=$(python -c "import pathlib; print(str(sorted(pathlib.Path('wheelhouse').glob('$MOD_NAME*.whl'))[-1]).replace(chr(92), chr(47)))")
         echo "WHEEL_FPATH=$WHEEL_FPATH"
+        MOD_VERSION=$(python -c "from pkginfo import Wheel; print(Wheel('$WHEEL_FPATH').version)")
         echo "MOD_VERSION=$MOD_VERSION"
-        # Install the wheel
+        # Install the wheel (ensure we are using the version we just built)
         pip install "$MOD_NAME[$INSTALL_EXTRAS]==$MOD_VERSION" -f wheelhouse
         # Create a sandboxed directory
         WORKSPACE_DNAME="testdir_${CI_PYTHON_VERSION}_${GITHUB_RUN_ID}_${RUNNER_OS}"
