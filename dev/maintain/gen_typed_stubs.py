@@ -3,6 +3,7 @@ MOVED TO xdev:
     SEE xdev
     xdev doctypes ubelt
 
+    ~/code/xdev/xdev/cli/docstr_stubgen.py
 
 Script for auto-generating pyi type extension files from google-style
 docstrings
