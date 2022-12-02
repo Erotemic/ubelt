@@ -6,10 +6,10 @@ Either :func:`memoize`, :func:`memoize_method`, and :func:`memoize_property`
 should be used depending on what type of function is being wrapped. The
 following example demonstrates this.
 
-In Python 3.8+ :func:`memoize` and :func:`memoize_method` work similarly to the
-standard library :func:`functools.cache` and :func:`functools.memoize_method`,
-but the ubelt version makes use of :func:`ubelt.util_hash.hash_data`, which
-is slower, but handles inputs containing mutable containers.
+In Python 3.8+ :func:`memoize` works similarly to the standard library
+:func:`functools.cache`, but the ubelt version makes use of
+:func:`ubelt.util_hash.hash_data`, which is slower, but handles inputs
+containing mutable containers.
 
 Example:
     >>> import ubelt as ub

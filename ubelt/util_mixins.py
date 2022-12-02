@@ -96,6 +96,30 @@ class NiceRepr(object):
         >>> with pytest.warns(RuntimeWarning) as record:
         >>>     print('foo = {!r}'.format(foo))
         foo = <...Foo ...>
+
+    Example:
+        >>> import ubelt as ub
+        >>> class Animal(ub.NiceRepr):
+        ...    def __init__(self):
+        ...        ...
+        ...    def __nice__(self):
+        ...        return ''
+        >>> class Cat(Animal):
+        >>>     ...
+        >>> class Dog(Animal):
+        >>>     ...
+        >>> class Beagle(Dog):
+        >>>     ...
+        >>> class Ragdoll(Cat):
+        >>>     ...
+        >>> instances = [Animal(), Cat(), Dog(), Beagle(), Ragdoll()]
+        >>> for inst in instances:
+        >>>     print(str(inst))
+        <Animal()>
+        <Cat()>
+        <Dog()>
+        <Beagle()>
+        <Ragdoll()>
     """
 
     def __nice__(self):
