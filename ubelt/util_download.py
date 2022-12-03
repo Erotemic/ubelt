@@ -50,7 +50,7 @@ def download(url, fpath=None, dpath=None, fname=None, appname=None,
             What to name the downloaded file. Defaults to the url basename.
             Mutually exclusive with fpath.
 
-        appname (str): set dpath to
+        appname (str | None): set dpath to
             ``ub.get_app_cache_dir(appname or 'ubelt')`` if dpath and fpath are
             not given.
 
@@ -74,7 +74,7 @@ def download(url, fpath=None, dpath=None, fname=None, appname=None,
             This only works for HTTP, HTTPS and FTP connections for blocking
             operations like the connection attempt.
 
-        progkw (Dict | NoParamType):
+        progkw (Dict | NoParamType | None):
             if specified provides extra arguments to the progress iterator.
             See :class:`ubelt.progiter.ProgIter` for available options.
 
@@ -300,7 +300,7 @@ def grabdata(url, fpath=None, dpath=None, fname=None, redo=False,
         verbose (int):
             Verbosity flag. Quiet is 0, higher is more verbose. Defaults to 1.
 
-        appname (str): set dpath to
+        appname (str | None): set dpath to
             ``ub.get_app_cache_dir(appname or 'ubelt')`` if dpath and fpath are
             not given.
 
@@ -315,7 +315,7 @@ def grabdata(url, fpath=None, dpath=None, fname=None, redo=False,
             NOTE: Only pass hasher as a string. Passing as an instance is
             deprecated and can cause unexpected results.
 
-        expires (str | int | datetime.datetime):
+        expires (str | int | datetime.datetime | None):
             when the cache should expire and redownload or the number of
             seconds to wait before the cache should expire.
 

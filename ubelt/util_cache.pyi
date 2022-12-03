@@ -1,6 +1,7 @@
 from typing import Union
 from os import PathLike
 from typing import Callable
+from typing import Any
 from _typeshed import Incomplete
 from collections.abc import Generator
 from typing import Any
@@ -42,27 +43,27 @@ class Cacher:
     def fpath(self):
         ...
 
-    def get_fpath(self, cfgstr: Union[str, None] = ...) -> str | PathLike:
+    def get_fpath(self, cfgstr: Union[str, None] = None) -> str | PathLike:
         ...
 
-    def exists(self, cfgstr: Union[str, None] = ...) -> bool:
+    def exists(self, cfgstr: Union[str, None] = None) -> bool:
         ...
 
     def existing_versions(self) -> Generator[str, None, None]:
         ...
 
-    def clear(self, cfgstr: Union[str, None] = ...) -> None:
+    def clear(self, cfgstr: Union[str, None] = None) -> None:
         ...
 
     def tryload(self,
-                cfgstr: Union[str, None] = ...,
-                on_error: str = ...) -> None | object:
+                cfgstr: Union[str, None] = None,
+                on_error: str = 'raise') -> None | object:
         ...
 
-    def load(self, cfgstr: Union[str, None] = ...) -> object:
+    def load(self, cfgstr: Union[str, None] = None) -> object:
         ...
 
-    def save(self, data: object, cfgstr: Union[str, None] = ...) -> None:
+    def save(self, data: object, cfgstr: Union[str, None] = None) -> None:
         ...
 
     def ensure(self, func: Callable, *args, **kwargs):
@@ -101,7 +102,7 @@ class CacheStamp:
     def clear(self):
         ...
 
-    def expired(self, cfgstr: Any = ..., product: Any = ...) -> bool | str:
+    def expired(self, cfgstr: Any = None, product: Any = None) -> bool | str:
         ...
 
     def renew(self,

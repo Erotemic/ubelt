@@ -1,9 +1,10 @@
 import io
+import io
 from _typeshed import Incomplete
 
 
 class TeeStringIO(io.StringIO):
-    redirect: Incomplete
+    redirect: io.IOBase
     buffer: Incomplete
 
     def __init__(self, redirect: Incomplete | None = ...) -> None:

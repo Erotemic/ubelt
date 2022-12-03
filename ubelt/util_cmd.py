@@ -111,7 +111,7 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
             dependant way. Other arguments such as env, tee, timeout, and shell
             are all ignored.  (new in version 1.1.0)
 
-        timeout (float):
+        timeout (float | None):
             If the process does not complete in `timeout` seconds, raises a
             :class:`subprocess.TimeoutExpired`. (new in version 1.1.0)
             Currently unhandled when tee is True.

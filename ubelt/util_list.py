@@ -459,7 +459,7 @@ def unique(items, key=None):
     Args:
         items (Iterable[T]): list of items
 
-        key (Callable[[T], Any], default=None): custom normalization function.
+        key (Callable[[T], Any] | None, default=None): custom normalization function.
             If specified returns items where ``key(item)`` is unique.
 
     Yields:
@@ -504,7 +504,7 @@ def argunique(items, key=None):
     Args:
         items (Sequence[VT]): indexable collection of items
 
-        key (Callable[[VT], Any], default=None): custom normalization function.
+        key (Callable[[VT], Any] | None, default=None): custom normalization function.
             If specified returns items where ``key(item)`` is unique.
 
     Returns:
@@ -565,8 +565,9 @@ def boolmask(indices, maxval=None):
     Args:
         indices (List[int]): list of integer indices
 
-        maxval (int): length of the returned list. If not specified
-            this is inferred using ``max(indices)``
+        maxval (int | None):
+            length of the returned list. If not specified this is inferred
+            using ``max(indices)``
 
     Returns:
         List[bool]:
@@ -779,7 +780,7 @@ def argmax(indexable, key=None):
     Args:
         indexable (Iterable[VT] | Mapping[KT, VT]): indexable to sort by
 
-        key (Callable[[VT], Any], default=None):
+        key (Callable[[VT], Any] | None, default=None):
             customizes the ordering of the indexable
 
     Returns:
@@ -815,7 +816,7 @@ def argmin(indexable, key=None):
     Args:
         indexable (Iterable[VT] | Mapping[KT, VT]): indexable to sort by
 
-        key (Callable[[VT], VT], default=None):
+        key (Callable[[VT], VT] | None, default=None):
             customizes the ordering of the indexable
 
     Returns:
