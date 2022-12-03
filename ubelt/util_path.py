@@ -1288,8 +1288,8 @@ class Path(_PathBase):
             xdev.tree_repr(clone0, max_files=10)
             xdev.tree_repr(clone1, max_files=10)
         """
-        warnings.warn('The ub.Path.copy function is experimental and may change! '
-                      'Do not rely on this behavior yet!')
+        warnings.warn('The ub.Path.copy function is experimental and may change, '
+                      'in corner cases. Primary cases seem stable.')
         import shutil
         copy_function = self._request_copy_function(
             follow_file_symlinks=follow_file_symlinks,
@@ -1412,7 +1412,7 @@ if sys.version_info[0:2] < (3, 8):  # nocover
         A vendored shutil.copytree for older pythons based on the 3.10
         implementation
         """
-        import stat
+        # import stat
         from shutil import Error, copystat, copy2, copy
         with os.scandir(src) as itr:
             entries = list(itr)
