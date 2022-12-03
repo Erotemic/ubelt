@@ -1,12 +1,15 @@
 from typing import Union
 from os import PathLike
+from typing import List
+import concurrent
 import concurrent.futures
 from _typeshed import Incomplete
 
 
 class DownloadManager:
+    download_root: Union[str, PathLike]
+    jobs: List[concurrent.futures.Future]
     pool: Incomplete
-    download_root: Incomplete
     cache: Incomplete
     dl_func: Incomplete
 
@@ -19,9 +22,9 @@ class DownloadManager:
 
     def submit(self,
                url: Union[str, PathLike],
-               dst: Union[str, None] = ...,
-               hash_prefix: Union[str, None] = ...,
-               hasher: str = ...) -> concurrent.futures.Future:
+               dst: Union[str, None] = None,
+               hash_prefix: Union[str, None] = None,
+               hasher: str = 'sha256') -> concurrent.futures.Future:
         ...
 
     def as_completed(self,

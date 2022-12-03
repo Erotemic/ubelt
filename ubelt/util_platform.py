@@ -379,7 +379,7 @@ def find_path(name, path=None, exact=False):
         name (str | PathLike): file name to match.
             If exact is False this may be a glob pattern
 
-        path (str | Iterable[str | PathLike], default=None):
+        path (str | Iterable[str | PathLike] | None, default=None):
             list of directories to search either specified as an ``os.pathsep``
             separated string or a list of directories.  Defaults to environment
             PATH.

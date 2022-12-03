@@ -194,13 +194,13 @@ def dict_hist(items, weights=None, ordered=False, labels=None):
         items (Iterable[T]):
             hashable items (usually containing duplicates)
 
-        weights (Iterable[float], default=None):
+        weights (Iterable[float] | None, default=None):
             Corresponding weights for each item, defaults to 1 if unspecified.
 
         ordered (bool, default=False):
             If True the result is ordered by frequency.
 
-        labels (Iterable[T], default=None):
+        labels (Iterable[T] | None, default=None):
             Expected labels.  Allows this function to pre-initialize the
             histogram.  If specified the frequency of each label is initialized
             to zero and ``items`` can only contain items specified in labels.
@@ -278,7 +278,7 @@ def find_duplicates(items, k=2, key=None):
         k (int, default=2):
             only return items that appear at least ``k`` times.
 
-        key (Callable[[T], Any], default=None):
+        key (Callable[[T], Any] | None, default=None):
             Returns indices where `key(items[i])` maps to a particular value at
             least k times.
 
@@ -1335,7 +1335,7 @@ class SetDict(dict):
                 method. (i.e. it must return an iterable of 2-tuples where the
                 first item is hashable.)
 
-            cls (type):
+            cls (type | None):
                 the desired return dictionary type.
 
         Returns:
@@ -1374,7 +1374,7 @@ class SetDict(dict):
             *others : other dictionary or set like objects that can
                 be coerced into a set of keys.
 
-            cls (type):
+            cls (type | None):
                 the desired return dictionary type.
 
         Returns:
@@ -1417,7 +1417,7 @@ class SetDict(dict):
             *others : other dictionary or set like objects that can
                 be coerced into a set of keys.
 
-            cls (type):
+            cls (type | None):
                 the desired return dictionary type.
 
         Returns:
@@ -1462,7 +1462,7 @@ class SetDict(dict):
             *others : other dictionary or set like objects that can
                 be coerced into a set of keys.
 
-            cls (type):
+            cls (type | None):
                 the desired return dictionary type.
 
         Returns:

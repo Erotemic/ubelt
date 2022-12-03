@@ -1030,7 +1030,7 @@ def hash_data(data, hasher=NoParam, base=NoParam, types=False, convert=False,
             instead. This can improve runtime in some instances, however the
             hash may differ from the case where convert=False.
 
-        extensions (HashableExtensions):
+        extensions (HashableExtensions | None):
             a custom :class:`HashableExtensions` instance that can overwrite or
             define how different types of objects are hashed.
 

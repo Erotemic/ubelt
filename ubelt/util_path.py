@@ -981,7 +981,7 @@ class Path(_PathBase):
                 if True starts yield nodes closer to the root first otherwise
                 yield nodes closer to the leaves first.
 
-            onerror (Callable[[OSError], None]):
+            onerror (Callable[[OSError], None] | None):
                 A function with one argument of type OSError. If the
                 error is raised the walk is aborted, otherwise it continues.
 

@@ -217,7 +217,7 @@ class memoize_method(object):
 
         Args:
             instance (object): the instance of the class with the memoized method
-            cls (type): the type of the instance
+            cls (type | None): the type of the instance
         """
         self._instance = instance
         return self

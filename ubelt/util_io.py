@@ -27,7 +27,7 @@ def writeto(fpath, to_write, aslines=False, verbose=None):
         fpath (str | PathLike): file path
         to_write (str): text to write (must be unicode text)
         aslines (bool): if True to_write is assumed to be a list of lines
-        verbose (bool): verbosity flag
+        verbose (int | None): verbosity flag
 
     Note:
         In CPython you may want to use ``open(<fpath>).write(<to_write>)``
@@ -118,7 +118,8 @@ def readfrom(fpath, aslines=False, errors='replace', verbose=None):
     Args:
         fpath (str | PathLike): file path
         aslines (bool): if True returns list of lines
-        verbose (bool): verbosity flag
+        errors (str): how to handle decoding errors
+        verbose (int | None): verbosity flag
 
     Returns:
         str: text from fpath (this is unicode)
@@ -156,8 +157,8 @@ def touch(fpath, mode=0o666, dir_fd=None, verbose=0, **kwargs):
     Args:
         fpath (str | PathLike): name of the file
         mode (int): file permissions (python3 and unix only)
-        dir_fd (io.IOBase): optional directory file descriptor. If specified,
-            fpath is interpreted as relative to this descriptor
+        dir_fd (io.IOBase | None): optional directory file descriptor. If
+            specified, fpath is interpreted as relative to this descriptor
             (python 3 only).
         verbose (int): verbosity
         **kwargs : extra args passed to :func:`os.utime` (python 3 only).

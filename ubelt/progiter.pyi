@@ -1,3 +1,7 @@
+from typing import Union
+from typing import Iterable
+from typing import List
+import typing
 from _typeshed import Incomplete
 
 default_timer: Incomplete
@@ -79,21 +83,22 @@ class _BackwardsCompat:
 
 
 class ProgIter(_TQDMCompat, _BackwardsCompat):
-    stream: Incomplete
-    iterable: Incomplete
-    desc: Incomplete
-    total: Incomplete
-    freq: Incomplete
-    initial: Incomplete
-    enabled: Incomplete
-    adjust: Incomplete
-    show_times: Incomplete
-    show_wall: Incomplete
-    eta_window: Incomplete
-    time_thresh: Incomplete
-    clearline: Incomplete
-    chunksize: Incomplete
-    rel_adjust_limit: Incomplete
+    iterable: Union[List, Iterable]
+    desc: str
+    total: int
+    freq: int
+    adjust: bool
+    eta_window: int
+    clearline: bool
+    time_thresh: float
+    show_times: bool
+    show_wall: bool
+    initial: int
+    stream: typing.IO
+    enabled: bool
+    chunksize: Union[int, None]
+    rel_adjust_limit: float
+    verbose: int
     extra: str
     started: bool
     finished: bool
@@ -133,7 +138,7 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
     def set_extra(self, extra) -> None:
         ...
 
-    def step(self, inc: int = ..., force: bool = ...) -> None:
+    def step(self, inc: int = 1, force: bool = False) -> None:
         ...
 
     def start(self):

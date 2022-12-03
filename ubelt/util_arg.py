@@ -36,7 +36,7 @@ def argval(key, default=util_const.NoParam, argv=None):
         default (T | NoParamType, default=NoParam):
             a value to return if not specified.
 
-        argv (Optional[List[str]], default=None):
+        argv (List[str] | None, default=None):
             uses ``sys.argv`` if unspecified
 
     Returns:
@@ -112,7 +112,7 @@ def argflag(key, argv=None):
             string or tuple of strings. Each key should be prefixed with two
             hyphens (i.e. ``--``).
 
-        argv (List[str], default=None): overrides ``sys.argv`` if specified
+        argv (List[str] | None, default=None): overrides ``sys.argv`` if specified
 
     Returns:
         bool: flag - True if the key (or any of the keys) was specified
