@@ -252,7 +252,7 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
         command_tup = tuple(command_parts)
         command_text = ' '.join(list(map(pipes.quote, command_tup)))
 
-    if shell or sys.platform.startswith('win32'):
+    if shell:
         # When shell=True, args is sent to the shell (e.g. bin/sh) as text
         args = command_text
     else:
