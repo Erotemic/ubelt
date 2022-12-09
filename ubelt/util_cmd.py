@@ -1,10 +1,10 @@
 r"""
 This module exposes the :func:`ubelt.cmd` command, which provides a simple
-means for interacting with the commandline.  This uses
+means for interacting with the command line.  This uses
 :class:`subprocess.Popen` under the hood, but improves upon existing
 :mod:`subprocess` functionality by:
 
-(1) Adding the option to "tee" the output, i.e. simultaniously capture and
+(1) Adding the option to "tee" the output, i.e. simultaneously capture and
 write to stdout and stderr.
 
 (2) Always specify the command as a string. The :mod:`subprocess` module
@@ -12,7 +12,7 @@ expects the command as either a  ``List[str]`` if ``shell=False`` and ``str``
 if ``shell=True``. If necessary, :func:`ubelt.util_cmd.cmd` will automatically
 convert from one format to the other, so passing in either case will work.
 
-(3) Specificy if the process blocks or not by setting ``detach``. Note: when
+(3) Specify if the process blocks or not by setting ``detach``. Note: when
 ``detach is True`` it is not possible to tee the output.
 
 Example:
@@ -20,7 +20,8 @@ Example:
     >>> # Running with verbose=1 will write to stdout in real time
     >>> info = ub.cmd('echo "write your command naturally"', verbose=1)
     write your command naturally
-    >>> # Unless `detach=True`, `cmd` always returns an info dict.
+    >>> # The return type is a dictionary of information depending
+    >>> # on how `ub.cmd` was invoked.
     >>> print('info = ' + ub.repr2(info))
     info = {
         'command': 'echo "write your command naturally"',
@@ -232,7 +233,7 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
     """
     # In the future we might allow the user to pass a custom log function
     # But this has weird interactions with how the tee process works
-    # becasue of the assumption stdout.write does not emit a newline
+    # because of the assumption stdout.write does not emit a newline
     log = print
 
     import subprocess
@@ -309,7 +310,7 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
             log('...detaching')
     else:
         if tee:
-            # We logging stdout and stderr, while simulaniously piping it to
+            # We logging stdout and stderr, while simultaneously piping it to
             # another stream.
             stdout = sys.stdout
             stderr = sys.stderr
@@ -326,7 +327,7 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
                 try:
                     (out, err) = proc.communicate(timeout=timeout)
                 except subprocess.TimeoutExpired as exc:
-                    # Follow the error handling in the stdlib implementaton of
+                    # Follow the error handling in the stdlib implementation of
                     # subprocess.run
                     proc.kill()
                     if WIN32:  # nocover
@@ -461,7 +462,7 @@ def _enqueue_output_thread_worker(proc, stream, out_queue, control_queue, timeou
         # Alternate between checking if we were stopped and putting the item in
         # the queue. This helps with the issue of an open process stream on
         # exit but it doesn't fully solve the issue because we still might
-        # block on the stream.readline, therefore we can't guarentee this
+        # block on the stream.readline, therefore we can't guarantee this
         # thread will exit before the process does.
         if timeout is None:
             # If timeout is None, we can optimize this and just use the
@@ -496,7 +497,7 @@ def _enqueue_output_thread_worker(proc, stream, out_queue, control_queue, timeou
     if _check_if_stopped():  # nocover
         return
 
-    # Coverage note: on Python 3.10 it seems like the tests dont always cover
+    # Coverage note: on Python 3.10 it seems like the tests don't always cover
     # these lines. We don't have much control over if this happens or not, so
     # we will exclude them from coverage checks.
     for line in _textio_iterlines(stream):  # nocover
@@ -554,7 +555,7 @@ def _proc_iteroutput_thread(proc, timeout=None):
             if elapsed >= timeout:
                 stdout_ctrl.put('STOP')
                 stderr_ctrl.put('STOP')
-                # Unfortunately we can't guarentee that the threads will stop
+                # Unfortunately we can't guarantee that the threads will stop
                 # because they might get stuck in a readline
                 # stdout_thread.join()
                 # stderr_thread.join()
