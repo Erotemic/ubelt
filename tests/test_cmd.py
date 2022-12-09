@@ -68,7 +68,11 @@ def test_cmd_tee_auto():
     pytest ubelt/tests/test_cmd.py -k tee_backend
     pytest ubelt/tests/test_cmd.py
     """
-    command = '{pyexe} -c "for i in range(100): print(str(i))"'.format(pyexe=PYEXE)
+    if ub.WIN32:
+        # Windows cant break appart commands consistently
+        command = [PYEXE, '-c', "for i in range(100): print(str(i))"]
+    else:
+        command = '{pyexe} -c "for i in range(100): print(str(i))"'.format(pyexe=PYEXE)
     result = ub.cmd(command, verbose=0, tee_backend='auto')
     assert result['out'] == '\n'.join(list(map(str, range(100)))) + '\n'
 
@@ -88,7 +92,11 @@ def test_cmd_tee_thread():
     existing_threads = list(threading.enumerate())
     print('existing_threads = {!r}'.format(existing_threads))
 
-    command = '{pyexe} -c "for i in range(10): print(str(i))"'.format(pyexe=PYEXE)
+    if ub.WIN32:
+        # Windows cant break appart commands consistently
+        command = [PYEXE, '-c', "for i in range(10): print(str(i))"]
+    else:
+        command = '{pyexe} -c "for i in range(10): print(str(i))"'.format(pyexe=PYEXE)
     result = ub.cmd(command, verbose=0, tee_backend='thread')
     assert result['out'] == '\n'.join(list(map(str, range(10)))) + '\n'
 
@@ -124,7 +132,11 @@ def test_cmd_multiline_stdout():
     python ubelt/tests/test_cmd.py test_cmd_multiline_stdout
     pytest ubelt/tests/test_cmd.py::test_cmd_multiline_stdout
     """
-    command = '{pyexe} -c "for i in range(10): print(str(i))"'.format(pyexe=PYEXE)
+    if ub.WIN32:
+        # Windows cant break appart commands consistently
+        command = [PYEXE, '-c', "for i in range(10): print(str(i))"]
+    else:
+        command = '{pyexe} -c "for i in range(10): print(str(i))"'.format(pyexe=PYEXE)
     result = ub.cmd(command, verbose=0)
     assert result['out'] == '\n'.join(list(map(str, range(10)))) + '\n'
 
@@ -256,7 +268,16 @@ def test_timeout():
             pass
         "
         ''').lstrip().format(pyexe=PYEXE)
-    # info = ub.cmd(py_script, detach=1)
+
+    if ub.WIN32:
+        # Windows cant break appart commands consistently
+        py_script = [PYEXE, '-c', ub.codeblock(
+            r'''
+            "
+            while True:
+                pass
+            "
+            ''').lstrip()]
 
     initial_grid = list(ub.named_product({
         'tee': [0, 1],
