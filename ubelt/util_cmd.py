@@ -259,12 +259,16 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
     else:
         # When shell=False, args is a list of executable and arguments
         if command_tup is None:
-            # parse this out of the string
-            # NOTE: perhaps use the solution from [SO_33560364] here?
-            import shlex
-            command_tup = shlex.split(command_text)
-            # command_tup = shlex.split(command_text, posix=not WIN32)
-        args = command_tup
+            if sys.platform.startswith('win32'):
+                # On windows when shell=False, args can be a str | List[str]
+                # as noted in [SO_33560364]
+                args = command_text
+            else:
+                # On linux when shell=False, args must be a List[str]
+                import shlex
+                args = shlex.split(command_text)
+        else:
+            args = command_tup
 
     if tee is None:
         tee = verbose > 0
