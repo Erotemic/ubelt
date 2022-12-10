@@ -134,11 +134,6 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
         subprocess.CalledProcessError - if check and the return value is non zero
 
     Note:
-        Inputs can either be text or tuple based. On UNIX we ensure conversion
-        to text if shell=True, and to tuple if shell=False. On windows, the
-        input is always text based.  See [SO_33560364]_ for a potential
-        cross-platform shlex solution for windows.
-
         When using the tee output, the stdout and stderr may be shuffled from
         what they would be on the command line.
 
@@ -253,6 +248,10 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
         command_tup = tuple(command_parts)
         command_text = ' '.join(list(map(pipes.quote, command_tup)))
 
+    # Inputs can either be text or tuple based. On UNIX we ensure conversion
+    # to text if shell is True, and to tuple if shell is False. On windows,
+    # the input is text if shell is True, but can be either if shell is
+    # False as noted in [SO_33560364]_.
     if shell:
         # When shell=True, args is sent to the shell (e.g. bin/sh) as text
         args = command_text
