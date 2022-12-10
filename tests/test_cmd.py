@@ -68,11 +68,7 @@ def test_cmd_tee_auto():
     pytest ubelt/tests/test_cmd.py -k tee_backend
     pytest ubelt/tests/test_cmd.py
     """
-    if ub.WIN32:
-        # Windows cant break appart commands consistently
-        command = [PYEXE, '-c', "for i in range(100): print(str(i))"]
-    else:
-        command = '{pyexe} -c "for i in range(100): print(str(i))"'.format(pyexe=PYEXE)
+    command = '{pyexe} -c "for i in range(100): print(str(i))"'.format(pyexe=PYEXE)
     result = ub.cmd(command, verbose=0, tee_backend='auto')
     assert result['out'] == '\n'.join(list(map(str, range(100)))) + '\n'
 
@@ -269,15 +265,15 @@ def test_timeout():
         "
         ''').lstrip().format(pyexe=PYEXE)
 
-    if ub.WIN32:
-        # Windows cant break appart commands consistently
-        py_script = [PYEXE, '-c', ub.codeblock(
-            r'''
-            "
-            while True:
-                pass
-            "
-            ''').lstrip()]
+    # if ub.WIN32:
+    #     # Windows cant break appart commands consistently
+    #     py_script = [PYEXE, '-c', ub.codeblock(
+    #         r'''
+    #         "
+    #         while True:
+    #             pass
+    #         "
+    #         ''').lstrip()]
 
     initial_grid = list(ub.named_product({
         'tee': [0, 1],
