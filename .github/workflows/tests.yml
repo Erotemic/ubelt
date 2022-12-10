@@ -99,7 +99,7 @@ jobs:
       matrix:
         include:
         - python-version: '3.6'
-          os: ubuntu-latest
+          os: ubuntu-20.04
           install-extras: tests-strict,runtime-strict
           arch: auto
         - python-version: '3.6'
@@ -131,7 +131,7 @@ jobs:
           install-extras: tests
           arch: auto
         - python-version: '3.6'
-          os: ubuntu-latest
+          os: ubuntu-20.04
           install-extras: tests,optional
           arch: auto
         - python-version: '3.7'
