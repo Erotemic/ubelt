@@ -1,6 +1,7 @@
 import ubelt as ub
 
-DEBUG_PATH = ub.Path.home().name == 'joncrall'
+DEBUG_PATH = 0
+# ub.Path.home().name == 'joncrall'
 
 
 def _demo_directory_structure():
