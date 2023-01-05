@@ -870,6 +870,14 @@ def _convert_to_hashable(data, types=True, extensions=None):
         return b'', hashable
 
 
+# TODO: convert to an iterative variant?
+# See ~/code/ubelt/dev/bench/bench_hash_impls.py
+
+_SEP = b'_,_'
+_ITER_PREFIX = b'_[_'
+_ITER_SUFFIX = b'_]_'
+
+
 def _update_hasher(hasher, data, types=True, extensions=None):
     """
     Converts ``data`` into a byte representation and calls update on the hasher
@@ -902,29 +910,36 @@ def _update_hasher(hasher, data, types=True, extensions=None):
         # Denote that we are hashing over an iterable
         # Multiple structure bytes make it harder to accidentally introduce
         # conflicts, but this is not perfect.
-        SEP = b'_,_'
-        ITER_PREFIX = b'_[_'
-        ITER_SUFFIX = b'_]_'
+        # SEP = b'_,_'
+        # ITER_PREFIX = b'_[_'
+        # ITER_SUFFIX = b'_]_'
 
         iter_ = iter(data)
-        hasher.update(ITER_PREFIX)
+        hasher.update(_ITER_PREFIX)
         # first, try to nest quickly without recursive calls
         # (this works if all data in the sequence is a non-iterable)
         try:
             for item in iter_:
                 prefix, hashable = _convert_to_hashable(item, types,
                                                         extensions=extensions)
-                binary_data = prefix + hashable + SEP
+                binary_data = prefix + hashable + _SEP
                 hasher.update(binary_data)
+            hasher.update(_ITER_SUFFIX)
         except TypeError:
             # need to use recursive calls
             # Update based on current item
             _update_hasher(hasher, item, types, extensions=extensions)
+            # !>> WHOOPS: THIS IS A BUG. THERE SHOULD BE A
+            # !>> hasher.update(_SEP)
+            # !>> SEPERATOR HERE.
+            # !>> BUT FIXING IT WILL BREAK BACKWARDS COMPAT.
+            # !>> We will need to expose versions of the hasher that can be
+            # configured, and ideally new versions will have speed improvments.
             for item in iter_:
                 # Ensure the items have a spacer between them
                 _update_hasher(hasher, item, types, extensions=extensions)
-                hasher.update(SEP)
-        hasher.update(ITER_SUFFIX)
+                hasher.update(_SEP)
+            hasher.update(_ITER_SUFFIX)
     else:
         prefix, hashable = _convert_to_hashable(data, types,
                                                 extensions=extensions)
@@ -1002,6 +1017,7 @@ def _digest_hasher(hasher, base):
     return text
 
 
+# @profile
 def hash_data(data, hasher=NoParam, base=NoParam, types=False, convert=False,
               extensions=None):
     """
