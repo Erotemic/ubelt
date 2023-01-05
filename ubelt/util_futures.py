@@ -119,6 +119,7 @@ class SerialFuture(concurrent.futures.Future):
         return self._result
 
 
+# Rename to SerialPoolExecutor?
 class SerialExecutor(object):
     """
     Implements the concurrent.futures API around a single-threaded backend
@@ -241,61 +242,44 @@ class SerialExecutor(object):
 
 class Executor(object):
     """
-    Wrapper around a specific executor.
+    A concrete asynchronous executor with a configurable backend.
 
-    Abstracts Serial, Thread, and Process Executor via arguments.
+    The type of parallelism (or lack thereof) is configured via the ``mode``
+    parameter, which can be: "process", "thread", or "serial".  This allows the
+    user to easily enable / disable parallelism or switch between processes and
+    threads without modifying the surrounding logic.
 
-    Args:
-        mode (str, default='thread'): either thread, serial, or process
-        max_workers (int, default=0): number of workers. If 0, serial is forced.
-
-    Example:
-        >>> import platform
-        >>> import sys
-        >>> # The process backend breaks pyp3 when using coverage
-        >>> if 'pypy' in platform.python_implementation().lower():
-        ...     import pytest
-        ...     pytest.skip('not testing process on pypy')
-        >>> if sys.platform.startswith('win32'):
-        ...     import pytest
-        ...     pytest.skip('not running this test on win32 for now')
-        >>> import ubelt as ub
-        >>> # Fork before threading!
-        >>> # https://pybay.com/site_media/slides/raymond2017-keynote/combo.html
-        >>> self1 = ub.Executor(mode='serial', max_workers=0)
-        >>> self1.__enter__()
-        >>> self2 = ub.Executor(mode='process', max_workers=2)
-        >>> self2.__enter__()
-        >>> self3 = ub.Executor(mode='thread', max_workers=2)
-        >>> self3.__enter__()
-        >>> jobs = []
-        >>> jobs.append(self1.submit(sum, [1, 2, 3]))
-        >>> jobs.append(self1.submit(sum, [1, 2, 3]))
-        >>> jobs.append(self2.submit(sum, [10, 20, 30]))
-        >>> jobs.append(self2.submit(sum, [10, 20, 30]))
-        >>> jobs.append(self3.submit(sum, [4, 5, 5]))
-        >>> jobs.append(self3.submit(sum, [4, 5, 5]))
-        >>> for job in jobs:
-        >>>     result = job.result()
-        >>>     print('result = {!r}'.format(result))
-        >>> self1.__exit__(None, None, None)
-        >>> self2.__exit__(None, None, None)
-        >>> self3.__exit__(None, None, None)
+    SeeAlso:
+        * :class:`concurrent.futures.ThreadPoolExecutor`
+        * :class:`concurrent.futures.ProcessPoolExecutor`
+        * :class:`SerialExecutor`
+        * :class:`JobPool`
 
     Example:
         >>> import ubelt as ub
-        >>> self1 = ub.Executor(mode='serial', max_workers=0)
-        >>> with self1:
-        >>>     jobs = []
-        >>>     for i in range(10):
-        >>>         jobs.append(self1.submit(sum, [i + 1, i]))
-        >>>     for job in jobs:
-        >>>         job.add_done_callback(lambda x: print('done callback got x = {}'.format(x)))
-        >>>         result = job.result()
-        >>>         print('result = {!r}'.format(result))
+        >>> # Prototype code using simple serial processing
+        >>> executor = ub.Executor(mode='serial', max_workers=0)
+        >>> jobs = [executor.submit(sum, [i + 1, i]) for i in range(10)]
+        >>> print([job.result() for job in jobs])
+        [1, 3, 5, 7, 9, 11, 13, 15, 17, 19]
+
+        >>> # Enable parallelism by only changing one parameter
+        >>> executor = ub.Executor(mode='process', max_workers=0)
+        >>> jobs = [executor.submit(sum, [i + 1, i]) for i in range(10)]
+        >>> print([job.result() for job in jobs])
+        [1, 3, 5, 7, 9, 11, 13, 15, 17, 19]
     """
 
     def __init__(self, mode='thread', max_workers=0):
+        """
+        Args:
+            mode (str):
+                The backend parallelism mechanism.  Can be either thread, serial,
+                or process. Defaults to 'thread'.
+
+            max_workers (int):
+                number of workers. If 0, serial is forced. Defaults to 0.
+        """
         from concurrent import futures
         if mode == 'serial' or max_workers == 0:
             backend = SerialExecutor()
@@ -370,7 +354,22 @@ class JobPool(object):
     Abstracts away boilerplate of submitting and collecting jobs
 
     This is a basic wrapper around :class:`ubelt.util_futures.Executor` that
-    simplifies the most basic case.
+    simplifies the most basic case by 1. keeping track of references to
+    submitted futures for you and 2. providing an as_completed method to
+    consume those futures as they are ready.
+
+    Args:
+        mode (str):
+            The backend parallelism mechanism.  Can be either thread, serial,
+            or process. Defaults to 'thread'.
+
+        max_workers (int):
+            number of workers. If 0, serial is forced. Defaults to 0.
+
+        transient (bool):
+            if True, references to jobs will be discarded as they are
+            returned by :func:`as_completed`. Otherwise the ``jobs`` attribute
+            holds a reference to all jobs ever submitted. Default to False.
 
     Example:
         >>> import ubelt as ub
@@ -385,8 +384,9 @@ class JobPool(object):
         >>>     final.append(info)
         >>> print('final = {!r}'.format(final))
     """
-    def __init__(self, mode='thread', max_workers=0):
+    def __init__(self, mode='thread', max_workers=0, transient=False):
         self.executor = Executor(mode=mode, max_workers=max_workers)
+        self.transient = transient
         self.jobs = []
 
     def __len__(self):
@@ -424,8 +424,9 @@ class JobPool(object):
     def __exit__(self, a, b, c):
         self.executor.__exit__(a, b, c)
 
-    # TODO: add some way to clear completed jobs?
-    # def clear_completed
+    def _clear_completed(self):
+        active_jobs = [job for job in self.jobs if job.running()]
+        self.jobs = active_jobs
 
     def as_completed(self, timeout=None, desc=None, progkw=None):
         """
@@ -478,6 +479,8 @@ class JobPool(object):
                 job_iter, desc=desc, total=len(self.jobs), **progkw)
             self._prog = job_iter
         for job in job_iter:
+            if self.transient:
+                self.jobs.remove(job)
             yield job
 
     def join(self, **kwargs):
@@ -495,7 +498,7 @@ class JobPool(object):
         Example:
             >>> import ubelt as ub
             >>> # We just want to try replacing our simple iterative algorithm
-            >>> # with the embarassingly parallel version
+            >>> # with the embarrassingly parallel version
             >>> arglist = list(zip(range(1000), range(1000)))
             >>> func = ub.identity
             >>> #
