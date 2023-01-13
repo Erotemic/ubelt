@@ -1,11 +1,15 @@
 """
 pytest tests/test_progiter.py
 """
-from io import StringIO
-from xdoctest.utils import strip_ansi
-from xdoctest.utils import CaptureStdout
-from ubelt.progiter import ProgIter
 import sys
+from contextlib import contextmanager
+from io import StringIO
+from unittest.mock import patch
+
+from xdoctest.utils import CaptureStdout
+from xdoctest.utils import strip_ansi
+
+from ubelt import ProgIter
 
 
 def test_rate_format_string():
@@ -171,97 +175,6 @@ def test_progiter_offset_0():
     assert got == want
 
 
-def time_progiter_overhead():
-    # Time the overhead of this function
-    import timeit
-    import textwrap
-    setup = textwrap.dedent(
-        '''
-        from sklearn.externals.progiter import ProgIter
-        import numpy as np
-        import time
-        from six.moves import StringIO, range
-        import utool as ut
-        N = 500
-        file = StringIO()
-        rng = np.random.RandomState(42)
-        ndims = 2
-        vec1 = rng.rand(113, ndims)
-        vec2 = rng.rand(71, ndims)
-
-        def minimal_wraper1(sequence):
-            for item in sequence:
-                yield item
-
-        def minimal_wraper2(sequence):
-            for count, item in enumerate(sequence, start=1):
-                yield item
-
-        def minimal_wraper3(sequence):
-            count = 0
-            for item in sequence:
-                yield item
-                count += 1
-
-        def minwrap4(sequence):
-            for count, item in enumerate(sequence, start=1):
-                yield item
-                if count % 100:
-                    pass
-
-        def minwrap5(sequence):
-            for count, item in enumerate(sequence, start=1):
-                yield item
-                if time.time() < 100:
-                    pass
-        '''
-    )
-    statements = {
-        'baseline'       : '[{work} for n in range(N)]',
-        'creation'       : 'ProgIter(range(N))',
-        'minwrap1'       : '[{work} for n in minimal_wraper1(range(N))]',
-        'minwrap2'       : '[{work} for n in minimal_wraper2(range(N))]',
-        'minwrap3'       : '[{work} for n in minimal_wraper3(range(N))]',
-        'minwrap4'       : '[{work} for n in minwrap4(range(N))]',
-        'minwrap5'       : '[{work} for n in minwrap5(range(N))]',
-        '(sk-disabled)'  : '[{work} for n in ProgIter(range(N), enabled=False, file=file)]',  # NOQA
-        '(sk-plain)'     : '[{work} for n in ProgIter(range(N), file=file)]',  # NOQA
-        '(sk-freq)'      : '[{work} for n in ProgIter(range(N), file=file, freq=100)]',  # NOQA
-        '(sk-no-adjust)' : '[{work} for n in ProgIter(range(N), file=file, adjust=False, freq=200)]',  # NOQA
-        '(sk-high-freq)' : '[{work} for n in ProgIter(range(N), file=file, adjust=False, freq=200)]',  # NOQA
-
-        # '(ut-disabled)'  : '[{work} for n in ut.ProgIter(range(N), enabled=False, file=file)]',    # NOQA
-        # '(ut-plain)'     : '[{work} for n in ut.ProgIter(range(N), file=file)]',  # NOQA
-        # '(ut-freq)'      : '[{work} for n in ut.ProgIter(range(N), freq=100, file=file)]',  # NOQA
-        # '(ut-no-adjust)' : '[{work} for n in ut.ProgIter(range(N), freq=200, adjust=False, file=file)]',  # NOQA
-        # '(ut-high-freq)' : '[{work} for n in ut.ProgIter(range(N), file=file, adjust=False, freq=200)]',  # NOQA
-    }
-    # statements = {
-    #     'calc_baseline': '[vec1.dot(vec2.T) for n in range(M)]',  # NOQA
-    #     'calc_plain': '[vec1.dot(vec2.T) for n in ProgIter(range(M), file=file)]',  # NOQA
-    #     'calc_plain_ut': '[vec1.dot(vec2.T) for n in ut.ProgIter(range(M), file=file)]',  # NOQA
-    # }
-    timeings = {}
-
-    work_strs = [
-        'None',
-        'vec1.dot(vec2.T)',
-        'n % 10 == 0',
-    ]
-    work = work_strs[0]
-    # work = work_strs[1]
-
-    number = 10000
-    prog = ProgIter(desc='timing', adjust=True)
-    for key, stmt in prog(statements.items()):
-        prog.set_extra(key)
-        secs = timeit.timeit(stmt.format(work=work), setup, number=number)
-        timeings[key] = secs / number
-
-    # import utool as ut
-    # print(ut.align(ut.repr4(timeings, precision=8), ':'))
-
-
 def test_unknown_total():
     """
     Make sure a question mark is printed if the total is unknown
@@ -412,6 +325,98 @@ def test_tqdm_compatibility():
         prog = ProgIter(show_times=False)
         prog.set_postfix_str('bar baz', refresh=False)
     assert 'bar baz' not in cap.text.strip()
+
+
+class IntObject:
+    def __init__(self):
+        self.n = 0
+
+    def inc(self, *args, **kwargs):
+        self.n += 1
+
+
+@contextmanager
+def _fake_time():
+    t = IntObject()  # fake time in seconds
+    with patch('ubelt.progiter.default_timer', side_effect=lambda: t.n):
+        yield t
+
+
+@contextmanager
+def _message_count_only():
+    cnt = IntObject()
+    with patch.object(ProgIter, 'display_message', side_effect=cnt.inc):
+        yield cnt
+
+
+def test_adjust_binds_updates_to_time_thresh():
+    with _fake_time() as t, _message_count_only() as cnt:
+        prog = ProgIter(range(1000), enabled=True, adjust=True, time_thresh=1.0,
+                        rel_adjust_limit=1000000.0, homogeneous=False)
+        it = iter(prog)
+        # Few fast updates at the beginning
+        for i in range(10):
+            next(it)
+            t.n += 0.1
+        # Followed by some extremely slow updates
+        for i in range(10):
+            next(it)
+            t.n += 1000
+        # Outputs should not get stuck at the few fast updates
+        assert cnt.n > 8
+
+    with _fake_time() as t, _message_count_only() as cnt:
+        prog = ProgIter(range(1000), enabled=True, adjust=True, time_thresh=1.0,
+                        rel_adjust_limit=1000000.0, homogeneous=False)
+        it = iter(prog)
+        # Few slow updates at the beginning
+        for i in range(10):
+            next(it)
+            t.n += 100
+        # Followed by a ton of extremely fast updates
+        for i in range(990):
+            next(it)
+            t.n += 0.00001
+        # Outputs should not spam the screen with messages
+        assert cnt.n < 20
+
+
+def test_homogeneous_heuristic_with_iter_lengths():
+    for size in range(0, 10):
+        list(ProgIter(range(size), homogeneous='auto'))
+
+
+def test_mixed_iteration_and_step():
+    # Check to ensure nothing breaks
+    for adjust in [0, 1]:
+        for homogeneous in [0, 1] if adjust else [0]:
+            for size in range(0, 10):
+                for n_inner_steps in range(size):
+                    prog = ProgIter(range(size), adjust=adjust,
+                                    homogeneous=homogeneous)
+                    iprog = iter(prog)
+                    try:
+                        while True:
+                            next(iprog)
+                            for k in range(n_inner_steps):
+                                prog.step()
+                    except StopIteration:
+                        ...
+
+
+def test_end_message_is_displayed():
+    """
+    Older versions of progiter had a bug where the end step would not trigger
+    if calculations were updated without a display
+    """
+    import io
+    stream = io.StringIO()
+    prog = ProgIter(range(1000), stream=stream)
+    for i in prog:
+        prog._update_all_calculations()
+    stream.seek(0)
+    text = stream.read()
+    assert '1000/1000' in text, 'end message should have printed'
 
 
 if __name__ == '__main__':

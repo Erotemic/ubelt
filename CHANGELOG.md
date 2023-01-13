@@ -12,6 +12,9 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 * Add transient option to JobPool so references to futures are released after they
   are yielded to the user.
 
+### Changed
+* Updated vendored ProgIter to match progiter 1.1.0
+
 
 ## Version 1.2.3 - Released 2022-12-03  
 
