@@ -18,10 +18,12 @@ description = "A Python utility belt containing simple tools, a stdlib like feel
 license = "Apache 2"
 dev_status = "stable"
 
+[tool.xcookie.setuptools]
+keywords = ["utility", "python", "hashing", "caching", "stdlib", "path", "pathlib"]
 
 [tool.pytest.ini_options]
 addopts = "-p no:doctest --xdoctest --xdoctest-style=google --ignore-glob=setup.py --ignore-glob=docs"
-norecursedirs = ".git ignore build __pycache__ dev _skbuild"
+norecursedirs = ".git ignore build __pycache__ dev _skbuild docs"
 filterwarnings = [
     "default",
     "ignore:.*No cfgstr given in Cacher constructor or call.*:Warning",

@@ -435,6 +435,217 @@ def test_blake3():
         pytest.skip('blake3 is not available')
 
 
+def test_compatible_hash_bases():
+    """
+    Ubelt 1.2.3 has a ~bug~ incompatability with non-hex hash bases. Depending
+    on leftover amount of data in the byte stream, our hex reencoding may be
+    incorrect. It is still correct when the input has correct lengths, but in
+    general it can produce issues if you were expecting hashes to conform to
+    RFC standards.
+
+    FIXME: THIS ISSUE IS NOT RESOLVED YET. NEED A WAY OF GETTING COMPATIBLE
+    BEHAVIOR WITH STANDARD ENCODINGS. THIS ULTIMATELY REQUIRES PROCESSING DATA
+    WITH PADDING AND VIA BYTE FORM, NOT INTEGER FORM.
+
+    References:
+        https://stackoverflow.com/questions/43920799/convert-byte-to-base64-and-ascii-in-python
+        https://github.com/multiformats/multibase
+        https://stackoverflow.com/questions/6916805/why-does-a-base64-encoded-string-have-an-sign-at-the-end
+        https://github.com/semente/python-baseconv
+    """
+    import pytest
+    pytest.skip('FIXME THIS ISSUE IS NOT RESOLVE YET.')
+    if not ub.LINUX:
+        pytest.skip('only runs on linux')
+    required_programs = [
+        'sha256sum', 'cut', 'xxd', 'base32',
+    ]
+    HAS_PROGS = all(ub.find_exe(p) for p in required_programs)
+    if not HAS_PROGS:
+        pytest.skip('only runs if required programs exist')
+
+    hasher = 'sha1'
+    hasher = 'sha256'
+    # hasher = 'sha512'
+    text = 'foobar'
+
+    trace = ub.hash_data(text, hasher=ub.util_hash._HashTracer(), types=False)
+    print(f'text={text}')
+    print(f'trace={trace}')
+    print(f'hasher={hasher}')
+
+    hasher_obj = ub.util_hash._rectify_hasher(hasher)()
+    hasher_obj.update(trace)
+    raw_bytes = hasher_obj.digest()
+    print(f'raw_bytes={raw_bytes}')
+    import base64
+    realb32_encode = base64.b32encode(raw_bytes)
+
+    # base64.b32decode(realb32_encode)
+
+    print(f'realb32_encode=\n{realb32_encode}')
+    _ = ub.cmd(fr'printf "{text}" | {hasher}sum | cut -f1 -d\  | xxd -r -p', shell=True, system=True)
+    # _ = ub.cmd(fr'printf "{text}" | {hasher}sum | cut -f1 -d\  | xxd -r', shell=True, verbose=3)
+
+    std_result = ub.cmd(fr'printf "{text}" | {hasher}sum', shell=True, verbose=3)['out'].split(' ')[0]
+    our_result = ub.hash_data(text, hasher=hasher, types=False)
+    print(f'std_result={std_result}')
+    print(f'our_result={our_result}')
+    assert our_result == std_result
+
+    std_result = ub.cmd(fr'printf "{text}" | {hasher}sum | cut -f1 -d\  | xxd -r -p | base32', shell=True, verbose=3)['out'].strip().replace('\n', '')
+    our_result = ub.hash_data(text, hasher=hasher, types=False, base=32)
+    std_result_16 = ub.cmd(fr'printf "{text}" | {hasher}sum | cut -f1 -d\ ', shell=True, verbose=3)['out'].strip().replace('\n', '')
+    our_result_16 = ub.hash_data(text, hasher=hasher, types=False, base=16)
+    print(f'std_result_16={std_result_16}')
+    print(f'our_result_16={our_result_16}')
+
+    raw_result = base64.b16decode(our_result_16.upper())
+    fix_result = base64.b32encode(raw_result).decode()
+    print(f'fix_result={fix_result}')
+    print(f'std_result={std_result}')
+    print(f'our_result={our_result}')
+    assert our_result == std_result
+
+    if 1:
+
+        hexstr = our_result_16
+        base = ub.util_hash._ALPHABET_32
+        baselen = len(base)
+        # Experimental solution for _convert_hexstr_base
+
+        # The alternate code has a bug, but it is concistent so we can't change
+        # it. Work towards correct logic is here, which we will eventually
+        # introduce as an opt-in change.
+        import base64
+        raw_bytes = base64.b16decode(hexstr.upper())
+        # leftover = len(raw_bytes) % 5
+        # # Pad the last quantum with zero bits if necessary
+        # if leftover:
+        #     raw_bytes = raw_bytes + b'\0' * (5 - leftover)  # Don't use += !
+        x = int.from_bytes(raw_bytes, 'big', signed=False)
+        r = 0
+        digits = []
+        while x:
+            x, r = divmod(x, baselen)
+            digits.append(base[r])
+        print(r)
+        digits.reverse()
+        newbase_str = ''.join(digits)
+        print(newbase_str)
+
+        import baseconv
+        base32_digits = ''.join(ub.util_hash._ALPHABET_32)
+        base16_digits = ''.join(ub.util_hash._ALPHABET_16)
+        class MyHexConvertor(baseconv.BaseConverter):
+            decimal_digits = base16_digits
+
+        co = MyHexConvertor(base32_digits)
+        print(f'hexstr={hexstr}')
+        got = co.encode(hexstr)
+        print(f'got={got}')
+
+        co = MyHexConvertor(base16_digits)
+        co.decimal_digits = base32_digits
+        redid = co.encode(got)
+        print(f'redid={redid}')
+
+        r"""
+        echo "foobar" > test.txt
+        ipfs add --only-hash test.txt --cid-version=1
+
+        # https://github.com/multiformats/py-multibase
+        pip install py-multibase
+
+        from multibase import encode, decode
+        hasher_obj = ub.util_hash._rectify_hasher('sha256')()
+        hasher_obj.update(b'foobar')
+        raw_bytes = hasher_obj.digest()
+
+        raw_bytes = b'\xc3\xab\x8f\xf17 \xe8\xad\x90G\xdd9Fk<\x89t\xe5\x92\xc2\xfa8=J9`qL\xae\xf0\xc4\xf2'
+        encode('base32', raw_bytes).upper()
+        encode('base32upper', raw_bytes).upper()
+
+        """
+        if base == list(base64._b32alphabet.decode()):
+            # NOTE: This code has an incompatability with standard base encodings
+            # because it does not pad the bytes. I.e. for base 64 3 bytes are
+            # converted into 4 characters, so we need a input string divisible by
+            # 3. For base32 5 bytes are converted into 2 characters.
+            # in general we have to find lowest N and M such that
+            #
+            # N = number of characters in the encoding
+            # M = number of bytes in the input
+            #
+            # Usually N > M
+            #
+            # <base> ** N == (2 ** 8) ** M
+            # or
+            # <base> ** N == (2 ** (8 * M))
+            #
+            # e.g. For base=64
+            # 64 ** 4 == (2 ** 8) ** 3
+            #
+            # e.g. For base=32
+            # 32 ** 8 == (2 ** 8) ** 5
+            #
+            # In general need find integer solutions for:
+            # M = log(B**N)/(8*log(2))
+            # or
+            # N = log(256 ** M)/log(B)
+
+            if 0:
+                import sympy
+                N, M, B = sympy.symbols('N, M, B')
+                eqn = sympy.Eq((B ** N), ((2 ** 8) ** M))
+                solutions = sympy.solve(eqn, N)
+                print('solutions = {}'.format(ub.urepr(solutions, nl=1)))
+                b = 64
+                for soln in solutions:
+                    for m in range(1, 10):
+                        ans = soln.subs({M: m, B: b}).evalf()
+                        real, imag = ans.as_real_imag()
+                        if abs(imag) < 1e-8:
+                            fracs = real - int(real)
+                            if fracs < 1e-8:
+                                print(f'n={m}')
+                                print(soln)
+                                print(ans)
+                                raise Exception
+
+            # There is no integer solution for base 26
+            base_size = 26
+            import math
+            for i in range(0, 100):
+                num_input_bytes = i
+                num_output_symbols = math.log(256 ** num_input_bytes, base_size)
+                print(f'{num_input_bytes} > {num_output_symbols}')
+
+            # check
+            # alphabet = base64._b32alphabet
+            # s = raw_bytes
+            # desired = base64.b32encode(raw_bytes)
+            # print(f'desired={desired}')
+            # print(f'newbase_str={newbase_str}')
+
+            # leftover = len(s) % 5
+            # # Pad the last quantum with zero bits if necessary
+            # if leftover:
+            #     s = s + b'\0' * (5 - leftover)  # Don't use += !
+            # encoded = bytearray()
+            # from_bytes = int.from_bytes
+            # b32tab2 = base64._b32tab2[alphabet]
+            # for i in range(0, len(s), 5):
+            # if 1:
+            #     i = 0
+            #     c = from_bytes(s[i: i + 5], 'big')
+            #     first = (b32tab2[c >> 30] +           # bits 1 - 10
+            #              b32tab2[(c >> 20) & 0x3ff] + # bits 11 - 20
+            #              b32tab2[(c >> 10) & 0x3ff] + # bits 21 - 30
+            #              b32tab2[c & 0x3ff]           # bits 31 - 40
+            #              )
+
+
 if __name__ == '__main__':
     r"""
     CommandLine:

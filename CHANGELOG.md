@@ -11,6 +11,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ### Added
 * Add transient option to JobPool so references to futures are released after they
   are yielded to the user.
+* Added "base32" as an option for `hash_data`. Note that it is unpadded, hence non-RFC compliant.
 
 ### Changed
 * Updated vendored ProgIter to match progiter 1.1.0
@@ -22,7 +23,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 * Support for FreeBSD in `util_platform`
 * `ub.Path.copy` and `ub.Path.move`
 * Tentative Python 3.11 support
-* `ub.utext` which is a repr2 with new defaults.
+* `ub.urepr` which is `ub.repr2` with new defaults.
 * `ub.IndexableWalker.allclose` method to replace `indexable_allclose`
 
 ### Changed

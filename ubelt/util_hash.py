@@ -83,6 +83,12 @@ _ALPHABET_36 = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
                 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't',
                 'u', 'v', 'w', 'x', 'y', 'z']
 
+# RFC 4648 Base32 alphabet
+_ALPHABET_32 = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L',
+                'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X',
+                'Y', 'Z', '2', '3', '4', '5', '6', '7']
+
+
 DEFAULT_ALPHABET = _ALPHABET_16
 
 
@@ -295,6 +301,9 @@ def _rectify_base(base):
         return DEFAULT_ALPHABET
     elif base in [36, 'abc123', 'alphanum']:
         return _ALPHABET_36
+    # elif base in [32, 'rfc4648']:
+    elif base in [32]:
+        return _ALPHABET_32  # cant call it RFC until it conforms to a standard
     elif base in [26, 'abc', 'alpha']:
         return _ALPHABET_26
     elif base in [16, 'hex']:
@@ -990,20 +999,29 @@ def _convert_hexstr_base(hexstr, base):
         # already in hex, no conversion needed
         return hexstr
     baselen = len(base)
-    x = int(hexstr, 16)  # first convert to base 16
-    if x == 0:
-        return '0'  # bug: should be base[0]
-    sign = 1 if x > 0 else -1
-    x *= sign
-    digits = []
-    while x:
-        digits.append(base[x % baselen])
-        x //= baselen
-    if sign < 0:
-        digits.append('-')
-    digits.reverse()
-    newbase_str = ''.join(digits)
-    return newbase_str
+    if 1:
+        # NOTE: This code has an incompatability with standard base encodings
+        # because it does not pad the bytes.
+        # In general for an input of M bytes, we need to use N = log(256 **
+        # M)/log(B) symbols in base B to represent it.
+        # This is not always an integer, so RFC encodings use paddings, but
+        # we don't do that here.
+        # TODO: we can probably do this faster if we implement the logic in
+        # a similar way to base64, but for now this is fine.
+        x = int(hexstr, 16)  # first convert to an integer in base 16
+        if x == 0:
+            return '0'  # bug: should be base[0]
+        sign = 1 if x > 0 else -1
+        x *= sign
+        digits = []
+        while x:
+            digits.append(base[x % baselen])
+            x //= baselen
+        if sign < 0:
+            digits.append('-')
+        digits.reverse()
+        newbase_str = ''.join(digits)
+        return newbase_str
 
 
 def _digest_hasher(hasher, base):
@@ -1094,7 +1112,7 @@ def hash_data(data, hasher=NoParam, base=NoParam, types=False, convert=False,
 
 def hash_file(fpath, blocksize=1048576, stride=1, maxbytes=None,
               hasher=NoParam, base=NoParam):
-    """
+    r"""
     Hashes the data in a file on disk.
 
     The results of this function agree with the standard UNIX commands (e.g.
@@ -1126,9 +1144,10 @@ def hash_file(fpath, blocksize=1048576, stride=1, maxbytes=None,
 
             TODO: add logic such that you can update an existing hasher
 
-        base (List[str] | str | NoParamType):
+        base (List[str] | int | str | NoParamType):
             list of symbols or shorthand key.
-            Valid keys are 'abc', 'hex', and 'dec'. Defaults to 'hex'.
+            Valid keys are 'abc', 'hex', and 'dec', 10, 16, 26, 32. Defaults to
+            'hex'.
 
     Note:
         For better hashes keep stride = 1.
@@ -1197,6 +1216,22 @@ def hash_file(fpath, blocksize=1048576, stride=1, maxbytes=None,
         >>>     print('want = {!r}'.format(want))
         >>>     print('got = {!r}'.format(got))
         >>>     assert want.endswith(got)
+
+    Ignore:
+        # Our hashdata with base32 should be compatible with the standard
+        # (note: in general depending on the base it isn't because I think a padding issue)
+        text = 'foobar2'
+        std_result = ub.cmd(f'printf "{text}" | sha1sum', shell=True)['out'].split(' ')[0]
+        our_result = ub.hash_data(text, hasher='sha1', types=False)
+        print(f'std_result={std_result}')
+        print(f'our_result={our_result}')
+        assert our_result == std_result
+
+        std_result = ub.cmd(fr'printf "{text}" | sha1sum | cut -f1 -d\  | xxd -r -p | base32', shell=True)['out'].split()[0]
+        our_result = ub.hash_data(text, hasher='sha1', base=32)
+        print(f'std_result={std_result}')
+        print(f'our_result={our_result}')
+        assert our_result == std_result
     """
     base = _rectify_base(base)
     hasher = _rectify_hasher(hasher)()
