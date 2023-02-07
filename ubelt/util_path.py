@@ -896,16 +896,27 @@ class Path(_PathBase):
         """
         return self.__class__(os.path.expandvars(self))
 
-    def ls(self):
+    def ls(self, pattern=None):
         """
         A convenience function to list all paths in a directory.
 
         This is simply a wraper around iterdir that returns the results as a
         list instead of a generator. This is mainly for faster navigation in
-        IPython. In production code `iterdir` should be used instead.
+        IPython. In production code ``iterdir`` or ``glob`` should be used
+        instead.
+
+        Args:
+            pattern (None | str):
+                if specified, performs a glob instead of an iterdir.
 
         Returns:
-            List[Path]
+            List[Path]: an eagerly evaluated list of paths
+
+        Note:
+            When pattern is specified only paths matching the pattern are
+            returned, not the paths inside matched directories.  This is
+            different than bash semantics where the pattern is first expanded
+            and then ls is performed on all matching paths.
 
         Example:
             >>> import ubelt as ub
@@ -925,8 +936,18 @@ class Path(_PathBase):
                 Path('file1'),
                 Path('file2'),
             ]
+            >>> children = self.ls('dir*/*')
+            >>> assert isinstance(children, list)
+            >>> print(ub.repr2(sorted([p.relative_to(self) for p in children])))
+            [
+                Path('dir1/file3'),
+                Path('dir2/file4'),
+            ]
         """
-        return list(self.iterdir())
+        if pattern is None:
+            return list(self.iterdir())
+        else:
+            return list(self.glob(pattern))
 
     def shrinkuser(self, home='~'):
         """
