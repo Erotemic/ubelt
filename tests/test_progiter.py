@@ -2,14 +2,55 @@
 pytest tests/test_progiter.py
 """
 import sys
-from contextlib import contextmanager
 from io import StringIO
-from unittest.mock import patch
 
 from xdoctest.utils import CaptureStdout
 from xdoctest.utils import strip_ansi
 
+import itertools as it
 from ubelt import ProgIter
+
+
+class FakeStream:
+    """
+    Helper to hook into and introspect when progiter writes to the display
+    """
+    def __init__(self, verbose=0, callback=None):
+        self.verbose = verbose
+        self.callback = callback
+        self._callcount = 0
+        self.messages = []
+
+    def write(self, msg):
+        self._callcount += 1
+        self.messages.append(msg)
+        if self.verbose:
+            sys.stdout.write(msg)
+        if self.callback is not None:
+            self.callback()
+
+    def flush(self, *args, **kw):
+        ...
+
+
+class FakeTimer:
+    """
+    Helper to hook into and introspect when progiter measures times.
+    You must tic this timer yourself.
+    """
+    def __init__(self, times=[1]):
+        self._time = 0
+        self._callcount = 0
+        self._iter = it.cycle(times)
+
+    def tic(self, step=None):
+        if step is None:
+            step = next(self._iter)
+        self._time += step
+
+    def __call__(self):
+        self._callcount += 1
+        return self._time
 
 
 def test_rate_format_string():
@@ -145,7 +186,7 @@ def test_progiter_offset_10():
     # Define a function that takes some time
     file = StringIO()
     list(ProgIter(range(10), total=20, verbose=3, start=10, file=file,
-                  freq=5, show_times=False))
+                  freq=5, show_times=False, time_thresh=0))
     file.seek(0)
     want = ['10/20...', '15/20...', '20/20...']
     got = [line.strip() for line in file.readlines()]
@@ -163,7 +204,7 @@ def test_progiter_offset_0():
     # Define a function that takes some time
     file = StringIO()
     for _ in ProgIter(range(10), total=20, verbose=3, start=0, file=file,
-                      freq=5, show_times=False):
+                      freq=5, show_times=False, time_thresh=0):
         pass
     file.seek(0)
     want = ['0/20...', '5/20...', '10/20...']
@@ -249,8 +290,8 @@ def test_adjust_freq():
     prog.time_thresh = 1.0
     prog._max_between_count = -1.0
     prog._max_between_time = -1.0
-    prog._between_time = 1
-    prog._between_count = 1000
+    prog._measure_timedelta = 1
+    prog._measure_countdelta = 1000
     prog._adjust_frequency()
     assert prog.freq == 4
 
@@ -259,8 +300,8 @@ def test_adjust_freq():
     prog.time_thresh = 1.0
     prog._max_between_count = -1.0
     prog._max_between_time = -1.0
-    prog._between_time = 1
-    prog._between_count = 1
+    prog._measure_timedelta = 1
+    prog._measure_countdelta = 1
     prog._adjust_frequency()
     assert prog.freq == 250
 
@@ -269,8 +310,8 @@ def test_adjust_freq():
     prog.time_thresh = 1.0
     prog._max_between_count = -1.0
     prog._max_between_time = -1.0
-    prog._between_time = 1
-    prog._between_count = 1
+    prog._measure_timedelta = 1
+    prog._measure_countdelta = 1
     prog._adjust_frequency()
     assert prog.freq == 1
 
@@ -335,50 +376,46 @@ class IntObject:
         self.n += 1
 
 
-@contextmanager
-def _fake_time():
-    t = IntObject()  # fake time in seconds
-    with patch('ubelt.progiter.default_timer', side_effect=lambda: t.n):
-        yield t
-
-
-@contextmanager
-def _message_count_only():
+def test_adjust_fast_early_slow_late_doesnt_get_stuck():
     cnt = IntObject()
-    with patch.object(ProgIter, 'display_message', side_effect=cnt.inc):
-        yield cnt
+    fake_stream = FakeStream(verbose=0, callback=cnt.inc)
+    fake_timer = FakeTimer()
+
+    prog = ProgIter(range(1000), enabled=True, adjust=True, time_thresh=1.0,
+                    rel_adjust_limit=1000000.0, homogeneous=False,
+                    timer=fake_timer, stream=fake_stream)
+    it = iter(prog)
+    # Few fast updates at the beginning
+    for i in range(10):
+        next(it)
+        fake_timer.tic(100)
+    # Followed by some extremely slow updates
+    for i in range(10):
+        next(it)
+        fake_timer.tic(0.00001)
+    # Outputs should not get stuck at the few fast updates
+    assert cnt.n > 8
 
 
-def test_adjust_binds_updates_to_time_thresh():
-    with _fake_time() as t, _message_count_only() as cnt:
-        prog = ProgIter(range(1000), enabled=True, adjust=True, time_thresh=1.0,
-                        rel_adjust_limit=1000000.0, homogeneous=False)
-        it = iter(prog)
-        # Few fast updates at the beginning
-        for i in range(10):
-            next(it)
-            t.n += 0.1
-        # Followed by some extremely slow updates
-        for i in range(10):
-            next(it)
-            t.n += 1000
-        # Outputs should not get stuck at the few fast updates
-        assert cnt.n > 8
+def test_adjust_slow_early_fast_late_doesnt_spam():
+    cnt = IntObject()
+    fake_stream = FakeStream(verbose=0, callback=cnt.inc)
+    fake_timer = FakeTimer()
 
-    with _fake_time() as t, _message_count_only() as cnt:
-        prog = ProgIter(range(1000), enabled=True, adjust=True, time_thresh=1.0,
-                        rel_adjust_limit=1000000.0, homogeneous=False)
-        it = iter(prog)
-        # Few slow updates at the beginning
-        for i in range(10):
-            next(it)
-            t.n += 100
-        # Followed by a ton of extremely fast updates
-        for i in range(990):
-            next(it)
-            t.n += 0.00001
-        # Outputs should not spam the screen with messages
-        assert cnt.n < 20
+    prog = ProgIter(range(1000), enabled=True, adjust=True, time_thresh=1.0,
+                    rel_adjust_limit=1000000.0, homogeneous=False,
+                    timer=fake_timer, stream=fake_stream)
+    it = iter(prog)
+    # Few slow updates at the beginning
+    for i in range(10):
+        next(it)
+        fake_timer.tic(100)
+    # Followed by a ton of extremely fast updates
+    for i in range(990):
+        next(it)
+        fake_timer.tic(0.00001)
+    # Outputs should not spam the screen with messages
+    assert cnt.n < 20
 
 
 def test_homogeneous_heuristic_with_iter_lengths():
@@ -404,6 +441,80 @@ def test_mixed_iteration_and_step():
                         ...
 
 
+def check_issue_32_non_homogeneous_time_threshold_prints():
+    """
+    xdoctest ~/code/progiter/tests/test_progiter.py check_issue_32_non_homogeneous_time_threshold_prints
+    """
+    from ubelt import ProgIter
+
+    fake_stream = FakeStream(verbose=1)
+    fake_timer = FakeTimer([10, 1, 30, 40, 3, 4, 10, 10, 10, 10, 10, 10])
+    time_thresh = 50
+    # fake_timer = FakeTimer([.5 * factor])
+    # time_thresh = 2.9 * factor
+
+    N = 20
+    prog = ProgIter(range(N), timer=fake_timer, time_thresh=time_thresh,
+                    homogeneous='auto', stream=fake_stream, clearline=False)
+
+    static_state = {
+        'time_thresh': prog.time_thresh,
+        'adjust': prog.adjust,
+        'homogeneous': prog.homogeneous,
+    }
+
+    states = []
+
+    def record_state():
+        real_display_timedelta = fake_timer._time - prog._display_measurement.time
+        state = {
+            'iter_idx': prog._iter_idx,
+            'next_idx': prog._next_measure_idx,
+            'time': fake_timer._time,
+            'freq': prog.freq,
+            'curr': prog._curr_measurement,
+            'disp': prog._display_measurement,
+            'meas_td': prog._measure_timedelta,
+            'disp_td': prog._display_timedelta,
+            'real_disp_td': real_display_timedelta,
+            'n_disp': fake_stream._callcount,
+            'n_times': fake_timer._callcount,
+        }
+        states.append(state)
+        return state
+
+    _iter = iter(prog)
+    prog.begin()
+    record_state()
+
+    for _ in range(N):
+        next(_iter)
+        record_state()
+        fake_timer.tic()
+
+    assert fake_stream._callcount == len(fake_stream.messages)
+
+    prog.end()
+    record_state()
+
+    try:
+        import ubelt as ub
+        import pandas as pd
+        import rich
+        print('fake_stream.messages = {}'.format(ub.urepr(fake_stream.messages, nl=1)))
+        print(f'prog._likely_homogeneous={prog._likely_homogeneous}')
+        rich.print(pd.Series(static_state))
+        df = pd.DataFrame(states)
+        df['displayed'] = df['n_disp'].diff().astype(bool)
+        df['timed'] = df['n_times'].diff().astype(bool)
+        rich.print(df.to_string())
+    except ImportError:
+        ...
+
+    # TODO: write actual asserts that check that displays, measurements, and
+    # adjustments happen at the write times
+
+
 def test_end_message_is_displayed():
     """
     Older versions of progiter had a bug where the end step would not trigger
@@ -413,10 +524,53 @@ def test_end_message_is_displayed():
     stream = io.StringIO()
     prog = ProgIter(range(1000), stream=stream)
     for i in prog:
-        prog._update_all_calculations()
+        ...
     stream.seek(0)
     text = stream.read()
     assert '1000/1000' in text, 'end message should have printed'
+
+
+def test_standalone_display():
+    from ubelt import ProgIter
+    fake_stream = FakeStream(verbose=1)
+    fake_timer = FakeTimer()
+    time_thresh = 50
+
+    N = 20
+    prog = ProgIter(range(N), timer=fake_timer, time_thresh=time_thresh,
+                    homogeneous=True, stream=fake_stream, clearline=True)
+
+    prog.begin()
+
+    _iter = iter(prog)
+
+    prog.display_message()
+    prog.display_message()
+    prog.display_message()
+    fake_timer.tic(1)
+    prog.display_message()
+
+    next(_iter)
+    prog.display_message()
+    prog.display_message()
+
+    fake_timer.tic(1)
+    next(_iter)
+    fake_timer.tic(1)
+    next(_iter)
+    fake_timer.tic(1)
+    next(_iter)
+    prog.display_message()
+
+    assert fake_stream.messages == [
+        '\r  0/20... rate=0 Hz, eta=?, total=0:00:00',
+        '\r  0/20... rate=0 Hz, eta=?, total=0:00:00',
+        '\r  0/20... rate=0 Hz, eta=?, total=0:00:00',
+        '\r  0/20... rate=0 Hz, eta=?, total=0:00:00',
+        '\r  0/20... rate=0 Hz, eta=?, total=0:00:00',
+        '\r  1/20... rate=1.00 Hz, eta=0:00:19, total=0:00:01',
+        '\r  1/20... rate=1.00 Hz, eta=0:00:19, total=0:00:01',
+        '\r  4/20... rate=1.00 Hz, eta=0:00:16, total=0:00:04']
 
 
 if __name__ == '__main__':
