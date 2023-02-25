@@ -305,7 +305,9 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
             'out': None,
             'err': None,
         }
-        ret = os.system(command_text)
+        from ubelt.util_path import ChDir
+        with ChDir(cwd):
+            ret = os.system(command_text)
         info['ret'] = ret
     elif detach:
         info = {'proc': make_proc(), 'command': command_text}
