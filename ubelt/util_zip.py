@@ -374,3 +374,9 @@ class zopen(NiceRepr):
 
     def __exit__(self, *args):
         self.close()
+
+    # TODO: Allow for navigating inside of the zipfile
+
+    # TODO: opening a member should not force disk decompression unless we
+    # really need to do real seeks. If we are just streaming the first few
+    # bytes, then a standard handle will work fine.
