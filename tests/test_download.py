@@ -386,6 +386,28 @@ def test_deprecated_grabdata_args():
         got_fpath
 
 
+def _devcheck_progres_download_bar():
+    """
+    import sys, ubelt
+    sys.path.append(ubelt.expandpath('~/remote/toothbrush/code/ubelt/tests'))
+    from test_download import SingletonTestServer
+    import ubelt as ub
+    """
+    self = SingletonTestServer.instance()
+    urls = self.write_file(filebytes=85717624)
+
+    import time
+
+    class DummyIO:
+        def write(self, msg):
+            time.sleep(0.0005)
+            ...
+
+    file = DummyIO()
+    url = urls[0]
+    dl_file = ub.download(url, fpath=file, progkw=dict(desc='dling'))
+
+
 class SingletonTestServer(ub.NiceRepr):
     """
     A singleton class used for testing.

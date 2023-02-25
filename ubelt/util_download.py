@@ -22,8 +22,8 @@ __all__ = ['download', 'grabdata']
 
 
 def download(url, fpath=None, dpath=None, fname=None, appname=None,
-             hash_prefix=None, hasher='sha512', chunksize=8192, verbose=1,
-             timeout=NoParam, progkw=None):
+             hash_prefix=None, hasher='sha512', chunksize=8192, filesize=None,
+             verbose=1, timeout=NoParam, progkw=None):
     """
     Downloads a url to a file on disk.
 
@@ -63,7 +63,11 @@ def download(url, fpath=None, dpath=None, fname=None, appname=None,
             algorithm to apply to the file. Defaults to sha512.
 
         chunksize (int):
-            Download chunksize. Default to ``2 ** 13``
+            Download chunksize in bytes. Default to ``2 ** 13``
+
+        filesize (int | None):
+            If known, the filesize in bytes. If unspecified, attempts to
+            read that data from content headers.
 
         verbose (int | bool):
             Verbosity flag. Quiet is 0, higher is more verbose. Defaults to 1.
@@ -173,16 +177,17 @@ def download(url, fpath=None, dpath=None, fname=None, appname=None,
     urldata = urlopen(url, timeout=timeout)
 
     meta = urldata.info()
-    try:
-        if hasattr(meta, 'getheaders'):  # nocover
-            file_size = int(meta.getheaders("Content-Length")[0])
-        else:
-            file_size = int(meta.get_all("Content-Length")[0])
-    except Exception:  # nocover
-        # sometimes the url does not contain content length metadata
-        # TODO: find a public URL that exemplifies this or figure out how to
-        # mock it locally.
-        file_size = None
+    if filesize is None:
+        try:
+            if hasattr(meta, 'getheaders'):  # nocover
+                filesize = int(meta.getheaders("Content-Length")[0])
+            else:
+                filesize = int(meta.get_all("Content-Length")[0])
+        except Exception:  # nocover
+            # sometimes the url does not contain content length metadata
+            # TODO: find a public URL that exemplifies this or figure out how to
+            # mock it locally.
+            filesize = None
 
     if hash_prefix:
         if isinstance(hasher, str):
@@ -209,14 +214,34 @@ def download(url, fpath=None, dpath=None, fname=None, appname=None,
         # TODO: this outputs a lot of information that can bog down a CI
         # Might need to update defaults of ProgIter to reduce clutter
         _progkw = {
-            'total': file_size,
-            'freq': chunksize,
-            'time_thresh': 1,
+            'total': filesize,
+            # 'chunksize': chunksize,
+            # 'freq': chunksize,
+            'freq': 1,
+            'time_thresh': 2,
+            'adjust': False,
+            'show_rate': False,
         }
+        # import time
+        # start_time = time.monotonic()
+
+        def _build_extra():
+            pbar._curr_measurement.time
+            bytes_down = pbar._iter_idx
+            total_seconds = pbar._total_seconds + 1E-9
+            num_kb_down   = int(bytes_down) / 1024
+            num_mb_down   = int(num_kb_down / 1024)
+            kb_per_second = int(num_kb_down / (total_seconds))
+            fmt_msg = ' {:d} MB, {:d} KB/s'
+            msg = fmt_msg.format(num_mb_down, kb_per_second)
+            return msg
+
         if progkw is not None:
             _progkw.update(progkw)
         _progkw['disable'] = not verbose
         pbar = Progress(**_progkw)
+
+        pbar.set_extra(_build_extra)
         with pbar:
             _pbar_update = pbar.update
 

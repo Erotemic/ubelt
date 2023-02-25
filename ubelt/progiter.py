@@ -296,11 +296,22 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
             desired amount of time to wait between messages if adjust is True
             otherwise does nothing, default=2.0
 
+        show_percent (bool):
+            if True show percent progress. Default=True
+
         show_times (bool):
-            shows rate and eta, default=True
+            if False do not show rate, eta, or wall time.  default=True
+            Deprecated. Use show_rate / show_eta / show_wall instead.
+
+        show_rate (bool):
+            show / hide rate, default=True
+
+        show_eta (bool):
+            show / hide estimated time of arival (i.e. time to completion),
+            default=True
 
         show_wall (bool):
-            show wall time, default=False
+            show / hide wall time, default=False
 
         initial (int):
             starting index offset, default=0
@@ -364,10 +375,11 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
     """
     def __init__(self, iterable=None, desc=None, total=None, freq=1,
                  initial=0, eta_window=64, clearline=True, adjust=True,
-                 time_thresh=2.0, show_times=True, show_wall=False,
-                 enabled=True, verbose=None, stream=None, chunksize=None,
-                 rel_adjust_limit=4.0, homogeneous='auto', timer=None,
-                 **kwargs):
+                 time_thresh=2.0, show_percent=True, show_times=True,
+                 show_rate=True, show_eta=True, show_total=True,
+                 show_wall=False, enabled=True, verbose=None, stream=None,
+                 chunksize=None, rel_adjust_limit=4.0, homogeneous='auto',
+                 timer=None, **kwargs):
         """
         Note:
             See attributes for arg information
@@ -421,7 +433,11 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
         self.initial = initial
         self.enabled = enabled
         self.adjust = adjust
+        self.show_percent = show_percent
         self.show_times = show_times
+        self.show_rate = show_rate
+        self.show_eta = show_eta
+        self.show_total = show_total
         self.show_wall = show_wall
         self.eta_window = eta_window
         self.time_thresh = time_thresh
@@ -429,6 +445,7 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
         self.chunksize = chunksize
         self.rel_adjust_limit = rel_adjust_limit
         self.extra = ''
+        self._extra_fn = None
         self.started = False
         self.finished = False
 
@@ -478,6 +495,10 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
         """
         specify a custom info appended to the end of the next message
 
+        Args:
+            extra (str | Callable):
+                a constant or dynamically constructed extra message.
+
         TODO:
             - [ ] extra is a bad name; come up with something better and rename
 
@@ -489,6 +510,10 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
             1/2...processesing num 100
             2/2...processesing num 200
         """
+        if callable(extra):
+            self._extra_fn = extra
+        else:
+            self._extra_fn = None
         self.extra = extra
 
     def _reset_internals(self):
@@ -763,11 +788,11 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
         Defines the template for the progress line
 
         Example:
-            >>> self = ProgIter(show_times=True)
+            >>> self = ProgIter()
             >>> print(self._build_message_template()[1].strip())
             {desc} {iter_idx:4d}/?...{extra} rate={rate:{rate_format}} Hz, total={total}...
 
-            >>> self = ProgIter(show_times=False)
+            >>> self = ProgIter(show_total=False, show_eta=False, show_rate=False)
             >>> print(self._build_message_template()[1].strip())
             {desc} {iter_idx:4d}/?...{extra}
 
@@ -793,29 +818,35 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
                 ('...'),
             ]
         else:
-            msg_body = [
-                ('{desc}'),
-                (' {iter_idx:' + str(n_chrs) + 'd}/'),
-                ('?' if length_unknown else str(self.total)),
-                ('...'),
-            ]
+            if self.show_percent:
+                msg_body = [
+                    ('{desc}'),
+                    (' {percent:03.2f}% {iter_idx:' + str(n_chrs) + 'd}/'),
+                    ('?' if length_unknown else str(self.total)),
+                    ('...'),
+                ]
+            else:
+                msg_body = [
+                    ('{desc}'),
+                    (' {iter_idx:' + str(n_chrs) + 'd}/'),
+                    ('?' if length_unknown else str(self.total)),
+                    ('...'),
+                ]
 
-        msg_body += [
-            ('{extra} '),
-        ]
+        msg_body.append('{extra} ')
 
         if self.show_times:
-            msg_body += [
-                ('rate={rate:{rate_format}} Hz,'),
-                (' eta={eta},' if self.total else ''),
-                (' total={total}'),  # this is total time
-                # (' wall={wall} ' + tzname),
-            ]
-        if self.show_wall:
+            if self.show_rate:
+                msg_body.append('rate={rate:{rate_format}} Hz,')
 
-            msg_body += [
-                (', wall={wall}'),
-            ]
+            if self.show_eta:
+                msg_body.append(' eta={eta},' if self.total else '')
+
+            if self.show_total:
+                msg_body.append(' total={total}')  # this is total time
+
+            if self.show_wall:
+                msg_body.append(', wall={wall}')
 
         if self.clearline:
             parts = (CLEAR_BEFORE, ''.join(msg_body), '')
@@ -872,6 +903,12 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
 
         before, fmtstr, after = self._msg_fmtstr
 
+        if self._extra_fn is not None:
+            # User requested a dynamic extra callback.
+            extra = self._extra_fn()
+        else:
+            extra = self.extra
+
         # similar to tqdm.format_meter
         if self.chunksize and self.total:
             msg = fmtstr.format(
@@ -881,17 +918,18 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
                 rate_format='4.2f' if self._iters_per_second * self.chunksize > .001 else 'g',
                 eta=eta, total=total,
                 wall=time.strftime('%Y-%m-%d %H:%M ') + time.tzname[0] if self.show_wall else None,
-                extra=self.extra,
+                extra=extra,
             )
         else:
             msg = fmtstr.format(
                 desc=self.desc,
+                percent=self._curr_measurement.idx / self.total * 100,
                 iter_idx=self._curr_measurement.idx,
                 rate=self._iters_per_second,
                 rate_format='4.2f' if self._iters_per_second > .001 else 'g',
                 eta=eta, total=total,
                 wall=time.strftime('%Y-%m-%d %H:%M ') + time.tzname[0] if self.show_wall else None,
-                extra=self.extra,
+                extra=extra,
             )
 
         return before, msg, after
