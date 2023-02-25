@@ -9,13 +9,17 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 
 ### Added
-* Add transient option to JobPool so references to futures are released after they
+* Added `ChDir` to `util_path`.
+* Add transient option to `JobPool` so references to futures are released after they
   are yielded to the user.
 * Added "base32" as an option for `hash_data`. Note that it is unpadded, hence non-RFC compliant.
 * Added `pattern` as a convenience option to `ubelt.Path.ls`.
 
 ### Changed
 * Updated vendored ProgIter to match progiter 1.1.0
+
+### Fixed
+* `ubelt.cmd` now respects `cwd` when `system=True`.
 
 
 ## Version 1.2.3 - Released 2022-12-03  
