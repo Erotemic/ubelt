@@ -338,15 +338,16 @@ jobs:
       run: |-
         echo '############ PWD'
         pwd
+        cp .wheelhouse/.coverage* . || true
         ls -al
         python -m pip install coverage[toml]
         echo '############ combine'
-        coverage combine .
+        coverage combine . || true
         echo '############ XML'
-        coverage xml -o ./tests/coverage.xml
+        coverage xml -o ./tests/coverage.xml || true
         echo '############ FIND'
-        find . -name .coverage.*
-        find . -name coverage.xml
+        find . -name .coverage.* || true
+        find . -name coverage.xml  || true
     - uses: codecov/codecov-action@v3
       name: Codecov Upload
       with:
