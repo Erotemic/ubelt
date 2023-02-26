@@ -2,7 +2,6 @@ import ubelt as ub
 import itertools as it
 import uuid
 import pytest
-from os.path import join
 from ubelt.util_hash import _convert_hexstr_base, _ALPHABET_16
 from ubelt.util_hash import _hashable_sequence
 from ubelt.util_hash import _rectify_hasher
@@ -371,6 +370,16 @@ def test_hash_file():
     assert hashid3_c == hashid2_b
 
 
+def test_empty_hash_file():
+    fpath = ub.Path.appdir('ubelt/tests').ensuredir() / 'tmp.txt'
+    fpath.write_bytes(b'')
+    a = ub.hash_file(fpath, hasher='sha512', stride=1, blocksize=1)
+    b = ub.hash_file(fpath, hasher='sha512', stride=4, blocksize=4)
+    c = ub.hash_file(fpath, hasher='sha512', stride=4, blocksize=4, maxbytes=1)
+    d = ub.hash_file(fpath, hasher='sha512', stride=1, blocksize=4, maxbytes=0)
+    assert a == b == c == d
+
+
 def test_convert_base_hex():
     # Test that hex values are unchanged
     for i in it.chain(range(-10, 10), range(-1000, 1000, 7)):
@@ -435,9 +444,15 @@ def test_blake3():
         pytest.skip('blake3 is not available')
 
 
+def test_base32():
+    hashstr = ub.hash_data('abc', hasher='sha1', base=32, types=False)
+    print(f'hashstr={hashstr}')
+    assert hashstr == 'VGMT4NSHA2AWVOR6EVYXQUGCNSONBWE5'
+
+
 def test_compatible_hash_bases():
     """
-    Ubelt 1.2.3 has a ~bug~ incompatability with non-hex hash bases. Depending
+    Ubelt ~1.2.3 has a ~bug~ incompatability with non-hex hash bases. Depending
     on leftover amount of data in the byte stream, our hex reencoding may be
     incorrect. It is still correct when the input has correct lengths, but in
     general it can produce issues if you were expecting hashes to conform to
