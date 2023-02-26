@@ -16,7 +16,8 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 * Added `pattern` as a convenience option to `ubelt.Path.ls`.
 
 ### Changed
-* Updated vendored ProgIter to match progiter 1.1.0
+* Updated vendored ProgIter to match progiter 1.3.0
+* The download progress bar now gives more relevant information and updates less frequently.
 
 ### Fixed
 * `ubelt.cmd` now respects `cwd` when `system=True`.

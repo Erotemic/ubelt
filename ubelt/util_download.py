@@ -232,7 +232,8 @@ def download(url, fpath=None, dpath=None, fname=None, appname=None,
             num_kb_down   = int(bytes_down) / 1024
             num_mb_down   = int(num_kb_down / 1024)
             kb_per_second = int(num_kb_down / (total_seconds))
-            fmt_msg = ' {:d} MB, {:d} KB/s'
+            # fmt_msg = ' {:d} MB, {:d} KB/s'
+            fmt_msg = ' {:d} KB/s'
             msg = fmt_msg.format(num_mb_down, kb_per_second)
             return msg
 
