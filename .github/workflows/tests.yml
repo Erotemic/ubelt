@@ -344,14 +344,12 @@ jobs:
         echo '############ combine'
         coverage combine . || true
         echo '############ XML'
-        coverage xml -o ./tests/coverage.xml || true
-        echo '############ FIND'
-        find . -name .coverage.* || true
-        find . -name coverage.xml  || true
+        coverage xml -o ./coverage.xml || true
+        echo '### The cwd should now have a coverage.xml'
     - uses: codecov/codecov-action@v3
       name: Codecov Upload
       with:
-        file: ./tests/coverage.xml
+        file: ./coverage.xml
   test_deploy:
     name: Uploading Test to PyPi
     runs-on: ubuntu-latest

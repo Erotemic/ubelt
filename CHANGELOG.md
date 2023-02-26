@@ -5,19 +5,19 @@ We are currently working on porting this changelog to the specifications in
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
-## Version 1.2.4 - Unreleased
+## Version 1.3.0 - Unreleased
 
 
 ### Added
 * Added `ChDir` to `util_path`.
-* Add transient option to `JobPool` so references to futures are released after they
-  are yielded to the user.
+* Add transient option to `JobPool` so references to futures are released after they are yielded to the user.
 * Added "base32" as an option for `hash_data`. Note that it is unpadded, hence non-RFC compliant.
 * Added `pattern` as a convenience option to `ubelt.Path.ls`.
 
 ### Changed
 * Updated vendored ProgIter to match progiter 1.3.0
 * The download progress bar now gives more relevant information and updates less frequently.
+* `IndexableWalker.allclose` can now take unwrapped objects.
 
 ### Fixed
 * `ubelt.cmd` now respects `cwd` when `system=True`.

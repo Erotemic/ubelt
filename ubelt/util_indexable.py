@@ -302,8 +302,8 @@ class IndexableWalker(Generator):
         everything is roughly the same.
 
         Args:
-            other (IndexableWalker):
-                a wrapped nested indexable item to compare against
+            other (IndexableWalker | List | Dict):
+                a nested indexable item to compare against.
 
             rel_tol (float):
                 maximum difference for being considered "close", relative to the
@@ -369,13 +369,13 @@ class IndexableWalker(Generator):
 
         Example:
             >>> import ubelt as ub
-            >>> flag =  ub.IndexableWalker([]).allclose(ub.IndexableWalker([]), return_info=False)
+            >>> flag =  ub.IndexableWalker([]).allclose([], return_info=False)
             >>> print('flag = {!r}'.format(flag))
             >>> assert flag
 
         Example:
             >>> import ubelt as ub
-            >>> flag, return_info =  ub.IndexableWalker([]).allclose(ub.IndexableWalker([1]), return_info=True)
+            >>> flag, return_info =  ub.IndexableWalker([]).allclose([1], return_info=True)
             >>> print('return_info = {!r}'.format(return_info))
             >>> print('flag = {!r}'.format(flag))
             >>> assert not flag
@@ -402,7 +402,11 @@ class IndexableWalker(Generator):
             >>> print('flag = {!r}'.format(flag))
         """
         walker1 = self
-        walker2 = other
+        if isinstance(other, IndexableWalker):
+            walker2 = other
+        else:
+            walker2 = IndexableWalker(other, dict_cls=self.dict_cls,
+                                      list_cls=self.list_cls)
 
         flat_items1 = [
             (path, value) for path, value in walker1
@@ -461,7 +465,7 @@ def indexable_allclose(items1, items2, rel_tol=1e-9, abs_tol=0.0, return_info=Fa
 
     NOTE:
         Deprecated. Instead use:
-            ub.IndexableWalker(items1).allclose(ub.IndexableWalker(items2))
+            ub.IndexableWalker(items1).allclose(items2)
 
     Args:
         items1 (dict | list | tuple):
@@ -506,7 +510,7 @@ def indexable_allclose(items1, items2, rel_tol=1e-9, abs_tol=0.0, return_info=Fa
     ub.schedule_deprecation(
         'ubelt', 'indexable_allclose', 'function',
         migration=(
-            'Use `ub.IndexableWalker(items1).allclose(ub.IndexableWalker(items2))` instead'
+            'Use `ub.IndexableWalker(items1).allclose(items2)` instead'
         ))
     walker1 = IndexableWalker(items1)
     walker2 = IndexableWalker(items2)
