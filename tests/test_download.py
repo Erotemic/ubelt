@@ -568,7 +568,7 @@ def test_download_with_progkw():
     fname = basename(url)
     fpath = join(dpath, fname)
     with ub.CaptureStdout() as cap:
-        ub.download(url, fpath=fpath, progkw={'verbose': 3, 'freq': 1, 'adjust': False}, chunksize=128)
+        ub.download(url, fpath=fpath, progkw={'verbose': 3, 'freq': 1, 'adjust': False, 'time_thresh': 0}, chunksize=128)
     assert len(cap.text.split('\n')) > 10
 
 

@@ -28,8 +28,9 @@ def test_job_pool_as_completed_prog_args():
         pool.submit(worker, data)
 
     with ub.CaptureStdout() as cap:
-        final = list(pool.as_completed(desc='collect jobs', progkw={'verbose': 3}))
+        final = list(pool.as_completed(desc='collect jobs', progkw={'verbose': 3, 'time_thresh': 0}))
 
+    print(f'cap.text={cap.text}')
     num_lines = len(cap.text.split('\n'))
     num_jobs = len(pool.jobs)
     assert num_lines > num_jobs
