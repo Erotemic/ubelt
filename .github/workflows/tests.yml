@@ -320,10 +320,13 @@ jobs:
         echo "cd-ing into the workspace"
         cd $WORKSPACE_DNAME
         pwd
-        ls -al
+        ls -altr
         # Get the path to the installed package and run the tests
         MOD_DPATH=$(python -c "import ubelt, os; print(os.path.dirname(ubelt.__file__))")
+        echo "WHEEL_FPATH = $WHEEL_FPATH"
+        echo "MOD_VERSION = $MOD_VERSION"
         echo "MOD_DPATH = $MOD_DPATH"
+        echo "MOD_NAME = $MOD_NAME"
         echo "running the pytest command inside the workspace"
         python -m pytest -p pytester -p no:doctest --xdoctest --cov-config ../pyproject.toml --cov-report term --cov="$MOD_NAME" "$MOD_DPATH" ../tests
         echo "pytest command finished, moving the coverage file to the repo root"
@@ -346,6 +349,8 @@ jobs:
         echo '############ XML'
         coverage xml -o ./coverage.xml || true
         echo '### The cwd should now have a coverage.xml'
+        ls -altr
+        pwd
     - uses: codecov/codecov-action@v3
       name: Codecov Upload
       with:
