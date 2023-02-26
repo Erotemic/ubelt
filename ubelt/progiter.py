@@ -506,9 +506,9 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
             >>> prog = ProgIter(range(100, 300, 100), show_times=False, verbose=3)
             >>> for n in prog:
             >>>     prog.set_extra('processesing num {}'.format(n))
-            0/2...
-            1/2...processesing num 100
-            2/2...processesing num 200
+             0.00% 0/2...
+             50.00% 1/2...processesing num 100
+             100.00% 2/2...processesing num 200
         """
         if callable(extra):
             self._extra_fn = extra
@@ -798,7 +798,7 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
 
             >>> self = ProgIter(total=0, show_times=True)
             >>> print(self._build_message_template()[1].strip())
-            {desc} {iter_idx:1d}/0...{extra} rate={rate:{rate_format}} Hz, total={total}...
+            {desc} {percent:03.2f}% {iter_idx:1d}/0...{extra} rate={rate:{rate_format}} Hz, total={total}
         """
         from math import log10, floor
         length_unknown = self.total is None or self.total < 0
@@ -818,7 +818,7 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
                 ('...'),
             ]
         else:
-            if self.show_percent:
+            if self.show_percent and not length_unknown:
                 msg_body = [
                     ('{desc}'),
                     (' {percent:03.2f}% {iter_idx:' + str(n_chrs) + 'd}/'),
@@ -909,28 +909,30 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
         else:
             extra = self.extra
 
+        fmtkw = {
+            'desc': self.desc,
+            'iter_idx': self._curr_measurement.idx,
+            'eta': eta,
+            'total': total,
+            'wall': time.strftime('%Y-%m-%d %H:%M ') + time.tzname[0] if self.show_wall else None,
+            'extra': extra,
+            'percent': '',
+        }
+
         # similar to tqdm.format_meter
         if self.chunksize and self.total:
-            msg = fmtstr.format(
-                desc=self.desc,
-                percent=self._curr_measurement.idx / self.total * 100,
-                rate=self._iters_per_second * self.chunksize,
-                rate_format='4.2f' if self._iters_per_second * self.chunksize > .001 else 'g',
-                eta=eta, total=total,
-                wall=time.strftime('%Y-%m-%d %H:%M ') + time.tzname[0] if self.show_wall else None,
-                extra=extra,
-            )
+            fmtkw.update({
+                'percent': self._curr_measurement.idx / self.total * 100,
+                'rate': self._iters_per_second * self.chunksize,
+                'rate_format': '4.2f' if self._iters_per_second * self.chunksize > .001 else 'g',
+            })
         else:
-            msg = fmtstr.format(
-                desc=self.desc,
-                percent=self._curr_measurement.idx / self.total * 100,
-                iter_idx=self._curr_measurement.idx,
-                rate=self._iters_per_second,
-                rate_format='4.2f' if self._iters_per_second > .001 else 'g',
-                eta=eta, total=total,
-                wall=time.strftime('%Y-%m-%d %H:%M ') + time.tzname[0] if self.show_wall else None,
-                extra=extra,
-            )
+            fmtkw.update({
+                'percent': self._curr_measurement.idx / self.total * 100 if self.total is not None and self.total > 0 else 0,
+                'rate': self._iters_per_second,
+                'rate_format': '4.2f' if self._iters_per_second > .001 else 'g',
+            })
+        msg = fmtstr.format(**fmtkw)
 
         return before, msg, after
 
@@ -946,10 +948,10 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
             ...                 time_thresh=0)
             >>> for n in prog:
             ...     print('unsafe message')
-             0/3... unsafe message
+             0.00% 0/3... unsafe message
             unsafe message
-             2/3... unsafe message
-             3/3...
+             66.67% 2/3... unsafe message
+             100.00% 3/3...
             >>> # apparently the safe version does this too.
             >>> print('---')
             ---
@@ -958,12 +960,12 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
             >>> for n in prog:
             ...     prog.ensure_newline()
             ...     print('safe message')
-             0/3...
+             0.00% 0/3...
             safe message
             safe message
-             2/3...
+             66.67% 2/3...
             safe message
-             3/3...
+             100.00% 3/3...
         """
         if not self._cursor_at_newline:
             self._write(AT_END)

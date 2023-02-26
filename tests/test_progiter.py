@@ -186,9 +186,10 @@ def test_progiter_offset_10():
     # Define a function that takes some time
     file = StringIO()
     list(ProgIter(range(10), total=20, verbose=3, start=10, file=file,
-                  freq=5, show_times=False, time_thresh=0))
+                  freq=5, show_rate=False, show_eta=False, show_total=False,
+                  time_thresh=0))
     file.seek(0)
-    want = ['10/20...', '15/20...', '20/20...']
+    want = ['50.00% 10/20...', '75.00% 15/20...', '100.00% 20/20...']
     got = [line.strip() for line in file.readlines()]
     if sys.platform.startswith('win32'):  # nocover
         # on windows \r seems to be mixed up with ansi sequences
@@ -204,10 +205,11 @@ def test_progiter_offset_0():
     # Define a function that takes some time
     file = StringIO()
     for _ in ProgIter(range(10), total=20, verbose=3, start=0, file=file,
-                      freq=5, show_times=False, time_thresh=0):
+                      freq=5, show_rate=False, show_eta=False,
+                      show_total=False, time_thresh=0):
         pass
     file.seek(0)
-    want = ['0/20...', '5/20...', '10/20...']
+    want = ['0.00%  0/20...', '25.00%  5/20...', '50.00% 10/20...']
     got = [line.strip() for line in file.readlines()]
     if sys.platform.startswith('win32'):  # nocover
         # on windows \r seems to be mixed up with ansi sequences
@@ -563,6 +565,49 @@ def test_standalone_display():
     prog.display_message()
 
     assert fake_stream.messages == [
+        '\r 0.00%  0/20... rate=0 Hz, eta=?, total=0:00:00',
+        '\r 0.00%  0/20... rate=0 Hz, eta=?, total=0:00:00',
+        '\r 0.00%  0/20... rate=0 Hz, eta=?, total=0:00:00',
+        '\r 0.00%  0/20... rate=0 Hz, eta=?, total=0:00:00',
+        '\r 0.00%  0/20... rate=0 Hz, eta=?, total=0:00:00',
+        '\r 5.00%  1/20... rate=1.00 Hz, eta=0:00:19, total=0:00:01',
+        '\r 5.00%  1/20... rate=1.00 Hz, eta=0:00:19, total=0:00:01',
+        '\r 20.00%  4/20... rate=1.00 Hz, eta=0:00:16, total=0:00:04']
+
+
+def test_no_percent():
+    from ubelt import ProgIter
+    fake_stream = FakeStream(verbose=1)
+    fake_timer = FakeTimer()
+    time_thresh = 50
+
+    N = 20
+    prog = ProgIter(range(N), timer=fake_timer, time_thresh=time_thresh,
+                    show_percent=False, homogeneous=True, stream=fake_stream,
+                    clearline=True)
+
+    prog.begin()
+
+    _iter = iter(prog)
+
+    prog.display_message()
+    prog.display_message()
+    prog.display_message()
+    fake_timer.tic(1)
+    prog.display_message()
+
+    next(_iter)
+    prog.display_message()
+    prog.display_message()
+
+    fake_timer.tic(1)
+    next(_iter)
+    fake_timer.tic(1)
+    next(_iter)
+    fake_timer.tic(1)
+    next(_iter)
+    prog.display_message()
+    assert fake_stream.messages == [
         '\r  0/20... rate=0 Hz, eta=?, total=0:00:00',
         '\r  0/20... rate=0 Hz, eta=?, total=0:00:00',
         '\r  0/20... rate=0 Hz, eta=?, total=0:00:00',
@@ -572,6 +617,53 @@ def test_standalone_display():
         '\r  1/20... rate=1.00 Hz, eta=0:00:19, total=0:00:01',
         '\r  4/20... rate=1.00 Hz, eta=0:00:16, total=0:00:04']
 
+
+def test_extra_callback():
+    from ubelt import ProgIter
+    fake_stream = FakeStream(verbose=1)
+    fake_timer = FakeTimer()
+    time_thresh = 50
+
+    def build_extra():
+        return chr(prog._iter_idx % 26 + 97) * 3
+
+    N = 20
+    prog = ProgIter(range(N), timer=fake_timer, time_thresh=time_thresh,
+                    homogeneous=True, stream=fake_stream, clearline=True)
+    prog.set_extra(build_extra)
+
+    prog.begin()
+
+    _iter = iter(prog)
+
+    prog.display_message()
+    prog.display_message()
+    prog.display_message()
+    fake_timer.tic(1)
+    prog.display_message()
+
+    next(_iter)
+    prog.display_message()
+    prog.display_message()
+
+    fake_timer.tic(1)
+    next(_iter)
+    fake_timer.tic(1)
+    next(_iter)
+    fake_timer.tic(1)
+    next(_iter)
+    prog.display_message()
+
+    assert fake_stream.messages == [
+        '\r 0.00%  0/20...aaa rate=0 Hz, eta=?, total=0:00:00',
+        '\r 0.00%  0/20...aaa rate=0 Hz, eta=?, total=0:00:00',
+        '\r 0.00%  0/20...aaa rate=0 Hz, eta=?, total=0:00:00',
+        '\r 0.00%  0/20...aaa rate=0 Hz, eta=?, total=0:00:00',
+        '\r 0.00%  0/20...aaa rate=0 Hz, eta=?, total=0:00:00',
+        '\r 5.00%  1/20...bbb rate=1.00 Hz, eta=0:00:19, total=0:00:01',
+        '\r 5.00%  1/20...bbb rate=1.00 Hz, eta=0:00:19, total=0:00:01',
+        '\r 20.00%  4/20...eee rate=1.00 Hz, eta=0:00:16, total=0:00:04',
+    ]
 
 if __name__ == '__main__':
     import pytest
