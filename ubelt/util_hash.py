@@ -1115,7 +1115,7 @@ def hash_file(fpath, blocksize=1048576, stride=1, maxbytes=None,
     r"""
     Hashes the data in a file on disk.
 
-    The results of this function agree with the standard UNIX commands (e.g.
+    The results of this function agree with standard hashing programs (e.g.
     sha1sum, sha512sum, md5sum, etc...)
 
     Args:
@@ -1142,17 +1142,10 @@ def hash_file(fpath, blocksize=1048576, stride=1, maxbytes=None,
             (e.g.  'sha1', 'sha512', 'md5') as well as 'xxh32' and 'xxh64' if
             :mod:`xxhash` is installed.  Defaults to 'sha512'.
 
-            TODO: add logic such that you can update an existing hasher
-
         base (List[str] | int | str | NoParamType):
             list of symbols or shorthand key.
-            Valid keys are 'abc', 'hex', and 'dec', 10, 16, 26, 32. Defaults to
-            'hex'.
-
-    Note:
-        For better hashes keep stride = 1.
-        For faster hashes set stride > 1.
-        Blocksize matters when stride > 1.
+            Valid keys are 'abc', 'hex', and 'dec', 10, 16, 26, 32.
+            Defaults to 'hex'.
 
     References:
         .. [SO_3431825] http://stackoverflow.com/questions/3431825/md5-checksum-of-a-file
@@ -1233,6 +1226,7 @@ def hash_file(fpath, blocksize=1048576, stride=1, maxbytes=None,
         print(f'our_result={our_result}')
         assert our_result == std_result
     """
+    # TODO: add logic such that you can update an existing hasher
     base = _rectify_base(base)
     hasher = _rectify_hasher(hasher)()
     with open(fpath, 'rb') as file:

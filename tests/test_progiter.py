@@ -618,6 +618,46 @@ def test_no_percent():
         '\r  4/20... rate=1.00 Hz, eta=0:00:16, total=0:00:04']
 
 
+def test_clearline_padding():
+    """
+    Ensure we overwrite the entire previous message
+    """
+    from ubelt import ProgIter
+    fake_stream = FakeStream(verbose=1)
+    prog = ProgIter(range(20), time_thresh=99999999,
+                    show_percent=False, homogeneous=True, stream=fake_stream,
+                    clearline=True)
+    prog.start()
+    prog.display_message()
+    msg1_len = prog._prev_msg_len
+    assert prog._prev_msg_len > 30
+    assert prog._prev_msg_len < 50
+    assert prog.clearline, 'test requirement'
+    prog.set_extra('a very long message')
+    prog.step()
+    assert prog._prev_msg_len == msg1_len, (
+        'We are under the time threshold. '
+        'We should not have updated the display message yet')
+    prog.display_message()
+    msg2_len = prog._prev_msg_len
+    assert msg2_len > msg1_len, 'should have a longer message'
+
+    # Now make a shorter line length
+    prog.set_extra('shorter')
+    prog.step()
+    prog.display_message()
+    msg3_len = prog._prev_msg_len
+    assert msg3_len < msg2_len, 'should have a shorter message'
+
+    msg1 = fake_stream.messages[-3]
+    msg2 = fake_stream.messages[-2]
+    msg3 = fake_stream.messages[-1]
+    assert len(msg1) == msg1_len + 1
+    assert len(msg2) == msg2_len + 1
+    assert len(msg3) >= msg3_len + 1, 'the real third message should include padding'
+    assert len(msg3) == msg2_len + 1, 'the real third message should include padding to clear msg2'
+
+
 def test_extra_callback():
     from ubelt import ProgIter
     fake_stream = FakeStream(verbose=1)
