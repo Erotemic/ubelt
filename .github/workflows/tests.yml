@@ -119,7 +119,7 @@ jobs:
       shell: bash
       run: |-
         python -m pip install pip -U
-        python -m pip install setuptools>=0.8 build
+        python -m pip install setuptools>=0.8 wheel build
         python -m build --wheel --outdir wheelhouse
     - name: Show built files
       shell: bash
@@ -193,6 +193,10 @@ jobs:
           os: ubuntu-latest
           install-extras: tests,optional
           arch: auto
+        - python-version: pypy-3.7
+          os: ubuntu-latest
+          install-extras: tests,optional
+          arch: auto
         - python-version: '3.6'
           os: macOS-latest
           install-extras: tests,optional
@@ -217,6 +221,10 @@ jobs:
           os: macOS-latest
           install-extras: tests,optional
           arch: auto
+        - python-version: pypy-3.7
+          os: macOS-latest
+          install-extras: tests,optional
+          arch: auto
         - python-version: '3.6'
           os: windows-latest
           install-extras: tests,optional
@@ -238,6 +246,10 @@ jobs:
           install-extras: tests,optional
           arch: auto
         - python-version: '3.11'
+          os: windows-latest
+          install-extras: tests,optional
+          arch: auto
+        - python-version: pypy-3.7
           os: windows-latest
           install-extras: tests,optional
           arch: auto
@@ -274,30 +286,34 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
     - uses: actions/download-artifact@v3
-      name: Download wheels and sdist
+      name: Download wheels
       with:
         name: wheels
         path: wheelhouse
-    - name: Test wheel with ${{ matrix.install-extras }}
+    - name: Install wheel ${{ matrix.install-extras }}
       shell: bash
       env:
         INSTALL_EXTRAS: ${{ matrix.install-extras }}
-        CI_PYTHON_VERSION: py${{ matrix.python-version }}
       run: |-
         echo "Finding the path to the wheel"
-        ls -al wheelhouse
+        ls wheelhouse || echo "wheelhouse does not exist"
         echo "Installing helpers"
+        pip install pip setuptools>=0.8 setuptools_scm wheel build -U
         pip install tomli pkginfo
-        MOD_NAME=ubelt
+        export MOD_NAME=ubelt
         echo "MOD_NAME=$MOD_NAME"
-        WHEEL_FPATH=$(python -c "import pathlib; print(str(sorted(pathlib.Path('wheelhouse').glob('$MOD_NAME*.whl'))[-1]).replace(chr(92), chr(47)))")
+        export WHEEL_FPATH=$(python -c "import pathlib; print(str(sorted(pathlib.Path('wheelhouse').glob('$MOD_NAME*.whl'))[-1]).replace(chr(92), chr(47)))")
         echo "WHEEL_FPATH=$WHEEL_FPATH"
-        MOD_VERSION=$(python -c "from pkginfo import Wheel; print(Wheel('$WHEEL_FPATH').version)")
+        export MOD_VERSION=$(python -c "from pkginfo import Wheel; print(Wheel('$WHEEL_FPATH').version)")
         echo "MOD_VERSION=$MOD_VERSION"
-        echo "Install the wheel (ensureing we are using the version we just built)"
-        # NOTE: THE VERSION MUST BE NEWER THAN AN EXISTING PYPI VERSION OR THIS MAY FAIL
         pip install --prefer-binary "$MOD_NAME[$INSTALL_EXTRAS]==$MOD_VERSION" -f wheelhouse
-        echo "Install finished. Creating a sandbox directory to test it"
+        echo "Install finished."
+    - name: Test wheel ${{ matrix.install-extras }}
+      shell: bash
+      env:
+        CI_PYTHON_VERSION: py${{ matrix.python-version }}
+      run: |-
+        echo "Creating test sandbox directory"
         WORKSPACE_DNAME="testdir_${CI_PYTHON_VERSION}_${GITHUB_RUN_ID}_${RUNNER_OS}"
         echo "WORKSPACE_DNAME=$WORKSPACE_DNAME"
         mkdir -p $WORKSPACE_DNAME
@@ -305,7 +321,6 @@ jobs:
         cd $WORKSPACE_DNAME
         pwd
         ls -al
-        pip freeze
         # Get the path to the installed package and run the tests
         MOD_DPATH=$(python -c "import ubelt, os; print(os.path.dirname(ubelt.__file__))")
         echo "MOD_DPATH = $MOD_DPATH"
