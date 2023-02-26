@@ -572,6 +572,21 @@ def test_download_with_progkw():
     assert len(cap.text.split('\n')) > 10
 
 
+@pytest.mark.timeout(TIMEOUT)
+def test_download_with_filesize():
+    """
+    Test that progkw is properly passed through to ub.download
+    """
+    url = _demo_url(128 * 10)
+    dpath = ub.Path.appdir('ubelt/tests/test_download').ensuredir()
+    fname = basename(url)
+    fpath = join(dpath, fname)
+    with ub.CaptureStdout() as cap:
+        ub.download(url, filesize=11, fpath=fpath, progkw={'verbose': 3, 'freq': 1, 'adjust': False, 'time_thresh': 0}, chunksize=128)
+    import re
+    assert re.search(r'\d\d\d\d\.\d\d%', cap.text), 'should report over 100%'
+
+
 def make_stat_dict(stat_obj):
     # Convert the stat tuple to a dict we can manipulate
     # and ignore access time
