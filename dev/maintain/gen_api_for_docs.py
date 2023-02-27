@@ -3,7 +3,7 @@
 def count_ubelt_usage():
     """
     import sys, ubelt
-    sys.path.append(ubelt.expandpath('~/code/ubelt/dev/mainatin'))
+    sys.path.append(ubelt.expandpath('~/code/ubelt/dev/maintain'))
     from gen_api_for_docs import *  # NOQA
     """
     from count_usage_freq import count_ubelt_usage

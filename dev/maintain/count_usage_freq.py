@@ -101,7 +101,7 @@ if __name__ == '__main__':
         ~/internal/dev/pkg_usage_stats_update.sh
 
     CommandLine:
-        python ~/code/ubelt/dev/count_usage_freq.py --help
-        python ~/code/ubelt/dev/count_usage_freq.py --remove_zeros=False --print_packages=True
+        python ~/code/ubelt/dev/maintain/count_usage_freq.py --help
+        python ~/code/ubelt/dev/maintain/count_usage_freq.py --remove_zeros=False --print_packages=True
     """
     count_ubelt_usage()
