@@ -719,7 +719,8 @@ class Path(_PathBase):
                 which by default is the parent directory.
 
             tail (str | None):
-                If specified, appends this text to the extension.
+                If specified, appends this text the very end of the path -
+                after the extension.
 
             relative (str | PathLike | None):
                 Replaces ``relative`` with ``dpath`` in ``path``.
@@ -731,9 +732,6 @@ class Path(_PathBase):
                 multiple dots. Specifically, if False, everything after the
                 last dot in the basename is the extension. If True, everything
                 after the first dot in the basename is the extension.
-
-            suffix (str):
-                DEPRECAETD
 
         SeeAlso:
             :py:meth:`pathlib.Path.with_stem`
@@ -820,7 +818,7 @@ class Path(_PathBase):
             from ubelt.util_deprecate import schedule_deprecation
             schedule_deprecation(
                 'ubelt', 'suffix', 'arg',
-                deprecate='1.1.3', remove='2.0.0',
+                deprecate='1.1.3', remove='1.4.0',
                 migration='Use stemsuffix instead',
             )
             if not stemsuffix:
