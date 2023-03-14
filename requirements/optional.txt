@@ -1,7 +1,7 @@
-# python ~/local/tools/supported_python_versions_pip.py colorama
-# python ~/local/tools/supported_python_versions_pip.py numpy
-# python ~/local/tools/supported_python_versions_pip.py xxhash
-# python ~/local/tools/supported_python_versions_pip.py numpy
+# xdev availpkg colorama
+# xdev availpkg numpy
+# xdev availpkg xxhash
+# xdev availpkg numpy
 
 # 1.19.2 was important for some versions of tensorflow
 numpy>=1.23.5    ; python_version < '4.0'  and python_version >= '3.11' and platform_python_implementation == "CPython" # Python 3.11+
