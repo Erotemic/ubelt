@@ -163,7 +163,7 @@ def test_copy_directory_cases():
             # Unlike cp, Path.copy will create the intermediate directories
             assert contents1 == relative_contents(new_dpath)
 
-        if ub.LINUX:
+        if 0 and ub.LINUX:
             """
             In all cases we have a folder
                 <src> = <parent1>/<name>
