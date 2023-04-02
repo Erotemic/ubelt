@@ -394,9 +394,7 @@ class TempDir:
     """
     Context for creating and cleaning up temporary directories.
 
-    Note:
-        This class will be DEPRECATED. The exact deprecation version and
-        mitigation plan has not yet been developed.
+    This class is DEPRECATED. Use `tempfile` instead.
 
     Note:
         This exists because :class:`tempfile.TemporaryDirectory` was
@@ -705,7 +703,7 @@ class Path(_PathBase):
 
             stemsuffix (str):
                 Text placed between the stem and extension. Default to ''.
-                Note: this is just called suffix in :func:`ub.augpath`.
+                Note: this is called suffix in :func:`ub.augpath`.
 
             ext (str | None):
                 If specified, replaces the extension
@@ -823,7 +821,6 @@ class Path(_PathBase):
             )
             if not stemsuffix:
                 stemsuffix = suffix
-            import warnings
             warnings.warn(
                 'DEVELOPER NOTICE: The ubelt.Path.augment function may '
                 'experience a BACKWARDS INCOMPATIBLE update in the future '
@@ -903,7 +900,7 @@ class Path(_PathBase):
             The ubelt variant is the same, except it returns the path as well.
 
         Args:
-            mode (int) : perms
+            mode (int) : permission bits
             parents (bool) : create parents
             exist_ok (bool) : fail if exists
 
@@ -953,8 +950,8 @@ class Path(_PathBase):
         """
         A convenience function to list all paths in a directory.
 
-        This is simply a wraper around iterdir that returns the results as a
-        list instead of a generator. This is mainly for faster navigation in
+        This is a wrapper around iterdir that returns the results as a list
+        instead of a generator. This is mainly for faster navigation in
         IPython. In production code ``iterdir`` or ``glob`` should be used
         instead.
 
@@ -1004,7 +1001,7 @@ class Path(_PathBase):
 
     def shrinkuser(self, home='~'):
         """
-        Shrinks your home dir by replacing it with a tilde.
+        Shrinks your home directory by replacing it with a tilde.
 
         This is the inverse of :func:`os.path.expanduser`.
 
@@ -1153,7 +1150,7 @@ class Path(_PathBase):
 
     def endswith(self, suffix, *args):
         """
-        Test if the fspath representation endswith a particular string
+        Test if the fspath representation ends with a particular string
 
         Allows ubelt.Path to be a better drop-in replacement when working with
         string-based paths.
@@ -1188,7 +1185,7 @@ class Path(_PathBase):
 
     def startswith(self, prefix, *args):
         """
-        Test if the fspath representation startswith a particular string
+        Test if the fspath representation starts with a particular string
 
         Allows ubelt.Path to be a better drop-in replacement when working with
         string-based paths.
@@ -1248,7 +1245,6 @@ class Path(_PathBase):
 
         By default files are never overwritten and symlinks are copied as-is.
 
-
         At a basic level (i.e. ignoring symlinks) for each path argument
         (``src`` and ``dst``) these can either be files, directories, or not
         exist. Given these three states, the following table summarizes how
@@ -1294,14 +1290,16 @@ class Path(_PathBase):
             print(piv.to_markdown(tablefmt="pretty", index=True))
             print(piv.to_markdown(tablefmt="grid", index=True))
 
+            See: ~/code/ubelt/tests/test_path.py for test cases
+
         Args:
             dst (str | PathLike):
-                if `src` is a file and `dst` does not exist, copies this to `dst`
-                if `src` is a file and `dst` is a directory, copies this to `dst / src.name`
+                if ``src`` is a file and ``dst`` does not exist, copies this to ``dst``
+                if ``src`` is a file and ``dst`` is a directory, copies this to ``dst / src.name``
 
-                if `src` is a directory and `dst` does not exist, copies this to `dst`
-                if `src` is a directory and `dst` is a directory, errors unless
-                overwrite is True, in which case, copies this to `dst` and
+                if ``src`` is a directory and ``dst`` does not exist, copies this to ``dst``
+                if ``src`` is a directory and ``dst`` is a directory, errors unless
+                overwrite is True, in which case, copies this to ``dst`` and
                 overwrites anything conflicting path.
 
             follow_file_symlinks (bool):
@@ -1331,9 +1329,18 @@ class Path(_PathBase):
 
         Note:
             This is implemented with a combination of :func:`shutil.copy`,
-            :func:`shutil.copy2`, and :func:`shutil.copytree`, but the The
-            defaults and behavior here are noticably different (and hopefully
-            safer and more intuitive).
+            :func:`shutil.copy2`, and :func:`shutil.copytree`, but the defaults
+            and behavior here are noticeably different (and hopefully safer and
+            more intuitive).
+
+        Note:
+            Unlike cp on Linux, copying a src directory into a dst directory
+            will not implicitly add the src directory name to the dst
+            directory. This means we cannot copy directory ``<parent>/<dname>``
+            to ``<dst>`` and expect the result to be ``<dst>/<dname>``.
+
+            Conceptually you can always expect ``<parent>/<dname>/<contents>``
+            to be exist in ``<dst>/<contents>``.
 
         Example:
             >>> import ubelt as ub
@@ -1363,8 +1370,6 @@ class Path(_PathBase):
             xdev.tree_repr(clone0, max_files=10)
             xdev.tree_repr(clone1, max_files=10)
         """
-        warnings.warn('The ub.Path.copy function is experimental and may change, '
-                      'in corner cases. Primary cases seem stable.')
         import shutil
         copy_function = self._request_copy_function(
             follow_file_symlinks=follow_file_symlinks,
@@ -1388,7 +1393,7 @@ class Path(_PathBase):
                     raise FileExistsError('Cannot overwrite existing file unless overwrite=True')
             dst = copy_function(self, dst)
         else:
-            raise Exception
+            raise FileExistsError('The source path does not exist')
         return Path(dst)
 
     def move(self, dst, follow_file_symlinks=False, follow_dir_symlinks=False,
@@ -1428,10 +1433,10 @@ class Path(_PathBase):
 
             This is implemented via :func:`shutil.move`, which depends heavily
             on :func:`os.rename` semantics. For this reason, this function
-            error if it would overwrite any data. If you want an overwriting
-            variant of move we recommend you either either copy the data, and
-            then delete the original (potentially inefficient), or use
-            :func:`shutil.move` directly if you know how :func:`os.rename`
+            will error if it would overwrite any data. If you want an
+            overwriting variant of move we recommend you either either copy the
+            data, and then delete the original (potentially inefficient), or
+            use :func:`shutil.move` directly if you know how :func:`os.rename`
             works on your system.
 
         Returns:
@@ -1456,9 +1461,6 @@ class Path(_PathBase):
             import xdev
             xdev.tree_repr(dpath)
         """
-        warnings.warn('The ub.Path.move function is experimental and may change! '
-                      'Do not rely on this behavior yet!')
-
         # Behave more like POSIX move to avoid potential confusing behavior
         if exists(dst):
             raise FileExistsError(
