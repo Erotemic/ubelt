@@ -5,8 +5,13 @@ We are currently working on porting this changelog to the specifications in
 This project (loosely) adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
-## Version 1.2.4 - Unreleased
+## Version 1.2.5 - Unreleased
 
+### Changed
+* Removed experimental warning from `Path.copy` and `Path.move`; they are now well enough tested.
+
+
+## Version 1.2.4 - 2022-02-28
 
 ### Added
 * Added `ChDir` to `util_path`.
