@@ -13,6 +13,9 @@
 ..       <img src="https://i.imgur.com/AcWVroL.png" height="100px">
 
 
+Ubelt is a utility library for Python.
+
+
 Elevator Pitch:
 ===============
 
