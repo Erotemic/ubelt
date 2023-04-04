@@ -586,15 +586,6 @@ class ReprExtensions(object):
             else:
                 return _format_object(data, **kwargs)
 
-    def _register_scriptconfig_extensions(self):
-        import scriptconfig as scfg
-        @self.register(scfg.Config)
-        def format_scriptconfig(data, **kwargs):
-            name = data.__class__.__name__
-            body = urepr(data.to_dict(), **kwargs)
-            text = f'{name}({body})'
-            return text
-
 _REPR_EXTENSIONS = ReprExtensions()
 _REPR_EXTENSIONS._register_builtin_extensions()
 
@@ -611,7 +602,6 @@ def _lazy_init():
         _REPR_EXTENSIONS._register_numpy_extensions()
         _REPR_EXTENSIONS._register_pandas_extensions()
         # _REPR_EXTENSIONS._register_torch_extensions()
-        _REPR_EXTENSIONS._register_scriptconfig_extensions()
     except ImportError:  # nocover
         pass
 
