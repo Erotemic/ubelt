@@ -1,4 +1,3 @@
-from typing import Union
 from os import PathLike
 from typing import Iterable
 from typing import List
@@ -48,14 +47,14 @@ def ensure_app_cache_dir(appname: str, *args) -> str:
 
 
 def find_exe(
-    name: Union[str, PathLike],
+    name: str | PathLike,
     multi: bool = False,
-    path: Union[str, PathLike, Iterable[Union[str, PathLike]], None] = None
+    path: str | PathLike | Iterable[str | PathLike] | None = None
 ) -> str | List[str] | None:
     ...
 
 
-def find_path(name: Union[str, PathLike],
-              path: Union[str, Iterable[Union[str, PathLike]], None] = None,
+def find_path(name: str | PathLike,
+              path: str | Iterable[str | PathLike] | None = None,
               exact: bool = False) -> Generator[str, None, None]:
     ...

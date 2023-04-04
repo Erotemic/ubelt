@@ -1,4 +1,3 @@
-from typing import Union
 from typing import Tuple
 from typing import Callable
 from ubelt.util_const import NoParam
@@ -44,7 +43,7 @@ class HashableExtensions:
     def __init__(self) -> None:
         ...
 
-    def register(self, hash_types: Union[type, Tuple[type]]) -> Callable:
+    def register(self, hash_types: type | Tuple[type]) -> Callable:
         ...
 
     def lookup(self, data):
@@ -68,18 +67,18 @@ class _HashTracer:
 
 
 def hash_data(data: object,
-              hasher: Union[str, Hasher, NoParamType] = NoParam,
-              base: Union[List[str], str, NoParamType] = NoParam,
+              hasher: str | Hasher | NoParamType = NoParam,
+              base: List[str] | str | NoParamType = NoParam,
               types: bool = False,
               convert: bool = False,
-              extensions: Union[HashableExtensions, None] = None) -> str:
+              extensions: HashableExtensions | None = None) -> str:
     ...
 
 
 def hash_file(fpath: PathLike,
               blocksize: int = 1048576,
               stride: int = 1,
-              maxbytes: Union[int, None] = None,
-              hasher: Union[str, Hasher, NoParamType] = NoParam,
-              base: Union[List[str], str, NoParamType] = NoParam):
+              maxbytes: int | None = None,
+              hasher: str | Hasher | NoParamType = NoParam,
+              base: List[str] | int | str | NoParamType = NoParam):
     ...

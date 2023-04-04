@@ -2,7 +2,6 @@ import concurrent
 import concurrent.futures
 from typing import Callable
 from typing import Any
-from typing import Union
 from typing import List
 import concurrent.futures
 from _typeshed import Incomplete
@@ -45,7 +44,7 @@ class SerialExecutor:
 class Executor:
     backend: Incomplete
 
-    def __init__(self, mode: str = ..., max_workers: int = ...) -> None:
+    def __init__(self, mode: str = 'thread', max_workers: int = 0) -> None:
         ...
 
     def __enter__(self):
@@ -66,9 +65,13 @@ class Executor:
 
 class JobPool:
     executor: Incomplete
+    transient: Incomplete
     jobs: Incomplete
 
-    def __init__(self, mode: str = ..., max_workers: int = ...) -> None:
+    def __init__(self,
+                 mode: str = ...,
+                 max_workers: int = ...,
+                 transient: bool = ...) -> None:
         ...
 
     def __len__(self):
@@ -89,9 +92,9 @@ class JobPool:
 
     def as_completed(
         self,
-        timeout: Union[float, None] = None,
-        desc: Union[str, None] = None,
-        progkw: Union[dict, None] = None
+        timeout: float | None = None,
+        desc: str | None = None,
+        progkw: dict | None = None
     ) -> Generator[concurrent.futures.Future, None, None]:
         ...
 

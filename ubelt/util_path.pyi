@@ -1,4 +1,3 @@
-from typing import Union
 from os import PathLike
 from typing import Tuple
 from typing import List
@@ -7,35 +6,49 @@ from _typeshed import Incomplete
 from collections.abc import Generator
 
 
-def augpath(path: Union[str, PathLike],
+def augpath(path: str | PathLike,
             suffix: str = '',
             prefix: str = '',
-            ext: Union[str, None] = None,
-            tail: Union[str, None] = '',
-            base: Union[str, None] = None,
-            dpath: Union[str, PathLike, None] = None,
-            relative: Union[str, PathLike, None] = None,
+            ext: str | None = None,
+            tail: str | None = '',
+            base: str | None = None,
+            dpath: str | PathLike | None = None,
+            relative: str | PathLike | None = None,
             multidot: bool = False) -> str:
     ...
 
 
-def userhome(username: Union[str, None] = None) -> str:
+def userhome(username: str | None = None) -> str:
     ...
 
 
-def shrinkuser(path: Union[str, PathLike], home: str = '~') -> str:
+def shrinkuser(path: str | PathLike, home: str = '~') -> str:
     ...
 
 
-def expandpath(path: Union[str, PathLike]) -> str:
+def expandpath(path: str | PathLike) -> str:
     ...
 
 
-def ensuredir(dpath: Union[str, PathLike, Tuple[Union[str, PathLike]]],
+def ensuredir(dpath: str | PathLike | Tuple[str | PathLike],
               mode: int = 1023,
               verbose: int = 0,
               recreate: bool = False) -> str:
     ...
+
+
+class ChDir:
+    context_dpath: Incomplete
+    orig_dpath: Incomplete
+
+    def __init__(self, dpath) -> None:
+        ...
+
+    def __enter__(self):
+        ...
+
+    def __exit__(self, a, b, c) -> None:
+        ...
 
 
 class TempDir:
@@ -67,7 +80,7 @@ class Path:
 
     @classmethod
     def appdir(cls,
-               appname: Union[str, None] = None,
+               appname: str | None = None,
                *args,
                type: str = 'cache') -> 'Path':
         ...
@@ -75,13 +88,13 @@ class Path:
     def augment(self,
                 prefix: str = '',
                 stemsuffix: str = '',
-                ext: Union[str, None] = None,
-                stem: Union[str, None] = None,
-                dpath: Union[str, PathLike, None] = None,
-                tail: Union[str, None] = '',
-                relative: Union[str, PathLike, None] = None,
+                ext: str | None = None,
+                stem: str | None = None,
+                dpath: str | PathLike | None = None,
+                tail: str | None = '',
+                relative: str | PathLike | None = None,
                 multidot: bool = False,
-                suffix: str = '') -> 'Path':
+                suffix: str = ...) -> 'Path':
         ...
 
     def delete(self) -> 'Path':
@@ -102,7 +115,7 @@ class Path:
     def expandvars(self) -> 'Path':
         ...
 
-    def ls(self) -> List[Path]:
+    def ls(self, pattern: None | str = None) -> List[Path]:
         ...
 
     def shrinkuser(self, home: str = '~') -> 'Path':
@@ -114,7 +127,7 @@ class Path:
     def walk(
         self,
         topdown: bool = True,
-        onerror: Union[Callable[[OSError], None], None] = None,
+        onerror: Callable[[OSError], None] | None = None,
         followlinks: bool = False
     ) -> Generator[Tuple['Path', List[str], List[str]], None, None]:
         ...
@@ -125,23 +138,23 @@ class Path:
     def __radd__(self, other) -> str:
         ...
 
-    def endswith(self, suffix: Union[str, Tuple[str, ...]], *args) -> bool:
+    def endswith(self, suffix: str | Tuple[str, ...], *args) -> bool:
         ...
 
-    def startswith(self, prefix: Union[str, Tuple[str, ...]], *args) -> bool:
+    def startswith(self, prefix: str | Tuple[str, ...], *args) -> bool:
         ...
 
     def copy(self,
-             dst: Union[str, PathLike],
+             dst: str | PathLike,
              follow_file_symlinks: bool = False,
              follow_dir_symlinks: bool = False,
-             meta: Union[str, None] = 'stats',
+             meta: str | None = 'stats',
              overwrite: bool = False) -> 'Path':
         ...
 
     def move(self,
-             dst: Union[str, PathLike],
+             dst: str | PathLike,
              follow_file_symlinks: bool = False,
              follow_dir_symlinks: bool = False,
-             meta: Union[str, None] = 'stats') -> 'Path':
+             meta: str | None = 'stats') -> 'Path':
         ...
