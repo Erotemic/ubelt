@@ -9,6 +9,9 @@ This project (loosely) adheres to [Semantic Versioning](https://semver.org/spec/
 
 ### Changed
 * Removed experimental warning from `Path.copy` and `Path.move`; they are now well enough tested.
+* The `util_format` submodule has been renamed to `util_repr`. The
+  `util_format` is now a deprecated alias for `util_repr`.
+* Renamed `FormatterExtensions` to `ReprExtensions`, with the former now being a deprecated alias.
 
 
 ## Version 1.2.4 - 2022-02-28

@@ -1,5 +1,4 @@
 
-
 def count_ubelt_usage():
     """
     import sys, ubelt
@@ -7,6 +6,7 @@ def count_ubelt_usage():
     from gen_api_for_docs import *  # NOQA
     """
     from count_usage_freq import count_ubelt_usage
+    import ubelt as ub
     usage = count_ubelt_usage()
 
     # Reorgnaize data to contain more information
@@ -41,9 +41,14 @@ def count_ubelt_usage():
 
     attr_to_infos = ub.group_items(rows, lambda x: x['attr'])
 
+    if 'urepr' in attr_to_infos:
+        urepr2_infos = attr_to_infos['urepr']
+        cannon_urepr2_infos = [d for d in urepr2_infos if 'repr' in d['parent_module']]
+        cannon_urepr2_info = cannon_urepr2_infos[0]
+        attr_to_infos['urepr'] = [cannon_urepr2_info]
+
     import numpy as np
     import kwarray
-    import ubelt as ub
 
     if ub.argflag('--url-mode'):
         ref_key = 'url_ref'
@@ -63,7 +68,9 @@ def count_ubelt_usage():
         if len(infos) == 0:
             print(column_fmt.format(':func:`ubelt.' + key + '`', value))
         else:
-            assert len(infos) == 1
+            if len(infos) != 1:
+                print('infos = {}'.format(ub.urepr(infos, nl=1)))
+                raise AssertionError
             info = infos[0]
             print(column_fmt.format(info[ref_key], value))
     print(gaurd)
@@ -111,11 +118,13 @@ if __name__ == '__main__':
 
         # For README
         python ~/code/ubelt/dev/maintain/gen_api_for_docs.py --url-mode
+        python ~/code/ubelt/dev/maintain/gen_api_for_docs.py --extra_modname=bioharn,watch --remove_zeros=False --url-mode
 
         # First run and copy the table:
         python ~/code/ubelt/dev/maintain/count_usage_freq.py
+        python ~/code/ubelt/dev/maintain/gen_api_for_docs.py --extra_modname=bioharn,watch --remove_zeros=False
 
         # Then edit: TODO make less manual
-        ~/code/ubelt/docs/source/index.rst
+        ~/code/ubelt/docs/source/function_usefulness.rst
     """
     count_ubelt_usage()

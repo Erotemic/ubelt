@@ -35,6 +35,8 @@ from ubelt.util_platform import (
 
 from ubelt.util_io import (readfrom, writeto,)
 from ubelt.util_str import (ensure_unicode,)
+from ubelt import util_format
+from ubelt.util_format import FormatterExtensions, repr2
 
 
 __ignore__ = [
@@ -59,6 +61,9 @@ __explicit__ = [
     'readfrom',
     'writeto',
     'ensure_unicode',
+    'util_format',
+    'repr2',
+    'FormatterExtensions',
 ]
 
 
@@ -73,7 +78,7 @@ __submodules__ = {
     'util_download': None,
     'util_download_manager': None,
     'util_func': None,
-    'util_format': None,
+    'util_repr': None,
     'util_futures': None,
     'util_io': None,
     'util_links': None,
@@ -104,7 +109,6 @@ from ubelt import util_deprecate
 from ubelt import util_dict
 from ubelt import util_download
 from ubelt import util_download_manager
-from ubelt import util_format
 from ubelt import util_func
 from ubelt import util_futures
 from ubelt import util_hash
@@ -117,6 +121,7 @@ from ubelt import util_memoize
 from ubelt import util_mixins
 from ubelt import util_path
 from ubelt import util_platform
+from ubelt import util_repr
 from ubelt import util_str
 from ubelt import util_stream
 from ubelt import util_time
@@ -137,7 +142,7 @@ from ubelt.util_deprecate import (schedule_deprecation,)
 from ubelt.util_download import (download, grabdata,)
 from ubelt.util_download_manager import (DownloadManager,)
 from ubelt.util_func import (compatible, identity, inject_method,)
-from ubelt.util_format import (FormatterExtensions, repr2, urepr,)
+from ubelt.util_repr import (ReprExtensions, urepr,)
 from ubelt.util_futures import (Executor, JobPool,)
 from ubelt.util_io import (delete, touch,)
 from ubelt.util_links import (symlink,)
@@ -167,32 +172,33 @@ __all__ = ['AutoDict', 'AutoOrderedDict', 'CacheStamp', 'Cacher',
            'CaptureStdout', 'CaptureStream', 'DARWIN', 'DownloadManager',
            'Executor', 'FormatterExtensions', 'IndexableWalker', 'JobPool',
            'LINUX', 'NO_COLOR', 'NiceRepr', 'NoParam', 'OrderedSet', 'POSIX',
-           'Path', 'ProgIter', 'SetDict', 'TeeStringIO', 'TempDir', 'Timer',
-           'UDict', 'WIN32', 'allsame', 'argflag', 'argmax', 'argmin',
-           'argsort', 'argunique', 'argval', 'augpath', 'boolmask', 'chunks',
-           'cmd', 'codeblock', 'color_text', 'compatible', 'compress', 'ddict',
-           'delete', 'dict_diff', 'dict_hist', 'dict_isect', 'dict_subset',
-           'dict_union', 'download', 'dzip', 'ensure_app_cache_dir',
-           'ensure_app_config_dir', 'ensure_app_data_dir', 'ensure_unicode',
-           'ensuredir', 'expandpath', 'find_duplicates', 'find_exe',
-           'find_path', 'flatten', 'get_app_cache_dir', 'get_app_config_dir',
-           'get_app_data_dir', 'grabdata', 'group_items', 'hash_data',
-           'hash_file', 'highlight_code', 'hzcat', 'identity',
-           'import_module_from_name', 'import_module_from_path', 'indent',
-           'indexable_allclose', 'inject_method', 'invert_dict', 'iter_window',
-           'iterable', 'map_keys', 'map_vals', 'map_values', 'memoize',
-           'memoize_method', 'memoize_property', 'modname_to_modpath',
-           'modpath_to_modname', 'named_product', 'odict', 'orderedset',
-           'oset', 'paragraph', 'peek', 'platform_cache_dir',
-           'platform_config_dir', 'platform_data_dir', 'progiter', 'readfrom',
-           'repr2', 'schedule_deprecation', 'sdict', 'shrinkuser',
-           'sorted_keys', 'sorted_vals', 'sorted_values', 'split_archive',
-           'split_modpath', 'symlink', 'take', 'timeparse', 'timestamp',
-           'touch', 'udict', 'unique', 'unique_flags', 'userhome', 'urepr',
-           'util_arg', 'util_cache', 'util_cmd', 'util_colors', 'util_const',
-           'util_deprecate', 'util_dict', 'util_download',
+           'Path', 'ProgIter', 'ReprExtensions', 'SetDict', 'TeeStringIO',
+           'TempDir', 'Timer', 'UDict', 'WIN32', 'allsame', 'argflag',
+           'argmax', 'argmin', 'argsort', 'argunique', 'argval', 'augpath',
+           'boolmask', 'chunks', 'cmd', 'codeblock', 'color_text',
+           'compatible', 'compress', 'ddict', 'delete', 'dict_diff',
+           'dict_hist', 'dict_isect', 'dict_subset', 'dict_union', 'download',
+           'dzip', 'ensure_app_cache_dir', 'ensure_app_config_dir',
+           'ensure_app_data_dir', 'ensure_unicode', 'ensuredir', 'expandpath',
+           'find_duplicates', 'find_exe', 'find_path', 'flatten',
+           'get_app_cache_dir', 'get_app_config_dir', 'get_app_data_dir',
+           'grabdata', 'group_items', 'hash_data', 'hash_file',
+           'highlight_code', 'hzcat', 'identity', 'import_module_from_name',
+           'import_module_from_path', 'indent', 'indexable_allclose',
+           'inject_method', 'invert_dict', 'iter_window', 'iterable',
+           'map_keys', 'map_vals', 'map_values', 'memoize', 'memoize_method',
+           'memoize_property', 'modname_to_modpath', 'modpath_to_modname',
+           'named_product', 'odict', 'orderedset', 'oset', 'paragraph', 'peek',
+           'platform_cache_dir', 'platform_config_dir', 'platform_data_dir',
+           'progiter', 'readfrom', 'repr2', 'schedule_deprecation', 'sdict',
+           'shrinkuser', 'sorted_keys', 'sorted_vals', 'sorted_values',
+           'split_archive', 'split_modpath', 'symlink', 'take', 'timeparse',
+           'timestamp', 'touch', 'udict', 'unique', 'unique_flags', 'urepr',
+           'userhome', 'util_arg', 'util_cache', 'util_cmd', 'util_colors',
+           'util_const', 'util_deprecate', 'util_dict', 'util_download',
            'util_download_manager', 'util_format', 'util_func', 'util_futures',
            'util_hash', 'util_import', 'util_indexable', 'util_io',
            'util_links', 'util_list', 'util_memoize', 'util_mixins',
-           'util_path', 'util_platform', 'util_str', 'util_stream',
-           'util_time', 'util_zip', 'varied_values', 'writeto', 'zopen']
+           'util_path', 'util_platform', 'util_repr', 'util_str',
+           'util_stream', 'util_time', 'util_zip', 'varied_values', 'writeto',
+           'zopen']

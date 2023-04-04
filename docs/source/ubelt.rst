@@ -14,6 +14,7 @@ Submodules
    ubelt.util_cmd
    ubelt.util_colors
    ubelt.util_const
+   ubelt.util_deprecate
    ubelt.util_dict
    ubelt.util_download
    ubelt.util_download_manager
@@ -30,6 +31,7 @@ Submodules
    ubelt.util_mixins
    ubelt.util_path
    ubelt.util_platform
+   ubelt.util_repr
    ubelt.util_str
    ubelt.util_stream
    ubelt.util_time
