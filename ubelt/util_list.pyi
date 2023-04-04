@@ -1,4 +1,3 @@
-from typing import Union
 from typing import Mapping
 from typing import Sequence
 from typing import Iterable
@@ -56,8 +55,8 @@ def iterable(obj: object, strok: bool = False) -> bool:
     ...
 
 
-def take(items: Union[Sequence[VT], Mapping[KT, VT]],
-         indices: Iterable[Union[int, KT]],
+def take(items: Sequence[VT] | Mapping[KT, VT],
+         indices: Iterable[int | KT],
          default: Any = ...) -> Generator[VT, None, None]:
     ...
 
@@ -70,25 +69,22 @@ def flatten(nested: Iterable[Iterable[Any]]) -> Iterable[Any]:
     ...
 
 
-def unique(
-        items: Iterable[T],
-        key: Union[Callable[[T], Any],
-                   None] = None) -> Generator[T, None, None]:
+def unique(items: Iterable[T],
+           key: Callable[[T], Any] | None = None) -> Generator[T, None, None]:
     ...
 
 
 def argunique(items: Sequence[VT],
-              key: Union[Callable[[VT], Any], None] = None) -> Iterator[int]:
+              key: Callable[[VT], Any] | None = None) -> Iterator[int]:
     ...
 
 
 def unique_flags(items: Sequence[VT],
-                 key: Union[Callable[[VT], Any], None] = None) -> List[bool]:
+                 key: Callable[[VT], Any] | None = None) -> List[bool]:
     ...
 
 
-def boolmask(indices: List[int],
-             maxval: Union[int, None] = None) -> List[bool]:
+def boolmask(indices: List[int], maxval: int | None = None) -> List[bool]:
     ...
 
 
@@ -103,19 +99,19 @@ def allsame(iterable: Iterable[T], eq: Callable[[T, T], bool] = ...) -> bool:
     ...
 
 
-def argsort(indexable: Union[Iterable[VT], Mapping[KT, VT]],
-            key: Union[Callable[[VT], VT], None] = None,
+def argsort(indexable: Iterable[VT] | Mapping[KT, VT],
+            key: Callable[[VT], VT] | None = None,
             reverse: bool = False) -> List[int] | List[KT]:
     ...
 
 
-def argmax(indexable: Union[Iterable[VT], Mapping[KT, VT]],
-           key: Union[Callable[[VT], Any], None] = None) -> int | KT:
+def argmax(indexable: Iterable[VT] | Mapping[KT, VT],
+           key: Callable[[VT], Any] | None = None) -> int | KT:
     ...
 
 
-def argmin(indexable: Union[Iterable[VT], Mapping[KT, VT]],
-           key: Union[Callable[[VT], VT], None] = None) -> int | KT:
+def argmin(indexable: Iterable[VT] | Mapping[KT, VT],
+           key: Callable[[VT], VT] | None = None) -> int | KT:
     ...
 
 
@@ -124,7 +120,7 @@ def peek(iterable: Iterable[T], default: T = ...) -> T:
 
 
 class IterableMixin:
-    unique: Incomplete
+    unique = unique
     histogram: Incomplete
     duplicates: Incomplete
     group: Incomplete
@@ -137,16 +133,16 @@ class IterableMixin:
 
 
 class OrderedIterableMixin(IterableMixin):
-    compress: Incomplete
-    argunique: Incomplete
-    window: Incomplete
+    compress = compress
+    argunique = argunique
+    window = iter_window
 
 
 class UList(list, OrderedIterableMixin):
-    peek: Incomplete
-    take: Incomplete
-    flatten: Incomplete
-    allsame: Incomplete
-    argsort: Incomplete
-    argmax: Incomplete
-    argmin: Incomplete
+    peek = peek
+    take = take
+    flatten = flatten
+    allsame = allsame
+    argsort = argsort
+    argmax = argmax
+    argmin = argmin

@@ -1,4 +1,3 @@
-from typing import Union
 from typing import Optional
 import io
 from os import PathLike
@@ -12,28 +11,29 @@ Hasher = TypeVar("Hasher")
 
 
 def download(url: str,
-             fpath: Optional[Union[str, PathLike, io.BytesIO]] = None,
+             fpath: Optional[str | PathLike | io.BytesIO] = None,
              dpath: Optional[PathLike] = None,
              fname: Optional[str] = None,
-             appname: Union[str, None] = None,
-             hash_prefix: Union[None, str] = None,
-             hasher: Union[str, Hasher] = 'sha512',
+             appname: str | None = None,
+             hash_prefix: None | str = None,
+             hasher: str | Hasher = 'sha512',
              chunksize: int = 8192,
-             verbose: Union[int, bool] = 1,
-             timeout: Union[float, NoParamType] = NoParam,
-             progkw: Union[Dict, NoParamType, None] = None) -> str | PathLike:
+             filesize: int | None = None,
+             verbose: int | bool = 1,
+             timeout: float | NoParamType = NoParam,
+             progkw: Dict | NoParamType | None = None) -> str | PathLike:
     ...
 
 
 def grabdata(url: str,
-             fpath: Optional[Union[str, PathLike]] = None,
-             dpath: Optional[Union[str, PathLike]] = None,
+             fpath: Optional[str | PathLike] = None,
+             dpath: Optional[str | PathLike] = None,
              fname: Optional[str] = None,
              redo: bool = False,
              verbose: int = 1,
-             appname: Union[str, None] = None,
-             hash_prefix: Union[None, str] = None,
-             hasher: Union[str, Hasher] = 'sha512',
-             expires: Union[str, int, datetime.datetime, None] = None,
+             appname: str | None = None,
+             hash_prefix: None | str = None,
+             hasher: str | Hasher = 'sha512',
+             expires: str | int | datetime.datetime | None = None,
              **download_kw) -> str | PathLike:
     ...

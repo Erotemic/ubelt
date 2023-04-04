@@ -1,11 +1,10 @@
-from typing import Union
 import datetime
 from _typeshed import Incomplete
 
 
-def timestamp(datetime: Union[datetime.datetime, datetime.date, None] = None,
+def timestamp(datetime: datetime.datetime | datetime.date | None = None,
               precision: int = 0,
-              default_timezone: Union[str, datetime.timezone] = 'local',
+              default_timezone: str | datetime.timezone = 'local',
               allow_dateutil: bool = True) -> str:
     ...
 

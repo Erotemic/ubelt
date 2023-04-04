@@ -1,4 +1,3 @@
-from typing import Union
 from typing import Tuple
 from typing import List
 from typing import Any
@@ -9,7 +8,7 @@ from typing import Any
 
 
 class IndexableWalker(Generator):
-    data: Union[dict, list, tuple]
+    data: dict | list | tuple
     dict_cls: Tuple[type]
     list_cls: Tuple[type]
     indexable_cls: Incomplete
@@ -42,15 +41,15 @@ class IndexableWalker(Generator):
         ...
 
     def allclose(self,
-                 other: IndexableWalker,
+                 other: IndexableWalker | List | Dict,
                  rel_tol: float = 1e-09,
                  abs_tol: float = 0.0,
                  return_info: bool = False) -> bool | Tuple[bool, Dict]:
         ...
 
 
-def indexable_allclose(items1: Union[dict, list, tuple],
-                       items2: Union[dict, list, tuple],
+def indexable_allclose(items1: dict | list | tuple,
+                       items2: dict | list | tuple,
                        rel_tol: float = 1e-09,
                        abs_tol: float = 0.0,
                        return_info: bool = False) -> bool | Tuple[bool, Dict]:

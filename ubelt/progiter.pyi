@@ -1,10 +1,18 @@
-from typing import Union
 from typing import Iterable
 from typing import List
 import typing
+from typing import Callable
 from _typeshed import Incomplete
+from typing import NamedTuple
 
 default_timer: Incomplete
+
+
+class Measurement(NamedTuple):
+    idx: Incomplete
+    time: Incomplete
+
+
 CLEAR_BEFORE: str
 AT_END: str
 
@@ -81,24 +89,36 @@ class _BackwardsCompat:
     def label(self):
         ...
 
+    def start(self):
+        ...
+
+    def stop(self):
+        ...
+
 
 class ProgIter(_TQDMCompat, _BackwardsCompat):
-    iterable: Union[List, Iterable]
+    iterable: List | Iterable
     desc: str
     total: int
     freq: int
-    adjust: bool
     eta_window: int
     clearline: bool
+    adjust: bool
     time_thresh: float
+    show_percent: bool
     show_times: bool
+    show_rate: bool
+    show_eta: bool
     show_wall: bool
     initial: int
     stream: typing.IO
+    timer: Callable
     enabled: bool
-    chunksize: Union[int, None]
+    chunksize: int | None
     rel_adjust_limit: float
     verbose: int
+    homogeneous: bool | str
+    show_total: Incomplete
     extra: str
     started: bool
     finished: bool
@@ -113,13 +133,19 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
                  clearline: bool = ...,
                  adjust: bool = ...,
                  time_thresh: float = ...,
+                 show_percent: bool = ...,
                  show_times: bool = ...,
+                 show_rate: bool = ...,
+                 show_eta: bool = ...,
+                 show_total: bool = ...,
                  show_wall: bool = ...,
                  enabled: bool = ...,
                  verbose: Incomplete | None = ...,
                  stream: Incomplete | None = ...,
                  chunksize: Incomplete | None = ...,
                  rel_adjust_limit: float = ...,
+                 homogeneous: str = ...,
+                 timer: Incomplete | None = ...,
                  **kwargs) -> None:
         ...
 
@@ -135,19 +161,16 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
     def __iter__(self):
         ...
 
-    def set_extra(self, extra) -> None:
-        ...
-
-    def step(self, inc: int = 1, force: bool = False) -> None:
-        ...
-
-    def start(self):
+    def set_extra(self, extra: str | Callable) -> None:
         ...
 
     def begin(self) -> ProgIter:
         ...
 
     def end(self) -> None:
+        ...
+
+    def step(self, inc: int = 1, force: bool = False) -> None:
         ...
 
     def format_message(self):

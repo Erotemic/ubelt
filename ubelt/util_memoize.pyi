@@ -1,5 +1,4 @@
 from typing import Callable
-from typing import Union
 from _typeshed import Incomplete
 
 
@@ -13,7 +12,7 @@ class memoize_method:
     def __init__(self, func) -> None:
         ...
 
-    def __get__(self, instance: object, cls: Union[type, None] = None):
+    def __get__(self, instance: object, cls: type | None = None):
         ...
 
     def __call__(self, *args, **kwargs):
