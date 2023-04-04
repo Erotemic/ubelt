@@ -22,3 +22,6 @@ Pygments>=2.2.0
 colorama>=0.4.3;platform_system=="Windows"
 
 python_dateutil>=2.8.1
+
+# For optional repr tests
+scriptconfig>=0.7.6

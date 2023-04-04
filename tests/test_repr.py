@@ -397,6 +397,30 @@ def test_autosort():
             }
             ''')
 
+
+def test_scriptconfig_repr():
+    # TODO: maybe this extension lives in scriptconfig itself instead?
+    try:
+        import scriptconfig as scfg
+    except ImportError:
+        import pytest
+        pytest.skip('scriptconfig not installed')
+    import ubelt as ub
+    class MyConfig(scfg.DataConfig):
+        arg1 = 1
+        arg2 = 2
+
+    c = MyConfig()
+    text = ub.urepr(c, nl=1)
+    assert text == ub.codeblock(
+        '''
+        MyConfig({
+            'arg1': 1,
+            'arg2': 2,
+        })
+        ''')
+
+
 if __name__ == '__main__':
     """
     CommandLine:
