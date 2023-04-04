@@ -28,10 +28,10 @@ nesting newlines are allowed.
 
 You can also define or overwrite how representations for different types are
 created. You can either create your own extension object, or you can
-monkey-patch `ub.util_format._FORMATTER_EXTENSIONS` without specifying the
+monkey-patch `ub.util_repr._REPR_EXTENSIONS` without specifying the
 extensions keyword argument (although this will be a global change).
 
->>> extensions = ub.util_format.FormatterExtensions()
+>>> extensions = ub.util_repr.ReprExtensions()
 >>> @extensions.register(float)
 >>> def my_float_formater(data, **kw):
 >>>     return "monkey({})".format(data)
@@ -52,7 +52,7 @@ import collections
 from ubelt import util_str
 from ubelt import util_list
 
-__all__ = ['repr2', 'urepr', 'FormatterExtensions']
+__all__ = ['urepr', 'ReprExtensions']
 
 
 def urepr(data, **kwargs):
@@ -152,8 +152,8 @@ def urepr(data, **kwargs):
         align (bool | str, default=False):
             if True, will align multi-line dictionaries by the kvsep
 
-        extensions (FormatterExtensions):
-            a custom :class:`FormatterExtensions` instance that can overwrite
+        extensions (ReprExtensions):
+            a custom :class:`ReprExtensions` instance that can overwrite
             or define how different types of objects are formatted.
 
     Returns:
@@ -275,7 +275,7 @@ def urepr(data, **kwargs):
 
     if outstr is None:
         # check any globally registered functions for special formatters
-        func = _FORMATTER_EXTENSIONS.lookup(data)
+        func = _REPR_EXTENSIONS.lookup(data)
         if func is not None:
             outstr = func(data, **kwargs)
         else:
@@ -286,43 +286,6 @@ def urepr(data, **kwargs):
         return outstr, _leaf_info
     else:
         return outstr
-
-
-def repr2(data, **kwargs):
-    """
-    Deprecated for urepr
-
-    Example:
-        >>> # Test that repr2 remains backwards compatible
-        >>> import ubelt as ub
-        >>> dict_ = {
-        ...     'custom_types': [slice(0, 1, None), 1/3],
-        ...     'nest_dict': {'k1': [1, 2, {3: {4, 5}}],
-        ...                   'key2': [1, 2, {3: {4, 5}}],
-        ...                   'key3': [1, 2, {3: {4, 5}}],
-        ...                   },
-        ...     'nest_dict2': {'k': [1, 2, {3: {4, 5}}]},
-        ...     'nested_tuples': [tuple([1]), tuple([2, 3]), frozenset([4, 5, 6])],
-        ...     'one_tup': tuple([1]),
-        ...     'simple_dict': {'spam': 'eggs', 'ham': 'jam'},
-        ...     'simple_list': [1, 2, 'red', 'blue'],
-        ...     'odict': ub.odict([(2, '1'), (1, '2')]),
-        ... }
-        >>> result = ub.repr2(dict_, nl=1, precision=2)
-        >>> print(result)
-        {
-            'custom_types': [slice(0, 1, None), 0.33],
-            'nest_dict': {'k1': [1, 2, {3: {4, 5}}], 'key2': [1, 2, {3: {4, 5}}], 'key3': [1, 2, {3: {4, 5}}]},
-            'nest_dict2': {'k': [1, 2, {3: {4, 5}}]},
-            'nested_tuples': [(1,), (2, 3), {4, 5, 6}],
-            'odict': {2: '1', 1: '2'},
-            'one_tup': (1,),
-            'simple_dict': {'ham': 'jam', 'spam': 'eggs'},
-            'simple_list': [1, 2, 'red', 'blue'],
-        }
-    """
-    kwargs['_dict_sort_behavior'] = kwargs.get('_dict_sort_behavior', 'old')
-    return urepr(data, **kwargs)
 
 
 def _rectify_root_info(_root_info):
@@ -342,11 +305,11 @@ def _rectify_leaf_info(_leaf_info):
     return _leaf_info
 
 
-class FormatterExtensions(object):
+class ReprExtensions(object):
     """
     Helper class for managing non-builtin (e.g. numpy) format types.
 
-    This module (:mod:`ubelt.util_format`) maintains a global set of basic
+    This module (:mod:`ubelt.util_repr`) maintains a global set of basic
     extensions, but it is also possible to create a locally scoped set of
     extensions and explicitly pass it to urepr. The following example
     demonstrates this.
@@ -357,7 +320,7 @@ class FormatterExtensions(object):
         >>>     pass
         >>> data = {'a': [1, 2.2222, MyObject()], 'b': MyObject()}
         >>> # Create a custom set of extensions
-        >>> extensions = ub.FormatterExtensions()
+        >>> extensions = ub.ReprExtensions()
         >>> # Register a function to format your specific type
         >>> @extensions.register(MyObject)
         >>> def format_myobject(data, **kwargs):
@@ -452,7 +415,7 @@ class FormatterExtensions(object):
             >>> import ubelt as ub
             >>> rng = np.random.RandomState(0)
             >>> data = pd.DataFrame(rng.rand(3, 3))
-            >>> print(ub.repr2(data))
+            >>> print(ub.urepr(data))
             >>> print(ub.urepr(data, precision=2))
             >>> print(ub.urepr({'akeyfdfj': data}, precision=2))
         """
@@ -623,8 +586,9 @@ class FormatterExtensions(object):
             else:
                 return _format_object(data, **kwargs)
 
-_FORMATTER_EXTENSIONS = FormatterExtensions()
-_FORMATTER_EXTENSIONS._register_builtin_extensions()
+
+_REPR_EXTENSIONS = ReprExtensions()
+_REPR_EXTENSIONS._register_builtin_extensions()
 
 
 def _lazy_init():
@@ -635,14 +599,14 @@ def _lazy_init():
     """
     try:
         # TODO: can we use lazy loading to prevent trying to import numpy until
-        # some attribute of _FORMATTER_EXTENSIONS is used?
-        _FORMATTER_EXTENSIONS._register_numpy_extensions()
-        _FORMATTER_EXTENSIONS._register_pandas_extensions()
-        # _FORMATTER_EXTENSIONS._register_torch_extensions()
+        # some attribute of _REPR_EXTENSIONS is used?
+        _REPR_EXTENSIONS._register_numpy_extensions()
+        _REPR_EXTENSIONS._register_pandas_extensions()
+        # _REPR_EXTENSIONS._register_torch_extensions()
     except ImportError:  # nocover
         pass
 
-_FORMATTER_EXTENSIONS._lazy_queue.append(_lazy_init)
+_REPR_EXTENSIONS._lazy_queue.append(_lazy_init)
 
 
 def _format_object(val, **kwargs):
@@ -751,7 +715,7 @@ def _format_dict(dict_, **kwargs):
         Tuple[str, Dict] : retstr, _leaf_info
 
     Example:
-        >>> from ubelt.util_format import *  # NOQA
+        >>> from ubelt.util_repr import *  # NOQA
         >>> dict_ = {'a': 'edf', 'bc': 'ghi'}
         >>> print(_format_dict(dict_)[0])
         {
@@ -882,12 +846,12 @@ def _dict_itemstrs(dict_, **kwargs):
             compact_brace, sort
 
     Ignore:
-        from ubelt.util_format import _dict_itemstrs
+        from ubelt.util_repr import _dict_itemstrs
         import xinspect
         print(', '.join(xinspect.get_kwargs(_dict_itemstrs, max_depth=0).keys()))
 
     Example:
-        >>> from ubelt.util_format import *
+        >>> from ubelt.util_repr import *
         >>> dict_ =  {'b': .1, 'l': 'st', 'g': 1.0, 's': 10, 'm': 0.9, 'w': .5}
         >>> kwargs = {'strkeys': True, 'sort': True}
         >>> itemstrs, _ = _dict_itemstrs(dict_, **kwargs)
@@ -1037,7 +1001,7 @@ def _rectify_countdown_or_bool(count_or_bool):
         int or bool: count_or_bool_
 
     Example:
-        >>> from ubelt.util_format import _rectify_countdown_or_bool  # NOQA
+        >>> from ubelt.util_repr import _rectify_countdown_or_bool  # NOQA
         >>> count_or_bool = True
         >>> a1 = (_rectify_countdown_or_bool(2))
         >>> a2 = (_rectify_countdown_or_bool(1))
@@ -1219,8 +1183,5 @@ def _align_lines(line_list, character='=', replchar=None, pos=0):
 
 # Give the urepr function itself a reference to the default extensions
 # register method so the user can modify them without accessing this module
-urepr.extensions = _FORMATTER_EXTENSIONS
-urepr.register = _FORMATTER_EXTENSIONS.register
-
-repr2.extensions = urepr.extensions
-repr2.register = urepr.register
+urepr.extensions = _REPR_EXTENSIONS
+urepr.register = _REPR_EXTENSIONS.register

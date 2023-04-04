@@ -91,6 +91,13 @@ def count_ubelt_usage():
             # if k in dir(_util_deprecated):
             #     usage.pop(k, None)
 
+    if 1:
+        # Renamed Aliases
+        usage['urepr'] += usage.pop('repr2')
+        usage['ReprExtensions'] += usage.pop('FormatterExtensions')
+
+    usage = ub.udict(usage).sorted_values(reverse=True)
+
     print(ub.repr2(usage, nl=1))
     return usage
 
