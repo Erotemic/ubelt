@@ -41,7 +41,7 @@ import warnings
 
 __all__ = [
     'Path', 'TempDir', 'augpath', 'shrinkuser', 'userhome', 'ensuredir',
-    'expandpath',
+    'expandpath', 'ChDir',
 ]
 
 
