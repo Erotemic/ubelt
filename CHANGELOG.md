@@ -13,6 +13,10 @@ This project (loosely) adheres to [Semantic Versioning](https://semver.org/spec/
   `util_format` is now a deprecated alias for `util_repr`.
 * Renamed `FormatterExtensions` to `ReprExtensions`, with the former now being a deprecated alias.
 
+### Fixed:
+* Exposed `ChDir`.
+* Removed usage of deprecated `pipes` module
+
 
 ## Version 1.2.4 - 2022-02-28
 

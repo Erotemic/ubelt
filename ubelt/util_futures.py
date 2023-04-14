@@ -480,6 +480,9 @@ class JobPool(object):
             self._prog = job_iter
         for job in job_iter:
             if self.transient:
+                # Maybe keep a reference to the job index and then null it out
+                # in our job list? Should probably think about a good
+                # implementation. See kwcoco.CocoDataset._load_multiple
                 self.jobs.remove(job)
             yield job
 

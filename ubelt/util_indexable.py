@@ -208,10 +208,15 @@ class IndexableWalker(Generator):
             path (List): list of indexes into the nested structure
             value (Any): new value
         """
+        import itertools as it
         d = self.data
         # note: slice unpack seems faster in 3.9 at least, dont change
         # ~/misc/tests/python/bench_unpack.py
-        prefix, key = path[:-1], path[-1]
+        # Using islice allows path to be a list or deque
+        key_index = len(path) - 1
+        prefix = it.islice(path, 0, key_index)
+        key = path[key_index]
+        # prefix, key = path[:-1], path[-1]
         # *prefix, key = path
         for k in prefix:
             d = d[k]
@@ -227,8 +232,13 @@ class IndexableWalker(Generator):
         Returns:
             Any: value
         """
+        import itertools as it
         d = self.data
-        prefix, key = path[:-1], path[-1]
+        # Using islice allows path to be a list or deque
+        key_index = len(path) - 1
+        prefix = it.islice(path, 0, key_index)
+        key = path[key_index]
+        # prefix, key = path[:-1], path[-1]
         # *prefix, key = path
         for k in prefix:
             d = d[k]

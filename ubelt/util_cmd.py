@@ -238,7 +238,7 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
         command_text = command
         command_tup = None
     else:
-        import pipes
+        import shlex
         command_parts = []
         # Allow the user to specify paths as part of the command
         for part in command:
@@ -246,7 +246,7 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
                 part = os.fspath(part)
             command_parts.append(part)
         command_tup = tuple(command_parts)
-        command_text = ' '.join(list(map(pipes.quote, command_tup)))
+        command_text = ' '.join(list(map(shlex.quote, command_tup)))
 
     # Inputs can either be text or tuple based. On UNIX we ensure conversion
     # to text if shell is True, and to tuple if shell is False. On windows,
