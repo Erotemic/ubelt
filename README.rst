@@ -12,6 +12,23 @@
 ..   .. raw:: html
 ..       <img src="https://i.imgur.com/AcWVroL.png" height="100px">
 
+
+Elevator Pitch:
+===============
+
+Is the Python standard library good? Yes. Could it's conciseness be improved?
+Yes. Ubelt aims to provide a quicker way to express things you can do in the
+standard library.
+Progress? `ub.ProgIter <https://ubelt.readthedocs.io/en/latest/ubelt.progiter.html#ubelt.progiter.ProgIter>`.
+Hashing? `ub.hash_data <https://ubelt.readthedocs.io/en/latest/ubelt.util_hash.html#ubelt.util_hash.hash_data>` and `ub.hash_file <https://ubelt.readthedocs.io/en/latest/ubelt.util_hash.html#ubelt.util_hash.hash_file>`.
+Caching? `ub.Cacher <https://ubelt.readthedocs.io/en/latest/ubelt.util_cache.html#ubelt.util_cache.Cacher>` and `ub.CacheStamp <https://ubelt.readthedocs.io/en/latest/ubelt.util_cache.html#ubelt.util_cache.CacheStamp>`.
+Shell command? `ub.cmd <https://ubelt.readthedocs.io/en/latest/ubelt.util_cmd.html#ubelt.util_cmd.cmd>`.
+There are 120ish functions and classes to help make your code shorter and
+easier to express conciesly.
+
+Introduction:
+=============
+
 Ubelt is a small library of robust, tested, documented, and simple functions
 that extend the Python standard library. It has a flat API that all behaves
 similarly on Windows, Mac, and Linux (up to some small unavoidable
