@@ -13,7 +13,7 @@
 ..       <img src="https://i.imgur.com/AcWVroL.png" height="100px">
 
 
-Ubelt is a utility library for Python.
+Ubelt is a utility library for Python with a stdlib like feel.
 
 
 Elevator Pitch:
