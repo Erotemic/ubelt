@@ -138,144 +138,139 @@ jobs:
       matrix:
         include:
         - python-version: '3.6'
+          install-extras: tests-strict,runtime-strict
           os: ubuntu-20.04
-          install-extras: tests-strict,runtime-strict
           arch: auto
         - python-version: '3.6'
+          install-extras: tests-strict,runtime-strict
           os: macOS-latest
-          install-extras: tests-strict,runtime-strict
           arch: auto
         - python-version: '3.6'
-          os: windows-latest
           install-extras: tests-strict,runtime-strict
+          os: windows-latest
           arch: auto
         - python-version: '3.11'
+          install-extras: tests-strict,runtime-strict,optional-strict
           os: ubuntu-latest
-          install-extras: tests-strict,runtime-strict,optional-strict
           arch: auto
         - python-version: '3.11'
+          install-extras: tests-strict,runtime-strict,optional-strict
           os: macOS-latest
-          install-extras: tests-strict,runtime-strict,optional-strict
           arch: auto
         - python-version: '3.11'
+          install-extras: tests-strict,runtime-strict,optional-strict
           os: windows-latest
-          install-extras: tests-strict,runtime-strict,optional-strict
           arch: auto
         - python-version: '3.11'
-          os: macOS-latest
           install-extras: tests
+          os: windows-latest
           arch: auto
         - python-version: '3.11'
-          os: windows-latest
           install-extras: tests
+          os: windows-latest
           arch: auto
         - python-version: '3.6'
-          os: ubuntu-20.04
           install-extras: tests,optional
+          os: windows-latest
           arch: auto
         - python-version: '3.7'
-          os: ubuntu-latest
           install-extras: tests,optional
+          os: windows-latest
           arch: auto
         - python-version: '3.8'
-          os: ubuntu-latest
           install-extras: tests,optional
+          os: windows-latest
           arch: auto
         - python-version: '3.9'
-          os: ubuntu-latest
           install-extras: tests,optional
+          os: windows-latest
           arch: auto
         - python-version: '3.10'
-          os: ubuntu-latest
           install-extras: tests,optional
+          os: windows-latest
           arch: auto
         - python-version: '3.11'
-          os: ubuntu-latest
           install-extras: tests,optional
+          os: windows-latest
           arch: auto
         - python-version: pypy-3.7
-          os: ubuntu-latest
           install-extras: tests,optional
+          os: windows-latest
           arch: auto
         - python-version: '3.6'
-          os: macOS-latest
           install-extras: tests,optional
+          os: windows-latest
           arch: auto
         - python-version: '3.7'
-          os: macOS-latest
           install-extras: tests,optional
+          os: windows-latest
           arch: auto
         - python-version: '3.8'
-          os: macOS-latest
           install-extras: tests,optional
+          os: windows-latest
           arch: auto
         - python-version: '3.9'
-          os: macOS-latest
           install-extras: tests,optional
+          os: windows-latest
           arch: auto
         - python-version: '3.10'
-          os: macOS-latest
           install-extras: tests,optional
+          os: windows-latest
           arch: auto
         - python-version: '3.11'
-          os: macOS-latest
           install-extras: tests,optional
+          os: windows-latest
           arch: auto
         - python-version: pypy-3.7
-          os: macOS-latest
           install-extras: tests,optional
+          os: windows-latest
           arch: auto
         - python-version: '3.6'
-          os: windows-latest
           install-extras: tests,optional
+          os: windows-latest
           arch: auto
         - python-version: '3.7'
-          os: windows-latest
           install-extras: tests,optional
+          os: windows-latest
           arch: auto
         - python-version: '3.8'
-          os: windows-latest
           install-extras: tests,optional
+          os: windows-latest
           arch: auto
         - python-version: '3.9'
-          os: windows-latest
           install-extras: tests,optional
+          os: windows-latest
           arch: auto
         - python-version: '3.10'
-          os: windows-latest
           install-extras: tests,optional
+          os: windows-latest
           arch: auto
         - python-version: '3.11'
+          install-extras: tests,optional
           os: windows-latest
-          install-extras: tests,optional
           arch: auto
         - python-version: pypy-3.7
+          install-extras: tests,optional
           os: windows-latest
-          install-extras: tests,optional
           arch: auto
         - python-version: pypy-3.7
-          os: ubuntu-latest
           install-extras: tests,optional
-          arch: auto
-        - python-version: pypy-3.7
-          os: macOS-latest
-          install-extras: tests,optional
-          arch: auto
-        - python-version: pypy-3.7
           os: windows-latest
+          arch: auto
+        - python-version: pypy-3.7
           install-extras: tests,optional
+          os: windows-latest
+          arch: auto
+        - python-version: pypy-3.7
+          install-extras: tests,optional
+          os: windows-latest
           arch: auto
     steps:
     - name: Checkout source
       uses: actions/checkout@v3
     - name: Enable MSVC 64bit
       uses: ilammy/msvc-dev-cmd@v1
-      if: matrix.os == 'windows-latest' && ${{ contains(matrix.cibw_skip, '*-win32') }}
-    - name: Enable MSVC 32bit
-      uses: ilammy/msvc-dev-cmd@v1
-      if: matrix.os == 'windows-latest' && ${{ contains(matrix.cibw_skip, '*-win_amd64') }}
-      with:
-        arch: x86
+      if: matrix.os == 'windows-latest'
     - name: Set up QEMU
       uses: docker/setup-qemu-action@v2
       if: runner.os == 'Linux' && matrix.arch != 'auto'
@@ -300,13 +295,9 @@ jobs:
         echo "Installing helpers"
         pip install pip setuptools>=0.8 setuptools_scm wheel build -U
         pip install tomli pkginfo
-        export MOD_NAME=ubelt
-        echo "MOD_NAME=$MOD_NAME"
-        export WHEEL_FPATH=$(python -c "import pathlib; print(str(sorted(pathlib.Path('wheelhouse').glob('$MOD_NAME*.whl'))[-1]).replace(chr(92), chr(47)))")
-        echo "WHEEL_FPATH=$WHEEL_FPATH"
+        export WHEEL_FPATH=$(python -c "import pathlib; print(str(sorted(pathlib.Path('wheelhouse').glob('ubelt*.whl'))[-1]).replace(chr(92), chr(47)))")
         export MOD_VERSION=$(python -c "from pkginfo import Wheel; print(Wheel('$WHEEL_FPATH').version)")
-        echo "MOD_VERSION=$MOD_VERSION"
-        pip install --prefer-binary "$MOD_NAME[$INSTALL_EXTRAS]==$MOD_VERSION" -f wheelhouse
+        pip install --prefer-binary "ubelt[$INSTALL_EXTRAS]==$MOD_VERSION" -f wheelhouse
         echo "Install finished."
     - name: Test wheel ${{ matrix.install-extras }}
       shell: bash
@@ -323,14 +314,14 @@ jobs:
         ls -altr
         # Get the path to the installed package and run the tests
         export MOD_DPATH=$(python -c "import ubelt, os; print(os.path.dirname(ubelt.__file__))")
-        export MOD_NAME=ubelt
-        echo "---"
-        echo "MOD_DPATH = $MOD_DPATH"
-        echo "MOD_NAME = $MOD_NAME"
-        echo "---"
-        echo "running the pytest command inside the workspace"
-        echo "---"
-        python -m pytest -p pytester -p no:doctest --xdoctest --cov-config ../pyproject.toml --cov-report term --cov="$MOD_NAME" "$MOD_DPATH" ../tests
+        echo "
+        ---
+        MOD_DPATH = $MOD_DPATH
+        ---
+        running the pytest command inside the workspace
+        ---
+        "
+        python -m pytest -p pytester -p no:doctest --xdoctest --cov-config ../pyproject.toml --cov-report term --cov="ubelt" "$MOD_DPATH" ../tests
         echo "pytest command finished, moving the coverage file to the repo root"
         ls -al
         # Move coverage file to a new name
