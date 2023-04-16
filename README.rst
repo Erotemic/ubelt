@@ -16,20 +16,36 @@
 Elevator Pitch:
 ===============
 
-Is the Python standard library good? Yes. Could it's conciseness be improved?
-Yes. Ubelt aims to provide a quicker way to express things you can do in the
-standard library.
-Progress? `ub.ProgIter <https://ubelt.readthedocs.io/en/latest/ubelt.progiter.html#ubelt.progiter.ProgIter>`_.
-Hashing? `ub.hash_data <https://ubelt.readthedocs.io/en/latest/ubelt.util_hash.html#ubelt.util_hash.hash_data>`_ and `ub.hash_file <https://ubelt.readthedocs.io/en/latest/ubelt.util_hash.html#ubelt.util_hash.hash_file>`_.
-Caching? `ub.Cacher <https://ubelt.readthedocs.io/en/latest/ubelt.util_cache.html#ubelt.util_cache.Cacher>`_ and `ub.CacheStamp <https://ubelt.readthedocs.io/en/latest/ubelt.util_cache.html#ubelt.util_cache.CacheStamp>`_.
-Shell command? `ub.cmd <https://ubelt.readthedocs.io/en/latest/ubelt.util_cmd.html#ubelt.util_cmd.cmd>`_.
-There are 120ish functions and classes to help make your code shorter and
-easier to express conciesly.
+Is the Python standard library good?
+Yes.
+Could it's conciseness be improved?
+Yes.
+Ubelt aims to provide a quicker way to express things you can do in the standard library.
+Progress?
+`ub.ProgIter <https://ubelt.readthedocs.io/en/latest/ubelt.progiter.html#ubelt.progiter.ProgIter>`_.
+Hashing?
+`ub.hash_data <https://ubelt.readthedocs.io/en/latest/ubelt.util_hash.html#ubelt.util_hash.hash_data>`_ /
+  `ub.hash_file <https://ubelt.readthedocs.io/en/latest/ubelt.util_hash.html#ubelt.util_hash.hash_file>`_.
+Caching?
+`ub.Cacher <https://ubelt.readthedocs.io/en/latest/ubelt.util_cache.html#ubelt.util_cache.Cacher>`_ /
+  `ub.CacheStamp <https://ubelt.readthedocs.io/en/latest/ubelt.util_cache.html#ubelt.util_cache.CacheStamp>`_.
+Shell commands?
+`ub.cmd <https://ubelt.readthedocs.io/en/latest/ubelt.util_cmd.html#ubelt.util_cmd.cmd>`_.
+There are 120ish functions and classes to help make your code shorter and easier to express concisely.
+The library is fast to install and import, all dependencies are optional.
+As of 2023 it is 6 years old, regularly maintained, and mature.
+It is well tested and has moderate usage.
+
+To learn more, the function usefulness chart is a good place to start.  This
+shows how often I use particular functions, and while some of the less used
+ones are candidates for removal, some of them still worth checking out. For a
+slightly slower start, read the introduction:
+
 
 Introduction:
 =============
 
-Ubelt is a small library of robust, tested, documented, and simple functions
+Ubelt is a lightweight library of robust, tested, documented, and simple functions
 that extend the Python standard library. It has a flat API that all behaves
 similarly on Windows, Mac, and Linux (up to some small unavoidable
 differences).  Almost every function in ``ubelt`` was written with a doctest.
