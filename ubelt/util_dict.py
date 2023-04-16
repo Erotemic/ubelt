@@ -114,7 +114,7 @@ def dzip(items1, items2, cls=dict):
             can either be a sequence of one item or a sequence of equal length
             to ``items1``
 
-        cls (Type[dict], default=dict): dictionary type to use.
+        cls (Type[dict]): dictionary type to use. Defaults to ``dict``.
 
     Returns:
         Dict[KT, VT]: similar to ``dict(zip(items1, items2))``.
@@ -194,16 +194,19 @@ def dict_hist(items, weights=None, ordered=False, labels=None):
         items (Iterable[T]):
             hashable items (usually containing duplicates)
 
-        weights (Iterable[float] | None, default=None):
+        weights (Iterable[float] | None):
             Corresponding weights for each item, defaults to 1 if unspecified.
+            Defaults to None.
 
-        ordered (bool, default=False):
+        ordered (bool):
             If True the result is ordered by frequency.
+            Defaults to False.
 
-        labels (Iterable[T] | None, default=None):
+        labels (Iterable[T] | None):
             Expected labels.  Allows this function to pre-initialize the
             histogram.  If specified the frequency of each label is initialized
             to zero and ``items`` can only contain items specified in labels.
+            Defaults to None.
 
     Returns:
         dict[T, int] :
@@ -273,18 +276,19 @@ def find_duplicates(items, k=2, key=None):
 
     Args:
         items (Iterable[T]):
-            hashable items possibly containing duplicates
+            Hashable items possibly containing duplicates
 
-        k (int, default=2):
-            only return items that appear at least ``k`` times.
+        k (int):
+            Only return items that appear at least ``k`` times.
+            Defaults to 2.
 
-        key (Callable[[T], Any] | None, default=None):
+        key (Callable[[T], Any] | None):
             Returns indices where `key(items[i])` maps to a particular value at
-            least k times.
+            least k times. Default to None.
 
     Returns:
         dict[T, List[int]] :
-            maps each duplicate item to the indices at which it appears
+            Maps each duplicate item to the indices at which it appears
 
     Notes:
         Similar to :func:`more_itertools.duplicates_everseen`,
@@ -344,7 +348,8 @@ def dict_subset(dict_, keys, default=NoParam, cls=OrderedDict):
         default (Optional[object] | NoParamType):
             if specified uses default if keys are missing.
 
-        cls (Type[Dict], default=OrderedDict): type of the returned dictionary.
+        cls (Type[Dict]): type of the returned dictionary.
+            Defaults to ``OrderedDict``.
 
     Returns:
         Dict[KT, VT]: subset dictionary
@@ -614,10 +619,10 @@ def sorted_values(dict_, key=None, reverse=False, cls=OrderedDict):
             If given as a callable, customizes the sorting by ordering using
             transformed values.
 
-        reverse (bool, default=False):
-            if True returns in descending order
+        reverse (bool, default):
+            If True returns in descending order. Defaults to False.
 
-        cls (type): specifies the dict return type
+        cls (type): Specifies the dict return type. Default to OrderedDict.
 
     SeeAlso:
         ::py:meth:`UDict.sorted_values` - object oriented version of this function
@@ -656,14 +661,14 @@ def sorted_keys(dict_, key=None, reverse=False, cls=OrderedDict):
 
     Args:
         dict_ (Dict[KT, VT]):
-            dictionary to sort. The keys must be of comparable types.
+            Dictionary to sort. The keys must be of comparable types.
 
         key (Callable[[KT], Any] | None):
             If given as a callable, customizes the sorting by ordering using
             transformed keys.
 
-        reverse (bool, default=False):
-            if True returns in descending order
+        reverse (bool):
+            If True returns in descending order. Default to False.
 
         cls (type): specifies the dict return type
 
@@ -702,8 +707,8 @@ def invert_dict(dict_, unique_vals=True, cls=None):
     Args:
         dict_ (Dict[KT, VT]): dictionary to invert
 
-        unique_vals (bool, default=True): if False, the values of the new
-            dictionary are sets of the original keys.
+        unique_vals (bool): if False, the values of the new
+            dictionary are sets of the original keys. Defaults to True.
 
         cls (type | None): specifies the dict subclassof the result.
             if unspecified will be dict or OrderedDict. This behavior may
@@ -770,9 +775,9 @@ def named_product(_=None, **basis):
     variables to values).
 
     Args:
-        _ (Dict[str, List[VT]] | None, default=None):
+        _ (Dict[str, List[VT]] | None):
             Use of this positional argument is not recommend. Instead specify
-            all arguments as keyword args.
+            all arguments as keyword args. Defaults to None.
 
             If specified, this should be a dictionary is unioned with the
             keyword args.  This exists to support ordered dictionaries before
@@ -873,9 +878,9 @@ def varied_values(longform, min_variations=0, default=NoParam):
             The values of the dictionary must be hashable. Lists will be
             converted into tuples.
 
-        min_variations (int, default=0):
+        min_variations (int):
             "columns" with fewer than ``min_variations`` unique values are
-            removed from the result.
+            removed from the result. Defaults to 0.
 
         default (VT | NoParamType):
             if specified, unspecified columns are given this value.
