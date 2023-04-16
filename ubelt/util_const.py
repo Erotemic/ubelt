@@ -8,6 +8,12 @@ Use cases that demonstrate the value of :data:`NoParam` can be found in
 :mod:`ubelt.util_dict`, where it simplifies the implementation of methods that
 behave like :meth:`dict.get`.
 
+The value of :data:`NoParam` is robust to reloading, pickling, and copying. See
+[SO_41048643]_ for more details.
+
+References:
+    .. [SO_41048643]: http://stackoverflow.com/questions/41048643/a-second-none
+
 Example:
     >>> import ubelt as ub
     >>> def func(a=ub.NoParam):
