@@ -374,7 +374,8 @@ def test_grabdata_hash_typo():
 
 
 def test_deprecated_grabdata_args():
-    with pytest.warns(DeprecationWarning):
+    # with pytest.warns(DeprecationWarning):
+    with pytest.raises(RuntimeError):
         import hashlib
         url = _demo_url()
         # dpath = ub.Path.appdir('ubelt/tests/test_download').ensuredir()
@@ -406,6 +407,7 @@ def _devcheck_progres_download_bar():
     file = DummyIO()
     url = urls[0]
     dl_file = ub.download(url, fpath=file, progkw=dict(desc='dling'))
+    dl_file
 
 
 class SingletonTestServer(ub.NiceRepr):

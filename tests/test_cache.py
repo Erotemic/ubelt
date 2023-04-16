@@ -164,9 +164,11 @@ def test_cache_cfgstr():
     """
     TODO: remove when cfgstr is removed
     """
-    with pytest.warns(DeprecationWarning):
+    # with pytest.warns(DeprecationWarning):
+    with pytest.raises(RuntimeError):
         cacher1 = ub.Cacher('name', cfgstr='abc')
-    assert cacher1.depends == 'abc'
+        cacher1
+        # assert cacher1.depends == 'abc'
 
 
 def test_cache_stamp_with_hash():
