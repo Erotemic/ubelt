@@ -118,7 +118,6 @@ jobs:
     - name: Build pure wheel
       shell: bash
       run: |-
-        python -m pip install pip -U
         python -m pip install setuptools>=0.8 wheel build
         python -m build --wheel --outdir wheelhouse
     - name: Show built files
@@ -293,7 +292,7 @@ jobs:
         echo "Finding the path to the wheel"
         ls wheelhouse || echo "wheelhouse does not exist"
         echo "Installing helpers"
-        pip install pip setuptools>=0.8 setuptools_scm wheel build -U
+        pip install setuptools>=0.8 setuptools_scm wheel build -U
         pip install tomli pkginfo
         export WHEEL_FPATH=$(python -c "import pathlib; print(str(sorted(pathlib.Path('wheelhouse').glob('ubelt*.whl'))[-1]).replace(chr(92), chr(47)))")
         export MOD_VERSION=$(python -c "from pkginfo import Wheel; print(Wheel('$WHEEL_FPATH').version)")
