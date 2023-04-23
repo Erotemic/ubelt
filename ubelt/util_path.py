@@ -999,6 +999,15 @@ class Path(_PathBase):
         else:
             return list(self.glob(pattern))
 
+    # TODO:
+    # def _glob(self):
+    #     """
+    #     I would like some way of globbing using patterns contained in the path
+    #     itself. Perhaps this goes into expand?
+    #     """
+    #     import glob
+    #     yield from map(self.__class__, glob.glob(self))
+
     def shrinkuser(self, home='~'):
         """
         Shrinks your home directory by replacing it with a tilde.

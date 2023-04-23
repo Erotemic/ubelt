@@ -1011,12 +1011,110 @@ class SetDict(dict):
     A dictionary subclass where all set operations are defined.
 
     All of the set operations are defined in a key-wise fashion, that is it is
-    like performing the operation on sets of keys.
+    like performing the operation on sets of keys. Value conflicts are handled
+    with left-most priority (default for ``intersection`` and ``difference``),
+    right-most priority (default for ``union`` and ``symmetric_difference``),
+    or via a custom ``merge`` callable similar to [RubyMerge]_.
+
+    The set operations are:
+
+        * union (or the ``|`` operator) combines multiple dicttionaries into
+            one. This is nearly identical to the update operation. Rightmost
+            values take priority.
+
+        * intersection (or the ``&`` operator). Takes the items from the
+            first dictionary that share keys with the following dictionaries
+            (or lists or sets of keys).  Leftmost values take priority.
+
+        * difference (or the ``-`` operator). Takes only items from the first
+            dictionary that do not share keys with following dictionaries.
+            Leftmost values take priority.
+
+        * symmetric_difference (or the ``^`` operator). Takes the items
+            from all dictionaries where the key appears an odd number of times.
+            Rightmost values take priority.
+
+    Note:
+        The reason righmost values take priority in union /
+        symmetric_difference and left-most values take priority in intersection
+        / difference is:
+
+            1. intersection / difference is for removing keys --- i.e. is used
+            to find values in the first (main) dictionary that are also in some
+            other dictionary (or set or list of keys), whereas
+
+            2. union is for adding keys --- i.e. it is basically just an alias
+            for dict.update, so the new (rightmost) keys clobber the old.
+
+            3. symmetric_difference is somewhat strange. I'm don't have a great
+            argument for it, but it seemed easier to implement this way and it
+            does seem closer to a union than it is to a difference. Perhaps
+            unpaired union might have been a better name for this, but take
+            that up with the set theorists.
+
+        Also, union / symmetric_difference does not make sense if arguments on
+        the rights are lists/sets, whereas difference / intersection does.
 
     Note:
         The SetDict class only defines key-wise set operations.  Value-wise or
         item-wise operations are in general not hashable and therefore not
         supported. A heavier extension would be needed for that.
+
+    TODO:
+        - [ ] implement merge callables so the user can specify how to resolve
+              value conflicts / combine values.
+
+    References:
+        .. [RubyMerge] https://ruby-doc.org/core-2.7.0/Hash.html#method-i-merge
+
+    CommandLine:
+        xdoctest -m ubelt.util_dict SetDict
+
+    Example:
+        >>> import ubelt as ub
+        >>> a = ub.SetDict({'A': 'Aa', 'B': 'Ba',            'D': 'Da'})
+        >>> b = ub.SetDict({'A': 'Ab', 'B': 'Bb', 'C': 'Cb',          })
+        >>> print(a.union(b))
+        >>> print(a.intersection(b))
+        >>> print(a.difference(b))
+        >>> print(a.symmetric_difference(b))
+        {'A': 'Ab', 'B': 'Bb', 'D': 'Da', 'C': 'Cb'}
+        {'A': 'Aa', 'B': 'Ba'}
+        {'D': 'Da'}
+        {'D': 'Da', 'C': 'Cb'}
+        >>> print(a | b)  # union
+        >>> print(a & b)  # intersection
+        >>> print(a - b)  # difference
+        >>> print(a ^ b)  # symmetric_difference
+        {'A': 'Ab', 'B': 'Bb', 'D': 'Da', 'C': 'Cb'}
+        {'A': 'Aa', 'B': 'Ba'}
+        {'D': 'Da'}
+        {'D': 'Da', 'C': 'Cb'}
+
+    Example:
+        >>> import ubelt as ub
+        >>> a = ub.SetDict({'A': 'Aa', 'B': 'Ba',            'D': 'Da'})
+        >>> b = ub.SetDict({'A': 'Ab', 'B': 'Bb', 'C': 'Cb',          })
+        >>> c = ub.SetDict({'A': 'Ac', 'B': 'Bc',                       'E': 'Ec'})
+        >>> d = ub.SetDict({'A': 'Ad',            'C': 'Cd', 'D': 'Dd'})
+        >>> # 3-ary operations
+        >>> print(a.union(b, c))
+        >>> print(a.intersection(b, c))
+        >>> print(a.difference(b, c))
+        >>> print(a.symmetric_difference(b, c))
+        {'A': 'Ac', 'B': 'Bc', 'D': 'Da', 'C': 'Cb', 'E': 'Ec'}
+        {'A': 'Aa', 'B': 'Ba'}
+        {'D': 'Da'}
+        {'D': 'Da', 'C': 'Cb', 'A': 'Ac', 'B': 'Bc', 'E': 'Ec'}
+        >>> # 4-ary operations
+        >>> print(ub.UDict.union(a, b, c, c))
+        >>> print(ub.UDict.intersection(a, b, c, c))
+        >>> print(ub.UDict.difference(a, b, c, d))
+        >>> print(ub.UDict.symmetric_difference(a, b, c, d))
+        {'A': 'Ac', 'B': 'Bc', 'D': 'Da', 'C': 'Cb', 'E': 'Ec'}
+        {'A': 'Aa', 'B': 'Ba'}
+        {}
+        {'B': 'Bc', 'E': 'Ec'}
 
     Example:
         >>> import ubelt as ub
@@ -1325,12 +1423,13 @@ class SetDict(dict):
 
     ### Main set operations
 
-    def union(self, *others, cls=None):
+    def union(self, *others, cls=None, merge=None):
         """
         Return the key-wise union of two or more dictionaries.
 
-        For items with intersecting keys, dictionaries towards the end of the
-        sequence are given precedence.
+        Values chosen with *right-most* priority. I.e. for items with
+        intersecting keys, dictionaries towards the end of the sequence are
+        given precedence.
 
         Args:
             self (SetDict | dict):
@@ -1343,8 +1442,16 @@ class SetDict(dict):
             cls (type | None):
                 the desired return dictionary type.
 
+            merge (None | Callable):
+                if specified this function must accept an iterable of values
+                and return a new value to use (which typically is derived from
+                input values). NotImplemented, help wanted.
+
         Returns:
-            dict : whatever the dictionary type of the first argument is
+            dict : items from all input dictionaries. Conflicts are resolved
+                with right-most priority unless ``merge`` is specified.
+                Specific return type is specified by ``cls`` or defaults to the
+                leftmost input.
 
         Example:
             >>> import ubelt as ub
@@ -1362,15 +1469,19 @@ class SetDict(dict):
         """
         cls = cls or self.__class__
         args = it.chain([self], others)
-        new = cls(it.chain.from_iterable(d.items() for d in args))
+        if merge is None:
+            new = cls(it.chain.from_iterable(d.items() for d in args))
+        else:
+            raise NotImplementedError('merge function is not yet implemented')
         return new
 
-    def intersection(self, *others, cls=None):
+    def intersection(self, *others, cls=None, merge=None):
         """
         Return the key-wise intersection of two or more dictionaries.
 
-        All items returned will be from the first dictionary for keys that
-        exist in all other dictionaries / sets provided.
+        Values returned with *left-most* priority. I.e. all items returned will
+        be from the first dictionary for keys that exist in all other
+        dictionaries / sets provided.
 
         Args:
             self (SetDict | dict):
@@ -1382,8 +1493,25 @@ class SetDict(dict):
             cls (type | None):
                 the desired return dictionary type.
 
+            merge (None | Callable):
+                if specified this function must accept an iterable of values
+                and return a new value to use (which typically is derived from
+                input values). NotImplemented, help wanted.
+
         Returns:
-            dict : whatever the dictionary type of the first argument is
+            dict : items with keys shared by all the inputs. Values take
+                left-most priority unless ``merge`` is specified. Specific
+                return type is specified by ``cls`` or defaults to the leftmost
+                input.
+
+        Example:
+            >>> import ubelt as ub
+            >>> a = ub.SetDict({'a': 1, 'b': 2, 'd': 4})
+            >>> b = ub.SetDict({'a': 10, 'b': 20, 'c': 30})
+            >>> a.intersection(b)
+            {'a': 1, 'b': 2}
+            >>> a & b
+            {'a': 1, 'b': 2}
 
         Example:
             >>> import ubelt as ub
@@ -1403,17 +1531,20 @@ class SetDict(dict):
         isect_keys = set(self.keys())
         for v in others:
             isect_keys.intersection_update(v)
-        new = cls((k, self[k]) for k in self if k in isect_keys)
+        if merge is None:
+            new = cls((k, self[k]) for k in self if k in isect_keys)
+        else:
+            raise NotImplementedError('merge function is not yet implemented')
         return new
 
-    def difference(self, *others, cls=None):
+    def difference(self, *others, cls=None, merge=None):
         """
         Return the key-wise difference between this dictionary and one or
         more other dictionary / keys.
 
-        The returned items will be from the first dictionary, and will only
-        contain keys that do not appear in any of the other dictionaries /
-        sets.
+        Values returned with *left-most* priority. I.e. the returned items will
+        be from the first dictionary, and will only contain keys that do not
+        appear in any of the other dictionaries / sets.
 
         Args:
             self (SetDict | dict):
@@ -1425,8 +1556,16 @@ class SetDict(dict):
             cls (type | None):
                 the desired return dictionary type.
 
+            merge (None | Callable):
+                if specified this function must accept an iterable of values
+                and return a new value to use (which typically is derived from
+                input values). NotImplemented, help wanted.
+
         Returns:
-            dict : whatever the dictionary type of the first argument is
+            dict : items from the first dictionary with keys not in any of the
+                following inputs. Values take left-most priority unless
+                ``merge`` is specified. Specific return type is specified by
+                ``cls`` or defaults to the leftmost input.
 
         Example:
             >>> import ubelt as ub
@@ -1446,19 +1585,22 @@ class SetDict(dict):
         other_keys = set()
         for v in others:
             other_keys.update(v)
-        # Looping over original keys is important to maintain partial order.
-        new = cls((k, self[k]) for k in self.keys() if k not in other_keys)
+        if merge is None:
+            # Looping over original keys is important to maintain partial order.
+            new = cls((k, self[k]) for k in self.keys() if k not in other_keys)
+        else:
+            raise NotImplementedError('merge function is not yet implemented')
         return new
 
-    def symmetric_difference(self, *others, cls=None):
+    def symmetric_difference(self, *others, cls=None, merge=None):
         """
         Return the key-wise symmetric difference between this dictionary and
         one or more other dictionaries.
 
-        Returns items that are (key-wise) in an odd number of the given
-        dictionaries. This is consistent with the standard n-ary definition of
-        symmetric difference [WikiSymDiff]_ and corresponds with the xor
-        operation.
+        Values chosen with *right-most* priority. Returns items that are
+        (key-wise) in an odd number of the given dictionaries. This is
+        consistent with the standard n-ary definition of symmetric difference
+        [WikiSymDiff]_ and corresponds with the xor operation.
 
         Args:
             self (SetDict | dict):
@@ -1470,8 +1612,16 @@ class SetDict(dict):
             cls (type | None):
                 the desired return dictionary type.
 
+            merge (None | Callable):
+                if specified this function must accept an iterable of values
+                and return a new value to use (which typically is derived from
+                input values). NotImplemented, help wanted.
+
         Returns:
-            dict : whatever the dictionary type of the first argument is
+            dict : items from input dictionaries where the key appears an odd
+                number of times. Values take right-most priority unless
+                ``merge`` is specified. Specific return type is specified by
+                ``cls`` or defaults to the leftmost input.
 
         References:
             .. [WikiSymDiff] https://en.wikipedia.org/wiki/Symmetric_difference
@@ -1493,12 +1643,15 @@ class SetDict(dict):
         """
         cls = cls or self.__class__
         new = cls(self)  # shallow copy
-        for d in others:
-            for k, v in d.items():
-                if k in new:
-                    new.pop(k)
-                else:
-                    new[k] = v
+        if merge is None:
+            for d in others:
+                for k, v in d.items():
+                    if k in new:
+                        new.pop(k)
+                    else:
+                        new[k] = v
+        else:
+            raise NotImplementedError('merge function is not yet implemented')
         return new
 
 

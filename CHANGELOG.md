@@ -11,6 +11,7 @@ This project (loosely) adheres to [Semantic Versioning](https://semver.org/spec/
 * Removed experimental warning from `Path.copy` and `Path.move`; they are now well enough tested.
 * The `util_format` submodule has been renamed to `util_repr`. The
   `util_format` is now a deprecated alias for `util_repr`.
+* Stub out merge methods for SetDict.
 * Renamed `FormatterExtensions` to `ReprExtensions`, with the former now being a deprecated alias.
 
 ### Fixed:
