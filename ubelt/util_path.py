@@ -960,7 +960,7 @@ class Path(_PathBase):
                 if specified, performs a glob instead of an iterdir.
 
         Returns:
-            List[Path]: an eagerly evaluated list of paths
+            List['Path']: an eagerly evaluated list of paths
 
         Note:
             When pattern is specified only paths matching the pattern are
