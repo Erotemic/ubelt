@@ -162,16 +162,28 @@ class SetDict(dict):
     def __ixor__(self, other):
         ...
 
-    def union(self, *others, cls: type | None = None) -> dict:
+    def union(self,
+              *others,
+              cls: type | None = None,
+              merge: None | Callable = None) -> dict:
         ...
 
-    def intersection(self, *others, cls: type | None = None) -> dict:
+    def intersection(self,
+                     *others,
+                     cls: type | None = None,
+                     merge: None | Callable = None) -> dict:
         ...
 
-    def difference(self, *others, cls: type | None = None) -> dict:
+    def difference(self,
+                   *others,
+                   cls: type | None = None,
+                   merge: None | Callable = None) -> dict:
         ...
 
-    def symmetric_difference(self, *others, cls: type | None = None) -> dict:
+    def symmetric_difference(self,
+                             *others,
+                             cls: type | None = None,
+                             merge: None | Callable = None) -> dict:
         ...
 
 
