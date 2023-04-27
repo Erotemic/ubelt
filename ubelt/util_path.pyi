@@ -115,7 +115,7 @@ class Path:
     def expandvars(self) -> 'Path':
         ...
 
-    def ls(self, pattern: None | str = None) -> List[Path]:
+    def ls(self, pattern: None | str = None) -> List['Path']:
         ...
 
     def shrinkuser(self, home: str = '~') -> 'Path':
