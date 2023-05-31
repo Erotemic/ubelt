@@ -146,7 +146,7 @@ class SerialExecutor(object):
         return self
 
     def __exit__(self, ex_type, ex_value, tb):
-        pass
+        return False
 
     def submit(self, func, *args, **kw):
         """
@@ -422,7 +422,7 @@ class JobPool(object):
         return self
 
     def __exit__(self, a, b, c):
-        self.executor.__exit__(a, b, c)
+        return self.executor.__exit__(a, b, c)
 
     def _clear_completed(self):
         active_jobs = [job for job in self.jobs if job.running()]
@@ -523,7 +523,11 @@ class JobPool(object):
 
     def __iter__(self):
         """
-        An alternative to as completed
+        An alternative to as completed.
+
+        NOTE:
+            The order of iteration may be changed in the future to be the
+            submission order instead.
 
         Example:
             >>> import ubelt as ub

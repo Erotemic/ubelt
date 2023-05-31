@@ -401,6 +401,9 @@ class TempDir:
         introduced in Python 3.2. Thus once ubelt no longer supports
         python 2.7, this class will be deprecated.
 
+    Note:
+        # WE MAY WANT TO KEEP THIS FOR WINDOWS.
+
     Example:
         >>> from ubelt.util_path import *  # NOQA
         >>> with TempDir() as self:

@@ -210,3 +210,101 @@ def test_done_callback():
             job.add_done_callback(lambda x: print('done callback got x = {}'.format(x)))
             result = job.result()
             print('result = {!r}'.format(result))
+
+
+def _killable_worker(kill_fpath):
+    """
+    An infinite loop that we can kill by writing a sentinel value to disk
+    """
+    while True:
+        if kill_fpath.exists():
+            return
+
+
+def _sleepy_worker(seconds, loops=100):
+    """
+    An infinite loop that we can kill by writing a sentinel value to disk
+    """
+    import time
+    start_time = time.monotonic()
+    while True:
+        time.sleep(seconds / loops)
+        elapsed = time.monotonic() - start_time
+        if elapsed > seconds:
+            return elapsed
+
+
+def test_as_completed_timeout():
+    """
+    xdoctest ~/code/ubelt/tests/test_futures.py test_as_completed_timeout
+    """
+    import ubelt as ub
+    import uuid
+    kill_fname = str(uuid.uuid4()) + '.signal'
+
+    # modes = ['thread', 'process', 'serial']
+    modes = ['thread', 'process']
+
+    timeout = 0.1
+    dpath = ub.Path.appdir('ubelt', 'tests', 'futures', 'timeout').ensuredir()
+    kill_fpath = dpath / kill_fname
+
+    for mode in modes:
+        jobs = ub.JobPool(mode=mode, max_workers=2)
+        with jobs:
+            print('Submitting')
+            timer = ub.Timer().tic()
+
+            jobs.submit(_sleepy_worker, seconds=1e-1)
+            print('Submit job: ' + str(timer.toc()))
+            jobs.submit(_sleepy_worker, seconds=2e-1)
+            print('Submit job: ' + str(timer.toc()))
+            jobs.submit(_sleepy_worker, seconds=3e-1)
+            print('Submit job: ' + str(timer.toc()))
+            jobs.submit(_killable_worker, kill_fpath)
+            print('Submit job: ' + str(timer.toc()))
+            jobs.submit(_killable_worker, kill_fpath)
+            print('Submit job: ' + str(timer.toc()))
+            jobs.submit(_killable_worker, kill_fpath)
+            print('Submit job: ' + str(timer.toc()))
+            jobs.submit(_killable_worker, kill_fpath)
+            print('Submit job: ' + str(timer.toc()))
+
+            print('Finished submit')
+            timer.tic()
+            try:
+                completed_iter = jobs.as_completed(timeout=timeout)
+                timer.tic()
+                for job in completed_iter:
+                    print('Collect job: ' + str(timer.toc()))
+                    try:
+                        job.result()
+                    except Exception as ex:
+                        print(f'ex={ex}')
+                        ...
+                    # print('job = {}'.format(ub.urepr(job, nl=1)))
+                    timer.tic()
+                    ...
+            except TimeoutError as ex:
+                print(f'We got a timeout ex={ex}')
+
+            print('Handled timeout: ' + str(timer.toc()))
+            print('We cant escape this context until the jobs finish')
+            print([j._state for j in jobs.jobs])
+            kill_fpath.touch()
+            print([j._state for j in jobs.jobs])
+        print([j._state for j in jobs.jobs])
+
+        print('Cleanup')
+        kill_fpath.delete()
+        print('End of function')
+
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        python ~/code/ubelt/tests/test_futures.py
+    """
+    test_as_completed_timeout()
+    # import xdoctest
+    # xdoctest.doctest_module(__file__)
