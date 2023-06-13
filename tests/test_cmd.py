@@ -254,6 +254,9 @@ def test_env():
 
 # @pytest.mark.skipif(sys.platform == 'win32', reason='does not run on win32')
 def test_timeout():
+    """
+    xdoctest ~/code/ubelt/tests/test_cmd.py test_timeout
+    """
     import subprocess
     import pytest
     # Infinite script
@@ -277,14 +280,16 @@ def test_timeout():
 
     initial_grid = list(ub.named_product({
         'tee': [0, 1],
+        'capture': [0, 1],
         'timeout': [0, 0.001, 0.01],
     }))
     expanded_grid = []
     for kw in initial_grid:
+        kw = ub.udict(kw)
         if kw['tee']:
             if not ub.WIN32:
-                expanded_grid.append(ub.dict_union(kw, {'tee_backend': 'select'}))
-            expanded_grid.append(ub.dict_union(kw, {'tee_backend': 'thread'}))
+                expanded_grid.append(kw | {'tee_backend': 'select'})
+            expanded_grid.append(kw | {'tee_backend': 'thread'})
         else:
             expanded_grid.append(kw)
 
@@ -293,6 +298,102 @@ def test_timeout():
         with pytest.raises(subprocess.TimeoutExpired):
             ub.cmd(py_script, **kw)
             return
+
+
+def test_subprocess_compatability():
+    import subprocess
+    import ubelt as ub
+
+    def check_compatability(command, common_kwargs):
+        ub_out = ub.cmd(command, verbose=1, capture=False, **common_kwargs)
+        sp_out = subprocess.run(command, **common_kwargs)
+        assert sp_out.stderr == ub_out.stderr
+        assert sp_out.stdout == ub_out.stdout
+        assert sp_out.returncode == ub_out.returncode
+        assert sp_out.args == ub_out.args
+        assert ub_out.check_returncode() == sp_out.check_returncode()
+
+        ub_out = ub.cmd(command, verbose=0, capture=True, **common_kwargs)
+        sp_out = subprocess.run(command, capture_output=True, universal_newlines=True, **common_kwargs)
+        assert sp_out.stderr == ub_out.stderr
+        assert sp_out.stdout == ub_out.stdout
+        assert sp_out.returncode == ub_out.returncode
+        assert sp_out.args == ub_out.args
+        assert ub_out.check_returncode() == sp_out.check_returncode()
+
+        ub_out = ub.cmd(command, verbose=0, capture=False, **common_kwargs)
+        sp_out = subprocess.run(command, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, **common_kwargs)
+        assert sp_out.stderr == ub_out.stderr
+        assert sp_out.stdout == ub_out.stdout
+        assert sp_out.returncode == ub_out.returncode
+        assert sp_out.args == ub_out.args
+        assert ub_out.check_returncode() == sp_out.check_returncode()
+
+    command = ['echo', 'hello world']
+    common_kwargs = {'shell': False}
+    check_compatability(command, common_kwargs)
+
+    command = 'echo hello world'
+    common_kwargs = {'shell': True}
+    check_compatability(command, common_kwargs)
+
+    if not ub.WIN32:
+        command = ['ls', '-l']
+        common_kwargs = {'shell': False}
+        check_compatability(command, common_kwargs)
+
+        command = 'ls -l'
+        common_kwargs = {'shell': True}
+        check_compatability(command, common_kwargs)
+
+
+def test_failing_subprocess_compatability():
+    import subprocess
+    import pytest
+    import ubelt as ub
+
+    def check_failing_compatability(command, common_kwargs):
+        ub_out = ub.cmd(command, verbose=1, capture=False, **common_kwargs)
+        sp_out = subprocess.run(command, **common_kwargs)
+        assert sp_out.stderr == ub_out.stderr
+        assert sp_out.stdout == ub_out.stdout
+        assert sp_out.returncode == ub_out.returncode
+        assert sp_out.args == ub_out.args
+        with pytest.raises(subprocess.CalledProcessError):
+            ub_out.check_returncode()
+        with pytest.raises(subprocess.CalledProcessError):
+            sp_out.check_returncode()
+
+        ub_out = ub.cmd(command, verbose=0, capture=True, **common_kwargs)
+        sp_out = subprocess.run(command, capture_output=True, universal_newlines=True, **common_kwargs)
+        assert sp_out.stderr == ub_out.stderr
+        assert sp_out.stdout == ub_out.stdout
+        assert sp_out.returncode == ub_out.returncode
+        assert sp_out.args == ub_out.args
+        with pytest.raises(subprocess.CalledProcessError):
+            ub_out.check_returncode()
+        with pytest.raises(subprocess.CalledProcessError):
+            sp_out.check_returncode()
+
+        ub_out = ub.cmd(command, verbose=0, capture=False, **common_kwargs)
+        sp_out = subprocess.run(command, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, **common_kwargs)
+        assert sp_out.stderr == ub_out.stderr
+        assert sp_out.stdout == ub_out.stdout
+        assert sp_out.returncode == ub_out.returncode
+        assert sp_out.args == ub_out.args
+        with pytest.raises(subprocess.CalledProcessError):
+            ub_out.check_returncode()
+        with pytest.raises(subprocess.CalledProcessError):
+            sp_out.check_returncode()
+
+    if not ub.WIN32:
+        command = ['ls', '-l', 'does not exist']
+        common_kwargs = {'shell': False}
+        check_failing_compatability(command, common_kwargs)
+
+        command = 'ls -l does not exist'
+        common_kwargs = {'shell': True}
+        check_failing_compatability(command, common_kwargs)
 
 
 def _dev_debug_timeouts():

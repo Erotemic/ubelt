@@ -13,6 +13,7 @@ This project (loosely) adheres to [Semantic Versioning](https://semver.org/spec/
   `util_format` is now a deprecated alias for `util_repr`.
 * Stub out merge methods for SetDict.
 * Renamed `FormatterExtensions` to `ReprExtensions`, with the former now being a deprecated alias.
+* `ubelt.cmd` now returns an object that ducktypes `subprocess.CompletedProcess`.
 
 ### Fixed:
 * Exposed `ChDir`.
