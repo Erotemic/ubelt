@@ -421,7 +421,7 @@ def grabdata(url, fpath=None, dpath=None, fname=None, redo=False,
         dpath, fname = split(fpath)
 
     if hasher is not None:
-        if not isinstance(hasher, str):
+        if not isinstance(hasher, str):   # nocover
             from ubelt import schedule_deprecation
             schedule_deprecation(
                 modname='ubelt',

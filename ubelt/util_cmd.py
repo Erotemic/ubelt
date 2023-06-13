@@ -31,6 +31,54 @@ Example:
         'proc': <...Popen...>,
         'ret': 0,
     }
+
+
+The cmd is able to handle common uses cases of the subprocess module with a
+simpler interface.
+
+.. code:: python
+
+    import subprocess
+    import ubelt as ub
+
+Run without capturing output and without printing to the screen
+
+.. code:: python
+
+    # stdlib
+    subprocess.run(['ls', '-l'], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, universal_newlines=True)
+
+    # ubelt equivalent
+    ub.cmd(['ls', '-l'], capture=False)
+
+Print output to the screen, but no programatic access to the data
+
+.. code:: python
+
+    # stdlib
+    subprocess.check_call(['ls', '-l'])
+
+    # ubelt equivalent
+    ub.cmd(['ls', '-l'], verbose=1, capture=False)
+
+Get programatic access to the data but dont show it on screen
+
+.. code:: python
+
+    # stdlib
+    subprocess.check_output(['ls', '-l'], universal_newlines=True)
+
+    # ubelt equivalent
+    ub.cmd(['ls', '-l'])['out']
+
+Get programatic access AND show it on screen
+
+.. code:: python
+
+    # stdlib has no easy way to to this
+
+    # ubelt has "tee" functionality
+    ub.cmd(['ls', '-l'], verbose=1)
 """
 import sys
 import os
@@ -60,8 +108,39 @@ POSIX = 'posix' in sys.builtin_module_names
 WIN32 = sys.platform == 'win32'
 
 
+class CmdOutput(dict):
+    """
+    An container that holds the output of :func:`ubelt.cmd`.
+
+    This inherits from dictionary to be backwards compatible with older
+    versions of ubelt, but also includes methods that ducktype the stdlib
+    :class:`subprocess.CompletedProcess`, which makes it easier for existing
+    code that uses :func:`subprocess.run` to switch to :func:`ubelt.cmd`.
+    """
+
+    @property
+    def stdout(self):
+        return self['out']
+
+    @property
+    def stderr(self):
+        return self['err']
+
+    @property
+    def returncode(self):
+        return self['ret']
+
+    def check_returncode(self):
+        """Raise CalledProcessError if the exit code is non-zero."""
+        import subprocess
+        if self.returncode:
+            raise subprocess.CalledProcessError(
+                self.returncode, self.args, self.stdout, self.stderr)
+
+
 def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
-        env=None, tee_backend='auto', check=False, system=False, timeout=None):
+        env=None, tee_backend='auto', check=False, system=False, timeout=None,
+        capture=True):
     """
     Executes a command in a subprocess.
 
@@ -113,13 +192,16 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
             are all ignored.  (new in version 1.1.0)
 
         timeout (float | None):
-            If the process does not complete in `timeout` seconds, raises a
-            :class:`subprocess.TimeoutExpired`. (new in version 1.1.0)
-            Currently unhandled when tee is True.
+            If the process does not complete in ``timeout`` seconds, raise a
+            :class:`subprocess.TimeoutExpired`. (new in version 1.1.0).
 
         log (Callable | None):
             If specified, verbose output is written using this function,
             otherwise the builtin print function is used.
+
+        capture (bool):
+            if True, the stdout/stderr are captured and returned in the
+            information dictionary. Ignored if detatch or system is True.
 
     Returns:
         dict:
@@ -245,7 +327,7 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
             if isinstance(part, os.PathLike):
                 part = os.fspath(part)
             command_parts.append(part)
-        command_tup = tuple(command_parts)
+        command_tup = list(command_parts)
         command_text = ' '.join(list(map(shlex.quote, command_tup)))
 
     # Inputs can either be text or tuple based. On UNIX we ensure conversion
@@ -294,9 +376,18 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
     # Create a new process to execute the command
     def make_proc():
         # delay the creation of the process until we validate all args
-        proc = subprocess.Popen(args, stdout=subprocess.PIPE,
-                                stderr=subprocess.PIPE, shell=shell,
-                                universal_newlines=True, cwd=cwd, env=env)
+        popen_kwargs = {'cwd': cwd, 'env': env, 'shell': shell}
+        popen_kwargs['universal_newlines'] = True
+        if capture:
+            popen_kwargs['stdout'] = subprocess.PIPE
+            popen_kwargs['stderr'] = subprocess.PIPE
+        elif not tee:
+            # The only way to supress printing to the screen is by
+            # pipeing to devnull
+            # note: we use ``tee`` as a proxy for "show_output"
+            popen_kwargs['stdout'] = subprocess.DEVNULL
+            popen_kwargs['stderr'] = subprocess.DEVNULL
+        proc = subprocess.Popen(args, **popen_kwargs)
         return proc
 
     if system:
@@ -314,7 +405,7 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
         if verbose > 0:  # nocover
             log('...detaching')
     else:
-        if tee:
+        if tee and capture:
             # We logging stdout and stderr, while simultaneously piping it to
             # another stream.
             stdout = sys.stdout
@@ -328,33 +419,49 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
                 (out_, err_) = proc.communicate(timeout=timeout)
         else:
             proc = make_proc()
-            with proc:
-                try:
-                    (out, err) = proc.communicate(timeout=timeout)
-                except subprocess.TimeoutExpired as exc:
-                    # Follow the error handling in the stdlib implementation of
-                    # subprocess.run
-                    proc.kill()
-                    if WIN32:  # nocover
-                        # Win32 needs a communicate after the kill to get the
-                        # output. See stdlib for details.
-                        exc.stdout, exc.stderr = proc.communicate()
-                    else:
-                        # Posix implementations already handle the populate.
-                        proc.wait()
-                    raise
+            if capture:
+                # Follow the error handling in the stdlib implementation of
+                # subprocess.run
+                with proc:
+                    try:
+                        (out, err) = proc.communicate(timeout=timeout)
+                    except subprocess.TimeoutExpired as exc:
+                        proc.kill()
+                        if WIN32:  # nocover
+                            # Win32 needs a communicate after the kill to get the
+                            # output. See stdlib for details.
+                            exc.stdout, exc.stderr = proc.communicate()
+                        else:
+                            # Posix implementations already handle the populate.
+                            proc.wait()
+                        raise
+            else:
+                # Not capturing output, but it might print to the screen
+                out = None
+                err = None
+                # Follow the error handling in the stdlib implementation of
+                # subprocess.call
+                with proc:
+                    try:
+                        proc.wait(timeout=timeout)
+                    except:  # NOQA  # Including KeyboardInterrupt, wait handled that.
+                        proc.kill()
+                        # We don't call p.wait() again as p.__exit__ does that for us.
+                        raise
         # We used the popen context manager, which means that wait was called,
         # the process has existed, so it is safe to return a reference to the
         # process object.
         ret = proc.poll()
-        info = {
+        info = CmdOutput(**{
             'out': out,
             'err': err,
             'ret': ret,
             'proc': proc,
             'cwd': cwd,
-            'command': command_text
-        }
+            'command': command_text,
+        })
+        # For subprocess compatability
+        info.args = command_text if shell else command_tup
 
     if not detach:
         if verbose > 2:
@@ -675,7 +782,6 @@ def _tee_output(proc, stdout=None, stderr=None, backend='thread',
         raise AssertionError(
             'Invalid backend, but the check should have already a happened')
 
-    # TODO: handle timeout
     output_gen = _proc_iteroutput(proc, timeout=timeout)
     # logger.debug("Start waiting for buffered output")
     for oline, eline in output_gen:
