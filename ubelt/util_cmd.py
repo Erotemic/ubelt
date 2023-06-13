@@ -51,7 +51,7 @@ Run without capturing output and without printing to the screen
     # ubelt equivalent
     ub.cmd(['ls', '-l'], capture=False)
 
-Print output to the screen, but no programatic access to the data
+Print output to the screen, but no programmatic access to the data
 
 .. code:: python
 
@@ -61,7 +61,7 @@ Print output to the screen, but no programatic access to the data
     # ubelt equivalent
     ub.cmd(['ls', '-l'], verbose=1, capture=False)
 
-Get programatic access to the data but dont show it on screen
+Get programmatic access to the data but don't show it on screen
 
 .. code:: python
 
@@ -454,8 +454,9 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
                         proc.wait()
                     raise
         else:
-            proc = make_proc()
             # Not capturing output, but it might print to the screen
+            # i.e. capture is False, but show might be True or False
+            proc = make_proc()
             out = None
             err = None
             # Follow the error handling in the stdlib implementation of
