@@ -14,10 +14,13 @@ This project (loosely) adheres to [Semantic Versioning](https://semver.org/spec/
 * Stub out merge methods for SetDict.
 * Renamed `FormatterExtensions` to `ReprExtensions`, with the former now being a deprecated alias.
 * `ubelt.cmd` now returns an object that ducktypes `subprocess.CompletedProcess`.
+* `ubelt.cmd` now contains a `capture` argument which will disable capturing of output.
+* `ubelt.cmd` ...detaching now only prints if verbosity is > 1
 
 ### Fixed:
 * Exposed `ChDir`.
 * Removed usage of deprecated `pipes` module
+* `ubelt.cmd` return dictionaries are now more consistent
 
 
 ## Version 1.2.4 - 2022-02-28
