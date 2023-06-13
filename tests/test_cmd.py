@@ -396,6 +396,57 @@ def test_failing_subprocess_compatability():
         check_failing_compatability(command, common_kwargs)
 
 
+def test_cmdoutput_object_with_non_subprocess_backends():
+    import ubelt as ub
+    import pytest
+
+    info = ub.cmd('echo hello world', verbose=1)
+    assert info.stdout.strip() == 'hello world'
+    assert info.stderr.strip() == ''
+    info.check_returncode()
+
+    # In this case, when tee=0 the user can stil capture the output
+    info = ub.cmd('echo hello world', detach=True, capture=True, tee=0)
+    with pytest.raises(KeyError):
+        info.stdout
+    with pytest.raises(KeyError):
+        info.stderr
+    assert info['proc'].communicate()[0] is not None
+
+    # In this case, when tee=0 and capture=False, the user cannot capture the output
+    info = ub.cmd('echo hello world', detach=True, capture=False, tee=0)
+    with pytest.raises(KeyError):
+        info.stdout
+    with pytest.raises(KeyError):
+        info.stderr
+    assert info['proc'].communicate()[0] is None
+
+    # In this case when tee=1, a detatched process will show its output but
+    # capturing will not be possible.
+    info = ub.cmd('echo hello world', detach=True, capture=False, tee=1)
+    with pytest.raises(KeyError):
+        info.stdout
+    with pytest.raises(KeyError):
+        info.stderr
+    info['proc'].communicate()
+    info.args
+    with pytest.raises(KeyError):
+        info.check_returncode()
+
+    # Check attributes when system=True
+    info = ub.cmd('echo hello world', system=True)
+    assert info.stdout is None
+    assert info.stderr is None
+    assert info.args == 'echo hello world'
+    info.check_returncode()
+
+    info = ub.cmd(['echo', 'hello', 'world'], system=True, shell=True)
+    assert info.stdout is None
+    assert info.stderr is None
+    assert info.args == 'echo hello world'
+    info.check_returncode()
+
+
 def _dev_debug_timeouts():
     """
     Notes used when implementating timeout

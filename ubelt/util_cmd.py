@@ -195,10 +195,6 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
             If the process does not complete in ``timeout`` seconds, raise a
             :class:`subprocess.TimeoutExpired`. (new in version 1.1.0).
 
-        log (Callable | None):
-            If specified, verbose output is written using this function,
-            otherwise the builtin print function is used.
-
         capture (bool):
             if True, the stdout/stderr are captured and returned in the
             information dictionary. Ignored if detatch or system is True.
@@ -311,6 +307,10 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
     # In the future we might allow the user to pass a custom log function
     # But this has weird interactions with how the tee process works
     # because of the assumption stdout.write does not emit a newline
+    # TODO:
+    # log (Callable | None):
+    #     If specified, verbose output is written using this function,
+    #     otherwise the builtin print function is used.
     log = print
 
     import subprocess
@@ -334,7 +334,7 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
     # to text if shell is True, and to tuple if shell is False. On windows,
     # the input is text if shell is True, but can be either if shell is
     # False as noted in [SO_33560364]_.
-    if shell:
+    if shell or system:
         # When shell=True, args is sent to the shell (e.g. bin/sh) as text
         args = command_text
     else:
@@ -357,6 +357,17 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
     if tee and tee_backend not in {'auto', 'thread', 'select'}:
         raise ValueError('tee_backend must be select, thread, or auto')
 
+    # note: we use ``tee`` as a proxy for "show"
+    # we may upgrade show to an actual argument
+    show = tee
+
+    if show and not capture:
+        # even though tee was probably true, semantically it should be
+        # considered false unless we are doing both.
+        # when show becomes an arguments we should do error handling for
+        # inconsistency here
+        tee = False
+
     if verbose > 1:
         import platform
         import getpass
@@ -378,34 +389,42 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
         # delay the creation of the process until we validate all args
         popen_kwargs = {'cwd': cwd, 'env': env, 'shell': shell}
         popen_kwargs['universal_newlines'] = True
+
         if capture:
             popen_kwargs['stdout'] = subprocess.PIPE
             popen_kwargs['stderr'] = subprocess.PIPE
-        elif not tee:
-            # The only way to supress printing to the screen is by
-            # pipeing to devnull
-            # note: we use ``tee`` as a proxy for "show_output"
+        elif not show:
+            # The only way to suppress printing to the screen is by
+            # piping to devnull
             popen_kwargs['stdout'] = subprocess.DEVNULL
             popen_kwargs['stderr'] = subprocess.DEVNULL
         proc = subprocess.Popen(args, **popen_kwargs)
         return proc
 
     if system:
-        info = {
-            'command': command_text,
-            'out': None,
-            'err': None,
-        }
         from ubelt.util_path import ChDir
         with ChDir(cwd):
             ret = os.system(command_text)
-        info['ret'] = ret
+        info = CmdOutput(**{
+            'out': None,
+            'err': None,
+            'ret': ret,
+            'cwd': cwd,
+            'command': command_text,
+        })
     elif detach:
-        info = {'proc': make_proc(), 'command': command_text}
-        if verbose > 0:  # nocover
+        info = CmdOutput(**{
+            # Not including out/err/ret because the user could still compute
+            # them via proc. I'm open to reconsidering this design decision.
+            'proc': make_proc(),
+            'cwd': cwd,
+            'command': command_text
+        })
+        if verbose > 1:  # nocover
             log('...detaching')
     else:
-        if tee and capture:
+        if tee:
+            # tee means both capture and show are true.
             # We logging stdout and stderr, while simultaneously piping it to
             # another stream.
             stdout = sys.stdout
@@ -417,37 +436,38 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
                     backend=tee_backend, timeout=timeout,
                     command_text=command_text)
                 (out_, err_) = proc.communicate(timeout=timeout)
+        elif capture:
+            proc = make_proc()
+            # Follow the error handling in the stdlib implementation of
+            # subprocess.run
+            with proc:
+                try:
+                    (out, err) = proc.communicate(timeout=timeout)
+                except subprocess.TimeoutExpired as exc:
+                    proc.kill()
+                    if WIN32:  # nocover
+                        # Win32 needs a communicate after the kill to get the
+                        # output. See stdlib for details.
+                        exc.stdout, exc.stderr = proc.communicate()
+                    else:
+                        # Posix implementations already handle the populate.
+                        proc.wait()
+                    raise
         else:
             proc = make_proc()
-            if capture:
-                # Follow the error handling in the stdlib implementation of
-                # subprocess.run
-                with proc:
-                    try:
-                        (out, err) = proc.communicate(timeout=timeout)
-                    except subprocess.TimeoutExpired as exc:
-                        proc.kill()
-                        if WIN32:  # nocover
-                            # Win32 needs a communicate after the kill to get the
-                            # output. See stdlib for details.
-                            exc.stdout, exc.stderr = proc.communicate()
-                        else:
-                            # Posix implementations already handle the populate.
-                            proc.wait()
-                        raise
-            else:
-                # Not capturing output, but it might print to the screen
-                out = None
-                err = None
-                # Follow the error handling in the stdlib implementation of
-                # subprocess.call
-                with proc:
-                    try:
-                        proc.wait(timeout=timeout)
-                    except:  # NOQA  # Including KeyboardInterrupt, wait handled that.
-                        proc.kill()
-                        # We don't call p.wait() again as p.__exit__ does that for us.
-                        raise
+            # Not capturing output, but it might print to the screen
+            out = None
+            err = None
+            # Follow the error handling in the stdlib implementation of
+            # subprocess.call
+            with proc:
+                try:
+                    proc.wait(timeout=timeout)
+                except:  # NOQA  # Including KeyboardInterrupt, wait handled that.
+                    proc.kill()
+                    # We don't call p.wait() again as p.__exit__ does that for us.
+                    raise
+
         # We used the popen context manager, which means that wait was called,
         # the process has existed, so it is safe to return a reference to the
         # process object.
@@ -460,8 +480,9 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
             'cwd': cwd,
             'command': command_text,
         })
-        # For subprocess compatability
-        info.args = command_text if shell else command_tup
+
+    # For subprocess compatability
+    info.args = args
 
     if not detach:
         if verbose > 2:
