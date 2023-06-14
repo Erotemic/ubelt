@@ -45,6 +45,8 @@ class PythonPathContext(object):
         index (int): position to add to. Typically either -1 or 0.
 
     Example:
+        >>> from ubelt.util_import import PythonPathContext
+        >>> import sys
         >>> with PythonPathContext('foo', -1):
         >>>     assert sys.path[-1] == 'foo'
         >>> assert sys.path[-1] != 'foo'
@@ -55,6 +57,8 @@ class PythonPathContext(object):
     Example:
         >>> # xdoctest: +REQUIRES(module:pytest)
         >>> # Mangle the path inside the context
+        >>> from ubelt.util_import import PythonPathContext
+        >>> import sys
         >>> self = PythonPathContext('foo', 0)
         >>> self.__enter__()
         >>> sys.path.insert(0, 'mangled')
@@ -64,6 +68,8 @@ class PythonPathContext(object):
 
     Example:
         >>> # xdoctest: +REQUIRES(module:pytest)
+        >>> from ubelt.util_import import PythonPathContext
+        >>> import sys
         >>> self = PythonPathContext('foo', 0)
         >>> self.__enter__()
         >>> sys.path.remove('foo')
@@ -181,24 +187,27 @@ def import_module_from_path(modpath, index=-1):
                     |- mod.py
                     |- helper.py
 
-       If there exists another module named ``pkg`` already in sys.modules
-       and mod.py does something like ``from . import helper``, Python will
-       assume helper belongs to the ``pkg`` module already in sys.modules.
-       This can cause a NameError or worse --- a incorrect helper module.
+       If there exists another module named ``pkg`` already in ``sys.modules``
+       and mod.py contains the code ``from . import helper``, Python will
+       assume helper belongs to the ``pkg`` module already in ``sys.modules``.
+       This can cause a NameError or worse --- an incorrect helper module.
 
     SeeAlso:
         :func:`import_module_from_name`
 
     Example:
+        >>> import ubelt as ub
         >>> import xdoctest
         >>> modpath = xdoctest.__file__
-        >>> module = import_module_from_path(modpath)
+        >>> module = ub.import_module_from_path(modpath)
         >>> assert module is xdoctest
 
     Example:
         >>> # Test importing a module from within a zipfile
+        >>> import ubelt as ub
         >>> import zipfile
         >>> from xdoctest import utils
+        >>> import os
         >>> from os.path import join, expanduser, normpath
         >>> dpath = expanduser('~/.cache/xdoctest')
         >>> dpath = utils.ensuredir(dpath)
@@ -216,16 +225,17 @@ def import_module_from_path(modpath, index=-1):
         >>> # Import the bar module from within the zipfile
         >>> modpath = zippath + ':' + internal
         >>> modpath = zippath + os.path.sep + internal
-        >>> module = import_module_from_path(modpath)
+        >>> module = ub.import_module_from_path(modpath)
         >>> assert normpath(module.__name__) == normpath('folder/bar')
         >>> assert module.testvar == 1
 
     Example:
         >>> import pytest
+        >>> import ubelt as ub
         >>> with pytest.raises(IOError):
-        >>>     import_module_from_path('does-not-exist')
+        >>>     ub.import_module_from_path('does-not-exist')
         >>> with pytest.raises(IOError):
-        >>>     import_module_from_path('does-not-exist.zip/')
+        >>>     ub.import_module_from_path('does-not-exist.zip/')
     """
     if not os.path.exists(modpath):
         import re
@@ -298,12 +308,14 @@ def import_module_from_name(modname):
     Example:
         >>> # test with modules that won't be imported in normal circumstances
         >>> # todo write a test where we guarantee this
+        >>> import ubelt as ub
+        >>> import sys
         >>> modname_list = [
         >>>     'pickletools',
         >>>     'lib2to3.fixes.fix_apply',
         >>> ]
         >>> #assert not any(m in sys.modules for m in modname_list)
-        >>> modules = [import_module_from_name(modname) for modname in modname_list]
+        >>> modules = [ub.import_module_from_name(modname) for modname in modname_list]
         >>> assert [m.__name__ for m in modules] == modname_list
         >>> assert all(m in sys.modules for m in modname_list)
     """
@@ -392,6 +404,8 @@ def _syspath_modname_to_modpath(modname, sys_path=None, exclude=None):
         standalone install, and check that we always find the right path.
 
     Example:
+        >>> from ubelt.util_import import *  # NOQA
+        >>> from ubelt.util_import import _syspath_modname_to_modpath
         >>> print(_syspath_modname_to_modpath('xdoctest.static_analysis'))
         ...static_analysis.py
         >>> print(_syspath_modname_to_modpath('xdoctest'))
@@ -619,6 +633,7 @@ def _pkgutil_modname_to_modpath(modname):  # nocover
 
     Example:
         >>> # xdoctest: +SKIP
+        >>> from ubelt.util_import import _pkgutil_modname_to_modpath
         >>> modname = 'xdoctest.static_analysis'
         >>> _pkgutil_modname_to_modpath(modname)
         ...static_analysis.py
@@ -657,7 +672,7 @@ def modname_to_modpath(modname, hide_init=True, hide_main=False, sys_path=None):
 
         hide_main (bool):
             if False, and ``hide_init`` is True, __main__.py will be returned
-            for packages, if it exists. Defautls to False.
+            for packages, if it exists. Defaults to False.
 
         sys_path (None | List[str | PathLike]):
             The paths to search for the module.
@@ -668,6 +683,7 @@ def modname_to_modpath(modname, hide_init=True, hide_main=False, sys_path=None):
             modpath - path to the module, or None if it doesn't exist
 
     Example:
+        >>> from ubelt.util_import import modname_to_modpath
         >>> modname = 'xdoctest.__main__'
         >>> modpath = modname_to_modpath(modname, hide_main=False)
         >>> assert modpath.endswith('__main__.py')
@@ -710,6 +726,7 @@ def normalize_modpath(modpath, hide_init=True, hide_main=False):
         Adds __init__ if reasonable, but only removes __main__ by default
 
     Example:
+        >>> from ubelt.util_import import normalize_modpath
         >>> from xdoctest import static_analysis as module
         >>> modpath = module.__file__
         >>> assert normalize_modpath(modpath) == modpath.replace('.pyc', '.py')
@@ -774,6 +791,7 @@ def modpath_to_modname(modpath, hide_init=True, hide_main=False, check=True,
         ValueError: if check is True and the path does not exist
 
     Example:
+        >>> from ubelt.util_import import modpath_to_modname
         >>> from xdoctest import static_analysis
         >>> modpath = static_analysis.__file__.replace('.pyc', '.py')
         >>> modpath = modpath.replace('.pyc', '.py')
@@ -781,17 +799,21 @@ def modpath_to_modname(modpath, hide_init=True, hide_main=False, check=True,
         >>> assert modname == 'xdoctest.static_analysis'
 
     Example:
+        >>> from ubelt.util_import import modpath_to_modname
         >>> import xdoctest
         >>> assert modpath_to_modname(xdoctest.__file__.replace('.pyc', '.py')) == 'xdoctest'
         >>> assert modpath_to_modname(dirname(xdoctest.__file__.replace('.pyc', '.py'))) == 'xdoctest'
 
     Example:
         >>> # xdoctest: +REQUIRES(CPython)
+        >>> from ubelt.util_import import modpath_to_modname
+        >>> from ubelt.util_import import modname_to_modpath
         >>> modpath = modname_to_modpath('_ctypes')
         >>> modname = modpath_to_modname(modpath)
         >>> assert modname == '_ctypes'
 
     Example:
+        >>> from ubelt.util_import import modpath_to_modname
         >>> modpath = '/foo/libfoobar.linux-x86_64-3.6.so'
         >>> modname = modpath_to_modname(modpath, check=False)
         >>> assert modname == 'libfoobar'
@@ -835,6 +857,7 @@ def split_modpath(modpath, check=True):
 
     Example:
         >>> from xdoctest import static_analysis
+        >>> from ubelt.util_import import split_modpath
         >>> modpath = static_analysis.__file__.replace('.pyc', '.py')
         >>> modpath = abspath(modpath)
         >>> dpath, rel_modpath = split_modpath(modpath)
@@ -877,6 +900,7 @@ def is_modname_importable(modname, sys_path=None, exclude=None):
         bool: True if the module can be imported
 
     Example:
+        >>> from ubelt.util_import import is_modname_importable
         >>> is_modname_importable('xdoctest')
         True
         >>> is_modname_importable('not_a_real_module')
@@ -896,6 +920,7 @@ def _static_parse(varname, fpath):
 
     Example:
         >>> import ubelt as ub
+        >>> from ubelt.util_import import _static_parse
         >>> dpath = ub.Path.appdir('tests/import/staticparse').ensuredir()
         >>> fpath = (dpath / 'foo.py')
         >>> fpath.write_text('a = {1: 2}')
