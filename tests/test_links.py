@@ -12,12 +12,15 @@ from ubelt import util_links
 
 
 def test_rel_dir_link():
+    """
+    xdoctest ~/code/ubelt/tests/test_links.py test_rel_dir_link
+    """
     dpath = ub.Path.appdir('ubelt/tests/test_links', 'test_rel_dir_link').ensuredir()
     ub.delete(dpath, verbose=2)
     ub.ensuredir(dpath, verbose=2)
 
-    real_dpath = join(ub.ensuredir((dpath, 'dir1')), 'real')
-    link_dpath = join(ub.ensuredir((dpath, 'dir2')), 'link')
+    real_dpath = join((dpath / 'dir1').ensuredir(), 'real')
+    link_dpath = join((dpath / 'dir2').ensuredir(), 'link')
     ub.ensuredir(real_dpath)
 
     orig = os.getcwd()
@@ -29,7 +32,11 @@ def test_rel_dir_link():
         # Note: on windows this is hacked.
         pointed = ub.util_links._readlink(link)
         resolved = os.path.realpath(ub.expandpath(join(dirname(link), pointed)))
-        assert os.path.realpath(ub.expandpath(real_dpath)) == resolved
+
+        final_real_dpath = os.path.realpath(ub.expandpath(real_dpath))
+        if final_real_dpath != resolved:
+            raise AssertionError(f'{final_real_dpath} != {resolved}')
+        # assert os.path.realpath(ub.expandpath(real_dpath)) == resolved
     except Exception:
         util_links._dirstats(dpath)
         util_links._dirstats(join(dpath, 'dir1'))
@@ -430,6 +437,48 @@ def _force_junction(func):
         func(*args)
         _win32_links.__win32_can_symlink__ = None
     return _wrap
+
+
+def test_symlink_to_rel_symlink():
+    """
+    Test a case with a absolute link to a relative link to a real path.
+    """
+    dpath = ub.Path.appdir('ubelt/tests/links/sym-to-relsym')
+    dpath.delete().ensuredir()
+
+    level1 = (dpath / 'level1').ensuredir()
+
+    real = dpath / 'real'
+    link1 = level1 / 'link1'
+
+    real.touch()
+
+    print('Should create')
+
+    rel_link1_to_real = os.path.relpath(real, link1.parent)
+
+    # FIXME: This ub.symlink behavior seems broken
+
+    # link1.symlink_to(os.path.relpath(real, link1.parent))
+    ub.symlink(real_path=rel_link1_to_real, link_path=link1, verbose=3)
+
+    # ub.symlink(real_path=rel_link1_to_real, link_path=link2, verbose=3)
+    """
+    At this point we have:
+
+    ├── level1
+    │   ├── level2
+    │   │   └── link2 -> /home/joncrall/.cache/ubelt/tests/links/sym-to-relsym/level1/link1
+    │   └── link1 -> ../real
+    └── real
+    """
+    _ = ub.cmd(f'tree {dpath}', verbose=3)
+
+    import pytest
+    with pytest.raises(FileExistsError):
+        ub.symlink(real_path=real, link_path=link1, verbose=3)
+
+    # ub.symlink(real_path=link1, link_path=link2, verbose=1)
 
 
 # class TestSymlinksForceJunction(object):

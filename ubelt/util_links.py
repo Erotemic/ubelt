@@ -71,6 +71,9 @@ def symlink(real_path, link_path, overwrite=False, verbose=0):
         More details can be found in :mod:`ubelt._win32_links`. On systems that
         support symlinks (e.g. Linux), none of the above applies.
 
+    Note:
+        This function may contain a bug when creating a relative link
+
     References:
         .. [WikiSymLink] https://en.wikipedia.org/wiki/Symbolic_link
         .. [WikiHardLink] https://en.wikipedia.org/wiki/Hard_link
@@ -138,11 +141,14 @@ def symlink(real_path, link_path, overwrite=False, verbose=0):
 
     if not os.path.isabs(path):
         # if path is not absolute it must be specified relative to link
-        if _can_symlink():
-            path = os.path.relpath(path, os.path.dirname(link))
-        else:  # nocover
+        if not _can_symlink():  # nocover
             # On windows, we need to use absolute paths
             path = os.path.abspath(path)
+        else:
+            # FIXME: This behavior seems like it might be wrong.
+            path = os.path.relpath(path, os.path.dirname(link))
+            # abs_path = join(os.path.dirname(link), path)
+            ...
 
     if verbose:
         print('Symlink: {link} -> {path}'.format(path=path, link=link))
@@ -158,6 +164,15 @@ def symlink(real_path, link_path, overwrite=False, verbose=0):
             if not exists(link):
                 print('... but it is broken and points somewhere else: {}'.format(pointed))
             else:
+                # TODO: if we fix the relative symlink bug, this text might be better
+                # import pathlib
+                # abs_path = join(os.path.dirname(link), path)
+                # resolved_path = pathlib.Path(abs_path).resolve()
+                # resolved_pointed = (pathlib.Path(link).parent / pointed).resolve()
+                # if  resolved_path == resolved_pointed:
+                #     print('... and it resolves to the right location')
+                #     print('... but the pointer is different: {}'.format(pointed))
+                # else:
                 print('... but it points somewhere else: {}'.format(pointed))
         if overwrite:
             util_io.delete(link, verbose=verbose > 1)
