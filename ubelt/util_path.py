@@ -292,9 +292,10 @@ def ensuredir(dpath, mode=0o1777, verbose=0, recreate=False):
         dpath (str | PathLike | Tuple[str | PathLike]): dir to ensure.
         mode (int): octal mode of directory
         verbose (int): verbosity
+
         recreate (bool): if True removes the directory and
             all of its contents and creates a new empty directory.
-            USE CAREFULLY.
+            DEPRECATED: Use ``ub.Path(dpath).delete().ensuredir()`` instead.
 
     Returns:
         str: the ensured directory
@@ -315,6 +316,13 @@ def ensuredir(dpath, mode=0o1777, verbose=0, recreate=False):
         dpath = join(*dpath)
 
     if recreate:
+        import ubelt as ub
+        ub.schedule_deprecation(
+            modname='ubelt',
+            migration='Use ``ub.Path(dpath).delete().ensuredir()`` instead', name='recreate',
+            type='argument of ensuredir', deprecate='1.3.0', error='2.0.0',
+            remove='2.1.0',
+        )
         util_io.delete(dpath, verbose=verbose)
 
     if not exists(dpath):
