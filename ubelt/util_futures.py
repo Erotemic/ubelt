@@ -145,7 +145,7 @@ class SerialExecutor(object):
         self.max_workers = 0
         return self
 
-    def __exit__(self, ex_type, ex_value, tb):
+    def __exit__(self, ex_type, ex_value, ex_traceback):
         return False
 
     def submit(self, func, *args, **kw):
@@ -230,8 +230,8 @@ class SerialExecutor(object):
 #             self.loop = asyncio.get_event_loop()
 #     def __enter__(self):
 #         return self
-#     def __exit__(self, ex_type, ex_value, tb):
-#         pass
+#     def __exit__(self, ex_type, ex_value, ex_traceback):
+#         ...
 #     def submit(self, func, *args, **kw):
 #         ...
 #     def shutdown(self):
@@ -298,8 +298,9 @@ class Executor(object):
         self.backend.__enter__()
         return self
 
-    def __exit__(self, ex_type, ex_value, tb):
-        return self.backend.__exit__(ex_type, ex_value, tb)
+    def __exit__(self, ex_type, ex_value, ex_traceback):
+        # Note: the following call will block
+        return self.backend.__exit__(ex_type, ex_value, ex_traceback)
 
     def submit(self, func, *args, **kw):
         """
@@ -421,8 +422,8 @@ class JobPool(object):
         self.executor.__enter__()
         return self
 
-    def __exit__(self, a, b, c):
-        return self.executor.__exit__(a, b, c)
+    def __exit__(self, ex_type, ex_value, ex_traceback):
+        return self.executor.__exit__(ex_type, ex_value, ex_traceback)
 
     def _clear_completed(self):
         active_jobs = [job for job in self.jobs if job.running()]

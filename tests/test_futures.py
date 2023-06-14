@@ -243,6 +243,8 @@ def test_as_completed_timeout():
     """
     xdoctest ~/code/ubelt/tests/test_futures.py test_as_completed_timeout
     """
+    from concurrent.futures import TimeoutError
+
     import ubelt as ub
     import uuid
     kill_fname = str(uuid.uuid4()) + '.signal'
