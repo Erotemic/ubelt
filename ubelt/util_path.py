@@ -180,9 +180,10 @@ def userhome(username=None):
 
     Example:
         >>> import ubelt as ub
+        >>> import os
         >>> import getpass
         >>> username = getpass.getuser()
-        >>> userhome_target = ub.expanduser('~')
+        >>> userhome_target = os.path.expanduser('~')
         >>> userhome_got1 = ub.userhome()
         >>> userhome_got2 = ub.userhome(username)
         >>> print(f'username={username}')
