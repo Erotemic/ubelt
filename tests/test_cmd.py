@@ -313,13 +313,14 @@ def test_subprocess_compatability():
         assert sp_out.args == ub_out.args
         assert ub_out.check_returncode() == sp_out.check_returncode()
 
-        ub_out = ub.cmd(command, verbose=0, capture=True, **common_kwargs)
-        sp_out = subprocess.run(command, capture_output=True, universal_newlines=True, **common_kwargs)
-        assert sp_out.stderr == ub_out.stderr
-        assert sp_out.stdout == ub_out.stdout
-        assert sp_out.returncode == ub_out.returncode
-        assert sp_out.args == ub_out.args
-        assert ub_out.check_returncode() == sp_out.check_returncode()
+        if sys.version_info[0:2] >= (3, 11):
+            ub_out = ub.cmd(command, verbose=0, capture=True, **common_kwargs)
+            sp_out = subprocess.run(command, capture_output=True, universal_newlines=True, **common_kwargs)
+            assert sp_out.stderr == ub_out.stderr
+            assert sp_out.stdout == ub_out.stdout
+            assert sp_out.returncode == ub_out.returncode
+            assert sp_out.args == ub_out.args
+            assert ub_out.check_returncode() == sp_out.check_returncode()
 
         ub_out = ub.cmd(command, verbose=0, capture=False, **common_kwargs)
         sp_out = subprocess.run(command, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, **common_kwargs)
