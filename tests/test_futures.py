@@ -239,7 +239,7 @@ def _sleepy_worker(seconds, loops=100):
             return elapsed
 
 
-def _hack_off_test_as_completed_timeout():
+def test_as_completed_timeout():
     """
     xdoctest ~/code/ubelt/tests/test_futures.py test_as_completed_timeout
     """

@@ -56,7 +56,6 @@ import operator as op
 import itertools as it
 from collections import OrderedDict
 from collections import defaultdict
-# from ubelt import util_const
 from ubelt.util_const import NoParam
 
 __all__ = [

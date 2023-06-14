@@ -166,11 +166,11 @@ def userhome(username=None):
 
     Args:
         username (str | None):
-            name of a user on the system. If not specified, the current user is
+            name of a user on the system. If unspecified, the current user is
             inferred.
 
     Returns:
-        str: userhome_dpath - path to the specified home directory
+        str: path to the specified home directory
 
     Raises:
         KeyError: if the specified user does not exist on the system
@@ -179,11 +179,10 @@ def userhome(username=None):
             inferred
 
     Example:
-        >>> from ubelt.util_path import *  # NOQA
         >>> import ubelt as ub
         >>> import getpass
         >>> username = getpass.getuser()
-        >>> userhome_target = expanduser('~')
+        >>> userhome_target = ub.expanduser('~')
         >>> userhome_got1 = ub.userhome()
         >>> userhome_got2 = ub.userhome(username)
         >>> print(f'username={username}')
@@ -240,7 +239,7 @@ def shrinkuser(path, home='~'):
             '%USERPROFILE%' instead.
 
     Returns:
-        str: path - shortened path replacing the home directory with a symbol
+        str: shortened path replacing the home directory with a symbol
 
     Example:
         >>> from ubelt.util_path import *  # NOQA
@@ -270,7 +269,7 @@ def expandpath(path):
         path (str | PathLike): string representation of a path
 
     Returns:
-        str : expanded path
+        str: expanded path
 
     Example:
         >>> from ubelt.util_path import *  # NOQA
@@ -289,41 +288,33 @@ def ensuredir(dpath, mode=0o1777, verbose=0, recreate=False):
     default
 
     Args:
-        dpath (str | PathLike | Tuple[str | PathLike]): dir to ensure. Can also
-            be a tuple to send to join
+        dpath (str | PathLike | Tuple[str | PathLike]): dir to ensure.
         mode (int): octal mode of directory
         verbose (int): verbosity
         recreate (bool): if True removes the directory and
-            all of its contents and creates a fresh new directory.
+            all of its contents and creates a new empty directory.
             USE CAREFULLY.
 
     Returns:
-        str: path - the ensured directory
+        str: the ensured directory
 
     SeeAlso:
         :func:`ubelt.Path.ensuredir`
 
-    Note:
-        This function is not thread-safe in Python2
-
     Example:
-        >>> from ubelt.util_path import *  # NOQA
         >>> import ubelt as ub
-        >>> cache_dpath = ub.Path.appdir('ubelt').ensuredir()
-        >>> dpath = join(cache_dpath, 'ensuredir')
-        >>> if exists(dpath):
-        ...     os.rmdir(dpath)
-        >>> assert not exists(dpath)
+        >>> dpath = ub.Path.appdir('ubelt', 'ensuredir')
+        >>> dpath.delete()
+        >>> assert not dpath.exists()
         >>> ub.ensuredir(dpath)
-        >>> assert exists(dpath)
-        >>> os.rmdir(dpath)
+        >>> assert dpath.exists()
+        >>> dpath.delete()
     """
     if isinstance(dpath, (list, tuple)):
         dpath = join(*dpath)
 
     if recreate:
-        import ubelt as ub
-        ub.delete(dpath, verbose=verbose)
+        util_io.delete(dpath, verbose=verbose)
 
     if not exists(dpath):
         if verbose:
@@ -352,7 +343,7 @@ class ChDir:
         >>> dir2 = (dpath / 'dir2').ensuredir()
         >>> with ChDir(dpath):
         >>>     assert ub.Path.cwd() == dpath
-        >>>     # changes to the given directory, and then returns back
+        >>>     # change to the given directory, and then returns back
         >>>     with ChDir(dir1):
         >>>         assert ub.Path.cwd() == dir1
         >>>         with ChDir(dir2):
@@ -394,7 +385,7 @@ class TempDir:
     """
     Context for creating and cleaning up temporary directories.
 
-    This class is DEPRECATED. Use `tempfile` instead.
+    DEPRECATED. Use `tempfile` instead.
 
     Note:
         This exists because :class:`tempfile.TemporaryDirectory` was
@@ -705,15 +696,14 @@ class Path(_PathBase):
                 Text placed in front of the stem. Defaults to ''.
 
             stemsuffix (str):
-                Text placed between the stem and extension. Default to ''.
-                Note: this is called suffix in :func:`ub.augpath`.
+                Text placed between the stem and extension. Defaults to ''.
 
             ext (str | None):
                 If specified, replaces the extension
 
             stem (str | None):
                 If specified, replaces the stem (i.e. basename without
-                extension). Note: named base in :func:`augpath`.
+                extension).
 
             dpath (str | PathLike | None):
                 If specified, replaces the specified "relative" directory,
@@ -750,23 +740,18 @@ class Path(_PathBase):
 
             .. code:: python
 
-            p = ub.Path('the.entire.fname.or.dname.is.the.name.exe')
-            print(f'p     ={p}')
-            print(f'p.name={p.name}')
-            p = ub.Path('the.stem.ends.here.ext')
-            print(f'p     ={p}')
-            print(f'p.stem={p.stem}')
-            p = ub.Path('only.the.last.dot.is.the.suffix')
-            print(f'p       ={p}')
-            print(f'p.suffix={p.suffix}')
-            p = ub.Path('but.all.suffixes.can.be.recovered')
-            print(f'p         ={p}')
-            print(f'p.suffixes={p.suffixes}')
-
-            p.name
-            p.stem
-            p.suffixes
-            p.parts
+                p = ub.Path('the.entire.fname.or.dname.is.the.name.exe')
+                print(f'p     ={p}')
+                print(f'p.name={p.name}')
+                p = ub.Path('the.stem.ends.here.ext')
+                print(f'p     ={p}')
+                print(f'p.stem={p.stem}')
+                p = ub.Path('only.the.last.dot.is.the.suffix')
+                print(f'p       ={p}')
+                print(f'p.suffix={p.suffix}')
+                p = ub.Path('but.all.suffixes.can.be.recovered')
+                print(f'p         ={p}')
+                print(f'p.suffixes={p.suffixes}')
 
         Example:
             >>> import ubelt as ub
@@ -924,14 +909,11 @@ class Path(_PathBase):
 
         Example:
             >>> import ubelt as ub
-            >>> #home_v1 = ub.Path('$HOME').expand()
-            >>> home_v2 = ub.Path('~/').expand()
-            >>> assert isinstance(home_v2, ub.Path)
-            >>> home_v3 = ub.Path.home()
-            >>> #print('home_v1 = {!r}'.format(home_v1))
+            >>> home_v1 = ub.Path('~/').expand()
+            >>> home_v2 = ub.Path.home()
+            >>> print('home_v1 = {!r}'.format(home_v1))
             >>> print('home_v2 = {!r}'.format(home_v2))
-            >>> print('home_v3 = {!r}'.format(home_v3))
-            >>> assert home_v3 == home_v2 # == home_v1
+            >>> assert home_v1 == home_v2
         """
         return self.expandvars().expanduser()
 
@@ -1023,7 +1005,7 @@ class Path(_PathBase):
                 '%USERPROFILE%' instead.
 
         Returns:
-            Path: path - shortened path replacing the home directory with a symbol
+            Path: shortened path replacing the home directory with a symbol
 
         Example:
             >>> import ubelt as ub
@@ -1162,7 +1144,7 @@ class Path(_PathBase):
 
     def endswith(self, suffix, *args):
         """
-        Test if the fspath representation ends with a particular string
+        Test if the fspath representation ends with ``suffix``.
 
         Allows ubelt.Path to be a better drop-in replacement when working with
         string-based paths.
@@ -1176,7 +1158,7 @@ class Path(_PathBase):
                 end (int): if specified stop testing at this position.
 
         Returns:
-            bool: True if any of the suffixes are matched.
+            bool: True if any of the suffixes match.
 
         Example:
             >>> import ubelt as ub
@@ -1197,7 +1179,7 @@ class Path(_PathBase):
 
     def startswith(self, prefix, *args):
         """
-        Test if the fspath representation starts with a particular string
+        Test if the fspath representation starts with ``prefix``.
 
         Allows ubelt.Path to be a better drop-in replacement when working with
         string-based paths.
@@ -1211,7 +1193,7 @@ class Path(_PathBase):
                 end (int): if specified stop testing at this position.
 
         Returns:
-            bool: True if any of the prefixes are matched.
+            bool: True if any of the prefixes match.
 
         Example:
             >>> import ubelt as ub
@@ -1264,17 +1246,17 @@ class Path(_PathBase):
 
         TextArt:
 
-            +----------+------------------------+------------------------+------------+
-            | dst      | dir                    | file                   | no-exist   |
-            +----------+                        |                        |            |
-            | src      |                        |                        |            |
-            +==========+========================+========================+============+
-            | dir      | error-or-overwrite-dst | error                  | dst        |
-            +----------+------------------------+------------------------+------------+
-            | file     | dst / src.name         | error-or-overwrite-dst | dst        |
-            +----------+------------------------+------------------------+------------+
-            | no-exist | error                  | error                  | error      |
-            +----------+------------------------+------------------------+------------+
+            +----------+------------------------+------------------------+----------+
+            | dst      | dir                    | file                   | no-exist |
+            +----------+                        |                        |          |
+            | src      |                        |                        |          |
+            +==========+========================+========================+==========+
+            | dir      | error-or-overwrite-dst | error                  | dst      |
+            +----------+------------------------+------------------------+----------+
+            | file     | dst / src.name         | error-or-overwrite-dst | dst      |
+            +----------+------------------------+------------------------+----------+
+            | no-exist | error                  | error                  | error    |
+            +----------+------------------------+------------------------+----------+
 
         In general, the contents of src will be the contents of dst, except for
         the one case where a file is copied into an existing directory. In this
@@ -1298,8 +1280,6 @@ class Path(_PathBase):
             import pandas as pd
             df = pd.DataFrame(rows)
             piv = df.pivot(['src'], ['dst'], 'result')
-            print(piv.to_markdown(tablefmt="presto"))
-            print(piv.to_markdown(tablefmt="pretty", index=True))
             print(piv.to_markdown(tablefmt="grid", index=True))
 
             See: ~/code/ubelt/tests/test_path.py for test cases
@@ -1337,13 +1317,13 @@ class Path(_PathBase):
                 otherwise the file will be overwritten.
 
         Returns:
-            Path: where the path was actually copied to
+            Path: where the path was copied to
 
         Note:
             This is implemented with a combination of :func:`shutil.copy`,
             :func:`shutil.copy2`, and :func:`shutil.copytree`, but the defaults
-            and behavior here are noticeably different (and hopefully safer and
-            more intuitive).
+            and behavior here are different (and ideally safer and more
+            intuitive).
 
         Note:
             Unlike cp on Linux, copying a src directory into a dst directory
@@ -1351,8 +1331,8 @@ class Path(_PathBase):
             directory. This means we cannot copy directory ``<parent>/<dname>``
             to ``<dst>`` and expect the result to be ``<dst>/<dname>``.
 
-            Conceptually you can always expect ``<parent>/<dname>/<contents>``
-            to be exist in ``<dst>/<contents>``.
+            Conceptually you can expect ``<parent>/<dname>/<contents>``
+            to exist in ``<dst>/<contents>``.
 
         Example:
             >>> import ubelt as ub
@@ -1375,12 +1355,6 @@ class Path(_PathBase):
             >>> paths['empty_dpath'].copy((clone1 / 'empty_dpath_alt').ensuredir(), overwrite=True)
             >>> paths['nested_dpath'].copy(clone0 / 'nested_dpath')
             >>> paths['nested_dpath'].copy((clone1 / 'nested_dpath_alt').ensuredir(), overwrite=True)
-
-        Ignore:
-            import xdev
-            xdev.tree_repr(dpath)
-            xdev.tree_repr(clone0, max_files=10)
-            xdev.tree_repr(clone1, max_files=10)
         """
         import shutil
         copy_function = self._request_copy_function(
@@ -1452,7 +1426,7 @@ class Path(_PathBase):
             works on your system.
 
         Returns:
-            Path: where the path was actually moved to
+            Path: where the path was moved to
 
         Example:
             >>> import ubelt as ub
@@ -1465,25 +1439,12 @@ class Path(_PathBase):
             >>> paths['dpath01'] = (dpath / 'dpath0' / 'sub1').ensuredir()
             >>> print('paths = {}'.format(ub.repr2(paths, nl=1)))
             >>> assert all(p.exists() for p in paths.values())
-            >>> # xdev.tree_repr(dpath, max_files=10)
             >>> paths['dpath0'].move(dpath / 'dpath1')
-            >>> # xdev.tree_repr(dpath, max_files=10)
-
-        Ignore:
-            import xdev
-            xdev.tree_repr(dpath)
         """
         # Behave more like POSIX move to avoid potential confusing behavior
         if exists(dst):
             raise FileExistsError(
                 'Moves are only allowed to locations that dont exist')
-        # if os.path.isdir(dst):
-        #     with os.scandir(dst) as itr:
-        #         is_empty = next(itr, None) is None
-        #     if not is_empty:
-        #         raise IOError(f'Cannot move {self!r} to {dst!r}. '
-        #                       'Directory not empty')
-
         import shutil
         copy_function = self._request_copy_function(
             follow_file_symlinks=follow_file_symlinks,
@@ -1501,7 +1462,6 @@ if sys.version_info[0:2] < (3, 8):  # nocover
         A vendored shutil.copytree for older pythons based on the 3.10
         implementation
         """
-        # import stat
         from shutil import Error, copystat, copy2, copy
         with os.scandir(src) as itr:
             entries = list(itr)
