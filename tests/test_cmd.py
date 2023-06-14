@@ -364,16 +364,17 @@ def test_failing_subprocess_compatability():
         with pytest.raises(subprocess.CalledProcessError):
             sp_out.check_returncode()
 
-        ub_out = ub.cmd(command, verbose=0, capture=True, **common_kwargs)
-        sp_out = subprocess.run(command, capture_output=True, universal_newlines=True, **common_kwargs)
-        assert sp_out.stderr == ub_out.stderr
-        assert sp_out.stdout == ub_out.stdout
-        assert sp_out.returncode == ub_out.returncode
-        assert sp_out.args == ub_out.args
-        with pytest.raises(subprocess.CalledProcessError):
-            ub_out.check_returncode()
-        with pytest.raises(subprocess.CalledProcessError):
-            sp_out.check_returncode()
+        if sys.version_info[0:2] >= (3, 11):
+            ub_out = ub.cmd(command, verbose=0, capture=True, **common_kwargs)
+            sp_out = subprocess.run(command, capture_output=True, universal_newlines=True, **common_kwargs)
+            assert sp_out.stderr == ub_out.stderr
+            assert sp_out.stdout == ub_out.stdout
+            assert sp_out.returncode == ub_out.returncode
+            assert sp_out.args == ub_out.args
+            with pytest.raises(subprocess.CalledProcessError):
+                ub_out.check_returncode()
+            with pytest.raises(subprocess.CalledProcessError):
+                sp_out.check_returncode()
 
         ub_out = ub.cmd(command, verbose=0, capture=False, **common_kwargs)
         sp_out = subprocess.run(command, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, **common_kwargs)

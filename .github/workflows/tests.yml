@@ -70,7 +70,7 @@ jobs:
         # Get path to installed package
         MOD_DPATH=$(python -c "import ubelt, os; print(os.path.dirname(ubelt.__file__))")
         echo "MOD_DPATH = $MOD_DPATH"
-        python -m pytest --cov={self.mod_name} $MOD_DPATH ../tests
+        python -m pytest --verbose --cov={self.mod_name} $MOD_DPATH ../tests
         cd ..
     - name: Test full loose sdist
       run: |-
@@ -85,7 +85,7 @@ jobs:
         # Get path to installed package
         MOD_DPATH=$(python -c "import ubelt, os; print(os.path.dirname(ubelt.__file__))")
         echo "MOD_DPATH = $MOD_DPATH"
-        python -m pytest --cov={self.mod_name} $MOD_DPATH ../tests
+        python -m pytest --verbose --cov={self.mod_name} $MOD_DPATH ../tests
         cd ..
     - name: Upload sdist artifact
       uses: actions/upload-artifact@v3
@@ -320,7 +320,7 @@ jobs:
         running the pytest command inside the workspace
         ---
         "
-        python -m pytest -p pytester -p no:doctest --xdoctest --cov-config ../pyproject.toml --cov-report term --cov="ubelt" "$MOD_DPATH" ../tests
+        python -m pytest --verbose -p pytester -p no:doctest --xdoctest --cov-config ../pyproject.toml --cov-report term --cov="ubelt" "$MOD_DPATH" ../tests
         echo "pytest command finished, moving the coverage file to the repo root"
         ls -al
         # Move coverage file to a new name
