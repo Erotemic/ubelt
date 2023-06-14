@@ -5,7 +5,7 @@ We are currently working on porting this changelog to the specifications in
 This project (loosely) adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
-## Version 1.2.5 - Unreleased
+## Version 1.3.0 - Unreleased
 
 ### Changed
 * Removed experimental warning from `Path.copy` and `Path.move`; they are now well enough tested.
@@ -21,6 +21,9 @@ This project (loosely) adheres to [Semantic Versioning](https://semver.org/spec/
 * Exposed `ChDir`.
 * Removed usage of deprecated `pipes` module
 * `ubelt.cmd` return dictionaries are now more consistent
+
+### Deprecated
+* The `recreate` argument to `ensuredir`
 
 
 ## Version 1.2.4 - 2022-02-28
