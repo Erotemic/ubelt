@@ -476,7 +476,7 @@ def test_symlink_to_rel_symlink():
     │   └── link1 -> ../real
     └── real
     """
-    _ = ub.cmd(f'tree {dpath}', verbose=3)
+    # _ = ub.cmd(f'tree {dpath}', verbose=3)
 
     import pytest
     with pytest.raises(FileExistsError):
