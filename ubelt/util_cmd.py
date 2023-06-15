@@ -156,14 +156,14 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
         command (str | List[str]):
             command string, tuple of executable and args, or shell command.
 
-        shell (bool, default=False):
-            if True, process is run in shell.
+        shell (bool):
+            if True, process is run in shell. Defaults to False.
 
-        detach (bool, default=False):
-            if True, process is detached and run in background.
+        detach (bool):
+            if True, process is detached and run in background. Defaults to False.
 
-        verbose (int, default=0):
-            verbosity mode. Can be 0, 1, 2, or 3.
+        verbose (int):
+            verbosity mode. Can be 0, 1, 2, or 3. Defaults to 0.
 
         tee (bool | None):
             if True, simultaneously writes to stdout while capturing output
@@ -177,23 +177,24 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
         env (Dict[str, str] | None):
             environment passed to Popen
 
-        tee_backend (str, default='auto'): backend for tee output.
+        tee_backend (str): backend for tee output.
             Valid choices are: "auto", "select" (POSIX only), and "thread".
+            Defaults to "auto".
 
-        check (bool, default=False):
+        check (bool):
             if True, check that the return code was zero before returning,
             otherwise raise a :class:`subprocess.CalledProcessError`.
-            Does nothing if detach is True.
+            Does nothing if detach is True.  Defaults to False.
 
-        system (bool, default=False):
+        system (bool):
             if True, most other considerations are dropped, and
             :func:`os.system` is used to execute the command in a platform
             dependant way. Other arguments such as env, tee, timeout, and shell
-            are all ignored.  (new in version 1.1.0)
+            are all ignored. Defaults to False. (New in version 1.1.0)
 
         timeout (float | None):
             If the process does not complete in ``timeout`` seconds, raise a
-            :class:`subprocess.TimeoutExpired`. (new in version 1.1.0).
+            :class:`subprocess.TimeoutExpired`. (New in version 1.1.0).
 
         capture (bool):
             if True, the stdout/stderr are captured and returned in the
@@ -216,15 +217,16 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
         what they would be on the command line.
 
     Related Work:
-        https://github.com/pycontribs/subprocess-tee
-        https://github.com/mortoray/shelljob
-        https://github.com/netinvent/command_runner
-        https://www.pyinvoke.org/prior-art.html
+        Similar to other libraries: [SubprocTee]_, [ShellJob]_, [CmdRunner]_, [PyInvoke]_.
 
     References:
         .. [SO_11495783] https://stackoverflow.com/questions/11495783/redirect-subprocess-stderr-to-stdout
         .. [SO_7729336] https://stackoverflow.com/questions/7729336/how-can-i-print-and-display-subprocess-stdout-and-stderr-output-without-distorti
         .. [SO_33560364] https://stackoverflow.com/questions/33560364/python-windows-parsing-command-lines-with-shlex
+        .. [SubprocTee] https://github.com/pycontribs/subprocess-tee
+        .. [ShellJob] https://github.com/mortoray/shelljob
+        .. [CmdRunner] https://github.com/netinvent/command_runner
+        .. [PyInvoke] https://www.pyinvoke.org/prior-art.html
 
     CommandLine:
         xdoctest -m ubelt.util_cmd cmd:6
