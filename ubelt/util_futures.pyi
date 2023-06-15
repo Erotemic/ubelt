@@ -27,7 +27,7 @@ class SerialExecutor:
     def __enter__(self):
         ...
 
-    def __exit__(self, ex_type, ex_value, tb) -> None:
+    def __exit__(self, ex_type, ex_value, ex_traceback):
         ...
 
     def submit(self, func, *args, **kw) -> concurrent.futures.Future:
@@ -50,7 +50,7 @@ class Executor:
     def __enter__(self):
         ...
 
-    def __exit__(self, ex_type, ex_value, tb):
+    def __exit__(self, ex_type, ex_value, ex_traceback):
         ...
 
     def submit(self, func, *args, **kw) -> concurrent.futures.Future:
@@ -87,7 +87,7 @@ class JobPool:
     def __enter__(self):
         ...
 
-    def __exit__(self, a, b, c) -> None:
+    def __exit__(self, ex_type, ex_value, ex_traceback):
         ...
 
     def as_completed(
