@@ -200,7 +200,7 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
             information dictionary. Ignored if detatch or system is True.
 
     Returns:
-        dict:
+        dict | CmdOutput:
             info - information about command status.
             if detach is False ``info`` contains captured standard out,
             standard error, and the return code
