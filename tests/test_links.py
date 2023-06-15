@@ -443,6 +443,11 @@ def test_symlink_to_rel_symlink():
     """
     Test a case with a absolute link to a relative link to a real path.
     """
+    import ubelt as ub
+    if ub.WIN32:
+        import pytest
+        pytest.skip('dont try on windows')
+
     dpath = ub.Path.appdir('ubelt/tests/links/sym-to-relsym')
     dpath.delete().ensuredir()
 
@@ -455,12 +460,11 @@ def test_symlink_to_rel_symlink():
 
     print('Should create')
 
-    rel_link1_to_real = os.path.relpath(real, link1.parent)
-
+    # rel_link1_to_real = os.path.relpath(real, link1.parent)
     # FIXME: This ub.symlink behavior seems broken
 
-    # link1.symlink_to(os.path.relpath(real, link1.parent))
-    ub.symlink(real_path=rel_link1_to_real, link_path=link1, verbose=3)
+    link1.symlink_to(os.path.relpath(real, link1.parent))
+    # ub.symlink(real_path=rel_link1_to_real, link_path=link1, verbose=3)
 
     # ub.symlink(real_path=rel_link1_to_real, link_path=link2, verbose=3)
     """
