@@ -5,6 +5,15 @@ We are currently working on porting this changelog to the specifications in
 This project (loosely) adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## Version 1.3.1 - 2022-06-14
+
+
+### Fixed
+
+* Bug where the first call to `ub.hash_data` would error if it was given a
+  ndarray with object type.
+
+
 ## Version 1.3.0 - 2022-06-14
 
 ### Changed

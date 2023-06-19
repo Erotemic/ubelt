@@ -146,6 +146,15 @@ class SerialExecutor(object):
         return self
 
     def __exit__(self, ex_type, ex_value, ex_traceback):
+        """
+        Args:
+            ex_type (Type[BaseException] | None):
+            ex_value (BaseException | None):
+            ex_traceback (TracebackType | None):
+
+        Returns:
+            bool | None
+        """
         return False
 
     def submit(self, func, *args, **kw):
@@ -299,6 +308,15 @@ class Executor(object):
         return self
 
     def __exit__(self, ex_type, ex_value, ex_traceback):
+        """
+        Args:
+            ex_type (Type[BaseException] | None):
+            ex_value (BaseException | None):
+            ex_traceback (TracebackType | None):
+
+        Returns:
+            bool | None
+        """
         # Note: the following call will block
         return self.backend.__exit__(ex_type, ex_value, ex_traceback)
 
@@ -423,6 +441,15 @@ class JobPool(object):
         return self
 
     def __exit__(self, ex_type, ex_value, ex_traceback):
+        """
+        Args:
+            ex_type (Type[BaseException] | None):
+            ex_value (BaseException | None):
+            ex_traceback (TracebackType | None):
+
+        Returns:
+            bool | None
+        """
         return self.executor.__exit__(ex_type, ex_value, ex_traceback)
 
     def _clear_completed(self):
@@ -529,6 +556,10 @@ class JobPool(object):
         NOTE:
             The order of iteration may be changed in the future to be the
             submission order instead.
+
+        Yields:
+            concurrent.futures.Future:
+                The completed future object containing the results of a job.
 
         Example:
             >>> import ubelt as ub
