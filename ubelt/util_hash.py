@@ -183,8 +183,8 @@ class _Hashers(object):
             try:
                 func()
             except ImportError:  # nocover
-                pass
-        self._lazy_queue = []
+                ...
+        self._lazy_queue.clear()
 
     def __contains__(self, key):
         if self._lazy_queue:  # nocover
@@ -338,6 +338,11 @@ class HashableExtensions(object):
         _hash_dispatch.__is_base__ = True
         self._hash_dispatch = singledispatch(_hash_dispatch)
 
+    def _evaluate_lazy_queue(self):
+        for func in self._lazy_queue:
+            func()
+        self._lazy_queue.clear()
+
     def register(self, hash_types):
         """
         Registers a function to generate a hash for data of the appropriate
@@ -489,10 +494,11 @@ class HashableExtensions(object):
             >>> print(f3(data))
         """
         # Evaluate the lazy queue if anything is in it
-        if self._lazy_queue:
-            for func in self._lazy_queue:
-                func()
-            self._lazy_queue = []
+        if self._lazy_queue:  # nocover
+            # Added nocover, because a bugfix prevents this from running and it
+            # is unclear how to build a test in for this.
+            self._evaluate_lazy_queue()
+
         query_hash_type = data.__class__
         # TODO: recognize some special dunder method instead
         # of strictly using this registry.
@@ -907,6 +913,11 @@ def _update_hasher(hasher, data, types=True, extensions=None):
     """
     if extensions is None:
         extensions = _HASHABLE_EXTENSIONS
+
+    # bugfix: ensure the lazy registration queue is evaluated before running
+    # the iterable checks.
+    if extensions._lazy_queue:
+        extensions._evaluate_lazy_queue()
 
     # Determine if the data should be hashed directly or iterated through
     if isinstance(data, (tuple, list, zip)):
