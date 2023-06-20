@@ -372,7 +372,16 @@ class zopen(NiceRepr):
     def __enter__(self):
         return self
 
-    def __exit__(self, *args):
+    def __exit__(self, ex_type, ex_value, ex_traceback):
+        """
+        Args:
+            ex_type (Type[BaseException] | None):
+            ex_value (BaseException | None):
+            ex_traceback (TracebackType | None):
+
+        Returns:
+            bool | None
+        """
         self.close()
 
     # TODO: Allow for navigating inside of the zipfile

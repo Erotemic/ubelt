@@ -1,4 +1,6 @@
 import datetime
+from typing import Type
+from types import TracebackType
 from _typeshed import Incomplete
 
 
@@ -41,5 +43,7 @@ class Timer:
     def __enter__(self):
         ...
 
-    def __exit__(self, ex_type, ex_value, trace):
+    def __exit__(self, ex_type: Type[BaseException] | None,
+                 ex_value: BaseException | None,
+                 ex_traceback: TracebackType | None) -> bool | None:
         ...
