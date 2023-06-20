@@ -211,7 +211,16 @@ class CaptureStdout(CaptureStream):
         self.cap_stdout.close()
         self.cap_stdout = None
 
-    def __exit__(self, type_, value, trace):
+    def __exit__(self, ex_type, ex_value, ex_traceback):
+        """
+        Args:
+            ex_type (Type[BaseException] | None):
+            ex_value (BaseException | None):
+            ex_traceback (TracebackType | None):
+
+        Returns:
+            bool | None
+        """
         if self.enabled:
             try:
                 self.log_part()
@@ -219,5 +228,5 @@ class CaptureStdout(CaptureStream):
                 raise
             finally:
                 self.stop()
-        if trace is not None:
+        if ex_traceback is not None:
             return False  # return a falsey value on error

@@ -86,7 +86,16 @@ class PythonPathContext(object):
             self.index = len(sys.path) + self.index + 1
         sys.path.insert(self.index, self.dpath)
 
-    def __exit__(self, type, value, trace):
+    def __exit__(self, ex_type, ex_value, ex_traceback):
+        """
+        Args:
+            ex_type (Type[BaseException] | None):
+            ex_value (BaseException | None):
+            ex_traceback (TracebackType | None):
+
+        Returns:
+            bool | None
+        """
         need_recover = False
         if len(sys.path) <= self.index:  # nocover
             msg_parts = [

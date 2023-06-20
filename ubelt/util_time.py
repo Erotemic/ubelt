@@ -573,9 +573,18 @@ class Timer(object):
         self.tic()
         return self
 
-    def __exit__(self, ex_type, ex_value, trace):
+    def __exit__(self, ex_type, ex_value, ex_traceback):
+        """
+        Args:
+            ex_type (Type[BaseException] | None):
+            ex_value (BaseException | None):
+            ex_traceback (TracebackType | None):
+
+        Returns:
+            bool | None
+        """
         self.elapsed = self.toc()
-        if trace is not None:
+        if ex_traceback is not None:
             return False
 
 

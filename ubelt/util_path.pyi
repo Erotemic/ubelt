@@ -1,5 +1,7 @@
 from os import PathLike
 from typing import Tuple
+from typing import Type
+from types import TracebackType
 from typing import List
 from typing import Callable
 from _typeshed import Incomplete
@@ -47,7 +49,9 @@ class ChDir:
     def __enter__(self):
         ...
 
-    def __exit__(self, a, b, c) -> None:
+    def __exit__(self, ex_type: Type[BaseException] | None,
+                 ex_value: BaseException | None,
+                 ex_traceback: TracebackType | None) -> bool | None:
         ...
 
 
@@ -72,7 +76,9 @@ class TempDir:
     def __enter__(self):
         ...
 
-    def __exit__(self, type_, value, trace) -> None:
+    def __exit__(self, ex_type: Type[BaseException] | None,
+                 ex_value: BaseException | None,
+                 ex_traceback: TracebackType | None) -> bool | None:
         ...
 
 

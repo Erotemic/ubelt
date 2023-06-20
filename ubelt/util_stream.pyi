@@ -1,4 +1,6 @@
 import io
+from typing import Type
+from types import TracebackType
 import io
 from _typeshed import Incomplete
 
@@ -61,5 +63,7 @@ class CaptureStdout(CaptureStream):
     def close(self) -> None:
         ...
 
-    def __exit__(self, type_, value, trace):
+    def __exit__(self, ex_type: Type[BaseException] | None,
+                 ex_value: BaseException | None,
+                 ex_traceback: TracebackType | None) -> bool | None:
         ...

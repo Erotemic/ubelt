@@ -1,3 +1,5 @@
+from typing import Type
+from types import TracebackType
 import concurrent
 import concurrent.futures
 from typing import Callable
@@ -27,7 +29,9 @@ class SerialExecutor:
     def __enter__(self):
         ...
 
-    def __exit__(self, ex_type, ex_value, ex_traceback):
+    def __exit__(self, ex_type: Type[BaseException] | None,
+                 ex_value: BaseException | None,
+                 ex_traceback: TracebackType | None) -> bool | None:
         ...
 
     def submit(self, func, *args, **kw) -> concurrent.futures.Future:
@@ -50,7 +54,9 @@ class Executor:
     def __enter__(self):
         ...
 
-    def __exit__(self, ex_type, ex_value, ex_traceback):
+    def __exit__(self, ex_type: Type[BaseException] | None,
+                 ex_value: BaseException | None,
+                 ex_traceback: TracebackType | None) -> bool | None:
         ...
 
     def submit(self, func, *args, **kw) -> concurrent.futures.Future:
@@ -87,7 +93,9 @@ class JobPool:
     def __enter__(self):
         ...
 
-    def __exit__(self, ex_type, ex_value, ex_traceback):
+    def __exit__(self, ex_type: Type[BaseException] | None,
+                 ex_value: BaseException | None,
+                 ex_traceback: TracebackType | None) -> bool | None:
         ...
 
     def as_completed(
@@ -101,5 +109,5 @@ class JobPool:
     def join(self, **kwargs) -> List[Any]:
         ...
 
-    def __iter__(self):
+    def __iter__(self) -> concurrent.futures.Future:
         ...

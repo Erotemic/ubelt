@@ -385,7 +385,16 @@ class ChDir:
             os.chdir(self.context_dpath)
         return self
 
-    def __exit__(self, a, b, c):
+    def __exit__(self, ex_type, ex_value, ex_traceback):
+        """
+        Args:
+            ex_type (Type[BaseException] | None):
+            ex_value (BaseException | None):
+            ex_traceback (TracebackType | None):
+
+        Returns:
+            bool | None
+        """
         if self.context_dpath is not None:
             os.chdir(self.orig_dpath)
 
@@ -451,7 +460,16 @@ class TempDir:
     def __enter__(self):
         return self.start()
 
-    def __exit__(self, type_, value, trace):
+    def __exit__(self, ex_type, ex_value, ex_traceback):
+        """
+        Args:
+            ex_type (Type[BaseException] | None):
+            ex_value (BaseException | None):
+            ex_traceback (TracebackType | None):
+
+        Returns:
+            bool | None
+        """
         self.cleanup()
 
 

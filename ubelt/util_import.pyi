@@ -1,3 +1,5 @@
+from typing import Type
+from types import TracebackType
 from os import PathLike
 from types import ModuleType
 from typing import List
@@ -15,7 +17,9 @@ class PythonPathContext:
     def __enter__(self) -> None:
         ...
 
-    def __exit__(self, type, value, trace) -> None:
+    def __exit__(self, ex_type: Type[BaseException] | None,
+                 ex_value: BaseException | None,
+                 ex_traceback: TracebackType | None) -> bool | None:
         ...
 
 
