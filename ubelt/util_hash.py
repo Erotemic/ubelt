@@ -627,7 +627,7 @@ class HashableExtensions(object):
             >>> datas['udict_data2'] = ub.dict_isect(datas['udict_data1'], ['a', '4', 'c', 'b'])
             >>> datas['odict_data3'] = ub.dict_subset(datas['odict_data1'], ['c', 'b', 'a', '4'])
             >>> datas['udict_data3'] = ub.dict_isect(datas['udict_data1'], ['c', 'b', 'a', '4'])
-            >>> # print('datas = {}'.format(ub.repr2(datas, nl=-1)))
+            >>> # print('datas = {}'.format(ub.urepr(datas, nl=-1)))
             >>> for key, val in sorted(datas.items()):
             >>>     hashstr = ub.hash_data(val, base='abc', hasher='sha512', types=True)[0:8]
             >>>     print('{} = {}'.format(key, hashstr))

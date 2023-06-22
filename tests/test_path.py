@@ -49,13 +49,16 @@ def test_augpath_dpath():
 
 
 def test_ensuredir_recreate():
+    import pytest
     base = ub.Path.appdir('ubelt/tests').ensuredir()
     folder = join(base, 'foo')
     member = join(folder, 'bar')
-    ub.ensuredir(folder, recreate=True)
+    with pytest.warns():
+        ub.ensuredir(folder, recreate=True)
     ub.ensuredir(member)
     assert exists(member)
-    ub.ensuredir(folder, recreate=True)
+    with pytest.warns():
+        ub.ensuredir(folder, recreate=True)
     assert not exists(member)
 
 

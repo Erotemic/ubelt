@@ -24,7 +24,9 @@ def repr2(data, **kwargs):
         ...     'simple_list': [1, 2, 'red', 'blue'],
         ...     'odict': ub.odict([(2, '1'), (1, '2')]),
         ... }
-        >>> result = ub.repr2(dict_, nl=1, precision=2)
+        >>> import pytest
+        >>> with pytest.warns():
+        >>>     result = ub.repr2(dict_, nl=1, precision=2)
         >>> print(result)
         {
             'custom_types': [slice(0, 1, None), 0.33],
