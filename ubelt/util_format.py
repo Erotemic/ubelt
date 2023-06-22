@@ -25,7 +25,7 @@ def repr2(data, **kwargs):
         ...     'odict': ub.odict([(2, '1'), (1, '2')]),
         ... }
         >>> import pytest
-        >>> with pytest.warns():
+        >>> with pytest.warns(DeprecationWarning):
         >>>     result = ub.repr2(dict_, nl=1, precision=2)
         >>> print(result)
         {

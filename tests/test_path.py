@@ -53,11 +53,11 @@ def test_ensuredir_recreate():
     base = ub.Path.appdir('ubelt/tests').ensuredir()
     folder = join(base, 'foo')
     member = join(folder, 'bar')
-    with pytest.warns():
+    with pytest.warns(DeprecationWarning):
         ub.ensuredir(folder, recreate=True)
     ub.ensuredir(member)
     assert exists(member)
-    with pytest.warns():
+    with pytest.warns(DeprecationWarning):
         ub.ensuredir(folder, recreate=True)
     assert not exists(member)
 
