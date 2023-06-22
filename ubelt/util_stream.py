@@ -224,8 +224,6 @@ class CaptureStdout(CaptureStream):
         if self.enabled:
             try:
                 self.log_part()
-            except Exception:  # nocover
-                raise
             finally:
                 self.stop()
         if ex_traceback is not None:
