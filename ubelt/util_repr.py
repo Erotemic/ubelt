@@ -91,27 +91,30 @@ def urepr(data, **kwargs):
             items are followed by newlines regardless of nesting level.
             Defaults to 1 for lists and True for dicts.
 
-        nobr, nobraces (bool, default=False):
-            if True, text will not contain outer braces for containers
+        nobr, nobraces (bool):
+            if True, text will not contain outer braces for containers.
+            Defaults to False.
 
-        cbr, compact_brace (bool, default=False):
+        cbr, compact_brace (bool):
             if True, braces are compactified (i.e. they will not have newlines
-            placed directly after them, think java / K&R / 1TBS)
+            placed directly after them, think java / K&R / 1TBS).
+            Defaults to False.
 
         trailsep, trailing_sep (bool):
             if True, a separator is placed after the last item in a sequence.
             By default this is True if there are any ``nl > 0``.
 
-        explicit (bool, default=False):
+        explicit (bool):
             changes dict representation from ``{k1: v1, ...}`` to
-            ``dict(k1=v1, ...)``.
+            ``dict(k1=v1, ...)``.  Defaults to False.
 
             Modifies:
                 default kvsep is modified to  ``'='``
                 dict braces from `{}` to `dict()`.
 
-        compact (bool, default=False):
+        compact (bool):
             Produces values more suitable for space constrianed environments
+            Defaults to False.
 
             Modifies:
                 default kvsep is modified to ``'='``
@@ -121,21 +124,22 @@ def urepr(data, **kwargs):
                 default strkeys to ``True``
                 default strvals to ``True``
 
-        precision (int, default=None):
-            if specified floats are formatted with this precision
+        precision (int | None):
+            if specified floats are formatted with this precision.
+            Defaults to None
 
-        kvsep (str, default=': '):
-            separator between keys and values
+        kvsep (str):
+            separator between keys and values. Defaults to ': '
 
-        itemsep (str, default=' '):
+        itemsep (str):
             separator between items. This separator is placed after commas,
             which are currently not configurable. This may be modified in the
-            future.
+            future. Defaults to ' '.
 
-        sort (bool | callable, default='auto'):
+        sort (bool | callable | None):
             if 'auto', then sort unordered collections, but keep the ordering
             of ordered collections. This option attempts to be deterministic in
-            most cases.
+            most cases. Defaults to None.
 
             if True, then ALL collections will be sorted in the returned text.
 
@@ -149,8 +153,9 @@ def urepr(data, **kwargs):
             only relevant to numpy.ndarrays. if True includes the dtype.
             Defaults to `not strvals`.
 
-        align (bool | str, default=False):
-            if True, will align multi-line dictionaries by the kvsep
+        align (bool | str):
+            if True, will align multi-line dictionaries by the kvsep.
+            Defaults to False.
 
         extensions (ReprExtensions):
             a custom :class:`ReprExtensions` instance that can overwrite
@@ -696,19 +701,21 @@ def _format_dict(dict_, **kwargs):
                   explicit, itemsep, precision, kvsep, sort
 
     Kwargs:
-        sort (None, default=None):
+        sort (None):
             if True, sorts ALL collections and subcollections,
             note, collections with undefined orders (e.g. dicts, sets) are
-            sorted by default.
+            sorted by default. Defaults to None.
 
-        nl (int, default=None):
-            preferred alias for newline. can be a countdown variable
+        nl (int | None):
+            preferred alias for newline. can be a countdown variable.
+            Defaults to None.
 
-        explicit (int, default=False):
+        explicit (int | bool):
             can be a countdown variable.
-            if True, uses dict(a=b) syntax instead of {'a': b}
+            if True, uses dict(a=b) syntax instead of {'a': b}.
+            Defaults to False.
 
-        nobr (bool, default=False): removes outer braces
+        nobr (bool): removes outer braces. Defaults to False.
 
     Returns:
         Tuple[str, Dict] : retstr, _leaf_info
