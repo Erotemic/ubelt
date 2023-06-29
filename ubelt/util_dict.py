@@ -1033,6 +1033,9 @@ class SetDict(dict):
             from all dictionaries where the key appears an odd number of times.
             Rightmost values take priority.
 
+    The full set of set operations was originally rejected in [Pep584]_, but
+    this module seeks to address some of these concerns.
+
     Note:
         The reason righmost values take priority in union /
         symmetric_difference and left-most values take priority in intersection
@@ -1065,6 +1068,7 @@ class SetDict(dict):
 
     References:
         .. [RubyMerge] https://ruby-doc.org/core-2.7.0/Hash.html#method-i-merge
+        .. [Pep584] https://peps.python.org/pep-0584/#what-about-the-full-set-api
 
     CommandLine:
         xdoctest -m ubelt.util_dict SetDict

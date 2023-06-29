@@ -179,6 +179,9 @@ class Cacher(object):
         cfgstr (str | None):
             Deprecated in favor of ``depends``.
 
+    Related:
+        ..[JobLibMemory] https://joblib.readthedocs.io/en/stable/memory.html
+
     Example:
         >>> import ubelt as ub
         >>> depends = 'repr-of-params-that-uniquely-determine-the-process'
