@@ -1033,13 +1033,18 @@ class SetDict(dict):
             from all dictionaries where the key appears an odd number of times.
             Rightmost values take priority.
 
-    The full set of set operations was originally rejected in [Pep584]_, but
-    this module seeks to address some of these concerns.
+    The full set of set operations was originally determined to be beyond the
+    scope of [Pep584]_, but there was discussion of these additional
+    operations. Some choices were ambiguous, but we believe this design could
+    be considered "natural".
 
     Note:
-        The reason righmost values take priority in union /
+        By default the righmost values take priority in union /
         symmetric_difference and left-most values take priority in intersection
-        / difference is:
+        / difference. In summary this is because we consider intersection /
+        difference to be "subtractive" operations, and union /
+        symmetric_difference to be "addative" operations. We expand on this in
+        the following points:
 
             1. intersection / difference is for removing keys --- i.e. is used
             to find values in the first (main) dictionary that are also in some
@@ -1048,11 +1053,13 @@ class SetDict(dict):
             2. union is for adding keys --- i.e. it is basically just an alias
             for dict.update, so the new (rightmost) keys clobber the old.
 
-            3. symmetric_difference is somewhat strange. I'm don't have a great
-            argument for it, but it seemed easier to implement this way and it
-            does seem closer to a union than it is to a difference. Perhaps
-            unpaired union might have been a better name for this, but take
-            that up with the set theorists.
+            3. symmetric_difference is somewhat strange if you aren't familiar
+            with it. At a pure-set level it's not really a difference, its a
+            pairty operation (think of it more like xor or addition modulo 2).
+            You only keep items where the key appears an odd number of times.
+            Unlike intersection and difference, the results may not be a subset
+            of either input. The union has the same property. This symmetry
+            motivates having the newest (rightmost) keys cobber the old.
 
         Also, union / symmetric_difference does not make sense if arguments on
         the rights are lists/sets, whereas difference / intersection does.
