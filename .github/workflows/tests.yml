@@ -2,6 +2,7 @@
 # For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
 # Based on ~/code/xcookie/xcookie/rc/tests.yml.in
 # Now based on ~/code/xcookie/xcookie/builders/github_actions.py
+# See: https://github.com/Erotemic/xcookie
 
 name: PurePyCI
 
@@ -12,12 +13,17 @@ on:
 
 jobs:
   lint_job:
+    ##
+    # Run quick linting and typing checks.
+    # To disable all linting add "linter=false" to the xcookie config.
+    # To disable type checks add "notypes" to the xcookie tags.
+    ##
     runs-on: ubuntu-latest
     steps:
     - name: Checkout source
       uses: actions/checkout@v3
     - name: Set up Python 3.11 for linting
-      uses: actions/setup-python@v4.5.0
+      uses: actions/setup-python@v4.6.1
       with:
         python-version: '3.11'
     - name: Install dependencies
@@ -34,20 +40,24 @@ jobs:
         mypy --install-types --non-interactive ./ubelt
         mypy ./ubelt
   build_and_test_sdist:
+    ##
+    # Build the pure python package from source and test it in the
+    # same environment.
+    ##
     name: Build sdist
     runs-on: ubuntu-latest
     steps:
     - name: Checkout source
       uses: actions/checkout@v3
     - name: Set up Python 3.11
-      uses: actions/setup-python@v4.5.0
+      uses: actions/setup-python@v4.6.1
       with:
         python-version: '3.11'
     - name: Upgrade pip
       run: |-
         python -m pip install --upgrade pip
-        python -m pip install -r requirements/tests.txt
-        python -m pip install -r requirements/runtime.txt
+        python -m pip install --prefer-binary -r requirements/tests.txt
+        python -m pip install --prefer-binary -r requirements/runtime.txt
     - name: Build sdist
       shell: bash
       run: |-
@@ -93,6 +103,10 @@ jobs:
         name: wheels
         path: ./wheelhouse/*.tar.gz
   build_purepy_wheels:
+    ##
+    # Download and test the pure-python wheels that were build in the
+    # build_purepy_wheels and test them in this independent environment.
+    ##
     name: ${{ matrix.python-version }} on ${{ matrix.os }}, arch=${{ matrix.arch }} with ${{ matrix.install-extras }}
     runs-on: ${{ matrix.os }}
     strategy:
@@ -112,7 +126,7 @@ jobs:
       with:
         platforms: all
     - name: Setup Python
-      uses: actions/setup-python@v4.5.0
+      uses: actions/setup-python@v4.6.1
       with:
         python-version: ${{ matrix.python-version }}
     - name: Build pure wheel
@@ -135,6 +149,8 @@ jobs:
     - build_purepy_wheels
     strategy:
       matrix:
+        # Xcookie generates an explicit list of environments that will be used
+        # for testing instead of using the more concise matrix notation.
         include:
         - python-version: '3.6'
           install-extras: tests-strict,runtime-strict
@@ -276,7 +292,7 @@ jobs:
       with:
         platforms: all
     - name: Setup Python
-      uses: actions/setup-python@v4.5.0
+      uses: actions/setup-python@v4.6.1
       with:
         python-version: ${{ matrix.python-version }}
     - uses: actions/download-artifact@v3
@@ -369,7 +385,7 @@ jobs:
     - name: Sign and Publish
       env:
         TWINE_REPOSITORY_URL: https://test.pypi.org/legacy/
-        TWINE_USERNAME: ${{ secrets.TEST_TWINE_USERNAME }}
+        TWINE_USERNAME: __user__
         TWINE_PASSWORD: ${{ secrets.TEST_TWINE_PASSWORD }}
         CI_SECRET: ${{ secrets.CI_SECRET }}
       run: |-
@@ -413,7 +429,7 @@ jobs:
     - name: Sign and Publish
       env:
         TWINE_REPOSITORY_URL: https://upload.pypi.org/legacy/
-        TWINE_USERNAME: ${{ secrets.TWINE_USERNAME }}
+        TWINE_USERNAME: __user__
         TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
         CI_SECRET: ${{ secrets.CI_SECRET }}
       run: |-
