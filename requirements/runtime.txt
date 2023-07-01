@@ -1,1 +1,4 @@
 jaraco.windows>=3.9.1;platform_system=="Windows"
+
+# Transative dependency from pydantic>=1.9.1->inflect->jaraco.text->jaraco.windows->ubelt[optional,tests]==1.3.3
+pydantic<2.0;platform_system=="Windows" and platform_python_implementation == "PyPy"
