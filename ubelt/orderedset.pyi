@@ -1,7 +1,11 @@
-from _typeshed import Incomplete
+from typing import List
+from typing import Any
+from typing import Dict
+from typing import Iterable
+from typing import Iterator
 from collections.abc import MutableSet, Sequence
 
-SLICE_ALL: Incomplete
+SLICE_ALL: slice
 
 
 def is_iterable(obj):
@@ -9,10 +13,10 @@ def is_iterable(obj):
 
 
 class OrderedSet(MutableSet, Sequence):
-    items: Incomplete
-    map: Incomplete
+    items: List[Any]
+    map: Dict[Any, int]
 
-    def __init__(self, iterable: Incomplete | None = ...) -> None:
+    def __init__(self, iterable: None | Iterable = None) -> None:
         ...
 
     def __len__(self):
@@ -21,10 +25,10 @@ class OrderedSet(MutableSet, Sequence):
     def __getitem__(self, index):
         ...
 
-    def copy(self):
+    def copy(self) -> OrderedSet:
         ...
 
-    def __contains__(self, key):
+    def __contains__(self, key) -> bool:
         ...
 
     def add(self, key):
@@ -41,7 +45,7 @@ class OrderedSet(MutableSet, Sequence):
     get_loc = index
     get_indexer = index
 
-    def pop(self):
+    def pop(self) -> Any:
         ...
 
     def discard(self, key) -> None:
@@ -50,34 +54,34 @@ class OrderedSet(MutableSet, Sequence):
     def clear(self) -> None:
         ...
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator:
         ...
 
-    def __reversed__(self):
+    def __reversed__(self) -> Iterator:
         ...
 
-    def __eq__(self, other):
+    def __eq__(self, other) -> bool:
         ...
 
-    def union(self, *sets):
+    def union(self, *sets) -> OrderedSet:
         ...
 
     def __and__(self, other):
         ...
 
-    def intersection(self, *sets):
+    def intersection(self, *sets) -> OrderedSet:
         ...
 
-    def difference(self, *sets):
+    def difference(self, *sets) -> OrderedSet:
         ...
 
-    def issubset(self, other):
+    def issubset(self, other) -> bool:
         ...
 
-    def issuperset(self, other):
+    def issuperset(self, other) -> bool:
         ...
 
-    def symmetric_difference(self, other):
+    def symmetric_difference(self, other) -> OrderedSet:
         ...
 
     def difference_update(self, *sets) -> None:

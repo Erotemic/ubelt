@@ -165,6 +165,9 @@ class memoize_method(object):
     References:
         .. [ActiveState_Miller_2010] http://code.activestate.com/recipes/577452-a-memoize-decorator-for-instance-methods
 
+    Attributes:
+        __func__ (Callable): the wrapped function
+
     Example:
         >>> import ubelt as ub
         >>> closure = {'a': 'b', 'c': 'd'}
@@ -204,6 +207,10 @@ class memoize_method(object):
         >>> assert self.foo_memo.__name__ == 'foo_memo'
     """
     def __init__(self, func):
+        """
+        Args:
+            func (Callable): method to wrap
+        """
         self._func = func
         self._cache_name = '_cache__' + func.__name__
         # Mimic attributes of a bound method
@@ -249,6 +256,9 @@ def memoize_property(fget):
 
     References:
         .. [estebistec_memoize] https://github.com/estebistec/python-memoized-property
+
+    Args:
+        fget (property | Callable): A property or a method.
 
     Example:
         >>> import ubelt as ub

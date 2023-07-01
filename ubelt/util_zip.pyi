@@ -1,24 +1,27 @@
+from os import PathLike
+from typing import Tuple
 from typing import Type
 from types import TracebackType
 from _typeshed import Incomplete
 from ubelt.util_mixins import NiceRepr
 
 
-def split_archive(fpath, ext: str = ...):
+def split_archive(fpath: str | PathLike,
+                  ext: str = '.zip') -> Tuple[str, str | None]:
     ...
 
 
 class zopen(NiceRepr):
-    fpath: Incomplete
-    ext: Incomplete
+    fpath: str | PathLike
+    ext: str
     name: Incomplete
-    mode: Incomplete
+    mode: str
 
     def __init__(self,
-                 fpath,
-                 mode: str = ...,
-                 seekable: bool = ...,
-                 ext: str = ...) -> None:
+                 fpath: str | PathLike,
+                 mode: str = 'r',
+                 seekable: bool = False,
+                 ext: str = '.zip') -> None:
         ...
 
     @property

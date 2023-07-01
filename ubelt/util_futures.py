@@ -61,6 +61,11 @@ class SerialFuture(concurrent.futures.Future):
     """
     Non-threading / multiprocessing version of future for drop in compatibility
     with concurrent.futures.
+
+    Attributes:
+        func (Callable): function to be called
+        args (Tuple): positional arguments to call the function with
+        kw (Dict): keyword arguments to call the function with
     """
     def __init__(self, func, *args, **kw):
         super(SerialFuture, self).__init__()
@@ -264,6 +269,9 @@ class Executor(object):
         * :class:`SerialExecutor`
         * :class:`JobPool`
 
+    Attributes:
+        backend (SerialExecutor | ThreadPoolExecutor | ProcessPoolExecutor):
+
     Example:
         >>> import ubelt as ub
         >>> # Prototype code using simple serial processing
@@ -377,18 +385,10 @@ class JobPool(object):
     submitted futures for you and 2. providing an as_completed method to
     consume those futures as they are ready.
 
-    Args:
-        mode (str):
-            The backend parallelism mechanism.  Can be either thread, serial,
-            or process. Defaults to 'thread'.
-
-        max_workers (int):
-            number of workers. If 0, serial is forced. Defaults to 0.
-
-        transient (bool):
-            if True, references to jobs will be discarded as they are
-            returned by :func:`as_completed`. Otherwise the ``jobs`` attribute
-            holds a reference to all jobs ever submitted. Default to False.
+    Attributes:
+        executor (Executor): internal executor object
+        jobs (List[Future]): internal job list. Note: do not rely on this attribute, it
+            may change in the future.
 
     Example:
         >>> import ubelt as ub
@@ -404,6 +404,20 @@ class JobPool(object):
         >>> print('final = {!r}'.format(final))
     """
     def __init__(self, mode='thread', max_workers=0, transient=False):
+        """
+        Args:
+            mode (str):
+                The backend parallelism mechanism.  Can be either thread, serial,
+                or process. Defaults to 'thread'.
+
+            max_workers (int):
+                number of workers. If 0, serial is forced. Defaults to 0.
+
+            transient (bool):
+                if True, references to jobs will be discarded as they are
+                returned by :func:`as_completed`. Otherwise the ``jobs`` attribute
+                holds a reference to all jobs ever submitted. Default to False.
+        """
         self.executor = Executor(mode=mode, max_workers=max_workers)
         self.transient = transient
         self.jobs = []

@@ -26,6 +26,13 @@ def split_archive(fpath, ext='.zip'):
     If fpath specifies a file inside a zipfile, it breaks it into two parts the
     path to the zipfile and the internal path in the zipfile.
 
+    Args:
+        fpath (str | PathLike): path that specifies a path inside of an archive
+        ext (str): archive extension
+
+    Returns:
+        Tuple[str, str | None]
+
     Example:
         >>> split_archive('/a/b/foo.txt')
         >>> split_archive('/a/b/foo.zip/bar.txt')
@@ -87,26 +94,6 @@ class zopen(NiceRepr):
               then choose a file to further zopen (and passing along the same
               open zipfile reference maybe?).
         - [ ] Write mode in some restricted setting?
-
-    Args:
-        fpath (str | PathLike):
-            path to a file, or a special path that denotes both a
-            path to a zipfile and a path to a archived file inside of
-            the zipfile.
-
-        mode (str):
-            Currently only "r" - readonly mode is supported
-
-        seekable (bool):
-            If True, attempts to force "seekability" of the underlying
-            file-object, for compressed files this will first extract
-            the file to a temporary location on disk.  If False, any underlying
-            compressed file will be opened directly which may result in the
-            object being non-seekable.
-
-        ext (str):
-            The extension of the zipfile. Modify this is a non-standard
-            extension is used (e.g. for torch packages).
 
     Example:
         >>> from ubelt.util_zip import *  # NOQA
@@ -240,6 +227,27 @@ class zopen(NiceRepr):
         >>> dir(self)
     """
     def __init__(self, fpath, mode='r', seekable=False, ext='.zip'):
+        """
+        Args:
+            fpath (str | PathLike):
+                path to a file, or a special path that denotes both a
+                path to a zipfile and a path to a archived file inside of
+                the zipfile.
+
+            mode (str):
+                Currently only "r" - readonly mode is supported
+
+            seekable (bool):
+                If True, attempts to force "seekability" of the underlying
+                file-object, for compressed files this will first extract
+                the file to a temporary location on disk.  If False, any underlying
+                compressed file will be opened directly which may result in the
+                object being non-seekable.
+
+            ext (str):
+                The extension of the zipfile. Modify this is a non-standard
+                extension is used (e.g. for torch packages).
+        """
         self.fpath = fpath
         self.ext = ext
         self.name = fpath

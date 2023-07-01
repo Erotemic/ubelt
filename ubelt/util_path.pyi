@@ -40,8 +40,6 @@ def ensuredir(dpath: str | PathLike | Tuple[str | PathLike],
 
 
 class ChDir:
-    context_dpath: Incomplete
-    orig_dpath: Incomplete
 
     def __init__(self, dpath) -> None:
         ...

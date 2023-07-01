@@ -40,7 +40,7 @@ class PythonPathContext(object):
         modifies the path. If the path is modified in this context, we will try
         to detect it and warn.
 
-    Args:
+    Attributes:
         dpath (str | PathLike): directory to insert into the PYTHONPATH
         index (int): position to add to. Typically either -1 or 0.
 
@@ -78,6 +78,11 @@ class PythonPathContext(object):
         >>>     self.__exit__(None, None, None)
     """
     def __init__(self, dpath, index=0):
+        """
+        Args:
+            dpath (str | PathLike): directory to insert into the PYTHONPATH
+            index (int): position to add to. Typically either -1 or 0.
+        """
         self.dpath = os.fspath(dpath)
         self.index = index
 

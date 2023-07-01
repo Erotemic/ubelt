@@ -1,17 +1,16 @@
+from os import PathLike
 from typing import Type
 from types import TracebackType
-from os import PathLike
 from types import ModuleType
 from typing import List
 from typing import Tuple
-from _typeshed import Incomplete
 
 
 class PythonPathContext:
-    dpath: Incomplete
-    index: Incomplete
+    dpath: str | PathLike
+    index: int
 
-    def __init__(self, dpath, index: int = ...) -> None:
+    def __init__(self, dpath: str | PathLike, index: int = 0) -> None:
         ...
 
     def __enter__(self) -> None:

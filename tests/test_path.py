@@ -22,7 +22,9 @@ def test_pathlib_compatability():
 
 
 def test_tempdir():
-    temp = ub.TempDir()
+    import pytest
+    with pytest.warns(DeprecationWarning):
+        temp = ub.TempDir()
     assert temp.dpath is None
     temp.ensure()
     assert exists(temp.dpath)

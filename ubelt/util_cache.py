@@ -128,57 +128,6 @@ class Cacher(object):
     recomputed if the dependencies change. If the location of the cache is not
     specified, it will default to the system user's cache directory.
 
-    Args:
-        fname (str):
-            A file name. This is the prefix that will be used by the cache. It
-            will always be used as-is.
-
-        depends (str | List[str] | None):
-            Indicate dependencies of this cache.  If the dependencies change,
-            then the cache is recomputed.  New in version 0.8.9, replaces
-            ``cfgstr``.
-
-        dpath (str | PathLike | None):
-            Specifies where to save the cache. If unspecified, Cacher defaults
-            to an application cache dir as given by appname. See
-            :func:`ub.get_app_cache_dir` for more details.
-
-        appname (str, default='ubelt'): Application name
-            Specifies a folder in the application cache directory where to
-            cache the data if ``dpath`` is not specified.
-
-        ext (str, default='.pkl'):
-            File extension for the cache format. Can be ``'.pkl'`` or
-            ``'.json'``.
-
-        meta (object | None):
-            Metadata that is also saved with the ``cfgstr``.  This can be
-            useful to indicate how the ``cfgstr`` was constructed.
-            Note: this is a candidate for deprecation.
-
-        verbose (int, default=1): Level of verbosity. Can be 1, 2 or 3.
-
-        enabled (bool, default=True): If set to False, then the load and save
-            methods will do nothing.
-
-        log (Callable[[str], Any]):
-            Overloads the print function. Useful for sending output to loggers
-            (e.g. logging.info, tqdm.tqdm.write, ...)
-
-        hasher (str, default='sha1'):
-            Type of hashing algorithm to use if ``cfgstr`` needs to be
-            condensed to less than 49 characters.
-
-        protocol (int, default=-1): Protocol version used by pickle.
-            Defaults to the -1 which is the latest protocol.
-
-        backend (str):
-            Set to either ``'pickle'`` or ``'json'`` to force backend. Defaults
-            to auto which chooses one based on the extension.
-
-        cfgstr (str | None):
-            Deprecated in favor of ``depends``.
-
     Related:
         ..[JobLibMemory] https://joblib.readthedocs.io/en/stable/memory.html
 
@@ -222,6 +171,59 @@ class Cacher(object):
     def __init__(self, fname, depends=None, dpath=None, appname='ubelt',
                  ext='.pkl', meta=None, verbose=None, enabled=True, log=None,
                  hasher='sha1', protocol=-1, cfgstr=None, backend='auto'):
+        """
+        Args:
+            fname (str):
+                A file name. This is the prefix that will be used by the cache. It
+                will always be used as-is.
+
+            depends (str | List[str] | None):
+                Indicate dependencies of this cache.  If the dependencies change,
+                then the cache is recomputed.  New in version 0.8.9, replaces
+                ``cfgstr``.
+
+            dpath (str | PathLike | None):
+                Specifies where to save the cache. If unspecified, Cacher defaults
+                to an application cache dir as given by appname. See
+                :func:`ub.get_app_cache_dir` for more details.
+
+            appname (str): Application name
+                Specifies a folder in the application cache directory where to
+                cache the data if ``dpath`` is not specified. Defaults to
+                'ubelt'.
+
+            ext (str):
+                File extension for the cache format. Can be ``'.pkl'`` or
+                ``'.json'``. Defaults to ``'.pkl'``.
+
+            meta (object | None):
+                Metadata that is also saved with the ``cfgstr``.  This can be
+                useful to indicate how the ``cfgstr`` was constructed.
+                Note: this is a candidate for deprecation.
+
+            verbose (int): Level of verbosity. Can be 1, 2 or 3. Defaults to 1.
+
+            enabled (bool): If set to False, then the load and save
+                methods will do nothing. Defaults to True.
+
+            log (Callable[[str], Any]):
+                Overloads the print function. Useful for sending output to loggers
+                (e.g. logging.info, tqdm.tqdm.write, ...)
+
+            hasher (str):
+                Type of hashing algorithm to use if ``cfgstr`` needs to be
+                condensed to less than 49 characters. Defaults to sha1.
+
+            protocol (int): Protocol version used by pickle.
+                Defaults to the -1 which is the latest protocol.
+
+            backend (str):
+                Set to either ``'pickle'`` or ``'json'`` to force backend. Defaults
+                to auto which chooses one based on the extension.
+
+            cfgstr (str | None):
+                Deprecated in favor of ``depends``.
+        """
 
         if depends is None:
             depends = cfgstr
@@ -432,10 +434,10 @@ class Cacher(object):
         Args:
             cfgstr (str | None): overrides the instance-level cfgstr
 
-            on_error (str, default='raise'):
+            on_error (str):
                 How to handle non-io errors errors. Either 'raise', which
                 re-raises the exception, or 'clear' which deletes the cache and
-                returns None.
+                returns None. Defaults to 'raise'.
 
         Returns:
             None | object:
@@ -728,54 +730,6 @@ class CacheStamp(object):
     The stamp can also be set to expire at a specified time or after a
     specified duration using the ``expires`` argument.
 
-    Args:
-        fname (str):
-            Name of the stamp file
-
-        dpath (str | PathLike | None):
-            Where to store the cached stamp file
-
-        product (str | PathLike | Sequence[str | PathLike] | None):
-            Path or paths that we expect the computation to produce. If
-            specified the hash of the paths are stored.
-
-        hasher (str, default='sha1'):
-            The type of hasher used to compute the file hash of product.
-            If None, then we assume the file has not been corrupted or changed
-            if the mtime and size are the same. Defaults to sha1.
-
-        verbose (bool, default=None):
-            Passed to internal :class:`ubelt.Cacher` object
-
-        enabled (bool, default=True):
-            if False, expired always returns True
-
-        depends (str | List[str] | None):
-            Indicate dependencies of this cache.  If the dependencies change,
-            then the cache is recomputed.  New to CacheStamp in version 0.9.2.
-
-        meta (object | None):
-            Metadata that is also saved as a sidecar file.
-            New to CacheStamp in version 0.9.2.  Note: this is a candidate for
-            deprecation.
-
-        expires (str | int | datetime.datetime | datetime.timedelta | None):
-            If specified, sets an expiration date for the certificate. This can
-            be an absolute datetime or a timedelta offset. If specified as an
-            int, this is interpreted as a time delta in seconds.  If specified
-            as a str, this is interpreted as an absolute timestamp. Time delta
-            offsets are coerced to absolute times at "renew" time.
-
-        hash_prefix (None | str | List[str]):
-            If specified, we verify that these match the hash(s) of the
-            product(s) in the stamp certificate.
-
-        ext (str, default='.pkl'):
-            File extension for the cache format. Can be ``'.pkl'`` or
-            ``'.json'``.
-
-        cfgstr (str | None): DEPRECATED.
-
     Notes:
         The size, mtime, and hash mechanism is similar to how Makefile and redo
         caches work.
@@ -801,6 +755,55 @@ class CacheStamp(object):
     def __init__(self, fname, dpath, cfgstr=None, product=None, hasher='sha1',
                  verbose=None, enabled=True, depends=None, meta=None,
                  hash_prefix=None, expires=None, ext='.pkl'):
+        """
+        Args:
+            fname (str):
+                Name of the stamp file
+
+            dpath (str | PathLike | None):
+                Where to store the cached stamp file
+
+            product (str | PathLike | Sequence[str | PathLike] | None):
+                Path or paths that we expect the computation to produce. If
+                specified the hash of the paths are stored.
+
+            hasher (str):
+                The type of hasher used to compute the file hash of product.
+                If None, then we assume the file has not been corrupted or changed
+                if the mtime and size are the same. Defaults to sha1.
+
+            verbose (bool | None):
+                Passed to internal :class:`ubelt.Cacher` object. Defaults to None.
+
+            enabled (bool):
+                if False, expired always returns True. Defaults to True.
+
+            depends (str | List[str] | None):
+                Indicate dependencies of this cache.  If the dependencies change,
+                then the cache is recomputed.  New to CacheStamp in version 0.9.2.
+
+            meta (object | None):
+                Metadata that is also saved as a sidecar file.
+                New to CacheStamp in version 0.9.2.  Note: this is a candidate for
+                deprecation.
+
+            expires (str | int | datetime.datetime | datetime.timedelta | None):
+                If specified, sets an expiration date for the certificate. This can
+                be an absolute datetime or a timedelta offset. If specified as an
+                int, this is interpreted as a time delta in seconds.  If specified
+                as a str, this is interpreted as an absolute timestamp. Time delta
+                offsets are coerced to absolute times at "renew" time.
+
+            hash_prefix (None | str | List[str]):
+                If specified, we verify that these match the hash(s) of the
+                product(s) in the stamp certificate.
+
+            ext (str):
+                File extension for the cache format. Can be ``'.pkl'`` or
+                ``'.json'``. Defaults to ``'.pkl'``.
+
+            cfgstr (str | None): DEPRECATED.
+        """
         self.cacher = Cacher(fname, cfgstr=cfgstr, dpath=dpath,
                              verbose=verbose, enabled=enabled, depends=depends,
                              meta=meta, ext=ext)
@@ -836,7 +839,12 @@ class CacheStamp(object):
         return certificate
 
     def _rectify_products(self, product=None):
-        """ puts products in a normalized format """
+        """
+        puts products in a normalized format
+
+        Returns:
+            List[Path]
+        """
         from ubelt import util_path
         products = self.product if product is None else product
         if products is None:
@@ -1179,6 +1187,10 @@ class CacheStamp(object):
         """
         Recertify that the product has been recomputed by writing a new
         certificate to disk.
+
+        Args:
+            cfgstr (None | str): deprecated, do not use.
+            product (None | str | List): deprecated, do not use.
 
         Returns:
             None | dict: certificate information if enabled otherwise None.
