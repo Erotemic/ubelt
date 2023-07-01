@@ -48,7 +48,7 @@ Example:
 import warnings
 
 
-class NiceRepr(object):
+class NiceRepr:
     """
     Inherit from this class and define ``__nice__`` to "nicely" print your
     objects.
@@ -123,6 +123,10 @@ class NiceRepr(object):
     """
 
     def __nice__(self):
+        """
+        Returns:
+            str
+        """
         if hasattr(self, '__len__'):
             # It is a common pattern for objects to use __len__ in __nice__
             # As a convenience we define a default __nice__ for these objects
@@ -133,6 +137,10 @@ class NiceRepr(object):
                 'Define the __nice__ method for {!r}'.format(self.__class__))
 
     def __repr__(self):
+        """
+        Returns:
+            str
+        """
         try:
             nice = self.__nice__()
             classname = self.__class__.__name__
@@ -142,6 +150,10 @@ class NiceRepr(object):
             return object.__repr__(self)
 
     def __str__(self):
+        """
+        Returns:
+            str
+        """
         try:
             classname = self.__class__.__name__
             nice = self.__nice__()

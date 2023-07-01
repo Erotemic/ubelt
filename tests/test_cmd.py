@@ -235,7 +235,7 @@ def test_cwd():
         dpath = ub.Path.appdir('ubelt/tests').ensuredir()
         dpath = os.path.realpath(dpath)
         info = ub.cmd('pwd', cwd=dpath, shell=True)
-        print('info = {}'.format(ub.repr2(info, nl=1)))
+        print('info = {}'.format(ub.urepr(info, nl=1)))
         print('dpath = {!r}'.format(dpath))
         assert info['out'].strip() == dpath
 
@@ -294,7 +294,7 @@ def test_timeout():
             expanded_grid.append(kw)
 
     for kw in expanded_grid:
-        print('kw = {}'.format(ub.repr2(kw, nl=0)))
+        print('kw = {}'.format(ub.urepr(kw, nl=0)))
         with pytest.raises(subprocess.TimeoutExpired):
             ub.cmd(py_script, **kw)
             return
@@ -515,8 +515,8 @@ def _dev_debug_timeouts():
         except subprocess.TimeoutExpired as e:
             verb_ex = e
 
-        print('verb_ex.__dict__ = {}'.format(ub.repr2(verb_ex.__dict__, nl=1)))
-        print('std_ex.__dict__ = {}'.format(ub.repr2(std_ex.__dict__, nl=1)))
+        print('verb_ex.__dict__ = {}'.format(ub.urepr(verb_ex.__dict__, nl=1)))
+        print('std_ex.__dict__ = {}'.format(ub.urepr(std_ex.__dict__, nl=1)))
     """
 
 

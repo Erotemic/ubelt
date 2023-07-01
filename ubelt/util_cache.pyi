@@ -1,6 +1,9 @@
+from typing import List
 from os import PathLike
 from typing import Callable
 from typing import Any
+from typing import Sequence
+import datetime
 from _typeshed import Incomplete
 from collections.abc import Generator
 
@@ -8,33 +11,33 @@ from collections.abc import Generator
 class Cacher:
     VERBOSE: int
     FORCE_DISABLE: bool
-    dpath: Incomplete
-    fname: Incomplete
-    depends: Incomplete
-    cfgstr: Incomplete
-    verbose: Incomplete
-    ext: Incomplete
-    meta: Incomplete
-    enabled: Incomplete
-    protocol: Incomplete
-    hasher: Incomplete
-    log: Incomplete
-    backend: Incomplete
+    dpath: str | PathLike | None
+    fname: str
+    depends: str | List[str] | None
+    cfgstr: str | None
+    verbose: int
+    ext: str
+    meta: object | None
+    enabled: bool
+    protocol: int
+    hasher: str
+    log: Callable[[str], Any]
+    backend: str
 
     def __init__(self,
-                 fname,
-                 depends: Incomplete | None = ...,
-                 dpath: Incomplete | None = ...,
-                 appname: str = ...,
-                 ext: str = ...,
-                 meta: Incomplete | None = ...,
-                 verbose: Incomplete | None = ...,
-                 enabled: bool = ...,
-                 log: Incomplete | None = ...,
-                 hasher: str = ...,
+                 fname: str,
+                 depends: str | List[str] | None = None,
+                 dpath: str | PathLike | None = None,
+                 appname: str = 'ubelt',
+                 ext: str = '.pkl',
+                 meta: object | None = None,
+                 verbose: int | None = None,
+                 enabled: bool = True,
+                 log: Callable[[str], Any] | None = None,
+                 hasher: str = 'sha1',
                  protocol: int = ...,
-                 cfgstr: Incomplete | None = ...,
-                 backend: str = ...) -> None:
+                 cfgstr: str | None = None,
+                 backend: str = 'auto') -> None:
         ...
 
     @property
@@ -73,24 +76,26 @@ class Cacher:
 
 class CacheStamp:
     cacher: Incomplete
-    product: Incomplete
-    hasher: Incomplete
-    expires: Incomplete
-    hash_prefix: Incomplete
+    product: str | PathLike | Sequence[str | PathLike] | None
+    hasher: str
+    expires: str | int | datetime.datetime | datetime.timedelta | None
+    hash_prefix: None | str | List[str]
 
     def __init__(self,
-                 fname,
-                 dpath,
-                 cfgstr: Incomplete | None = ...,
-                 product: Incomplete | None = ...,
-                 hasher: str = ...,
-                 verbose: Incomplete | None = ...,
-                 enabled: bool = ...,
-                 depends: Incomplete | None = ...,
-                 meta: Incomplete | None = ...,
-                 hash_prefix: Incomplete | None = ...,
-                 expires: Incomplete | None = ...,
-                 ext: str = ...) -> None:
+                 fname: str,
+                 dpath: str | PathLike | None,
+                 cfgstr: str | None = None,
+                 product: str | PathLike | Sequence[str | PathLike]
+                 | None = None,
+                 hasher: str = 'sha1',
+                 verbose: bool | None = None,
+                 enabled: bool = True,
+                 depends: str | List[str] | None = None,
+                 meta: object | None = None,
+                 hash_prefix: None | str | List[str] = None,
+                 expires: str | int | datetime.datetime | datetime.timedelta
+                 | None = None,
+                 ext: str = '.pkl') -> None:
         ...
 
     @property
@@ -106,6 +111,6 @@ class CacheStamp:
         ...
 
     def renew(self,
-              cfgstr: Incomplete | None = ...,
-              product: Incomplete | None = ...) -> None | dict:
+              cfgstr: None | str = None,
+              product: None | str | List = None) -> None | dict:
         ...

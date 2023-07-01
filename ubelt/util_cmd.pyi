@@ -1,11 +1,10 @@
 from typing import List
 from os import PathLike
 from typing import Dict
-from _typeshed import Incomplete
 
 __pitch__: str
-POSIX: Incomplete
-WIN32: Incomplete
+POSIX: bool
+WIN32: bool
 
 
 class CmdOutput(dict):

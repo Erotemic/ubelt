@@ -104,8 +104,8 @@ I'm biased because I wrote it, but subprocess-tee is the only other package I kn
 
 __all__ = ['cmd']
 
-POSIX = 'posix' in sys.builtin_module_names
-WIN32 = sys.platform == 'win32'
+POSIX: bool = 'posix' in sys.builtin_module_names
+WIN32: bool = sys.platform == 'win32'
 
 
 class CmdOutput(dict):

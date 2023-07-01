@@ -177,10 +177,13 @@ def test_indexable_walker_map_patterns():
     func = type
     mapped_v1 = _indexable_walker_map_v1(self, func)
     mapped_v2 = _indexable_walker_map_v2(self, func)
-    print('data = {}'.format(ub.repr2(data, nl=1)))
-    print('mapped_v1 = {}'.format(ub.repr2(mapped_v1, nl=1)))
-    print('mapped_v2 = {}'.format(ub.repr2(mapped_v2, nl=1)))
-    assert ub.indexable_allclose(mapped_v1, mapped_v2)
+    print('data = {}'.format(ub.urepr(data, nl=1)))
+    print('mapped_v1 = {}'.format(ub.urepr(mapped_v1, nl=1)))
+    print('mapped_v2 = {}'.format(ub.urepr(mapped_v2, nl=1)))
+
+    import pytest
+    with pytest.warns(Warning):
+        assert ub.indexable_allclose(mapped_v1, mapped_v2)
 
     self = ub.IndexableWalker(data)
     # import timerit
@@ -201,9 +204,13 @@ def test_indexable_walker_map_patterns():
         if isinstance(value, dict) and isinstance(self[path], list):
             fixup[path] = [v for k, v in sorted(value.items())]
 
-    assert ub.indexable_allclose(self.data, self_v2)
-    assert ub.indexable_allclose(self.data, self_v1)
-    assert not ub.indexable_allclose(self.data, mapped_v1)
+    import pytest
+    with pytest.warns(Warning):
+        assert ub.indexable_allclose(self.data, self_v2)
+    with pytest.warns(Warning):
+        assert ub.indexable_allclose(self.data, self_v1)
+    with pytest.warns(Warning):
+        assert not ub.indexable_allclose(self.data, mapped_v1)
 
 
 def test_walk_iter_gen_behavior():

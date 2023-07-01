@@ -9,8 +9,10 @@ from ubelt.util_import import PythonPathContext
 
 def test_import_modpath_basic():
     assert 'testmod' not in sys.modules
-
-    with ub.TempDir() as temp:
+    import pytest
+    with pytest.warns(DeprecationWarning):
+        temp = ub.TempDir()
+    with temp:
         modpath = ub.Path(temp.dpath) / 'testmod.py'
         text = ub.codeblock(
             '''
@@ -28,8 +30,9 @@ def test_import_modpath_basic():
 
 def test_import_modpath_package():
     assert '_tmproot373.sub1.sub2.testmod' not in sys.modules
-
-    temp = ub.TempDir().start()
+    import pytest
+    with pytest.warns(DeprecationWarning):
+        temp = ub.TempDir().start()
     # with ub.TempDir() as temp:
     if True:
         dpath = ub.Path(temp.dpath)
@@ -80,7 +83,10 @@ def _static_modname_to_modpath(modname, **kwargs):
 
 
 def test_modname_to_modpath_single():
-    with ub.TempDir() as temp:
+    import pytest
+    with pytest.warns(DeprecationWarning):
+        temp = ub.TempDir()
+    with temp:
         dpath = temp.dpath
 
         # Single module
@@ -115,7 +121,10 @@ def test_modname_to_modpath_package():
 
         temp.__exit__(None, None, None)
     """
-    with ub.TempDir() as temp:
+    import pytest
+    with pytest.warns(DeprecationWarning):
+        temp = ub.TempDir()
+    with temp:
         dpath = temp.dpath
 
         # Create a dummy package hierarchy
@@ -250,7 +259,10 @@ def test_modname_to_modpath_namespace():
     %timeit _syspath_modname_to_modpath('xdoctest.static_analysis')
     %timeit _pkgutil_modname_to_modpath('xdoctest.static_analysis')
     """
-    with ub.TempDir() as temp:
+    import pytest
+    with pytest.warns(DeprecationWarning):
+        temp = ub.TempDir()
+    with temp:
         dpath = temp.dpath
 
         # Some "bad" non-module directories
@@ -298,7 +310,10 @@ def test_package_submodules():
         temp.__exit__(None, None, None)
     """
     from xdoctest import static_analysis as static
-    with ub.TempDir() as temp:
+    import pytest
+    with pytest.warns(DeprecationWarning):
+        temp = ub.TempDir()
+    with temp:
         dpath = temp.dpath
 
         # Create a dummy package hierarchy
@@ -358,7 +373,10 @@ def test_modpath_to_modname():
         pytest testing/test_static.py::test_modpath_to_modname -s
         python testing/test_static.py test_modpath_to_modname
     """
-    with ub.TempDir() as temp:
+    import pytest
+    with pytest.warns(DeprecationWarning):
+        temp = ub.TempDir()
+    with temp:
         dpath = temp.dpath
 
         # Create a dummy package hierarchy

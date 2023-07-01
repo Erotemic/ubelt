@@ -1,18 +1,22 @@
+from typing import Callable
+from typing import Tuple
+from typing import Dict
 from typing import Type
 from types import TracebackType
 import concurrent
 import concurrent.futures
-from typing import Callable
+from concurrent.futures import Future
 from typing import Any
+from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ProcessPoolExecutor
 from typing import List
-from _typeshed import Incomplete
 from collections.abc import Generator
 
 
 class SerialFuture(concurrent.futures.Future):
-    func: Incomplete
-    args: Incomplete
-    kw: Incomplete
+    func: Callable
+    args: Tuple
+    kw: Dict
 
     def __init__(self, func, *args, **kw) -> None:
         ...
@@ -44,7 +48,7 @@ class SerialExecutor:
 
 
 class Executor:
-    backend: Incomplete
+    backend: SerialExecutor | ThreadPoolExecutor | ProcessPoolExecutor
 
     def __init__(self, mode: str = 'thread', max_workers: int = 0) -> None:
         ...
@@ -68,14 +72,14 @@ class Executor:
 
 
 class JobPool:
-    executor: Incomplete
-    transient: Incomplete
-    jobs: Incomplete
+    executor: Executor
+    jobs: List[Future]
+    transient: bool
 
     def __init__(self,
-                 mode: str = ...,
-                 max_workers: int = ...,
-                 transient: bool = ...) -> None:
+                 mode: str = 'thread',
+                 max_workers: int = 0,
+                 transient: bool = False) -> None:
         ...
 
     def __len__(self):

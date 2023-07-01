@@ -1,4 +1,4 @@
 class NiceRepr:
 
-    def __nice__(self):
+    def __nice__(self) -> str:
         ...

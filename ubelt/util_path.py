@@ -376,13 +376,13 @@ class ChDir:
         >>>     assert ub.Path.cwd() == dpath
     """
     def __init__(self, dpath):
-        self.context_dpath = dpath
-        self.orig_dpath = None
+        self._context_dpath = dpath
+        self._orig_dpath = None
 
     def __enter__(self):
-        if self.context_dpath is not None:
-            self.orig_dpath = os.getcwd()
-            os.chdir(self.context_dpath)
+        if self._context_dpath is not None:
+            self._orig_dpath = os.getcwd()
+            os.chdir(self._context_dpath)
         return self
 
     def __exit__(self, ex_type, ex_value, ex_traceback):
@@ -395,8 +395,8 @@ class ChDir:
         Returns:
             bool | None
         """
-        if self.context_dpath is not None:
-            os.chdir(self.orig_dpath)
+        if self._context_dpath is not None:
+            os.chdir(self._orig_dpath)
 
 
 class TempDir:
@@ -409,6 +409,9 @@ class TempDir:
         This exists because :class:`tempfile.TemporaryDirectory` was
         introduced in Python 3.2. Thus once ubelt no longer supports
         python 2.7, this class will be deprecated.
+
+    Attributes:
+        dpath (str | None)
 
     Note:
         # WE MAY WANT TO KEEP THIS FOR WINDOWS.

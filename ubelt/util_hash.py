@@ -69,7 +69,7 @@ __all__ = ['hash_data', 'hash_file']
 # incremented when we make a change that modifies hashes
 HASH_VERSION = 2  # type: int
 
-_ALPHABET_10 = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
+_ALPHABET_10 = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']  # type: List[str]
 
 _ALPHABET_16 = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
                 'a', 'b', 'c', 'd', 'e', 'f']

@@ -1,5 +1,4 @@
 from typing import Callable
-from _typeshed import Incomplete
 
 
 def memoize(func: Callable) -> Callable:
@@ -7,9 +6,9 @@ def memoize(func: Callable) -> Callable:
 
 
 class memoize_method:
-    __func__: Incomplete
+    __func__: Callable
 
-    def __init__(self, func) -> None:
+    def __init__(self, func: Callable) -> None:
         ...
 
     def __get__(self, instance: object, cls: type | None = None):
@@ -19,5 +18,5 @@ class memoize_method:
         ...
 
 
-def memoize_property(fget):
+def memoize_property(fget: property | Callable):
     ...

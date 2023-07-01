@@ -398,8 +398,8 @@ def test_copy_dir_to_non_existing():
         # Our copy should behave like the linux copy
         case1 = _comparable_walk(base / 'our_copy')
         case2 = _comparable_walk(base / 'linux_copy')
-        print('case1 = {}'.format(ub.repr2(case1, nl=1)))
-        print('case2 = {}'.format(ub.repr2(case2, nl=1)))
+        print('case1 = {}'.format(ub.urepr(case1, nl=1)))
+        print('case2 = {}'.format(ub.urepr(case2, nl=1)))
         assert case1 == case2
 
     base.delete()
@@ -526,9 +526,9 @@ def test_copy_dir_to_existing_dir_withconflict():
         case1 = _comparable_walk(base / 'our_copy')
         case2 = _comparable_walk(base / 'linux_copy')
         case3 = _comparable_walk(base / 'linux_copyT')
-        print('case1 = {}'.format(ub.repr2(case1, nl=1)))
-        print('case3 = {}'.format(ub.repr2(case3, nl=1)))
-        print('case2 = {}'.format(ub.repr2(case2, nl=1)))
+        print('case1 = {}'.format(ub.urepr(case1, nl=1)))
+        print('case3 = {}'.format(ub.urepr(case3, nl=1)))
+        print('case2 = {}'.format(ub.urepr(case2, nl=1)))
         assert case1 == case3
         assert case1 != case2
     base.delete()

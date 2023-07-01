@@ -103,7 +103,7 @@ def test_hash_data_with_types():
     check_hash('lxssoxdkstvccsyqaybaokehclyctgmn', '123')
     check_hash('fpvptydigvgjimbzadztgpvjpqrevwcq', zip([1, 2, 3], [4, 5, 6]))
 
-    print(ub.repr2(failed, nl=1))
+    print(ub.urepr(failed, nl=1))
     assert len(failed) == 0
 
 
@@ -132,7 +132,7 @@ def test_hash_data_without_types():
     check_hash('40bd001563085fc35165329ea1ff5c5ecbdbbeef', '123')
     check_hash('1ba3c4e7f5af2a5f38d624047f422553ead2b5ae', zip([1, 2, 3], [4, 5, 6]))
 
-    print(ub.repr2(failed, nl=1))
+    print(ub.urepr(failed, nl=1))
     assert len(failed) == 0
 
 

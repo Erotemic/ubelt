@@ -269,7 +269,7 @@ def test_numpy_scalar_precision():
     assert text == '3.33'
 
 
-def test_repr2_tuple_keys():
+def test_urepr_tuple_keys():
     data = {
         ('one', 'two'): 100,
         ('three', 'four'): 200,
@@ -378,13 +378,15 @@ def test_autosort():
         'k1': [[1, 7, 3], [8, 5, 6]],
     }
     if sys.version_info[0:2] >= (3, 7):
-        assert ub.repr2(dict_, sort='auto', nl=1) == ub.codeblock(
-            '''
-            {
-                'k1': [[1, 7, 3], [8, 5, 6]],
-                'k2': [[9, 2, 3], [4, 5, 2]],
-            }
-            ''')
+        import pytest
+        with pytest.warns(DeprecationWarning):
+            assert ub.repr2(dict_, sort='auto', nl=1) == ub.codeblock(
+                '''
+                {
+                    'k1': [[1, 7, 3], [8, 5, 6]],
+                    'k2': [[9, 2, 3], [4, 5, 2]],
+                }
+                ''')
 
     if sys.version_info[0:2] >= (3, 7):
         from collections import OrderedDict
