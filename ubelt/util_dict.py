@@ -1017,7 +1017,7 @@ class SetDict(dict):
 
     The set operations are:
 
-        * union (or the ``|`` operator) combines multiple dicttionaries into
+        * union (or the ``|`` operator) combines multiple dictionaries into
             one. This is nearly identical to the update operation. Rightmost
             values take priority.
 
@@ -1039,11 +1039,11 @@ class SetDict(dict):
     be considered "natural".
 
     Note:
-        By default the righmost values take priority in union /
+        By default the right-most values take priority in union /
         symmetric_difference and left-most values take priority in intersection
         / difference. In summary this is because we consider intersection /
         difference to be "subtractive" operations, and union /
-        symmetric_difference to be "addative" operations. We expand on this in
+        symmetric_difference to be "additive" operations. We expand on this in
         the following points:
 
             1. intersection / difference is for removing keys --- i.e. is used
