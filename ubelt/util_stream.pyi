@@ -1,7 +1,6 @@
 import io
 from typing import Type
 from types import TracebackType
-import io
 from _typeshed import Incomplete
 
 
