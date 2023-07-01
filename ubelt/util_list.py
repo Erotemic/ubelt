@@ -41,20 +41,6 @@ class chunks(object):
     If the last chunk has less than n elements, ``bordermode`` is used to
     determine fill values.
 
-    Args:
-        items (Iterable[T]): input to iterate over
-
-        chunksize (int): size of each sublist yielded
-
-        nchunks (int): number of chunks to create (
-            cannot be specified if chunksize is specified)
-
-        bordermode (str): determines how to handle the last case if the
-            length of the input is not divisible by chunksize valid values
-            are: {'none', 'cycle', 'replicate'}
-
-        total (int): hints about the length of the input
-
     Note:
         FIXME:
             When nchunks is given, that's how many chunks we should get
@@ -155,6 +141,25 @@ class chunks(object):
     """
     def __init__(self, items, chunksize=None, nchunks=None, total=None,
                  bordermode='none', legacy=False):
+        """
+        Args:
+            items (Iterable): input to iterate over
+
+            chunksize (int | None): size of each sublist yielded
+
+            nchunks (int | None): number of chunks to create (
+                cannot be specified if chunksize is specified)
+
+            bordermode (str): determines how to handle the last case if the
+                length of the input is not divisible by chunksize valid values
+                are: {'none', 'cycle', 'replicate'}
+
+            total (int | None): hints about the length of the input
+
+            legacy (bool):
+                if True use old behavior, defaults to False. This will be
+                removed in the future.
+        """
         if nchunks is not None and chunksize is not None:  # nocover
             raise ValueError('Cannot specify both chunksize and nchunks')
         if nchunks is None and chunksize is None:  # nocover
@@ -179,24 +184,24 @@ class chunks(object):
                     'Need to specify total to use nchunks on an iterable '
                     'without length hints')
             if legacy:
-                chunksize = int(math.ceil(total / nchunks))
+                chunksize: int = int(math.ceil(total / nchunks))
                 remainder = 0
             else:
                 if bordermode == 'none':
                     # I feel like this could be simpler
-                    chunksize = max(int(math.floor(total / nchunks)), 1)
-                    nchunks = min(int(math.ceil(total / chunksize)), nchunks)
-                    chunked_total = chunksize * nchunks
-                    remainder = total - chunked_total
+                    chunksize: int = max(int(math.floor(total / nchunks)), 1)
+                    nchunks: int = min(int(math.ceil(total / chunksize)), nchunks)
+                    chunked_total: int = chunksize * nchunks
+                    remainder: int = total - chunked_total
                 else:
                     # not working
-                    chunksize = max(int(math.ceil(total / nchunks)), 1)
+                    chunksize: int = max(int(math.ceil(total / nchunks)), 1)
                     # Can artificially extend the size in this case
                     # total = chunksize * nchunks
                     remainder = 0
 
         self.legacy = legacy
-        self.remainder = remainder
+        self.remainder: int = remainder
         self.items = items
         self.total = total
         self.nchunks = nchunks

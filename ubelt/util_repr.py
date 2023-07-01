@@ -393,6 +393,12 @@ class ReprExtensions(object):
         """
         Returns an appropriate function to format ``data`` if one has been
         registered.
+
+        Args:
+            data (Any): an instance that may have a registered formatter
+
+        Returns:
+            Callable: the formatter for the given type
         """
         # Evaluate the lazy queue if anything is in it
         if self._lazy_queue:

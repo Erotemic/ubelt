@@ -1,14 +1,15 @@
 import io
+from typing import List
 from typing import Type
 from types import TracebackType
 from _typeshed import Incomplete
 
 
 class TeeStringIO(io.StringIO):
-    redirect: io.IOBase
+    redirect: io.IOBase | None
     buffer: Incomplete
 
-    def __init__(self, redirect: Incomplete | None = ...) -> None:
+    def __init__(self, redirect: io.IOBase | None = None) -> None:
         ...
 
     def isatty(self):
@@ -33,15 +34,15 @@ class CaptureStream:
 
 
 class CaptureStdout(CaptureStream):
-    text: Incomplete
-    parts: Incomplete
+    text: str | None
+    parts: List[str]
+    cap_stdout: None | TeeStringIO
+    orig_stdout: io.TextIOBase
     started: bool
-    cap_stdout: Incomplete
-    enabled: Incomplete
-    suppress: Incomplete
-    orig_stdout: Incomplete
+    enabled: bool
+    suppress: bool
 
-    def __init__(self, suppress: bool = ..., enabled: bool = ...) -> None:
+    def __init__(self, suppress: bool = True, enabled: bool = True) -> None:
         ...
 
     def log_part(self) -> None:

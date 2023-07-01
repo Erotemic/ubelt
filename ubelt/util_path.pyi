@@ -44,7 +44,7 @@ class ChDir:
     def __init__(self, dpath) -> None:
         ...
 
-    def __enter__(self):
+    def __enter__(self) -> ChDir:
         ...
 
     def __exit__(self, ex_type: Type[BaseException] | None,

@@ -319,7 +319,7 @@ class Cacher(object):
         return condensed
 
     @property
-    def fpath(self):
+    def fpath(self) -> os.PathLike:
         import ubelt as ub
         return ub.Path(self.get_fpath())
 
@@ -443,7 +443,6 @@ class Cacher(object):
             None | object:
                 the cached data if it exists, otherwise returns None
         """
-        # cfgstr = self._rectify_cfgstr(cfgstr)
         if self.enabled:
             try:
                 if self.verbose > 1:
