@@ -9,10 +9,6 @@ class DownloadManager:
     """
     Simple implementation of the download manager
 
-    Attributes:
-        download_root (str | PathLike): default download location
-        jobs (List[concurrent.futures.Future]): list of jobs
-
     Example:
         >>> # xdoctest: +REQUIRES(--network)
         >>> import ubelt as ub
@@ -67,6 +63,12 @@ class DownloadManager:
     def __init__(self, download_root=None, mode='thread', max_workers=None,
                  cache=True):
         """
+        Args:
+            download_root (str | PathLike): default download location
+            mode (str): either thread, process, or serial
+            cache (bool): defaults to True
+            max_workers (int | None): maximum concurrent tasks
+
         TODO:
             - [ ] Will likely have to initialize and store some sort of
                   "connection state" objects.
@@ -74,13 +76,13 @@ class DownloadManager:
         import ubelt as ub
         if download_root is None:
             download_root = ub.ensure_app_config_dir('ubelt', 'dlman')
-        self.pool = ub.JobPool(mode=mode, max_workers=max_workers)
+        self._pool = ub.JobPool(mode=mode, max_workers=max_workers)
         self.download_root = download_root
         self.cache = cache
         if self.cache:
-            self.dl_func = ub.grabdata
+            self._dl_func = ub.grabdata
         else:
-            self.dl_func = ub.download
+            self._dl_func = ub.download
 
     def submit(self, url, dst=None, hash_prefix=None, hasher='sha256'):
         """
@@ -99,8 +101,8 @@ class DownloadManager:
             concurrent.futures.Future :
                 a Future object that will point to the downloaded location.
         """
-        job = self.pool.submit(
-            self.dl_func, url, fname=dst, dpath=self.download_root,
+        job = self._pool.submit(
+            self._dl_func, url, fname=dst, dpath=self.download_root,
             hash_prefix=hash_prefix, hasher=hasher, verbose=0,
         )
         return job
@@ -126,19 +128,19 @@ class DownloadManager:
             import ubelt as ub
             prog = ub.ProgIter
         if prog is not None:
-            return prog(self.pool.as_completed(), total=len(self), desc=desc,
+            return prog(self._pool.as_completed(), total=len(self), desc=desc,
                         verbose=verbose)
         else:
-            return self.pool.as_completed()
+            return self._pool.as_completed()
 
     def shutdown(self):
         """
         Cancel all jobs and close all connections.
         """
-        self.pool.executor.shutdown()
+        self._pool.executor.shutdown()
 
     def __iter__(self):
         return self.as_completed()
 
     def __len__(self):
-        return len(self.pool)
+        return len(self._pool)

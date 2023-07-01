@@ -380,6 +380,10 @@ class ChDir:
         self._orig_dpath = None
 
     def __enter__(self):
+        """
+        Returns:
+            ChDir: self
+        """
         if self._context_dpath is not None:
             self._orig_dpath = os.getcwd()
             os.chdir(self._context_dpath)

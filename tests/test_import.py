@@ -1,15 +1,14 @@
-import itertools as it
 import os
-from os.path import join
-import ubelt as ub
 import sys
 import pytest
+import ubelt as ub
+import itertools as it
+from os.path import join
 from ubelt.util_import import PythonPathContext
 
 
 def test_import_modpath_basic():
     assert 'testmod' not in sys.modules
-    import pytest
     with pytest.warns(DeprecationWarning):
         temp = ub.TempDir()
     with temp:
@@ -30,7 +29,6 @@ def test_import_modpath_basic():
 
 def test_import_modpath_package():
     assert '_tmproot373.sub1.sub2.testmod' not in sys.modules
-    import pytest
     with pytest.warns(DeprecationWarning):
         temp = ub.TempDir().start()
     # with ub.TempDir() as temp:
@@ -83,7 +81,6 @@ def _static_modname_to_modpath(modname, **kwargs):
 
 
 def test_modname_to_modpath_single():
-    import pytest
     with pytest.warns(DeprecationWarning):
         temp = ub.TempDir()
     with temp:
@@ -121,7 +118,6 @@ def test_modname_to_modpath_package():
 
         temp.__exit__(None, None, None)
     """
-    import pytest
     with pytest.warns(DeprecationWarning):
         temp = ub.TempDir()
     with temp:
@@ -259,7 +255,6 @@ def test_modname_to_modpath_namespace():
     %timeit _syspath_modname_to_modpath('xdoctest.static_analysis')
     %timeit _pkgutil_modname_to_modpath('xdoctest.static_analysis')
     """
-    import pytest
     with pytest.warns(DeprecationWarning):
         temp = ub.TempDir()
     with temp:
@@ -310,7 +305,6 @@ def test_package_submodules():
         temp.__exit__(None, None, None)
     """
     from xdoctest import static_analysis as static
-    import pytest
     with pytest.warns(DeprecationWarning):
         temp = ub.TempDir()
     with temp:
@@ -373,7 +367,6 @@ def test_modpath_to_modname():
         pytest testing/test_static.py::test_modpath_to_modname -s
         python testing/test_static.py test_modpath_to_modname
     """
-    import pytest
     with pytest.warns(DeprecationWarning):
         temp = ub.TempDir()
     with temp:

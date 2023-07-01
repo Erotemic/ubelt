@@ -1,6 +1,6 @@
+from typing import Iterable
 from typing import Mapping
 from typing import Sequence
-from typing import Iterable
 from typing import Any
 from typing import Callable
 from typing import Iterator
@@ -15,21 +15,21 @@ KT = TypeVar("KT")
 
 
 class chunks:
-    legacy: Incomplete
+    legacy: bool
     remainder: Incomplete
-    items: Incomplete
-    total: Incomplete
-    nchunks: Incomplete
-    chunksize: Incomplete
-    bordermode: Incomplete
+    items: Iterable
+    total: int | None
+    nchunks: int | None
+    chunksize: int | None
+    bordermode: str
 
     def __init__(self,
-                 items,
-                 chunksize: Incomplete | None = ...,
-                 nchunks: Incomplete | None = ...,
-                 total: Incomplete | None = ...,
-                 bordermode: str = ...,
-                 legacy: bool = ...) -> None:
+                 items: Iterable,
+                 chunksize: int | None = None,
+                 nchunks: int | None = None,
+                 total: int | None = None,
+                 bordermode: str = 'none',
+                 legacy: bool = False) -> None:
         ...
 
     def __len__(self):

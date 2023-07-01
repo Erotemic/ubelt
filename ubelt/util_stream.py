@@ -23,7 +23,7 @@ class TeeStringIO(io.StringIO):
     An IO object that writes to itself and another IO stream.
 
     Attributes:
-        redirect (io.IOBase): The other stream to write to.
+        redirect (io.IOBase | None): The other stream to write to.
 
     Example:
         >>> import ubelt as ub
@@ -31,6 +31,10 @@ class TeeStringIO(io.StringIO):
         >>> self = ub.TeeStringIO(redirect)
     """
     def __init__(self, redirect=None):
+        """
+        Args:
+            redirect (io.IOBase): The other stream to write to.
+        """
         self.redirect = redirect  # type: io.IOBase
         super().__init__()
 
@@ -43,6 +47,8 @@ class TeeStringIO(io.StringIO):
             self.buffer = redirect.buffer  # Py3.
         else:
             self.buffer = redirect
+        # Note: mypy doesn't like this type
+        # buffer (io.BufferedIOBase | io.IOBase | None): the redirected buffer attribute
 
     def isatty(self):  # nocover
         """
@@ -120,16 +126,15 @@ class CaptureStdout(CaptureStream):
     r"""
     Context manager that captures stdout and stores it in an internal stream
 
-    Args:
-        suppress (bool, default=True):
-            if True, stdout is not printed while captured
-        enabled (bool, default=True):
-            does nothing if this is False
-        **kwargs : used for backwards compatibility with misspelled
-            deprecated params.
-
     SeeAlso:
         :func:`contextlib.redirect_stdout`
+
+    Attributes:
+        text (str | None): internal storage for the most recent part
+        parts (List[str]): internal storage for all parts
+        cap_stdout (None | TeeStringIO): internal stream proxy
+        orig_stdout (io.TextIOBase): internal pointer to the original stdout
+            stream
 
     Example:
         >>> import ubelt as ub
@@ -157,6 +162,13 @@ class CaptureStdout(CaptureStream):
         >>> assert self.text is None
     """
     def __init__(self, suppress=True, enabled=True):
+        """
+        Args:
+            suppress (bool): if True, stdout is not printed while captured.
+                Defaults to True.
+            enabled (bool):
+                does nothing if this is False. Defaults to True.
+        """
         self.text = None
         self._pos = 0  # keep track of how much has been logged
         self.parts = []

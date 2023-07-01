@@ -4,6 +4,7 @@ from typing import Callable
 from typing import Any
 from typing import Sequence
 import datetime
+import os
 from _typeshed import Incomplete
 from collections.abc import Generator
 
@@ -41,7 +42,7 @@ class Cacher:
         ...
 
     @property
-    def fpath(self):
+    def fpath(self) -> os.PathLike:
         ...
 
     def get_fpath(self, cfgstr: str | None = None) -> str | PathLike:
