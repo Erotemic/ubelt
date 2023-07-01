@@ -5,10 +5,8 @@ import concurrent.futures
 from typing import Callable
 from typing import Any
 from typing import List
-import concurrent.futures
 from _typeshed import Incomplete
 from collections.abc import Generator
-from typing import Any
 
 
 class SerialFuture(concurrent.futures.Future):

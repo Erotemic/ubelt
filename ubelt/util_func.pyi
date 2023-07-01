@@ -2,7 +2,6 @@ from typing import Any
 from typing import Callable
 from typing import Dict
 from typing import Iterable
-from typing import Any
 
 
 def identity(arg: Any | None = None, *args, **kwargs) -> Any:
