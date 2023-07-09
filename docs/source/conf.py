@@ -1,11 +1,15 @@
 """
 Notes:
+    Based on template code in:
+        ~/code/xcookie/xcookie/builders/docs_conf.py
+        ~/code/xcookie/xcookie/rc/conf_ext.py
+
     http://docs.readthedocs.io/en/latest/getting_started.html
 
     pip install sphinx sphinx-autobuild sphinx_rtd_theme sphinxcontrib-napoleon
 
     cd ~/code/ubelt
-    mkdir docs
+    mkdir -p docs
     cd docs
 
     sphinx-quickstart
@@ -13,10 +17,10 @@ Notes:
     # need to edit the conf.py
 
     cd ~/code/ubelt/docs
-    make html
-    sphinx-apidoc -f -o ~/code/ubelt/docs/source ~/code/ubelt/ubelt --separate
+    sphinx-apidoc --private -f -o ~/code/ubelt/docs/source ~/code/ubelt/ubelt --separate
     make html
 
+    git add source/*.rst
 
     Also:
         To turn on PR checks
@@ -28,10 +32,36 @@ Notes:
         ensure your github account is connected to readthedocs
         https://readthedocs.org/accounts/social/connections/
 
+        ### For gitlab
 
-Torch uses Katex, is there any value in that for ubelt?
-    sudo apt-get -y install katex
+        The user will need to enable the repo on their readthedocs account:
+        https://readthedocs.org/dashboard/import/manual/?
 
+        To enable the read-the-docs go to https://readthedocs.org/dashboard/ and login
+
+        Make sure you have a .readthedocs.yml file
+
+        Click import project: (for github you can select, but gitlab you need to import manually)
+            Set the Repository NAME: ubelt
+            Set the Repository URL: https://github.com/Erotemic/ubelt
+
+        For gitlab you also need to setup an integrations and add gitlab
+        incoming webhook
+
+            https://readthedocs.org/dashboard/ubelt/integrations/create/
+
+        Then go to
+
+            https://github.com/Erotemic/ubelt/hooks
+
+        and add the URL
+
+        select push, tag, and merge request
+
+        See Docs for more details https://docs.readthedocs.io/en/stable/integrations.html
+
+        Will also need to activate the main branch:
+            https://readthedocs.org/projects/ubelt/versions/
 """
 #
 # Configuration file for the Sphinx documentation builder.
@@ -52,7 +82,6 @@ Torch uses Katex, is there any value in that for ubelt?
 
 
 # -- Project information -----------------------------------------------------
-# import ubelt
 import sphinx_rtd_theme
 from os.path import exists
 from os.path import dirname
@@ -78,8 +107,8 @@ def parse_version(fpath):
     visitor.visit(pt)
     return visitor.version
 
-project = 'UBelt'
-copyright = '2018, Jon Crall'
+project = 'ubelt'
+copyright = '2023, Jon Crall'
 author = 'Jon Crall'
 modname = 'ubelt'
 
@@ -104,13 +133,7 @@ extensions = [
     'sphinx.ext.napoleon',
     'sphinx.ext.todo',
     'sphinx.ext.viewcode',
-
-    # 'sphinx.ext.doctest',
-    # 'sphinx.ext.coverage',
-    # 'sphinxcontrib.katex',
-    # 'sphinx.ext.autosectionlabel',
-    # 'sphinx_copybutton',
-    # 'sphinx_panels'
+    # 'myst_parser',  # TODO
 ]
 
 todo_include_todos = True
@@ -121,18 +144,33 @@ napoleon_use_ivar = True
 autodoc_inherit_docstrings = False
 
 autodoc_member_order = 'bysource'
+autoclass_content = 'both'
 # autodoc_mock_imports = ['torch', 'torchvision', 'visdom']
+
 intersphinx_mapping = {
     # 'pytorch': ('http://pytorch.org/docs/master/', None),
     'python': ('https://docs.python.org/3', None),
     'click': ('https://click.palletsprojects.com/', None),
-    'platformdirs': ('https://platformdirs.readthedocs.io/en/latest/', None),
     # 'xxhash': ('https://pypi.org/project/xxhash/', None),
     # 'pygments': ('https://pygments.org/docs/', None),
     # 'tqdm': ('https://tqdm.github.io/', None),
+    # Requries that the repo have objects.inv
+    'kwarray': ('https://kwarray.readthedocs.io/en/latest/', None),
+    'kwimage': ('https://kwimage.readthedocs.io/en/latest/', None),
+    # 'kwplot': ('https://kwplot.readthedocs.io/en/latest/', None),
+    'ndsampler': ('https://ndsampler.readthedocs.io/en/latest/', None),
+    'ubelt': ('https://ubelt.readthedocs.io/en/latest/', None),
+    'xdoctest': ('https://xdoctest.readthedocs.io/en/latest/', None),
+    'networkx': ('https://networkx.org/documentation/stable/', None),
+    'scriptconfig': ('https://scriptconfig.readthedocs.io/en/latest/', None),
+
 }
 __dev_note__ = """
 python -m sphinx.ext.intersphinx https://docs.python.org/3/objects.inv
+python -m sphinx.ext.intersphinx https://kwcoco.readthedocs.io/en/latest/objects.inv
+python -m sphinx.ext.intersphinx https://networkx.org/documentation/stable/objects.inv
+python -m sphinx.ext.intersphinx https://kwarray.readthedocs.io/en/latest/objects.inv
+python -m sphinx.ext.intersphinx https://kwimage.readthedocs.io/en/latest/objects.inv
 python -m sphinx.ext.intersphinx https://ubelt.readthedocs.io/en/latest/objects.inv
 python -m sphinx.ext.intersphinx https://networkx.org/documentation/stable/objects.inv
 """
@@ -154,7 +192,7 @@ master_doc = 'index'
 #
 # This is also used if you do content translation via gettext catalogs.
 # Usually you set "language" from the command line for these cases.
-language = None
+language = 'en'
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
@@ -204,7 +242,7 @@ html_static_path = ['_static']
 # -- Options for HTMLHelp output ---------------------------------------------
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'UBeltdoc'
+htmlhelp_basename = 'ubeltdoc'
 
 
 # -- Options for LaTeX output ------------------------------------------------
@@ -231,7 +269,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'UBelt.tex', 'UBelt Documentation',
+    (master_doc, 'ubelt.tex', 'ubelt Documentation',
      'Jon Crall', 'manual'),
 ]
 
@@ -241,7 +279,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'ubelt', 'UBelt Documentation',
+    (master_doc, 'ubelt', 'ubelt Documentation',
      [author], 1)
 ]
 
@@ -252,15 +290,13 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'UBelt', 'UBelt Documentation',
-     author, 'UBelt', 'One line description of project.',
+    (master_doc, 'ubelt', 'ubelt Documentation',
+     author, 'ubelt', 'One line description of project.',
      'Miscellaneous'),
 ]
 
 
 # -- Extension configuration -------------------------------------------------
-
-
 from sphinx.domains.python import PythonDomain  # NOQA
 # from sphinx.application import Sphinx  # NOQA
 from typing import Any, List  # NOQA
@@ -273,8 +309,8 @@ class PatchedPythonDomain(PythonDomain):
     """
     def resolve_xref(self, env, fromdocname, builder, typ, target, node, contnode):
         # TODO: can use this to resolve references nicely
-        if target.startswith('ub.'):
-            target = 'ubelt.' + target[3]
+        # if target.startswith('ub.'):
+        #     target = 'ubelt.' + target[3]
         return_value = super(PatchedPythonDomain, self).resolve_xref(
             env, fromdocname, builder, typ, target, node, contnode)
         return return_value
@@ -364,28 +400,25 @@ class GoogleStyleDocstringProcessor:
         Example:
             >>> import ubelt as ub
             >>> self = GoogleStyleDocstringProcessor()
-            >>> lines = ub.codeblock(
-            ...     '''
-            ...     Hello world
-            ...
-            ...     CommandLine:
-            ...         hi
-            ...
-            ...     CommandLine:
-            ...
-            ...         bye
-            ...
-            ...     TextArt:
-            ...
-            ...         1
-            ...         2
-            ...
-            ...         345
-            ...
-            ...     Foobar:
-            ...
-            ...     TextArt:
-            ...     ''').split(chr(10))
+            >>> lines = ['Hello world',
+            >>>              '',
+            >>>              'CommandLine:',
+            >>>              '    hi',
+            >>>              '',
+            >>>              'CommandLine:',
+            >>>              '',
+            >>>              '    bye',
+            >>>              '',
+            >>>              'TextArt:',
+            >>>              '',
+            >>>              '    1',
+            >>>              '    2',
+            >>>              '',
+            >>>              '    345',
+            >>>              '',
+            >>>              'Foobar:',
+            >>>              '',
+            >>>              'TextArt:']
             >>> new_lines = self.process(lines[:])
             >>> print(chr(10).join(new_lines))
         """
@@ -468,6 +501,7 @@ class GoogleStyleDocstringProcessor:
             https://www.sphinx-doc.org/en/1.5.1/_modules/sphinx/ext/autodoc.html
             https://www.sphinx-doc.org/en/master/usage/extensions/autodoc.html
         """
+        # print(f'name={name}')
         # print('BEFORE:')
         # import ubelt as ub
         # print('lines = {}'.format(ub.repr2(lines, nl=1)))
@@ -483,7 +517,8 @@ class GoogleStyleDocstringProcessor:
         #     import xdev
         #     xdev.embed()
 
-        if 0:
+        RENDER_IMAGES = 1
+        if RENDER_IMAGES:
             # DEVELOPING
             if any('REQUIRES(--show)' in line for line in lines):
                 # import xdev
@@ -497,41 +532,44 @@ class GoogleStyleDocstringProcessor:
                     lines[idx] = "**Example:**"
                     lines.insert(idx + 1, "")
 
-        REFORMAT_RETURNS = 0
-        if REFORMAT_RETURNS:
-            # FORMAT THE RETURNS SECTION A BIT NICER
-            # Split by sphinx types
-            import re
-            tag_pat = re.compile(r'^:(\w*):')
-            directive_pat = re.compile(r'^.. (\w*)::\s*(\w*)')
-            sphinx_parts = []
-            for idx, line in enumerate(lines):
-                tag_match = tag_pat.search(line)
-                directive_match = directive_pat.search(line)
-                if tag_match:
-                    tag = tag_match.groups()[0]
-                    sphinx_parts.append({
-                        'tag': tag, 'start_offset': idx,
-                        'type': 'tag',
-                    })
-                elif directive_match:
-                    tag = directive_match.groups()[0]
-                    sphinx_parts.append({
-                        'tag': tag, 'start_offset': idx,
-                        'type': 'directive',
-                    })
+        REFORMAT_SECTIONS = 0
+        if REFORMAT_SECTIONS:
+            REFORMAT_RETURNS = 0
+            REFORMAT_PARAMS = 0
 
-            prev_offset = len(lines)
-            for part in sphinx_parts[::-1]:
-                part['end_offset'] = prev_offset
-                prev_offset = part['start_offset']
+            docstr = SphinxDocstring(lines)
 
-            for part in sphinx_parts[::-1]:
-                if part['tag'] == 'returns':
-                    edit_slice = slice(part['start_offset'] + 2, part['end_offset'])
-                    return_section = lines[edit_slice]
-                    text = '\n'.join(return_section)
+            if REFORMAT_PARAMS:
+                for found in docstr.find_tagged_lines('Parameters'):
+                    print(found['text'])
+                    edit_slice = found['edit_slice']
 
+                    # TODO: figure out how to do this.
+
+                    # # file = 'foo.rst'
+                    # import rstparse
+                    # rst = rstparse.Parser()
+                    # import io
+                    # rst.read(io.StringIO(found['text']))
+                    # rst.parse()
+                    # for line in rst.lines:
+                    #     print(line)
+
+                    # # found['text']
+                    # import docutils
+
+                    # settings = docutils.frontend.OptionParser(
+                    #     components=(docutils.parsers.rst.Parser,)
+                    #     ).get_default_values()
+                    # document = docutils.utils.new_document('<tempdoc>', settings)
+                    # from docutils.parsers import rst
+                    # rst.Parser().parse(found['text'], document)
+
+            if REFORMAT_RETURNS:
+                for found in docstr.find_tagged_lines('returns'):
+                    # FIXME: account for new slice with -2 offset
+                    edit_slice = found['edit_slice']
+                    text = found['text']
                     new_lines = []
                     for para in text.split('\n\n'):
                         indent = para[:len(para) - len(para.lstrip())]
@@ -547,6 +585,60 @@ class GoogleStyleDocstringProcessor:
         # if name == 'kwimage.Affine.translate':
         #     import sys
         #     sys.exit(1)
+
+
+class SphinxDocstring:
+    """
+    Helper to parse and modify sphinx docstrings
+    """
+    def __init__(docstr, lines):
+        docstr.lines = lines
+
+        # FORMAT THE RETURNS SECTION A BIT NICER
+        import re
+        tag_pat = re.compile(r'^:(\w*):')
+        directive_pat = re.compile(r'^.. (\w*)::\s*(\w*)')
+
+        # Split by sphinx types, mark the line offset where they start / stop
+        sphinx_parts = []
+        for idx, line in enumerate(lines):
+            tag_match = tag_pat.search(line)
+            directive_match = directive_pat.search(line)
+            if tag_match:
+                tag = tag_match.groups()[0]
+                sphinx_parts.append({
+                    'tag': tag, 'start_offset': idx,
+                    'type': 'tag',
+                })
+            elif directive_match:
+                tag = directive_match.groups()[0]
+                sphinx_parts.append({
+                    'tag': tag, 'start_offset': idx,
+                    'type': 'directive',
+                })
+
+        prev_offset = len(lines)
+        for part in sphinx_parts[::-1]:
+            part['end_offset'] = prev_offset
+            prev_offset = part['start_offset']
+
+        docstr.sphinx_parts = sphinx_parts
+
+        if 0:
+            for line in lines:
+                print(line)
+
+    def find_tagged_lines(docstr, tag):
+        for part in docstr.sphinx_parts[::-1]:
+            if part['tag'] == tag:
+                edit_slice = slice(part['start_offset'], part['end_offset'])
+                return_section = docstr.lines[edit_slice]
+                text = '\n'.join(return_section)
+                found = {
+                    'edit_slice': edit_slice,
+                    'text': text,
+                }
+                yield found
 
 
 def paragraph(text):
@@ -746,6 +838,17 @@ def setup(app):
     app : sphinx.application.Sphinx = app
     app.add_domain(PatchedPythonDomain, override=True)
     docstring_processor = GoogleStyleDocstringProcessor()
-    app.connect('autodoc-process-docstring', docstring_processor.process_docstring_callback)
     # https://stackoverflow.com/questions/26534184/can-sphinx-ignore-certain-tags-in-python-docstrings
+    app.connect('autodoc-process-docstring', docstring_processor.process_docstring_callback)
+
+    ### Hack for kwcoco: TODO: figure out a way for the user to configure this.
+    HACK_FOR_KWCOCO = 0
+    if HACK_FOR_KWCOCO:
+        import pathlib
+        import shutil
+        doc_outdir = pathlib.Path(app.outdir)
+        doc_srcdir = pathlib.Path(app.srcdir)
+        schema_src = (doc_srcdir / '../../kwcoco/coco_schema.json')
+        shutil.copy(schema_src, doc_outdir / 'coco_schema.json')
+        shutil.copy(schema_src, doc_srcdir / 'coco_schema.json')
     return app
