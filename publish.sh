@@ -111,9 +111,9 @@ check_variable(){
 normalize_boolean(){
     ARG=$1
     ARG=$(echo "$ARG" | awk '{print tolower($0)}')
-    if [ "$ARG" = "true" ] || [ "$ARG" = "1" ] || [ "$ARG" = "yes" ] || [ "$ARG" = "on" ]; then
+    if [ "$ARG" = "true" ] || [ "$ARG" = "1" ] || [ "$ARG" = "yes" ] || [ "$ARG" = "y" ] || [ "$ARG" = "on" ]; then
         echo "True"
-    elif [ "$ARG" = "false" ] || [ "$ARG" = "0" ] || [ "$ARG" = "no" ] || [ "$ARG" = "off" ]; then
+    elif [ "$ARG" = "false" ] || [ "$ARG" = "0" ] || [ "$ARG" = "no" ] || [ "$ARG" = "n" ] || [ "$ARG" = "off" ]; then
         echo "False"
     else
         echo "$ARG"
