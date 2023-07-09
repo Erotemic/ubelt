@@ -10,7 +10,7 @@ This project (loosely) adheres to [Semantic Versioning](https://semver.org/spec/
 
 * Bug where the first call to `ub.hash_data` would error if it was given a
   ndarray with object type.
-
+* Actually exposed `ChDir`.
 
 ### Notes
 
