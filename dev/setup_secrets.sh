@@ -166,7 +166,9 @@ upload_github_secrets(){
     load_secrets
     unset GITHUB_TOKEN
     #printf "%s" "$GITHUB_TOKEN" | gh auth login --hostname Github.com --with-token
-    gh auth login
+    if ! gh auth status ; then
+        gh auth login
+    fi
     source dev/secrets_configuration.sh
     gh secret set "TWINE_USERNAME" -b"${!VARNAME_TWINE_USERNAME}"
     gh secret set "TEST_TWINE_USERNAME" -b"${!VARNAME_TEST_TWINE_USERNAME}"

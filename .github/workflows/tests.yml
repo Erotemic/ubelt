@@ -385,7 +385,7 @@ jobs:
     - name: Sign and Publish
       env:
         TWINE_REPOSITORY_URL: https://test.pypi.org/legacy/
-        TWINE_USERNAME: __user__
+        TWINE_USERNAME: __token__
         TWINE_PASSWORD: ${{ secrets.TEST_TWINE_PASSWORD }}
         CI_SECRET: ${{ secrets.CI_SECRET }}
       run: |-
@@ -429,7 +429,7 @@ jobs:
     - name: Sign and Publish
       env:
         TWINE_REPOSITORY_URL: https://upload.pypi.org/legacy/
-        TWINE_USERNAME: __user__
+        TWINE_USERNAME: __token__
         TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
         CI_SECRET: ${{ secrets.CI_SECRET }}
       run: |-
