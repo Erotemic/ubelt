@@ -4,13 +4,20 @@ We are currently working on porting this changelog to the specifications in
 [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 This project (loosely) adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Version 1.3.3 - 
+## Version 1.3.4 - 
+
+
+
+## Version 1.3.3 - 2023-07-10
 
 ### Fixed
 
 * Bug where the first call to `ub.hash_data` would error if it was given a
   ndarray with object type.
 * Actually exposed `ChDir`.
+
+### Changed 
+* Docs and typing improvements
 
 ### Notes
 
