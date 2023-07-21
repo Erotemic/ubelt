@@ -345,9 +345,9 @@ class ChDir:
     Context manager that changes the current working directory and then
     returns you to where you were.
 
-    This is nearly the same as the stdlib :func:`contextlib.chdir`, which I did
-    not know about when I implemented this. This may be deprecated in the
-    future. Prefer the stdlib version over this.
+    This is nearly the same as the stdlib :func:`contextlib.chdir`, with the
+    exception that it will do nothing if the input path is None (i.e. the user
+    did not want to change directories).
 
     Args:
         dpath (str | PathLike | None):
