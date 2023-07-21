@@ -104,7 +104,7 @@ class Path:
     def delete(self) -> 'Path':
         ...
 
-    def ensuredir(self, mode: int = ...) -> 'Path':
+    def ensuredir(self, mode: int = 511) -> 'Path':
         ...
 
     def mkdir(self,

@@ -1,5 +1,6 @@
 """
-Functions for capturing and redirecting IO streams.
+Functions for capturing and redirecting IO streams with optional
+tee-functionality.
 
 The :class:`CaptureStdout` captures all text sent to stdout and optionally
 prevents it from actually reaching stdout.
@@ -27,8 +28,12 @@ class TeeStringIO(io.StringIO):
 
     Example:
         >>> import ubelt as ub
+        >>> import io
         >>> redirect = io.StringIO()
         >>> self = ub.TeeStringIO(redirect)
+        >>> self.write('spam')
+        >>> assert self.getvalue() == 'spam'
+        >>> assert redirect.getvalue() == 'spam'
     """
     def __init__(self, redirect=None):
         """
@@ -57,6 +62,12 @@ class TeeStringIO(io.StringIO):
         Note:
             Needed for ``IPython.embed`` to work properly when this class is
             used to override stdout / stderr.
+
+        SeeAlso:
+            :meth:`io.IOBase.isatty`
+
+        Returns:
+            bool
         """
         return (self.redirect is not None and
                 hasattr(self.redirect, 'isatty') and self.redirect.isatty())
@@ -66,14 +77,32 @@ class TeeStringIO(io.StringIO):
         Returns underlying file descriptor of the redirected IOBase object
         if one exists.
 
+        Returns:
+            int : the integer corresponding to the file descriptor
+
+        SeeAlso:
+            :meth:`io.IOBase.fileno`
+
         Example:
+            >>> dpath = ub.Path.appdir('ubelt/tests/util_stream').ensuredir()
+            >>> fpath = dpath / 'fileno-test.txt'
+            >>> with open(fpath, 'w') as file:
+            >>>     self = ub.TeeStringIO(file)
+            >>>     descriptor = self.fileno()
+            >>>     print(f'descriptor={descriptor}')
+            >>>     assert isinstance(descriptor, int)
+
+        Example:
+            >>> # Test errors
             >>> # Not sure the best way to test, this func is important for
             >>> # capturing stdout when ipython embedding
+            >>> import io
             >>> import pytest
+            >>> import ubelt as ub
             >>> with pytest.raises(io.UnsupportedOperation):
-            >>>     TeeStringIO(redirect=io.StringIO()).fileno()
+            >>>     ub.TeeStringIO(redirect=io.StringIO()).fileno()
             >>> with pytest.raises(io.UnsupportedOperation):
-            >>>     TeeStringIO(None).fileno()
+            >>>     ub.TeeStringIO(None).fileno()
         """
         if self.redirect is not None:
             return self.redirect.fileno()
@@ -85,6 +114,15 @@ class TeeStringIO(io.StringIO):
         """
         Gets the encoding of the `redirect` IO object
 
+        FIXME:
+            My complains that this violates the Liskov substitution principle
+            because the return type can be str or None, whereas the parent
+            class always returns a None. In the future we may raise an exception
+            instead of returning None.
+
+        SeeAlso:
+            :py:attr:`io.TextIOBase.encoding`
+
         Example:
             >>> import ubelt as ub
             >>> redirect = io.StringIO()
@@ -94,14 +132,39 @@ class TeeStringIO(io.StringIO):
             >>> redirect = io.TextIOWrapper(io.StringIO())
             >>> assert ub.TeeStringIO(redirect).encoding is redirect.encoding
         """
+        # mypy correctly complains if we include the return type, but we need
+        # to keep this buggy behavior for legacy reasons.
+        # Returns:
+        #     None | str
         if self.redirect is not None:
             return self.redirect.encoding
         else:
             return super().encoding
 
+    @encoding.setter
+    def encoding(self, value):
+        # Adding a setter to make mypy happy
+        raise Exception('Cannot set encoding attribute')
+
     def write(self, msg):
         """
         Write to this and the redirected stream
+
+        Args:
+            msg (str): the data to write
+
+        SeeAlso:
+            :meth:`io.TextIOBase.write`
+
+        Example:
+            >>> dpath = ub.Path.appdir('ubelt/tests/util_stream').ensuredir()
+            >>> fpath = dpath / 'write-test.txt'
+            >>> with open(fpath, 'w') as file:
+            >>>     self = ub.TeeStringIO(file)
+            >>>     n = self.write('hello world')
+            >>>     assert n == 11
+            >>> assert self.getvalue() == 'hello world'
+            >>> assert fpath.read_text() == 'hello world'
         """
         if self.redirect is not None:
             self.redirect.write(msg)
@@ -110,6 +173,9 @@ class TeeStringIO(io.StringIO):
     def flush(self):  # nocover
         """
         Flush to this and the redirected stream
+
+        SeeAlso:
+            :meth:`io.IOBase.flush`
         """
         if self.redirect is not None:
             self.redirect.flush()
@@ -124,17 +190,24 @@ class CaptureStream(object):
 
 class CaptureStdout(CaptureStream):
     r"""
-    Context manager that captures stdout and stores it in an internal stream
+    Context manager that captures stdout and stores it in an internal stream.
+
+    Depending on the value of ``supress``, the user can control if stdout is
+    printed (i.e. if stdout is tee-ed or supressed) while it is being captured.
 
     SeeAlso:
-        :func:`contextlib.redirect_stdout`
+        :func:`contextlib.redirect_stdout` - similar, but does not have the
+            ability to print stdout while it is being captured.
 
     Attributes:
         text (str | None): internal storage for the most recent part
+
         parts (List[str]): internal storage for all parts
+
         cap_stdout (None | TeeStringIO): internal stream proxy
-        orig_stdout (io.TextIOBase): internal pointer to the original stdout
-            stream
+
+        orig_stdout (io.TextIOBase):
+            internal pointer to the original stdout stream
 
     Example:
         >>> import ubelt as ub
@@ -164,8 +237,10 @@ class CaptureStdout(CaptureStream):
     def __init__(self, suppress=True, enabled=True):
         """
         Args:
-            suppress (bool): if True, stdout is not printed while captured.
+            suppress (bool):
+                if True, stdout is not printed while captured.
                 Defaults to True.
+
             enabled (bool):
                 does nothing if this is False. Defaults to True.
         """
