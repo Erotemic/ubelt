@@ -567,7 +567,6 @@ class Path(_PathBase):
         * :py:data:`pathlib.PurePath.anchor`
         * :py:data:`pathlib.PurePath.name`
         * :py:data:`pathlib.PurePath.parts`
-        * :py:data:`pathlib.PurePath.parts`
         * :py:data:`pathlib.PurePath.parent`
         * :py:data:`pathlib.PurePath.parents`
         * :py:data:`pathlib.PurePath.suffix`
