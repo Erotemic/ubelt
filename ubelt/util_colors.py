@@ -47,14 +47,21 @@ def highlight_code(text, lexer_name='python', **kwargs):
     Highlights a block of text using ANSI tags based on language syntax.
 
     Args:
-        text (str): plain text to highlight
-        lexer_name (str): name of language. eg: python, docker, c++
-        **kwargs: passed to pygments.lexers.get_lexer_by_name
+        text (str):
+            Plain text to parse and highlight
+
+        lexer_name (str):
+            Name of language. eg: python, docker, c++.
+            For an exhaustive list see :func:`pygments.lexers.get_all_lexers`.
+            Defaults to "python".
+
+        **kwargs:
+            Passed to pygments.lexers.get_lexer_by_name
 
     Returns:
         str:
-            text - highlighted text If pygments is not installed, the plain
-            text is returned.
+            text - highlighted text if pygments is installed, otherwise the
+            plain text is returned unmodified.
 
     Example:
         >>> import ubelt as ub
@@ -116,6 +123,9 @@ def color_text(text, color):
             text - colorized text.  If pygments is not installed plain text is
             returned.
 
+    SeeAlso:
+        https://rich.readthedocs.io/en/stable/markup.html
+
     Example:
         >>> text = 'raw text'
         >>> import pytest
@@ -137,6 +147,7 @@ def color_text(text, color):
         >>> # xdoctest: +REQUIRES(module:pygments)
         >>> import pygments.console
         >>> import ubelt as ub
+        >>> # List available colors codes
         >>> known_colors = pygments.console.codes.keys()
         >>> for color in known_colors:
         ...     print(ub.color_text(color, color))
