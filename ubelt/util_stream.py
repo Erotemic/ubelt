@@ -84,6 +84,7 @@ class TeeStringIO(io.StringIO):
             :meth:`io.IOBase.fileno`
 
         Example:
+            >>> import ubelt as ub
             >>> dpath = ub.Path.appdir('ubelt/tests/util_stream').ensuredir()
             >>> fpath = dpath / 'fileno-test.txt'
             >>> with open(fpath, 'w') as file:
@@ -157,6 +158,7 @@ class TeeStringIO(io.StringIO):
             :meth:`io.TextIOBase.write`
 
         Example:
+            >>> import ubelt as ub
             >>> dpath = ub.Path.appdir('ubelt/tests/util_stream').ensuredir()
             >>> fpath = dpath / 'write-test.txt'
             >>> with open(fpath, 'w') as file:
