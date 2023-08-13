@@ -122,7 +122,7 @@ class TeeStringIO(io.StringIO):
             instead of returning None.
 
         SeeAlso:
-            :py:attr:`io.TextIOBase.encoding`
+            :py:obj:`io.TextIOBase.encoding`
 
         Example:
             >>> import ubelt as ub

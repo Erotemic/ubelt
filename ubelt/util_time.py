@@ -9,12 +9,15 @@ The :func:`timeparse` is the inverse of `timestamp`, and makes use of
 The :class:`Timer` class is a context manager that times a block of indented
 code. It includes `tic` and `toc` methods a more matlab like feel.
 
-Timerit is gone! Use the standalone and separate module :module:`timerit`.
+Timerit is gone! Use the standalone and separate module :py:mod:`timerit`.
 
 
 See Also:
+
     :mod:`tempora` - https://github.com/jaraco/tempora - time related utility functions from Jaraco
+
     :mod:`pendulum` - https://github.com/sdispater/pendulum - drop in replacement for datetime
+
     :mod:`arrow` - https://github.com/arrow-py/arrow
 """
 import time
@@ -221,8 +224,8 @@ def timeparse(stamp, default_timezone='local', allow_dateutil=True):
 
     Without any extra dependencies this will parse the output of
     :func:`ubelt.util_time.timestamp()` into a datetime object. In the case
-    where the format differs, `dateutil.parser.parse` will be used if the
-    `python-dateutil` package is installed.
+    where the format differs, :func:`dateutil.parser.parse` will be used if the
+    :py:mod:`python-dateutil` package is installed.
 
     Args:
         stamp (str):

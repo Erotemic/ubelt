@@ -1477,7 +1477,12 @@ class SetDict(dict):
             >>> print(ub.repr2(res, sort=1, nl=0, si=1))
             {0: B_a, 2: C_c, 3: C_d, 4: B_e, 5: A_f, 7: B_h, 8: C_i, 9: D_j, 10: D_k, 11: D_l}
         """
-        cls = cls or self.__class__
+        if cls is None:
+            # Some subclass-constructors need special handling
+            # Not sure if it is in-scope to do that here or not.
+            # if isinstance(self.__class__, defaultdict):
+            #     ...
+            cls = self.__class__
         args = it.chain([self], others)
         if merge is None:
             new = cls(it.chain.from_iterable(d.items() for d in args))
