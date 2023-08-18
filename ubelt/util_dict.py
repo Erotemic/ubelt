@@ -1342,6 +1342,8 @@ class SetDict(dict):
 
     def __ior__(self, other):
         """
+        The inplace union operator ``|=``.
+
         Example:
             >>> import ubelt as ub
             >>> self = orig_ref = ub.sdict({1: 1, 2: 2, 3: 3})
@@ -1358,6 +1360,8 @@ class SetDict(dict):
 
     def __iand__(self, other):
         """
+        The inplace intersection operator ``&=``.
+
         Example:
             >>> import ubelt as ub
             >>> self = orig_ref = ub.sdict({1: 1, 2: 2, 3: 3})
@@ -1369,13 +1373,15 @@ class SetDict(dict):
             >>> assert self == (orig_val & other)
             self={1: 1, 2: 2}
         """
-        result = self.intersection(other)
-        self.clear()
-        self.update(result)
+        remove_keys = self.keys() - set(other)
+        for k in remove_keys:
+            del self[k]
         return self
 
     def __isub__(self, other):
         """
+        The inplace difference operator ``-=``.
+
         Example:
             >>> import ubelt as ub
             >>> self = orig_ref = ub.sdict({1: 1, 2: 2, 3: 3})
@@ -1406,16 +1412,15 @@ class SetDict(dict):
             >>> assert self is orig_ref
             >>> assert self == (orig_val - other)
         """
-        result = self.difference(other)
-        self.clear()
-        self.update(result)
-        # common = UDict.intersection(self, other)
-        # for k in common:
-        #     self.pop(k, None)
+        remove_keys = self.keys() & set(other)
+        for k in remove_keys:
+            del self[k]
         return self
 
     def __ixor__(self, other):
         """
+        The inplace symmetric difference operator ``^=``.
+
         Example:
             >>> import ubelt as ub
             >>> self = orig_ref = ub.sdict({1: 1, 2: 2, 3: 3})
@@ -1426,9 +1431,13 @@ class SetDict(dict):
             >>> assert self is orig_ref
             >>> assert self == (orig_val ^ other)
         """
-        result = self.symmetric_difference(other)
-        self.clear()
-        self.update(result)
+        other_keys = set(other.keys())
+        remove_keys = self.keys() & other_keys
+        add_keys = other_keys - remove_keys
+        for k in remove_keys:
+            del self[k]
+        for k in add_keys:
+            self[k] = other[k]
         return self
 
     ### Main set operations

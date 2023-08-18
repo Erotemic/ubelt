@@ -812,6 +812,8 @@ def _join_itemstrs(itemstrs, itemsep, newlines, _leaf_info, nobraces,
     if use_newline:
         sep = ',\n'
         if nobraces:
+            if align:
+                itemstrs = _align_lines(itemstrs, character=align)
             body_str = sep.join(itemstrs)
             if trailing_sep and len(itemstrs) > 0:
                 body_str += ','

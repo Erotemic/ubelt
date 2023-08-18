@@ -399,6 +399,32 @@ def test_autosort():
             }
             ''')
 
+
+def test_align_with_nobrace():
+    data = {'123': 123, '45': 45, '6': 6}
+    text = ub.urepr(data, align=':')
+    print(text)
+    assert text == ub.codeblock(
+        '''
+        {
+            '123': 123,
+            '45' : 45,
+            '6'  : 6,
+        }
+        ''')
+
+    text = ub.urepr(data, align=':', nobr=1)
+    print(text)
+    assert text == ub.codeblock(
+        '''
+        {
+            '123': 123,
+            '45' : 45,
+            '6'  : 6,
+        }
+        ''')
+
+
 if __name__ == '__main__':
     """
     CommandLine:

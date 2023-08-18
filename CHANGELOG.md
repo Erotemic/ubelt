@@ -6,6 +6,11 @@ This project (loosely) adheres to [Semantic Versioning](https://semver.org/spec/
 
 ## Version 1.3.4 - 
 
+### Changed
+* Improve speed of inplace dictionary set operations.
+
+### Fixed
+* Align in the case of `nobraces=1` for `ubelt.urepr`.
 
 
 ## Version 1.3.3 - 2023-07-10
