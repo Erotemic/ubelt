@@ -2,7 +2,7 @@
 Test if pygments or rich is faster when it comes to highlighting.
 
 Results:
-    pygments if a lot faster
+    pygments is a lot faster
 """
 import sys
 import ubelt as ub
