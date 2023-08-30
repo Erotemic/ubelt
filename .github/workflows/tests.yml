@@ -132,8 +132,9 @@ jobs:
     - name: Build pure wheel
       shell: bash
       run: |-
-        python -m pip install setuptools>=0.8 wheel build
+        python -m pip install setuptools>=0.8 wheel build twine
         python -m build --wheel --outdir wheelhouse
+        python -m twine check ./wheelhouse/ubelt*.whl
     - name: Show built files
       shell: bash
       run: ls -la wheelhouse
