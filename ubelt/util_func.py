@@ -183,7 +183,17 @@ def compatible(config, func, start=0, keywords=True):
           'a': 2, 'b': 3, 'c': 7,
           'd': 11, 'e': 13, 'f': 17,
         }
-        func(1, 2, **ub.compatible(config, func))
+        funckw = ub.compatible(config, func)
+        func(1, 2, **funckw)
+
+
+        ### While the stdlib inspect.signature is useful, it does not
+        ### have a concise way of getting the subset of the dictionary
+        ### that can be passed as keyword arguments.
+        import inspect
+        sig = inspect.signature(func)
+        funckw2 = ub.udict(config) & sig.parameters
+        ub.udict(report_config) & (sig.parameters)
     """
     import inspect
     sig = inspect.signature(func)

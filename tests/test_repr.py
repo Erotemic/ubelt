@@ -417,11 +417,9 @@ def test_align_with_nobrace():
     print(text)
     assert text == ub.codeblock(
         '''
-        {
-            '123': 123,
-            '45' : 45,
-            '6'  : 6,
-        }
+        '123': 123,
+        '45' : 45,
+        '6'  : 6,
         ''')
 
 
