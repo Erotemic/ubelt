@@ -7,6 +7,9 @@ easily mark features in their libraries as deprecated.
 
 def schedule_deprecation(modname, name='?', type='?', migration='',
                          deprecate=None, error=None, remove=None,
+                         # TODO: let the user have more control over the
+                         # message.
+                         # message=None,
                          warncls=DeprecationWarning, stacklevel=1):
     """
     Deprecation machinery to help provide users with a smoother transition.
