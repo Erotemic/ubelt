@@ -444,8 +444,9 @@ def dict_diff(*args):
         >>> import ubelt as ub
         >>> ub.dict_diff({'a': 1, 'b': 1}, {'a'}, {'c'})
         {'b': 1}
-        >>> ub.dict_diff(odict([('a', 1), ('b', 2)]), odict([('c', 3)]))
-        OrderedDict([('a', 1), ('b', 2)])
+        >>> result = ub.dict_diff(ub.odict([('a', 1), ('b', 2)]), ub.odict([('c', 3)]))
+        >>> print(ub.urepr(result, nl=0))
+        {'a': 1, 'b': 2}
         >>> ub.dict_diff()
         {}
         >>> ub.dict_diff({'a': 1, 'b': 2}, {'c'})
