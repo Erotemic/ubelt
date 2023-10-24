@@ -132,7 +132,7 @@ def _pygments_highlight(text, lexer_name, **kwargs):
     return new_text
 
 
-def _rich_highlight(text, lexer_name):
+def _rich_highlight(text, lexer_name):  # nocover
     """
     Alternative rich-based highlighter
 
