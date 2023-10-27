@@ -406,10 +406,11 @@ def dict_union(*args):
         >>> import ubelt as ub
         >>> result = ub.dict_union({'a': 1, 'b': 1}, {'b': 2, 'c': 2})
         >>> assert result == {'a': 1, 'b': 2, 'c': 2}
-        >>> ub.dict_union(
+        >>> output = ub.dict_union(
         >>>     ub.odict([('a', 1), ('b', 2)]),
         >>>     ub.odict([('c', 3), ('d', 4)]))
-        OrderedDict([('a', 1), ('b', 2), ('c', 3), ('d', 4)])
+        >>> print(ub.urepr(output, nl=0))
+        {'a': 1, 'b': 2, 'c': 3, 'd': 4}
         >>> ub.dict_union()
         {}
     """
