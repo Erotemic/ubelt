@@ -337,8 +337,10 @@ class PatchedPythonDomain(PythonDomain):
     """
     def resolve_xref(self, env, fromdocname, builder, typ, target, node, contnode):
         # TODO: can use this to resolve references nicely
-        # if target.startswith('ub.'):
-        #     target = 'ubelt.' + target[3]
+        if target.startswith('ub.'):
+            target = 'ubelt.' + target[3]
+        if target.startswith('xdoc.'):
+            target = 'xdoctest.' + target[3]
         return_value = super(PatchedPythonDomain, self).resolve_xref(
             env, fromdocname, builder, typ, target, node, contnode)
         return return_value
@@ -545,7 +547,7 @@ class GoogleStyleDocstringProcessor:
         #     import xdev
         #     xdev.embed()
 
-        RENDER_IMAGES = 1
+        RENDER_IMAGES = 0
         if RENDER_IMAGES:
             # DEVELOPING
             if any('REQUIRES(--show)' in line for line in lines):
