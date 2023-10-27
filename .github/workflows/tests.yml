@@ -21,11 +21,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout source
-      uses: actions/checkout@v3
-    - name: Set up Python 3.11 for linting
-      uses: actions/setup-python@v4.6.1
+      uses: actions/checkout@v4
+    - name: Set up Python 3.12 for linting
+      uses: actions/setup-python@v4.7.1
       with:
-        python-version: '3.11'
+        python-version: '3.12'
     - name: Install dependencies
       run: |-
         python -m pip install --upgrade pip
@@ -48,11 +48,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout source
-      uses: actions/checkout@v3
-    - name: Set up Python 3.11
-      uses: actions/setup-python@v4.6.1
+      uses: actions/checkout@v4
+    - name: Set up Python 3.12
+      uses: actions/setup-python@v4.7.1
       with:
-        python-version: '3.11'
+        python-version: '3.12'
     - name: Upgrade pip
       run: |-
         python -m pip install --upgrade pip
@@ -114,26 +114,27 @@ jobs:
         os:
         - ubuntu-latest
         python-version:
-        - '3.11'
+        - '3.12'
         arch:
         - auto
     steps:
     - name: Checkout source
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     - name: Set up QEMU
-      uses: docker/setup-qemu-action@v2
+      uses: docker/setup-qemu-action@v3
       if: runner.os == 'Linux' && matrix.arch != 'auto'
       with:
         platforms: all
     - name: Setup Python
-      uses: actions/setup-python@v4.6.1
+      uses: actions/setup-python@v4.7.1
       with:
         python-version: ${{ matrix.python-version }}
     - name: Build pure wheel
       shell: bash
       run: |-
-        python -m pip install setuptools>=0.8 wheel build
+        python -m pip install setuptools>=0.8 wheel build twine
         python -m build --wheel --outdir wheelhouse
+        python -m twine check ./wheelhouse/ubelt*.whl
     - name: Show built files
       shell: bash
       run: ls -la wheelhouse
@@ -164,23 +165,23 @@ jobs:
           install-extras: tests-strict,runtime-strict
           os: windows-latest
           arch: auto
-        - python-version: '3.11'
+        - python-version: '3.12'
           install-extras: tests-strict,runtime-strict,optional-strict
           os: ubuntu-latest
           arch: auto
-        - python-version: '3.11'
+        - python-version: '3.12'
           install-extras: tests-strict,runtime-strict,optional-strict
           os: macOS-latest
           arch: auto
-        - python-version: '3.11'
+        - python-version: '3.12'
           install-extras: tests-strict,runtime-strict,optional-strict
           os: windows-latest
           arch: auto
-        - python-version: '3.11'
+        - python-version: '3.12'
           install-extras: tests
           os: windows-latest
           arch: auto
-        - python-version: '3.11'
+        - python-version: '3.12'
           install-extras: tests
           os: windows-latest
           arch: auto
@@ -205,6 +206,10 @@ jobs:
           os: windows-latest
           arch: auto
         - python-version: '3.11'
+          install-extras: tests,optional
+          os: windows-latest
+          arch: auto
+        - python-version: '3.12'
           install-extras: tests,optional
           os: windows-latest
           arch: auto
@@ -236,6 +241,10 @@ jobs:
           install-extras: tests,optional
           os: windows-latest
           arch: auto
+        - python-version: '3.12'
+          install-extras: tests,optional
+          os: windows-latest
+          arch: auto
         - python-version: pypy-3.7
           install-extras: tests,optional
           os: windows-latest
@@ -261,6 +270,10 @@ jobs:
           os: windows-latest
           arch: auto
         - python-version: '3.11'
+          install-extras: tests,optional
+          os: windows-latest
+          arch: auto
+        - python-version: '3.12'
           install-extras: tests,optional
           os: windows-latest
           arch: auto
@@ -282,17 +295,17 @@ jobs:
           arch: auto
     steps:
     - name: Checkout source
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     - name: Enable MSVC 64bit
       uses: ilammy/msvc-dev-cmd@v1
       if: matrix.os == 'windows-latest'
     - name: Set up QEMU
-      uses: docker/setup-qemu-action@v2
+      uses: docker/setup-qemu-action@v3
       if: runner.os == 'Linux' && matrix.arch != 'auto'
       with:
         platforms: all
     - name: Setup Python
-      uses: actions/setup-python@v4.6.1
+      uses: actions/setup-python@v4.7.1
       with:
         python-version: ${{ matrix.python-version }}
     - uses: actions/download-artifact@v3
@@ -373,7 +386,7 @@ jobs:
     - test_purepy_wheels
     steps:
     - name: Checkout source
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     - uses: actions/download-artifact@v3
       name: Download wheels and sdist
       with:
@@ -417,7 +430,7 @@ jobs:
     - test_purepy_wheels
     steps:
     - name: Checkout source
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     - uses: actions/download-artifact@v3
       name: Download wheels and sdist
       with:

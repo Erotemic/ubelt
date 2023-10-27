@@ -1252,9 +1252,10 @@ def _byte_str(num, unit='auto', precision=2):
         str: string representing the number of bytes with appropriate units
 
     Example:
+        >>> from ubelt.util_cache import _byte_str
         >>> import ubelt as ub
         >>> num_list = [1, 100, 1024,  1048576, 1073741824, 1099511627776]
-        >>> result = ub.repr2(list(map(_byte_str, num_list)), nl=0)
+        >>> result = ub.urepr(list(map(_byte_str, num_list)), nl=0)
         >>> print(result)
         ['0.00KB', '0.10KB', '1.00KB', '1.00MB', '1.00GB', '1.00TB']
         >>> _byte_str(10, unit='B')

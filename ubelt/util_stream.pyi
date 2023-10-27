@@ -12,17 +12,21 @@ class TeeStringIO(io.StringIO):
     def __init__(self, redirect: io.IOBase | None = None) -> None:
         ...
 
-    def isatty(self):
+    def isatty(self) -> bool:
         ...
 
-    def fileno(self):
+    def fileno(self) -> int:
         ...
 
     @property
     def encoding(self):
         ...
 
-    def write(self, msg):
+    @encoding.setter
+    def encoding(self, value) -> None:
+        ...
+
+    def write(self, msg: str):
         ...
 
     def flush(self):

@@ -167,7 +167,7 @@ def userhome(username=None):
     Args:
         username (str | None):
             name of a user on the system. If unspecified, the current user is
-            inferred.
+            inferred from standard environment variables.
 
     Returns:
         str: path to the specified home directory
@@ -236,8 +236,8 @@ def shrinkuser(path, home='~'):
     Args:
         path (str | PathLike): path in system file structure
         home (str): symbol used to replace the home path.
-            Defaults to '~', but you might want to use '$HOME' or
-            '%USERPROFILE%' instead.
+            Defaults to ``'~'``, but you might want to use ``'$HOME'`` or
+            ``'%USERPROFILE%'`` instead.
 
     Returns:
         str: shortened path replacing the home directory with a symbol
@@ -289,8 +289,13 @@ def ensuredir(dpath, mode=0o1777, verbose=0, recreate=False):
     default
 
     Args:
-        dpath (str | PathLike | Tuple[str | PathLike]): dir to ensure.
-        mode (int): octal mode of directory
+        dpath (str | PathLike | Tuple[str | PathLike]):
+            directory to create if it does not exist.
+
+        mode (int):
+            octal permissions if a new directory is created.
+            Defaults to 0o1777.
+
         verbose (int): verbosity
 
         recreate (bool): if True removes the directory and
@@ -340,10 +345,17 @@ class ChDir:
     Context manager that changes the current working directory and then
     returns you to where you were.
 
+    This is nearly the same as the stdlib :func:`contextlib.chdir`, with the
+    exception that it will do nothing if the input path is None (i.e. the user
+    did not want to change directories).
+
     Args:
         dpath (str | PathLike | None):
             The new directory to work in.
             If None, then the context manager is disabled.
+
+    SeeAlso:
+        :func:`contextlib.chdir`
 
     Example:
         >>> import ubelt as ub
@@ -407,7 +419,7 @@ class TempDir:
     """
     Context for creating and cleaning up temporary directories.
 
-    DEPRECATED. Use `tempfile` instead.
+    DEPRECATED. Use :mod:`tempfile` instead.
 
     Note:
         This exists because :class:`tempfile.TemporaryDirectory` was
@@ -554,7 +566,6 @@ class Path(_PathBase):
 
         * :py:data:`pathlib.PurePath.anchor`
         * :py:data:`pathlib.PurePath.name`
-        * :py:data:`pathlib.PurePath.parts`
         * :py:data:`pathlib.PurePath.parts`
         * :py:data:`pathlib.PurePath.parent`
         * :py:data:`pathlib.PurePath.parents`
@@ -897,20 +908,24 @@ class Path(_PathBase):
         """
         Concise alias of ``self.mkdir(parents=True, exist_ok=True)``
 
+        Args:
+            mode (int):
+                octal permissions if a new directory is created.
+                Defaults to 0o777.
+
         Returns:
             Path: returns itself
 
         Example:
             >>> import ubelt as ub
             >>> cache_dpath = ub.Path.appdir('ubelt').ensuredir()
-            >>> dpath = ub.Path(join(cache_dpath, 'ensuredir'))
-            >>> if dpath.exists():
-            ...     os.rmdir(dpath)
+            >>> dpath = ub.Path(cache_dpath, 'newdir')
+            >>> dpath.delete()
             >>> assert not dpath.exists()
             >>> dpath.ensuredir()
             >>> assert dpath.exists()
             >>> dpath.rmdir()
-            """
+        """
         self.mkdir(mode=mode, parents=True, exist_ok=True)
         return self
 
@@ -919,7 +934,8 @@ class Path(_PathBase):
         Create a new directory at this given path.
 
         Note:
-            The ubelt variant is the same, except it returns the path as well.
+            The ubelt extension is the same as the original pathlib method,
+            except this returns returns the path instead of None.
 
         Args:
             mode (int) : permission bits

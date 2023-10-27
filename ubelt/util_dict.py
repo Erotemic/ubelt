@@ -406,10 +406,11 @@ def dict_union(*args):
         >>> import ubelt as ub
         >>> result = ub.dict_union({'a': 1, 'b': 1}, {'b': 2, 'c': 2})
         >>> assert result == {'a': 1, 'b': 2, 'c': 2}
-        >>> ub.dict_union(
+        >>> output = ub.dict_union(
         >>>     ub.odict([('a', 1), ('b', 2)]),
         >>>     ub.odict([('c', 3), ('d', 4)]))
-        OrderedDict([('a', 1), ('b', 2), ('c', 3), ('d', 4)])
+        >>> print(ub.urepr(output, nl=0))
+        {'a': 1, 'b': 2, 'c': 3, 'd': 4}
         >>> ub.dict_union()
         {}
     """
@@ -444,8 +445,9 @@ def dict_diff(*args):
         >>> import ubelt as ub
         >>> ub.dict_diff({'a': 1, 'b': 1}, {'a'}, {'c'})
         {'b': 1}
-        >>> ub.dict_diff(odict([('a', 1), ('b', 2)]), odict([('c', 3)]))
-        OrderedDict([('a', 1), ('b', 2)])
+        >>> result = ub.dict_diff(ub.odict([('a', 1), ('b', 2)]), ub.odict([('c', 3)]))
+        >>> print(ub.urepr(result, nl=0))
+        {'a': 1, 'b': 2}
         >>> ub.dict_diff()
         {}
         >>> ub.dict_diff({'a': 1, 'b': 2}, {'c'})
@@ -1342,6 +1344,8 @@ class SetDict(dict):
 
     def __ior__(self, other):
         """
+        The inplace union operator ``|=``.
+
         Example:
             >>> import ubelt as ub
             >>> self = orig_ref = ub.sdict({1: 1, 2: 2, 3: 3})
@@ -1358,6 +1362,8 @@ class SetDict(dict):
 
     def __iand__(self, other):
         """
+        The inplace intersection operator ``&=``.
+
         Example:
             >>> import ubelt as ub
             >>> self = orig_ref = ub.sdict({1: 1, 2: 2, 3: 3})
@@ -1369,13 +1375,15 @@ class SetDict(dict):
             >>> assert self == (orig_val & other)
             self={1: 1, 2: 2}
         """
-        result = self.intersection(other)
-        self.clear()
-        self.update(result)
+        remove_keys = self.keys() - set(other)
+        for k in remove_keys:
+            del self[k]
         return self
 
     def __isub__(self, other):
         """
+        The inplace difference operator ``-=``.
+
         Example:
             >>> import ubelt as ub
             >>> self = orig_ref = ub.sdict({1: 1, 2: 2, 3: 3})
@@ -1406,16 +1414,15 @@ class SetDict(dict):
             >>> assert self is orig_ref
             >>> assert self == (orig_val - other)
         """
-        result = self.difference(other)
-        self.clear()
-        self.update(result)
-        # common = UDict.intersection(self, other)
-        # for k in common:
-        #     self.pop(k, None)
+        remove_keys = self.keys() & set(other)
+        for k in remove_keys:
+            del self[k]
         return self
 
     def __ixor__(self, other):
         """
+        The inplace symmetric difference operator ``^=``.
+
         Example:
             >>> import ubelt as ub
             >>> self = orig_ref = ub.sdict({1: 1, 2: 2, 3: 3})
@@ -1426,9 +1433,13 @@ class SetDict(dict):
             >>> assert self is orig_ref
             >>> assert self == (orig_val ^ other)
         """
-        result = self.symmetric_difference(other)
-        self.clear()
-        self.update(result)
+        other_keys = set(other.keys())
+        remove_keys = self.keys() & other_keys
+        add_keys = other_keys - remove_keys
+        for k in remove_keys:
+            del self[k]
+        for k in add_keys:
+            self[k] = other[k]
         return self
 
     ### Main set operations
@@ -1477,7 +1488,12 @@ class SetDict(dict):
             >>> print(ub.repr2(res, sort=1, nl=0, si=1))
             {0: B_a, 2: C_c, 3: C_d, 4: B_e, 5: A_f, 7: B_h, 8: C_i, 9: D_j, 10: D_k, 11: D_l}
         """
-        cls = cls or self.__class__
+        if cls is None:
+            # Some subclass-constructors need special handling
+            # Not sure if it is in-scope to do that here or not.
+            # if isinstance(self.__class__, defaultdict):
+            #     ...
+            cls = self.__class__
         args = it.chain([self], others)
         if merge is None:
             new = cls(it.chain.from_iterable(d.items() for d in args))

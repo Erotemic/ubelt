@@ -1044,6 +1044,25 @@ Libraries that contain one specific data structure or utility:
 * timerit: snippet timing for benchmarks - https://github.com/Erotemic/timerit
 
 
+Jaraco (i.e. Jason R. Coombs) has an extensive library of utilities:
+
+* jaraco.classes - https://github.com/jaraco/jaraco.classes
+* jaraco.collections - https://github.com/jaraco/jaraco.collections
+* jaraco.context - https://github.com/jaraco/jaraco.context
+* jaraco.crypto - https://github.com/jaraco/jaraco.crypto
+* jaraco.functools - https://github.com/jaraco/jaraco.functools
+* jaraco.geo - https://github.com/jaraco/jaraco.geo
+* jaraco.imaging - https://github.com/jaraco/jaraco.imaging
+* jaraco.itertools - https://github.com/jaraco/jaraco.itertools
+* jaraco.logging - https://github.com/jaraco/jaraco.logging
+* jaraco.media - https://github.com/jaraco/jaraco.media
+* jaraco.path - https://github.com/jaraco/jaraco.path
+* jaraco.text - https://github.com/jaraco/jaraco.text
+* jaraco.util - https://github.com/jaraco/jaraco.util
+* jaraco.windows - https://github.com/jaraco/jaraco.windows
+* and many others not listed here. See: https://github.com/jaraco?tab=repositories&q=jaraco.
+
+
 Ubelt is included in the the [bestof-python list](https://github.com/ml-tooling/best-of-python),
 which contains many other tools that you should check out.
 

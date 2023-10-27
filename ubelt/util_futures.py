@@ -269,6 +269,43 @@ class Executor(object):
         * :class:`SerialExecutor`
         * :class:`JobPool`
 
+    In the case where you cant or dont want to use ubelt.Executor you can get
+    similar behavior with the following pure-python snippet:
+
+    .. code:: python
+
+        def Executor(max_workers):
+            # Stdlib-only "ubelt.Executor"-like behavior
+            if max_workers == 1:
+                import contextlib
+                def submit_partial(func, *args, **kwargs):
+                    def wrapper():
+                        return func(*args, **kwargs)
+                    wrapper.result = wrapper
+                    return wrapper
+                executor = contextlib.nullcontext()
+                executor.submit = submit_partial
+            else:
+                from concurrent.futures import ThreadPoolExecutor
+                executor = ThreadPoolExecutor(max_workers=max_workers)
+            return executor
+
+        executor = Executor(0)
+        with executor:
+            jobs = []
+
+            for arg in range(1000):
+                job = executor.submit(chr, arg)
+                jobs.append(job)
+
+            results = []
+            for job in jobs:
+                result = job.result()
+                results.append(result)
+
+        print('results = {}'.format(ub.urepr(results, nl=1)))
+
+
     Attributes:
         backend (SerialExecutor | ThreadPoolExecutor | ProcessPoolExecutor):
 
