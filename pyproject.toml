@@ -13,13 +13,26 @@ rel_mod_parent_dpath = "."
 os = ["all"]
 min_python = 3.6
 author = "Jon Crall"
+typed = "partial"
 author_email = "erotemic@gmail.com"
 description = "A Python utility belt containing simple tools, a stdlib like feel, and extra batteries"
 license = "Apache 2"
 dev_status = "stable"
+classifiers = [
+    # List of classifiers available at:
+    # https://pypi.python.org/pypi?%3Aaction=list_classifiers
+    'Development Status :: 5 - Production/Stable',
+    'Intended Audience :: Developers',
+    'Topic :: Software Development :: Libraries :: Python Modules',
+    'Topic :: Utilities',
+    'Operating System :: Microsoft :: Windows',
+    'Operating System :: MacOS',
+    'Operating System :: POSIX :: Linux',
+    'Typing :: Stubs Only',
+]
 
 [tool.xcookie.setuptools]
-keywords = ["utility", "python", "hashing", "caching", "stdlib", "path", "pathlib"]
+keywords = ["utility", "python", "hashing", "caching", "stdlib", "path", "pathlib", "dictionary", "download"]
 
 [tool.pytest.ini_options]
 addopts = "-p no:doctest --xdoctest --xdoctest-style=google --ignore-glob=setup.py --ignore-glob=docs"

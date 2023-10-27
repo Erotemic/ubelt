@@ -8,6 +8,7 @@ This project (loosely) adheres to [Semantic Versioning](https://semver.org/spec/
 
 ### Added
 * Add backend option to `highlight_code` which can be "pygments" or "rich". 
+* Support for Python 3.12
 
 ### Changed
 * Improve speed of inplace dictionary set operations.
