@@ -519,7 +519,13 @@ def _syspath_modname_to_modpath(modname, sys_path=None, exclude=None):
     # but it would be nice to ensure we are not matching suffixes.
     # however, we should probably match and handle different versions.
     _editable_fname_pth_pat = '__editable__.' + _pkg_name + '-*.pth'
-    _editable_fname_finder_py_pat = '__editable___' + _pkg_name + '_*finder.py'
+
+    # NOTE: the __editable__ finders are named after the package, but the
+    # module could have a different name, so we cannot use the package name
+    # (which in this case is really the module name) in the pattern, and we
+    # have to check all of the finders.
+    # _editable_fname_finder_py_pat = '__editable___' + _pkg_name + '_*finder.py'
+    _editable_fname_finder_py_pat = '__editable___*_*finder.py'
 
     found_modpath = None
     for dpath in candidate_dpaths:

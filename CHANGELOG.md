@@ -6,6 +6,9 @@ This project (loosely) adheres to [Semantic Versioning](https://semver.org/spec/
 
 ## Version 1.3.5 - 
 
+### Fixed
+* `ub.modname_to_modpath` now handles cases where editable packages have modules where the name is different than the package.
+
 
 ## Version 1.3.4 - 2023-10-27
 
