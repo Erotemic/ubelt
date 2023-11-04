@@ -78,6 +78,7 @@ def schedule_deprecation(modname, name='?', type='?', migration='',
         https://docs.python.org/3/library/warnings.html
 
     Example:
+        >>> # xdoctest: +REQUIRES(module:packaging)
         >>> import ubelt as ub
         >>> import sys
         >>> import types
@@ -101,6 +102,7 @@ def schedule_deprecation(modname, name='?', type='?', migration='',
         something else
 
     Example:
+        >>> # xdoctest: +REQUIRES(module:packaging)
         >>> # Demo the various cases
         >>> import ubelt as ub
         >>> import sys

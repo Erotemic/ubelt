@@ -181,7 +181,14 @@ intersphinx_mapping = {
     'scriptconfig': ('https://scriptconfig.readthedocs.io/en/latest/', None),
     'rich': ('https://rich.readthedocs.io/en/latest/', None),
 
+    'numpy': ('https://numpy.org/doc/stable/', None),
+    'sympy': ('https://docs.sympy.org/latest/', None),
+    'scikit-learn': ('https://scikit-learn.org/stable/', None),
+    'pandas': ('https://pandas.pydata.org/docs/', None),
+    'matplotlib': ('https://matplotlib.org/stable/', None),
+
     'pytest': ('https://docs.pytest.org/en/latest/', None),
+    'platformdirs': ('https://platformdirs.readthedocs.io/en/latest/', None),
     # 'pytest._pytest.doctest': ('https://docs.pytest.org/en/latest/_modules/_pytest/doctest.html', None),
     # 'colorama': ('https://pypi.org/project/colorama/', None),
     # 'numpy': ('http://docs.scipy.org/doc/numpy/', None),
@@ -196,6 +203,8 @@ python -m sphinx.ext.intersphinx https://kwarray.readthedocs.io/en/latest/object
 python -m sphinx.ext.intersphinx https://kwimage.readthedocs.io/en/latest/objects.inv
 python -m sphinx.ext.intersphinx https://ubelt.readthedocs.io/en/latest/objects.inv
 python -m sphinx.ext.intersphinx https://networkx.org/documentation/stable/objects.inv
+python -m sphinx.ext.intersphinx https://numpy.org/doc/stable/objects.inv
+python -m sphinx.ext.intersphinx https://platformdirs.readthedocs.io/en/latest/objects.inv
 
 sphobjinv suggest -t 90 -u https://readthedocs.org/projects/pytest/reference/objects.inv
 "signal.convolve2d"

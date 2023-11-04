@@ -4,7 +4,8 @@ accessing platform dependent file systems.
 
 Standard application directory structure: cache, config, and other XDG
 standards [XDG_Spec]_. This is similar to the more focused :mod:`appdirs`
-module [AS_appdirs]_.  In the future ubelt may directly use :mod:`appdirs`.
+module [AS_appdirs]_ (deprecated as of 2023-02-10) and its successor
+:mod:`platformdirs` [PlatDirs]_.
 
 Note:
     Table mapping the type of directory to the system default environment
@@ -34,6 +35,7 @@ References:
     .. [SO_11113974] https://stackoverflow.com/questions/11113974/cross-plat-path
     .. [harawata_appdirs] https://github.com/harawata/appdirs#supported-directories
     .. [AS_appdirs] https://github.com/ActiveState/appdirs
+    .. [PlatDirs] https://pypi.org/project/platformdirs/
 """
 import os
 import sys

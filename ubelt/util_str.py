@@ -180,7 +180,7 @@ def ensure_unicode(text):
     r"""
     Casts bytes into utf8 (mostly for python2 compatibility).
 
-    Note:
+    Warning:
         This function is deprecated and will no longer be available in version
         2.0.0.
 
