@@ -223,9 +223,9 @@ def timeparse(stamp, default_timezone='local', allow_dateutil=True):
     Create a :class:`datetime.datetime` object from a string timestamp.
 
     Without any extra dependencies this will parse the output of
-    :func:`ubelt.util_time.timestamp()` into a datetime object. In the case
-    where the format differs, :func:`dateutil.parser.parse` will be used if the
-    :py:mod:`python-dateutil` package is installed.
+    :func:`ubelt.util_time.timestamp` into a datetime object. In the case
+    where the format differs, :func:`dateutil.parser.parse` will be used
+    if the :py:mod:`python-dateutil` package is installed.
 
     Args:
         stamp (str):

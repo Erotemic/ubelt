@@ -11,7 +11,7 @@ functions methods will still be available for the forseable future, but their
 functionality is made redundant by :class:`Path`. For completeness these
 functions are listed
 
-The :func:`expandpath` function expands the tilde to $HOME and environment
+The :func:`expandpath` function expands the tilde to ``$HOME`` and environment
 variables to their values.
 
 The :func:`augpath` function creates variants of an existing path without
@@ -419,7 +419,9 @@ class TempDir:
     """
     Context for creating and cleaning up temporary directories.
 
-    DEPRECATED. Use :mod:`tempfile` instead.
+    Warning:
+
+        DEPRECATED. Use :mod:`tempfile` instead.
 
     Note:
         This exists because :class:`tempfile.TemporaryDirectory` was
@@ -777,7 +779,7 @@ class Path(_PathBase):
         Returns:
             Path: augmented path
 
-        Note:
+        Warning:
             NOTICE OF BACKWARDS INCOMPATABILITY.
 
             THE INITIAL RELEASE OF Path.augment suffered from an unfortunate

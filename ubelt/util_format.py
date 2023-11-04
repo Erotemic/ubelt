@@ -1,12 +1,17 @@
 """
-This module is deprecated. Use :mod:`ubelt.util_repr` instead.
+Warning:
+
+    This module is deprecated. Use :mod:`ubelt.util_repr` instead.
 """
 from .util_repr import urepr, ReprExtensions, _REPR_EXTENSIONS
 
 
 def repr2(data, **kwargs):
     """
-    Deprecated for urepr
+    Alias of :func:`ubelt.util_repr.urepr`.
+
+    Warning:
+        Deprecated for urepr
 
     Example:
         >>> # Test that repr2 remains backwards compatible

@@ -6,8 +6,8 @@ function instead of two.  Furthermore, if the object defines a ``__len__``
 method, then the ``__nice__`` method defaults to something sensible, otherwise
 it is treated as abstract and raises ``NotImplementedError``.
 
-To use simply have your object inherit from :class:`NiceRepr`
-(multi-inheritance should be ok).
+To use, have your object inherit from :class:`NiceRepr`. To customize, define
+the ``__nice__`` method.
 
 Example:
     >>> # Objects that define __nice__ have a default __str__ and __repr__
