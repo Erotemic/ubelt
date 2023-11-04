@@ -1,5 +1,5 @@
 """
-This module is deprecated. Use util_repr instead.
+This module is deprecated. Use :mod:`ubelt.util_repr` instead.
 """
 from .util_repr import urepr, ReprExtensions, _REPR_EXTENSIONS
 

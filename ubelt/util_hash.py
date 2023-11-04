@@ -1,13 +1,13 @@
 r"""
 Wrappers around hashlib functions to generate hash signatures for common data.
 
-The hashes are deterministic across python versions and operating systems.
-This is verified by CI testing on Windows, Linux, Python with 2.7, 3.4, and
-greater, and on 32 and 64 bit versions.
+The hashes are deterministic across Python versions and operating systems.
+This is verified by CI testing on 32 and 64 bit versions of Windows, Linux, and
+OSX with all supported Python.
 
 Use Case #1: You have data that you want to hash. If we assume the data is in
-standard python scalars or ordered sequences: e.g.  tuple, list, odict, oset,
-int, str, etc..., then the solution is :func:`hash_data`.
+standard python scalars or ordered sequences: e.g.  tuple, list, OrderedDict,
+OrderedSet, int, str, etc..., then the solution is :func:`hash_data`.
 
 Use Case #2: You have a file you want to hash, but your system doesn't have a
 sha1sum executable (or you dont want to use Popen). The solution is

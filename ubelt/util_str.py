@@ -1,9 +1,6 @@
 """
 Functions for working with text and strings.
 
-The :func:`ensure_unicode` function does its best to coerce Python 2/3 bytes
-and text into a consistent unicode text representation.
-
 The :func:`codeblock` and :func:`paragraph` wrap multiline strings to help
 write text blocks without hindering the surrounding code indentation.
 
@@ -181,7 +178,11 @@ def hzcat(args, sep=''):
 
 def ensure_unicode(text):
     r"""
-    Casts bytes into utf8 (mostly for python2 compatibility)
+    Casts bytes into utf8 (mostly for python2 compatibility).
+
+    Note:
+        This function is deprecated and will no longer be available in version
+        2.0.0.
 
     Args:
         text (str | bytes):
