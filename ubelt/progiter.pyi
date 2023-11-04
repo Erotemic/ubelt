@@ -1,11 +1,14 @@
+from _typeshed import SupportsWrite
 from typing import Iterable
 from typing import List
 import typing
 from typing import Callable
+from typing import Type
+from types import TracebackType
 from _typeshed import Incomplete
 from typing import NamedTuple
 
-default_timer: Incomplete
+default_timer: Callable
 
 
 class Measurement(NamedTuple):
@@ -21,21 +24,21 @@ class _TQDMCompat:
 
     @classmethod
     def write(cls,
-              s,
-              file: Incomplete | None = ...,
-              end: str = ...,
-              nolock: bool = ...) -> None:
+              s: str,
+              file: None | SupportsWrite = None,
+              end: str = '\n',
+              nolock: bool = False) -> None:
         ...
 
-    desc: Incomplete
+    desc: str | None
 
     def set_description(self,
-                        desc: Incomplete | None = ...,
+                        desc: str | None = None,
                         refresh: bool = ...) -> None:
         ...
 
     def set_description_str(self,
-                            desc: Incomplete | None = ...,
+                            desc: str | None = None,
                             refresh: bool = ...) -> None:
         ...
 
@@ -69,10 +72,13 @@ class _TQDMCompat:
     def get_lock(cls) -> None:
         ...
 
-    def set_postfix(self,
-                    ordered_dict: Incomplete | None = ...,
-                    refresh: bool = ...,
-                    **kwargs) -> None:
+    def set_postfix_dict(self,
+                         ordered_dict: None | dict = None,
+                         refresh: bool = True,
+                         **kwargs) -> None:
+        ...
+
+    def set_postfix(self, postfix, **kwargs) -> None:
         ...
 
     def set_postfix_str(self, s: str = ..., refresh: bool = ...) -> None:
@@ -97,68 +103,68 @@ class _BackwardsCompat:
 
 
 class ProgIter(_TQDMCompat, _BackwardsCompat):
+    stream: typing.IO
     iterable: List | Iterable
-    desc: str
-    total: int
+    desc: str | None
+    total: int | None
     freq: int
-    eta_window: int
-    clearline: bool
+    initial: int
+    enabled: bool
     adjust: bool
-    time_thresh: float
     show_percent: bool
     show_times: bool
     show_rate: bool
     show_eta: bool
+    show_total: bool
     show_wall: bool
-    initial: int
-    stream: typing.IO
-    timer: Callable
-    enabled: bool
+    eta_window: int
+    time_thresh: float
+    clearline: bool
     chunksize: int | None
     rel_adjust_limit: float
-    verbose: int
-    homogeneous: bool | str
-    show_total: Incomplete
     extra: str
     started: bool
     finished: bool
+    homogeneous: bool | str
 
     def __init__(self,
-                 iterable: Incomplete | None = ...,
-                 desc: Incomplete | None = ...,
-                 total: Incomplete | None = ...,
-                 freq: int = ...,
-                 initial: int = ...,
-                 eta_window: int = ...,
-                 clearline: bool = ...,
-                 adjust: bool = ...,
-                 time_thresh: float = ...,
-                 show_percent: bool = ...,
-                 show_times: bool = ...,
-                 show_rate: bool = ...,
-                 show_eta: bool = ...,
-                 show_total: bool = ...,
-                 show_wall: bool = ...,
-                 enabled: bool = ...,
-                 verbose: Incomplete | None = ...,
-                 stream: Incomplete | None = ...,
-                 chunksize: Incomplete | None = ...,
-                 rel_adjust_limit: float = ...,
-                 homogeneous: str = ...,
-                 timer: Incomplete | None = ...,
+                 iterable: List | Iterable | None = None,
+                 desc: str | None = None,
+                 total: int | None = None,
+                 freq: int = 1,
+                 initial: int = 0,
+                 eta_window: int = 64,
+                 clearline: bool = True,
+                 adjust: bool = True,
+                 time_thresh: float = 2.0,
+                 show_percent: bool = True,
+                 show_times: bool = True,
+                 show_rate: bool = True,
+                 show_eta: bool = True,
+                 show_total: bool = True,
+                 show_wall: bool = False,
+                 enabled: bool = True,
+                 verbose: int | None = None,
+                 stream: typing.IO | None = None,
+                 chunksize: int | None = None,
+                 rel_adjust_limit: float = 4.0,
+                 homogeneous: bool | str = 'auto',
+                 timer: Callable | None = None,
                  **kwargs) -> None:
         ...
 
-    def __call__(self, iterable):
+    def __call__(self, iterable: Iterable) -> Iterable:
         ...
 
-    def __enter__(self):
+    def __enter__(self) -> ProgIter:
         ...
 
-    def __exit__(self, type_, value, trace):
+    def __exit__(self, ex_type: Type[BaseException] | None,
+                 ex_value: BaseException | None,
+                 ex_traceback: TracebackType | None) -> bool | None:
         ...
 
-    def __iter__(self):
+    def __iter__(self) -> Iterable:
         ...
 
     def set_extra(self, extra: str | Callable) -> None:
