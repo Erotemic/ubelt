@@ -1,4 +1,4 @@
-
+#!/usr/bin/env python
 
 import scriptconfig as scfg
 
@@ -19,10 +19,13 @@ def count_ubelt_usage():
     import glob
     from os.path import join
     names = [
-        'xdoctest', 'netharn', 'xdev', 'xinspect', 'ndsampler',
+        'xdoctest', 'netharn', 'xdev', 'xinspect', 'xcookie', 'ndsampler',
         'kwarray', 'kwimage', 'kwplot', 'kwcoco',
         'scriptconfig', 'vimtk',
         'mkinit', 'futures_actors', 'graphid',
+
+        'kwutil', 'git_well', 'line_profiler', 'delayed_image', 'simple_dvc',
+        'pypogo',
 
         'ibeis', 'plottool_ibeis', 'guitool_ibeis', 'utool', 'dtool_ibeis',
         'vtool_ibeis', 'hesaff', 'torch_liberator', 'liberator',

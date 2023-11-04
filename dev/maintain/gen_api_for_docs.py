@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 
 def count_ubelt_usage():
     """
@@ -12,7 +13,6 @@ def count_ubelt_usage():
     # Reorgnaize data to contain more information
     rows = []
     unseen = usage.copy()
-    import ubelt as ub
     for attrname in ub.__all__:
         member = getattr(ub, attrname)
         submembers = getattr(member, '__all__', None)
