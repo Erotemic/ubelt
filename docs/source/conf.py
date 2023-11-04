@@ -163,6 +163,9 @@ autoclass_content = 'both'
 # autoapi_dirs = [f'../../src/{modname}']
 # autoapi_keep_files = True
 
+# References:
+# https://stackoverflow.com/questions/21538983/specifying-targets-for-intersphinx-links-to-numpy-scipy-and-matplotlib
+
 intersphinx_mapping = {
     # 'pytorch': ('http://pytorch.org/docs/master/', None),
     'python': ('https://docs.python.org/3', None),
@@ -195,7 +198,6 @@ intersphinx_mapping = {
     'dateutil': ('https://dateutil.readthedocs.io/en/latest/', None),
     # 'pytest._pytest.doctest': ('https://docs.pytest.org/en/latest/_modules/_pytest/doctest.html', None),
     # 'colorama': ('https://pypi.org/project/colorama/', None),
-    # 'numpy': ('http://docs.scipy.org/doc/numpy/', None),
     # 'cv2' : ('http://docs.opencv.org/2.4/', None),
     # 'h5py' : ('http://docs.h5py.org/en/latest/', None)
 }
@@ -207,9 +209,6 @@ python -m sphinx.ext.intersphinx https://kwarray.readthedocs.io/en/latest/object
 python -m sphinx.ext.intersphinx https://kwimage.readthedocs.io/en/latest/objects.inv
 python -m sphinx.ext.intersphinx https://ubelt.readthedocs.io/en/latest/objects.inv
 python -m sphinx.ext.intersphinx https://networkx.org/documentation/stable/objects.inv
-python -m sphinx.ext.intersphinx https://numpy.org/doc/stable/objects.inv
-python -m sphinx.ext.intersphinx https://platformdirs.readthedocs.io/en/latest/objects.inv
-python -m sphinx.ext.intersphinx https://dateutil.readthedocs.io/en/latest/objects.inv
 
 sphobjinv suggest -t 90 -u https://readthedocs.org/projects/pytest/reference/objects.inv
 "signal.convolve2d"
