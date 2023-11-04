@@ -217,7 +217,7 @@ class IndexableWalker(Generator):
             StopIteration
 
         References:
-            https://docs.python.org/3/reference/expressions.html#generator.throw
+            .. [GeneratorThrow] https://docs.python.org/3/reference/expressions.html#generator.throw
         """
         raise StopIteration
 

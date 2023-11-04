@@ -2,13 +2,12 @@
 For dealing with symlinks, junctions, and hard-links on windows.
 
 References:
-    https://stackoverflow.com/questions/18883892/batch-file-windows-cmd-exe-test-if-a-directory-is-a-link-symlink
-
-    https://stackoverflow.com/questions/21561850/python-test-for-junction-point-target
-    http://timgolden.me.uk/python/win32_how_do_i/see_if_two_files_are_the_same_file.html
-    https://stackoverflow.com/questions/6260149/os-symlink-support-in-windows
-    https://msdn.microsoft.com/en-us/library/windows/desktop/aa365006(v=vs.85).aspx
-    https://superuser.com/a/902082/215232
+    .. [SO18883892] https://stackoverflow.com/questions/18883892/batch-file-windows-cmd-exe-test-if-a-directory-is-a-link-symlink
+    .. [SO21561850] https://stackoverflow.com/questions/21561850/python-test-for-junction-point-target
+    .. [WinTwoFilesSame] http://timgolden.me.uk/python/win32_how_do_i/see_if_two_files_are_the_same_file.html
+    .. [SO6260149] https://stackoverflow.com/questions/6260149/os-symlink-support-in-windows
+    .. [WinDesktopAA365006] https://msdn.microsoft.com/en-us/library/windows/desktop/aa365006(v=vs.85).aspx
+    .. [SU902082] https://superuser.com/a/902082/215232
 
 Weird Behavior:
     - [ ] In many cases using the win32 API seems to result in privilege errors

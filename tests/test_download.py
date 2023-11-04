@@ -419,7 +419,7 @@ class SingletonTestServer(ub.NiceRepr):
     independent IPython session.
 
     CommandLine:
-        xdoctest -m /home/joncrall/code/ubelt/tests/test_download.py SingletonTestServer
+        xdoctest -m tests/test_download.py SingletonTestServer
 
     Note:
         We rely on python process close mechanisms to clean this server up.
@@ -463,7 +463,7 @@ class SingletonTestServer(ub.NiceRepr):
         def find_free_port():
             """
             References:
-                https://stackoverflow.com/questions/1365265/on-localhost-how-do-i-pick-a-free-port-number
+                .. [SO1365265] https://stackoverflow.com/questions/1365265/on-localhost-how-do-i-pick-a-free-port-number
             """
             with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as s:
                 s.bind(('', 0))

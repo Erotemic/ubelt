@@ -362,7 +362,7 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
         tqdm - https://pypi.python.org/pypi/tqdm
 
     References:
-        http://datagenetics.com/blog/february12017/index.html
+        .. [DatagenProgBars] http://datagenetics.com/blog/february12017/index.html
 
     Example:
         >>> # doctest: +SKIP

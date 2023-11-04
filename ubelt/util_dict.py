@@ -394,7 +394,7 @@ def dict_union(*args):
         dictionary union (or any other dictionary set operator).
 
     References:
-        https://stackoverflow.com/questions/38987/merge-two-dict
+        .. [SO38987] https://stackoverflow.com/questions/38987/merge-two-dict
 
     SeeAlso:
         :func:`collections.ChainMap` - a standard python builtin data structure
