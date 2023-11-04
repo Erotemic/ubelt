@@ -5,6 +5,8 @@ from types import ModuleType
 from typing import List
 from typing import Tuple
 
+IS_PY_GE_308: bool
+
 
 class PythonPathContext:
     dpath: str | PathLike

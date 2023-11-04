@@ -26,7 +26,7 @@ __all__ = [
     'import_module_from_path',
 ]
 
-IS_PY_GE_308 = sys.version_info[0] >= 3 and sys.version_info[1] >= 8
+IS_PY_GE_308 = sys.version_info[0] >= 3 and sys.version_info[1] >= 8  # type: bool
 
 
 class PythonPathContext(object):
@@ -794,13 +794,22 @@ def modpath_to_modname(modpath, hide_init=True, hide_main=False, check=True,
     encountered.
 
     Args:
-        modpath (str): module filepath
-        hide_init (bool, default=True): removes the __init__ suffix
-        hide_main (bool, default=False): removes the __main__ suffix
-        check (bool, default=True): if False, does not raise an error if
-            modpath is a dir and does not contain an __init__ file.
-        relativeto (str | None, default=None): if specified, all checks are ignored
-            and this is considered the path to the root module.
+        modpath (str):
+            Module filepath
+
+        hide_init (bool):
+            Removes the __init__ suffix. Defaults to True.
+
+        hide_main (bool):
+            Removes the __main__ suffix. Defaults to False.
+
+        check (bool):
+            If False, does not raise an error if modpath is a dir and does not
+            contain an __init__ file. Defaults to True.
+
+        relativeto (str | None):
+            If specified, all checks are ignored and this is considered the
+            path to the root module. Defaults to None.
 
     TODO:
         - [ ] Does this need modification to support PEP 420?
