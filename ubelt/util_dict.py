@@ -1255,25 +1255,63 @@ class SetDict(dict):
 
     # We could just use the builtin variant for this specific operation
     def __or__(self, other):
-        """ The | union operator """
+        """
+        The | union operator
+
+        Args:
+            other (SupportsKeysAndGetItem[Any, Any] | Iterable[Tuple[Any, Any]]):
+
+        Returns:
+            SetDict
+        """
         return self.union(other)
 
     def __and__(self, other):
-        """ The & intersection operator """
+        """
+        The & intersection operator
+
+        Args:
+            other (Mapping | Iterable):
+
+        Returns:
+            SetDict
+        """
         return self.intersection(other)
 
     def __sub__(self, other):
-        """ The - difference operator """
+        """
+        The - difference operator
+
+        Args:
+            other (Mapping | Iterable):
+
+        Returns:
+            SetDict
+        """
         return self.difference(other)
 
     def __xor__(self, other):
-        """ The ^ symmetric_difference operator """
+        """
+        The ^ symmetric_difference operator
+
+        Args:
+            other (Mapping):
+
+        Returns:
+            SetDict
+        """
         return self.symmetric_difference(other)
 
     # - reverse versions
 
     def __ror__(self, other):
         """
+        Args:
+            other (Mapping):
+
+        Returns:
+            dict
+
         Example:
             >>> import ubelt as ub
             >>> self = ub.sdict({1: 1, 2: 2, 3: 3})
@@ -1291,6 +1329,12 @@ class SetDict(dict):
 
     def __rand__(self, other):
         """
+        Args:
+            other (Mapping):
+
+        Returns:
+            dict
+
         Example:
             >>> import ubelt as ub
             >>> self = ub.sdict({1: 1, 2: 2, 3: 3})
@@ -1308,6 +1352,12 @@ class SetDict(dict):
 
     def __rsub__(self, other):
         """
+        Args:
+            other (Mapping):
+
+        Returns:
+            dict
+
         Example:
             >>> import ubelt as ub
             >>> self = ub.sdict({1: 1, 2: 2, 3: 3})
@@ -1325,6 +1375,13 @@ class SetDict(dict):
 
     def __rxor__(self, other):
         """
+
+        Args:
+            other (Mapping):
+
+        Returns:
+            dict
+
         Example:
             >>> import ubelt as ub
             >>> self = ub.sdict({1: 1, 2: 2, 3: 3})
@@ -1346,6 +1403,12 @@ class SetDict(dict):
         """
         The inplace union operator ``|=``.
 
+        Args:
+            other (SupportsKeysAndGetItem[Any, Any] | Iterable[Tuple[Any, Any]]):
+
+        Returns:
+            SetDict
+
         Example:
             >>> import ubelt as ub
             >>> self = orig_ref = ub.sdict({1: 1, 2: 2, 3: 3})
@@ -1363,6 +1426,9 @@ class SetDict(dict):
     def __iand__(self, other):
         """
         The inplace intersection operator ``&=``.
+
+        Args:
+            other (Mapping | Iterable):
 
         Example:
             >>> import ubelt as ub
@@ -1383,6 +1449,9 @@ class SetDict(dict):
     def __isub__(self, other):
         """
         The inplace difference operator ``-=``.
+
+        Args:
+            other (Mapping | Iterable):
 
         Example:
             >>> import ubelt as ub
@@ -1422,6 +1491,9 @@ class SetDict(dict):
     def __ixor__(self, other):
         """
         The inplace symmetric difference operator ``^=``.
+
+        Args:
+            other (Mapping):
 
         Example:
             >>> import ubelt as ub
@@ -2017,6 +2089,13 @@ class AutoDict(UDict):
     _base = UDict
 
     def __getitem__(self, key):
+        """
+        Args:
+            key (KT): key to lookup
+
+        Returns:
+            VT | AutoDict: an existing value or a new AutoDict
+        """
         try:
             # value = super(AutoDict, self).__getitem__(key)
             value = self._base.__getitem__(self, key)

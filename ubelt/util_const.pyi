@@ -1,18 +1,21 @@
+from typing import Tuple
+
+
 class NoParamType:
 
-    def __new__(cls):
+    def __new__(cls) -> NoParamType:
         ...
 
-    def __reduce__(self):
+    def __reduce__(self) -> Tuple[type, Tuple]:
         ...
 
-    def __copy__(self):
+    def __copy__(self) -> NoParamType:
         ...
 
-    def __deepcopy__(self, memo):
+    def __deepcopy__(self, memo) -> NoParamType:
         ...
 
-    def __bool__(self):
+    def __bool__(self) -> bool:
         ...
 
 

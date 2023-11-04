@@ -26,7 +26,7 @@ if sys.platform.startswith('win32'):
     import jaraco.windows.filesystem as jwfs
 
 
-__win32_can_symlink__ = None
+__win32_can_symlink__ = None  # type: bool | None
 
 
 def _win32_can_symlink(verbose=0, force=0, testing=0):

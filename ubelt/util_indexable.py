@@ -42,6 +42,9 @@ class IndexableWalker(Generator):
             the types that should be considered list-like for the purposes
             of nested iteration. Defaults to ``(list, tuple)``.
 
+        indexable_cls (Tuple[type]):
+            combined dict_cls and list_cls
+
     Example:
         >>> import ubelt as ub
         >>> # Given Nested Data
@@ -193,10 +196,28 @@ class IndexableWalker(Generator):
         # Note: this will error if called before __next__
         self._walk_gen.send(arg)
 
-    def throw(self, type=None, value=None, traceback=None):
+    def throw(self, typ, val=None, tb=None):  # type: ignore
         """
         throw(typ[,val[,tb]]) -> raise exception in generator,
         return next yielded value or raise StopIteration.
+
+        Args:
+            typ (Any):
+                Type of the exception.
+                Should be a ``type[BaseException]``, type checking is not working right here.
+
+            val (Optional[object]):
+
+            tb (Optional[TracebackType]):
+
+        Returns:
+            Any
+
+        Raises:
+            StopIteration
+
+        References:
+            https://docs.python.org/3/reference/expressions.html#generator.throw
         """
         raise StopIteration
 

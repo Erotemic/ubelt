@@ -120,14 +120,26 @@ class CmdOutput(dict):
 
     @property
     def stdout(self):
+        """
+        Returns:
+            str | bytes
+        """
         return self['out']
 
     @property
     def stderr(self):
+        """
+        Returns:
+            str | bytes
+        """
         return self['err']
 
     @property
     def returncode(self):
+        """
+        Returns:
+            int
+        """
         return self['ret']
 
     def check_returncode(self):

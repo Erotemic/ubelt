@@ -733,6 +733,9 @@ class CacheStamp(object):
         The size, mtime, and hash mechanism is similar to how Makefile and redo
         caches work.
 
+    Attributes:
+        cacher (Cacher): underlying cacher object
+
     Example:
         >>> import ubelt as ub
         >>> # Stamp the computation of expensive-to-compute.txt

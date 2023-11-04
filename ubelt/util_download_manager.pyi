@@ -1,7 +1,7 @@
 from os import PathLike
 import concurrent
 import concurrent.futures
-from _typeshed import Incomplete
+from typing import Iterable
 
 
 class DownloadManager:
@@ -23,16 +23,16 @@ class DownloadManager:
         ...
 
     def as_completed(self,
-                     prog: Incomplete | None = ...,
-                     desc: Incomplete | None = ...,
-                     verbose: int = ...):
+                     prog: None | bool | type = None,
+                     desc: str | None = None,
+                     verbose: int = 1):
         ...
 
     def shutdown(self) -> None:
         ...
 
-    def __iter__(self):
+    def __iter__(self) -> Iterable:
         ...
 
-    def __len__(self):
+    def __len__(self) -> int:
         ...

@@ -349,11 +349,6 @@ class ChDir:
     exception that it will do nothing if the input path is None (i.e. the user
     did not want to change directories).
 
-    Args:
-        dpath (str | PathLike | None):
-            The new directory to work in.
-            If None, then the context manager is disabled.
-
     SeeAlso:
         :func:`contextlib.chdir`
 
@@ -388,6 +383,12 @@ class ChDir:
         >>>     assert ub.Path.cwd() == dpath
     """
     def __init__(self, dpath):
+        """
+        Args:
+            dpath (str | PathLike | None):
+                The new directory to work in.
+                If None, then the context manager is disabled.
+        """
         self._context_dpath = dpath
         self._orig_dpath = None
 
@@ -429,7 +430,7 @@ class TempDir:
         python 2.7, this class will be deprecated.
 
     Attributes:
-        dpath (str | None)
+        dpath (str | None): the temporary path
 
     Note:
         # WE MAY WANT TO KEEP THIS FOR WINDOWS.
@@ -463,6 +464,10 @@ class TempDir:
         self.cleanup()
 
     def ensure(self):
+        """
+        Returns:
+            str: the path
+        """
         import tempfile
         if not self.dpath:
             self.dpath = tempfile.mkdtemp()
@@ -475,10 +480,18 @@ class TempDir:
             self.dpath = None
 
     def start(self):
+        """
+        Returns:
+            TempDir: self
+        """
         self.ensure()
         return self
 
     def __enter__(self):
+        """
+        Returns:
+            TempDir: self
+        """
         return self.start()
 
     def __exit__(self, ex_type, ex_value, ex_traceback):

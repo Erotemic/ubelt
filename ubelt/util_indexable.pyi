@@ -1,8 +1,9 @@
 from typing import Tuple
 from typing import List
 from typing import Any
+from typing import Optional
+from types import TracebackType
 from typing import Dict
-from _typeshed import Incomplete
 from collections.abc import Generator
 
 
@@ -10,7 +11,7 @@ class IndexableWalker(Generator):
     data: dict | list | tuple
     dict_cls: Tuple[type]
     list_cls: Tuple[type]
-    indexable_cls: Incomplete
+    indexable_cls: Tuple[type]
 
     def __init__(self, data, dict_cls=..., list_cls=...) -> None:
         ...
@@ -25,9 +26,9 @@ class IndexableWalker(Generator):
         ...
 
     def throw(self,
-              type: Incomplete | None = ...,
-              value: Incomplete | None = ...,
-              traceback: Incomplete | None = ...) -> None:
+              typ: Any,
+              val: Optional[object] = None,
+              tb: Optional[TracebackType] = None) -> Any:
         ...
 
     def __setitem__(self, path: List, value: Any) -> None:

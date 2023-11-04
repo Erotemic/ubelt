@@ -63,6 +63,9 @@ class chunks(object):
         List[T]:
             subsequent non-overlapping chunks of the input items
 
+    Attributes:
+        remainder (int): number of leftover items that don't divide cleanly
+
     References:
         .. [SO_434287] http://stackoverflow.com/questions/434287/iterate-over-a-list-in-chunks
 

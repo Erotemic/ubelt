@@ -95,6 +95,10 @@ class zopen(NiceRepr):
               open zipfile reference maybe?).
         - [ ] Write mode in some restricted setting?
 
+    Attributes:
+        name (str | PathLike):
+            path to a file or reference to an item in a zipfile.
+
     Example:
         >>> from ubelt.util_zip import *  # NOQA
         >>> import pickle
