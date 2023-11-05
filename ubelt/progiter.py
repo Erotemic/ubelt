@@ -98,6 +98,12 @@ def _infer_length(iterable):
     Try and infer the length using the PEP 424 length hint if available.
 
     adapted from click implementation
+
+    Args:
+        iterable (Iterable):
+
+    Returns:
+        int | None
     """
     try:
         return len(iterable)
@@ -188,6 +194,10 @@ class _TQDMCompat(object):
 
     @property
     def pos(self):
+        """
+        Returns:
+            int
+        """
         return 0
 
     @classmethod
@@ -742,8 +752,8 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
         Manually step progress update, either directly or by an increment.
 
         Args:
-            inc (int, default=1): number of steps to increment
-            force (bool, default=False): if True forces progress display
+            inc (int): number of steps to increment. Defaults to 1.
+            force (bool): if True forces progress display. Defaults to False.
 
         Example:
             >>> n = 3
@@ -837,6 +847,9 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
         """
         Defines the template for the progress line
 
+        Returns:
+            Tuple[str, str, str]
+
         Example:
             >>> self = ProgIter()
             >>> print(self._build_message_template()[1].strip())
@@ -909,13 +922,19 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
         Exists only for backwards compatibility.
 
         See `format_message_parts` for more recent API.
+
+        Returns:
+            str
         """
         return ''.join(self.format_message_parts())
 
     def format_message_parts(self):
         r"""
-        builds a formatted progres message with the current values.
+        builds a formatted progress message with the current values.
         This contains the special characters needed to clear lines.
+
+        Returns:
+            Tuple[str, str, str]
 
         Example:
             >>> self = ProgIter(clearline=False, show_times=False)
@@ -1053,5 +1072,10 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
             pass
 
     def _write(self, msg):
-        """ write to the internal stream """
+        """
+        write to the internal stream
+
+        Args:
+            msg (str): message to write
+        """
         self.stream.write(msg)

@@ -1,10 +1,11 @@
-from _typeshed import SupportsWrite
 from typing import Iterable
+from _typeshed import SupportsWrite
 from typing import List
 import typing
 from typing import Callable
 from typing import Type
 from types import TracebackType
+from typing import Tuple
 from _typeshed import Incomplete
 from typing import NamedTuple
 
@@ -61,7 +62,7 @@ class _TQDMCompat:
         ...
 
     @property
-    def pos(self):
+    def pos(self) -> int:
         ...
 
     @classmethod
@@ -179,10 +180,10 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
     def step(self, inc: int = 1, force: bool = False) -> None:
         ...
 
-    def format_message(self):
+    def format_message(self) -> str:
         ...
 
-    def format_message_parts(self):
+    def format_message_parts(self) -> Tuple[str, str, str]:
         ...
 
     def ensure_newline(self) -> None:
