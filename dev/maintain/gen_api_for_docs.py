@@ -1,20 +1,141 @@
 #!/usr/bin/env python
 
-def count_ubelt_usage():
+import scriptconfig as scfg
+
+
+class UsageConfig(scfg.Config):
+    default = {
+        'print_packages': False,
+        'remove_zeros': False,
+        'hardcoded_ubelt_hack': True,
+        'extra_modnames': [],
+    }
+
+
+def count_package_usage(modname):
+    import ubelt as ub
+    import glob
+    from os.path import join
+    import re
+    config = UsageConfig(cmdline=True)
+
+    names = [
+        'xdoctest', 'netharn', 'xdev', 'xinspect', 'xcookie', 'ndsampler',
+        'kwarray', 'kwimage', 'kwplot', 'kwcoco',
+        'scriptconfig', 'vimtk',
+        'mkinit', 'futures_actors', 'graphid',
+
+        'kwutil', 'git_well', 'line_profiler', 'delayed_image', 'simple_dvc',
+        'pypogo',
+
+        'ibeis', 'plottool_ibeis', 'guitool_ibeis', 'utool', 'dtool_ibeis',
+        'vtool_ibeis', 'hesaff', 'torch_liberator', 'liberator',
+    ] + config['extra_modnames']
+
+    code_repos = [ub.Path('~/code').expand() / name for name in names]
+    repo_dpaths = code_repos + [
+        # ub.Path('~/local').expand(),
+        ub.Path('~/misc').expand(),
+    ]
+    all_fpaths = []
+    for repo_dpath in repo_dpaths:
+        name = repo_dpath.stem
+        fpaths = glob.glob(join(repo_dpath, '**', '*.py'), recursive=True)
+        for fpath in fpaths:
+            all_fpaths.append((name, fpath))
+
+    pat = re.compile(r'\bub\.(?P<attr>[a-zA-Z_][A-Za-z_0-9]*)\b')
+
+    modname = modname
+    module = ub.import_module_from_name(modname)
+    package_name = module.__name__
+    package_allvar = module.__all__
+
+    pat = re.compile(r'\b' + package_name + r'\.(?P<attr>[a-zA-Z_][A-Za-z_0-9]*)\b')
+
+    pkg_to_hist = ub.ddict(lambda: ub.ddict(int))
+    for name, fpath in ub.ProgIter(all_fpaths):
+        with open(fpath, 'r') as file:
+            text = file.read()
+        for match in pat.finditer(text):
+            attr = match.groupdict()['attr']
+            if attr in package_allvar:
+                pkg_to_hist[name][attr] += 1
+
+    hist_iter = iter(pkg_to_hist.values())
+    usage = next(hist_iter).copy()
+    for other in hist_iter:
+        for k, v in other.items():
+            usage[k] += v
+    for attr in package_allvar:
+        usage[attr] += 0
+
+    for name in pkg_to_hist.keys():
+        pkg_to_hist[name] = ub.odict(sorted(pkg_to_hist[name].items(), key=lambda t: t[1])[::-1])
+
+    usage = ub.odict(sorted(usage.items(), key=lambda t: t[1])[::-1])
+
+    if config['print_packages']:
+        print(ub.repr2(pkg_to_hist, nl=2))
+
+    if config['remove_zeros']:
+        for k, v in list(usage.items()):
+            if v == 0:
+                usage.pop(k)
+
+    if config['hardcoded_ubelt_hack']:
+        blocklist = [
+            'progiter', 'timerit', 'orderedset',
+        ]
+        for k in list(usage):
+            if k in blocklist:
+                usage.pop(k, None)
+            elif k.startswith('util_'):
+                usage.pop(k, None)
+            elif k.startswith('_util_'):
+                usage.pop(k, None)
+            # ub._util_deprecated
+            # from ubelt import _util_deprecated
+            # if k in dir(_util_deprecated):
+            #     usage.pop(k, None)
+
+    if 1:
+        # Renamed Aliases
+        try:
+            usage['urepr'] += usage.pop('repr2')
+            usage['ReprExtensions'] += usage.pop('FormatterExtensions')
+        except Exception:
+            ...
+
+    usage = ub.udict(usage).sorted_values(reverse=True)
+
+    print(ub.repr2(usage, nl=1))
+    return usage
+
+
+def gen_api_for_docs(modname):
     """
     import sys, ubelt
     sys.path.append(ubelt.expandpath('~/code/ubelt/dev/maintain'))
     from gen_api_for_docs import *  # NOQA
     """
-    from count_usage_freq import count_ubelt_usage
     import ubelt as ub
-    usage = count_ubelt_usage()
+    usage = count_package_usage(modname)
+
+    module = ub.import_module_from_name(modname)
+    attrnames = module.__all__
+    if hasattr(module, '__protected__'):
+        # Hack for lazy imports
+        for subattr in module.__protected__:
+            submod = ub.import_module_from_name(modname + '.' + subattr)
+            setattr(module, subattr, submod)
+        attrnames += module.__protected__
 
     # Reorgnaize data to contain more information
     rows = []
     unseen = usage.copy()
-    for attrname in ub.__all__:
-        member = getattr(ub, attrname)
+    for attrname in attrnames:
+        member = getattr(module, attrname)
         submembers = getattr(member, '__all__', None)
         if attrname.startswith('util_'):
             if not submembers:
@@ -22,10 +143,10 @@ def count_ubelt_usage():
                 submembers = _extract_attributes(member.__file__)
         if submembers:
             for subname in submembers:
-                parent_module = 'ubelt.{}'.format(attrname)
-                short_name = 'ubelt.{subname}'.format(**locals())
+                parent_module = f'{modname}.{attrname}'
+                short_name = '{modname}.{subname}'.format(**locals())
                 full_name = '{parent_module}.{subname}'.format(**locals())
-                url = 'https://ubelt.readthedocs.io/en/latest/{parent_module}.html#{full_name}'.format(**locals())
+                url = 'https://{modname}.readthedocs.io/en/latest/{parent_module}.html#{full_name}'.format(**locals())
                 rst_ref = ':func:`{short_name}<{full_name}>`'.format(**locals())
                 url_ref = '`{short_name} <{url}>`__'.format(**locals())
                 rows.append({
@@ -66,7 +187,7 @@ def count_ubelt_usage():
     for key, value in usage.items():
         infos = attr_to_infos[key]
         if len(infos) == 0:
-            print(column_fmt.format(':func:`ubelt.' + key + '`', value))
+            print(column_fmt.format(f':func:`{modname}.' + key + '`', value))
         else:
             if len(infos) != 1:
                 print('infos = {}'.format(ub.urepr(infos, nl=1)))
@@ -81,18 +202,21 @@ def count_ubelt_usage():
     print(ub.indent('usage stats = ' + ub.repr2(kwarray.stats_dict(
         raw_scores, median=True, sum=True), nl=1)))
 
-    for attrname in ub.__all__:
-        member = getattr(ub, attrname)
+    for attrname in attrnames:
+        member = getattr(module, attrname)
 
         submembers = getattr(member, '__all__', None)
 
-        if attrname.startswith('util_'):
-            if not submembers:
-                from mkinit.static_mkinit import _extract_attributes
+        # if attrname.startswith('util_'):
+        if not submembers:
+            from mkinit.static_mkinit import _extract_attributes
+            try:
                 submembers = _extract_attributes(member.__file__)
+            except AttributeError:
+                pass
 
         if submembers:
-            parent_module = 'ubelt.{}'.format(attrname)
+            parent_module = f'{modname}.{attrname}'
 
             title = ':mod:`{}`'.format(parent_module)
             print('\n' + title)
@@ -100,8 +224,8 @@ def count_ubelt_usage():
             for subname in submembers:
                 if not subname.startswith('_'):
                     rst_ref = (
-                        ':func:`<ubelt.{subname}><{parent_module}.{subname}>`'
-                    ).format(subname=subname, parent_module=parent_module)
+                        f':func:`<{modname}.{subname}><{parent_module}.{subname}>`'
+                    )
                     print(rst_ref)
             submembers = dir(member)
 
@@ -127,4 +251,4 @@ if __name__ == '__main__':
         # Then edit: TODO make less manual
         ~/code/ubelt/docs/source/function_usefulness.rst
     """
-    count_ubelt_usage()
+    gen_api_for_docs('ubelt')
