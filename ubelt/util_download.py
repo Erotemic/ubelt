@@ -140,7 +140,8 @@ def download(url, fpath=None, dpath=None, fname=None, appname=None,
         >>>     ub.download(url, hasher='sha512', hash_prefix='BAD_HASH')
     """
     from ubelt import ProgIter as Progress
-    from ubelt.util_path import Path
+    from ubelt.util_platform import platform_cache_dir
+    import pathlib
     import shutil
     import tempfile
     import hashlib
@@ -155,7 +156,9 @@ def download(url, fpath=None, dpath=None, fname=None, appname=None,
         raise ValueError('Cannot specify fpath with dpath or fname')
     if fpath is None:
         if dpath is None:
-            dpath = Path.appdir(appname or 'ubelt').ensuredir()
+            cache_dpath = pathlib.Path(platform_cache_dir())
+            dpath = cache_dpath / (appname or 'ubelt')
+            dpath.mkdir(parents=True, exist_ok=True)
         if fname is None:
             fname = basename(url)
         fpath = join(dpath, fname)
@@ -403,7 +406,8 @@ def grabdata(url, fpath=None, dpath=None, fname=None, redo=False,
         >>> fpath = ub.grabdata(url2, fname=fname, hash_prefix=prefix2)
         >>> assert json.loads(stamp_fpath.read_text())['hash'][0].startswith(prefix2)
     """
-    from ubelt.util_path import Path
+    import pathlib
+    from ubelt.util_platform import platform_cache_dir
     from ubelt.util_cache import CacheStamp
     if appname and dpath:
         raise ValueError('Cannot specify appname with dpath')
@@ -412,7 +416,9 @@ def grabdata(url, fpath=None, dpath=None, fname=None, redo=False,
 
     if fpath is None:
         if dpath is None:
-            dpath = Path.appdir(appname or 'ubelt').ensuredir()
+            cache_dpath = pathlib.Path(platform_cache_dir())
+            dpath = cache_dpath / (appname or 'ubelt')
+            dpath.mkdir(parents=True, exist_ok=True)
         if fname is None:
             fname = basename(url)
         fpath = join(dpath, fname)
