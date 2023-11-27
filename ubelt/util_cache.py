@@ -288,12 +288,12 @@ class Cacher(object):
         cfgstr = self.cfgstr if cfgstr is None else cfgstr
 
         if cfgstr is None and self.depends is not None:
-            from ubelt import util_hash
             # lazy hashing of depends data into cfgstr
             if isinstance(self.depends, str):
                 self.cfgstr = self.depends
             else:
-                self.cfgstr = util_hash.hash_data(self.depends)
+                from ubelt.util_hash import hash_data
+                self.cfgstr = hash_data(self.depends)
             cfgstr = self.cfgstr
 
         if cfgstr is None and self.enabled:
@@ -310,9 +310,8 @@ class Cacher(object):
         # underscore, and a 40 char sha1 hash.
         max_len = 49
         if len(cfgstr) > max_len:
-            from ubelt import util_hash
-            condensed = util_hash.hash_data(cfgstr, hasher=self.hasher,
-                                            base='hex')
+            from ubelt.util_hash import hash_data
+            condensed = hash_data(cfgstr, hasher=self.hasher, base='hex')
             condensed = condensed[0:max_len]
         else:
             condensed = cfgstr
@@ -320,8 +319,8 @@ class Cacher(object):
 
     @property
     def fpath(self) -> os.PathLike:
-        import ubelt as ub
-        return ub.Path(self.get_fpath())
+        from ubelt.util_path import Path
+        return Path(self.get_fpath())
 
     def get_fpath(self, cfgstr=None):
         """
@@ -565,8 +564,8 @@ class Cacher(object):
             >>> cacher2.save('data')
             >>> assert not exists(cacher2.get_fpath()), 'should be disabled'
         """
-        from ubelt import util_path
-        from ubelt import util_time
+        from ubelt.util_path import ensuredir
+        from ubelt.util_time import timestamp
         if not self.enabled:
             return
         if self.verbose > 0:
@@ -576,7 +575,7 @@ class Cacher(object):
         condensed = self._condense_cfgstr(cfgstr)
 
         # Make sure the cache directory exists
-        util_path.ensuredir(self.dpath)
+        ensuredir(self.dpath)
 
         data_fpath = self.get_fpath(cfgstr=cfgstr)
         meta_fpath = data_fpath + '.meta'
@@ -585,7 +584,7 @@ class Cacher(object):
         # This may be deprecated in the future.
         with open(meta_fpath, 'a') as file_:
             # TODO: maybe append this in json or YML format?
-            file_.write('\n\nsaving {}\n'.format(util_time.timestamp()))
+            file_.write('\n\nsaving {}\n'.format(timestamp()))
             file_.write(self.fname + '\n')
             file_.write(condensed + '\n')
             file_.write(cfgstr_ + '\n')
@@ -847,13 +846,13 @@ class CacheStamp(object):
         Returns:
             List[Path]
         """
-        from ubelt import util_path
+        from ubelt.util_path import Path
         products = self.product if product is None else product
         if products is None:
             return None
         if not isinstance(products, (list, tuple)):
             products = [products]
-        products = list(map(util_path.Path, products))
+        products = list(map(Path, products))
         return products
 
     def _rectify_hash_prefixes(self):
@@ -902,10 +901,10 @@ class CacheStamp(object):
         if self.hasher is None:
             product_file_hash = None
         else:
-            from ubelt import util_hash
+            from ubelt.util_hash import hash_file
             products = self._rectify_products(product)
             product_file_hash = [
-                util_hash.hash_file(p, hasher=self.hasher, base='hex')
+                hash_file(p, hasher=self.hasher, base='hex')
                 for p in products
             ]
         return product_file_hash
@@ -1018,10 +1017,10 @@ class CacheStamp(object):
 
         expires = certificate.get('expires', None)
         if expires is not None:
-            from ubelt import util_time
+            from ubelt.util_time import timeparse
             # Need to add in the local timezone to compare against the cert.
             now = _localnow()
-            expires_abs = util_time.timeparse(expires)
+            expires_abs = timeparse(expires)
             if  now >= expires_abs:
                 # We are expired
                 err = 'expired_cert'
@@ -1127,7 +1126,7 @@ class CacheStamp(object):
             >>> assert self._expires(dt) == dt + self.expires
         """
         # Rectify into a datetime
-        from ubelt import util_time
+        from ubelt.util_time import timeparse
         import datetime as datetime_mod
         import numbers
         if now is None:
@@ -1140,7 +1139,7 @@ class CacheStamp(object):
         elif isinstance(expires, datetime_mod.timedelta):
             expires_abs = now + expires
         elif isinstance(expires, str):
-            expires_abs = util_time.timeparse(expires)
+            expires_abs = timeparse(expires)
         elif isinstance(expires, datetime_mod.datetime):
             expires_abs = expires
         else:
@@ -1168,13 +1167,13 @@ class CacheStamp(object):
             >>> cert = self._new_certificate()
             >>> assert cert['expires'] is not None
         """
-        from ubelt import util_time
+        from ubelt.util_time import timestamp
         products = self._rectify_products(product)
         now = _localnow()
         expires = self._expires(now)
         certificate = {
-            'timestamp': util_time.timestamp(now, precision=4),
-            'expires': None if expires is None else util_time.timestamp(expires, precision=4),
+            'timestamp': timestamp(now, precision=4),
+            'expires': None if expires is None else timestamp(expires, precision=4),
             'product': None if products is None else [os.fspath(p) for p in products],
         }
         if products is not None:

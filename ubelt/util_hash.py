@@ -750,9 +750,9 @@ class HashableExtensions(object):
                 # what raises a TypeError differs between Python 2 and 3
                 ordered_ = sorted(data)
             except TypeError:
-                import ubelt as ub
+                from ubelt.util_dict import argsort
                 data_ = list(data)
-                sortx = ub.argsort(data_, key=str)
+                sortx = argsort(data_, key=str)
                 ordered_ = [data_[k] for k in sortx]
             # See: [util_hash.Note.1]
             hashable = b''.join(_hashable_sequence(
@@ -767,8 +767,8 @@ class HashableExtensions(object):
                 ordered_ = sorted(data.items())
                 # what raises a TypeError differs between Python 2 and 3
             except TypeError:
-                import ubelt as ub
-                sortx = ub.argsort(data, key=str)
+                from ubelt.util_dict import argsort
+                sortx = argsort(data, key=str)
                 ordered_ = [(k, data[k]) for k in sortx]
             # See: [util_hash.Note.1]
             hashable = b''.join(_hashable_sequence(
