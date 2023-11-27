@@ -203,8 +203,8 @@ def ensure_unicode(text):
         >>> assert ensure_unicode('ï»¿text1'.encode('utf8')) == 'ï»¿text1'
         >>> assert (codecs.BOM_UTF8 + 'text»¿'.encode('utf8')).decode('utf8')
     """
-    import ubelt as ub
-    ub.schedule_deprecation(
+    from ubelt.util_deprecate import schedule_deprecation
+    schedule_deprecation(
         modname='ubelt', name='ensure_unicode', type='function',
         migration='This should not be needed in Python 3',
         deprecate='1.2.0', error='2.0.0', remove='2.1.0')

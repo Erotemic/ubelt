@@ -85,8 +85,8 @@ def writeto(fpath, to_write, aslines=False, verbose=None):
     if verbose:
         print('Writing to text file: %r ' % (fpath,))
 
-    import ubelt as ub
-    ub.schedule_deprecation(
+    from ubelt import schedule_deprecation
+    schedule_deprecation(
         modname='ubelt', name='writeto', type='function',
         migration='use ubelt.Path(...).write_text() instead',
         deprecate='1.2.0', error='2.0.0', remove='2.1.0')
@@ -128,8 +128,8 @@ def readfrom(fpath, aslines=False, errors='replace', verbose=None):
         print('Reading text file: %r ' % (fpath,))
     if not exists(fpath):
         raise IOError('File %r does not exist' % (fpath,))
-    import ubelt as ub
-    ub.schedule_deprecation(
+    from ubelt import schedule_deprecation
+    schedule_deprecation(
         modname='ubelt', name='readfrom', type='function',
         migration='use ubelt.Path(...).read_text() instead',
         deprecate='1.2.0', error='2.0.0', remove='2.1.0')

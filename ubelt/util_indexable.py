@@ -537,8 +537,8 @@ def indexable_allclose(items1, items2, rel_tol=1e-9, abs_tol=0.0, return_info=Fa
         >>> print('return_info = {}'.format(ub.repr2(return_info, nl=1)))
         >>> print('flag = {!r}'.format(flag))
     """
-    import ubelt as ub
-    ub.schedule_deprecation(
+    from ubelt.util_deprecate import schedule_deprecation
+    schedule_deprecation(
         'ubelt', 'indexable_allclose', 'function',
         migration=(
             'Use `ub.IndexableWalker(items1).allclose(items2)` instead'

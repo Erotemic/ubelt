@@ -44,8 +44,8 @@ def repr2(data, **kwargs):
             'simple_list': [1, 2, 'red', 'blue'],
         }
     """
-    import ubelt as ub
-    ub.schedule_deprecation(
+    from ubelt.util_deprecate import schedule_deprecation
+    schedule_deprecation(
         modname='ubelt', name='repr2', type='function',
         migration='use urepr instead',
         deprecate='1.2.5', error='2.0.0', remove='2.1.0',

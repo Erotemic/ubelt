@@ -321,8 +321,8 @@ class zopen(NiceRepr):
         self._handle = None
         if self._temp_dpath and exists(self._temp_dpath):
             # os.unlink(self._temp_dpath)
-            import ubelt as ub
-            ub.delete(self._temp_dpath)
+            from ubelt.util_io import delete
+            delete(self._temp_dpath)
 
     def __del__(self):
         self._cleanup()

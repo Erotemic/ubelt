@@ -321,8 +321,8 @@ def ensuredir(dpath, mode=0o1777, verbose=0, recreate=False):
         dpath = join(*dpath)
 
     if recreate:
-        import ubelt as ub
-        ub.schedule_deprecation(
+        from ubelt import schedule_deprecation
+        schedule_deprecation(
             modname='ubelt',
             migration='Use ``ub.Path(dpath).delete().ensuredir()`` instead', name='recreate',
             type='argument of ensuredir', deprecate='1.3.0', error='2.0.0',
@@ -451,8 +451,8 @@ class TempDir:
         >>> assert not exists(dpath)
     """
     def __init__(self):
-        import ubelt as ub
-        ub.schedule_deprecation(
+        from ubelt import schedule_deprecation
+        schedule_deprecation(
             modname='ubelt',
             migration='Use tempfile instead', name='TempDir',
             type='class', deprecate='1.2.0', error='1.4.0',

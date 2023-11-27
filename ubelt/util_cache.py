@@ -119,7 +119,7 @@ import os
 from os.path import join, normpath, basename, exists
 
 
-class Cacher(object):
+class Cacher:
     """
     Saves data to disk and reloads it based on specified dependencies.
 
@@ -241,8 +241,13 @@ class Cacher(object):
         if verbose is None:
             verbose = self.VERBOSE
         if dpath is None:  # pragma: no branch
-            from ubelt import util_path
-            dpath = os.fspath(util_path.Path.appdir(appname, type='cache'))
+            from ubelt.util_platform import platform_cache_dir
+            import pathlib
+            cache_dpath = pathlib.Path(platform_cache_dir())
+            dpath = cache_dpath / (appname or 'ubelt')
+            dpath.mkdir(parents=True, exist_ok=True)
+            # from ubelt.util_path import Path
+            # dpath = os.fspath(Path.appdir(appname, type='cache'))
 
         if backend == 'auto':
             if ext == '.pkl':

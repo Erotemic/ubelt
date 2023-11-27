@@ -549,12 +549,12 @@ class JobPool(object):
             ...     pass
             >>> pool.shutdown()
         """
-        import ubelt as ub
+        from ubelt.progiter import ProgIter
         job_iter = as_completed(self.jobs, timeout=timeout)
         if desc is not None:
             if progkw is None:
                 progkw = {}
-            job_iter = ub.ProgIter(
+            job_iter = ProgIter(
                 job_iter, desc=desc, total=len(self.jobs), **progkw)
             self._prog = job_iter
         for job in job_iter:
