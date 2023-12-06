@@ -127,6 +127,30 @@ from ubelt import util_stream
 from ubelt import util_time
 from ubelt import util_zip
 
+
+# Deprecated parts of the top-level API
+# These functions are mostly moved into internal classes
+__deprecated__ = [
+    'AutoOrderedDict',
+    'dict_diff',
+    'dict_isect',
+    'dict_subset',
+    'invert_dict',
+    'map_keys',
+    'map_vals',
+    'map_values',
+    'sorted_keys',
+    'sorted_vals',
+    'delete',
+    'touch',
+    'augpath',
+    'ensuredir',
+    'expandpath',
+    'shrinkuser',
+    'userhome',
+]
+
+
 from ubelt.util_arg import (argflag, argval,)
 from ubelt.util_cache import (CacheStamp, Cacher,)
 from ubelt.util_colors import (NO_COLOR, color_text, highlight_code,)
