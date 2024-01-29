@@ -1004,9 +1004,9 @@ def _parse_static_node_value(node):
     """
     import ast
     from collections import OrderedDict
-    # TODO: ast.Constant for 3.8
-    if isinstance(node, ast.Num):
-        value = node.n
+    import numbers
+    if (isinstance(node, ast.Constant) and isinstance(node.value, numbers.Number) if IS_PY_GE_308 else isinstance(node, ast.Num)):
+        value = node.value if IS_PY_GE_308 else node.n
     elif (isinstance(node, ast.Constant) and isinstance(node.value, str) if IS_PY_GE_308 else isinstance(node, ast.Str)):
         value = node.value if IS_PY_GE_308 else node.s
     elif isinstance(node, ast.List):

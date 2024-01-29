@@ -8,6 +8,7 @@ This project (loosely) adheres to [Semantic Versioning](https://semver.org/spec/
 
 ### Fixed
 * `ub.modname_to_modpath` now handles cases where editable packages have modules where the name is different than the package.
+* Fixed deprecated usage of `ast.Num`
 
 
 ## Version 1.3.4 - 2023-10-27
