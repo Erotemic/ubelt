@@ -536,7 +536,7 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
         Returns:
             bool | None
         """
-        if ex_traceback is not None:
+        if ex_traceback is not None:  # nocover
             return False
         else:
             self.end()

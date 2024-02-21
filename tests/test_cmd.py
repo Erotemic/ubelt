@@ -55,12 +55,26 @@ def test_cmd_stderr():
     assert result['err'].strip() == 'hello stderr'
 
 
-def test_cmd_with_pathlib():
+def test_cmd_with_list_of_pathlib():
+    """
+    ub.cmd can accept a pathlib.Path in a list of its arguments.
+    """
     if not ub.POSIX:
         pytest.skip('posix only')
     fpath = ub.Path(ub.__file__)
     result = ub.cmd(['ls', fpath])
     assert str(fpath) in result['out']
+
+
+def test_cmd_with_single_pathlib():
+    """
+    ub.cmd can accept a pathlib.Path as its single argument
+    """
+    if not ub.POSIX:
+        pytest.skip('posix only')
+    ls_exe = ub.Path(ub.find_exe('ls'))
+    result = ub.cmd(ls_exe)
+    result.check_returncode()
 
 
 def test_cmd_tee_auto():

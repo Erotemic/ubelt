@@ -34,9 +34,9 @@ from os.path import (
 )
 import os
 import sys
-from ubelt import util_io
 import pathlib
 import warnings
+from ubelt import util_io
 
 
 __all__ = [
@@ -552,6 +552,9 @@ class Path(_PathBase):
 
         * :py:meth:`ubelt.Path.touch` - returns self to support chaining
 
+        * :py:meth:`ubelt.Path.chmod` - returns self to support chaining and
+            now accepts string-based permission codes.
+
     Example:
         >>> # Ubelt extends pathlib functionality
         >>> import ubelt as ub
@@ -619,7 +622,6 @@ class Path(_PathBase):
 
         * :py:meth:`pathlib.Path.mkdir` - we recommend :py:meth:`ubelt.Path.ensuredir` instead.
 
-        * :py:meth:`pathlib.Path.chmod`
         * :py:meth:`pathlib.Path.lchmod`
 
         * :py:meth:`pathlib.Path.unlink`
@@ -1085,6 +1087,81 @@ class Path(_PathBase):
         new = self.__class__(shrunk)
         return new
 
+    def chmod(self, mode, follow_symlinks=True):
+        """
+        Change the permissions of the path, like os.chmod().
+
+        Args:
+            mode (int | str): either a stat code to pass directly to
+                :func:`os.chmod` or a string-based code to construct modified
+                permissions. See note for details on the string-based chmod
+                codes.
+
+            follow_symlinks (bool):
+                if True, and this path is a symlink, modify permission of the
+                file it points to, otherwise if False, modify the link
+                permission.
+
+        Note:
+            From the chmod man page:
+
+            The format of a symbolic mode is [ugoa...][[-+=][perms...]...], where
+            perms is either zero or more letters from the set rwxXst, or a single
+            letter from the set  ugo.   Multiple symbolic modes can be given,
+            separated by commas.
+
+        Returns:
+            Path: returns self for chaining
+
+        Example:
+            >>> import ubelt as ub
+            >>> from ubelt.util_path import _encode_chmod_int
+            >>> dpath = ub.Path.appdir('ubelt/tests/chmod').ensuredir()
+            >>> fpath = (dpath / 'file.txt').touch()
+            >>> fpath.chmod('ugo+rwx')
+            >>> print(_encode_chmod_int(fpath.stat().st_mode))
+            u=rwx,g=rwx,o=rwx
+            >>> fpath.chmod('o-rwx')
+            >>> print(_encode_chmod_int(fpath.stat().st_mode))
+            u=rwx,g=rwx
+            >>> fpath.chmod(0o766)
+            >>> print(_encode_chmod_int(fpath.stat().st_mode))
+            u=rwx,g=rw,o=rw
+        """
+        if isinstance(mode, str):
+            # Resolve mode
+            old_mode = self.stat(follow_symlinks=follow_symlinks).st_mode
+            mode = _resolve_chmod_code(old_mode, mode)
+        os.chmod(self, mode, follow_symlinks=follow_symlinks)
+        return self
+
+    # Should not need to modify unless we want chanability here.
+    # def lchmod(self, mode):
+    #     """
+    #     Like chmod(), except if the path points to a symlink, the symlink's
+    #     permissions are changed, rather than its target's.
+    #
+    #     Args:
+    #         mode (int | str): either a stat code to pass directly to
+    #             :func:`os.chmod` or a string-based code to construct modified
+    #             permissions.
+    #
+    #     Returns:
+    #         Path: returns self for chaining
+    #
+    #     Example:
+    #         >>> import ubelt as ub
+    #         >>> from ubelt.util_path import _encode_chmod_int
+    #         >>> dpath = ub.Path.appdir('ubelt/tests/chmod').ensuredir()
+    #         >>> fpath = (dpath / 'file1.txt').delete().touch()
+    #         >>> lpath = (dpath / 'link1.txt').delete()
+    #         >>> lpath.symlink_to(fpath)
+    #         >>> print(_encode_chmod_int(fpath.stat().st_mode))
+    #         >>> lpath.lchmod('a+rwx')
+    #         >>> print(_encode_chmod_int(fpath.stat().st_mode))
+    #     """
+    #     return self.chmod(mode, follow_symlinks=False)
+
     def touch(self, mode=0o666, exist_ok=True):
         """
         Create this file with the given access mode, if it doesn't exist.
@@ -1516,6 +1593,174 @@ class Path(_PathBase):
             follow_dir_symlinks=follow_dir_symlinks, meta=meta)
         real_dst = shutil.move(self, dst, copy_function=copy_function)
         return Path(real_dst)
+
+
+def _parse_chmod_code(code):
+    """
+    Expand a chmod code into a list of actions.
+
+    Args:
+        code (str): of the form: [ugoa…][-+=]perms…[,…]
+            perms is either zero or more letters from the set rwxXst, or a
+            single letter from the set ugo.
+
+    Yields:
+        Tuple[str, str, str]: target, op, and perms.
+
+            The target is modified by the operation using the value.
+            target -- specified 'u' for user, 'g' for group, 'o' for other.
+            op -- specified as '+' to add, '-' to remove, or '=' to assign.
+            val -- specified as 'r' for read, 'w' for write, or 'x' for execute.
+
+    Example:
+        >>> from ubelt.util_path import _parse_chmod_code
+        >>> print(list(_parse_chmod_code('ugo+rw,+r,g=rwx')))
+        >>> print(list(_parse_chmod_code('o+x')))
+        >>> print(list(_parse_chmod_code('u-x')))
+        >>> print(list(_parse_chmod_code('x')))
+        >>> print(list(_parse_chmod_code('ugo+rwx')))
+        [('ugo', '+', 'rw'), ('ugo', '+', 'r'), ('g', '=', 'rwx')]
+        [('o', '+', 'x')]
+        [('u', '-', 'x')]
+        [('u', '+', 'x')]
+        [('ugo', '+', 'rwx')]
+        >>> import pytest
+        >>> with pytest.raises(ValueError):
+        >>>     list(_parse_chmod_code('a+b+c'))
+    """
+    import re
+    pat = re.compile(r'([\+\-\=])')
+    parts = code.split(',')
+    for part in parts:
+        ab = pat.split(part)
+        len_ab = len(ab)
+        if len_ab == 3:
+            targets, op, perms = ab
+        elif len_ab == 1:
+            perms = ab[0]
+            op = '+'
+            targets = 'u'
+        # elif len_ab == 2:
+        #     raise AssertionError('cant get here')
+        #     # op, perms = ab
+        #     # assert set('+-=') & set(op)
+        #     # targets = 'a'
+        else:
+            raise ValueError('unknown chmod code pattern: part={part}')
+        if targets == '' or targets == 'a':
+            targets = 'ugo'
+        yield (targets, op, perms)
+
+
+def _resolve_chmod_code(old_mode, code):
+    """
+    Modifies integer stat permissions based on a string code.
+
+    Args:
+        old_mode (int): old mode from st_stat
+        code (str): chmod style codeold mode from st_stat
+
+    Returns:
+        int : new code
+
+    Example:
+        >>> from ubelt.util_path import _resolve_chmod_code
+        >>> print(oct(_resolve_chmod_code(0, '+rwx')))
+        >>> print(oct(_resolve_chmod_code(0, 'ugo+rwx')))
+        >>> print(oct(_resolve_chmod_code(0, 'a-rwx')))
+        >>> print(oct(_resolve_chmod_code(0, 'u+rw,go+r,go-wx')))
+        >>> print(oct(_resolve_chmod_code(0o777, 'u+rw,go+r,go-wx')))
+        0o777
+        0o777
+        0o0
+        0o644
+        0o744
+        >>> import pytest
+        >>> with pytest.raises(NotImplementedError):
+        >>>     print(oct(_resolve_chmod_code(0, 'u=rw')))
+        >>> with pytest.raises(ValueError):
+        >>>     _resolve_chmod_code(0, 'u?w')
+    """
+    import stat
+    import itertools as it
+    action_lut = {
+        # TODO: handle suid, sgid, and sticky?
+        # suid = stat.S_ISUID
+        # sgid = stat.S_ISGID
+        # sticky = stat.S_ISVTX
+        'ur' : stat.S_IRUSR,
+        'uw' : stat.S_IWUSR,
+        'ux' : stat.S_IXUSR,
+
+        'gr' : stat.S_IRGRP,
+        'gw' : stat.S_IWGRP,
+        'gx' : stat.S_IXGRP,
+
+        'or' : stat.S_IROTH,
+        'ow' : stat.S_IWOTH,
+        'ox' : stat.S_IXOTH,
+    }
+    actions = _parse_chmod_code(code)
+    new_mode = int(old_mode)  # (could optimize to modify inplace if needed)
+    for action in actions:
+        targets, op, perms = action
+        try:
+            action_keys = (target + perm for target, perm in it.product(targets, perms))
+            action_values = (action_lut[key] for key in action_keys)
+            action_values = list(action_values)
+            if op == '+':
+                for val in action_values:
+                    new_mode |= val
+            elif op == '-':
+                for val in action_values:
+                    new_mode &= (~val)
+            elif op == '=':
+                raise NotImplementedError(f'new chmod code for op={op}')
+            else:
+                raise AssertionError(
+                    f'should not be able to get here. unknown op code: op={op}')
+        except KeyError:
+            # Give a better error message if something goes wrong
+            raise ValueError(f'Unknown action: {action}')
+    return new_mode
+
+
+def _encode_chmod_int(int_code):
+    """
+    Convert a chmod integer code to a string
+
+    Currently unused, but may be useful in the future.
+
+    Example:
+        >>> from ubelt.util_path import _encode_chmod_int
+        >>> int_code = 0o744
+        >>> print(_encode_chmod_int(int_code))
+        u=rwx,g=r,o=r
+    """
+    import stat
+    action_lut = {
+        'ur' : stat.S_IRUSR,
+        'uw' : stat.S_IWUSR,
+        'ux' : stat.S_IXUSR,
+
+        'gr' : stat.S_IRGRP,
+        'gw' : stat.S_IWGRP,
+        'gx' : stat.S_IXGRP,
+
+        'or' : stat.S_IROTH,
+        'ow' : stat.S_IWOTH,
+        'ox' : stat.S_IXOTH,
+    }
+    from collections import defaultdict
+    target_to_perms = defaultdict(list)
+    for key, val in action_lut.items():
+        target, perm = key
+        if int_code & val:
+            target_to_perms[target].append(perm)
+    parts = [k + '=' + ''.join(vs) for k, vs in target_to_perms.items()]
+    code = ','.join(parts)
+    return code
+
 
 if sys.version_info[0:2] < (3, 8):  # nocover
 

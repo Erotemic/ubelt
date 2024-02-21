@@ -6,6 +6,16 @@ This project (loosely) adheres to [Semantic Versioning](https://semver.org/spec/
 
 ## Version 1.3.5 - 
 
+### Added:
+* New wrapper around `pathlib.Path.chmod` in `ubelt.Path.chmod`. Can now
+  specify string codes like "u+x" or "+rw". Old stat logic works as it
+  previously did.
+
+
+### Changed:
+* Allow the argument to `ubelt.cmd` to be a `PathLike` object, which we will
+  expect to be an executable.
+
 ### Fixed
 * `ub.modname_to_modpath` now handles cases where editable packages have modules where the name is different than the package.
 * Fixed deprecated usage of `ast.Num`

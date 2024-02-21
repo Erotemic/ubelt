@@ -333,6 +333,9 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
     if isinstance(command, str):
         command_text = command
         command_tup = None
+    elif isinstance(command, os.PathLike):
+        command_text = os.fspath(command)
+        command_tup = None
     else:
         import shlex
         command_parts = []
