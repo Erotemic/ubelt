@@ -1130,7 +1130,10 @@ class Path(_PathBase):
         """
         if isinstance(mode, str):
             # Resolve mode
-            old_mode = self.stat(follow_symlinks=follow_symlinks).st_mode
+            # Follow symlinks was added to pathlib.Path.stat in 3.10
+            # but os.stat has had it since 3.3, so use that instead.
+            old_mode = os.stat(self, follow_symlinks=follow_symlinks).st_mode
+            # old_mode = self.stat(follow_symlinks=follow_symlinks).st_mode
             mode = _resolve_chmod_code(old_mode, mode)
         os.chmod(self, mode, follow_symlinks=follow_symlinks)
         return self
@@ -1640,11 +1643,6 @@ def _parse_chmod_code(code):
             perms = ab[0]
             op = '+'
             targets = 'u'
-        # elif len_ab == 2:
-        #     raise AssertionError('cant get here')
-        #     # op, perms = ab
-        #     # assert set('+-=') & set(op)
-        #     # targets = 'a'
         else:
             raise ValueError('unknown chmod code pattern: part={part}')
         if targets == '' or targets == 'a':
