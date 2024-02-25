@@ -1118,15 +1118,15 @@ class Path(_PathBase):
             >>> from ubelt.util_path import _encode_chmod_int
             >>> dpath = ub.Path.appdir('ubelt/tests/chmod').ensuredir()
             >>> fpath = (dpath / 'file.txt').touch()
-            >>> fpath.chmod('ugo+rwx')
+            >>> fpath.chmod('ugo+rw,ugo-x')
             >>> print(_encode_chmod_int(fpath.stat().st_mode))
-            u=rwx,g=rwx,o=rwx
+            u=rw,g=rw,o=rw
             >>> fpath.chmod('o-rwx')
             >>> print(_encode_chmod_int(fpath.stat().st_mode))
-            u=rwx,g=rwx
-            >>> fpath.chmod(0o766)
+            u=rw,g=rw
+            >>> fpath.chmod(0o646)
             >>> print(_encode_chmod_int(fpath.stat().st_mode))
-            u=rwx,g=rw,o=rw
+            u=rw,g=r,o=rw
         """
         if isinstance(mode, str):
             # Resolve mode
