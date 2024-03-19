@@ -1407,28 +1407,6 @@ class Path(_PathBase):
         the one case where a file is copied into an existing directory. In this
         case the name is used to construct a fully qualified destination.
 
-        Ignore:
-            # Enumerate cases
-            rows = [
-                {'src': 'no-exist', 'dst': 'no-exist', 'result': 'error'},
-                {'src': 'no-exist', 'dst': 'file',     'result': 'error'},
-                {'src': 'no-exist', 'dst': 'dir',      'result': 'error'},
-
-                {'src': 'file', 'dst': 'no-exist', 'result': 'dst'},
-                {'src': 'file', 'dst': 'dir',      'result': 'dst / src.name'},
-                {'src': 'file', 'dst': 'file',     'result': 'error-or-overwrite-dst'},
-
-                {'src': 'dir', 'dst': 'no-exist', 'result': 'dst'},
-                {'src': 'dir', 'dst': 'dir',      'result': 'error-or-overwrite-dst'},
-                {'src': 'dir', 'dst': 'file',     'result': 'error'},
-            ]
-            import pandas as pd
-            df = pd.DataFrame(rows)
-            piv = df.pivot(['src'], ['dst'], 'result')
-            print(piv.to_markdown(tablefmt="grid", index=True))
-
-            See: ~/code/ubelt/tests/test_path.py for test cases
-
         Args:
             dst (str | PathLike):
                 if ``src`` is a file and ``dst`` does not exist, copies this to ``dst``
@@ -1500,6 +1478,28 @@ class Path(_PathBase):
             >>> paths['empty_dpath'].copy((clone1 / 'empty_dpath_alt').ensuredir(), overwrite=True)
             >>> paths['nested_dpath'].copy(clone0 / 'nested_dpath')
             >>> paths['nested_dpath'].copy((clone1 / 'nested_dpath_alt').ensuredir(), overwrite=True)
+
+        Ignore:
+            # Enumerate cases
+            rows = [
+                {'src': 'no-exist', 'dst': 'no-exist', 'result': 'error'},
+                {'src': 'no-exist', 'dst': 'file',     'result': 'error'},
+                {'src': 'no-exist', 'dst': 'dir',      'result': 'error'},
+
+                {'src': 'file', 'dst': 'no-exist', 'result': 'dst'},
+                {'src': 'file', 'dst': 'dir',      'result': 'dst / src.name'},
+                {'src': 'file', 'dst': 'file',     'result': 'error-or-overwrite-dst'},
+
+                {'src': 'dir', 'dst': 'no-exist', 'result': 'dst'},
+                {'src': 'dir', 'dst': 'dir',      'result': 'error-or-overwrite-dst'},
+                {'src': 'dir', 'dst': 'file',     'result': 'error'},
+            ]
+            import pandas as pd
+            df = pd.DataFrame(rows)
+            piv = df.pivot(['src'], ['dst'], 'result')
+            print(piv.to_markdown(tablefmt="grid", index=True))
+
+            See: ~/code/ubelt/tests/test_path.py for test cases
         """
         import shutil
         copy_function = self._request_copy_function(

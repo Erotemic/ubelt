@@ -5,7 +5,7 @@ easily mark features in their libraries as deprecated.
 """
 
 
-def schedule_deprecation(modname, name='?', type='?', migration='',
+def schedule_deprecation(modname=None, name='?', type='?', migration='',
                          deprecate=None, error=None, remove=None,
                          # TODO: let the user have more control over the
                          # message.
@@ -23,10 +23,11 @@ def schedule_deprecation(modname, name='?', type='?', migration='',
     users and developers.
 
     Args:
-        modname (str):
+        modname (str | None):
             The name of the underlying module associated with the feature to be
             deprecated. The module must already be imported and have a passable
-            ``__version__`` attribute.
+            ``__version__`` attribute. If unspecified, version info cannot be
+            used.
 
         name (str):
             The name of the feature to deprecate. This is usually a function or
