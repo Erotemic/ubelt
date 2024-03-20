@@ -1110,10 +1110,15 @@ class Path(_PathBase):
             letter from the set  ugo.   Multiple symbolic modes can be given,
             separated by commas.
 
+        Note:
+            Like :func:`os.chmod`, this may not work on Windows or on certain
+            filesystems.
+
         Returns:
             Path: returns self for chaining
 
         Example:
+            >>> # xdoctest: +REQUIRES(POSIX)
             >>> import ubelt as ub
             >>> from ubelt.util_path import _encode_chmod_int
             >>> dpath = ub.Path.appdir('ubelt/tests/chmod').ensuredir()

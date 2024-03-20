@@ -9,6 +9,7 @@ if __name__ == '__main__':
         '--cov-config', 'pyproject.toml',
         '--cov-report', 'html',
         '--cov-report', 'term',
+        '--durations', '100',
         '--xdoctest',
         '--cov=' + package_name,
         mod_dpath, test_dpath
