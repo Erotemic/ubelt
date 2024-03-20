@@ -4,7 +4,24 @@ We are currently working on porting this changelog to the specifications in
 [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 This project (loosely) adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Version 1.3.4 - 
+## Version 1.3.5 - 
+
+### Added:
+* New wrapper around `pathlib.Path.chmod` in `ubelt.Path.chmod`. Can now
+  specify string codes like "u+x" or "+rw". Old stat logic works as it
+  previously did.
+
+
+### Changed:
+* Allow the argument to `ubelt.cmd` to be a `PathLike` object, which we will
+  expect to be an executable.
+
+### Fixed
+* `ub.modname_to_modpath` now handles cases where editable packages have modules where the name is different than the package.
+* Fixed deprecated usage of `ast.Num`
+
+
+## Version 1.3.4 - 2023-10-27
 
 ### Added
 * Add backend option to `highlight_code` which can be "pygments" or "rich". 

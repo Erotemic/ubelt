@@ -400,7 +400,7 @@ class ProjectStructure():
         site_dpath = ub.Path(distutils.sysconfig.get_python_lib())
         egg_link_fpaths = list(site_dpath.glob(self.mod_name.replace('_', '*') + '*.egg-link'))
         editable_fpaths = list(site_dpath.glob('__editable__*' + self.mod_name.replace('_', '*') + '*'))
-        easy_install_fpath = site_dpath / 'easy-install.pth'
+        easy_install_fpath = site_dpath / 'easy-install.pth'  # NOQA
         print(f'egg_link_fpaths={egg_link_fpaths}')
         print(f'editable_fpaths={editable_fpaths}')
 

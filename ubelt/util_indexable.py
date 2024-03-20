@@ -42,6 +42,9 @@ class IndexableWalker(Generator):
             the types that should be considered list-like for the purposes
             of nested iteration. Defaults to ``(list, tuple)``.
 
+        indexable_cls (Tuple[type]):
+            combined dict_cls and list_cls
+
     Example:
         >>> import ubelt as ub
         >>> # Given Nested Data
@@ -193,10 +196,28 @@ class IndexableWalker(Generator):
         # Note: this will error if called before __next__
         self._walk_gen.send(arg)
 
-    def throw(self, type=None, value=None, traceback=None):
+    def throw(self, typ, val=None, tb=None):  # type: ignore
         """
         throw(typ[,val[,tb]]) -> raise exception in generator,
         return next yielded value or raise StopIteration.
+
+        Args:
+            typ (Any):
+                Type of the exception.
+                Should be a ``type[BaseException]``, type checking is not working right here.
+
+            val (Optional[object]):
+
+            tb (Optional[TracebackType]):
+
+        Returns:
+            Any
+
+        Raises:
+            StopIteration
+
+        References:
+            .. [GeneratorThrow] https://docs.python.org/3/reference/expressions.html#generator.throw
         """
         raise StopIteration
 
@@ -516,8 +537,8 @@ def indexable_allclose(items1, items2, rel_tol=1e-9, abs_tol=0.0, return_info=Fa
         >>> print('return_info = {}'.format(ub.repr2(return_info, nl=1)))
         >>> print('flag = {!r}'.format(flag))
     """
-    import ubelt as ub
-    ub.schedule_deprecation(
+    from ubelt.util_deprecate import schedule_deprecation
+    schedule_deprecation(
         'ubelt', 'indexable_allclose', 'function',
         migration=(
             'Use `ub.IndexableWalker(items1).allclose(items2)` instead'

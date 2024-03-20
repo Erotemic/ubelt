@@ -15,8 +15,8 @@ KT = TypeVar("KT")
 
 
 class chunks:
+    remainder: int
     legacy: bool
-    remainder: Incomplete
     items: Iterable
     total: int | None
     nchunks: int | None

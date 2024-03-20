@@ -5,21 +5,6 @@ ProgIter lets you measure and print the progress of an iterative process. This
 can be done either via an iterable interface or using the manual API. Using the
 iterable interface is most common.
 
-ProgIter was originally developed independently of tqdm, but the newer versions
-of this library have been designed to be compatible with tqdm-API.
-:class:`ProgIter` is now a (mostly) drop-in alternative to :func:`tqdm.tqdm`. The
-:mod:`tqdm` library may be more appropriate in some cases. *The main advantage of
-:class:`ProgIter` is that it does not use any python threading*, and therefore can
-be safer with code that makes heavy use of multiprocessing.
-`The reason <https://pybay.com/site_media/slides/raymond2017-keynote/combo.html>`_
-for this is that threading before forking may cause locks to be duplicated
-across processes, which may lead to deadlocks.
-
-ProgIter is simpler than tqdm, which may be desirable for some applications.
-However, this also means ProgIter is not as extensible as tqdm.
-If you want a pretty bar or need something fancy, use tqdm;
-if you want useful information  about your iteration by default, use progiter.
-
 The basic usage of ProgIter is simple and intuitive. Just wrap a python
 iterable.  The following example wraps a ``range`` iterable and prints reported
 progress to stdout as the iterable is consumed.
@@ -98,7 +83,7 @@ __all__ = [
     'ProgIter',
 ]
 
-default_timer = time.perf_counter
+default_timer = time.perf_counter  # type: Callable
 
 # A measurment takes place at a given iteration and posixtime.
 Measurement = collections.namedtuple('Measurement', ['idx', 'time'])
@@ -113,6 +98,12 @@ def _infer_length(iterable):
     Try and infer the length using the PEP 424 length hint if available.
 
     adapted from click implementation
+
+    Args:
+        iterable (Iterable):
+
+    Returns:
+        int | None
     """
     try:
         return len(iterable)
@@ -139,19 +130,37 @@ class _TQDMCompat(object):
 
     @classmethod
     def write(cls, s, file=None, end='\n', nolock=False):
-        """ simply writes to stdout """
+        """
+        simply writes to stdout
+
+        Args:
+            s (str): string
+            file (None | SupportsWrite):
+            end (str): end of line
+            nolock (bool):
+        """
         fp = file if file is not None else sys.stdout
         fp.write(s)
         fp.write(end)
 
     def set_description(self, desc=None, refresh=True):
-        """ tqdm api compatibility. Changes the description of progress """
+        """
+        tqdm api compatibility. Changes the description of progress
+
+        Args:
+            desc (str | None): description
+        """
         self.desc = desc
         if refresh:
             self.refresh()
 
     def set_description_str(self, desc=None, refresh=True):
-        """ tqdm api compatibility. Changes the description of progress """
+        """
+        tqdm api compatibility. Changes the description of progress
+
+        Args:
+            desc (str | None): description string
+        """
         self.set_description(desc, refresh)
 
     def update(self, n=1):
@@ -185,6 +194,10 @@ class _TQDMCompat(object):
 
     @property
     def pos(self):
+        """
+        Returns:
+            int
+        """
         return 0
 
     @classmethod
@@ -197,8 +210,15 @@ class _TQDMCompat(object):
         """ tqdm api compatibility. does nothing """
         pass
 
-    def set_postfix(self, ordered_dict=None, refresh=True, **kwargs):
-        """ tqdm api compatibility. calls set_extra """
+    def set_postfix_dict(self, ordered_dict=None, refresh=True, **kwargs):
+        """
+        tqdm api compatibility. calls set_extra
+
+        Args:
+            ordered_dict (None | dict):
+            refresh (bool):
+            **kwargs:
+        """
         # Sort in alphabetical order to be more deterministic
         postfix = collections.OrderedDict(
             [] if ordered_dict is None else ordered_dict)
@@ -218,6 +238,12 @@ class _TQDMCompat(object):
         postfix = ', '.join(key + '=' + postfix[key].strip()
                                  for key in postfix.keys())
         self.set_postfix_str(postfix, refresh=refresh)
+
+    def set_postfix(self, postfix, **kwargs):
+        if isinstance(postfix, str):
+            self.set_postfix_str(postfix, **kwargs)
+        else:
+            self.set_postfix_dict(ordered_dict=postfix, **kwargs)
 
     def set_postfix_str(self, s='', refresh=True):
         """ tqdm api compatibility. calls set_extra """
@@ -265,87 +291,6 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
     ProgIter does not use threading whereas `tqdm` does.
 
     Attributes:
-        iterable (List | Iterable):
-            A list or iterable to loop over
-
-        desc (str):
-            description label to show with progress
-
-        total (int):
-            Maximum length of the process. If not specified, we estimate it
-            from the iterable, if possible.
-
-        freq (int):
-            How many iterations to wait between messages.
-            Defaults to 1.
-
-        eta_window (int):
-            number of previous measurements to use in eta calculation, default=64
-
-        clearline (bool):
-            if True messages are printed on the same line otherwise each new
-            progress message is printed on new line.
-            default=True
-
-        adjust (bool):
-            if True `freq` is adjusted based on time_thresh. This may be
-            overwritten depending on the setting of verbose.
-            default=True
-
-        time_thresh (float):
-            desired amount of time to wait between messages if adjust is True
-            otherwise does nothing, default=2.0
-
-        show_percent (bool):
-            if True show percent progress. Default=True
-
-        show_times (bool):
-            if False do not show rate, eta, or wall time.  default=True
-            Deprecated. Use show_rate / show_eta / show_wall instead.
-
-        show_rate (bool):
-            show / hide rate, default=True
-
-        show_eta (bool):
-            show / hide estimated time of arival (i.e. time to completion),
-            default=True
-
-        show_wall (bool):
-            show / hide wall time, default=False
-
-        initial (int):
-            starting index offset, default=0
-
-        stream (typing.IO):
-            stream where progress information is written to, default=sys.stdout
-
-        timer (callable):
-            the timer object to use. Defaults to :func:`time.perf_counter`.
-
-        enabled (bool): if False nothing happens. default=True
-
-        chunksize (int | None):
-            indicates that each iteration processes a batch of this size.
-            Iteration rate is displayed in terms of single-items.
-
-        rel_adjust_limit (float):
-            Maximum factor update frequency can be adjusted by in a single
-            step. default=4.0
-
-        verbose (int):
-            verbosity mode, which controls clearline, adjust, and enabled. The
-            following maps the value of `verbose` to its effect.
-            0: enabled=False,
-            1: enabled=True with clearline=True and adjust=True,
-            2: enabled=True with clearline=False and adjust=True,
-            3: enabled=True with clearline=False and adjust=False
-
-        homogeneous (bool | str):
-            Indicate if the iterable is likely to take a uniform or homogeneous
-            amount of time per iteration. When True we can enable a speed
-            optimization. When False, the time estimates are more accurate.
-            Default to "auto", which attempts to determine if it is safe to use
-            True. Has no effect if ``adjust`` is False.
 
     Note:
         Either use ProgIter in a with statement or call prog.end() at the end
@@ -362,7 +307,7 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
         tqdm - https://pypi.python.org/pypi/tqdm
 
     References:
-        http://datagenetics.com/blog/february12017/index.html
+        .. [DatagenProgBars] http://datagenetics.com/blog/february12017/index.html
 
     Example:
         >>> # doctest: +SKIP
@@ -381,9 +326,95 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
                  chunksize=None, rel_adjust_limit=4.0, homogeneous='auto',
                  timer=None, **kwargs):
         """
-        Note:
-            See attributes for arg information
-            **kwargs accepts most of the tqdm api
+        See attributes more arg information
+
+        Args:
+            iterable (List | Iterable):
+                A list or iterable to loop over
+
+            desc (str | None):
+                description label to show with progress
+
+            total (int | None):
+                Maximum length of the process. If not specified, we estimate it
+                from the iterable, if possible.
+
+            freq (int):
+                How many iterations to wait between messages.
+                Defaults to 1.
+
+            initial (int):
+                starting index offset, default=0
+
+            eta_window (int):
+                number of previous measurements to use in eta calculation, default=64
+
+            clearline (bool):
+                if True messages are printed on the same line otherwise each new
+                progress message is printed on new line.
+                default=True
+
+            adjust (bool):
+                if True `freq` is adjusted based on time_thresh. This may be
+                overwritten depending on the setting of verbose.
+                default=True
+
+            time_thresh (float):
+                desired amount of time to wait between messages if adjust is True
+                otherwise does nothing, default=2.0
+
+            show_percent (bool):
+                if True show percent progress. Default=True
+
+            show_times (bool):
+                if False do not show rate, eta, or wall time.  default=True
+                Deprecated. Use show_rate / show_eta / show_wall instead.
+
+            show_rate (bool):
+                show / hide rate, default=True
+
+            show_eta (bool):
+                show / hide estimated time of arival (i.e. time to completion),
+                default=True
+
+            show_wall (bool):
+                show / hide wall time, default=False
+
+            stream (typing.IO):
+                stream where progress information is written to, default=sys.stdout
+
+            timer (callable):
+                the timer object to use. Defaults to :func:`time.perf_counter`.
+
+            enabled (bool): if False nothing happens. default=True
+
+            chunksize (int | None):
+                indicates that each iteration processes a batch of this size.
+                Iteration rate is displayed in terms of single-items.
+
+            rel_adjust_limit (float):
+                Maximum factor update frequency can be adjusted by in a single
+                step. default=4.0
+
+            verbose (int):
+                verbosity mode, which controls clearline, adjust, and enabled. The
+                following maps the value of `verbose` to its effect.
+                0: enabled=False,
+                1: enabled=True with clearline=True and adjust=True,
+                2: enabled=True with clearline=False and adjust=True,
+                3: enabled=True with clearline=False and adjust=False
+
+            homogeneous (bool | str):
+                Indicate if the iterable is likely to take a uniform or homogeneous
+                amount of time per iteration. When True we can enable a speed
+                optimization. When False, the time estimates are more accurate.
+                Default to "auto", which attempts to determine if it is safe to use
+                True. Has no effect if ``adjust`` is False.
+
+            show_total (bool):
+                if True show total time.
+
+            **kwargs: accepts most of the tqdm api
         """
         if desc is None:
             desc = ''
@@ -465,11 +496,27 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
         self._reset_internals()
 
     def __call__(self, iterable):
+        """
+        Overwrites the current iterator with iterable and starts iterating on
+        it.
+
+        Warning:
+            Using this function is not recommended.
+
+        Args:
+            iterable (Iterable):
+
+        Returns:
+            Iterable
+        """
         self.iterable = iterable
         return iter(self)
 
     def __enter__(self):
         """
+        Returns:
+            ProgIter
+
         Example:
             >>> # can be used as a context manager in iter mode
             >>> n = 3
@@ -479,13 +526,26 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
         self.begin()
         return self
 
-    def __exit__(self, type_, value, trace):
-        if trace is not None:
+    def __exit__(self, ex_type, ex_value, ex_traceback):
+        """
+        Args:
+            ex_type (Type[BaseException] | None):
+            ex_value (BaseException | None):
+            ex_traceback (TracebackType | None):
+
+        Returns:
+            bool | None
+        """
+        if ex_traceback is not None:  # nocover
             return False
         else:
             self.end()
 
     def __iter__(self):
+        """
+        Returns:
+            Iterable
+        """
         if not self.enabled:
             return iter(self.iterable)
         else:
@@ -692,8 +752,8 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
         Manually step progress update, either directly or by an increment.
 
         Args:
-            inc (int, default=1): number of steps to increment
-            force (bool, default=False): if True forces progress display
+            inc (int): number of steps to increment. Defaults to 1.
+            force (bool): if True forces progress display. Defaults to False.
 
         Example:
             >>> n = 3
@@ -787,6 +847,9 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
         """
         Defines the template for the progress line
 
+        Returns:
+            Tuple[str, str, str]
+
         Example:
             >>> self = ProgIter()
             >>> print(self._build_message_template()[1].strip())
@@ -859,13 +922,19 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
         Exists only for backwards compatibility.
 
         See `format_message_parts` for more recent API.
+
+        Returns:
+            str
         """
         return ''.join(self.format_message_parts())
 
     def format_message_parts(self):
         r"""
-        builds a formatted progres message with the current values.
+        builds a formatted progress message with the current values.
         This contains the special characters needed to clear lines.
+
+        Returns:
+            Tuple[str, str, str]
 
         Example:
             >>> self = ProgIter(clearline=False, show_times=False)
@@ -1003,5 +1072,10 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
             pass
 
     def _write(self, msg):
-        """ write to the internal stream """
+        """
+        write to the internal stream
+
+        Args:
+            msg (str): message to write
+        """
         self.stream.write(msg)

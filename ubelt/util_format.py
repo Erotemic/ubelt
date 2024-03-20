@@ -1,12 +1,17 @@
 """
-This module is deprecated. Use util_repr instead.
+Warning:
+
+    This module is deprecated. Use :mod:`ubelt.util_repr` instead.
 """
 from .util_repr import urepr, ReprExtensions, _REPR_EXTENSIONS
 
 
 def repr2(data, **kwargs):
     """
-    Deprecated for urepr
+    Alias of :func:`ubelt.util_repr.urepr`.
+
+    Warning:
+        Deprecated for urepr
 
     Example:
         >>> # Test that repr2 remains backwards compatible
@@ -39,8 +44,8 @@ def repr2(data, **kwargs):
             'simple_list': [1, 2, 'red', 'blue'],
         }
     """
-    import ubelt as ub
-    ub.schedule_deprecation(
+    from ubelt.util_deprecate import schedule_deprecation
+    schedule_deprecation(
         modname='ubelt', name='repr2', type='function',
         migration='use urepr instead',
         deprecate='1.2.5', error='2.0.0', remove='2.1.0',

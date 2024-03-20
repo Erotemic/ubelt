@@ -369,6 +369,11 @@ def test_tqdm_compatibility():
         prog.set_postfix_str('bar baz', refresh=False)
     assert 'bar baz' not in cap.text.strip()
 
+    with CaptureStdout() as cap:
+        prog = ProgIter(show_times=False)
+        prog.set_postfix('bar baz', refresh=False)
+    assert 'bar baz' not in cap.text.strip()
+
 
 class IntObject:
     def __init__(self):

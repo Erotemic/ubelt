@@ -1,6 +1,6 @@
 """
 Defines the function :func:`urepr`, which allows for a bit more customization
-than :func:`repr` or :func:`pprint`. See the docstring for more details.
+than :func:`repr` or :func:`pprint.pformat`. See the docstring for more details.
 
 
 Two main goals of urepr are to provide nice string representations of nested
@@ -28,9 +28,10 @@ nesting newlines are allowed.
 
 You can also define or overwrite how representations for different types are
 created. You can either create your own extension object, or you can
-monkey-patch `ub.util_repr._REPR_EXTENSIONS` without specifying the
+monkey-patch ``ub.util_repr._REPR_EXTENSIONS`` without specifying the
 extensions keyword argument (although this will be a global change).
 
+>>> import ubelt as ub
 >>> extensions = ub.util_repr.ReprExtensions()
 >>> @extensions.register(float)
 >>> def my_float_formater(data, **kw):
@@ -39,10 +40,11 @@ extensions keyword argument (although this will be a global change).
 {1: monkey(nan), 2: monkey(inf), 3: monkey(3.0)}
 
 As of ubelt 1.1.0 you can now access and update the default extensions via the
-urepr function itself.
+``EXTENSIONS`` attribute of the :func:`urepr` function itself.
 
 >>> # xdoctest: +SKIP
 >>> # We skip this at test time to not modify global state
+>>> import ubelt as ub
 >>> @ub.urepr.EXTENSIONS.register(float)
 >>> def my_float_formater(data, **kw):
 >>>     return "monkey2({})".format(data)

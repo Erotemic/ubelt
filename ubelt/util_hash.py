@@ -1,13 +1,13 @@
 r"""
 Wrappers around hashlib functions to generate hash signatures for common data.
 
-The hashes are deterministic across python versions and operating systems.
-This is verified by CI testing on Windows, Linux, Python with 2.7, 3.4, and
-greater, and on 32 and 64 bit versions.
+The hashes are deterministic across Python versions and operating systems.
+This is verified by CI testing on 32 and 64 bit versions of Windows, Linux, and
+OSX with all supported Python.
 
 Use Case #1: You have data that you want to hash. If we assume the data is in
-standard python scalars or ordered sequences: e.g.  tuple, list, odict, oset,
-int, str, etc..., then the solution is :func:`hash_data`.
+standard python scalars or ordered sequences: e.g.  tuple, list, OrderedDict,
+OrderedSet, int, str, etc..., then the solution is :func:`hash_data`.
 
 Use Case #2: You have a file you want to hash, but your system doesn't have a
 sha1sum executable (or you dont want to use Popen). The solution is
@@ -89,10 +89,17 @@ _ALPHABET_32 = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L',
                 'Y', 'Z', '2', '3', '4', '5', '6', '7']
 
 
-DEFAULT_ALPHABET = _ALPHABET_16
+DEFAULT_ALPHABET = _ALPHABET_16  # type: List[str]
 
 
 def b(s):
+    """
+    Args:
+        s (str):
+
+    Returns:
+        bytes
+    """
     return s.encode("latin-1")
 
 # Sensible choices for default hashers are sha1, sha512, and xxh64.
@@ -111,7 +118,9 @@ def b(s):
 # DEFAULT_HASHER = xxhash.xxh32
 # DEFAULT_HASHER = xxhash.xxh64  # xxh64 is the fastest, but non-standard
 # DEFAULT_HASHER = hashlib.sha1  # fast algo, but has a known collision
-DEFAULT_HASHER = hashlib.sha512  # most robust algo, but slower than others
+# DEFAULT_HASHER = hashlib.sha512  # most robust algo, but slower than others
+
+DEFAULT_HASHER = hashlib.sha512  # type: Callable
 
 
 _COMPATIBLE_HASHABLE_SEQUENCE_TYPES_DEFAULT = True
@@ -129,6 +138,12 @@ def _int_to_bytes(int_):
     r"""
     Converts an integer into its byte representation
     assumes int32 by default, but dynamically handles larger ints
+
+    Args:
+        int_ (int):
+
+    Returns:
+        bytes
 
     Example:
         >>> from ubelt.util_hash import _int_to_bytes, _bytes_to_int
@@ -150,6 +165,12 @@ def _bytes_to_int(bytes_):
     r"""
     Converts a string of bytes into its integer representation (big-endian)
 
+    Args:
+        bytes_ (bytes):
+
+    Returns:
+        int
+
     Example:
         >>> bytes_ = b'\x01'
         >>> assert _int_to_bytes((_bytes_to_int(bytes_))) == bytes_
@@ -163,10 +184,14 @@ class _Hashers(object):
     """
     We offer hashers beyond what is available in hashlib.
     This class is used to lazy load them.
+
+    Attributes:
+        algos (Dict[str, object]):
+        aliases (Dict[str, str]):
     """
     def __init__(self):
-        self.algos = {}    # type: Dict[str, object]  # NOQA
-        self.aliases = {}  # type: Dict[str, str]  # NOQA
+        self.algos = {}    # type: Dict[str, object]
+        self.aliases = {}  # type: Dict[str, str]
         self._lazy_queue = [
             self._register_xxhash,
             self._register_blake3,
@@ -174,6 +199,12 @@ class _Hashers(object):
         ]
 
     def available(self):
+        """
+        The names of available hash algorithms
+
+        Returns:
+            List[str]
+        """
         if self._lazy_queue:  # nocover
             self._evaluate_registration_queue()
         return list(self.algos.keys())
@@ -187,6 +218,13 @@ class _Hashers(object):
         self._lazy_queue.clear()
 
     def __contains__(self, key):
+        """
+        Args:
+            key (str): name of hash algo to check
+
+        Returns:
+            bool: if the algo is available
+        """
         if self._lazy_queue:  # nocover
             self._evaluate_registration_queue()
         return key in self.algos or key in self.aliases
@@ -219,6 +257,14 @@ class _Hashers(object):
                 self.algos[key] = hashlib.new(key)
 
     def lookup(self, hasher):
+        """
+        Args:
+            hasher (NoParamType | str | Any):
+                something coercable to a hasher
+
+        Returns:
+            Callable: a function to construct the requested hahser
+        """
         if hasher is NoParam or hasher == 'default':
             hasher = DEFAULT_HASHER
         elif hasattr(hasher, 'hexdigest'):
@@ -325,9 +371,11 @@ class HashableExtensions(object):
     Note:
         We are introducing experimental functionality where custom instances of
         this class can be created and passed as arguments to hash_data.
+
+    Attributes:
+        iterable_checks (List[Callable]):
     """
     def __init__(self):
-        self.keyed_extensions = {}
         self.iterable_checks = []
         self._lazy_queue = []  # type: List[Callable]  # NOQA
 
@@ -444,6 +492,12 @@ class HashableExtensions(object):
         Returns an appropriate function to hash ``data`` if one has been
         registered.
 
+        Args:
+            data (object): the object the user would like to hash
+
+        Returns:
+            Callable: a function that can hash the object
+
         Raises:
             TypeError : if data has no registered hash methods
 
@@ -512,6 +566,12 @@ class HashableExtensions(object):
     def add_iterable_check(self, func):
         """
         Registers a function that detects when a type is iterable
+
+        Args:
+            func (Callable):
+
+        Returns:
+            Callable
         """
         self.iterable_checks.append(func)
         return func
@@ -690,9 +750,9 @@ class HashableExtensions(object):
                 # what raises a TypeError differs between Python 2 and 3
                 ordered_ = sorted(data)
             except TypeError:
-                import ubelt as ub
+                from ubelt.util_list import argsort
                 data_ = list(data)
-                sortx = ub.argsort(data_, key=str)
+                sortx = argsort(data_, key=str)
                 ordered_ = [data_[k] for k in sortx]
             # See: [util_hash.Note.1]
             hashable = b''.join(_hashable_sequence(
@@ -707,8 +767,8 @@ class HashableExtensions(object):
                 ordered_ = sorted(data.items())
                 # what raises a TypeError differs between Python 2 and 3
             except TypeError:
-                import ubelt as ub
-                sortx = ub.argsort(data, key=str)
+                from ubelt.util_list import argsort
+                sortx = argsort(data, key=str)
                 ordered_ = [(k, data[k]) for k in sortx]
             # See: [util_hash.Note.1]
             hashable = b''.join(_hashable_sequence(
@@ -786,15 +846,28 @@ _HASHABLE_EXTENSIONS._lazy_queue.append(_lazy_init)
 
 
 class _HashTracer(object):
-    """ helper class to extract hashed sequences """
+    """
+    Helper class to extract hashed sequences
+
+    Attributes:
+        sequence (List[bytes]):
+    """
 
     def __init__(self):
-        self.sequence = []
+        self.sequence = []  # type: List[bytes]
 
-    def update(self, bytes):
-        self.sequence.append(bytes)
+    def update(self, item):
+        """
+        Args:
+            item (bytes):
+        """
+        self.sequence.append(item)
 
     def hexdigest(self):
+        """
+        Returns:
+            bytes
+        """
         return b''.join(self.sequence)
 
 
@@ -1157,6 +1230,9 @@ def hash_file(fpath, blocksize=1048576, stride=1, maxbytes=None,
             list of symbols or shorthand key.
             Valid keys are 'abc', 'hex', and 'dec', 10, 16, 26, 32.
             Defaults to 'hex'.
+
+    Returns:
+        str: the hash text
 
     References:
         .. [SO_3431825] http://stackoverflow.com/questions/3431825/md5-checksum-of-a-file

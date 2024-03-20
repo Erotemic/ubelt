@@ -4,7 +4,6 @@ from typing import Type
 from types import TracebackType
 from typing import List
 from typing import Callable
-from _typeshed import Incomplete
 from collections.abc import Generator
 
 
@@ -41,7 +40,7 @@ def ensuredir(dpath: str | PathLike | Tuple[str | PathLike],
 
 class ChDir:
 
-    def __init__(self, dpath) -> None:
+    def __init__(self, dpath: str | PathLike | None) -> None:
         ...
 
     def __enter__(self) -> ChDir:
@@ -54,7 +53,7 @@ class ChDir:
 
 
 class TempDir:
-    dpath: Incomplete
+    dpath: str | None
 
     def __init__(self) -> None:
         ...
@@ -62,16 +61,16 @@ class TempDir:
     def __del__(self) -> None:
         ...
 
-    def ensure(self):
+    def ensure(self) -> str:
         ...
 
     def cleanup(self) -> None:
         ...
 
-    def start(self):
+    def start(self) -> TempDir:
         ...
 
-    def __enter__(self):
+    def __enter__(self) -> TempDir:
         ...
 
     def __exit__(self, ex_type: Type[BaseException] | None,

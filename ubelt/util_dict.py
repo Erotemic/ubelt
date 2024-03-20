@@ -394,7 +394,7 @@ def dict_union(*args):
         dictionary union (or any other dictionary set operator).
 
     References:
-        https://stackoverflow.com/questions/38987/merge-two-dict
+        .. [SO38987] https://stackoverflow.com/questions/38987/merge-two-dict
 
     SeeAlso:
         :func:`collections.ChainMap` - a standard python builtin data structure
@@ -1255,25 +1255,63 @@ class SetDict(dict):
 
     # We could just use the builtin variant for this specific operation
     def __or__(self, other):
-        """ The | union operator """
+        """
+        The ``|`` union operator
+
+        Args:
+            other (SupportsKeysAndGetItem[Any, Any] | Iterable[Tuple[Any, Any]]):
+
+        Returns:
+            SetDict
+        """
         return self.union(other)
 
     def __and__(self, other):
-        """ The & intersection operator """
+        """
+        The ``&`` intersection operator
+
+        Args:
+            other (Mapping | Iterable):
+
+        Returns:
+            SetDict
+        """
         return self.intersection(other)
 
     def __sub__(self, other):
-        """ The - difference operator """
+        """
+        The ``-`` difference operator
+
+        Args:
+            other (Mapping | Iterable):
+
+        Returns:
+            SetDict
+        """
         return self.difference(other)
 
     def __xor__(self, other):
-        """ The ^ symmetric_difference operator """
+        """
+        The ``^`` symmetric_difference operator
+
+        Args:
+            other (Mapping):
+
+        Returns:
+            SetDict
+        """
         return self.symmetric_difference(other)
 
     # - reverse versions
 
     def __ror__(self, other):
         """
+        Args:
+            other (Mapping):
+
+        Returns:
+            dict
+
         Example:
             >>> import ubelt as ub
             >>> self = ub.sdict({1: 1, 2: 2, 3: 3})
@@ -1291,6 +1329,12 @@ class SetDict(dict):
 
     def __rand__(self, other):
         """
+        Args:
+            other (Mapping):
+
+        Returns:
+            dict
+
         Example:
             >>> import ubelt as ub
             >>> self = ub.sdict({1: 1, 2: 2, 3: 3})
@@ -1308,6 +1352,12 @@ class SetDict(dict):
 
     def __rsub__(self, other):
         """
+        Args:
+            other (Mapping):
+
+        Returns:
+            dict
+
         Example:
             >>> import ubelt as ub
             >>> self = ub.sdict({1: 1, 2: 2, 3: 3})
@@ -1325,6 +1375,12 @@ class SetDict(dict):
 
     def __rxor__(self, other):
         """
+        Args:
+            other (Mapping):
+
+        Returns:
+            dict
+
         Example:
             >>> import ubelt as ub
             >>> self = ub.sdict({1: 1, 2: 2, 3: 3})
@@ -1346,6 +1402,12 @@ class SetDict(dict):
         """
         The inplace union operator ``|=``.
 
+        Args:
+            other (SupportsKeysAndGetItem[Any, Any] | Iterable[Tuple[Any, Any]]):
+
+        Returns:
+            SetDict
+
         Example:
             >>> import ubelt as ub
             >>> self = orig_ref = ub.sdict({1: 1, 2: 2, 3: 3})
@@ -1363,6 +1425,9 @@ class SetDict(dict):
     def __iand__(self, other):
         """
         The inplace intersection operator ``&=``.
+
+        Args:
+            other (Mapping | Iterable):
 
         Example:
             >>> import ubelt as ub
@@ -1383,6 +1448,9 @@ class SetDict(dict):
     def __isub__(self, other):
         """
         The inplace difference operator ``-=``.
+
+        Args:
+            other (Mapping | Iterable):
 
         Example:
             >>> import ubelt as ub
@@ -1422,6 +1490,9 @@ class SetDict(dict):
     def __ixor__(self, other):
         """
         The inplace symmetric difference operator ``^=``.
+
+        Args:
+            other (Mapping):
 
         Example:
             >>> import ubelt as ub
@@ -1859,8 +1930,7 @@ class UDict(SetDict):
             >>> inverted = ub.udict({'a': 1, 'b': 2}).invert()
             >>> assert inverted == {1: 'a', 2: 'b'}
         """
-        import ubelt as ub
-        return ub.invert_dict(self, unique_vals=unique_vals, cls=self.__class__)
+        return invert_dict(self, unique_vals=unique_vals, cls=self.__class__)
 
     def map_keys(self, func):
         """
@@ -1880,8 +1950,7 @@ class UDict(SetDict):
             >>> new = ub.udict({'a': [1, 2, 3], 'b': []}).map_keys(ord)
             >>> assert new == {97: [1, 2, 3], 98: []}
         """
-        import ubelt as ub
-        return ub.map_keys(func, self, cls=self.__class__)
+        return map_keys(func, self, cls=self.__class__)
 
     def map_values(self, func):
         """
@@ -1901,8 +1970,7 @@ class UDict(SetDict):
             >>> newdict = ub.udict({'a': [1, 2, 3], 'b': []}).map_values(len)
             >>> assert newdict ==  {'a': 3, 'b': 0}
         """
-        import ubelt as ub
-        return ub.map_values(func, self, cls=self.__class__)
+        return map_values(func, self, cls=self.__class__)
 
     def sorted_keys(self, key=None, reverse=False):
         """
@@ -1928,8 +1996,7 @@ class UDict(SetDict):
             >>> new = ub.udict({'spam': 2.62, 'eggs': 1.20, 'jam': 2.92}).sorted_keys()
             >>> assert new == ub.odict([('eggs', 1.2), ('jam', 2.92), ('spam', 2.62)])
         """
-        import ubelt as ub
-        return ub.sorted_keys(self, key=key, reverse=reverse, cls=self.__class__)
+        return sorted_keys(self, key=key, reverse=reverse, cls=self.__class__)
 
     def sorted_values(self, key=None, reverse=False):
         """
@@ -1955,8 +2022,7 @@ class UDict(SetDict):
             >>> new = ub.udict({'spam': 2.62, 'eggs': 1.20, 'jam': 2.92}).sorted_values()
             >>> assert new == ub.odict([('eggs', 1.2), ('spam', 2.62), ('jam', 2.92)])
         """
-        import ubelt as ub
-        return ub.sorted_values(self, key=key, reverse=reverse, cls=self.__class__)
+        return sorted_values(self, key=key, reverse=reverse, cls=self.__class__)
 
     def peek_key(self, default=NoParam):
         """
@@ -1975,8 +2041,8 @@ class UDict(SetDict):
             >>> import ubelt as ub
             >>> assert ub.udict({1: 2}).peek_key() == 1
         """
-        import ubelt as ub
-        return ub.peek(self.keys(), default=default)
+        from ubelt.util_list import peek
+        return peek(self.keys(), default=default)
 
     def peek_value(self, default=NoParam):
         """
@@ -1994,8 +2060,8 @@ class UDict(SetDict):
             >>> import ubelt as ub
             >>> assert ub.udict({1: 2}).peek_value() == 2
         """
-        import ubelt as ub
-        return ub.peek(self.values(), default=default)
+        from ubelt.util_list import peek
+        return peek(self.values(), default=default)
 
 
 class AutoDict(UDict):
@@ -2017,6 +2083,13 @@ class AutoDict(UDict):
     _base = UDict
 
     def __getitem__(self, key):
+        """
+        Args:
+            key (KT): key to lookup
+
+        Returns:
+            VT | AutoDict: an existing value or a new AutoDict
+        """
         try:
             # value = super(AutoDict, self).__getitem__(key)
             value = self._base.__getitem__(self, key)

@@ -1,44 +1,44 @@
-from typing import Tuple
-from typing import Callable
+from typing import Dict
+from typing import List
 from ubelt.util_const import NoParam
 from ubelt.util_const import NoParamType
-from typing import List
+from typing import Any
+from typing import Callable
+from typing import Tuple
 from os import PathLike
-from _typeshed import Incomplete
-from typing import TypeVar
+from typing import Any, TypeVar
 
 Hasher = TypeVar("Hasher")
 HASH_VERSION: int
-DEFAULT_ALPHABET: Incomplete
+DEFAULT_ALPHABET: List[str]
 
 
-def b(s):
+def b(s: str) -> bytes:
     ...
 
 
-DEFAULT_HASHER: Incomplete
+DEFAULT_HASHER: Callable
 
 
 class _Hashers:
-    algos: Incomplete
-    aliases: Incomplete
+    algos: Dict[str, object]
+    aliases: Dict[str, str]
 
     def __init__(self) -> None:
         ...
 
-    def available(self):
+    def available(self) -> List[str]:
         ...
 
-    def __contains__(self, key):
+    def __contains__(self, key: str) -> bool:
         ...
 
-    def lookup(self, hasher):
+    def lookup(self, hasher: NoParamType | str | Any) -> Callable:
         ...
 
 
 class HashableExtensions:
-    keyed_extensions: Incomplete
-    iterable_checks: Incomplete
+    iterable_checks: List[Callable]
 
     def __init__(self) -> None:
         ...
@@ -46,23 +46,23 @@ class HashableExtensions:
     def register(self, hash_types: type | Tuple[type]) -> Callable:
         ...
 
-    def lookup(self, data):
+    def lookup(self, data: object) -> Callable:
         ...
 
-    def add_iterable_check(self, func):
+    def add_iterable_check(self, func: Callable) -> Callable:
         ...
 
 
 class _HashTracer:
-    sequence: Incomplete
+    sequence: List[bytes]
 
     def __init__(self) -> None:
         ...
 
-    def update(self, bytes) -> None:
+    def update(self, item: bytes) -> None:
         ...
 
-    def hexdigest(self):
+    def hexdigest(self) -> bytes:
         ...
 
 
@@ -80,5 +80,5 @@ def hash_file(fpath: PathLike,
               stride: int = 1,
               maxbytes: int | None = None,
               hasher: str | Hasher | NoParamType = NoParam,
-              base: List[str] | int | str | NoParamType = NoParam):
+              base: List[str] | int | str | NoParamType = NoParam) -> str:
     ...

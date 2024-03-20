@@ -1,3 +1,1 @@
-from _typeshed import Incomplete
-
-__win32_can_symlink__: Incomplete
+__win32_can_symlink__: bool | None

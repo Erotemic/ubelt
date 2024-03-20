@@ -1,7 +1,7 @@
 import datetime
+from typing import Callable
 from typing import Type
 from types import TracebackType
-from _typeshed import Incomplete
 
 
 def timestamp(datetime: datetime.datetime | datetime.date | None = None,
@@ -20,27 +20,27 @@ def timeparse(stamp: str,
 class Timer:
     elapsed: float
     tstart: float
-    label: Incomplete
-    verbose: Incomplete
-    newline: Incomplete
-    write: Incomplete
-    flush: Incomplete
-    ns: Incomplete
+    write: Callable
+    flush: Callable
+    label: str
+    verbose: int | None
+    newline: bool
+    ns: bool
 
     def __init__(self,
-                 label: str = ...,
-                 verbose: Incomplete | None = ...,
-                 newline: bool = ...,
-                 ns: bool = ...) -> None:
+                 label: str = '',
+                 verbose: int | None = None,
+                 newline: bool = True,
+                 ns: bool = False) -> None:
         ...
 
-    def tic(self):
+    def tic(self) -> Timer:
         ...
 
-    def toc(self):
+    def toc(self) -> float | int:
         ...
 
-    def __enter__(self):
+    def __enter__(self) -> Timer:
         ...
 
     def __exit__(self, ex_type: Type[BaseException] | None,

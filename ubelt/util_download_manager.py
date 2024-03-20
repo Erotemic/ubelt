@@ -111,6 +111,18 @@ class DownloadManager:
         """
         Generate completed jobs as they become available
 
+        Args:
+
+            prog (None | bool | type):
+                if True, uses a ub.ProgIter progress bar. Can also be a class
+                with a compatible progiter API.
+
+            desc (str | None):
+                if specified, reports progress with a
+                :class:`ubelt.progiter.ProgIter` object.
+
+            verbose (int): verbosity
+
         Example:
             >>> import pytest
             >>> import ubelt as ub
@@ -140,7 +152,15 @@ class DownloadManager:
         self._pool.executor.shutdown()
 
     def __iter__(self):
+        """
+        Returns:
+            Iterable
+        """
         return self.as_completed()
 
     def __len__(self):
+        """
+        Returns:
+            int
+        """
         return len(self._pool)

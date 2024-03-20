@@ -5,7 +5,6 @@ from typing import Any
 from typing import Sequence
 import datetime
 import os
-from _typeshed import Incomplete
 from collections.abc import Generator
 
 
@@ -76,7 +75,7 @@ class Cacher:
 
 
 class CacheStamp:
-    cacher: Incomplete
+    cacher: Cacher
     product: str | PathLike | Sequence[str | PathLike] | None
     hasher: str
     expires: str | int | datetime.datetime | datetime.timedelta | None

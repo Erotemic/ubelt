@@ -8,7 +8,7 @@ from collections.abc import MutableSet, Sequence
 SLICE_ALL: slice
 
 
-def is_iterable(obj):
+def is_iterable(obj) -> bool:
     ...
 
 
@@ -19,27 +19,27 @@ class OrderedSet(MutableSet, Sequence):
     def __init__(self, iterable: None | Iterable = None) -> None:
         ...
 
-    def __len__(self):
+    def __len__(self) -> int:
         ...
 
-    def __getitem__(self, index):
+    def __getitem__(self, index: int | slice | Any) -> List | OrderedSet | Any:
         ...
 
     def copy(self) -> OrderedSet:
         ...
 
-    def __contains__(self, key) -> bool:
+    def __contains__(self, key: Any) -> bool:
         ...
 
-    def add(self, key):
+    def add(self, key: Any):
         ...
 
     append = add
 
-    def update(self, sequence):
+    def update(self, sequence: Iterable):
         ...
 
-    def index(self, key):
+    def index(self, key: Any, start: int = 0, stop: int | None = None) -> int:
         ...
 
     get_loc = index
@@ -48,7 +48,7 @@ class OrderedSet(MutableSet, Sequence):
     def pop(self) -> Any:
         ...
 
-    def discard(self, key) -> None:
+    def discard(self, key: Any) -> None:
         ...
 
     def clear(self) -> None:
@@ -60,7 +60,7 @@ class OrderedSet(MutableSet, Sequence):
     def __reversed__(self) -> Iterator:
         ...
 
-    def __eq__(self, other) -> bool:
+    def __eq__(self, other: Any) -> bool:
         ...
 
     def union(self, *sets) -> OrderedSet:
@@ -75,22 +75,22 @@ class OrderedSet(MutableSet, Sequence):
     def difference(self, *sets) -> OrderedSet:
         ...
 
-    def issubset(self, other) -> bool:
+    def issubset(self, other: Iterable) -> bool:
         ...
 
-    def issuperset(self, other) -> bool:
+    def issuperset(self, other: Iterable) -> bool:
         ...
 
-    def symmetric_difference(self, other) -> OrderedSet:
+    def symmetric_difference(self, other: Iterable) -> OrderedSet:
         ...
 
     def difference_update(self, *sets) -> None:
         ...
 
-    def intersection_update(self, other) -> None:
+    def intersection_update(self, other: Iterable) -> None:
         ...
 
-    def symmetric_difference_update(self, other) -> None:
+    def symmetric_difference_update(self, other: Iterable) -> None:
         ...
 
 

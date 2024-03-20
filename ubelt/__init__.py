@@ -24,7 +24,7 @@ Testing:
     xdoctest ubelt
 """
 
-__version__ = '1.3.4'
+__version__ = '1.3.5'
 
 # Deprecated functions
 from ubelt.util_platform import (
@@ -126,6 +126,30 @@ from ubelt import util_str
 from ubelt import util_stream
 from ubelt import util_time
 from ubelt import util_zip
+
+
+# Deprecated parts of the top-level API
+# These functions are mostly moved into internal classes
+__deprecated__ = [
+    'AutoOrderedDict',
+    'dict_diff',
+    'dict_isect',
+    'dict_subset',
+    'invert_dict',
+    'map_keys',
+    'map_vals',
+    'map_values',
+    'sorted_keys',
+    'sorted_vals',
+    'delete',
+    'touch',
+    'augpath',
+    'ensuredir',
+    'expandpath',
+    'shrinkuser',
+    'userhome',
+]
+
 
 from ubelt.util_arg import (argflag, argval,)
 from ubelt.util_cache import (CacheStamp, Cacher,)

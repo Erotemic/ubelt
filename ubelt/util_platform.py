@@ -4,7 +4,8 @@ accessing platform dependent file systems.
 
 Standard application directory structure: cache, config, and other XDG
 standards [XDG_Spec]_. This is similar to the more focused :mod:`appdirs`
-module [AS_appdirs]_.  In the future ubelt may directly use :mod:`appdirs`.
+module [AS_appdirs]_ (deprecated as of 2023-02-10) and its successor
+:mod:`platformdirs` [PlatDirs]_.
 
 Note:
     Table mapping the type of directory to the system default environment
@@ -34,6 +35,7 @@ References:
     .. [SO_11113974] https://stackoverflow.com/questions/11113974/cross-plat-path
     .. [harawata_appdirs] https://github.com/harawata/appdirs#supported-directories
     .. [AS_appdirs] https://github.com/ActiveState/appdirs
+    .. [PlatDirs] https://pypi.org/project/platformdirs/
 """
 import os
 import sys
@@ -138,8 +140,8 @@ def get_app_data_dir(appname, *args):
     SeeAlso:
         :func:`ensure_app_data_dir`
     """
-    import ubelt as ub
-    ub.schedule_deprecation(
+    from ubelt.util_deprecate import schedule_deprecation
+    schedule_deprecation(
         modname='ubelt', name='get_app_data_dir and ensure_app_data_dir', type='function',
         migration='use ubelt.Path.appdir(type="data") instead',
         deprecate='1.2.0', error='2.0.0', remove='2.1.0')
@@ -195,8 +197,8 @@ def get_app_config_dir(appname, *args):
     SeeAlso:
         :func:`ensure_app_config_dir`
     """
-    import ubelt as ub
-    ub.schedule_deprecation(
+    from ubelt.util_deprecate import schedule_deprecation
+    schedule_deprecation(
         modname='ubelt', name='get_app_config_dir and ensure_app_config_dir', type='function',
         migration='use ubelt.Path.appdir(type="config") instead',
         deprecate='1.2.0', error='2.0.0', remove='2.1.0')
@@ -255,8 +257,8 @@ def get_app_cache_dir(appname, *args):
     SeeAlso:
         :func:`ensure_app_cache_dir`
     """
-    import ubelt as ub
-    ub.schedule_deprecation(
+    from ubelt.util_deprecate import schedule_deprecation
+    schedule_deprecation(
         modname='ubelt', name='get_app_cache_dir and ensure_app_cache_dir', type='function',
         migration='use ubelt.Path.appdir(type="cache") instead',
         deprecate='1.2.0', error='2.0.0', remove='2.1.0')

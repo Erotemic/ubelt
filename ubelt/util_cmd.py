@@ -120,14 +120,26 @@ class CmdOutput(dict):
 
     @property
     def stdout(self):
+        """
+        Returns:
+            str | bytes
+        """
         return self['out']
 
     @property
     def stderr(self):
+        """
+        Returns:
+            str | bytes
+        """
         return self['err']
 
     @property
     def returncode(self):
+        """
+        Returns:
+            int
+        """
         return self['ret']
 
     def check_returncode(self):
@@ -320,6 +332,9 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
     # Determine if command is specified as text or a tuple
     if isinstance(command, str):
         command_text = command
+        command_tup = None
+    elif isinstance(command, os.PathLike):
+        command_text = os.fspath(command)
         command_tup = None
     else:
         import shlex

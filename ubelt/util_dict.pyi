@@ -11,6 +11,8 @@ from ubelt.util_const import NoParamType
 from collections import OrderedDict
 from typing import Mapping
 from typing import Set
+from typing import Tuple
+from _typeshed import SupportsKeysAndGetItem
 from collections import OrderedDict, defaultdict
 from collections.abc import Generator
 from typing import Any, TypeVar
@@ -126,40 +128,46 @@ class SetDict(dict):
     def copy(self):
         ...
 
-    def __or__(self, other):
+    def __or__(
+        self,
+        other: SupportsKeysAndGetItem[Any, Any] | Iterable[Tuple[Any, Any]]
+    ) -> SetDict:
         ...
 
-    def __and__(self, other):
+    def __and__(self, other: Mapping | Iterable) -> SetDict:
         ...
 
-    def __sub__(self, other):
+    def __sub__(self, other: Mapping | Iterable) -> SetDict:
         ...
 
-    def __xor__(self, other):
+    def __xor__(self, other: Mapping) -> SetDict:
         ...
 
-    def __ror__(self, other):
+    def __ror__(self, other: Mapping) -> dict:
         ...
 
-    def __rand__(self, other):
+    def __rand__(self, other: Mapping) -> dict:
         ...
 
-    def __rsub__(self, other):
+    def __rsub__(self, other: Mapping) -> dict:
         ...
 
-    def __rxor__(self, other):
+    def __rxor__(self, other: Mapping) -> dict:
         ...
 
-    def __ior__(self, other):
+    def __ior__(
+        self,
+        other: SupportsKeysAndGetItem[Any, Any] | Iterable[Tuple[Any, Any]]
+    ) -> SetDict:
         ...
 
-    def __iand__(self, other):
+    def __iand__(self, other: Mapping | Iterable):
         ...
 
-    def __isub__(self, other):
+    def __isub__(self, other: Mapping | Iterable):
         ...
 
-    def __ixor__(self, other):
+    def __ixor__(self, other: Mapping):
         ...
 
     def union(self,
@@ -235,7 +243,7 @@ class UDict(SetDict):
 
 class AutoDict(UDict):
 
-    def __getitem__(self, key):
+    def __getitem__(self, key: KT) -> VT | AutoDict:
         ...
 
     def to_dict(self) -> dict:

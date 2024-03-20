@@ -137,7 +137,7 @@ def _rich_highlight(text, lexer_name):  # nocover
     Alternative rich-based highlighter
 
     References:
-        https://github.com/Textualize/rich/discussions/3076
+        .. [RichDiscuss3076] https://github.com/Textualize/rich/discussions/3076
     """
     from rich.syntax import Syntax
     from rich.console import Console

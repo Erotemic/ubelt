@@ -37,8 +37,8 @@ def _needs_workaround39103():
     singer-python also had a similar issue:
     https://github.com/singer-io/singer-python/issues/86
 
-    See Also
-    https://github.com/jaraco/tempora/blob/main/tempora/__init__.py#L59
+    See Also:
+        https://github.com/jaraco/tempora/blob/main/tempora/__init__.py#L59
     """
     from datetime import datetime as datetime_cls
     return len(datetime_cls(1, 1, 1).strftime('%Y')) != 4
@@ -223,9 +223,9 @@ def timeparse(stamp, default_timezone='local', allow_dateutil=True):
     Create a :class:`datetime.datetime` object from a string timestamp.
 
     Without any extra dependencies this will parse the output of
-    :func:`ubelt.util_time.timestamp()` into a datetime object. In the case
-    where the format differs, :func:`dateutil.parser.parse` will be used if the
-    :py:mod:`python-dateutil` package is installed.
+    :func:`ubelt.util_time.timestamp` into a datetime object. In the case
+    where the format differs, :func:`dateutil.parser.parse` will be used
+    if the :py:mod:`python-dateutil` package is installed.
 
     Args:
         stamp (str):
@@ -479,23 +479,11 @@ class Timer(object):
     Measures time elapsed between a start and end point. Can be used as a
     with-statement context manager, or using the tic/toc api.
 
-    Args:
-        label (str, default=''):
-            identifier for printing
-
-        verbose (int, default=None):
-            verbosity flag, defaults to True if label is given, otherwise 0.
-
-        newline (bool, default=True):
-            if False and verbose, print tic and toc on the same line.
-
-        ns (bool, default=False):
-            if True, a nano-second resolution timer to avoid precision loss
-            caused by the float type.
-
     Attributes:
         elapsed (float): number of seconds measured by the context manager
         tstart (float): time of last `tic` reported by `self._time()`
+        write (Callable): function used to write
+        flush (Callable): function used to flush
 
     Example:
         >>> # Create and start the timer using the context manager
@@ -535,6 +523,22 @@ class Timer(object):
     _default_time = time.perf_counter
 
     def __init__(self, label='', verbose=None, newline=True, ns=False):
+        """
+        Args:
+            label (str):
+                identifier for printing. Default to ''.
+
+            verbose (int | None):
+                verbosity flag, defaults to True if label is given, otherwise 0.
+
+            newline (bool):
+                if False and verbose, print tic and toc on the same line.
+                Defaults to True.
+
+            ns (bool):
+                if True, a nano-second resolution timer to avoid precision loss
+                caused by the float type. Defaults to False.
+        """
         if verbose is None:
             verbose = bool(label)
         self.label = label
@@ -551,7 +555,12 @@ class Timer(object):
             self._time = self._default_time
 
     def tic(self):
-        """ starts the timer """
+        """
+        starts the timer
+
+        Returns:
+            Timer: self
+        """
         if self.verbose:
             self.flush()
             self.write('\ntic(%r)' % self.label)
@@ -562,7 +571,12 @@ class Timer(object):
         return self
 
     def toc(self):
-        """ stops the timer """
+        """
+        stops the timer
+
+        Returns:
+            float | int: number of second or nanoseconds
+        """
         elapsed = self._time() - self.tstart
         if self.verbose:
             if self.ns:
@@ -573,6 +587,10 @@ class Timer(object):
         return elapsed
 
     def __enter__(self):
+        """
+        Returns:
+            Timer: self
+        """
         self.tic()
         return self
 

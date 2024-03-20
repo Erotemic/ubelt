@@ -18,7 +18,7 @@ def _benchmark():
     On 64-bit processors sha512 may be faster than sha256
 
     References:
-        https://crypto.stackexchange.com/questions/26336/sha512-faster-than-sha256
+        .. [SE26336] https://crypto.stackexchange.com/questions/26336/sha512-faster-than-sha256
     """
     result = ub.AutoOrderedDict()
     algos = ['sha1', 'sha256', 'sha512']
@@ -463,10 +463,10 @@ def test_compatible_hash_bases():
     WITH PADDING AND VIA BYTE FORM, NOT INTEGER FORM.
 
     References:
-        https://stackoverflow.com/questions/43920799/convert-byte-to-base64-and-ascii-in-python
-        https://github.com/multiformats/multibase
-        https://stackoverflow.com/questions/6916805/why-does-a-base64-encoded-string-have-an-sign-at-the-end
-        https://github.com/semente/python-baseconv
+        .. [SO43920799] https://stackoverflow.com/questions/43920799/convert-byte-to-base64-and-ascii-in-python
+        .. [MultiBase] https://github.com/multiformats/multibase
+        .. [SO6916805] https://stackoverflow.com/questions/6916805/why-does-a-base64-encoded-string-have-an-sign-at-the-end
+        .. [SementeBaseConv] https://github.com/semente/python-baseconv
     """
     import pytest
     pytest.skip('FIXME THIS ISSUE IS NOT RESOLVE YET.')

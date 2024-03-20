@@ -10,15 +10,15 @@ WIN32: bool
 class CmdOutput(dict):
 
     @property
-    def stdout(self):
+    def stdout(self) -> str | bytes:
         ...
 
     @property
-    def stderr(self):
+    def stderr(self) -> str | bytes:
         ...
 
     @property
-    def returncode(self):
+    def returncode(self) -> int:
         ...
 
     def check_returncode(self) -> None:

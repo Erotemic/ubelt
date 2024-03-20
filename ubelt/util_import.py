@@ -26,7 +26,7 @@ __all__ = [
     'import_module_from_path',
 ]
 
-IS_PY_GE_308 = sys.version_info[0] >= 3 and sys.version_info[1] >= 8
+IS_PY_GE_308 = sys.version_info[0] >= 3 and sys.version_info[1] >= 8  # type: bool
 
 
 class PythonPathContext(object):
@@ -519,7 +519,13 @@ def _syspath_modname_to_modpath(modname, sys_path=None, exclude=None):
     # but it would be nice to ensure we are not matching suffixes.
     # however, we should probably match and handle different versions.
     _editable_fname_pth_pat = '__editable__.' + _pkg_name + '-*.pth'
-    _editable_fname_finder_py_pat = '__editable___' + _pkg_name + '_*finder.py'
+
+    # NOTE: the __editable__ finders are named after the package, but the
+    # module could have a different name, so we cannot use the package name
+    # (which in this case is really the module name) in the pattern, and we
+    # have to check all of the finders.
+    # _editable_fname_finder_py_pat = '__editable___' + _pkg_name + '_*finder.py'
+    _editable_fname_finder_py_pat = '__editable___*_*finder.py'
 
     found_modpath = None
     for dpath in candidate_dpaths:
@@ -788,13 +794,22 @@ def modpath_to_modname(modpath, hide_init=True, hide_main=False, check=True,
     encountered.
 
     Args:
-        modpath (str): module filepath
-        hide_init (bool, default=True): removes the __init__ suffix
-        hide_main (bool, default=False): removes the __main__ suffix
-        check (bool, default=True): if False, does not raise an error if
-            modpath is a dir and does not contain an __init__ file.
-        relativeto (str | None, default=None): if specified, all checks are ignored
-            and this is considered the path to the root module.
+        modpath (str):
+            Module filepath
+
+        hide_init (bool):
+            Removes the __init__ suffix. Defaults to True.
+
+        hide_main (bool):
+            Removes the __main__ suffix. Defaults to False.
+
+        check (bool):
+            If False, does not raise an error if modpath is a dir and does not
+            contain an __init__ file. Defaults to True.
+
+        relativeto (str | None):
+            If specified, all checks are ignored and this is considered the
+            path to the root module. Defaults to None.
 
     TODO:
         - [ ] Does this need modification to support PEP 420?
@@ -989,9 +1004,9 @@ def _parse_static_node_value(node):
     """
     import ast
     from collections import OrderedDict
-    # TODO: ast.Constant for 3.8
-    if isinstance(node, ast.Num):
-        value = node.n
+    import numbers
+    if (isinstance(node, ast.Constant) and isinstance(node.value, numbers.Number) if IS_PY_GE_308 else isinstance(node, ast.Num)):
+        value = node.value if IS_PY_GE_308 else node.n
     elif (isinstance(node, ast.Constant) and isinstance(node.value, str) if IS_PY_GE_308 else isinstance(node, ast.Str)):
         value = node.value if IS_PY_GE_308 else node.s
     elif isinstance(node, ast.List):

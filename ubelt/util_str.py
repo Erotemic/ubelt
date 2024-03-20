@@ -1,9 +1,6 @@
 """
 Functions for working with text and strings.
 
-The :func:`ensure_unicode` function does its best to coerce Python 2/3 bytes
-and text into a consistent unicode text representation.
-
 The :func:`codeblock` and :func:`paragraph` wrap multiline strings to help
 write text blocks without hindering the surrounding code indentation.
 
@@ -181,7 +178,11 @@ def hzcat(args, sep=''):
 
 def ensure_unicode(text):
     r"""
-    Casts bytes into utf8 (mostly for python2 compatibility)
+    Casts bytes into utf8 (mostly for python2 compatibility).
+
+    Warning:
+        This function is deprecated and will no longer be available in version
+        2.0.0.
 
     Args:
         text (str | bytes):
@@ -191,7 +192,7 @@ def ensure_unicode(text):
         str
 
     References:
-        [SO_12561063] http://stackoverflow.com/questions/12561063/extract-data-from-file
+        .. [SO_12561063] http://stackoverflow.com/questions/12561063/extract-data-from-file
 
     Example:
         >>> from ubelt.util_str import *
@@ -202,8 +203,8 @@ def ensure_unicode(text):
         >>> assert ensure_unicode('ï»¿text1'.encode('utf8')) == 'ï»¿text1'
         >>> assert (codecs.BOM_UTF8 + 'text»¿'.encode('utf8')).decode('utf8')
     """
-    import ubelt as ub
-    ub.schedule_deprecation(
+    from ubelt.util_deprecate import schedule_deprecation
+    schedule_deprecation(
         modname='ubelt', name='ensure_unicode', type='function',
         migration='This should not be needed in Python 3',
         deprecate='1.2.0', error='2.0.0', remove='2.1.0')
