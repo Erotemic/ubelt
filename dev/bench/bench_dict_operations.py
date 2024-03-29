@@ -1,6 +1,3 @@
-from collections import OrderedDict
-
-
 def bench_dict_isect():
     import ubelt as ub
 

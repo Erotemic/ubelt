@@ -160,7 +160,7 @@ def group_items(items, key):
 
     Returns:
         dict[KT, List[VT]]:
-            a mapping from each group id to the list of corresponding items
+            a mapping from each group-id to the list of corresponding items
 
     Example:
         >>> import ubelt as ub
@@ -169,12 +169,44 @@ def group_items(items, key):
         >>> id_to_items = ub.group_items(items, groupids)
         >>> print(ub.repr2(id_to_items, nl=0))
         {'dairy': ['cheese'], 'fruit': ['jam', 'banana'], 'protein': ['ham', 'spam', 'eggs']}
+
+    Example:
+        >>> import ubelt as ub
+        >>> rows = [
+        >>>     {'index': 0, 'group': 'aa'},
+        >>>     {'index': 1, 'group': 'aa'},
+        >>>     {'index': 2, 'group': 'bb'},
+        >>>     {'index': 3, 'group': 'cc'},
+        >>>     {'index': 4, 'group': 'aa'},
+        >>>     {'index': 5, 'group': 'cc'},
+        >>>     {'index': 6, 'group': 'cc'},
+        >>> ]
+        >>> id_to_items = ub.group_items(rows, key=lambda r: r['group'])
+        >>> print(ub.repr2(id_to_items, nl=2))
+        {
+            'aa': [
+                {'group': 'aa', 'index': 0},
+                {'group': 'aa', 'index': 1},
+                {'group': 'aa', 'index': 4},
+            ],
+            'bb': [
+                {'group': 'bb', 'index': 2},
+            ],
+            'cc': [
+                {'group': 'cc', 'index': 3},
+                {'group': 'cc', 'index': 5},
+                {'group': 'cc', 'index': 6},
+            ],
+        }
     """
     if callable(key):
         keyfunc = key
         pair_list = ((keyfunc(item), item) for item in items)
     else:
         pair_list = zip(key, items)
+
+    # Optimized alternatives are benchmarked in
+    # ../dev/bench/bench_group_items.py
 
     # Initialize a dict of lists
     id_to_items = defaultdict(list)

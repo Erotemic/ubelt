@@ -1,3 +1,9 @@
+"""
+SeeAlso:
+    ~/code/ubelt/dev/bench/bench_defaultdict.py
+"""
+
+
 def bench_dict_hist_finalize():
     """
     CommandLine:
