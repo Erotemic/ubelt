@@ -11,6 +11,9 @@ This project (loosely) adheres to [Semantic Versioning](https://semver.org/spec/
   specify string codes like "u+x" or "+rw". Old stat logic works as it
   previously did.
 
+### Fixed:
+* `ub.import_module_from_path` now correctly accepts `PathLike` objects.
+
 
 ### Changed:
 * Allow the argument to `ubelt.cmd` to be a `PathLike` object, which we will
