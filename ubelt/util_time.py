@@ -19,6 +19,8 @@ See Also:
     :mod:`pendulum` - https://github.com/sdispater/pendulum - drop in replacement for datetime
 
     :mod:`arrow` - https://github.com/arrow-py/arrow
+
+    :mod:`kwutil.util_time` - https://kwutil.readthedocs.io/en/latest/auto/kwutil.util_time.html
 """
 import time
 import sys
