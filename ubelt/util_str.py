@@ -85,7 +85,7 @@ def paragraph(text):
     Wraps multi-line strings and restructures the text to remove all newlines,
     heading, trailing, and double spaces.
 
-    Useful for writing log messages
+    Useful for writing help strings, log messages, and natural text.
 
     Args:
         text (str): typically a multiline string
@@ -106,6 +106,8 @@ def paragraph(text):
         >>> assert chr(10) not in out
         >>> print('text = {!r}'.format(text))
         >>> print('out = {!r}'.format(out))
+        text = '\n    Lorem ipsum dolor sit amet, consectetur adipiscing\n    elit, sed do eiusmod tempor incididunt ut labore et\n    dolore magna aliqua.\n    '
+        out = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.'
     """
     import re
     out = re.sub(r'\s\s*', ' ', text).strip()

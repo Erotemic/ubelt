@@ -305,7 +305,7 @@ project. Note: this measure is biased towards older functions.
 `ubelt.POSIX <https://ubelt.readthedocs.io/en/latest/auto/ubelt.util_platform.html#ubelt.util_platform.POSIX>`__                                                     0
 `ubelt.DownloadManager <https://ubelt.readthedocs.io/en/latest/auto/ubelt.util_download_manager.html#ubelt.util_download_manager.DownloadManager>`__                 0
 `ubelt.CaptureStream <https://ubelt.readthedocs.io/en/latest/auto/ubelt.util_stream.html#ubelt.util_stream.CaptureStream>`__                                         0
-================================================================================================================================================ ================
+===================================================================================================================================================== ================
 
 
 

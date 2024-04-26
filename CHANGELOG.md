@@ -4,15 +4,17 @@ We are currently working on porting this changelog to the specifications in
 [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 This project (loosely) adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Version 1.3.5 - 
+## Version 1.3.6 - 
+
+### Fixed:
+* `ub.import_module_from_path` now correctly accepts `PathLike` objects.
+
+## Version 1.3.5 - Released 2024-03-20
 
 ### Added:
 * New wrapper around `pathlib.Path.chmod` in `ubelt.Path.chmod`. Can now
   specify string codes like "u+x" or "+rw". Old stat logic works as it
   previously did.
-
-### Fixed:
-* `ub.import_module_from_path` now correctly accepts `PathLike` objects.
 
 
 ### Changed:

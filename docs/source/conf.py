@@ -37,16 +37,16 @@ Notes:
 
         ### For gitlab
 
+        To enable the read-the-docs go to https://readthedocs.org/dashboard/ and login
+
         The user will need to enable the repo on their readthedocs account:
         https://readthedocs.org/dashboard/import/manual/?
 
-        To enable the read-the-docs go to https://readthedocs.org/dashboard/ and login
-
-        Make sure you have a .readthedocs.yml file
-
-        Click import project: (for github you can select, but gitlab you need to import manually)
+        Enter the following information:
             Set the Repository NAME: ubelt
             Set the Repository URL: https://github.com/Erotemic/ubelt
+
+        Make sure you have a .readthedocs.yml file
 
         For gitlab you also need to setup an integrations. Navigate to:
 
