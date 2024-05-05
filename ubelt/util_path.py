@@ -1170,7 +1170,7 @@ class Path(_PathBase):
     #     """
     #     return self.chmod(mode, follow_symlinks=False)
 
-    def touch(self, mode=0o666, exist_ok=True):
+    def touch(self, mode=0o0666, exist_ok=True):
         """
         Create this file with the given access mode, if it doesn't exist.
 
@@ -1620,6 +1620,17 @@ def _parse_chmod_code(code):
             op -- specified as '+' to add, '-' to remove, or '=' to assign.
             val -- specified as 'r' for read, 'w' for write, or 'x' for execute.
 
+    Notes:
+        The perm symbol X shall represent the execute/search portion of the
+        file mode bits if the file is a directory or if the current
+        (unmodified) file mode bits have at least one of the execute bits
+        (S_IXUSR, S_IXGRP, or S_IXOTH) set. It shall be ignored if the file is
+        not a directory and none of the execute bits are set in the current
+        file mode bits. [USE416877]_.
+
+    References:
+        ..[USE416877] https://unix.stackexchange.com/questions/416877/what-is-a-capital-x-in-posix-chmod
+
     Example:
         >>> from ubelt.util_path import _parse_chmod_code
         >>> print(list(_parse_chmod_code('ugo+rw,+r,g=rwx')))
@@ -1666,13 +1677,17 @@ def _resolve_chmod_code(old_mode, code):
     Returns:
         int : new code
 
+    References:
+        ..[RHEL_SpecialFilePerms] https://www.youtube.com/watch?v=Dn6b-mIKHmM&t=1970s
+
     Example:
+        >>> # test normal user / group / other, read / write / execute perms
         >>> from ubelt.util_path import _resolve_chmod_code
         >>> print(oct(_resolve_chmod_code(0, '+rwx')))
         >>> print(oct(_resolve_chmod_code(0, 'ugo+rwx')))
         >>> print(oct(_resolve_chmod_code(0, 'a-rwx')))
         >>> print(oct(_resolve_chmod_code(0, 'u+rw,go+r,go-wx')))
-        >>> print(oct(_resolve_chmod_code(0o777, 'u+rw,go+r,go-wx')))
+        >>> print(oct(_resolve_chmod_code(0o0777, 'u+rw,go+r,go-wx')))
         0o777
         0o777
         0o0
@@ -1683,14 +1698,18 @@ def _resolve_chmod_code(old_mode, code):
         >>>     print(oct(_resolve_chmod_code(0, 'u=rw')))
         >>> with pytest.raises(ValueError):
         >>>     _resolve_chmod_code(0, 'u?w')
+
+    Example:
+        >>> # Test special suid, sgid, and sticky (svtx) codes
+        >>> from ubelt.util_path import _resolve_chmod_code
+        >>> print(oct(_resolve_chmod_code(0, 'u+s')))
+        >>> print(oct(_resolve_chmod_code(0o7777, 'u-s')))
+        0o4000
+        0o3777
     """
     import stat
     import itertools as it
     action_lut = {
-        # TODO: handle suid, sgid, and sticky?
-        # suid = stat.S_ISUID
-        # sgid = stat.S_ISGID
-        # sticky = stat.S_ISVTX
         'ur' : stat.S_IRUSR,
         'uw' : stat.S_IWUSR,
         'ux' : stat.S_IXUSR,
@@ -1702,6 +1721,11 @@ def _resolve_chmod_code(old_mode, code):
         'or' : stat.S_IROTH,
         'ow' : stat.S_IWOTH,
         'ox' : stat.S_IXOTH,
+
+        # Special UNIX permissions
+        'us': stat.S_ISUID,  # SUID (executes run as the file's owner)
+        'gs': stat.S_ISGID,  # SGID (executes run as the file's group)
+        'ot': stat.S_ISVTX,  # sticky (only owner can delete)
     }
     actions = _parse_chmod_code(code)
     new_mode = int(old_mode)  # (could optimize to modify inplace if needed)
@@ -1734,32 +1758,65 @@ def _encode_chmod_int(int_code):
 
     Currently unused, but may be useful in the future.
 
+    Args:
+        int_code (int): mode from st_stat
+        concise (bool): if True, uses concise representations of special perms
+
+    Returns:
+        str: the permissions code
+
     Example:
         >>> from ubelt.util_path import _encode_chmod_int
         >>> int_code = 0o744
         >>> print(_encode_chmod_int(int_code))
         u=rwx,g=r,o=r
+
+        >>> int_code = 0o7777
+        >>> print(_encode_chmod_int(int_code))
+        u=rwxs,g=rwxs,o=rwxt
     """
     import stat
-    action_lut = {
-        'ur' : stat.S_IRUSR,
-        'uw' : stat.S_IWUSR,
-        'ux' : stat.S_IXUSR,
+    from collections import defaultdict, OrderedDict
+    action_lut = OrderedDict([
+        ('ur' , stat.S_IRUSR),
+        ('uw' , stat.S_IWUSR),
+        ('ux' , stat.S_IXUSR),
 
-        'gr' : stat.S_IRGRP,
-        'gw' : stat.S_IWGRP,
-        'gx' : stat.S_IXGRP,
+        ('gr' , stat.S_IRGRP),
+        ('gw' , stat.S_IWGRP),
+        ('gx' , stat.S_IXGRP),
 
-        'or' : stat.S_IROTH,
-        'ow' : stat.S_IWOTH,
-        'ox' : stat.S_IXOTH,
-    }
-    from collections import defaultdict
+        ('or' , stat.S_IROTH),
+        ('ow' , stat.S_IWOTH),
+        ('ox' , stat.S_IXOTH),
+
+        # Special UNIX permissions
+        ('us', stat.S_ISUID),  # SUID (executes run as the file's owner)
+        ('gs', stat.S_ISGID),  # SGID (executes run as the file's group)
+        ('ot', stat.S_ISVTX),  # sticky (only owner can delete)
+    ])
     target_to_perms = defaultdict(list)
     for key, val in action_lut.items():
         target, perm = key
         if int_code & val:
             target_to_perms[target].append(perm)
+
+    # The following commented logic might be useful if we want to created the
+    # "dashed" ls representation of permissions, but that is not needed for
+    # chmod itself, so it is not necessary to implement here.
+    # if concise:
+    #     special_chars = {'u': 's', 'g': 's', 'o': 't'}
+    #     for k, s in special_chars.items():
+    #         if k in target_to_perms:
+    #             vs = target_to_perms[k]
+    #             # if the executable bit is not set, replace the lowercase
+    #             # with a capital S (or T for sticky)
+    #             if 'x' in vs:
+    #                 if s in vs:
+    #                     vs.remove('x')
+    #             elif s in vs:
+    #                 vs.remove(s)
+    #                 vs.append(s.upper())
     parts = [k + '=' + ''.join(vs) for k, vs in target_to_perms.items()]
     code = ','.join(parts)
     return code

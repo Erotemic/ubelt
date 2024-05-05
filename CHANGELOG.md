@@ -9,6 +9,9 @@ This project (loosely) adheres to [Semantic Versioning](https://semver.org/spec/
 ### Fixed:
 * `ub.import_module_from_path` now correctly accepts `PathLike` objects.
 
+### Added
+* Support for UNIX special permission (suid/sgid/svtx) codes in `Path.chmod`.
+
 ## Version 1.3.5 - Released 2024-03-20
 
 ### Added:
