@@ -249,9 +249,6 @@ def _can_symlink(verbose=0):  # nocover
     Return true if we have permission to create real symlinks.
     This check always returns True on non-win32 systems.
     If this check returns false, then we still may be able to use junctions.
-
-    Example:
-        >>> print(_can_symlink(verbose=1))
     """
     if _win32_links is not None:
         return _win32_links._win32_can_symlink(verbose)
