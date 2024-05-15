@@ -235,7 +235,6 @@ def _can_symlink(verbose=0):  # nocover
     If this check returns false, then we still may be able to use junctions.
 
     Example:
-        >>> # Script
         >>> print(_can_symlink(verbose=1))
     """
     if _win32_links is not None:
@@ -251,6 +250,10 @@ def _dirstats(dpath=None):  # nocover
 
     The column prefixes stand for:
     (E - exists), (L - islink), (F - isfile), (D - isdir), (J - isjunction)
+
+    Example:
+        >>> from ubelt.util_links import _dirstats
+        >>> _dirstats('.')
     """
     from ubelt import util_colors
     if dpath is None:
