@@ -57,6 +57,13 @@ def symlink(real_path, link_path, overwrite=False, verbose=0):
         str | PathLike: link path
 
     Note:
+        In the future we may rework and rename this function to something like
+        ``link``, ``pathlink``, ``fslink``, etc... to indicate that it may
+        perform multiple types of links. We may also allow the user to specify
+        which type of link (e.g. symlink, hardlink, reflink, junction) they
+        would like to use.
+
+    Note:
         On systems that do not contain support for symlinks (e.g. some versions
         / configurations of Windows), this function will fall back on hard
         links or junctions [WikiNTFSLinks]_, [WikiHardLink]_. The differences

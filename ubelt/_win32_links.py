@@ -1,6 +1,12 @@
 """
 For dealing with symlinks, junctions, and hard-links on windows.
 
+Note:
+    The termonology used here was written before I really understood the
+    difference between symlinks, hardlinks, and junctions. As such it may be
+    inconsistent or incorrect in some places. This might be fixed in the
+    future.
+
 References:
     .. [SO18883892] https://stackoverflow.com/questions/18883892/batch-file-windows-cmd-exe-test-if-a-directory-is-a-link-symlink
     .. [SO21561850] https://stackoverflow.com/questions/21561850/python-test-for-junction-point-target
