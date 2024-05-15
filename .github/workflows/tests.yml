@@ -217,7 +217,7 @@ jobs:
           install-extras: tests,optional
           os: ubuntu-latest
           arch: auto
-        - python-version: pypy-3.7
+        - python-version: pypy-3.9
           install-extras: tests,optional
           os: ubuntu-latest
           arch: auto
@@ -249,7 +249,7 @@ jobs:
           install-extras: tests,optional
           os: macOS-latest
           arch: auto
-        - python-version: pypy-3.7
+        - python-version: pypy-3.9
           install-extras: tests,optional
           os: macOS-latest
           arch: auto
@@ -281,7 +281,7 @@ jobs:
           install-extras: tests,optional
           os: windows-latest
           arch: auto
-        - python-version: pypy-3.7
+        - python-version: pypy-3.9
           install-extras: tests,optional
           os: windows-latest
           arch: auto
