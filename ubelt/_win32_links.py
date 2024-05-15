@@ -22,7 +22,10 @@ from ubelt import util_path
 import sys
 
 if sys.platform.startswith('win32'):
-    import jaraco.windows.filesystem as jwfs
+    try:
+        import jaraco.windows.filesystem as jwfs
+    except ImportError:
+        jwfs = None
 
 
 __win32_can_symlink__ = None  # type: bool | None
@@ -254,7 +257,7 @@ def _win32_symlink(path, link, verbose=0):
             if permission_msg not in info['err']:
                 print('Failed command:')
                 print(info['command'])
-                print(util_format.repr2(info, nl=1))
+                print(util_format.urepr(info, nl=1))
             raise OSError(str(info))
     return link
 
@@ -307,12 +310,12 @@ def _win32_junction(path, link, verbose=0):
         # try using a hard link
         if verbose:
             print('... as hard link')
-        # command = 'mklink /H "{}" "{}"'.format(link, path)
-        try:
-            jwfs.link(path, link)  # this seems to be allowed
-        except Exception:
-            print('Failed to hardlink link={} to path={}'.format(link, path))
-            raise
+        command = 'mklink /H "{}" "{}"'.format(link, path)
+        # try:
+        #     jwfs.link(path, link)  # this seems to be allowed
+        # except Exception:
+        #     print('Failed to hardlink link={} to path={}'.format(link, path))
+        #     raise
         command = None
 
     if command is not None:
@@ -321,7 +324,7 @@ def _win32_junction(path, link, verbose=0):
             from ubelt import util_format
             print('Failed command:')
             print(info['command'])
-            print(util_format.repr2(info, nl=1))
+            print(util_format.urepr(info, nl=1))
             raise OSError(str(info))
     return link
 
@@ -331,7 +334,8 @@ def _win32_is_junction(path):
     Determines if a path is a win32 junction
 
     Example:
-        >>> # xdoc: +REQUIRES(WIN32)
+        >>> # xdoctest: +REQUIRES(WIN32)
+        >>> # xdoctest: +REQUIRES(module:jaraco)
         >>> import ubelt as ub
         >>> root = ub.Path.appdir('ubelt', 'win32_junction').ensuredir()
         >>> ub.delete(root)
@@ -360,6 +364,7 @@ def _win32_read_junction(path):
 
     Example:
         >>> # xdoc: +REQUIRES(WIN32)
+        >>> # xdoctest: +REQUIRES(module:jaraco)
         >>> import ubelt as ub
         >>> root = ub.Path.appdir('ubelt', 'win32_junction').ensuredir()
         >>> ub.delete(root)
@@ -373,6 +378,9 @@ def _win32_read_junction(path):
         >>> print('pointed = {!r}'.format(pointed))
     """
     path = os.fspath(path)
+    if jwfs is None:
+        raise ImportError('jaraco.windows.filesystem is required to run _win32_read_junction')
+
     if not jwfs.is_reparse_point(path):
         raise ValueError('not a junction')
 
@@ -469,6 +477,7 @@ def _win32_is_hardlinked(fpath1, fpath2):
 
     Example:
         >>> # xdoc: +REQUIRES(WIN32)
+        >>> # xdoctest: +REQUIRES(module:jaraco)
         >>> import ubelt as ub
         >>> root = ub.Path.appdir('ubelt', 'win32_hardlink').ensuredir()
         >>> ub.delete(root)
@@ -484,6 +493,9 @@ def _win32_is_hardlinked(fpath1, fpath2):
         >>> assert not _win32_is_hardlinked(fjunc2, fpath1)
         >>> assert not _win32_is_hardlinked(fjunc1, fpath2)
     """
+    if jwfs is None:
+        raise ImportError('jaraco.windows.filesystem is required to run _win32_is_hardlinked')
+
     # NOTE: jwf.samefile(fpath1, fpath2) seems to behave differently
     def get_read_handle(fpath):
         if os.path.isdir(fpath):
@@ -530,7 +542,7 @@ def _win32_dir(path, star=''):
         from ubelt import util_format
         print('Failed command:')
         print(info['command'])
-        print(util_format.repr2(info, nl=1))
+        print(util_format.urepr(info, nl=1))
         raise OSError(str(info))
     # parse the output of dir to get some info
     # Remove header and footer
