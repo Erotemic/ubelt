@@ -46,6 +46,7 @@ def _win32_can_symlink(verbose=0, force=0, testing=0):
 
     Example:
         >>> # xdoctest: +REQUIRES(WIN32)
+        >>> # xdoctest: +REQUIRES(module:jaraco)
         >>> import ubelt as ub
         >>> _win32_can_symlink(verbose=1, force=1, testing=1)
     """
@@ -341,7 +342,6 @@ def _win32_is_junction(path):
 
     Example:
         >>> # xdoctest: +REQUIRES(WIN32)
-        >>> # xdoctest: +REQUIRES(module:jaraco)
         >>> import ubelt as ub
         >>> root = ub.Path.appdir('ubelt', 'win32_junction').ensuredir()
         >>> ub.delete(root)
@@ -354,8 +354,6 @@ def _win32_is_junction(path):
         >>> assert _win32_is_junction(dpath) is False
         >>> assert _win32_is_junction('notafile') is False
     """
-    if jwfs is None:
-        raise ImportError('jaraco.windows.filesystem is required to run _win32_is_junction')
     path = os.fspath(path)
     if not exists(path):
         if os.path.isdir(path):
@@ -363,6 +361,23 @@ def _win32_is_junction(path):
                 return True
         return False
     return jwfs.is_reparse_point(path) and not os.path.islink(path)
+
+
+def _is_reparse_point(path):
+    """
+    Check if a directory is a reparse point in windows.
+
+    .. [SO54678399] https://stackoverflow.com/a/54678399/887074
+    """
+    if jwfs is not None:
+        return jwfs.is_reparse_point(path)
+    else:
+        # Fallback without jaraco: TODO: test this is 1-to-1
+        import subprocess
+        child = subprocess.Popen(f'fsutil reparsepoint query "{path}"',
+                                 stdout=subprocess.PIPE)
+        child.communicate()[0]
+        return child.returncode == 0
 
 
 def _win32_read_junction(path):
