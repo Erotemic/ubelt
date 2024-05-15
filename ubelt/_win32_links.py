@@ -354,6 +354,8 @@ def _win32_is_junction(path):
         >>> assert _win32_is_junction(dpath) is False
         >>> assert _win32_is_junction('notafile') is False
     """
+    if jwfs is None:
+        raise ImportError('jaraco.windows.filesystem is required to run _win32_is_junction')
     path = os.fspath(path)
     if not exists(path):
         if os.path.isdir(path):
