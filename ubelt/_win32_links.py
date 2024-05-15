@@ -252,12 +252,12 @@ def _win32_symlink(path, link, verbose=0):
     if command is not None:
         info = util_cmd.cmd(command, shell=True)
         if info['ret'] != 0:
-            from ubelt import util_format
+            from ubelt import util_repr
             permission_msg = 'You do not have sufficient privledge'
             if permission_msg not in info['err']:
                 print('Failed command:')
                 print(info['command'])
-                print(util_format.urepr(info, nl=1))
+                print(util_repr.urepr(info, nl=1))
             raise OSError(str(info))
     return link
 
@@ -321,10 +321,10 @@ def _win32_junction(path, link, verbose=0):
     if command is not None:
         info = util_cmd.cmd(command, shell=True)
         if info['ret'] != 0:
-            from ubelt import util_format
+            from ubelt import util_repr
             print('Failed command:')
             print(info['command'])
-            print(util_format.urepr(info, nl=1))
+            print(util_repr.urepr(info, nl=1))
             raise OSError(str(info))
     return link
 
@@ -539,10 +539,10 @@ def _win32_dir(path, star=''):
     wrapped = wrapper.format(command)
     info = util_cmd.cmd(wrapped, shell=True)
     if info['ret'] != 0:
-        from ubelt import util_format
+        from ubelt import util_repr
         print('Failed command:')
         print(info['command'])
-        print(util_format.urepr(info, nl=1))
+        print(util_repr.urepr(info, nl=1))
         raise OSError(str(info))
     # parse the output of dir to get some info
     # Remove header and footer
