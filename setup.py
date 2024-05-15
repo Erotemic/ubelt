@@ -214,6 +214,7 @@ if __name__ == "__main__":
         "optional-strict" : parse_requirements("requirements/optional.txt", versions="strict"),
         "runtime"         : parse_requirements("requirements/runtime.txt", versions="loose"),
         "runtime-strict"  : parse_requirements("requirements/runtime.txt", versions="strict"),
+        "tests"           : parse_requirements("requirements/tests.txt", versions="loose"),
         "tests-strict"    : parse_requirements("requirements/tests.txt", versions="strict"),
         "types"           : parse_requirements("requirements/types.txt", versions="loose"),
         "types-strict"    : parse_requirements("requirements/types.txt", versions="strict"),
