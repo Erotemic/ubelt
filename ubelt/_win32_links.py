@@ -316,7 +316,7 @@ def _win32_junction(path, link, verbose=0):
         # except Exception:
         #     print('Failed to hardlink link={} to path={}'.format(link, path))
         #     raise
-        command = None
+        # command = None
 
     if command is not None:
         info = util_cmd.cmd(command, shell=True)
