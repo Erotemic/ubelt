@@ -360,7 +360,7 @@ def _win32_is_junction(path):
             if not os.path.islink(path):
                 return True
         return False
-    return jwfs.is_reparse_point(path) and not os.path.islink(path)
+    return _is_reparse_point(path) and not os.path.islink(path)
 
 
 def _is_reparse_point(path):
