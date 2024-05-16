@@ -38,7 +38,7 @@ def writeto(fpath, to_write, aslines=False, verbose=None):
         `https://pypy.org/compat.html`. This is an argument for keeping this
         function.
 
-        NOTE: With modern versions of Python, it is generally recommened to use
+        NOTE: With modern versions of Python, it is generally recommend to use
         :func:`pathlib.Path.write_text` instead. Although there does seem to be
         some corner case this handles better on win32, so maybe useful?
 
