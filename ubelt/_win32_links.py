@@ -278,6 +278,7 @@ def _win32_junction(path, link, verbose=0):
 
     Example:
         >>> # xdoc: +REQUIRES(WIN32)
+        >>> # xdoctest: +REQUIRES(module:jaraco)
         >>> import ubelt as ub
         >>> root = ub.Path.appdir('ubelt', 'win32_junction').ensuredir()
         >>> ub.delete(root)

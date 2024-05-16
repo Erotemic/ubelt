@@ -269,9 +269,10 @@ def delete(path, verbose=False):
         elif os.path.isdir(path):
             if verbose:  # nocover
                 print('Deleting directory="{}"'.format(path))
-            if sys.platform.startswith('win32'):  # nocover
+            if sys.platform.startswith('win32') and sys.version_info[0:2] < (3, 8):  # nocover
                 # Workaround bug that prevents shutil from working if
                 # the directory contains junctions
+                # https://bugs.python.org/issue36621
                 from ubelt import _win32_links
                 _win32_links._win32_rmtree(path, verbose=verbose)
             else:
