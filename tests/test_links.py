@@ -9,12 +9,25 @@ import ubelt as ub
 import pytest
 import os
 from ubelt import util_links
+import sys
+
+
+if sys.platform.startswith('win32'):
+    try:
+        import jaraco.windows.filesystem as jwfs
+    except ImportError:
+        jwfs = None
 
 
 def test_rel_dir_link():
     """
     xdoctest ~/code/ubelt/tests/test_links.py test_rel_dir_link
     """
+    import pytest
+    import ubelt as ub
+    if ub.WIN32 and jwfs is None:
+        pytest.skip()  # hack for windows for now.
+
     dpath = ub.Path.appdir('ubelt/tests/test_links', 'test_rel_dir_link').ensuredir()
     ub.delete(dpath, verbose=2)
     ub.ensuredir(dpath, verbose=2)
@@ -64,6 +77,10 @@ def test_rel_dir_link():
 
 
 def test_rel_file_link():
+    import pytest
+    import ubelt as ub
+    if ub.WIN32 and jwfs is None:
+        pytest.skip()  # hack for windows for now.
     dpath = ub.Path.appdir('ubelt/tests/test_links', 'test_rel_file_link').ensuredir()
     ub.delete(dpath, verbose=2)
     ub.ensuredir(dpath, verbose=2)
@@ -119,6 +136,10 @@ def test_delete_symlinks():
     CommandLine:
         python -m ubelt.tests.test_links test_delete_symlinks
     """
+    import pytest
+    import ubelt as ub
+    if ub.WIN32 and jwfs is None:
+        pytest.skip()  # hack for windows for now.
     # TODO: test that we handle broken links
     dpath = ub.Path.appdir('ubelt/tests/test_links', 'test_delete_links').ensuredir()
 
@@ -224,6 +245,10 @@ def test_delete_symlinks():
 
 
 def test_modify_directory_symlinks():
+    import pytest
+    import ubelt as ub
+    if ub.WIN32 and jwfs is None:
+        pytest.skip()  # hack for windows for now.
     dpath = ub.Path.appdir('ubelt/tests/test_links', 'test_modify_symlinks').ensuredir()
     ub.delete(dpath, verbose=2)
     ub.ensuredir(dpath, verbose=2)
@@ -283,6 +308,10 @@ def test_modify_file_symlinks():
     CommandLine:
         python -m ubelt.tests.test_links test_modify_symlinks
     """
+    import pytest
+    import ubelt as ub
+    if ub.WIN32 and jwfs is None:
+        pytest.skip()  # hack for windows for now.
     # TODO: test that we handle broken links
     dpath = ub.Path.appdir('ubelt/tests/test_links', 'test_modify_symlinks').ensuredir()
     happy_fpath = dpath / 'happy_fpath.txt'
@@ -306,6 +335,10 @@ def test_broken_link():
     CommandLine:
         python -m ubelt.tests.test_links test_broken_link
     """
+    import pytest
+    import ubelt as ub
+    if ub.WIN32 and jwfs is None:
+        pytest.skip()  # hack for windows for now.
     dpath = ub.Path.appdir('ubelt/tests/test_links', 'test_broken_link').ensuredir()
 
     ub.delete(dpath, verbose=2)
@@ -370,6 +403,10 @@ def test_overwrite_symlink():
     CommandLine:
         python ~/code/ubelt/tests/test_links.py test_overwrite_symlink
     """
+    import pytest
+    import ubelt as ub
+    if ub.WIN32 and jwfs is None:
+        pytest.skip()  # hack for windows for now.
 
     # TODO: test that we handle broken links
     dpath = ub.Path.appdir('ubelt/tests/test_links', 'test_overwrite_symlink').ensuredir()

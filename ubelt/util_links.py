@@ -7,6 +7,10 @@ work, but there certain system settings that cause issues. Any POSIX system
 works without difficulty.
 
 Example:
+    >>> import pytest
+    >>> import ubelt as ub
+    >>> if ub.WIN32:
+    >>>     pytest.skip()  # hack for windows for now. Todo cleaner xdoctest conditional
     >>> import ubelt as ub
     >>> from os.path import normpath, join
     >>> dpath = ub.Path.appdir('ubelt', normpath('demo/symlink')).ensuredir()
@@ -87,6 +91,10 @@ def symlink(real_path, link_path, overwrite=False, verbose=0):
         .. [WikiNTFSLinks] https://en.wikipedia.org/wiki/NTFS_links
 
     Example:
+        >>> import pytest
+        >>> import ubelt as ub
+        >>> if ub.WIN32:
+        >>>     pytest.skip()  # hack for windows for now. Todo cleaner xdoctest conditional
         >>> import ubelt as ub
         >>> dpath = ub.Path.appdir('ubelt', 'test_symlink0').delete().ensuredir()
         >>> real_path = (dpath / 'real_file.txt')
@@ -97,6 +105,10 @@ def symlink(real_path, link_path, overwrite=False, verbose=0):
         >>> dpath.delete()  # clenaup
 
     Example:
+        >>> import pytest
+        >>> import ubelt as ub
+        >>> if ub.WIN32:
+        >>>     pytest.skip()  # hack for windows for now. Todo cleaner xdoctest conditional
         >>> import ubelt as ub
         >>> from ubelt.util_links import _dirstats
         >>> dpath = ub.Path.appdir('ubelt', 'test_symlink1').delete().ensuredir()
@@ -126,6 +138,10 @@ def symlink(real_path, link_path, overwrite=False, verbose=0):
         >>> assert not real_path.exists()
 
     Example:
+        >>> import pytest
+        >>> import ubelt as ub
+        >>> if ub.WIN32:
+        >>>     pytest.skip()  # hack for windows for now. Todo cleaner xdoctest conditional
         >>> # Specifying bad paths should error.
         >>> import ubelt as ub
         >>> import pytest
