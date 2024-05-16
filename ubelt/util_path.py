@@ -1837,11 +1837,11 @@ def _patch_win32_stats_on_pypy():
     """
     import platform
     if platform.python_implementation == 'PyPy':
-        import stats
-        if not hasattr(stats, 'IO_REPARSE_TAG_MOUNT_POINT'):
-            stats.IO_REPARSE_TAG_APPEXECLINK = 0x8000001b  # windows
-            stats.IO_REPARSE_TAG_MOUNT_POINT = 0xa0000003  # windows
-            stats.IO_REPARSE_TAG_SYMLINK = 0xa000000c      # windows
+        import stat
+        if not hasattr(stat, 'IO_REPARSE_TAG_MOUNT_POINT'):
+            stat.IO_REPARSE_TAG_APPEXECLINK = 0x8000001b  # windows
+            stat.IO_REPARSE_TAG_MOUNT_POINT = 0xa0000003  # windows
+            stat.IO_REPARSE_TAG_SYMLINK = 0xa000000c      # windows
 
 
 if sys.version_info[0:2] < (3, 8):  # nocover
