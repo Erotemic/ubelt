@@ -44,6 +44,8 @@ __all__ = [
     'expandpath', 'ChDir',
 ]
 
+WIN32 = sys.platform.startswith('win32')
+
 
 def augpath(path, suffix='', prefix='', ext=None, tail='', base=None,
             dpath=None, relative=None, multidot=False):
@@ -198,7 +200,7 @@ def userhome(username=None):
         if 'HOME' in os.environ:
             userhome_dpath = os.environ['HOME']
         else:  # nocover
-            if sys.platform.startswith('win32'):
+            if WIN32:
                 # win32 fallback when HOME is not defined
                 if 'USERPROFILE' in os.environ:
                     userhome_dpath = os.environ['USERPROFILE']
@@ -213,7 +215,7 @@ def userhome(username=None):
                 userhome_dpath = pwd.getpwuid(os.getuid()).pw_dir
     else:
         # A specific user directory was requested
-        if sys.platform.startswith('win32'):  # nocover
+        if WIN32:  # nocover
             # get the directory name for the current user
             c_users = dirname(userhome())
             userhome_dpath = join(c_users, username)
@@ -1515,6 +1517,10 @@ class Path(_PathBase):
                 copytree = _compat_copytree
             else:
                 copytree = shutil.copytree
+
+            if WIN32:
+                _patch_win32_stats_on_pypy()
+
             dst = copytree(
                 self, dst, copy_function=copy_function,
                 symlinks=not follow_dir_symlinks, dirs_exist_ok=overwrite)
@@ -1820,6 +1826,22 @@ def _encode_chmod_int(int_code):
     parts = [k + '=' + ''.join(vs) for k, vs in target_to_perms.items()]
     code = ','.join(parts)
     return code
+
+
+def _patch_win32_stats_on_pypy():
+    """
+    Handle [PyPyIssue4953]_.
+
+    References:
+        [PyPyIssue4953] https://github.com/pypy/pypy/issues/4953#event-12838738353
+    """
+    import platform
+    if platform.python_implementation == 'PyPy':
+        import stats
+        if not hasattr(stats, 'IO_REPARSE_TAG_MOUNT_POINT'):
+            stats.IO_REPARSE_TAG_APPEXECLINK = 0x8000001b  # windows
+            stats.IO_REPARSE_TAG_MOUNT_POINT = 0xa0000003  # windows
+            stats.IO_REPARSE_TAG_SYMLINK = 0xa000000c      # windows
 
 
 if sys.version_info[0:2] < (3, 8):  # nocover
