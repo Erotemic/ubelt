@@ -31,8 +31,8 @@ if sys.platform.startswith('win32'):
     try:
         import jaraco.windows.filesystem as jwfs
     except ImportError:
-        jwfs = None
-
+        # Use vendored subset of jaraco.windows
+        from ubelt import _win32_jaraco as jwfs
 
 __win32_can_symlink__ = None  # type: bool | None
 
@@ -318,13 +318,13 @@ def _win32_junction(path, link, verbose=0):
         # try using a hard link
         if verbose:
             print('... as hard link')
-        command = 'mklink /H "{}" "{}"'.format(link, path)
-        # try:
-        #     jwfs.link(path, link)  # this seems to be allowed
-        # except Exception:
-        #     print('Failed to hardlink link={} to path={}'.format(link, path))
-        #     raise
-        # command = None
+        # command = 'mklink /H "{}" "{}"'.format(link, path)
+        try:
+            jwfs.link(path, link)  # this seems to be allowed
+        except Exception:
+            print('Failed to hardlink link={} to path={}'.format(link, path))
+            raise
+        command = None
 
     if command is not None:
         info = util_cmd.cmd(command, shell=True)
@@ -405,6 +405,7 @@ def _win32_read_junction(path):
         >>> pointed = _win32_read_junction(path)
         >>> print('pointed = {!r}'.format(pointed))
     """
+    import ctypes
     path = os.fspath(path)
     if jwfs is None:
         raise ImportError('jaraco.windows.filesystem is required to run _win32_read_junction')
@@ -425,8 +426,8 @@ def _win32_read_junction(path):
     res = jwfs.reparse.DeviceIoControl(
             handle, jwfs.api.FSCTL_GET_REPARSE_POINT, None, 10240)
 
-    bytes = jwfs.create_string_buffer(res)
-    p_rdb = jwfs.cast(bytes, jwfs.POINTER(jwfs.api.REPARSE_DATA_BUFFER))
+    bytes = ctypes.create_string_buffer(res)
+    p_rdb = ctypes.cast(bytes, ctypes.POINTER(jwfs.api.REPARSE_DATA_BUFFER))
     rdb = p_rdb.contents
 
     if rdb.tag not in [2684354563, jwfs.api.IO_REPARSE_TAG_SYMLINK]:
