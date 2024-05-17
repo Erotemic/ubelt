@@ -35,6 +35,8 @@ from os.path import (
 import os
 import sys
 import pathlib
+import platform
+import stat
 import warnings
 from ubelt import util_io
 
@@ -1512,14 +1514,13 @@ class Path(_PathBase):
         copy_function = self._request_copy_function(
             follow_file_symlinks=follow_file_symlinks,
             follow_dir_symlinks=follow_dir_symlinks, meta=meta)
+        if WIN32 and platform.python_implementation == 'PyPy':
+            _patch_win32_stats_on_pypy()
         if self.is_dir():
             if sys.version_info[0:2] < (3, 8):  # nocover
                 copytree = _compat_copytree
             else:
                 copytree = shutil.copytree
-
-            if WIN32:
-                _patch_win32_stats_on_pypy()
 
             dst = copytree(
                 self, dst, copy_function=copy_function,
@@ -1713,7 +1714,6 @@ def _resolve_chmod_code(old_mode, code):
         0o4000
         0o3777
     """
-    import stat
     import itertools as it
     action_lut = {
         'ur' : stat.S_IRUSR,
@@ -1781,7 +1781,6 @@ def _encode_chmod_int(int_code):
         >>> print(_encode_chmod_int(int_code))
         u=rwxs,g=rwxs,o=rwxt
     """
-    import stat
     from collections import defaultdict, OrderedDict
     action_lut = OrderedDict([
         ('ur' , stat.S_IRUSR),
@@ -1835,13 +1834,10 @@ def _patch_win32_stats_on_pypy():
     References:
         [PyPyIssue4953] https://github.com/pypy/pypy/issues/4953#event-12838738353
     """
-    import platform
-    if platform.python_implementation == 'PyPy':
-        import stat
-        if not hasattr(stat, 'IO_REPARSE_TAG_MOUNT_POINT'):
-            stat.IO_REPARSE_TAG_APPEXECLINK = 0x8000001b  # windows
-            stat.IO_REPARSE_TAG_MOUNT_POINT = 0xa0000003  # windows
-            stat.IO_REPARSE_TAG_SYMLINK = 0xa000000c      # windows
+    if not hasattr(stat, 'IO_REPARSE_TAG_MOUNT_POINT'):
+        stat.IO_REPARSE_TAG_APPEXECLINK = 0x8000001b  # windows
+        stat.IO_REPARSE_TAG_MOUNT_POINT = 0xa0000003  # windows
+        stat.IO_REPARSE_TAG_SYMLINK = 0xa000000c      # windows
 
 
 if sys.version_info[0:2] < (3, 8):  # nocover
