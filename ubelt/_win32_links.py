@@ -28,11 +28,11 @@ from ubelt import util_path
 import sys
 
 if sys.platform.startswith('win32'):
-    try:
-        import jaraco.windows.filesystem as jwfs
-    except ImportError:
-        # Use vendored subset of jaraco.windows
-        from ubelt import _win32_jaraco as jwfs
+    # try:
+    #     import jaraco.windows.filesystem as jwfs
+    # except ImportError:
+    # Use vendored subset of jaraco.windows
+    from ubelt import _win32_jaraco as jwfs
 
 __win32_can_symlink__ = None  # type: bool | None
 
@@ -46,7 +46,6 @@ def _win32_can_symlink(verbose=0, force=0, testing=0):
 
     Example:
         >>> # xdoctest: +REQUIRES(WIN32)
-        >>> # xdoctest: +REQUIRES(module:jaraco)
         >>> import ubelt as ub
         >>> _win32_can_symlink(verbose=1, force=1, testing=1)
     """
@@ -278,7 +277,6 @@ def _win32_junction(path, link, verbose=0):
 
     Example:
         >>> # xdoc: +REQUIRES(WIN32)
-        >>> # xdoctest: +REQUIRES(module:jaraco)
         >>> import ubelt as ub
         >>> root = ub.Path.appdir('ubelt', 'win32_junction').ensuredir()
         >>> ub.delete(root)
@@ -343,7 +341,6 @@ def _win32_is_junction(path):
 
     Example:
         >>> # xdoctest: +REQUIRES(WIN32)
-        >>> # xdoctest: +REQUIRES(module:jaraco)
         >>> import ubelt as ub
         >>> root = ub.Path.appdir('ubelt', 'win32_junction').ensuredir()
         >>> ub.delete(root)
@@ -392,7 +389,6 @@ def _win32_read_junction(path):
 
     Example:
         >>> # xdoc: +REQUIRES(WIN32)
-        >>> # xdoctest: +REQUIRES(module:jaraco)
         >>> import ubelt as ub
         >>> root = ub.Path.appdir('ubelt', 'win32_junction').ensuredir()
         >>> ub.delete(root)
@@ -506,7 +502,6 @@ def _win32_is_hardlinked(fpath1, fpath2):
 
     Example:
         >>> # xdoc: +REQUIRES(WIN32)
-        >>> # xdoctest: +REQUIRES(module:jaraco)
         >>> import ubelt as ub
         >>> root = ub.Path.appdir('ubelt', 'win32_hardlink').ensuredir()
         >>> ub.delete(root)
