@@ -57,6 +57,10 @@ Ignore:
 import ctypes.wintypes
 import ctypes
 
+# Makes mypy happy
+import sys
+assert sys.platform == "win32"
+
 
 def handle_nonzero_success(result):
     if (result == 0):
