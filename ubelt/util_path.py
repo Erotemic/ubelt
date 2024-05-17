@@ -1514,7 +1514,7 @@ class Path(_PathBase):
         copy_function = self._request_copy_function(
             follow_file_symlinks=follow_file_symlinks,
             follow_dir_symlinks=follow_dir_symlinks, meta=meta)
-        if WIN32 and platform.python_implementation == 'PyPy':
+        if WIN32 and platform.python_implementation() == 'PyPy':
             _patch_win32_stats_on_pypy()
         if self.is_dir():
             if sys.version_info[0:2] < (3, 8):  # nocover
