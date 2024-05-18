@@ -1830,12 +1830,14 @@ def _encode_chmod_int(int_code):
 
 def _patch_win32_stats_on_pypy():
     """
-    Handle [PyPyIssue4953]_.
+    Handle [PyPyIssue4953]_ [PyPyDiscuss4952]_.
 
     References:
         [PyPyIssue4953] https://github.com/pypy/pypy/issues/4953#event-12838738353
+        [PyPyDiscuss4952] https://github.com/orgs/pypy/discussions/4952#discussioncomment-9481845
     """
     if not hasattr(stat, 'IO_REPARSE_TAG_MOUNT_POINT'):
+        os.supports_follow_symlinks.add("stat")
         stat.IO_REPARSE_TAG_APPEXECLINK = 0x8000001b  # windows
         stat.IO_REPARSE_TAG_MOUNT_POINT = 0xa0000003  # windows
         stat.IO_REPARSE_TAG_SYMLINK = 0xa000000c      # windows
