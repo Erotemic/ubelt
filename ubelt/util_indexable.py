@@ -546,7 +546,7 @@ class IndexableWalker(Generator):
                     is the number of approximately equal items (i.e. floats) there were
 
         Example:
-            >>> from ubelt.util_indexable import *  # NOQA
+            >>> import ubelt as ub
             >>> dct1 = {
             >>>     'foo': [1.222222, 1.333],
             >>>     'bar': 1,

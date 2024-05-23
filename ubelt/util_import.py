@@ -551,17 +551,21 @@ def _syspath_modname_to_modpath(modname, sys_path=None, exclude=None):
             # break with pytest anymore? Nope, pytest still doesn't work right
             # with it.
             for finder_fpath in new_editable_finder_paths:
-                mapping = _static_parse('MAPPING', finder_fpath)
                 try:
-                    target = dirname(mapping[_pkg_name])
-                except KeyError:
+                    mapping = _static_parse('MAPPING', finder_fpath)
+                except AttributeError:
                     ...
                 else:
-                    if not exclude or normalize(target) not in real_exclude:  # pragma: nobranch
-                        modpath = check_dpath(target)
-                        if modpath:  # pragma: nobranch
-                            found_modpath = modpath
-                            break
+                    try:
+                        target = dirname(mapping[_pkg_name])
+                    except KeyError:
+                        ...
+                    else:
+                        if not exclude or normalize(target) not in real_exclude:  # pragma: nobranch
+                            modpath = check_dpath(target)
+                            if modpath:  # pragma: nobranch
+                                found_modpath = modpath
+                                break
             if found_modpath is not None:
                 break
 
@@ -646,6 +650,14 @@ def _importlib_import_modpath(modpath):  # nocover
     return module
 
 
+def _importlib_modname_to_modpath(modname):  # nocover
+    import importlib.util
+    spec = importlib.util.find_spec(modname)
+    print(f'spec={spec}')
+    modpath = spec.origin.replace('.pyc', '.py')
+    return modpath
+
+
 def _pkgutil_modname_to_modpath(modname):  # nocover
     """
     faster version of :func:`_syspath_modname_to_modpath` using builtin python
@@ -717,7 +729,18 @@ def modname_to_modpath(modname, hide_init=True, hide_main=False, sys_path=None):
         >>> modpath = basename(modname_to_modpath('_ctypes'))
         >>> assert 'ctypes' in modpath
     """
-    modpath = _syspath_modname_to_modpath(modname, sys_path)
+    if hide_main or sys_path:
+        modpath = _syspath_modname_to_modpath(modname, sys_path)
+    else:
+        # import xdev
+        # with xdev.embed_on_exception_context:
+        try:
+            modpath = _importlib_modname_to_modpath(modname)
+        except Exception:
+            modpath = _syspath_modname_to_modpath(modname, sys_path)
+        # modpath = _pkgutil_modname_to_modpath(modname, sys_path)
+        # modpath = _syspath_modname_to_modpath(modname, sys_path)
+
     if modpath is None:
         return None
 
