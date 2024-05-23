@@ -734,12 +734,12 @@ def modname_to_modpath(modname, hide_init=True, hide_main=False, sys_path=None):
     else:
         # import xdev
         # with xdev.embed_on_exception_context:
-        try:
-            modpath = _importlib_modname_to_modpath(modname)
-        except Exception:
-            modpath = _syspath_modname_to_modpath(modname, sys_path)
+        # try:
+        #     modpath = _importlib_modname_to_modpath(modname)
+        # except Exception:
+        #     modpath = _syspath_modname_to_modpath(modname, sys_path)
         # modpath = _pkgutil_modname_to_modpath(modname, sys_path)
-        # modpath = _syspath_modname_to_modpath(modname, sys_path)
+        modpath = _syspath_modname_to_modpath(modname, sys_path)
 
     if modpath is None:
         return None
