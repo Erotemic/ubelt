@@ -11,7 +11,29 @@ References:
 """
 from math import isclose
 from collections.abc import Generator
+from typing import NamedTuple, Tuple, Any
 # from collections.abc import Iterable
+
+from functools import cache
+
+
+@cache
+def _lazy_numpy():
+    try:
+        import numpy as np
+    except ImportError:
+        return None
+    return np
+
+
+class Difference(NamedTuple):
+    """
+    A result class of indexable_diff that organizes what the difference between
+    the indexables is.
+    """
+    path: Tuple
+    value1: Any
+    value2: Any
 
 
 class IndexableWalker(Generator):
@@ -327,7 +349,7 @@ class IndexableWalker(Generator):
                     if isinstance(value, self.indexable_cls):
                         stack.append((value, path))
 
-    def allclose(self, other, rel_tol=1e-9, abs_tol=0.0, return_info=False):
+    def allclose(self, other, rel_tol=1e-9, abs_tol=0.0, equal_nan=False, return_info=False):
         """
         Walks through this and another nested data structures and checks if
         everything is roughly the same.
@@ -343,6 +365,9 @@ class IndexableWalker(Generator):
             abs_tol (float):
                 maximum difference for being considered "close", regardless of the
                 magnitude of the input values
+
+            equal_nan (bool):
+                if True, numpy must be available, and consider nans as equal.
 
             return_info (bool, default=False): if true, return extra info dict
 
@@ -439,6 +464,8 @@ class IndexableWalker(Generator):
             walker2 = IndexableWalker(other, dict_cls=self.dict_cls,
                                       list_cls=self.list_cls)
 
+        _isclose_fn, _iskw = _make_isclose_fn(rel_tol, abs_tol, equal_nan)
+
         flat_items1 = [
             (path, value) for path, value in walker1
             if not isinstance(value, walker1.indexable_cls) or len(value) == 0]
@@ -463,11 +490,10 @@ class IndexableWalker(Generator):
                 p2, v2 = t2
                 assert p1 == p2, 'paths to the nested items should be the same'
 
-                flag = (v1 == v2)
-                if not flag:
-                    if isinstance(v1, float) and isinstance(v2, float):
-                        if isclose(v1, v2, rel_tol=rel_tol, abs_tol=abs_tol):
-                            flag = True
+                flag = (v1 == v2) or (
+                    isinstance(v1, float) and isinstance(v2, float) and
+                    _isclose_fn(v1, v2, **_iskw)
+                )
                 if flag:
                     passlist.append(p1)
                 else:
@@ -487,6 +513,142 @@ class IndexableWalker(Generator):
             return final_flag, info
         else:
             return final_flag
+
+    def diff(self, other, rel_tol=1e-9, abs_tol=0.0, equal_nan=False):
+        """
+        Walks through two nested data structures finds differences in the
+        structures.
+
+        Args:
+            other (IndexableWalker | List | Dict):
+                a nested indexable item to compare against.
+
+            rel_tol (float):
+                maximum difference for being considered "close", relative to the
+                magnitude of the input values
+
+            abs_tol (float):
+                maximum difference for being considered "close", regardless of the
+                magnitude of the input values
+
+            equal_nan (bool):
+                if True, numpy must be available, and consider nans as equal.
+
+        Returns:
+            dict: information about the diff with
+                "similarity": a score between 0 and 1
+                "num_differences" being the number of paths not common plus the
+                    number of common paths with differing values.
+                "unique1": being the paths that were unique to self
+                "unique2": being the paths that were unique to other
+                "faillist": a list 3-tuples of common path and differing values
+                "num_approximations":
+                    is the number of approximately equal items (i.e. floats) there were
+
+        Example:
+            >>> from ubelt.util_indexable import *  # NOQA
+            >>> dct1 = {
+            >>>     'foo': [1.222222, 1.333],
+            >>>     'bar': 1,
+            >>>     'baz': [],
+            >>>     'top': [1, 2, 3],
+            >>>     'L0': {'L1': {'L2': {'K1': 'V1', 'K2': 'V2', 'D1': 1, 'D2': 2}}},
+            >>> }
+            >>> dct2 = {
+            >>>     'foo': [1.22222, 1.333],
+            >>>     'bar': 1,
+            >>>     'baz': [],
+            >>>     'buz': {1: 2},
+            >>>     'top': [1, 1, 2],
+            >>>     'L0': {'L1': {'L2': {'K1': 'V1', 'K2': 'V2', 'D1': 10, 'D2': 20}}},
+            >>> }
+            >>> info = ub.IndexableWalker(dct1).diff(dct2)
+            >>> print(f'info = {ub.urepr(info, nl=2)}')
+
+        Example:
+            >>> # xdoctest: +REQUIRES(module:numpy)
+            >>> import ubelt as ub
+            >>> import numpy as np
+            >>> a = np.random.rand(3, 5)
+            >>> b = a + 1
+            >>> wa = ub.IndexableWalker(a, list_cls=(np.ndarray,))
+            >>> wb = ub.IndexableWalker(b, list_cls=(np.ndarray,))
+            >>> info =  wa.diff(wb)
+            >>> print(f'info = {ub.urepr(info, nl=2)}')
+            >>> a = np.random.rand(3, 5)
+            >>> b = a.copy() + 1e-17
+            >>> wa = ub.IndexableWalker([a], list_cls=(np.ndarray, list))
+            >>> wb = ub.IndexableWalker([b], list_cls=(np.ndarray, list))
+            >>> info =  wa.diff(wb)
+            >>> print(f'info = {ub.urepr(info, nl=2)}')
+        """
+        walker1 = self
+        if isinstance(other, IndexableWalker):
+            walker2 = other
+        else:
+            walker2 = IndexableWalker(other, dict_cls=self.dict_cls,
+                                      list_cls=self.list_cls)
+        # TODO: numpy optimizations
+        flat_items1 = {
+            tuple(path): value for path, value in walker1
+            if not isinstance(value, walker1.indexable_cls) or len(value) == 0}
+        flat_items2 = {
+            tuple(path): value for path, value in walker2
+            if not isinstance(value, walker1.indexable_cls) or len(value) == 0}
+
+        common = flat_items1.keys() & flat_items2.keys()
+        unique1 = flat_items1.keys() - flat_items2.keys()
+        unique2 = flat_items2.keys() - flat_items1.keys()
+
+        num_approximations = 0
+
+        _isclose_fn, _iskw = _make_isclose_fn(rel_tol, abs_tol, equal_nan)
+
+        faillist = []
+        passlist = []
+        for key in common:
+            v1 = flat_items1[key]
+            v2 = flat_items2[key]
+            flag = (v1 == v2)
+            if not flag:
+                flag = (
+                    isinstance(v1, float) and isinstance(v2, float) and
+                    _isclose_fn(v1, v2, **_iskw)
+                )
+                num_approximations += flag
+            if flag:
+                passlist.append(key)
+            else:
+                faillist.append(Difference(key, v1, v2))
+
+        num_differences = len(unique1) + len(unique2) + len(faillist)
+        num_similarities = len(passlist)
+
+        similarity = num_similarities / (num_similarities + num_differences)
+        info = {
+            'similarity': similarity,
+            'num_approximations': num_approximations,
+            'num_differences': num_differences,
+            'num_similarities': num_similarities,
+            'unique1': unique1,
+            'unique2': unique2,
+            'faillist': faillist,
+            'passlist': passlist,
+        }
+        return info
+
+
+def _make_isclose_fn(rel_tol, abs_tol, equal_nan):
+    np = _lazy_numpy()
+    if np is None:
+        _isclose_fn = isclose
+        _iskw = dict(rel_tol=rel_tol, abs_tol=abs_tol)
+        if equal_nan:
+            raise NotImplementedError('requires numpy')
+    else:
+        _isclose_fn = np.isclose
+        _iskw = dict(rtol=rel_tol, atol=abs_tol, equal_nan=equal_nan)
+    return _isclose_fn, _iskw
 
 
 def indexable_allclose(items1, items2, rel_tol=1e-9, abs_tol=0.0, return_info=False):
@@ -549,8 +711,11 @@ def indexable_allclose(items1, items2, rel_tol=1e-9, abs_tol=0.0, return_info=Fa
                             return_info=return_info)
 
 
+Nested = IndexableWalker
+
+
 # class Indexable(IndexableWalker):
 #     """
-#     In the future IndexableWalker may simply change to Indexable
+#     In the future IndexableWalker may simply change to Indexable or maybe Nested
 #     """
 #     ...

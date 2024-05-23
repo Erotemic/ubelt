@@ -6,6 +6,10 @@ This project (loosely) adheres to [Semantic Versioning](https://semver.org/spec/
 
 ## Version 1.3.6 - 
 
+### Added:
+* Add `ub.IndexableWalker.diff` 
+* Add alias `Nested = IndexableWalker` 
+
 ### Fixed:
 * `ub.import_module_from_path` now correctly accepts `PathLike` objects.
 

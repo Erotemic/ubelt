@@ -177,7 +177,7 @@ from ubelt.util_hash import (hash_data, hash_file,)
 from ubelt.util_import import (import_module_from_name,
                                import_module_from_path, modname_to_modpath,
                                modpath_to_modname, split_modpath,)
-from ubelt.util_indexable import (IndexableWalker, indexable_allclose,)
+from ubelt.util_indexable import (Nested, IndexableWalker, indexable_allclose,)
 from ubelt.util_memoize import (memoize, memoize_method, memoize_property,)
 from ubelt.util_mixins import (NiceRepr,)
 from ubelt.util_path import (ChDir, Path, TempDir, augpath, ensuredir,
@@ -195,7 +195,7 @@ from ubelt.progiter import (ProgIter,)
 __all__ = ['AutoDict', 'AutoOrderedDict', 'CacheStamp', 'Cacher',
            'CaptureStdout', 'CaptureStream', 'ChDir', 'DARWIN',
            'DownloadManager', 'Executor', 'FormatterExtensions',
-           'IndexableWalker', 'JobPool', 'LINUX', 'NO_COLOR', 'NiceRepr',
+           'IndexableWalker', 'Nested', 'JobPool', 'LINUX', 'NO_COLOR', 'NiceRepr',
            'NoParam', 'OrderedSet', 'POSIX', 'Path', 'ProgIter',
            'ReprExtensions', 'SetDict', 'TeeStringIO', 'TempDir', 'Timer',
            'UDict', 'WIN32', 'allsame', 'argflag', 'argmax', 'argmin',
