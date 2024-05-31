@@ -14,7 +14,10 @@ from collections.abc import Generator
 from typing import NamedTuple, Tuple, Any
 # from collections.abc import Iterable
 
-from functools import cache
+try:
+    from functools import cache
+except ImportError:
+    from ubelt.util_memoize import memoize as cache
 
 
 @cache
@@ -711,9 +714,7 @@ def indexable_allclose(items1, items2, rel_tol=1e-9, abs_tol=0.0, return_info=Fa
                             return_info=return_info)
 
 
-Nested = IndexableWalker
-
-
+# Nested = IndexableWalker
 # class Indexable(IndexableWalker):
 #     """
 #     In the future IndexableWalker may simply change to Indexable or maybe Nested

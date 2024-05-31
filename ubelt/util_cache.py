@@ -36,13 +36,13 @@ easier and cleaner. The following example illustrates this:
 Example:
     >>> import ubelt as ub
 
-    >>> @ub.Cacher('name', depends={'dep1': 1, 'dep2': 2})  # boilerplate:1
+    >>> @ub.Cacher('name', depends='set-of-deps')           # boilerplate:1
     >>> def func():                                         # boilerplate:2
     >>>     data = 'mydata'
     >>>     return data                                     # boilerplate:3
     >>> data = func()                                       # boilerplate:4
 
-    >>> cacher = ub.Cacher('name', depends=['dependencies'])  # boilerplate:1
+    >>> cacher = ub.Cacher('name', depends='set-of-deps')     # boilerplate:1
     >>> data = cacher.tryload(on_error='clear')               # boilerplate:2
     >>> if data is None:                                      # boilerplate:3
     >>>     data = 'mydata'

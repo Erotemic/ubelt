@@ -663,6 +663,9 @@ def _pkgutil_modname_to_modpath(modname):  # nocover
     faster version of :func:`_syspath_modname_to_modpath` using builtin python
     mechanisms, but unfortunately it doesn't play nice with pytest.
 
+    Note:
+        pkgutil.find_loader is deprecated in 3.12 and removed in 3.14
+
     Args:
         modname (str): the module name.
 
