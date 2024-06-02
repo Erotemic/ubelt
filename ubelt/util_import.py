@@ -625,9 +625,10 @@ def _custom_import_modpath(modpath, index=-1):
         with PythonPathContext(dpath, index=index):
             module = import_module_from_name(modname)
     except Exception as ex:  # nocover
-        msg_parts = [
-            'ERROR: Failed to import modname={} with modpath={}'.format(
-                modname, modpath)
+        msg_parts = [(
+            'ERROR: Failed to import modname={} with modpath={} and '
+            'sys.path modified with {} at index={}').format(
+                modname, modpath, repr(dpath), index)
         ]
         msg_parts.append('Caused by: {}'.format(repr(ex)))
         raise RuntimeError('\n'.join(msg_parts))
