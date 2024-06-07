@@ -118,15 +118,24 @@ def _win32_can_symlink(verbose=0, force=0, testing=0):
 
     try:
         # test that we can create junctions, even if symlinks are disabled
+        if verbose:
+            print('Testing that we can create junctions, '
+                  'even if symlinks are disabled')
         djunc = _win32_junction(dpath, join(tempdir, 'djunc'))
         fjunc = _win32_junction(fpath, join(tempdir, 'fjunc.txt'))
         if testing:
             _win32_junction(broken_dpath, join(tempdir, 'broken_djunc'))
             _win32_junction(broken_fpath, join(tempdir, 'broken_fjunc.txt'))
         if not _win32_is_junction(djunc):
-            raise AssertionError('expected junction')
+            print('Error: djunc={djunc} claims to not be a junction')
+            from ubelt import util_links
+            util_links._dirstats(tempdir)
+            raise AssertionError('expected djunc={djunc} to be a junction')
         if not _win32_is_hardlinked(fpath, fjunc):
-            raise AssertionError('expected hardlink')
+            print('Error: fjunc={fjunc} claims to not be a hardlink')
+            from ubelt import util_links
+            util_links._dirstats(tempdir)
+            raise AssertionError('expected fjunc={fjunc} to be a hardlink')
     except Exception:
         warnings.warn('We cannot create junctions either!')
         raise
