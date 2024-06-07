@@ -467,9 +467,20 @@ def teardown_module(module):
 
 def test_import_of_editable_install():
     _check_skip_editable_module_tests()
+    print('Testing ediable installs')
     import ubelt as ub
     for PROJ in GLOBAL_PROJECTS:
         result = ub.modname_to_modpath(PROJ.mod_name)
         print(f'result={result}')
         assert result is not None
         assert PROJ.mod_dpath == ub.Path(result)
+
+
+if __name__ == '__main__':
+    """
+    CommandLine:
+        UBELT_DO_EDITABLE_TESTS=1 python ~/code/ubelt/tests/test_editable_modules.py
+    """
+    setup_module(None)
+    test_import_of_editable_install()
+    teardown_module(None)

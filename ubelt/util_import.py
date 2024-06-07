@@ -977,6 +977,13 @@ def _static_parse(varname, fpath):
     """
     Statically parse the a constant variable from a python file
 
+    Args:
+        varname (str): variable name to extract
+        fpath (str | PathLike): path to python file to parse
+
+    Returns:
+        Any: the static value
+
     Example:
         >>> import ubelt as ub
         >>> from ubelt.util_import import _static_parse
@@ -1001,6 +1008,10 @@ def _static_parse(varname, fpath):
         >>> with pytest.raises(AttributeError):
         >>>     fpath.write_text('a = list(range(10))')
         >>>     assert _static_parse('c', fpath) is None
+        >>> if sys.version_info[0:2] >= (3, 6):
+        >>>     # Test with type annotations
+        >>>     fpath.write_text('b: int = 10')
+        >>>     assert _static_parse('b', fpath) == 10
     """
     import ast
 
@@ -1013,8 +1024,15 @@ def _static_parse(varname, fpath):
     class StaticVisitor(ast.NodeVisitor):
         def visit_Assign(self, node):
             for target in node.targets:
-                if getattr(target, 'id', None) == varname:
+                target_id = getattr(target, 'id', None)
+                if target_id == varname:
                     self.static_value = _parse_static_node_value(node.value)
+
+        def visit_AnnAssign(self, node):
+            target = node.target
+            target_id = getattr(target, 'id', None)
+            if target_id == varname:
+                self.static_value = _parse_static_node_value(node.value)
 
     visitor = StaticVisitor()
     visitor.visit(pt)

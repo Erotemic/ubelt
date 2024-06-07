@@ -11,6 +11,8 @@ This project (loosely) adheres to [Semantic Versioning](https://semver.org/spec/
 
 ### Fixed:
 * `ub.import_module_from_path` now correctly accepts `PathLike` objects.
+* `ub.modname_to_modpath` fixed in cases where editable installs use type
+  annotations in their MAPPING definition.
 
 ### Added
 * Support for UNIX special permission (suid/sgid/svtx) codes in `Path.chmod`.
