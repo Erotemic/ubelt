@@ -1605,6 +1605,10 @@ class Path(_PathBase):
             raise FileExistsError(
                 'Moves are only allowed to locations that dont exist')
         import shutil
+
+        if WIN32 and platform.python_implementation() == 'PyPy':
+            _patch_win32_stats_on_pypy()
+
         copy_function = self._request_copy_function(
             follow_file_symlinks=follow_file_symlinks,
             follow_dir_symlinks=follow_dir_symlinks, meta=meta)

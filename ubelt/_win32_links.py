@@ -21,6 +21,7 @@ Weird Behavior:
 """
 import os
 import warnings
+import platform
 from os.path import exists
 from os.path import join
 from ubelt import util_io
@@ -47,7 +48,7 @@ def _win32_can_symlink(verbose=0, force=0, testing=0):
     Example:
         >>> # xdoctest: +REQUIRES(WIN32)
         >>> import ubelt as ub
-        >>> _win32_can_symlink(verbose=1, force=1, testing=1)
+        >>> _win32_can_symlink(verbose=3, force=1, testing=1)
     """
     global __win32_can_symlink__
     if verbose:
@@ -91,9 +92,9 @@ def _win32_can_symlink(verbose=0, force=0, testing=0):
         util_io.touch(broken_fpath)
 
     try:
-        _win32_symlink(dpath, dlink)
+        _win32_symlink(dpath, dlink, verbose=verbose)
         if testing:
-            _win32_symlink(broken_dpath, join(tempdir, 'broken_dlink'))
+            _win32_symlink(broken_dpath, join(tempdir, 'broken_dlink'), verbose=verbose)
         can_symlink_directories = os.path.islink(dlink)
     except OSError:
         can_symlink_directories = False
@@ -101,9 +102,9 @@ def _win32_can_symlink(verbose=0, force=0, testing=0):
         print('can_symlink_directories = {!r}'.format(can_symlink_directories))
 
     try:
-        _win32_symlink(fpath, flink)
+        _win32_symlink(fpath, flink, verbose=verbose)
         if testing:
-            _win32_symlink(broken_fpath, join(tempdir, 'broken_flink'))
+            _win32_symlink(broken_fpath, join(tempdir, 'broken_flink'), verbose=verbose)
         can_symlink_files = os.path.islink(flink)
         # os.path.islink(flink)
     except OSError:
@@ -121,21 +122,25 @@ def _win32_can_symlink(verbose=0, force=0, testing=0):
         if verbose:
             print('Testing that we can create junctions, '
                   'even if symlinks are disabled')
-        djunc = _win32_junction(dpath, join(tempdir, 'djunc'))
-        fjunc = _win32_junction(fpath, join(tempdir, 'fjunc.txt'))
+            # from ubelt import util_links
+            # util_links._dirstats(tempdir)
+            # print('^^ before ^^')
+
+        djunc = _win32_junction(dpath, join(tempdir, 'djunc'), verbose=verbose)
+        fjunc = _win32_junction(fpath, join(tempdir, 'fjunc.txt'), verbose=verbose)
         if testing:
-            _win32_junction(broken_dpath, join(tempdir, 'broken_djunc'))
-            _win32_junction(broken_fpath, join(tempdir, 'broken_fjunc.txt'))
+            _win32_junction(broken_dpath, join(tempdir, 'broken_djunc'), verbose=verbose)
+            _win32_junction(broken_fpath, join(tempdir, 'broken_fjunc.txt'), verbose=verbose)
         if not _win32_is_junction(djunc):
-            print('Error: djunc={djunc} claims to not be a junction')
+            print(f'Error: djunc={djunc} claims to not be a junction')
             from ubelt import util_links
             util_links._dirstats(tempdir)
-            raise AssertionError('expected djunc={djunc} to be a junction')
+            raise AssertionError(f'expected djunc={djunc} to be a junction')
         if not _win32_is_hardlinked(fpath, fjunc):
-            print('Error: fjunc={fjunc} claims to not be a hardlink')
+            print(f'Error: fjunc={fjunc} claims to not be a hardlink')
             from ubelt import util_links
             util_links._dirstats(tempdir)
-            raise AssertionError('expected fjunc={fjunc} to be a hardlink')
+            raise AssertionError(f'expected fjunc={fjunc} to be a hardlink')
     except Exception:
         warnings.warn('We cannot create junctions either!')
         raise
@@ -248,6 +253,9 @@ def _win32_symlink(path, link, verbose=0):
     specially enabled symlink permissions. On Windows 10 enabling developer
     mode should give you these permissions.
     """
+    if verbose >= 3:
+        print(f'_win32_symlink {link} -> {path}')
+
     from ubelt import util_cmd
     if os.path.isdir(path):
         # directory symbolic link
@@ -265,7 +273,8 @@ def _win32_symlink(path, link, verbose=0):
         command = 'mklink "{}" "{}"'.format(link, path)
 
     if command is not None:
-        info = util_cmd.cmd(command, shell=True)
+        cmd_verbose = 3 * verbose >= 3
+        info = util_cmd.cmd(command, shell=True, verbose=cmd_verbose)
         if info['ret'] != 0:
             from ubelt import util_repr
             permission_msg = 'You do not have sufficient privledge'
@@ -313,11 +322,14 @@ def _win32_junction(path, link, verbose=0):
     path = os.path.abspath(path)
     link = os.path.abspath(link)
 
+    if verbose >= 3:
+        print(f'_win32_junction {link} -> {path}')
+
     from ubelt import util_cmd
     if os.path.isdir(path):
         # try using a junction (soft link)
         if verbose:
-            print('... as soft link')
+            print('... as soft link (junction)')
 
         # TODO: what is the windows api for this?
         command = 'mklink /J "{}" "{}"'.format(link, path)
@@ -334,7 +346,8 @@ def _win32_junction(path, link, verbose=0):
         command = None
 
     if command is not None:
-        info = util_cmd.cmd(command, shell=True)
+        cmd_verbose = 3 * verbose >= 3
+        info = util_cmd.cmd(command, shell=True, verbose=cmd_verbose)
         if info['ret'] != 0:
             from ubelt import util_repr
             print('Failed command:')
@@ -350,13 +363,14 @@ def _win32_is_junction(path):
 
     Example:
         >>> # xdoctest: +REQUIRES(WIN32)
+        >>> from ubelt._win32_links import _win32_junction, _win32_is_junction
         >>> import ubelt as ub
         >>> root = ub.Path.appdir('ubelt', 'win32_junction').ensuredir()
         >>> ub.delete(root)
         >>> ub.ensuredir(root)
-        >>> dpath = join(root, 'dpath')
-        >>> djunc = join(root, 'djunc')
-        >>> ub.ensuredir(dpath)
+        >>> dpath = root / 'dpath'
+        >>> djunc = root / 'djunc'
+        >>> dpath.ensuredir()
         >>> _win32_junction(dpath, djunc)
         >>> assert _win32_is_junction(djunc) is True
         >>> assert _win32_is_junction(dpath) is False
@@ -368,7 +382,14 @@ def _win32_is_junction(path):
             if not os.path.islink(path):
                 return True
         return False
-    return _is_reparse_point(path) and not os.path.islink(path)
+
+    if platform.python_implementation() == 'PyPy':
+        # Workaround for pypy where os.path.islink will return True
+        # for a junction. Can we just rely on it being a reparse point?
+        # https://github.com/pypy/pypy/issues/4976
+        return _is_reparse_point(path)
+    else:
+        return _is_reparse_point(path) and not os.path.islink(path)
 
 
 def _is_reparse_point(path):

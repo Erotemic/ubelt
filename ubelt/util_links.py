@@ -324,9 +324,17 @@ def _dirstats(dpath=None):  # nocover
                 # I get it, they are probably broken junctions, but common
                 # That should probably be 00011 not 00000
                 path = util_colors.color_text(path, 'red')
+            elif ELFDJ == [1, 1, 0, 1, 1]:
+                # Agg, on windows pypy, it looks like junctions and links are
+                # harder to distinguish. See
+                # https://github.com/pypy/pypy/issues/4976
+                path = util_colors.color_text(path, 'red')
+            elif ELFDJ == [1, 1, 1, 0, 1]:
+                # Again? on windows pypy, its a link/file/junction what?
+                path = util_colors.color_text(path, 'red')
             else:
                 print('dpath = {!r}'.format(dpath))
-                print('path = {!r}'.format(path))
+                print('pathhttps://github.com/pypy/pypy/issues/4976 = {!r}'.format(path))
                 raise AssertionError(str(ELFDJ) + str(path))
             line = '{E:d} {L:d} {F:d} {D:d} {J:d} - {path}'.format(**locals())
             if os.path.islink(full_path):
