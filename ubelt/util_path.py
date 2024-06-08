@@ -1377,11 +1377,22 @@ class Path(_PathBase):
         import shutil
         from functools import partial
         if meta is None:
-            copy_function = partial(shutil.copyfile, follow_symlinks=follow_file_symlinks)
+            if follow_file_symlinks:
+                copy_function = shutil.copyfile
+            else:
+                copy_function = partial(shutil.copyfile, follow_symlinks=follow_file_symlinks)
         elif meta == 'stats':
-            copy_function = partial(shutil.copy2, follow_symlinks=follow_file_symlinks)
+            if follow_file_symlinks:
+                # Avoiding the use of the partial enables shutil optimizations
+                copy_function = shutil.copy2
+            else:
+                copy_function = partial(shutil.copy2, follow_symlinks=follow_file_symlinks)
         elif meta == 'mode':
-            copy_function = partial(shutil.copy, follow_symlinks=follow_file_symlinks)
+            if follow_file_symlinks:
+                # Avoiding the use of the partial enables shutil optimizations
+                copy_function = shutil.copy
+            else:
+                copy_function = partial(shutil.copy, follow_symlinks=follow_file_symlinks)
         else:
             raise KeyError(meta)
         return copy_function
