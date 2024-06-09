@@ -1375,6 +1375,7 @@ class Path(_PathBase):
         Get a copy_function based on specified capabilities
         """
         import shutil
+        # Note: Avoiding the use of the partial enables shutil optimizations
         from functools import partial
         if meta is None:
             if follow_file_symlinks:
@@ -1383,13 +1384,11 @@ class Path(_PathBase):
                 copy_function = partial(shutil.copyfile, follow_symlinks=follow_file_symlinks)
         elif meta == 'stats':
             if follow_file_symlinks:
-                # Avoiding the use of the partial enables shutil optimizations
                 copy_function = shutil.copy2
             else:
                 copy_function = partial(shutil.copy2, follow_symlinks=follow_file_symlinks)
         elif meta == 'mode':
             if follow_file_symlinks:
-                # Avoiding the use of the partial enables shutil optimizations
                 copy_function = shutil.copy
             else:
                 copy_function = partial(shutil.copy, follow_symlinks=follow_file_symlinks)
@@ -1854,6 +1853,7 @@ def _patch_win32_stats_on_pypy():
     """
     if not hasattr(stat, 'IO_REPARSE_TAG_MOUNT_POINT'):
         os.supports_follow_symlinks.add("stat")
+        os.supports_follow_symlinks.add(os.stat)
         stat.IO_REPARSE_TAG_APPEXECLINK = 0x8000001b  # windows
         stat.IO_REPARSE_TAG_MOUNT_POINT = 0xa0000003  # windows
         stat.IO_REPARSE_TAG_SYMLINK = 0xa000000c      # windows
