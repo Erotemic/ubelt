@@ -361,6 +361,13 @@ def _win32_is_junction(path):
     """
     Determines if a path is a win32 junction
 
+    Note:
+        on PyPy this is bugged and will currently return True for a symlinked
+        directory.
+
+    Returns:
+        bool:
+
     Example:
         >>> # xdoctest: +REQUIRES(WIN32)
         >>> from ubelt._win32_links import _win32_junction, _win32_is_junction
@@ -396,12 +403,14 @@ def _is_reparse_point(path):
     """
     Check if a directory is a reparse point in windows.
 
+    Note: a reparse point seems like it could be a junction or symlink.
+
     .. [SO54678399] https://stackoverflow.com/a/54678399/887074
     """
     if jwfs is None:
         raise ImportError('jaraco.windows.filesystem is required to run _is_reparse_point')
     # if jwfs is not None:
-    return jwfs.is_reparse_point(path)
+    return jwfs.is_reparse_point(os.fspath(path))
     # else:
     #     # Fallback without jaraco: TODO: test this is 1-to-1
     #     # Seems to break on pypy?

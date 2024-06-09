@@ -229,6 +229,15 @@ def _readlink(link):
 
     if _win32_links:  # nocover
         if _win32_links._win32_is_junction(link):
+            import platform
+            if platform.python_implementation() == 'PyPy':
+                # On PyPy this test can have a false positive
+                # for what should be a regular link.
+                path = os.readlink(link)
+                junction_prefix = '\\\\?\\'
+                if path.startswith(junction_prefix):
+                    path = path[len(junction_prefix):]
+                    return path
             return _win32_links._win32_read_junction(link)
     try:
         path = os.readlink(link)
@@ -338,7 +347,8 @@ def _dirstats(dpath=None):  # nocover
                 raise AssertionError(str(ELFDJ) + str(path))
             line = '{E:d} {L:d} {F:d} {D:d} {J:d} - {path}'.format(**locals())
             if os.path.islink(full_path):
-                line += ' -> ' + os.readlink(full_path)
+                # line += ' -> ' + os.readlink(full_path)
+                line += ' -> ' + _readlink(full_path)
             elif _win32_links is not None:
                 if _win32_links._win32_is_junction(full_path):
                     resolved = _win32_links._win32_read_junction(full_path)

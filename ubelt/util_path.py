@@ -1174,6 +1174,24 @@ class Path(_PathBase):
     #     """
     #     return self.chmod(mode, follow_symlinks=False)
 
+    # TODO:
+    # chainable symlink_to that returns the new link
+    # chainable hardlink_to that returns the new link
+    # probably can just uncomment when ready for a new feature
+    # def symlink_to(self, target, target_is_directory=False):
+    #     """
+    #     Make this path a symlink pointing to the target path.
+    #     """
+    #     super().symlink_to(target, target_is_directory=target_is_directory)
+    #     return self
+
+    # def hardlink_to(self, target):
+    #     """
+    #     Make this path a hard link pointing to the same file as *target*.
+    #     """
+    #     super().hardlink_to(target)
+    #     return self
+
     def touch(self, mode=0o0666, exist_ok=True):
         """
         Create this file with the given access mode, if it doesn't exist.
