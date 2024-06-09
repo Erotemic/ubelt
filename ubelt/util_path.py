@@ -35,6 +35,8 @@ from os.path import (
 import os
 import sys
 import pathlib
+import platform
+import stat
 import warnings
 from ubelt import util_io
 
@@ -43,6 +45,8 @@ __all__ = [
     'Path', 'TempDir', 'augpath', 'shrinkuser', 'userhome', 'ensuredir',
     'expandpath', 'ChDir',
 ]
+
+WIN32 = sys.platform.startswith('win32')
 
 
 def augpath(path, suffix='', prefix='', ext=None, tail='', base=None,
@@ -198,7 +202,7 @@ def userhome(username=None):
         if 'HOME' in os.environ:
             userhome_dpath = os.environ['HOME']
         else:  # nocover
-            if sys.platform.startswith('win32'):
+            if WIN32:
                 # win32 fallback when HOME is not defined
                 if 'USERPROFILE' in os.environ:
                     userhome_dpath = os.environ['USERPROFILE']
@@ -213,7 +217,7 @@ def userhome(username=None):
                 userhome_dpath = pwd.getpwuid(os.getuid()).pw_dir
     else:
         # A specific user directory was requested
-        if sys.platform.startswith('win32'):  # nocover
+        if WIN32:  # nocover
             # get the directory name for the current user
             c_users = dirname(userhome())
             userhome_dpath = join(c_users, username)
@@ -1170,7 +1174,25 @@ class Path(_PathBase):
     #     """
     #     return self.chmod(mode, follow_symlinks=False)
 
-    def touch(self, mode=0o666, exist_ok=True):
+    # TODO:
+    # chainable symlink_to that returns the new link
+    # chainable hardlink_to that returns the new link
+    # probably can just uncomment when ready for a new feature
+    # def symlink_to(self, target, target_is_directory=False):
+    #     """
+    #     Make this path a symlink pointing to the target path.
+    #     """
+    #     super().symlink_to(target, target_is_directory=target_is_directory)
+    #     return self
+
+    # def hardlink_to(self, target):
+    #     """
+    #     Make this path a hard link pointing to the same file as *target*.
+    #     """
+    #     super().hardlink_to(target)
+    #     return self
+
+    def touch(self, mode=0o0666, exist_ok=True):
         """
         Create this file with the given access mode, if it doesn't exist.
 
@@ -1371,13 +1393,23 @@ class Path(_PathBase):
         Get a copy_function based on specified capabilities
         """
         import shutil
+        # Note: Avoiding the use of the partial enables shutil optimizations
         from functools import partial
         if meta is None:
-            copy_function = partial(shutil.copyfile, follow_symlinks=follow_file_symlinks)
+            if follow_file_symlinks:
+                copy_function = shutil.copyfile
+            else:
+                copy_function = partial(shutil.copyfile, follow_symlinks=follow_file_symlinks)
         elif meta == 'stats':
-            copy_function = partial(shutil.copy2, follow_symlinks=follow_file_symlinks)
+            if follow_file_symlinks:
+                copy_function = shutil.copy2
+            else:
+                copy_function = partial(shutil.copy2, follow_symlinks=follow_file_symlinks)
         elif meta == 'mode':
-            copy_function = partial(shutil.copy, follow_symlinks=follow_file_symlinks)
+            if follow_file_symlinks:
+                copy_function = shutil.copy
+            else:
+                copy_function = partial(shutil.copy, follow_symlinks=follow_file_symlinks)
         else:
             raise KeyError(meta)
         return copy_function
@@ -1510,11 +1542,16 @@ class Path(_PathBase):
         copy_function = self._request_copy_function(
             follow_file_symlinks=follow_file_symlinks,
             follow_dir_symlinks=follow_dir_symlinks, meta=meta)
+
+        if WIN32 and platform.python_implementation() == 'PyPy':
+            _patch_win32_stats_on_pypy()
+
         if self.is_dir():
             if sys.version_info[0:2] < (3, 8):  # nocover
                 copytree = _compat_copytree
             else:
                 copytree = shutil.copytree
+
             dst = copytree(
                 self, dst, copy_function=copy_function,
                 symlinks=not follow_dir_symlinks, dirs_exist_ok=overwrite)
@@ -1596,6 +1633,10 @@ class Path(_PathBase):
             raise FileExistsError(
                 'Moves are only allowed to locations that dont exist')
         import shutil
+
+        if WIN32 and platform.python_implementation() == 'PyPy':
+            _patch_win32_stats_on_pypy()
+
         copy_function = self._request_copy_function(
             follow_file_symlinks=follow_file_symlinks,
             follow_dir_symlinks=follow_dir_symlinks, meta=meta)
@@ -1619,6 +1660,17 @@ def _parse_chmod_code(code):
             target -- specified 'u' for user, 'g' for group, 'o' for other.
             op -- specified as '+' to add, '-' to remove, or '=' to assign.
             val -- specified as 'r' for read, 'w' for write, or 'x' for execute.
+
+    Notes:
+        The perm symbol X shall represent the execute/search portion of the
+        file mode bits if the file is a directory or if the current
+        (unmodified) file mode bits have at least one of the execute bits
+        (S_IXUSR, S_IXGRP, or S_IXOTH) set. It shall be ignored if the file is
+        not a directory and none of the execute bits are set in the current
+        file mode bits. [USE416877]_.
+
+    References:
+        ..[USE416877] https://unix.stackexchange.com/questions/416877/what-is-a-capital-x-in-posix-chmod
 
     Example:
         >>> from ubelt.util_path import _parse_chmod_code
@@ -1666,13 +1718,17 @@ def _resolve_chmod_code(old_mode, code):
     Returns:
         int : new code
 
+    References:
+        ..[RHEL_SpecialFilePerms] https://www.youtube.com/watch?v=Dn6b-mIKHmM&t=1970s
+
     Example:
+        >>> # test normal user / group / other, read / write / execute perms
         >>> from ubelt.util_path import _resolve_chmod_code
         >>> print(oct(_resolve_chmod_code(0, '+rwx')))
         >>> print(oct(_resolve_chmod_code(0, 'ugo+rwx')))
         >>> print(oct(_resolve_chmod_code(0, 'a-rwx')))
         >>> print(oct(_resolve_chmod_code(0, 'u+rw,go+r,go-wx')))
-        >>> print(oct(_resolve_chmod_code(0o777, 'u+rw,go+r,go-wx')))
+        >>> print(oct(_resolve_chmod_code(0o0777, 'u+rw,go+r,go-wx')))
         0o777
         0o777
         0o0
@@ -1683,14 +1739,17 @@ def _resolve_chmod_code(old_mode, code):
         >>>     print(oct(_resolve_chmod_code(0, 'u=rw')))
         >>> with pytest.raises(ValueError):
         >>>     _resolve_chmod_code(0, 'u?w')
+
+    Example:
+        >>> # Test special suid, sgid, and sticky (svtx) codes
+        >>> from ubelt.util_path import _resolve_chmod_code
+        >>> print(oct(_resolve_chmod_code(0, 'u+s')))
+        >>> print(oct(_resolve_chmod_code(0o7777, 'u-s')))
+        0o4000
+        0o3777
     """
-    import stat
     import itertools as it
     action_lut = {
-        # TODO: handle suid, sgid, and sticky?
-        # suid = stat.S_ISUID
-        # sgid = stat.S_ISGID
-        # sticky = stat.S_ISVTX
         'ur' : stat.S_IRUSR,
         'uw' : stat.S_IWUSR,
         'ux' : stat.S_IXUSR,
@@ -1702,6 +1761,11 @@ def _resolve_chmod_code(old_mode, code):
         'or' : stat.S_IROTH,
         'ow' : stat.S_IWOTH,
         'ox' : stat.S_IXOTH,
+
+        # Special UNIX permissions
+        'us': stat.S_ISUID,  # SUID (executes run as the file's owner)
+        'gs': stat.S_ISGID,  # SGID (executes run as the file's group)
+        'ot': stat.S_ISVTX,  # sticky (only owner can delete)
     }
     actions = _parse_chmod_code(code)
     new_mode = int(old_mode)  # (could optimize to modify inplace if needed)
@@ -1734,35 +1798,83 @@ def _encode_chmod_int(int_code):
 
     Currently unused, but may be useful in the future.
 
+    Args:
+        int_code (int): mode from st_stat
+        concise (bool): if True, uses concise representations of special perms
+
+    Returns:
+        str: the permissions code
+
     Example:
         >>> from ubelt.util_path import _encode_chmod_int
         >>> int_code = 0o744
         >>> print(_encode_chmod_int(int_code))
         u=rwx,g=r,o=r
+
+        >>> int_code = 0o7777
+        >>> print(_encode_chmod_int(int_code))
+        u=rwxs,g=rwxs,o=rwxt
     """
-    import stat
-    action_lut = {
-        'ur' : stat.S_IRUSR,
-        'uw' : stat.S_IWUSR,
-        'ux' : stat.S_IXUSR,
+    from collections import defaultdict, OrderedDict
+    action_lut = OrderedDict([
+        ('ur' , stat.S_IRUSR),
+        ('uw' , stat.S_IWUSR),
+        ('ux' , stat.S_IXUSR),
 
-        'gr' : stat.S_IRGRP,
-        'gw' : stat.S_IWGRP,
-        'gx' : stat.S_IXGRP,
+        ('gr' , stat.S_IRGRP),
+        ('gw' , stat.S_IWGRP),
+        ('gx' , stat.S_IXGRP),
 
-        'or' : stat.S_IROTH,
-        'ow' : stat.S_IWOTH,
-        'ox' : stat.S_IXOTH,
-    }
-    from collections import defaultdict
+        ('or' , stat.S_IROTH),
+        ('ow' , stat.S_IWOTH),
+        ('ox' , stat.S_IXOTH),
+
+        # Special UNIX permissions
+        ('us', stat.S_ISUID),  # SUID (executes run as the file's owner)
+        ('gs', stat.S_ISGID),  # SGID (executes run as the file's group)
+        ('ot', stat.S_ISVTX),  # sticky (only owner can delete)
+    ])
     target_to_perms = defaultdict(list)
     for key, val in action_lut.items():
         target, perm = key
         if int_code & val:
             target_to_perms[target].append(perm)
+
+    # The following commented logic might be useful if we want to created the
+    # "dashed" ls representation of permissions, but that is not needed for
+    # chmod itself, so it is not necessary to implement here.
+    # if concise:
+    #     special_chars = {'u': 's', 'g': 's', 'o': 't'}
+    #     for k, s in special_chars.items():
+    #         if k in target_to_perms:
+    #             vs = target_to_perms[k]
+    #             # if the executable bit is not set, replace the lowercase
+    #             # with a capital S (or T for sticky)
+    #             if 'x' in vs:
+    #                 if s in vs:
+    #                     vs.remove('x')
+    #             elif s in vs:
+    #                 vs.remove(s)
+    #                 vs.append(s.upper())
     parts = [k + '=' + ''.join(vs) for k, vs in target_to_perms.items()]
     code = ','.join(parts)
     return code
+
+
+def _patch_win32_stats_on_pypy():
+    """
+    Handle [PyPyIssue4953]_ [PyPyDiscuss4952]_.
+
+    References:
+        [PyPyIssue4953] https://github.com/pypy/pypy/issues/4953#event-12838738353
+        [PyPyDiscuss4952] https://github.com/orgs/pypy/discussions/4952#discussioncomment-9481845
+    """
+    if not hasattr(stat, 'IO_REPARSE_TAG_MOUNT_POINT'):
+        os.supports_follow_symlinks.add("stat")
+        os.supports_follow_symlinks.add(os.stat)
+        stat.IO_REPARSE_TAG_APPEXECLINK = 0x8000001b  # windows
+        stat.IO_REPARSE_TAG_MOUNT_POINT = 0xa0000003  # windows
+        stat.IO_REPARSE_TAG_SYMLINK = 0xa000000c      # windows
 
 
 if sys.version_info[0:2] < (3, 8):  # nocover

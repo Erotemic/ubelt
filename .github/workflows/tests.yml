@@ -123,7 +123,7 @@ jobs:
     - name: Checkout source
       uses: actions/checkout@v4.1.1
     - name: Set up QEMU
-      uses: docker/setup-qemu-action@v3
+      uses: docker/setup-qemu-action@v3.0.0
       if: runner.os == 'Linux' && matrix.arch != 'auto'
       with:
         platforms: all
@@ -183,7 +183,7 @@ jobs:
           arch: auto
         - python-version: '3.12'
           install-extras: tests
-          os: windows-latest
+          os: macOS-latest
           arch: auto
         - python-version: '3.12'
           install-extras: tests
@@ -191,35 +191,67 @@ jobs:
           arch: auto
         - python-version: '3.6'
           install-extras: tests,optional
-          os: windows-latest
+          os: ubuntu-20.04
           arch: auto
         - python-version: '3.7'
           install-extras: tests,optional
-          os: windows-latest
+          os: ubuntu-latest
           arch: auto
         - python-version: '3.8'
           install-extras: tests,optional
-          os: windows-latest
+          os: ubuntu-latest
           arch: auto
         - python-version: '3.9'
           install-extras: tests,optional
-          os: windows-latest
+          os: ubuntu-latest
           arch: auto
         - python-version: '3.10'
           install-extras: tests,optional
-          os: windows-latest
+          os: ubuntu-latest
           arch: auto
         - python-version: '3.11'
           install-extras: tests,optional
-          os: windows-latest
+          os: ubuntu-latest
           arch: auto
         - python-version: '3.12'
           install-extras: tests,optional
-          os: windows-latest
+          os: ubuntu-latest
           arch: auto
-        - python-version: pypy-3.7
+        - python-version: pypy-3.9
           install-extras: tests,optional
-          os: windows-latest
+          os: ubuntu-latest
+          arch: auto
+        - python-version: '3.6'
+          install-extras: tests,optional
+          os: macos-13
+          arch: auto
+        - python-version: '3.7'
+          install-extras: tests,optional
+          os: macos-13
+          arch: auto
+        - python-version: '3.8'
+          install-extras: tests,optional
+          os: macOS-latest
+          arch: auto
+        - python-version: '3.9'
+          install-extras: tests,optional
+          os: macOS-latest
+          arch: auto
+        - python-version: '3.10'
+          install-extras: tests,optional
+          os: macOS-latest
+          arch: auto
+        - python-version: '3.11'
+          install-extras: tests,optional
+          os: macOS-latest
+          arch: auto
+        - python-version: '3.12'
+          install-extras: tests,optional
+          os: macOS-latest
+          arch: auto
+        - python-version: pypy-3.9
+          install-extras: tests,optional
+          os: macOS-latest
           arch: auto
         - python-version: '3.6'
           install-extras: tests,optional
@@ -249,51 +281,7 @@ jobs:
           install-extras: tests,optional
           os: windows-latest
           arch: auto
-        - python-version: pypy-3.7
-          install-extras: tests,optional
-          os: windows-latest
-          arch: auto
-        - python-version: '3.6'
-          install-extras: tests,optional
-          os: windows-latest
-          arch: auto
-        - python-version: '3.7'
-          install-extras: tests,optional
-          os: windows-latest
-          arch: auto
-        - python-version: '3.8'
-          install-extras: tests,optional
-          os: windows-latest
-          arch: auto
-        - python-version: '3.9'
-          install-extras: tests,optional
-          os: windows-latest
-          arch: auto
-        - python-version: '3.10'
-          install-extras: tests,optional
-          os: windows-latest
-          arch: auto
-        - python-version: '3.11'
-          install-extras: tests,optional
-          os: windows-latest
-          arch: auto
-        - python-version: '3.12'
-          install-extras: tests,optional
-          os: windows-latest
-          arch: auto
-        - python-version: pypy-3.7
-          install-extras: tests,optional
-          os: windows-latest
-          arch: auto
-        - python-version: pypy-3.7
-          install-extras: tests,optional
-          os: windows-latest
-          arch: auto
-        - python-version: pypy-3.7
-          install-extras: tests,optional
-          os: windows-latest
-          arch: auto
-        - python-version: pypy-3.7
+        - python-version: pypy-3.9
           install-extras: tests,optional
           os: windows-latest
           arch: auto
@@ -304,7 +292,7 @@ jobs:
       uses: ilammy/msvc-dev-cmd@v1
       if: matrix.os == 'windows-latest'
     - name: Set up QEMU
-      uses: docker/setup-qemu-action@v3
+      uses: docker/setup-qemu-action@v3.0.0
       if: runner.os == 'Linux' && matrix.arch != 'auto'
       with:
         platforms: all

@@ -164,6 +164,8 @@ def schedule_deprecation(modname=None, name='?', type='?', migration='',
         module = sys.modules[modname]
         current = Version(module.__version__)
     else:
+        # TODO: use the inspect module to get the function / module this was
+        # called from and fill in unspecified values.
         current = 'unknown'
 
     def _handle_when(when, default):
@@ -190,6 +192,7 @@ def schedule_deprecation(modname=None, name='?', type='?', migration='',
     remove_now, remove_str = _handle_when(remove, default=False)
     error_now, error_str = _handle_when(error, default=False)
 
+    # TODO: make the message more customizable.
     msg = (
         'The "{name}" {type} was deprecated{deprecate_str}, will cause '
         'an error{error_str} and will be removed{remove_str}. The current '

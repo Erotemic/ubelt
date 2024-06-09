@@ -113,6 +113,10 @@ def test_move_to_nested_non_existing():
     base = _demo_directory_structure()
     root = base / 'root'
 
+    import platform
+    if ub.WIN32 and platform.python_implementation() == 'PyPy':
+        ub.util_path._patch_win32_stats_on_pypy()
+
     if ub.LINUX:
         root2 = root.copy(root.augment(tail='2'))
         root3 = root.copy(root.augment(tail='3'))

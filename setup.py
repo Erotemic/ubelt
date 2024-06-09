@@ -206,25 +206,18 @@ if __name__ == "__main__":
         "requirements/runtime.txt", versions="loose"
     )
     setupkw["extras_require"] = {
-        "all": parse_requirements("requirements.txt", versions="loose"),
-        "tests": parse_requirements("requirements/tests.txt", versions="loose"),
-        "optional": parse_requirements("requirements/optional.txt", versions="loose"),
-        "all": parse_requirements("requirements.txt", versions="loose"),
-        "runtime": parse_requirements("requirements/runtime.txt", versions="loose"),
-        "tests": parse_requirements("requirements/tests.txt", versions="loose"),
-        "optional": parse_requirements("requirements/optional.txt", versions="loose"),
-        "docs": parse_requirements("requirements/docs.txt", versions="loose"),
-        "types": parse_requirements("requirements/types.txt", versions="loose"),
-        "all-strict": parse_requirements("requirements.txt", versions="strict"),
-        "runtime-strict": parse_requirements(
-            "requirements/runtime.txt", versions="strict"
-        ),
-        "tests-strict": parse_requirements("requirements/tests.txt", versions="strict"),
-        "optional-strict": parse_requirements(
-            "requirements/optional.txt", versions="strict"
-        ),
-        "docs-strict": parse_requirements("requirements/docs.txt", versions="strict"),
-        "types-strict": parse_requirements("requirements/types.txt", versions="strict"),
+        "all"             : parse_requirements("requirements.txt", versions="loose"),
+        "all-strict"      : parse_requirements("requirements.txt", versions="strict"),
+        "docs"            : parse_requirements("requirements/docs.txt", versions="loose"),
+        "docs-strict"     : parse_requirements("requirements/docs.txt", versions="strict"),
+        "optional"        : parse_requirements("requirements/optional.txt", versions="loose"),
+        "optional-strict" : parse_requirements("requirements/optional.txt", versions="strict"),
+        "runtime"         : parse_requirements("requirements/runtime.txt", versions="loose"),
+        "runtime-strict"  : parse_requirements("requirements/runtime.txt", versions="strict"),
+        "tests"           : parse_requirements("requirements/tests.txt", versions="loose"),
+        "tests-strict"    : parse_requirements("requirements/tests.txt", versions="strict"),
+        "types"           : parse_requirements("requirements/types.txt", versions="loose"),
+        "types-strict"    : parse_requirements("requirements/types.txt", versions="strict"),
     }
     setupkw["name"] = NAME
     setupkw["version"] = VERSION

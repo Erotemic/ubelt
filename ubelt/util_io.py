@@ -38,7 +38,7 @@ def writeto(fpath, to_write, aslines=False, verbose=None):
         `https://pypy.org/compat.html`. This is an argument for keeping this
         function.
 
-        NOTE: With modern versions of Python, it is generally recommened to use
+        NOTE: With modern versions of Python, it is generally recommend to use
         :func:`pathlib.Path.write_text` instead. Although there does seem to be
         some corner case this handles better on win32, so maybe useful?
 
@@ -269,9 +269,10 @@ def delete(path, verbose=False):
         elif os.path.isdir(path):
             if verbose:  # nocover
                 print('Deleting directory="{}"'.format(path))
-            if sys.platform.startswith('win32'):  # nocover
+            if sys.platform.startswith('win32') and sys.version_info[0:2] < (3, 8):  # nocover
                 # Workaround bug that prevents shutil from working if
                 # the directory contains junctions
+                # https://bugs.python.org/issue36621
                 from ubelt import _win32_links
                 _win32_links._win32_rmtree(path, verbose=verbose)
             else:

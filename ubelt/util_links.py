@@ -7,6 +7,10 @@ work, but there certain system settings that cause issues. Any POSIX system
 works without difficulty.
 
 Example:
+    >>> import pytest
+    >>> import ubelt as ub
+    >>> if ub.WIN32:
+    >>>     pytest.skip()  # hack for windows for now. Todo cleaner xdoctest conditional
     >>> import ubelt as ub
     >>> from os.path import normpath, join
     >>> dpath = ub.Path.appdir('ubelt', normpath('demo/symlink')).ensuredir()
@@ -57,6 +61,13 @@ def symlink(real_path, link_path, overwrite=False, verbose=0):
         str | PathLike: link path
 
     Note:
+        In the future we may rework and rename this function to something like
+        ``link``, ``pathlink``, ``fslink``, etc... to indicate that it may
+        perform multiple types of links. We may also allow the user to specify
+        which type of link (e.g. symlink, hardlink, reflink, junction) they
+        would like to use.
+
+    Note:
         On systems that do not contain support for symlinks (e.g. some versions
         / configurations of Windows), this function will fall back on hard
         links or junctions [WikiNTFSLinks]_, [WikiHardLink]_. The differences
@@ -80,6 +91,10 @@ def symlink(real_path, link_path, overwrite=False, verbose=0):
         .. [WikiNTFSLinks] https://en.wikipedia.org/wiki/NTFS_links
 
     Example:
+        >>> import pytest
+        >>> import ubelt as ub
+        >>> if ub.WIN32:
+        >>>     pytest.skip()  # hack for windows for now. Todo cleaner xdoctest conditional
         >>> import ubelt as ub
         >>> dpath = ub.Path.appdir('ubelt', 'test_symlink0').delete().ensuredir()
         >>> real_path = (dpath / 'real_file.txt')
@@ -90,6 +105,10 @@ def symlink(real_path, link_path, overwrite=False, verbose=0):
         >>> dpath.delete()  # clenaup
 
     Example:
+        >>> import pytest
+        >>> import ubelt as ub
+        >>> if ub.WIN32:
+        >>>     pytest.skip()  # hack for windows for now. Todo cleaner xdoctest conditional
         >>> import ubelt as ub
         >>> from ubelt.util_links import _dirstats
         >>> dpath = ub.Path.appdir('ubelt', 'test_symlink1').delete().ensuredir()
@@ -119,6 +138,10 @@ def symlink(real_path, link_path, overwrite=False, verbose=0):
         >>> assert not real_path.exists()
 
     Example:
+        >>> import pytest
+        >>> import ubelt as ub
+        >>> if ub.WIN32:
+        >>>     pytest.skip()  # hack for windows for now. Todo cleaner xdoctest conditional
         >>> # Specifying bad paths should error.
         >>> import ubelt as ub
         >>> import pytest
@@ -206,6 +229,15 @@ def _readlink(link):
 
     if _win32_links:  # nocover
         if _win32_links._win32_is_junction(link):
+            import platform
+            if platform.python_implementation() == 'PyPy':
+                # On PyPy this test can have a false positive
+                # for what should be a regular link.
+                path = os.readlink(link)
+                junction_prefix = '\\\\?\\'
+                if path.startswith(junction_prefix):
+                    path = path[len(junction_prefix):]
+                    return path
             return _win32_links._win32_read_junction(link)
     try:
         path = os.readlink(link)
@@ -226,10 +258,6 @@ def _can_symlink(verbose=0):  # nocover
     Return true if we have permission to create real symlinks.
     This check always returns True on non-win32 systems.
     If this check returns false, then we still may be able to use junctions.
-
-    Example:
-        >>> # Script
-        >>> print(_can_symlink(verbose=1))
     """
     if _win32_links is not None:
         return _win32_links._win32_can_symlink(verbose)
@@ -244,6 +272,10 @@ def _dirstats(dpath=None):  # nocover
 
     The column prefixes stand for:
     (E - exists), (L - islink), (F - isfile), (D - isdir), (J - isjunction)
+
+    Example:
+        >>> from ubelt.util_links import _dirstats
+        >>> _dirstats('.')
     """
     from ubelt import util_colors
     if dpath is None:
@@ -301,13 +333,22 @@ def _dirstats(dpath=None):  # nocover
                 # I get it, they are probably broken junctions, but common
                 # That should probably be 00011 not 00000
                 path = util_colors.color_text(path, 'red')
+            elif ELFDJ == [1, 1, 0, 1, 1]:
+                # Agg, on windows pypy, it looks like junctions and links are
+                # harder to distinguish. See
+                # https://github.com/pypy/pypy/issues/4976
+                path = util_colors.color_text(path, 'red')
+            elif ELFDJ == [1, 1, 1, 0, 1]:
+                # Again? on windows pypy, its a link/file/junction what?
+                path = util_colors.color_text(path, 'red')
             else:
                 print('dpath = {!r}'.format(dpath))
-                print('path = {!r}'.format(path))
+                print('pathhttps://github.com/pypy/pypy/issues/4976 = {!r}'.format(path))
                 raise AssertionError(str(ELFDJ) + str(path))
             line = '{E:d} {L:d} {F:d} {D:d} {J:d} - {path}'.format(**locals())
             if os.path.islink(full_path):
-                line += ' -> ' + os.readlink(full_path)
+                # line += ' -> ' + os.readlink(full_path)
+                line += ' -> ' + _readlink(full_path)
             elif _win32_links is not None:
                 if _win32_links._win32_is_junction(full_path):
                     resolved = _win32_links._win32_read_junction(full_path)

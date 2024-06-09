@@ -6,8 +6,21 @@ This project (loosely) adheres to [Semantic Versioning](https://semver.org/spec/
 
 ## Version 1.3.6 - 
 
+### Added:
+* Add `ub.IndexableWalker.diff` 
+
 ### Fixed:
 * `ub.import_module_from_path` now correctly accepts `PathLike` objects.
+* `ub.modname_to_modpath` fixed in cases where editable installs use type
+  annotations in their MAPPING definition.
+
+### Added
+* Support for UNIX special permission (suid/sgid/svtx) codes in `Path.chmod`.
+
+### Changed
+* Moved windows dependencies from requires to optional. Windows users that make
+  use of these will need to update their ubelt install or explicitly depend on
+  them as well. 
 
 ## Version 1.3.5 - Released 2024-03-20
 

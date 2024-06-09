@@ -551,17 +551,21 @@ def _syspath_modname_to_modpath(modname, sys_path=None, exclude=None):
             # break with pytest anymore? Nope, pytest still doesn't work right
             # with it.
             for finder_fpath in new_editable_finder_paths:
-                mapping = _static_parse('MAPPING', finder_fpath)
                 try:
-                    target = dirname(mapping[_pkg_name])
-                except KeyError:
+                    mapping = _static_parse('MAPPING', finder_fpath)
+                except AttributeError:
                     ...
                 else:
-                    if not exclude or normalize(target) not in real_exclude:  # pragma: nobranch
-                        modpath = check_dpath(target)
-                        if modpath:  # pragma: nobranch
-                            found_modpath = modpath
-                            break
+                    try:
+                        target = dirname(mapping[_pkg_name])
+                    except KeyError:
+                        ...
+                    else:
+                        if not exclude or normalize(target) not in real_exclude:  # pragma: nobranch
+                            modpath = check_dpath(target)
+                            if modpath:  # pragma: nobranch
+                                found_modpath = modpath
+                                break
             if found_modpath is not None:
                 break
 
@@ -621,9 +625,10 @@ def _custom_import_modpath(modpath, index=-1):
         with PythonPathContext(dpath, index=index):
             module = import_module_from_name(modname)
     except Exception as ex:  # nocover
-        msg_parts = [
-            'ERROR: Failed to import modname={} with modpath={}'.format(
-                modname, modpath)
+        msg_parts = [(
+            'ERROR: Failed to import modname={} with modpath={} and '
+            'sys.path modified with {} at index={}').format(
+                modname, modpath, repr(dpath), index)
         ]
         msg_parts.append('Caused by: {}'.format(repr(ex)))
         raise RuntimeError('\n'.join(msg_parts))
@@ -646,10 +651,21 @@ def _importlib_import_modpath(modpath):  # nocover
     return module
 
 
+def _importlib_modname_to_modpath(modname):  # nocover
+    import importlib.util
+    spec = importlib.util.find_spec(modname)
+    print(f'spec={spec}')
+    modpath = spec.origin.replace('.pyc', '.py')
+    return modpath
+
+
 def _pkgutil_modname_to_modpath(modname):  # nocover
     """
     faster version of :func:`_syspath_modname_to_modpath` using builtin python
     mechanisms, but unfortunately it doesn't play nice with pytest.
+
+    Note:
+        pkgutil.find_loader is deprecated in 3.12 and removed in 3.14
 
     Args:
         modname (str): the module name.
@@ -717,7 +733,18 @@ def modname_to_modpath(modname, hide_init=True, hide_main=False, sys_path=None):
         >>> modpath = basename(modname_to_modpath('_ctypes'))
         >>> assert 'ctypes' in modpath
     """
-    modpath = _syspath_modname_to_modpath(modname, sys_path)
+    if hide_main or sys_path:
+        modpath = _syspath_modname_to_modpath(modname, sys_path)
+    else:
+        # import xdev
+        # with xdev.embed_on_exception_context:
+        # try:
+        #     modpath = _importlib_modname_to_modpath(modname)
+        # except Exception:
+        #     modpath = _syspath_modname_to_modpath(modname, sys_path)
+        # modpath = _pkgutil_modname_to_modpath(modname, sys_path)
+        modpath = _syspath_modname_to_modpath(modname, sys_path)
+
     if modpath is None:
         return None
 
@@ -950,6 +977,13 @@ def _static_parse(varname, fpath):
     """
     Statically parse the a constant variable from a python file
 
+    Args:
+        varname (str): variable name to extract
+        fpath (str | PathLike): path to python file to parse
+
+    Returns:
+        Any: the static value
+
     Example:
         >>> import ubelt as ub
         >>> from ubelt.util_import import _static_parse
@@ -974,6 +1008,10 @@ def _static_parse(varname, fpath):
         >>> with pytest.raises(AttributeError):
         >>>     fpath.write_text('a = list(range(10))')
         >>>     assert _static_parse('c', fpath) is None
+        >>> if sys.version_info[0:2] >= (3, 6):
+        >>>     # Test with type annotations
+        >>>     fpath.write_text('b: int = 10')
+        >>>     assert _static_parse('b', fpath) == 10
     """
     import ast
 
@@ -986,8 +1024,15 @@ def _static_parse(varname, fpath):
     class StaticVisitor(ast.NodeVisitor):
         def visit_Assign(self, node):
             for target in node.targets:
-                if getattr(target, 'id', None) == varname:
+                target_id = getattr(target, 'id', None)
+                if target_id == varname:
                     self.static_value = _parse_static_node_value(node.value)
+
+        def visit_AnnAssign(self, node):
+            target = node.target
+            target_id = getattr(target, 'id', None)
+            if target_id == varname:
+                self.static_value = _parse_static_node_value(node.value)
 
     visitor = StaticVisitor()
     visitor.visit(pt)

@@ -1,6 +1,12 @@
 """
 For dealing with symlinks, junctions, and hard-links on windows.
 
+Note:
+    The termonology used here was written before I really understood the
+    difference between symlinks, hardlinks, and junctions. As such it may be
+    inconsistent or incorrect in some places. This might be fixed in the
+    future.
+
 References:
     .. [SO18883892] https://stackoverflow.com/questions/18883892/batch-file-windows-cmd-exe-test-if-a-directory-is-a-link-symlink
     .. [SO21561850] https://stackoverflow.com/questions/21561850/python-test-for-junction-point-target
@@ -15,6 +21,7 @@ Weird Behavior:
 """
 import os
 import warnings
+import platform
 from os.path import exists
 from os.path import join
 from ubelt import util_io
@@ -22,8 +29,11 @@ from ubelt import util_path
 import sys
 
 if sys.platform.startswith('win32'):
-    import jaraco.windows.filesystem as jwfs
-
+    try:
+        import jaraco.windows.filesystem as jwfs
+    except ImportError:
+        # Use vendored subset of jaraco.windows
+        from ubelt import _win32_jaraco as jwfs
 
 __win32_can_symlink__ = None  # type: bool | None
 
@@ -38,7 +48,7 @@ def _win32_can_symlink(verbose=0, force=0, testing=0):
     Example:
         >>> # xdoctest: +REQUIRES(WIN32)
         >>> import ubelt as ub
-        >>> _win32_can_symlink(verbose=1, force=1, testing=1)
+        >>> _win32_can_symlink(verbose=3, force=1, testing=1)
     """
     global __win32_can_symlink__
     if verbose:
@@ -82,9 +92,9 @@ def _win32_can_symlink(verbose=0, force=0, testing=0):
         util_io.touch(broken_fpath)
 
     try:
-        _win32_symlink(dpath, dlink)
+        _win32_symlink(dpath, dlink, verbose=verbose)
         if testing:
-            _win32_symlink(broken_dpath, join(tempdir, 'broken_dlink'))
+            _win32_symlink(broken_dpath, join(tempdir, 'broken_dlink'), verbose=verbose)
         can_symlink_directories = os.path.islink(dlink)
     except OSError:
         can_symlink_directories = False
@@ -92,9 +102,9 @@ def _win32_can_symlink(verbose=0, force=0, testing=0):
         print('can_symlink_directories = {!r}'.format(can_symlink_directories))
 
     try:
-        _win32_symlink(fpath, flink)
+        _win32_symlink(fpath, flink, verbose=verbose)
         if testing:
-            _win32_symlink(broken_fpath, join(tempdir, 'broken_flink'))
+            _win32_symlink(broken_fpath, join(tempdir, 'broken_flink'), verbose=verbose)
         can_symlink_files = os.path.islink(flink)
         # os.path.islink(flink)
     except OSError:
@@ -109,15 +119,28 @@ def _win32_can_symlink(verbose=0, force=0, testing=0):
 
     try:
         # test that we can create junctions, even if symlinks are disabled
-        djunc = _win32_junction(dpath, join(tempdir, 'djunc'))
-        fjunc = _win32_junction(fpath, join(tempdir, 'fjunc.txt'))
+        if verbose:
+            print('Testing that we can create junctions, '
+                  'even if symlinks are disabled')
+            # from ubelt import util_links
+            # util_links._dirstats(tempdir)
+            # print('^^ before ^^')
+
+        djunc = _win32_junction(dpath, join(tempdir, 'djunc'), verbose=verbose)
+        fjunc = _win32_junction(fpath, join(tempdir, 'fjunc.txt'), verbose=verbose)
         if testing:
-            _win32_junction(broken_dpath, join(tempdir, 'broken_djunc'))
-            _win32_junction(broken_fpath, join(tempdir, 'broken_fjunc.txt'))
+            _win32_junction(broken_dpath, join(tempdir, 'broken_djunc'), verbose=verbose)
+            _win32_junction(broken_fpath, join(tempdir, 'broken_fjunc.txt'), verbose=verbose)
         if not _win32_is_junction(djunc):
-            raise AssertionError('expected junction')
+            print(f'Error: djunc={djunc} claims to not be a junction')
+            from ubelt import util_links
+            util_links._dirstats(tempdir)
+            raise AssertionError(f'expected djunc={djunc} to be a junction')
         if not _win32_is_hardlinked(fpath, fjunc):
-            raise AssertionError('expected hardlink')
+            print(f'Error: fjunc={fjunc} claims to not be a hardlink')
+            from ubelt import util_links
+            util_links._dirstats(tempdir)
+            raise AssertionError(f'expected fjunc={fjunc} to be a hardlink')
     except Exception:
         warnings.warn('We cannot create junctions either!')
         raise
@@ -230,6 +253,9 @@ def _win32_symlink(path, link, verbose=0):
     specially enabled symlink permissions. On Windows 10 enabling developer
     mode should give you these permissions.
     """
+    if verbose >= 3:
+        print(f'_win32_symlink {link} -> {path}')
+
     from ubelt import util_cmd
     if os.path.isdir(path):
         # directory symbolic link
@@ -247,14 +273,15 @@ def _win32_symlink(path, link, verbose=0):
         command = 'mklink "{}" "{}"'.format(link, path)
 
     if command is not None:
-        info = util_cmd.cmd(command, shell=True)
+        cmd_verbose = 3 * verbose >= 3
+        info = util_cmd.cmd(command, shell=True, verbose=cmd_verbose)
         if info['ret'] != 0:
-            from ubelt import util_format
+            from ubelt import util_repr
             permission_msg = 'You do not have sufficient privledge'
             if permission_msg not in info['err']:
                 print('Failed command:')
                 print(info['command'])
-                print(util_format.repr2(info, nl=1))
+                print(util_repr.urepr(info, nl=1))
             raise OSError(str(info))
     return link
 
@@ -295,11 +322,14 @@ def _win32_junction(path, link, verbose=0):
     path = os.path.abspath(path)
     link = os.path.abspath(link)
 
+    if verbose >= 3:
+        print(f'_win32_junction {link} -> {path}')
+
     from ubelt import util_cmd
     if os.path.isdir(path):
         # try using a junction (soft link)
         if verbose:
-            print('... as soft link')
+            print('... as soft link (junction)')
 
         # TODO: what is the windows api for this?
         command = 'mklink /J "{}" "{}"'.format(link, path)
@@ -316,12 +346,13 @@ def _win32_junction(path, link, verbose=0):
         command = None
 
     if command is not None:
-        info = util_cmd.cmd(command, shell=True)
+        cmd_verbose = 3 * verbose >= 3
+        info = util_cmd.cmd(command, shell=True, verbose=cmd_verbose)
         if info['ret'] != 0:
-            from ubelt import util_format
+            from ubelt import util_repr
             print('Failed command:')
             print(info['command'])
-            print(util_format.repr2(info, nl=1))
+            print(util_repr.urepr(info, nl=1))
             raise OSError(str(info))
     return link
 
@@ -330,15 +361,23 @@ def _win32_is_junction(path):
     """
     Determines if a path is a win32 junction
 
+    Note:
+        on PyPy this is bugged and will currently return True for a symlinked
+        directory.
+
+    Returns:
+        bool:
+
     Example:
-        >>> # xdoc: +REQUIRES(WIN32)
+        >>> # xdoctest: +REQUIRES(WIN32)
+        >>> from ubelt._win32_links import _win32_junction, _win32_is_junction
         >>> import ubelt as ub
         >>> root = ub.Path.appdir('ubelt', 'win32_junction').ensuredir()
         >>> ub.delete(root)
         >>> ub.ensuredir(root)
-        >>> dpath = join(root, 'dpath')
-        >>> djunc = join(root, 'djunc')
-        >>> ub.ensuredir(dpath)
+        >>> dpath = root / 'dpath'
+        >>> djunc = root / 'djunc'
+        >>> dpath.ensuredir()
         >>> _win32_junction(dpath, djunc)
         >>> assert _win32_is_junction(djunc) is True
         >>> assert _win32_is_junction(dpath) is False
@@ -350,7 +389,36 @@ def _win32_is_junction(path):
             if not os.path.islink(path):
                 return True
         return False
-    return jwfs.is_reparse_point(path) and not os.path.islink(path)
+
+    if platform.python_implementation() == 'PyPy':
+        # Workaround for pypy where os.path.islink will return True
+        # for a junction. Can we just rely on it being a reparse point?
+        # https://github.com/pypy/pypy/issues/4976
+        return _is_reparse_point(path)
+    else:
+        return _is_reparse_point(path) and not os.path.islink(path)
+
+
+def _is_reparse_point(path):
+    """
+    Check if a directory is a reparse point in windows.
+
+    Note: a reparse point seems like it could be a junction or symlink.
+
+    .. [SO54678399] https://stackoverflow.com/a/54678399/887074
+    """
+    if jwfs is None:
+        raise ImportError('jaraco.windows.filesystem is required to run _is_reparse_point')
+    # if jwfs is not None:
+    return jwfs.is_reparse_point(os.fspath(path))
+    # else:
+    #     # Fallback without jaraco: TODO: test this is 1-to-1
+    #     # Seems to break on pypy?
+    #     import subprocess
+    #     child = subprocess.Popen(f'fsutil reparsepoint query "{path}"',
+    #                              stdout=subprocess.PIPE)
+    #     child.communicate()[0]
+    #     return child.returncode == 0
 
 
 def _win32_read_junction(path):
@@ -372,7 +440,11 @@ def _win32_read_junction(path):
         >>> pointed = _win32_read_junction(path)
         >>> print('pointed = {!r}'.format(pointed))
     """
+    import ctypes
     path = os.fspath(path)
+    if jwfs is None:
+        raise ImportError('jaraco.windows.filesystem is required to run _win32_read_junction')
+
     if not jwfs.is_reparse_point(path):
         raise ValueError('not a junction')
 
@@ -389,8 +461,8 @@ def _win32_read_junction(path):
     res = jwfs.reparse.DeviceIoControl(
             handle, jwfs.api.FSCTL_GET_REPARSE_POINT, None, 10240)
 
-    bytes = jwfs.create_string_buffer(res)
-    p_rdb = jwfs.cast(bytes, jwfs.POINTER(jwfs.api.REPARSE_DATA_BUFFER))
+    bytes = ctypes.create_string_buffer(res)
+    p_rdb = ctypes.cast(bytes, ctypes.POINTER(jwfs.api.REPARSE_DATA_BUFFER))
     rdb = p_rdb.contents
 
     if rdb.tag not in [2684354563, jwfs.api.IO_REPARSE_TAG_SYMLINK]:
@@ -484,6 +556,9 @@ def _win32_is_hardlinked(fpath1, fpath2):
         >>> assert not _win32_is_hardlinked(fjunc2, fpath1)
         >>> assert not _win32_is_hardlinked(fjunc1, fpath2)
     """
+    if jwfs is None:
+        raise ImportError('jaraco.windows.filesystem is required to run _win32_is_hardlinked')
+
     # NOTE: jwf.samefile(fpath1, fpath2) seems to behave differently
     def get_read_handle(fpath):
         if os.path.isdir(fpath):
@@ -527,10 +602,10 @@ def _win32_dir(path, star=''):
     wrapped = wrapper.format(command)
     info = util_cmd.cmd(wrapped, shell=True)
     if info['ret'] != 0:
-        from ubelt import util_format
+        from ubelt import util_repr
         print('Failed command:')
         print(info['command'])
-        print(util_format.repr2(info, nl=1))
+        print(util_repr.urepr(info, nl=1))
         raise OSError(str(info))
     # parse the output of dir to get some info
     # Remove header and footer
