@@ -329,7 +329,7 @@ def import_module_from_name(modname):
         >>> import sys
         >>> modname_list = [
         >>>     'pickletools',
-        >>>     'lib2to3.fixes.fix_apply',
+        >>>     'email.mime.text',
         >>> ]
         >>> #assert not any(m in sys.modules for m in modname_list)
         >>> modules = [ub.import_module_from_name(modname) for modname in modname_list]
