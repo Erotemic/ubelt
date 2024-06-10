@@ -116,7 +116,7 @@ jobs:
         os:
         - ubuntu-latest
         python-version:
-        - '3.12'
+        - 3.13.0-beta.2
         arch:
         - auto
     steps:
@@ -169,23 +169,23 @@ jobs:
           install-extras: tests-strict,runtime-strict
           os: windows-latest
           arch: auto
-        - python-version: '3.12'
+        - python-version: 3.13.0-beta.2
           install-extras: tests-strict,runtime-strict,optional-strict
           os: ubuntu-latest
           arch: auto
-        - python-version: '3.12'
+        - python-version: 3.13.0-beta.2
           install-extras: tests-strict,runtime-strict,optional-strict
           os: macOS-latest
           arch: auto
-        - python-version: '3.12'
+        - python-version: 3.13.0-beta.2
           install-extras: tests-strict,runtime-strict,optional-strict
           os: windows-latest
           arch: auto
-        - python-version: '3.12'
+        - python-version: 3.13.0-beta.2
           install-extras: tests
           os: macOS-latest
           arch: auto
-        - python-version: '3.12'
+        - python-version: 3.13.0-beta.2
           install-extras: tests
           os: windows-latest
           arch: auto
@@ -217,6 +217,10 @@ jobs:
           install-extras: tests,optional
           os: ubuntu-latest
           arch: auto
+        - python-version: 3.13.0-beta.2
+          install-extras: tests,optional
+          os: ubuntu-latest
+          arch: auto
         - python-version: pypy-3.9
           install-extras: tests,optional
           os: ubuntu-latest
@@ -249,6 +253,10 @@ jobs:
           install-extras: tests,optional
           os: macOS-latest
           arch: auto
+        - python-version: 3.13.0-beta.2
+          install-extras: tests,optional
+          os: macOS-latest
+          arch: auto
         - python-version: pypy-3.9
           install-extras: tests,optional
           os: macOS-latest
@@ -278,6 +286,10 @@ jobs:
           os: windows-latest
           arch: auto
         - python-version: '3.12'
+          install-extras: tests,optional
+          os: windows-latest
+          arch: auto
+        - python-version: 3.13.0-beta.2
           install-extras: tests,optional
           os: windows-latest
           arch: auto
@@ -378,8 +390,8 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && ! startsWith(github.event.ref, 'refs/tags') && ! startsWith(github.event.ref, 'refs/heads/release')
     needs:
-    - build_purepy_wheels
     - build_and_test_sdist
+    - build_purepy_wheels
     steps:
     - name: Checkout source
       uses: actions/checkout@v4.1.1
@@ -452,8 +464,8 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && (startsWith(github.event.ref, 'refs/tags') || startsWith(github.event.ref, 'refs/heads/release'))
     needs:
-    - build_purepy_wheels
     - build_and_test_sdist
+    - build_purepy_wheels
     steps:
     - name: Checkout source
       uses: actions/checkout@v4.1.1
