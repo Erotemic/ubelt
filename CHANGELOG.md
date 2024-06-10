@@ -7,12 +7,13 @@ This project (loosely) adheres to [Semantic Versioning](https://semver.org/spec/
 ## Version 1.3.7 - Unreleased
 
 
-## Version 1.3.6 - 
+## Version 1.3.6 - Released 2024-06-08
 
 ### Added:
 * Add `ub.IndexableWalker.diff` 
 
 ### Fixed:
+* Added workarounds for copy / symlinks via `ub.Path` and `ub.symlink` on pypy.
 * `ub.import_module_from_path` now correctly accepts `PathLike` objects.
 * `ub.modname_to_modpath` fixed in cases where editable installs use type
   annotations in their MAPPING definition.
