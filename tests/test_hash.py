@@ -469,7 +469,7 @@ def test_compatible_hash_bases():
         .. [SementeBaseConv] https://github.com/semente/python-baseconv
     """
     import pytest
-    pytest.skip('FIXME THIS ISSUE IS NOT RESOLVE YET.')
+    pytest.skip('FIXME. THE HASH PADDING ISSUE IS NOT RESOLVED YET.')
     if not ub.LINUX:
         pytest.skip('only runs on linux')
     required_programs = [
