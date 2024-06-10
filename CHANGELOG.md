@@ -7,6 +7,10 @@ This project (loosely) adheres to [Semantic Versioning](https://semver.org/spec/
 ## Version 1.3.7 - Unreleased
 
 
+### Fixed:
+* Minor test issues.
+
+
 ## Version 1.3.6 - Released 2024-06-08
 
 ### Added:
