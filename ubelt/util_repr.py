@@ -861,11 +861,6 @@ def _dict_itemstrs(dict_, **kwargs):
         **kwargs: explicit, precision, kvsep, strkeys, _return_info, cbr,
             compact_brace, sort
 
-    Ignore:
-        from ubelt.util_repr import _dict_itemstrs
-        import xinspect
-        print(', '.join(xinspect.get_kwargs(_dict_itemstrs, max_depth=0).keys()))
-
     Example:
         >>> from ubelt.util_repr import *
         >>> dict_ =  {'b': .1, 'l': 'st', 'g': 1.0, 's': 10, 'm': 0.9, 'w': .5}
