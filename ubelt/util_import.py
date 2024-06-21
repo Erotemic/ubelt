@@ -291,8 +291,6 @@ def import_module_from_path(modpath, index=-1):
                         modname=modname,
                         archivepath=archivepath,
                         ex=ex)
-                    print(text)
-                    # raise
                     raise Exception(text)
 
                 return module
@@ -654,7 +652,6 @@ def _importlib_import_modpath(modpath):  # nocover
 def _importlib_modname_to_modpath(modname):  # nocover
     import importlib.util
     spec = importlib.util.find_spec(modname)
-    print(f'spec={spec}')
     modpath = spec.origin.replace('.pyc', '.py')
     return modpath
 
@@ -1067,7 +1064,6 @@ def _parse_static_node_value(node):
     elif isinstance(node, (ast.NameConstant)):
         value = node.value
     else:
-        print(node.__dict__)
         raise TypeError('Cannot parse a static value from non-static node '
                         'of type: {!r}'.format(type(node)))
     return value
