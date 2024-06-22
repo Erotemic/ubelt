@@ -1882,6 +1882,7 @@ class UDict(SetDict):
             >>> print('s = {}'.format(ub.repr2(s, nl=0, sort=1)))
             s = {2: 'A_c', 5: 'A_f', 100: 'DEF'}
         """
+        # TODO: make this work with defaultdict?
         cls = self.__class__
         if default is NoParam:
             new = cls([(k, self[k]) for k in keys])
