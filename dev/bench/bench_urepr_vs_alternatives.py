@@ -94,9 +94,9 @@ def benchmark_urepr_vs_alternatives():
     basis = {
         'method': list(method_lut),  # i.e. ['method1', 'method2']
         # 'num_items': [0, 100, 1_000, 10_000],
-        # 'num_items': [0, 250, 500, 1_000, 2_500, 5_000],
+        'num_items': [0, 250, 500, 1_000, 2_500, 5_000],
         # 'num_items': [0, 250, 500, 1_000],
-        'num_items': [0, 1, 2, 4, 8, 16, 32, 64, 128, 256],
+        # 'num_items': [0, 1, 2, 4, 8, 16, 32, 64, 128, 256],
         # 'yparam': [0, 100],
         # 'zparam': [2, 3]
         # 'param_name': [param values],
