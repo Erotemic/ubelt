@@ -4,12 +4,20 @@ We are currently working on porting this changelog to the specifications in
 [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 This project (loosely) adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Version 1.3.6 - 
+## Version 1.3.7 - Unreleased
+
+
+### Fixed:
+* Minor test issues.
+
+
+## Version 1.3.6 - Released 2024-06-08
 
 ### Added:
 * Add `ub.IndexableWalker.diff` 
 
 ### Fixed:
+* Added workarounds for copy / symlinks via `ub.Path` and `ub.symlink` on pypy.
 * `ub.import_module_from_path` now correctly accepts `PathLike` objects.
 * `ub.modname_to_modpath` fixed in cases where editable installs use type
   annotations in their MAPPING definition.

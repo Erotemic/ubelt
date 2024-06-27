@@ -1870,7 +1870,6 @@ def _patch_win32_stats_on_pypy():
         [PyPyDiscuss4952] https://github.com/orgs/pypy/discussions/4952#discussioncomment-9481845
     """
     if not hasattr(stat, 'IO_REPARSE_TAG_MOUNT_POINT'):
-        os.supports_follow_symlinks.add("stat")
         os.supports_follow_symlinks.add(os.stat)
         stat.IO_REPARSE_TAG_APPEXECLINK = 0x8000001b  # windows
         stat.IO_REPARSE_TAG_MOUNT_POINT = 0xa0000003  # windows
