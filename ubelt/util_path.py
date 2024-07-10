@@ -1533,7 +1533,7 @@ class Path(_PathBase):
             ]
             import pandas as pd
             df = pd.DataFrame(rows)
-            piv = df.pivot(['src'], ['dst'], 'result')
+            piv = df.pivot(index=['src'], columns=['dst'], values='result')
             print(piv.to_markdown(tablefmt="grid", index=True))
 
             See: ~/code/ubelt/tests/test_path.py for test cases
