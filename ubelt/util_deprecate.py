@@ -12,7 +12,11 @@ def schedule_deprecation(modname=None, name='?', type='?', migration='',
                          # message=None,
                          warncls=DeprecationWarning, stacklevel=1):
     """
-    Deprecation machinery to help provide users with a smoother transition.
+    Raise a deprecation warning or error based on the version of a package.
+
+    This helps provide users with a smoother transition by specifing a version
+    when the deprecation warning will start, when it transitions into an error,
+    and when the maintainers should remove the feature all together.
 
     This function provides a concise way to mark a feature as deprecated by
     providing a description of the deprecated feature, documentation on how to
@@ -98,9 +102,9 @@ def schedule_deprecation(modname=None, name='?', type='?', migration='',
         ...         'dummy_module', 'myfunc', 'function', 'do something else',
         ...         deprecate='1.1.0', error='1.2.0', remove='1.3.0')
         >>> print(msg)
-        The "myfunc" function was deprecated in 1.1.0, will cause an error in
-        1.2.0 and will be removed in 1.3.0. The current version is 1.1.0. do
-        something else
+        The "myfunc" function was deprecated in dummy_module 1.1.0, will cause
+        an error in dummy_module 1.2.0 and will be removed in dummy_module
+        1.3.0. The current dummy_module version is 1.1.0. do something else
 
     Example:
         >>> # xdoctest: +REQUIRES(module:packaging)
@@ -168,17 +172,22 @@ def schedule_deprecation(modname=None, name='?', type='?', migration='',
         # called from and fill in unspecified values.
         current = 'unknown'
 
+    if modname is None:
+        modname_str = ''
+    else:
+        modname_str = f'{modname} '
+
     def _handle_when(when, default):
         if when is None:
             is_now = default
             when_str = ''
         elif isinstance(when, str):
             if when in {'soon', 'now'}:
-                when_str = ' {}'.format(when)
+                when_str = ' {}{}'.format(modname_str, when)
                 is_now = (when == 'now')
             else:
                 when = Version(when)
-                when_str = ' in {}'.format(when)
+                when_str = ' in {}{}'.format(modname_str, when)
                 if current == 'unknown':
                     is_now = default
                 else:
@@ -196,7 +205,7 @@ def schedule_deprecation(modname=None, name='?', type='?', migration='',
     msg = (
         'The "{name}" {type} was deprecated{deprecate_str}, will cause '
         'an error{error_str} and will be removed{remove_str}. The current '
-        'version is {current}. {migration}'
+        '{modname_str}version is {current}. {migration}'
     ).format(**locals()).strip()
     if remove_now:
         raise AssertionError(
