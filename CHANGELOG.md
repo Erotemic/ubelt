@@ -10,6 +10,9 @@ This project (loosely) adheres to [Semantic Versioning](https://semver.org/spec/
 ### Fixed:
 * Minor test issues.
 
+### Changed
+* Added module name printout to `schedule_deprecation`
+
 
 ## Version 1.3.6 - Released 2024-06-08
 
