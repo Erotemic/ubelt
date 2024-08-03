@@ -16,7 +16,6 @@ feature added in the future, but its unclear how interoperable this would be.
 References:
     .. [ChooseTheRightConcurrency] https://superfastpython.com/python-concurrency-choose-api/
 
-
 Example:
     >>> # xdoctest: +SKIP
     >>> # Note: while this works in IPython, this does not work when running
@@ -49,7 +48,6 @@ Example:
     >>>         with timer:
     >>>             run_process(inputs, mode=mode, max_workers=max_workers)
     >>> print(ub.repr2(ti))
-
 """
 import concurrent.futures
 from concurrent.futures import as_completed
@@ -220,38 +218,8 @@ class SerialExecutor(object):
             yield f.result()
 
 
-# class AsyncIOExecutor:
-#     """
-#     Mimic concurrent.futures with asyncio
-#     This might not be possible. Defer...
-#     Example:
-#         from ubelt.util_futures import AsyncIOExecutor
-#         self = executor = AsyncIOExecutor()
-#         func = int
-#         args = ('1',)
-#         self.loop.run_in_executor(func, *args)
-#         future = self.loop.run_in_executor(None, func, *args)
-#     """
-#     def __init__(self):
-#         self.max_workers = 0
-#         self.loop = None
-#         import asyncio
-#         try:
-#             self.loop = asyncio.get_event_loop()
-#         except RuntimeError:
-#             loop = asyncio.new_event_loop()
-#             asyncio.set_event_loop(loop)
-#             self.loop = asyncio.get_event_loop()
-#     def __enter__(self):
-#         return self
-#     def __exit__(self, ex_type, ex_value, ex_traceback):
-#         ...
-#     def submit(self, func, *args, **kw):
-#         ...
-#     def shutdown(self):
-#         ...
-#     def map(self, fn, *iterables, **kwargs):
-#         ...
+# See ../dev/experimental/async_executor_poc.py for
+# work ona potential AsyncIOExecutor class
 
 
 class Executor(object):
