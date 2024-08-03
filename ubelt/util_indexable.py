@@ -493,6 +493,8 @@ class IndexableWalker(Generator):
                 p2, v2 = t2
                 assert p1 == p2, 'paths to the nested items should be the same'
 
+                # TODO: Could add a numpy optimization here.
+
                 flag = (v1 == v2) or (
                     isinstance(v1, float) and isinstance(v2, float) and
                     _isclose_fn(v1, v2, **_iskw)
