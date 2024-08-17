@@ -60,6 +60,10 @@ class SerialFuture(concurrent.futures.Future):
     Non-threading / multiprocessing version of future for drop in compatibility
     with concurrent.futures.
 
+    TODO:
+        warn if the user specifies timeout as we cannot handle it without
+        threads
+
     Attributes:
         func (Callable): function to be called
         args (Tuple): positional arguments to call the function with
