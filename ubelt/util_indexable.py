@@ -586,6 +586,12 @@ class IndexableWalker(Generator):
             >>> wb = ub.IndexableWalker([b], list_cls=(np.ndarray, list))
             >>> info =  wa.diff(wb)
             >>> print(f'info = {ub.urepr(info, nl=2)}')
+
+        Example:
+            >>> import ubelt as ub
+            >>> # test null similarity
+            >>> wa = ub.IndexableWalker({}).diff({})
+            >>> assert wa['similarity'] == 1.0
         """
         walker1 = self
         if isinstance(other, IndexableWalker):
@@ -629,7 +635,10 @@ class IndexableWalker(Generator):
         num_differences = len(unique1) + len(unique2) + len(faillist)
         num_similarities = len(passlist)
 
-        similarity = num_similarities / (num_similarities + num_differences)
+        if num_similarities == 0 and num_differences == 0:
+            similarity = 1.0
+        else:
+            similarity = num_similarities / (num_similarities + num_differences)
         info = {
             'similarity': similarity,
             'num_approximations': num_approximations,
