@@ -9,6 +9,7 @@ This project (loosely) adheres to [Semantic Versioning](https://semver.org/spec/
 
 ### Fixed:
 * Minor test issues.
+* `ub.IndexableWalker.diff` for empty inputs
 
 ### Changed
 * Added module name printout to `schedule_deprecation`
