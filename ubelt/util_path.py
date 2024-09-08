@@ -1763,8 +1763,8 @@ def _resolve_chmod_code(old_mode, code):
         'ox' : stat.S_IXOTH,
 
         # Special UNIX permissions
-        'us': stat.S_ISUID,  # SUID (executes run as the file's owner)
-        'gs': stat.S_ISGID,  # SGID (executes run as the file's group)
+        'us': stat.S_ISUID,  # SUID (executables run as the file's owner)
+        'gs': stat.S_ISGID,  # SGID (executables run as the file's group) and other uses, see: https://docs.python.org/3/library/stat.html#stat.S_ISGID
         'ot': stat.S_ISVTX,  # sticky (only owner can delete)
     }
     actions = _parse_chmod_code(code)
