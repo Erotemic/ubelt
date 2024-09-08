@@ -376,7 +376,7 @@ def dict_subset(dict_, keys, default=NoParam, cls=OrderedDict):
 
         keys (Iterable[KT]): keys to take from ``dict_``
 
-        default (Optional[object] | NoParamType):
+        default (Any | NoParamType):
             if specified uses default if keys are missing.
 
         cls (Type[Dict]): type of the returned dictionary.
@@ -1859,7 +1859,7 @@ class UDict(SetDict):
 
             keys (Iterable[KT]): keys to take from ``self``
 
-            default (Optional[object] | NoParamType):
+            default (Any | NoParamType):
                 if specified uses default if keys are missing.
 
         Raises:
@@ -1899,7 +1899,7 @@ class UDict(SetDict):
 
             keys (Iterable[KT]): keys to take from ``self``
 
-            default (Optional[object] | NoParamType):
+            default (Any | NoParamType):
                 if specified uses default if keys are missing.
 
         Yields:
