@@ -372,7 +372,8 @@ class IndexableWalker(Generator):
             equal_nan (bool):
                 if True, numpy must be available, and consider nans as equal.
 
-            return_info (bool, default=False): if true, return extra info dict
+            return_info (bool):
+                if True, return extra info dict. Defaults to False.
 
         Returns:
             bool | Tuple[bool, Dict] :
@@ -689,7 +690,7 @@ def indexable_allclose(items1, items2, rel_tol=1e-9, abs_tol=0.0, return_info=Fa
             maximum difference for being considered "close", regardless of the
             magnitude of the input values
 
-        return_info (bool, default=False): if true, return extra info
+        return_info (bool): if True, return extra info. Defaults to False.
 
     Returns:
         bool | Tuple[bool, Dict] :

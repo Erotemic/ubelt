@@ -38,17 +38,17 @@ if sys.platform.startswith('win32'):
 __win32_can_symlink__ = None  # type: bool | None
 
 
-def _win32_can_symlink(verbose=0, force=0, testing=0):
+def _win32_can_symlink(verbose=0, force=False, testing=False):
     """
     Args:
-        verbose (int, default=0): flag
-        force (int, default=0): flag
-        testing (int, default=0): flag
+        verbose (int): verbosity level
+        force (bool): flag
+        testing (bool): flag
 
     Example:
         >>> # xdoctest: +REQUIRES(WIN32)
         >>> import ubelt as ub
-        >>> _win32_can_symlink(verbose=3, force=1, testing=1)
+        >>> _win32_can_symlink(verbose=3, force=True, testing=True)
     """
     global __win32_can_symlink__
     if verbose:

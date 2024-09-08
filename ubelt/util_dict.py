@@ -652,7 +652,7 @@ def sorted_values(dict_, key=None, reverse=False, cls=OrderedDict):
             If given as a callable, customizes the sorting by ordering using
             transformed values.
 
-        reverse (bool, default):
+        reverse (bool):
             If True returns in descending order. Defaults to False.
 
         cls (type): Specifies the dict return type. Default to OrderedDict.
@@ -2018,7 +2018,7 @@ class UDict(SetDict):
                 If given as a callable, customizes the sorting by ordering using
                 transformed keys.
 
-            reverse (bool, default=False):
+            reverse (bool):
                 if True returns in descending order
 
         Returns:
@@ -2044,7 +2044,7 @@ class UDict(SetDict):
                 If given as a callable, customizes the sorting by ordering using
                 transformed values.
 
-            reverse (bool, default=False):
+            reverse (bool):
                 if True returns in descending order
 
         Returns:

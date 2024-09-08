@@ -33,14 +33,15 @@ def argval(key, default=util_const.NoParam, argv=None):
             string or tuple of strings. Each key should be prefixed with two
             hyphens (i.e. ``--``)
 
-        default (T | NoParamType, default=NoParam):
+        default (Any | NoParamType):
             a value to return if not specified.
 
-        argv (List[str] | None, default=None):
-            uses ``sys.argv`` if unspecified
+        argv (List[str] | None):
+           The command line arguments to parse.
+           If unspecified, uses ``sys.argv`` directly.
 
     Returns:
-        str | T:
+        str | Any:
             value - the value specified after the key. It they key is specified
             multiple times, then the first value is returned.
 
@@ -112,7 +113,9 @@ def argflag(key, argv=None):
             string or tuple of strings. Each key should be prefixed with two
             hyphens (i.e. ``--``).
 
-        argv (List[str] | None, default=None): overrides ``sys.argv`` if specified
+        argv (List[str] | None):
+           The command line arguments to parse.
+           If unspecified, uses ``sys.argv`` directly.
 
     Returns:
         bool: flag - True if the key (or any of the keys) was specified

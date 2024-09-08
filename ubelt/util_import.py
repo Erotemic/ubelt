@@ -948,7 +948,7 @@ def is_modname_importable(modname, sys_path=None, exclude=None):
 
     Args:
         modname (str): name of module to check
-        sys_path (list | None, default=None): if specified overrides ``sys.path``
+        sys_path (list | None): if specified overrides ``sys.path``
         exclude (list | None): list of directory paths. if specified prevents these
             directories from being searched.
 

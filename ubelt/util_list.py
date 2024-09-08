@@ -316,8 +316,9 @@ def iterable(obj, strok=False):
     Args:
         obj (object): a scalar or iterable input
 
-        strok (bool, default=False):
-            if True allow strings to be interpreted as iterable
+        strok (bool):
+            if True allow strings to be interpreted as iterable.
+            Defaults to False.
 
     Returns:
         bool: True if the input is iterable
@@ -355,8 +356,10 @@ def take(items, indices, default=util_const.NoParam):
 
         indices (Iterable[int | KT]):
             A sequence of indexes into ``items``.
-        default (Any, default=NoParam):
-            if specified ``items`` must support the ``get`` method.
+
+        default (Any | NoParamType):
+            if specified ``items`` must support the ``get`` method and
+            this will be used as the default value.
 
     Yields:
         VT: a selected item within the list
@@ -467,8 +470,10 @@ def unique(items, key=None):
     Args:
         items (Iterable[T]): list of items
 
-        key (Callable[[T], Any] | None, default=None): custom normalization function.
-            If specified returns items where ``key(item)`` is unique.
+        key (Callable[[T], Any] | None):
+            Custom normalization function.
+            If specified, this function generates items where ``key(item)`` is
+            unique.
 
     Yields:
         T:
@@ -512,8 +517,10 @@ def argunique(items, key=None):
     Args:
         items (Sequence[VT]): indexable collection of items
 
-        key (Callable[[VT], Any] | None, default=None): custom normalization function.
-            If specified returns items where ``key(item)`` is unique.
+        key (Callable[[VT], Any] | None):
+            Custom normalization function.
+            If specified, this function generates indexes where
+            ``key(item[index])`` is unique.
 
     Returns:
         Iterator[int] : indices of the unique items
@@ -540,9 +547,10 @@ def unique_flags(items, key=None):
     Args:
         items (Sequence[VT]): indexable collection of items
 
-        key (Callable[[VT], Any] | None, default=None): custom normalization
-            function.  If specified returns items where ``key(item)`` is
-            unique.
+        key (Callable[[VT], Any] | None):
+            Custom normalization function.
+            If specified generates True if ``key(item)`` is unique and False
+            otherwise.
 
     Returns:
         List[bool] : flags the items that are unique
@@ -609,11 +617,15 @@ def iter_window(iterable, size=2, step=1, wrap=False):
     Args:
         iterable (Iterable[T]): an iterable sequence
 
-        size (int, default=2): sliding window size
+        size (int): Sliding window size. Defaults to 2.
 
-        step (int, default=1): sliding step size
+        step (int): Sliding step size. Default to 1.
 
-        wrap (bool, default=False): wraparound flag
+        wrap (bool):
+            If True, the last window will "wrap-around" to include items from
+            the start of the input sequence in order to always produce
+            consistently sized chunks. Otherwise, the last chunk may be smaller
+            if there are not enough items in the sequence.. Defaults to False.
 
     Returns:
         Iterable[T]: returns a possibly overlapping windows in a sequence
@@ -687,8 +699,9 @@ def allsame(iterable, eq=operator.eq):
         iterable (Iterable[T]):
             items to determine if they are all the same
 
-        eq (Callable[[T, T], bool], default=operator.eq):
-            function used to test for equality
+        eq (Callable[[T, T], bool]):
+            function used to test for equality.
+            Defaults to :func:`operator.eq`.
 
     Returns:
         bool: True if all items are equal, otherwise False
@@ -731,10 +744,10 @@ def argsort(indexable, key=None, reverse=False):
     Args:
         indexable (Iterable[VT] | Mapping[KT, VT]): indexable to sort by
 
-        key (Callable[[VT], VT] | None, default=None):
-            customizes the ordering of the indexable
+        key (Callable[[VT], VT] | None):
+            If specified, customizes the ordering of the indexable.
 
-        reverse (bool, default=False): if True returns in descending order
+        reverse (bool): if True returns in descending order. Default to False.
 
     Returns:
         List[int] | List[KT]:
@@ -788,8 +801,8 @@ def argmax(indexable, key=None):
     Args:
         indexable (Iterable[VT] | Mapping[KT, VT]): indexable to sort by
 
-        key (Callable[[VT], Any] | None, default=None):
-            customizes the ordering of the indexable
+        key (Callable[[VT], Any] | None):
+            If specified, customizes the ordering of the indexable
 
     Returns:
         int | KT: the index of the item with the maximum value.
@@ -824,8 +837,8 @@ def argmin(indexable, key=None):
     Args:
         indexable (Iterable[VT] | Mapping[KT, VT]): indexable to sort by
 
-        key (Callable[[VT], VT] | None, default=None):
-            customizes the ordering of the indexable
+        key (Callable[[VT], VT] | None):
+            If specified, customizes the ordering of the indexable.
 
     Returns:
         int | KT: the index of the item with the minimum value.
