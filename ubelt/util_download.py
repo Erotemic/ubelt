@@ -2,11 +2,11 @@
 Helpers for downloading data
 
 The :func:`download` function access the network and requests the content at a
-specific url using :mod:`urllib` or :mod:`urllib2`. You can either specify
-where the data goes or download it to the default location in ubelt cache.
-Either way this function returns the location of the downloaded data. You can
-also specify the expected hash in order to check the validity of the data. By
-default downloading is verbose.
+specific url using :mod:`urllib`. You can either specify where the data goes or
+download it to the default location in ubelt cache.  Either way this function
+returns the location of the downloaded data. You can also specify the expected
+hash in order to check the validity of the data. By default downloading is
+verbose.
 
 The :func:`grabdata` function is almost identitcal to :func:`download`, but it
 checks if the data already exists in the download location, and only downloads
@@ -38,9 +38,9 @@ def download(url, fpath=None, dpath=None, fname=None, appname=None,
 
         fpath (str | PathLike | io.BytesIO | None):
             The path to download to. Defaults to basename of url and ubelt's
-            application cache. If this is a io.BytesIO object then information
-            is directly written to this object (note this prevents the use of
-            temporary files).
+            application cache. If this is a :class:`io.BytesIO` object then
+            information is directly written to this object (note this prevents
+            the use of temporary files).
 
         dpath (str | PathLike | None):
             where to download the file. If unspecified `appname` is used to
@@ -122,6 +122,20 @@ def download(url, fpath=None, dpath=None, fname=None, appname=None,
 
     Example:
         >>> # xdoctest: +REQUIRES(--network)
+        >>> # To ensure you get the file you are expecting, it is a good idea
+        >>> # to specify a hash that will be checked.
+        >>> import ubelt as ub
+        >>> url = 'http://i.imgur.com/rqwaDag.png'
+        >>> fpath = ub.download(url, hasher='sha1', hash_prefix='f79ea24571da6ddd2ba12e3d57b515249ecb8a35')
+        >>> print(ub.Path(fpath).name)
+        Downloading url='http://i.imgur.com/rqwaDag.png' to fpath=...rqwaDag.png
+        ...
+        ...1233/1233... rate=... Hz, eta=..., total=...
+        rqwaDag.png
+
+    Example:
+        >>> # xdoctest: +REQUIRES(--network)
+        >>> # You can save directly to bytes in memory using a BytesIO object.
         >>> import ubelt as ub
         >>> import io
         >>> url = 'http://i.imgur.com/rqwaDag.png'
@@ -133,14 +147,8 @@ def download(url, fpath=None, dpath=None, fname=None, appname=None,
 
     Example:
         >>> # xdoctest: +REQUIRES(--network)
-        >>> url = 'http://i.imgur.com/rqwaDag.png'
-        >>> fpath = download(url, hasher='sha1', hash_prefix='f79ea24571da6ddd2ba12e3d57b515249ecb8a35')
-        Downloading url='http://i.imgur.com/rqwaDag.png' to fpath=...rqwaDag.png
-        ...
-        ...1233/1233... rate=... Hz, eta=..., total=...
-
-    Example:
-        >>> # xdoctest: +REQUIRES(--network)
+        >>> # Bad hashes will raise a RuntimeError, which could indicate
+        >>> # corrupted data or a security issue.
         >>> import pytest
         >>> import ubelt as ub
         >>> url = 'http://i.imgur.com/rqwaDag.png'
@@ -185,6 +193,7 @@ def download(url, fpath=None, dpath=None, fname=None, appname=None,
                 url, fpath))
 
     requestkw = requestkw or {}
+    requestkw['headers'] = {'User-Agent': 'Mozilla/5.0'}
     req = Request(url, **requestkw)
     urldata = urlopen(req, timeout=timeout)
 
@@ -358,8 +367,8 @@ def grabdata(url, fpath=None, dpath=None, fname=None, redo=False,
             seconds to wait before the cache should expire.
 
         **download_kw: additional kwargs to pass to
-            :func:`ubelt.util_download.download`. This includes `chunksize`,
-            `filesize`, `timeout`, `progkw`, and `requestkw`.
+            :func:`ubelt.util_download.download`. This includes ``chunksize``,
+            ``filesize``, ``timeout``, ``progkw``, and ``requestkw``.
 
     Ignore:
         # helper logic to determine what needs to be documented for download_kw
@@ -368,7 +377,7 @@ def grabdata(url, fpath=None, dpath=None, fname=None, redo=False,
         grabdata_sig = inspect.signature(ub.grabdata)
         download_sig = inspect.signature(ub.download)
         extra = ub.udict(download_sig.parameters) - ub.udict(grabdata_sig.parameters)
-        print(', '.join([f'`{k}`' for k in extra.keys()]))
+        print(', '.join([f'``{k}``' for k in extra.keys()]))
 
     Returns:
         str | PathLike: fpath - path to downloaded or cached file.

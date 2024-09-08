@@ -1187,7 +1187,7 @@ def hash_data(data, hasher=NoParam, base=NoParam, types=False, convert=False,
             If True data types are included in the hash, otherwise only the raw
             data is hashed. Defaults to False.
 
-        convert (bool, default=True):
+        convert (bool):
             if True, try and convert the data to json an the json is hashed
             instead. This can improve runtime in some instances, however the
             hash may differ from the case where convert=False.
