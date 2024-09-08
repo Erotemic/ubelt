@@ -15,6 +15,7 @@ This project (loosely) adheres to [Semantic Versioning](https://semver.org/spec/
 
 ### Changed
 * Added module name printout to `schedule_deprecation`
+* `ub.hash_data` now supports `datatime.datetime`, `datetime.date`, `decimal.Decimal` objects. 
 
 
 ## Version 1.3.6 - Released 2024-06-08
