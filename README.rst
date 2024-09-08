@@ -146,8 +146,7 @@ Installation:
 =============
 
 Ubelt is distributed on pypi as a universal wheel and can be pip installed on
-Python 3.6+. Installations are tested on CPython and PyPy implementations. For
-Python 2.7 and 3.5, the last supported version was 0.11.1.
+Python 3.6+. Installations are tested on CPython and PyPy implementations.
 
 ::
 
@@ -155,6 +154,22 @@ Python 2.7 and 3.5, the last supported version was 0.11.1.
 
 Note that our distributions on pypi are signed with GPG. The signing public key
 is ``D297D757``; this should agree with the value in `dev/public_gpg_key`.
+
+
+For older versions of Python, this table provides the last officially supported
+version of ubelt.
+
++------------------+---------------------------------------------+
+| Python Version   | Most Recent Supported Ubelt Version         |
++==================+=============================================+
+| 3.8 - 3.12       | latest                                      |
++------------------+---------------------------------------------+
+| 3.6 - 3.7        | latest (will remove support in 1.4.0)       |
++------------------+---------------------------------------------+
+| 2.7,  3.5        | 0.11.1                                      |
++------------------+---------------------------------------------+
+| 3.4              | 0.6.1                                       |
++------------------+---------------------------------------------+
 
 
 Function Usefulness
