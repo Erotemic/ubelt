@@ -123,6 +123,9 @@ def b(s):
 DEFAULT_HASHER = hashlib.sha512  # type: Callable
 
 
+# This controls if types are used when generating hashable sequences for more
+# complex objects. Currently there is no way for the user to control this, and
+# that might need to addressed, but it will require some thought.
 _COMPATIBLE_HASHABLE_SEQUENCE_TYPES_DEFAULT = True
 
 
@@ -558,9 +561,12 @@ class HashableExtensions(object):
         # of strictly using this registry.
         hash_func = self._hash_dispatch.dispatch(query_hash_type)
         if getattr(hash_func, '__is_base__', False):
-            raise TypeError(
-                'No registered hash func for hashable type={!r}'.format(
-                    query_hash_type))
+            base_msg = f'No registered hash func for hashable type={query_hash_type!r}'
+            try:
+                msg = f'{base_msg} with mro: {query_hash_type.__mro__}'
+            except AttributeError:
+                msg = base_msg
+            raise TypeError(msg)
         return hash_func
 
     def add_iterable_check(self, func):
@@ -726,9 +732,14 @@ class HashableExtensions(object):
             cc21b9fa
             bd1cabd0
         """
+        # TODO: can we only register a stdlib class if we need it?
+        # Some of the stdlib modules dont need to be imported and
+        # cause extra import time overhead.
         import uuid
         import pathlib
         import numbers
+        import decimal
+        import datetime as datetime_mod
 
         @self.register(numbers.Integral)
         def _convert_numpy_int(data):
@@ -737,6 +748,39 @@ class HashableExtensions(object):
         @self.register(numbers.Real)
         def _convert_numpy_float(data):
             return _convert_to_hashable(float(data), extensions=self)
+
+        @self.register(decimal.Decimal)
+        def _convert_decimal(data):
+            _hashable_sequence
+            seq = _hashable_sequence(
+                data.as_tuple(),
+                extensions=self,
+                types=_COMPATIBLE_HASHABLE_SEQUENCE_TYPES_DEFAULT)
+            hashable = b''.join(seq)
+            prefix = b'DECIMAL'
+            return prefix, hashable
+
+        @self.register(datetime_mod.date)
+        def _convert_date(data):
+            _hashable_sequence
+            seq = _hashable_sequence(
+                data.timetuple(),
+                extensions=self,
+                types=_COMPATIBLE_HASHABLE_SEQUENCE_TYPES_DEFAULT)
+            hashable = b''.join(seq)
+            prefix = b'DATE'
+            return prefix, hashable
+
+        @self.register(datetime_mod.datetime)
+        def _convert_datetime(data):
+            _hashable_sequence
+            seq = _hashable_sequence(
+                data.timetuple(),
+                extensions=self,
+                types=_COMPATIBLE_HASHABLE_SEQUENCE_TYPES_DEFAULT)
+            hashable = b''.join(seq)
+            prefix = b'DATETIME'
+            return prefix, hashable
 
         @self.register(uuid.UUID)
         def _convert_uuid(data):
