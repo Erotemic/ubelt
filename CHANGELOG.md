@@ -6,6 +6,8 @@ This project (loosely) adheres to [Semantic Versioning](https://semver.org/spec/
 
 ## Version 1.3.7 - Unreleased
 
+### Added
+* Added `requestkw` to `ub.download`. 
 
 ### Fixed:
 * Minor test issues.

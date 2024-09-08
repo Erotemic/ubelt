@@ -23,36 +23,36 @@ __all__ = ['download', 'grabdata']
 
 def download(url, fpath=None, dpath=None, fname=None, appname=None,
              hash_prefix=None, hasher='sha512', chunksize=8192, filesize=None,
-             verbose=1, timeout=NoParam, progkw=None):
+             verbose=1, timeout=NoParam, progkw=None, requestkw=None):
     """
-    Downloads a url to a file on disk.
+    Downloads a url to a file on disk and returns the path.
 
     If unspecified the location and name of the file is chosen automatically.
     A hash_prefix can be specified to verify the integrity of the downloaded
     data. This function will download the data every time its called. For
-    cached downloading see `grabdata`.
+    cached downloading see :func:`grabdata`.
 
     Args:
         url (str):
             The url to download.
 
-        fpath (Optional[str | PathLike | io.BytesIO]):
+        fpath (str | PathLike | io.BytesIO | None):
             The path to download to. Defaults to basename of url and ubelt's
             application cache. If this is a io.BytesIO object then information
             is directly written to this object (note this prevents the use of
             temporary files).
 
-        dpath (Optional[PathLike]):
+        dpath (str | PathLike | None):
             where to download the file. If unspecified `appname` is used to
             determine this. Mutually exclusive with fpath.
 
-        fname (Optional[str]):
+        fname (str | None):
             What to name the downloaded file. Defaults to the url basename.
             Mutually exclusive with fpath.
 
         appname (str | None): set dpath to
-            ``ub.get_app_cache_dir(appname or 'ubelt')`` if dpath and fpath are
-            not given.
+            ``ub.Path.appdir(appname or 'ubelt', type='cache')``
+            if dpath and fpath are not given.
 
         hash_prefix (None | str):
             If specified, download will retry / error if the file hash
@@ -82,12 +82,22 @@ def download(url, fpath=None, dpath=None, fname=None, appname=None,
             if specified provides extra arguments to the progress iterator.
             See :class:`ubelt.progiter.ProgIter` for available options.
 
+        requestkw (Dict | NoParamType | None):
+            if specified provides extra arguments to
+            :class:`urllib.request.Request`, which can be used to customize
+            headers and other low level information sent to the target server.
+            The common use-case would be to specify ``headers: Dict[str, str]``
+            in order to "spoof" the user agent. E.g.
+            ``headers={'User-Agent': 'Mozilla/5.0'}``. (new in ubelt 1.3.7).
+
     Returns:
         str | PathLike: fpath - path to the downloaded file.
 
     Raises:
-        URLError - if there is problem downloading the url
-        RuntimeError - if the hash does not match the hash_prefix
+
+        URLError - if there is problem downloading the url.
+
+        RuntimeError - if the hash does not match the hash_prefix.
 
     Note:
         Based largely on code in pytorch [TorchDL]_ with modifications
@@ -102,10 +112,12 @@ def download(url, fpath=None, dpath=None, fname=None, appname=None,
 
     Example:
         >>> # xdoctest: +REQUIRES(--network)
-        >>> from ubelt.util_download import *  # NOQA
+        >>> # The default usage is to simply download an image to the default
+        >>> # download folder and return the path to the file.
+        >>> import ubelt as ub
         >>> url = 'http://i.imgur.com/rqwaDag.png'
         >>> fpath = download(url)
-        >>> print(basename(fpath))
+        >>> print(ub.Path(fpath).name)
         rqwaDag.png
 
     Example:
@@ -132,10 +144,6 @@ def download(url, fpath=None, dpath=None, fname=None, appname=None,
         >>> import pytest
         >>> import ubelt as ub
         >>> url = 'http://i.imgur.com/rqwaDag.png'
-        >>> #fpath = download(url, hasher='sha1', hash_prefix='f79ea24571da6ddd2ba12e3d57b515249ecb8a35')
-        >>> # test download from girder
-        >>> #url = 'https://data.kitware.com/api/v1/item/5b4039308d777f2e6225994c/download'
-        >>> #ub.download(url, hasher='sha512', hash_prefix='c98a46cb31205cf')
         >>> with pytest.raises(RuntimeError):
         >>>     ub.download(url, hasher='sha512', hash_prefix='BAD_HASH')
     """
@@ -150,7 +158,7 @@ def download(url, fpath=None, dpath=None, fname=None, appname=None,
         import socket
         timeout = socket._GLOBAL_DEFAULT_TIMEOUT
 
-    from urllib.request import urlopen  # NOQA
+    from urllib.request import urlopen, Request
 
     if fpath and (dpath or fname):
         raise ValueError('Cannot specify fpath with dpath or fname')
@@ -176,8 +184,9 @@ def download(url, fpath=None, dpath=None, fname=None, appname=None,
             print('Downloading url={!r} to fpath={!r}'.format(
                 url, fpath))
 
-    # TODO: might want to open the url with different args
-    urldata = urlopen(url, timeout=timeout)
+    requestkw = requestkw or {}
+    req = Request(url, **requestkw)
+    urldata = urlopen(req, timeout=timeout)
 
     meta = urldata.info()
     if filesize is None:
@@ -324,7 +333,7 @@ def grabdata(url, fpath=None, dpath=None, fname=None, redo=False,
             What to name the downloaded file. Defaults to the url basename.
             Mutually exclusive with fpath.
 
-        redo (bool, default=False): if True forces redownload of the file
+        redo (bool): if True forces redownload of the file. Defaults to False.
 
         verbose (int):
             Verbosity flag. Quiet is 0, higher is more verbose. Defaults to 1.
@@ -349,7 +358,17 @@ def grabdata(url, fpath=None, dpath=None, fname=None, redo=False,
             seconds to wait before the cache should expire.
 
         **download_kw: additional kwargs to pass to
-            :func:`ubelt.util_download.download`
+            :func:`ubelt.util_download.download`. This includes `chunksize`,
+            `filesize`, `timeout`, `progkw`, and `requestkw`.
+
+    Ignore:
+        # helper logic to determine what needs to be documented for download_kw
+        import ubelt as ub
+        import inspect
+        grabdata_sig = inspect.signature(ub.grabdata)
+        download_sig = inspect.signature(ub.download)
+        extra = ub.udict(download_sig.parameters) - ub.udict(grabdata_sig.parameters)
+        print(', '.join([f'`{k}`' for k in extra.keys()]))
 
     Returns:
         str | PathLike: fpath - path to downloaded or cached file.
