@@ -1190,7 +1190,7 @@ def hash_data(data, hasher=NoParam, base=NoParam, types=False, convert=False,
         convert (bool):
             if True, try and convert the data to json an the json is hashed
             instead. This can improve runtime in some instances, however the
-            hash may differ from the case where convert=False.
+            hash will likely differ from the case where convert=False.
 
         extensions (HashableExtensions | None):
             a custom :class:`HashableExtensions` instance that can overwrite or
