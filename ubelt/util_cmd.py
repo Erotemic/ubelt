@@ -152,7 +152,11 @@ class CmdOutput(dict):
 
 def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
         env=None, tee_backend='auto', check=False, system=False, timeout=None,
-        capture=True):
+        capture=True,
+        # Do we support these?
+        # universal_newlines=True,
+        # stdout='unused', stderr='unused'
+        ):
     """
     Executes a command in a subprocess.
 
@@ -227,6 +231,13 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
     Note:
         When using the tee output, the stdout and stderr may be shuffled from
         what they would be on the command line.
+
+    Note:
+        While this function is generally compatible with subprocess.run and
+        other variants of Popen, we force defaults of universal_newlines=True,
+        and choose the values of stdout and stderr based on other arguments.
+        We are considering the pros and cons of a completely
+        drop-in-replacement API.
 
     Related Work:
         Similar to other libraries: [SubprocTee]_, [ShellJob]_, [CmdRunner]_, [PyInvoke]_.
