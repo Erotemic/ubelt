@@ -254,13 +254,9 @@ class memoize_method:
         """
         import types
         unbound = self._func
-        # bound = unbound.__get__(instance, cls)
         cache = instance.__dict__.setdefault(self._cache_name, {})
 
         # https://stackoverflow.com/questions/71413937/what-does-using-get-on-a-function-do
-
-        # This works better, but it creates a new method each time.  whereas
-        # the descriptor binding process seems to cache the bound method.
         @functools.wraps(unbound)
         def memoizer(instance, *args, **kwargs):
             key = _make_signature_key(args, kwargs)
@@ -268,26 +264,13 @@ class memoize_method:
                 cache[key] = unbound(instance, *args, **kwargs)
             return cache[key]
 
+        # Bind the unbound memoizer to the instance
         bound_memoizer = types.MethodType(memoizer, instance)
 
         # Set the attribute to prevent calling __get__ again
+        # Is there a better way to do this?
         setattr(instance, self._func.__name__, bound_memoizer)
         return bound_memoizer
-
-        self._instance = instance
-        return self
-
-    # def __call__(self, *args, **kwargs):
-    #     """
-    #     The wrapped function call
-    #     """
-    #     cache = self._instance.__dict__.setdefault(self._cache_name, {})
-    #     key = _make_signature_key(args, kwargs)
-    #     if key in cache:
-    #         return cache[key]
-    #     else:
-    #         value = cache[key] = self._func(self._instance, *args, **kwargs)
-    #         return value
 
 
 def memoize_property(fget):
