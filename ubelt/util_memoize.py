@@ -158,7 +158,7 @@ def memoize(func):
     return memoizer
 
 
-class memoize_method(object):
+class memoize_method:
     """
     memoization decorator for a method that respects args and kwargs
 
@@ -168,43 +168,69 @@ class memoize_method(object):
     Attributes:
         __func__ (Callable): the wrapped function
 
+    Note:
+        This is very thread-unsafe, and has an issue as pointed out in
+        [ActiveState_Miller_2010]_, next version may work on fixing this.
+
     Example:
         >>> import ubelt as ub
-        >>> closure = {'a': 'b', 'c': 'd'}
+        >>> closure1 = closure = {'a': 'b', 'c': 'd', 'z': 'z1'}
         >>> incr = [0]
         >>> class Foo(object):
+        >>>     def __init__(self, instance_id):
+        >>>         self.instance_id = instance_id
         >>>     @ub.memoize_method
         >>>     def foo_memo(self, key):
         >>>         "Wrapped foo_memo docstr"
         >>>         value = closure[key]
         >>>         incr[0] += 1
-        >>>         return value
+        >>>         return value, self.instance_id
         >>>     def foo(self, key):
         >>>         value = closure[key]
         >>>         incr[0] += 1
-        >>>         return value
-        >>> self = Foo()
-        >>> assert self.foo('a') == 'b' and self.foo('c') == 'd'
+        >>>         return value, self.instance_id
+        >>> self1 = Foo('F1')
+        >>> assert self1.foo('a') == ('b', 'F1')
+        >>> assert self1.foo('c') == ('d', 'F1')
         >>> assert incr[0] == 2
+        >>> #
         >>> print('Call memoized version')
-        >>> assert self.foo_memo('a') == 'b' and self.foo_memo('c') == 'd'
-        >>> assert incr[0] == 4
-        >>> assert self.foo_memo('a') == 'b' and self.foo_memo('c') == 'd'
+        >>> assert self1.foo_memo('a') == ('b', 'F1')
+        >>> assert self1.foo_memo('c') == ('d', 'F1')
+        >>> assert incr[0] == 4, 'should have called a function 4 times'
+        >>> #
+        >>> assert self1.foo_memo('a') == ('b', 'F1')
+        >>> assert self1.foo_memo('c') == ('d', 'F1')
         >>> print('Counter should no longer increase')
         >>> assert incr[0] == 4
+        >>> #
         >>> print('Closure changes result without memoization')
-        >>> closure = {'a': 0, 'c': 1}
-        >>> assert self.foo('a') == 0 and self.foo('c') == 1
+        >>> closure2 = closure = {'a': 0, 'c': 1, 'z': 'z2'}
+        >>> assert self1.foo('a') == (0, 'F1')
+        >>> assert self1.foo('c') == (1, 'F1')
         >>> assert incr[0] == 6
-        >>> assert self.foo_memo('a') == 'b' and self.foo_memo('c') == 'd'
+        >>> assert self1.foo_memo('a') == ('b', 'F1')
+        >>> assert self1.foo_memo('c') == ('d', 'F1')
+        >>> #
         >>> print('Constructing a new object should get a new cache')
-        >>> self2 = Foo()
+        >>> self2 = Foo('F2')
         >>> self2.foo_memo('a')
         >>> assert incr[0] == 7
         >>> self2.foo_memo('a')
         >>> assert incr[0] == 7
-        >>> assert self.foo_memo.__doc__ == 'Wrapped foo_memo docstr'
-        >>> assert self.foo_memo.__name__ == 'foo_memo'
+        >>> # Check that the decorator preserves the name and docstring
+        >>> assert self1.foo_memo.__doc__ == 'Wrapped foo_memo docstr'
+        >>> assert self1.foo_memo.__name__ == 'foo_memo'
+        >>> print(f'self1.foo_memo = {self1.foo_memo!r}, {hex(id(self1.foo_memo))}')
+        >>> print(f'self2.foo_memo = {self2.foo_memo!r}, {hex(id(self2.foo_memo))}')
+        >>> #
+        >>> # Test for the issue in the active state recipie
+        >>> method1 = self1.foo_memo
+        >>> method2 = self2.foo_memo
+        >>> assert method1('a') == ('b', 'F1')
+        >>> assert method2('a') == (0, 'F2')
+        >>> assert method1('z') == ('z2', 'F1')
+        >>> assert method2('z') == ('z2', 'F2')
     """
     def __init__(self, func):
         """
@@ -226,20 +252,42 @@ class memoize_method(object):
             instance (object): the instance of the class with the memoized method
             cls (type | None): the type of the instance
         """
+        import types
+        unbound = self._func
+        # bound = unbound.__get__(instance, cls)
+        cache = instance.__dict__.setdefault(self._cache_name, {})
+
+        # https://stackoverflow.com/questions/71413937/what-does-using-get-on-a-function-do
+
+        # This works better, but it creates a new method each time.  whereas
+        # the descriptor binding process seems to cache the bound method.
+        @functools.wraps(unbound)
+        def memoizer(instance, *args, **kwargs):
+            key = _make_signature_key(args, kwargs)
+            if key not in cache:
+                cache[key] = unbound(instance, *args, **kwargs)
+            return cache[key]
+
+        bound_memoizer = types.MethodType(memoizer, instance)
+
+        # Set the attribute to prevent calling __get__ again
+        setattr(instance, self._func.__name__, bound_memoizer)
+        return bound_memoizer
+
         self._instance = instance
         return self
 
-    def __call__(self, *args, **kwargs):
-        """
-        The wrapped function call
-        """
-        cache = self._instance.__dict__.setdefault(self._cache_name, {})
-        key = _make_signature_key(args, kwargs)
-        if key in cache:
-            return cache[key]
-        else:
-            value = cache[key] = self._func(self._instance, *args, **kwargs)
-            return value
+    # def __call__(self, *args, **kwargs):
+    #     """
+    #     The wrapped function call
+    #     """
+    #     cache = self._instance.__dict__.setdefault(self._cache_name, {})
+    #     key = _make_signature_key(args, kwargs)
+    #     if key in cache:
+    #         return cache[key]
+    #     else:
+    #         value = cache[key] = self._func(self._instance, *args, **kwargs)
+    #         return value
 
 
 def memoize_property(fget):
