@@ -23,7 +23,7 @@ jobs:
     - name: Checkout source
       uses: actions/checkout@v4.1.1
     - name: Set up Python 3.12 for linting
-      uses: actions/setup-python@v5.0.0
+      uses: actions/setup-python@v5.1.1
       with:
         python-version: '3.12'
     - name: Install dependencies
@@ -51,7 +51,7 @@ jobs:
     - name: Checkout source
       uses: actions/checkout@v4.1.1
     - name: Set up Python 3.12
-      uses: actions/setup-python@v5.0.0
+      uses: actions/setup-python@v5.1.1
       with:
         python-version: '3.12'
     - name: Upgrade pip
@@ -62,9 +62,9 @@ jobs:
     - name: Build sdist
       shell: bash
       run: |-
-        python -m pip install pip -U
-        python -m pip install setuptools>=0.8 wheel build
+        python -m pip install setuptools>=0.8 wheel build twine
         python -m build --sdist --outdir wheelhouse
+        python -m twine check ./wheelhouse/ubelt*.tar.gz
     - name: Install sdist
       run: |-
         ls -al wheelhouse
@@ -98,11 +98,11 @@ jobs:
         echo "MOD_DPATH = $MOD_DPATH"
         python -m pytest --verbose --cov=ubelt $MOD_DPATH ../tests
         cd ..
-    - uses: actions/upload-artifact@v3.1.3
+    - uses: actions/upload-artifact@v4.4.0
       name: Upload sdist artifact
       with:
         name: sdist_wheels
-        path: wheelhouse/*.tar.gz
+        path: ./wheelhouse/ubelt*.tar.gz
   build_purepy_wheels:
     ##
     # Download and test the pure-python wheels that were build in the
@@ -116,7 +116,7 @@ jobs:
         os:
         - ubuntu-latest
         python-version:
-        - '3.12'
+        - 3.13.0-rc.2
         arch:
         - auto
     steps:
@@ -128,7 +128,7 @@ jobs:
       with:
         platforms: all
     - name: Setup Python
-      uses: actions/setup-python@v5.0.0
+      uses: actions/setup-python@v5.1.1
       with:
         python-version: ${{ matrix.python-version }}
     - name: Build pure wheel
@@ -140,10 +140,10 @@ jobs:
     - name: Show built files
       shell: bash
       run: ls -la wheelhouse
-    - uses: actions/upload-artifact@v3.1.3
+    - uses: actions/upload-artifact@v4.4.0
       name: Upload wheels artifact
       with:
-        name: wheels
+        name: wheels-${{ matrix.os }}-${{ matrix.arch }}
         path: ./wheelhouse/ubelt*.whl
   test_purepy_wheels:
     name: ${{ matrix.python-version }} on ${{ matrix.os }}, arch=${{ matrix.arch }} with ${{ matrix.install-extras }}
@@ -169,23 +169,23 @@ jobs:
           install-extras: tests-strict,runtime-strict
           os: windows-latest
           arch: auto
-        - python-version: '3.12'
+        - python-version: 3.13.0-rc.2
           install-extras: tests-strict,runtime-strict,optional-strict
           os: ubuntu-latest
           arch: auto
-        - python-version: '3.12'
+        - python-version: 3.13.0-rc.2
           install-extras: tests-strict,runtime-strict,optional-strict
           os: macOS-latest
           arch: auto
-        - python-version: '3.12'
+        - python-version: 3.13.0-rc.2
           install-extras: tests-strict,runtime-strict,optional-strict
           os: windows-latest
           arch: auto
-        - python-version: '3.12'
+        - python-version: 3.13.0-rc.2
           install-extras: tests
           os: macOS-latest
           arch: auto
-        - python-version: '3.12'
+        - python-version: 3.13.0-rc.2
           install-extras: tests
           os: windows-latest
           arch: auto
@@ -217,6 +217,10 @@ jobs:
           install-extras: tests,optional
           os: ubuntu-latest
           arch: auto
+        - python-version: 3.13.0-rc.2
+          install-extras: tests,optional
+          os: ubuntu-latest
+          arch: auto
         - python-version: pypy-3.9
           install-extras: tests,optional
           os: ubuntu-latest
@@ -249,6 +253,10 @@ jobs:
           install-extras: tests,optional
           os: macOS-latest
           arch: auto
+        - python-version: 3.13.0-rc.2
+          install-extras: tests,optional
+          os: macOS-latest
+          arch: auto
         - python-version: pypy-3.9
           install-extras: tests,optional
           os: macOS-latest
@@ -281,6 +289,10 @@ jobs:
           install-extras: tests,optional
           os: windows-latest
           arch: auto
+        - python-version: 3.13.0-rc.2
+          install-extras: tests,optional
+          os: windows-latest
+          arch: auto
         - python-version: pypy-3.9
           install-extras: tests,optional
           os: windows-latest
@@ -297,13 +309,14 @@ jobs:
       with:
         platforms: all
     - name: Setup Python
-      uses: actions/setup-python@v5.0.0
+      uses: actions/setup-python@v5.1.1
       with:
         python-version: ${{ matrix.python-version }}
-    - uses: actions/download-artifact@v2.1.1
+    - uses: actions/download-artifact@v4.1.8
       name: Download wheels
       with:
-        name: wheels
+        pattern: wheels-*
+        merge-multiple: true
         path: wheelhouse
     - name: Install wheel ${{ matrix.install-extras }}
       shell: bash
@@ -315,11 +328,23 @@ jobs:
         echo "Installing helpers"
         pip install setuptools>=0.8 setuptools_scm wheel build -U
         pip install tomli pkginfo
-        export WHEEL_FPATH=$(python -c "import pathlib; print(str(sorted(pathlib.Path('wheelhouse').glob('ubelt*.whl'))[-1]).replace(chr(92), chr(47)))")
-        export MOD_VERSION=$(python -c "from pkginfo import Wheel; print(Wheel('$WHEEL_FPATH').version)")
-        echo "$WHEEL_FPATH=WHEEL_FPATH"
-        echo "$INSTALL_EXTRAS=INSTALL_EXTRAS"
-        echo "$MOD_VERSION=MOD_VERSION"
+        export WHEEL_FPATH=$(python -c "if 1:
+            import pathlib
+            dist_dpath = pathlib.Path('wheelhouse')
+            candidates = list(dist_dpath.glob('ubelt*.whl'))
+            candidates += list(dist_dpath.glob('ubelt*.tar.gz'))
+            fpath = sorted(candidates)[-1]
+            print(str(fpath).replace(chr(92), chr(47)))
+        ")
+        export MOD_VERSION=$(python -c "if 1:
+            from pkginfo import Wheel, SDist
+            fpath = '$WHEEL_FPATH'
+            cls = Wheel if fpath.endswith('.whl') else SDist
+            print(cls(fpath).version)
+        ")
+        echo "WHEEL_FPATH=$WHEEL_FPATH"
+        echo "INSTALL_EXTRAS=$INSTALL_EXTRAS"
+        echo "MOD_VERSION=$MOD_VERSION"
         pip install --prefer-binary "ubelt[$INSTALL_EXTRAS]==$MOD_VERSION" -f wheelhouse
         echo "Install finished."
     - name: Test wheel ${{ matrix.install-extras }}
@@ -374,7 +399,7 @@ jobs:
         file: ./coverage.xml
         token: ${{ secrets.CODECOV_TOKEN }}
   test_deploy:
-    name: Uploading Test to PyPi
+    name: Deploy Test
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && ! startsWith(github.event.ref, 'refs/tags') && ! startsWith(github.event.ref, 'refs/heads/release')
     needs:
@@ -383,12 +408,13 @@ jobs:
     steps:
     - name: Checkout source
       uses: actions/checkout@v4.1.1
-    - uses: actions/download-artifact@v2.1.1
+    - uses: actions/download-artifact@v4.1.8
       name: Download wheels
       with:
-        name: wheels
+        pattern: wheels-*
+        merge-multiple: true
         path: wheelhouse
-    - uses: actions/download-artifact@v2.1.1
+    - uses: actions/download-artifact@v4.1.8
       name: Download sdist
       with:
         name: sdist_wheels
@@ -437,7 +463,7 @@ jobs:
         ots stamp wheelhouse/*.whl wheelhouse/*.tar.gz wheelhouse/*.asc
         ls -la wheelhouse
         twine upload --username __token__ --password "$TWINE_PASSWORD" --repository-url "$TWINE_REPOSITORY_URL" wheelhouse/*.whl wheelhouse/*.tar.gz --skip-existing --verbose || { echo "failed to twine upload" ; exit 1; }
-    - uses: actions/upload-artifact@v3.1.3
+    - uses: actions/upload-artifact@v4.4.0
       name: Upload deploy artifacts
       with:
         name: deploy_artifacts
@@ -448,7 +474,7 @@ jobs:
           wheelhouse/*.asc
           wheelhouse/*.ots
   live_deploy:
-    name: Uploading Live to PyPi
+    name: Deploy Live
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && (startsWith(github.event.ref, 'refs/tags') || startsWith(github.event.ref, 'refs/heads/release'))
     needs:
@@ -457,12 +483,13 @@ jobs:
     steps:
     - name: Checkout source
       uses: actions/checkout@v4.1.1
-    - uses: actions/download-artifact@v2.1.1
+    - uses: actions/download-artifact@v4.1.8
       name: Download wheels
       with:
-        name: wheels
+        pattern: wheels-*
+        merge-multiple: true
         path: wheelhouse
-    - uses: actions/download-artifact@v2.1.1
+    - uses: actions/download-artifact@v4.1.8
       name: Download sdist
       with:
         name: sdist_wheels
@@ -511,7 +538,7 @@ jobs:
         ots stamp wheelhouse/*.whl wheelhouse/*.tar.gz wheelhouse/*.asc
         ls -la wheelhouse
         twine upload --username __token__ --password "$TWINE_PASSWORD" --repository-url "$TWINE_REPOSITORY_URL" wheelhouse/*.whl wheelhouse/*.tar.gz --skip-existing --verbose || { echo "failed to twine upload" ; exit 1; }
-    - uses: actions/upload-artifact@v3.1.3
+    - uses: actions/upload-artifact@v4.4.0
       name: Upload deploy artifacts
       with:
         name: deploy_artifacts
@@ -532,7 +559,7 @@ jobs:
     steps:
     - name: Checkout source
       uses: actions/checkout@v4.1.1
-    - uses: actions/download-artifact@v2.1.1
+    - uses: actions/download-artifact@v4.1.8
       name: Download artifacts
       with:
         name: deploy_artifacts

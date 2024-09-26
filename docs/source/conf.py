@@ -17,7 +17,7 @@ Notes:
     # need to edit the conf.py
 
     cd ~/code/ubelt/docs
-    sphinx-apidoc --private --separate -f -o ~/code/ubelt/docs/source/auto ~/code/ubelt/ubelt
+    sphinx-apidoc --private --separate --force --output-dir ~/code/ubelt/docs/source/auto ~/code/ubelt/ubelt
 
     # Note: the module should importable before running this
     # (e.g. install it in developer mode or munge the PYTHONPATH)
