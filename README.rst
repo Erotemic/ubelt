@@ -570,7 +570,7 @@ Dictionary Set Operations
 
 
 Dictionary operations that are analogous to set operations.
-See each funtions documentation for more details on the behavior of the values.
+See each functions documentation for more details on the behavior of the values.
 Typically the last seen value is given priority.
 
 I hope Python decides to add these to the stdlib someday.
@@ -635,7 +635,7 @@ each corresponding item.
 .. code:: python
 
     >>> import ubelt as ub
-    >>> # Group via a corresonding list
+    >>> # Group via a corresponding list
     >>> item_list    = ['ham',     'jam',   'spam',     'eggs',    'cheese', 'bannana']
     >>> groupid_list = ['protein', 'fruit', 'protein',  'protein', 'dairy',  'fruit']
     >>> dict(ub.group_items(item_list, groupid_list))
@@ -684,7 +684,7 @@ Each item can also be given a weight
 Dictionary Manipulation
 -----------------------
 
-Map functions across dictionarys to transform the keys or values in a
+Map functions across dictionaries to transform the keys or values in a
 dictionary.  The ``ubelt.map_keys`` function applies a function to each key in
 a dictionary and returns this transformed copy of the dictionary. Key conflict
 behavior currently raises and error, but may be configurable in the future. The
@@ -715,7 +715,7 @@ except this will raise an error if the given keys are not in the dictionary.
     {'K': 3, 'dcvs_clip_max': 0.2}
 
 
-The ``ubelt.take`` function works on dictionarys (and lists). It is similar to
+The ``ubelt.take`` function works on dictionaries (and lists). It is similar to
 ``ubelt.dict_subset``, except that it returns just a list of the values, and
 discards information about the keys. It is also possible to specify a default
 value.
