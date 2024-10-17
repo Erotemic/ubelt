@@ -217,7 +217,7 @@ intersphinx_mapping = {
     # 'xxhash': ('https://pypi.org/project/xxhash/', None),
     # 'pygments': ('https://pygments.org/docs/', None),
     # 'tqdm': ('https://tqdm.github.io/', None),
-    # Requries that the repo have objects.inv
+    # Requires that the repo have objects.inv
     'kwarray': ('https://kwarray.readthedocs.io/en/latest/', None),
     'kwimage': ('https://kwimage.readthedocs.io/en/latest/', None),
     # 'kwplot': ('https://kwplot.readthedocs.io/en/latest/', None),
@@ -588,7 +588,7 @@ class GoogleStyleDocstringProcessor:
 
             accum.append(line)
 
-        # Finialize the last section
+        # Finalize the last section
         accept()
 
         lines[:] = new_lines

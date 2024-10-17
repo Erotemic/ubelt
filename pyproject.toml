@@ -75,4 +75,4 @@ omit = [
 skip = ['./docs/build', './*.egg-info', './build', './htmlcov']
 count = true
 quiet-level = 3
-ignore-words-list = ["fpr", 'ANS', 'ans']
+ignore-words-list = ['wont', 'cant', 'ANS', 'doesnt']
