@@ -242,11 +242,11 @@ if __name__ == '__main__':
 
         # For README
         python ~/code/ubelt/dev/maintain/gen_api_for_docs.py --url-mode
-        python ~/code/ubelt/dev/maintain/gen_api_for_docs.py --extra_modname=bioharn,watch --remove_zeros=False --url-mode
+        python ~/code/ubelt/dev/maintain/gen_api_for_docs.py --extra_modnames=bioharn,geowatch --remove_zeros=False --url-mode
 
         # First run and copy the table:
         python ~/code/ubelt/dev/maintain/count_usage_freq.py
-        python ~/code/ubelt/dev/maintain/gen_api_for_docs.py --extra_modname=bioharn,watch --remove_zeros=False
+        python ~/code/ubelt/dev/maintain/gen_api_for_docs.py --extra_modnames=bioharn,geowatch --remove_zeros=False
 
         # Then edit: TODO make less manual
         ~/code/ubelt/docs/source/function_usefulness.rst
