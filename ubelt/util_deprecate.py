@@ -92,7 +92,8 @@ def schedule_deprecation(modname=None, name='?', type='?', migration='',
         >>> # When less than the deprecated version this does nothing
         >>> dummy_module.__version__ = '1.0.0'
         >>> ub.schedule_deprecation(
-        ...     'dummy_module', 'myfunc', 'function', 'do something else',
+        ...     modname='dummy_module', name='myfunc', type='function',
+        ...     migration='do something else',
         ...     deprecate='1.1.0', error='1.2.0', remove='1.3.0')
         >>> # But when the module version increases above the threshold,
         >>> # the warning is raised.
