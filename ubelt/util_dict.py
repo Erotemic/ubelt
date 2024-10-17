@@ -1819,7 +1819,7 @@ class UDict(SetDict):
            + sorted_values - returns a dictionary ordered by the values
 
     IMO key-wise set operations on dictionaries are fundamentaly and sorely
-    missing from the stdlib, mapping is super convinient, sorting and inversion
+    missing from the stdlib, mapping is super convenient, sorting and inversion
     are less common, but still useful to have.
 
     TODO:

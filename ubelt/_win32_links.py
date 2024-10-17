@@ -2,7 +2,7 @@
 For dealing with symlinks, junctions, and hard-links on windows.
 
 Note:
-    The termonology used here was written before I really understood the
+    The terminology used here was written before I really understood the
     difference between symlinks, hardlinks, and junctions. As such it may be
     inconsistent or incorrect in some places. This might be fixed in the
     future.
@@ -230,7 +230,7 @@ def _symlink(path, link, overwrite=0, verbose=0):
 def _win32_symlink2(path, link, allow_fallback=True, verbose=0):
     """
     Perform a real symbolic link if possible. However, on most versions of
-    windows you need special privledges to create a real symlink. Therefore, we
+    windows you need special privileges to create a real symlink. Therefore, we
     try to create a symlink, but if that fails we fallback to using a junction.
 
     AFAIK, the main difference between symlinks and junctions are that symlinks
@@ -288,7 +288,7 @@ def _win32_symlink(path, link, verbose=0):
 
 def _win32_junction(path, link, verbose=0):
     """
-    On older (pre 10) versions of windows we need admin privledges to make
+    On older (pre 10) versions of windows we need admin privileges to make
     symlinks, however junctions seem to work.
 
     For paths we do a junction (softlink) and for files we use a hard link

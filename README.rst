@@ -1093,7 +1093,7 @@ Ubelt is a migration of the most useful parts of
 with minimal dependencies.
 
 The ``utool`` library contains a number of useful utility functions, but it
-also contained non-useful functions, as well as the kitchen sink. A number of
+also contained useless functions, as well as the kitchen sink. A number of
 the functions were too specific or not well documented. The ``ubelt`` is a port
 of the simplest and most useful parts of ``utool``.
 

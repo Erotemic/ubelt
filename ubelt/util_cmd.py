@@ -71,7 +71,7 @@ Get programmatic access to the data but don't show it on screen
     # ubelt equivalent
     ub.cmd(['ls', '-l'])['out']
 
-Get programatic access AND show it on screen
+Get programmatic access AND show it on screen
 
 .. code:: python
 
@@ -205,7 +205,7 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
         system (bool):
             if True, most other considerations are dropped, and
             :func:`os.system` is used to execute the command in a platform
-            dependant way. Other arguments such as env, tee, timeout, and shell
+            dependent way. Other arguments such as env, tee, timeout, and shell
             are all ignored. Defaults to False. (New in version 1.1.0)
 
         timeout (float | None):
@@ -214,7 +214,7 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
 
         capture (bool):
             if True, the stdout/stderr are captured and returned in the
-            information dictionary. Ignored if detatch or system is True.
+            information dictionary. Ignored if detach or system is True.
 
     Returns:
         dict | CmdOutput:
@@ -510,7 +510,7 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
             'command': command_text,
         })
 
-    # For subprocess compatability
+    # For subprocess compatibility
     info.args = args
 
     if not detach:

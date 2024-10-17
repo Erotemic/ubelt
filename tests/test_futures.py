@@ -81,14 +81,14 @@ def test_job_pool_clear_completed():
             is_deleted[jobid] = True
         return _finalizer
 
-    def debug_referers():
+    def debug_referrers():
         if 0:
-            referers = ub.udict({})
+            referrers = ub.udict({})
             for jobid, ref in weak_futures.items():
                 fs = ref()
-                referers[jobid] = 0 if fs is None else len(gc.get_referrers(fs))
+                referrers[jobid] = 0 if fs is None else len(gc.get_referrers(fs))
             print('is_deleted = {}'.format(ub.urepr(is_deleted, nl=1)))
-            print('referers = {}'.format(ub.urepr(referers, nl=1)))
+            print('referrers = {}'.format(ub.urepr(referrers, nl=1)))
 
     for jobid in range(10):
         fs = jobs.submit(simple_worker, jobid)
@@ -97,18 +97,18 @@ def test_job_pool_clear_completed():
         weakref.finalize(fs, make_finalizer(jobid))
         del fs
 
-    debug_referers()
+    debug_referrers()
     assert not any(is_deleted.values())
 
     for fs in jobs.as_completed():
         fs.result()
 
-    debug_referers()
+    debug_referrers()
     assert not any(is_deleted.values())
 
     jobs._clear_completed()
 
-    debug_referers()
+    debug_referrers()
 
     import platform
     if 'pypy' not in platform.python_implementation().lower():

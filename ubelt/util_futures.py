@@ -2,7 +2,7 @@
 Introduces the :class:`Executor` class that wraps the standard
 ThreadPoolExecutor, ProcessPoolExecutor, and the new SerialExecutor with a
 common interface and a configurable backend. This makes is easy to test if your
-code benefits from parallism, how much it benefits, and gives you the ability
+code benefits from parallelism, how much it benefits, and gives you the ability
 to disable if if you need to.
 
 

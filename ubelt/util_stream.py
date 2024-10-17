@@ -194,8 +194,8 @@ class CaptureStdout(CaptureStream):
     r"""
     Context manager that captures stdout and stores it in an internal stream.
 
-    Depending on the value of ``supress``, the user can control if stdout is
-    printed (i.e. if stdout is tee-ed or supressed) while it is being captured.
+    Depending on the value of ``suppress``, the user can control if stdout is
+    printed (i.e. if stdout is tee-ed or suppressed) while it is being captured.
 
     SeeAlso:
         :func:`contextlib.redirect_stdout` - similar, but does not have the

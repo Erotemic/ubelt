@@ -505,7 +505,7 @@ def test_base32():
 
 def test_compatible_hash_bases():
     """
-    Ubelt ~1.2.3 has a ~bug~ incompatability with non-hex hash bases. Depending
+    Ubelt ~1.2.3 has a ~bug~ incompatibility with non-hex hash bases. Depending
     on leftover amount of data in the byte stream, our hex reencoding may be
     incorrect. It is still correct when the input has correct lengths, but in
     general it can produce issues if you were expecting hashes to conform to
@@ -636,7 +636,7 @@ def test_compatible_hash_bases():
 
         """
         if base == list(base64._b32alphabet.decode()):
-            # NOTE: This code has an incompatability with standard base encodings
+            # NOTE: This code has an incompatibility with standard base encodings
             # because it does not pad the bytes. I.e. for base 64 3 bytes are
             # converted into 4 characters, so we need a input string divisible by
             # 3. For base32 5 bytes are converted into 2 characters.

@@ -665,7 +665,7 @@ NOTE: THIS RELEASE WAS BROKEN DUE TO AN ISSUE WITH THE SETUP SCRIPT
 
 ### Fixed
 * Fixed misspelling in docs 
-* Fixed misspelled detach kwarg in `ub.cmd` (the old `detatch` argument is now deprecated and will be removed)
+* Fixed misspelled detach kwarg in `ub.cmd` (the old `detach` argument is now deprecated and will be removed)
 
 
 ## [Version 0.6.0] - 2018-11-10
@@ -815,7 +815,7 @@ NOTE: THIS RELEASE WAS BROKEN DUE TO AN ISSUE WITH THE SETUP SCRIPT
 ## [Version 0.0.43] - 2018-03-09
 
 ### Modified
-* Spelling: changed the `Timer.ellapsed` attribute to `Timer.elapsed`.
+* Spelling: changed the `Timer.elapsed` attribute to `Timer.elapsed`.
 * Verbosity of `Timer` and `Timerit` now depends on if a label was specified. 
 * `Timer.tic` now returns a reference to the `Timer` instance.
 
