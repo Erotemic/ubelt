@@ -329,7 +329,7 @@ def timeparse(stamp, default_timezone='local', allow_dateutil=True):
             time_part, sign, tz_part = timetz_part.partition('+')
         else:
             # In 3.7 a Z suffix is handled correctly
-            # For 3.6 compatability, replace Z with +0000
+            # For 3.6 compatibility, replace Z with +0000
             if timetz_part.endswith('Z'):
                 time_part = timetz_part[:-1]
                 sign = '+'

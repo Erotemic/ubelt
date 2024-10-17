@@ -128,7 +128,7 @@ def test_copy_directory_cases():
     demo_nested_paths(paths['shallow'])
     demo_nested_paths(paths['deep'], depth=3)
 
-    # Instead you can always exepct <dst>/<contents> to be the same as
+    # Instead you can always expect <dst>/<contents> to be the same as
     # <src>/<contents>.
     for key, src in paths.items():
         for meta in ['stats', 'mode', None]:
@@ -287,7 +287,7 @@ def test_move_directory_cases():
     for d in paths.values():
         d.ensuredir()
 
-    # Instead you can always exepct <dst>/<contents> to be the same as
+    # Instead you can always expect <dst>/<contents> to be the same as
     # <src>/<contents>.
     for key, src in paths.items():
         for meta in ['stats', 'mode', None]:

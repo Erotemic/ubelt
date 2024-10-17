@@ -224,7 +224,7 @@ class memoize_method:
         >>> print(f'self1.foo_memo = {self1.foo_memo!r}, {hex(id(self1.foo_memo))}')
         >>> print(f'self2.foo_memo = {self2.foo_memo!r}, {hex(id(self2.foo_memo))}')
         >>> #
-        >>> # Test for the issue in the active state recipie
+        >>> # Test for the issue in the active state recipe
         >>> method1 = self1.foo_memo
         >>> method2 = self2.foo_memo
         >>> assert method1('a') == ('b', 'F1')

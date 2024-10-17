@@ -3,7 +3,7 @@ Utility functions for manipulating iterables, lists, and sequences.
 
 The :func:`chunks` function splits a list into smaller parts. There are different strategies for how to do this.
 
-The :func:`flatten` function take a list of lists and removees the inner lists. This
+The :func:`flatten` function take a list of lists and removes the inner lists. This
 only removes one level of nesting.
 
 The :func:`iterable` function checks if an object is iterable or not. Similar to the

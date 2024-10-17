@@ -1,5 +1,5 @@
 """
-An implemention of a set-enabled dictionary that we might include
+An implementation of a set-enabled dictionary that we might include
 
 References:
     .. [SetDictRecipe1] https://gist.github.com/rossmacarthur/38fa948b175abb512e12c516cc3b936d

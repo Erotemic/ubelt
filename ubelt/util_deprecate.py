@@ -14,7 +14,7 @@ def schedule_deprecation(modname=None, name='?', type='?', migration='',
     """
     Raise a deprecation warning or error based on the version of a package.
 
-    This helps provide users with a smoother transition by specifing a version
+    This helps provide users with a smoother transition by specifying a version
     when the deprecation warning will start, when it transitions into an error,
     and when the maintainers should remove the feature all together.
 

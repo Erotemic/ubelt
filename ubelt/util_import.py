@@ -494,7 +494,7 @@ def _syspath_modname_to_modpath(modname, sys_path=None, exclude=None):
                             if normalize(p) not in real_exclude]
 
     def check_dpath(dpath):
-        # Check for directory-based modules (has presidence over files)
+        # Check for directory-based modules (has precedence over files)
         modpath = join(dpath, _fname_we)
         if exists(modpath):
             if isfile(join(modpath, '__init__.py')):

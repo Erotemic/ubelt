@@ -1051,7 +1051,7 @@ class CacheStamp(object):
             sizes = certificate.get('size', None)
             if sizes is not None and self._expire_checks['size']:
                 if sizes != product_file_stats['size']:
-                    # The sizes are differnt, we are expired
+                    # The sizes are different, we are expired
                     err =  'size_diff'
                     if self.cacher.verbose > 0:  # pragma: nobranch
                         print('[cacher] stamp expired {}'.format(err))
@@ -1059,7 +1059,7 @@ class CacheStamp(object):
             mtimes = certificate.get('mtime', None)
             if mtimes is not None and self._expire_checks['mtime']:
                 if mtimes != product_file_stats['mtime']:
-                    # The sizes are differnt, we are expired
+                    # The sizes are different, we are expired
                     err = 'mtime_diff'
                     if self.cacher.verbose > 0:  # pragma: nobranch
                         print('[cacher] stamp expired {}'.format(err))
@@ -1149,7 +1149,7 @@ class CacheStamp(object):
             expires_abs = expires
         else:
             raise TypeError(
-                'expires must be a coercable to datetime or timedelta')
+                'expires must be a coercible to datetime or timedelta')
         return expires_abs
 
     def _new_certificate(self, cfgstr=None, product=None):

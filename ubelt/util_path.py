@@ -799,7 +799,7 @@ class Path(_PathBase):
             Path: augmented path
 
         Warning:
-            NOTICE OF BACKWARDS INCOMPATABILITY.
+            NOTICE OF BACKWARDS INCOMPATIBILITY.
 
             THE INITIAL RELEASE OF Path.augment suffered from an unfortunate
             variable naming decision that conflicts with pathlib.Path

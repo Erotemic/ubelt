@@ -75,7 +75,7 @@ def urepr(data, **kwargs):
         used kwargs have short aliases. See "Kwargs" for more details.
 
     Note:
-        For large data items, this can be noticably slower than pprint.pformat
+        For large data items, this can be noticeably slower than pprint.pformat
         and much slower than the builtin repr. Benchmarks exist in the repo
         under dev/bench/bench_urepr_vs_alternatives.py
 

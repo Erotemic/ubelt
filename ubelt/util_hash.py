@@ -263,7 +263,7 @@ class _Hashers(object):
         """
         Args:
             hasher (NoParamType | str | Any):
-                something coercable to a hasher
+                something coercible to a hasher
 
         Returns:
             Callable: a function to construct the requested hahser
@@ -1068,10 +1068,10 @@ def _update_hasher(hasher, data, types=True, extensions=None):
             _update_hasher(hasher, item, types, extensions=extensions)
             # !>> WHOOPS: THIS IS A BUG. THERE SHOULD BE A
             # !>> hasher.update(_SEP)
-            # !>> SEPERATOR HERE.
+            # !>> SEPARATOR HERE.
             # !>> BUT FIXING IT WILL BREAK BACKWARDS COMPAT.
             # !>> We will need to expose versions of the hasher that can be
-            # configured, and ideally new versions will have speed improvments.
+            # configured, and ideally new versions will have speed improvements.
             for item in iter_:
                 # Ensure the items have a spacer between them
                 _update_hasher(hasher, item, types, extensions=extensions)
@@ -1128,7 +1128,7 @@ def _convert_hexstr_base(hexstr, base):
         return hexstr
     baselen = len(base)
     if 1:
-        # NOTE: This code has an incompatability with standard base encodings
+        # NOTE: This code has an incompatibility with standard base encodings
         # because it does not pad the bytes.
         # In general for an input of M bytes, we need to use N = log(256 **
         # M)/log(B) symbols in base B to represent it.
