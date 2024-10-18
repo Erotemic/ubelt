@@ -85,7 +85,7 @@ __all__ = [
 
 default_timer = time.perf_counter  # type: Callable
 
-# A measurment takes place at a given iteration and posixtime.
+# A measurement takes place at a given iteration and posixtime.
 Measurement = collections.namedtuple('Measurement', ['idx', 'time'])
 
 
@@ -374,7 +374,7 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
                 show / hide rate, default=True
 
             show_eta (bool):
-                show / hide estimated time of arival (i.e. time to completion),
+                show / hide estimated time of arrival (i.e. time to completion),
                 default=True
 
             show_wall (bool):
@@ -714,9 +714,9 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
         self.end()
 
     def _homogeneous_check(self, gen):
-        # NOTE: We could have a more complex heuristic with negligable
+        # NOTE: We could have a more complex heuristic with negligible
         # overhead and more robustness that checks every n iterations
-        # that such that the time call overhead would be negligable.
+        # that such that the time call overhead would be negligible.
         # To do this we would need a semi-fast mode that does the fast
         # mode for a fixed number of iterations and then rechecks the
         # slow mode. Or something like that.

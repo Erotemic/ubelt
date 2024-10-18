@@ -179,11 +179,11 @@ def gen_api_for_docs(modname):
     name_len = max(len(row[ref_key]) for row in rows) + 1
     num_len = 16
 
-    gaurd = ('=' * name_len + ' ' + '=' * num_len)
-    print(gaurd)
+    guard = ('=' * name_len + ' ' + '=' * num_len)
+    print(guard)
     column_fmt = '{:<' + str(name_len) + '} {:>' + str(num_len) + '}'
     print(column_fmt.format(' Function name ', 'Usefulness'))
-    print(gaurd)
+    print(guard)
     for key, value in usage.items():
         infos = attr_to_infos[key]
         if len(infos) == 0:
@@ -194,7 +194,7 @@ def gen_api_for_docs(modname):
                 raise AssertionError
             info = infos[0]
             print(column_fmt.format(info[ref_key], value))
-    print(gaurd)
+    print(guard)
 
     raw_scores = np.array(list(usage.values()))
 
@@ -242,11 +242,11 @@ if __name__ == '__main__':
 
         # For README
         python ~/code/ubelt/dev/maintain/gen_api_for_docs.py --url-mode
-        python ~/code/ubelt/dev/maintain/gen_api_for_docs.py --extra_modname=bioharn,watch --remove_zeros=False --url-mode
+        python ~/code/ubelt/dev/maintain/gen_api_for_docs.py --extra_modnames=bioharn,geowatch --remove_zeros=False --url-mode
 
         # First run and copy the table:
         python ~/code/ubelt/dev/maintain/count_usage_freq.py
-        python ~/code/ubelt/dev/maintain/gen_api_for_docs.py --extra_modname=bioharn,watch --remove_zeros=False
+        python ~/code/ubelt/dev/maintain/gen_api_for_docs.py --extra_modnames=bioharn,geowatch --remove_zeros=False
 
         # Then edit: TODO make less manual
         ~/code/ubelt/docs/source/function_usefulness.rst

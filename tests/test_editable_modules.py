@@ -296,7 +296,7 @@ class ProjectStructure():
 
     def analyze(self):
         """
-        For debugging and develoment only, don't run in the tests
+        For debugging and development only, don't run in the tests
 
         Requires:
             rich, xdev
@@ -378,7 +378,7 @@ class ProjectStructure():
             print(f'other_egg_infos={other_egg_infos}')
 
         if other_egg_infos:
-            console.print('[red] THERE ARE UNEXEPCTED EGG INFOS')
+            console.print('[red] THERE ARE UNEXPECTED EGG INFOS')
             for egg_info_dpath in other_egg_infos:
                 print_egg_path_content(egg_info_dpath, color='red')
 
@@ -467,7 +467,7 @@ def teardown_module(module):
 
 def test_import_of_editable_install():
     _check_skip_editable_module_tests()
-    print('Testing ediable installs')
+    print('Testing editable installs')
     import ubelt as ub
     for PROJ in GLOBAL_PROJECTS:
         result = ub.modname_to_modpath(PROJ.mod_name)

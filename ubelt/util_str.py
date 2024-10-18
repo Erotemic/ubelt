@@ -25,7 +25,7 @@ def indent(text, prefix='    '):
 
     Args:
         text (str): text to indent
-        prefix (str, default = '    '): prefix to add to each line
+        prefix (str): prefix to add to each line. Defaults to ``'    '``
 
     Returns:
         str: indented text
@@ -123,7 +123,7 @@ def hzcat(args, sep=''):
 
     Args:
         args (List[str]): strings to concatenate
-        sep (str, default=''): separator
+        sep (str): separator. Defaults to ``''``.
 
     Example1:
         >>> import ubelt as ub

@@ -319,9 +319,7 @@ def test_numpy_random_state():
     if np is None:
         pytest.skip('requires numpy')
     data = np.random.RandomState(0)
-    # assert ub.hash_data(data).startswith('ujsidscotcycsqwnkxgbsxkcedplzvytmfmr')
     assert ub.hash_data(data, hasher='sha512', types=True, base='abc').startswith('snkngbxghabesvowzalqtvdvjtvslmxve')
-    # _hashable_sequence(data)
 
 
 def test_uuid():
@@ -333,6 +331,61 @@ def test_uuid():
         'the fact that it is a UUID should reflect in the hash')
     assert ub.hash_data(data.bytes, types=False) == ub.hash_data(data, types=False), (
         'the hash should be equal when ignoring types')
+
+
+def test_decimal():
+    import decimal
+    data = decimal.Decimal('3.1415')
+    sequence = b''.join(_hashable_sequence(data, types=True))
+    assert sequence == b'DECIMAL_[_INT\x00_,__[_INT\x03_,_INT\x01_,_INT\x04_,_INT\x01_,_INT\x05_,__]_INT\xfc_,__]_'
+    assert ub.hash_data(data, types=True, base='abc', hasher='sha512').startswith('oquwtvtrsytm')
+    assert ub.hash_data(data.as_tuple(), types=True) != ub.hash_data(data, types=True), (
+        'the fact that it is a Decimal should reflect in the hash')
+    assert ub.hash_data(data.as_tuple(), types=True) == ub.hash_data(data, types=False), (
+        'it is a quirk of our hashable extensions that an a typed decimal '
+        'tuple will be the same as an untyped decimal. '
+        'It is ok to break this test if we refactor to fix issues in '
+        'hashable extensions'
+    )
+    sequence1 = b''.join(_hashable_sequence(data, types=True))
+    sequence2 = b''.join(_hashable_sequence(data, types=False))
+    sequence3 = b''.join(_hashable_sequence(data.as_tuple(), types=True))
+    sequence4 = b''.join(_hashable_sequence(data.as_tuple(), types=False))
+    assert sequence1 != sequence2, 'quirky test'
+    assert sequence2 == sequence3, 'quirky test'
+    assert sequence4 != sequence3, 'quirky test'
+
+
+def test_datetime():
+    import datetime as datetime_mod
+    data = datetime_mod.datetime(2101, 1, 1)
+    sequence = b''.join(_hashable_sequence(data, types=True))
+    assert sequence == b'DATETIME_[_INT\x085_,_INT\x01_,_INT\x01_,_INT\x00_,_INT\x00_,_INT\x00_,_INT\x05_,_INT\x01_,_INT\xff_,__]_'
+    assert ub.hash_data(data, types=True, base='abc', hasher='sha512').startswith('fwjyfdtgcdasv')
+    assert ub.hash_data(data.timetuple(), types=True) != ub.hash_data(data, types=True), (
+        'the fact that it is a Decimal should reflect in the hash')
+    assert ub.hash_data(data.timetuple(), types=True) == ub.hash_data(data, types=False), (
+        'it is a quirk of our hashable extensions that an a typed datetime '
+        'tuple will be the same as an untyped decimal. '
+        'It is ok to break this test if we refactor to fix issues in '
+        'hashable extensions'
+    )
+
+
+def test_date():
+    import datetime as datetime_mod
+    data = datetime_mod.date(2101, 1, 1)
+    sequence = b''.join(_hashable_sequence(data, types=True))
+    assert sequence == b'DATE_[_INT\x085_,_INT\x01_,_INT\x01_,_INT\x00_,_INT\x00_,_INT\x00_,_INT\x05_,_INT\x01_,_INT\xff_,__]_'
+    assert ub.hash_data(data, types=True, base='abc', hasher='sha512').startswith('dlahlcoqypecc')
+    assert ub.hash_data(data.timetuple(), types=True) != ub.hash_data(data, types=True), (
+        'the fact that it is a Decimal should reflect in the hash')
+    assert ub.hash_data(data.timetuple(), types=True) == ub.hash_data(data, types=False), (
+        'it is a quirk of our hashable extensions that an a typed date'
+        'tuple will be the same as an untyped decimal. '
+        'It is ok to break this test if we refactor to fix issues in '
+        'hashable extensions'
+    )
 
 
 def test_hash_data_custom_base():
@@ -452,7 +505,7 @@ def test_base32():
 
 def test_compatible_hash_bases():
     """
-    Ubelt ~1.2.3 has a ~bug~ incompatability with non-hex hash bases. Depending
+    Ubelt ~1.2.3 has a ~bug~ incompatibility with non-hex hash bases. Depending
     on leftover amount of data in the byte stream, our hex reencoding may be
     incorrect. It is still correct when the input has correct lengths, but in
     general it can produce issues if you were expecting hashes to conform to
@@ -469,7 +522,7 @@ def test_compatible_hash_bases():
         .. [SementeBaseConv] https://github.com/semente/python-baseconv
     """
     import pytest
-    pytest.skip('FIXME THIS ISSUE IS NOT RESOLVE YET.')
+    pytest.skip('FIXME. THE HASH PADDING ISSUE IS NOT RESOLVED YET.')
     if not ub.LINUX:
         pytest.skip('only runs on linux')
     required_programs = [
@@ -583,7 +636,7 @@ def test_compatible_hash_bases():
 
         """
         if base == list(base64._b32alphabet.decode()):
-            # NOTE: This code has an incompatability with standard base encodings
+            # NOTE: This code has an incompatibility with standard base encodings
             # because it does not pad the bytes. I.e. for base 64 3 bytes are
             # converted into 4 characters, so we need a input string divisible by
             # 3. For base32 5 bytes are converted into 2 characters.

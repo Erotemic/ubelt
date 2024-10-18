@@ -94,8 +94,9 @@ class DownloadManager:
                 If unspecified, the destination name is derived from the url.
             hash_prefix (str | None):
                If specified, verifies that the hash of the downloaded file starts with this.
-            hasher (str, default='sha256'):
+            hasher (str):
                 hashing algorithm to use if hash_prefix is specified.
+                Defaults to ``'sha256'``.
 
         Returns:
             concurrent.futures.Future :

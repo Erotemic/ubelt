@@ -291,8 +291,6 @@ def import_module_from_path(modpath, index=-1):
                         modname=modname,
                         archivepath=archivepath,
                         ex=ex)
-                    print(text)
-                    # raise
                     raise Exception(text)
 
                 return module
@@ -329,7 +327,7 @@ def import_module_from_name(modname):
         >>> import sys
         >>> modname_list = [
         >>>     'pickletools',
-        >>>     'lib2to3.fixes.fix_apply',
+        >>>     'email.mime.text',
         >>> ]
         >>> #assert not any(m in sys.modules for m in modname_list)
         >>> modules = [ub.import_module_from_name(modname) for modname in modname_list]
@@ -496,7 +494,7 @@ def _syspath_modname_to_modpath(modname, sys_path=None, exclude=None):
                             if normalize(p) not in real_exclude]
 
     def check_dpath(dpath):
-        # Check for directory-based modules (has presidence over files)
+        # Check for directory-based modules (has precedence over files)
         modpath = join(dpath, _fname_we)
         if exists(modpath):
             if isfile(join(modpath, '__init__.py')):
@@ -654,7 +652,6 @@ def _importlib_import_modpath(modpath):  # nocover
 def _importlib_modname_to_modpath(modname):  # nocover
     import importlib.util
     spec = importlib.util.find_spec(modname)
-    print(f'spec={spec}')
     modpath = spec.origin.replace('.pyc', '.py')
     return modpath
 
@@ -951,7 +948,7 @@ def is_modname_importable(modname, sys_path=None, exclude=None):
 
     Args:
         modname (str): name of module to check
-        sys_path (list | None, default=None): if specified overrides ``sys.path``
+        sys_path (list | None): if specified overrides ``sys.path``
         exclude (list | None): list of directory paths. if specified prevents these
             directories from being searched.
 
@@ -1067,7 +1064,6 @@ def _parse_static_node_value(node):
     elif isinstance(node, (ast.NameConstant)):
         value = node.value
     else:
-        print(node.__dict__)
         raise TypeError('Cannot parse a static value from non-static node '
                         'of type: {!r}'.format(type(node)))
     return value

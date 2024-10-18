@@ -204,7 +204,7 @@ class zopen(NiceRepr):
         >>> dpath = ub.Path.appdir('ubelt/tests/util_zip').ensuredir()
         >>> with pytest.raises(OSError):
         >>>     self = zopen('', 'r')
-        >>> # Test open non-zip exsting file
+        >>> # Test open non-zip existing file
         >>> existing_fpath = join(dpath, 'exists.json')
         >>> ub.writeto(existing_fpath, '{"x": "1"}')
         >>> self = zopen(existing_fpath, 'r')

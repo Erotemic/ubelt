@@ -34,7 +34,7 @@ def identity(arg=None, *args, **kwargs):
     assigning it to a value.
 
     Args:
-        arg (Any | None, default=None): The value to return unchanged.
+        arg (Any | None): The value to return unchanged.
         *args: Ignored
         **kwargs: Ignored
 
@@ -71,9 +71,9 @@ def inject_method(self, func, name=None):
         func (Callable[..., Any]):
             The function to inject (must contain an arg for self).
 
-        name (str | None, default=None):
-            Name of the method. optional. If not specified the name of the
-            function is used.
+        name (str | None):
+            Specify the name of the new method.
+            If not specified the name of the function is used.
 
     Example:
         >>> import ubelt as ub

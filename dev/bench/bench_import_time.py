@@ -159,7 +159,7 @@ def benchmark_ubelt_import_time_robust():
 
     kwplot.figure(fnum=2, pnum=(2, 1, 1), doclf=True)
     ax = sns.lineplot(data=df[df['type'] == 'cummulative'], x='release_index', y='time', hue='stat', style='type', marker='o')
-    ax.set_title('Ubelt cummulative import time over release history')
+    ax.set_title('Ubelt cumulative import time over release history')
     ax.set_xticks(xticks, labels=xticklabels, rotation='vertical')
     ax.set_xlabel('Version')
     ax.set_ylabel('Time (μs)')

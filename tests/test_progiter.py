@@ -257,7 +257,7 @@ def test_clearline():
     before, message, after = prog.format_message_parts()
     assert before == ''
     assert strip_ansi(message).strip(' ') == '0/?...'
-    # Clearline=True version should carrage return at the begining and have no
+    # Clearline=True version should carriage return at the beginning and have no
     # newline at the end.
     prog = ProgIter(file=file, show_times=False, clearline=True)
     before, message, after = prog.format_message_parts()

@@ -120,6 +120,27 @@ class NiceRepr:
         <Dog()>
         <Beagle()>
         <Ragdoll()>
+
+    In the case where you cant or dont want to use ubelt.NiceRepr you can get
+    similar behavior by pasting the methods from the following snippet into
+    your class:
+
+    .. code:: python
+
+        class MyClass:
+
+            def __nice__(self):
+                return 'your concise information'
+
+            def __repr__(self):
+                nice = self.__nice__()
+                classname = self.__class__.__name__
+                return '<{0}({1}) at {2}>'.format(classname, nice, hex(id(self)))
+
+            def __str__(self):
+                classname = self.__class__.__name__
+                nice = self.__nice__()
+                return '<{0}({1})>'.format(classname, nice)
     """
 
     def __nice__(self):

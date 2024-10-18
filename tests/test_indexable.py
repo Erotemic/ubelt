@@ -242,7 +242,7 @@ def test_walk_iter_gen_behavior():
     assert list(walker) == list(walker)
 
     import pytest
-    # Exhausing the current iterator will cause StopIteration
+    # Exhausting the current iterator will cause StopIteration
     list(walker)
     with pytest.raises(StopIteration):
         item4 = next(walker)  # NOQA
