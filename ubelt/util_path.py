@@ -99,6 +99,9 @@ def augpath(path, suffix='', prefix='', ext=None, tail='', base=None,
     Returns:
         str: augmented path
 
+    SeeAlso:
+        :func:`ubelt.Path.augment`
+
     Example:
         >>> import ubelt as ub
         >>> path = 'foo.bar'
@@ -246,6 +249,9 @@ def shrinkuser(path, home='~'):
     Returns:
         str: shortened path replacing the home directory with a symbol
 
+    SeeAlso:
+        :func:`ubelt.Path.shrinkuser`
+
     Example:
         >>> from ubelt.util_path import *  # NOQA
         >>> path = expanduser('~')
@@ -275,6 +281,9 @@ def expandpath(path):
 
     Returns:
         str: expanded path
+
+    SeeAlso:
+        :func:`ubelt.Path.expand`
 
     Example:
         >>> from ubelt.util_path import *  # NOQA
@@ -755,7 +764,12 @@ class Path(_PathBase):
         Create a new path with a different extension, basename, directory,
         prefix, and/or suffix.
 
-        See :func:`augpath` for more details.
+        A prefix is inserted before the basename. A stemsuffix is inserted
+        between the basename and the extension. The tail is placed at the very
+        end of the path. The basename and extension can be replaced with a new
+        one. Essentially a path is broken down into components (dpath, stem,
+        ext), and then recombined as (dpath, prefix, stem, stemsuffix, ext,
+        tail) after replacing any specified component.
 
         Args:
             prefix (str):
@@ -791,9 +805,13 @@ class Path(_PathBase):
                 after the first dot in the basename is the extension.
 
         SeeAlso:
-            :py:meth:`pathlib.Path.with_stem`
-            :py:meth:`pathlib.Path.with_name`
-            :py:meth:`pathlib.Path.with_suffix`
+            * :func:`ubelt.augpath`
+
+            * :py:meth:`pathlib.PurePath.with_stem`
+
+            * :py:meth:`pathlib.PurePath.with_name`
+
+            * :py:meth:`pathlib.PurePath.with_suffix`
 
         Returns:
             Path: augmented path
