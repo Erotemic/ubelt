@@ -4,7 +4,10 @@ We are currently working on porting this changelog to the specifications in
 [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 This project (loosely) adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Version 1.3.7 - Unreleased
+## Version 1.3.8 - Unreleased
+
+
+## Version 1.3.7 - Released 2024-12-06
 
 ### Added
 * Added `requestkw` to `ub.download`. 
