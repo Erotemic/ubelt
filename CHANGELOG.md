@@ -13,6 +13,7 @@ This project (loosely) adheres to [Semantic Versioning](https://semver.org/spec/
 * Minor test issues.
 * `ub.IndexableWalker.diff` for empty inputs
 * Bug in `memoize_method` which could produce incorrect results if methods from different instances are assigned to variables.
+* Rare error in `test_copy_directory_cases` test due to list sorting.
 
 ### Changed
 * Added module name printout to `schedule_deprecation`

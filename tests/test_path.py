@@ -100,7 +100,7 @@ def demo_nested_paths(dpath, nfiles=2, ndirs=1, depth=0):
 
 
 def relative_contents(dpath):
-    return [p.relative_to(dpath) for p in dpath.glob('**')]
+    return [p.relative_to(dpath) for p in sorted(dpath.glob('**'), key=str)]
 
 
 def test_copy_directory_cases():
