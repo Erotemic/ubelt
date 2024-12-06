@@ -32,7 +32,7 @@ def test_auto_dict_to_dict():
 
 
 def test_auto_dict_ordered():
-    # To Dict should repsect ordering
+    # To Dict should respect ordering
     from ubelt.util_dict import AutoOrderedDict, AutoDict
     auto = AutoOrderedDict()
     auto[0][3] = 3

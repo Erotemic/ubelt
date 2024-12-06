@@ -99,6 +99,9 @@ def augpath(path, suffix='', prefix='', ext=None, tail='', base=None,
     Returns:
         str: augmented path
 
+    SeeAlso:
+        :func:`ubelt.Path.augment`
+
     Example:
         >>> import ubelt as ub
         >>> path = 'foo.bar'
@@ -246,6 +249,9 @@ def shrinkuser(path, home='~'):
     Returns:
         str: shortened path replacing the home directory with a symbol
 
+    SeeAlso:
+        :func:`ubelt.Path.shrinkuser`
+
     Example:
         >>> from ubelt.util_path import *  # NOQA
         >>> path = expanduser('~')
@@ -275,6 +281,9 @@ def expandpath(path):
 
     Returns:
         str: expanded path
+
+    SeeAlso:
+        :func:`ubelt.Path.expand`
 
     Example:
         >>> from ubelt.util_path import *  # NOQA
@@ -755,7 +764,12 @@ class Path(_PathBase):
         Create a new path with a different extension, basename, directory,
         prefix, and/or suffix.
 
-        See :func:`augpath` for more details.
+        A prefix is inserted before the basename. A stemsuffix is inserted
+        between the basename and the extension. The tail is placed at the very
+        end of the path. The basename and extension can be replaced with a new
+        one. Essentially a path is broken down into components (dpath, stem,
+        ext), and then recombined as (dpath, prefix, stem, stemsuffix, ext,
+        tail) after replacing any specified component.
 
         Args:
             prefix (str):
@@ -791,15 +805,19 @@ class Path(_PathBase):
                 after the first dot in the basename is the extension.
 
         SeeAlso:
-            :py:meth:`pathlib.Path.with_stem`
-            :py:meth:`pathlib.Path.with_name`
-            :py:meth:`pathlib.Path.with_suffix`
+            * :func:`ubelt.augpath`
+
+            * :py:meth:`pathlib.PurePath.with_stem`
+
+            * :py:meth:`pathlib.PurePath.with_name`
+
+            * :py:meth:`pathlib.PurePath.with_suffix`
 
         Returns:
             Path: augmented path
 
         Warning:
-            NOTICE OF BACKWARDS INCOMPATABILITY.
+            NOTICE OF BACKWARDS INCOMPATIBILITY.
 
             THE INITIAL RELEASE OF Path.augment suffered from an unfortunate
             variable naming decision that conflicts with pathlib.Path
@@ -1533,7 +1551,7 @@ class Path(_PathBase):
             ]
             import pandas as pd
             df = pd.DataFrame(rows)
-            piv = df.pivot(['src'], ['dst'], 'result')
+            piv = df.pivot(index=['src'], columns=['dst'], values='result')
             print(piv.to_markdown(tablefmt="grid", index=True))
 
             See: ~/code/ubelt/tests/test_path.py for test cases
@@ -1763,8 +1781,8 @@ def _resolve_chmod_code(old_mode, code):
         'ox' : stat.S_IXOTH,
 
         # Special UNIX permissions
-        'us': stat.S_ISUID,  # SUID (executes run as the file's owner)
-        'gs': stat.S_ISGID,  # SGID (executes run as the file's group)
+        'us': stat.S_ISUID,  # SUID (executables run as the file's owner)
+        'gs': stat.S_ISGID,  # SGID (executables run as the file's group) and other uses, see: https://docs.python.org/3/library/stat.html#stat.S_ISGID
         'ot': stat.S_ISVTX,  # sticky (only owner can delete)
     }
     actions = _parse_chmod_code(code)
@@ -1870,7 +1888,6 @@ def _patch_win32_stats_on_pypy():
         [PyPyDiscuss4952] https://github.com/orgs/pypy/discussions/4952#discussioncomment-9481845
     """
     if not hasattr(stat, 'IO_REPARSE_TAG_MOUNT_POINT'):
-        os.supports_follow_symlinks.add("stat")
         os.supports_follow_symlinks.add(os.stat)
         stat.IO_REPARSE_TAG_APPEXECLINK = 0x8000001b  # windows
         stat.IO_REPARSE_TAG_MOUNT_POINT = 0xa0000003  # windows

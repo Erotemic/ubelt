@@ -49,13 +49,13 @@ def symlink(real_path, link_path, overwrite=False, verbose=0):
 
         link_path (str | PathLike): path to desired location for symlink
 
-        overwrite (bool, default=False): overwrite existing symlinks.
+        overwrite (bool): overwrite existing symlinks.
             This will not overwrite real files on systems with proper symlinks.
             However, on older versions of windows junctions are
             indistinguishable from real files, so we cannot make this
-            guarantee.
+            guarantee. Defaults to False.
 
-        verbose (int, default=0): verbosity level
+        verbose (int): verbosity level. Defaults to 0.
 
     Returns:
         str | PathLike: link path

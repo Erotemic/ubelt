@@ -372,7 +372,8 @@ class IndexableWalker(Generator):
             equal_nan (bool):
                 if True, numpy must be available, and consider nans as equal.
 
-            return_info (bool, default=False): if true, return extra info dict
+            return_info (bool):
+                if True, return extra info dict. Defaults to False.
 
         Returns:
             bool | Tuple[bool, Dict] :
@@ -493,6 +494,8 @@ class IndexableWalker(Generator):
                 p2, v2 = t2
                 assert p1 == p2, 'paths to the nested items should be the same'
 
+                # TODO: Could add a numpy optimization here.
+
                 flag = (v1 == v2) or (
                     isinstance(v1, float) and isinstance(v2, float) and
                     _isclose_fn(v1, v2, **_iskw)
@@ -584,6 +587,12 @@ class IndexableWalker(Generator):
             >>> wb = ub.IndexableWalker([b], list_cls=(np.ndarray, list))
             >>> info =  wa.diff(wb)
             >>> print(f'info = {ub.urepr(info, nl=2)}')
+
+        Example:
+            >>> import ubelt as ub
+            >>> # test null similarity
+            >>> wa = ub.IndexableWalker({}).diff({})
+            >>> assert wa['similarity'] == 1.0
         """
         walker1 = self
         if isinstance(other, IndexableWalker):
@@ -627,7 +636,10 @@ class IndexableWalker(Generator):
         num_differences = len(unique1) + len(unique2) + len(faillist)
         num_similarities = len(passlist)
 
-        similarity = num_similarities / (num_similarities + num_differences)
+        if num_similarities == 0 and num_differences == 0:
+            similarity = 1.0
+        else:
+            similarity = num_similarities / (num_similarities + num_differences)
         info = {
             'similarity': similarity,
             'num_approximations': num_approximations,
@@ -678,7 +690,7 @@ def indexable_allclose(items1, items2, rel_tol=1e-9, abs_tol=0.0, return_info=Fa
             maximum difference for being considered "close", regardless of the
             magnitude of the input values
 
-        return_info (bool, default=False): if true, return extra info
+        return_info (bool): if True, return extra info. Defaults to False.
 
     Returns:
         bool | Tuple[bool, Dict] :

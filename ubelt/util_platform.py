@@ -305,11 +305,12 @@ def find_exe(name, multi=False, path=None):
     Args:
         name (str | PathLike): globstr of matching filename
 
-        multi (bool, default=False):
+        multi (bool):
             if True return all matches instead of just the first.
+            Defaults to False.
 
-        path (str | PathLike | Iterable[str | PathLike] | None, default=None):
-            overrides the system PATH variable.
+        path (str | PathLike | Iterable[str | PathLike] | None):
+            If specified, overrides the system PATH variable.
 
     Returns:
         str | List[str] | None: returns matching executable(s).
@@ -381,12 +382,12 @@ def find_path(name, path=None, exact=False):
         name (str | PathLike): file name to match.
             If exact is False this may be a glob pattern
 
-        path (str | Iterable[str | PathLike] | None, default=None):
+        path (str | Iterable[str | PathLike] | None):
             list of directories to search either specified as an ``os.pathsep``
             separated string or a list of directories.  Defaults to environment
             PATH.
 
-        exact (bool, default=False): if True, only returns exact matches.
+        exact (bool): if True, only returns exact matches. Defaults to False.
 
     Yields:
         str: candidate - a path that matches ``name``
@@ -397,7 +398,7 @@ def find_path(name, path=None, exact=False):
 
     Note:
         For recursive behavior set ``path=(d for d, _, _ in os.walk('.'))``,
-        where '.' might be replaced by the root directory of interest.
+        where ``'.'`` might be replaced by the root directory of interest.
 
     Example:
         >>> # xdoctest: +IGNORE_WANT

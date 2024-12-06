@@ -103,7 +103,7 @@ def test_cmd_tee_thread():
     print('existing_threads = {!r}'.format(existing_threads))
 
     if ub.WIN32:
-        # Windows cant break appart commands consistently
+        # Windows cant break apart commands consistently
         command = [PYEXE, '-c', "for i in range(10): print(str(i))"]
     else:
         command = '{pyexe} -c "for i in range(10): print(str(i))"'.format(pyexe=PYEXE)
@@ -143,7 +143,7 @@ def test_cmd_multiline_stdout():
     pytest ubelt/tests/test_cmd.py::test_cmd_multiline_stdout
     """
     if ub.WIN32:
-        # Windows cant break appart commands consistently
+        # Windows cant break apart commands consistently
         command = [PYEXE, '-c', "for i in range(10): print(str(i))"]
     else:
         command = '{pyexe} -c "for i in range(10): print(str(i))"'.format(pyexe=PYEXE)
@@ -283,7 +283,7 @@ def test_timeout():
         ''').lstrip().format(pyexe=PYEXE)
 
     # if ub.WIN32:
-    #     # Windows cant break appart commands consistently
+    #     # Windows cant break apart commands consistently
     #     py_script = [PYEXE, '-c', ub.codeblock(
     #         r'''
     #         "
@@ -421,7 +421,7 @@ def test_cmdoutput_object_with_non_subprocess_backends():
     assert info.stderr.strip() == ''
     info.check_returncode()
 
-    # In this case, when tee=0 the user can stil capture the output
+    # In this case, when tee=0 the user can still capture the output
     info = ub.cmd('echo hello world', detach=True, capture=True, tee=0)
     with pytest.raises(KeyError):
         info.stdout
@@ -437,7 +437,7 @@ def test_cmdoutput_object_with_non_subprocess_backends():
         info.stderr
     assert info['proc'].communicate()[0] is None
 
-    # In this case when tee=1, a detatched process will show its output but
+    # In this case when tee=1, a detached process will show its output but
     # capturing will not be possible.
     info = ub.cmd('echo hello world', detach=True, capture=False, tee=1)
     with pytest.raises(KeyError):
@@ -465,7 +465,7 @@ def test_cmdoutput_object_with_non_subprocess_backends():
 
 def _dev_debug_timeouts():
     """
-    Notes used when implementating timeout
+    Notes used when implementing timeout
 
     Ignore:
         # For debugging and development

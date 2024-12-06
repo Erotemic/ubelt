@@ -376,7 +376,7 @@ def dict_subset(dict_, keys, default=NoParam, cls=OrderedDict):
 
         keys (Iterable[KT]): keys to take from ``dict_``
 
-        default (Optional[object] | NoParamType):
+        default (Any | NoParamType):
             if specified uses default if keys are missing.
 
         cls (Type[Dict]): type of the returned dictionary.
@@ -652,7 +652,7 @@ def sorted_values(dict_, key=None, reverse=False, cls=OrderedDict):
             If given as a callable, customizes the sorting by ordering using
             transformed values.
 
-        reverse (bool, default):
+        reverse (bool):
             If True returns in descending order. Defaults to False.
 
         cls (type): Specifies the dict return type. Default to OrderedDict.
@@ -1819,7 +1819,7 @@ class UDict(SetDict):
            + sorted_values - returns a dictionary ordered by the values
 
     IMO key-wise set operations on dictionaries are fundamentaly and sorely
-    missing from the stdlib, mapping is super convinient, sorting and inversion
+    missing from the stdlib, mapping is super convenient, sorting and inversion
     are less common, but still useful to have.
 
     TODO:
@@ -1859,7 +1859,7 @@ class UDict(SetDict):
 
             keys (Iterable[KT]): keys to take from ``self``
 
-            default (Optional[object] | NoParamType):
+            default (Any | NoParamType):
                 if specified uses default if keys are missing.
 
         Raises:
@@ -1882,6 +1882,7 @@ class UDict(SetDict):
             >>> print('s = {}'.format(ub.repr2(s, nl=0, sort=1)))
             s = {2: 'A_c', 5: 'A_f', 100: 'DEF'}
         """
+        # TODO: make this work with defaultdict?
         cls = self.__class__
         if default is NoParam:
             new = cls([(k, self[k]) for k in keys])
@@ -1898,7 +1899,7 @@ class UDict(SetDict):
 
             keys (Iterable[KT]): keys to take from ``self``
 
-            default (Optional[object] | NoParamType):
+            default (Any | NoParamType):
                 if specified uses default if keys are missing.
 
         Yields:
@@ -2017,7 +2018,7 @@ class UDict(SetDict):
                 If given as a callable, customizes the sorting by ordering using
                 transformed keys.
 
-            reverse (bool, default=False):
+            reverse (bool):
                 if True returns in descending order
 
         Returns:
@@ -2043,7 +2044,7 @@ class UDict(SetDict):
                 If given as a callable, customizes the sorting by ordering using
                 transformed values.
 
-            reverse (bool, default=False):
+            reverse (bool):
                 if True returns in descending order
 
         Returns:

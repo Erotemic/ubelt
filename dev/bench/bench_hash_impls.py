@@ -111,10 +111,10 @@ def _update_hasher_recursive(hasher, data, types=True, extensions=None):
             _update_hasher_recursive(hasher, item, types, extensions=extensions)
             # !>> WHOOPS: THIS IS A BUG. THERE SHOULD BE A
             # !>> hasher.update(_SEP)
-            # !>> SEPERATOR HERE.
+            # !>> SEPARATOR HERE.
             # !>> BUT FIXING IT WILL BREAK BACKWARDS COMPAT.
             # !>> We will need to expose versions of the hasher that can be
-            # configured, and ideally new versions will have speed improvments.
+            # configured, and ideally new versions will have speed improvements.
             for item in iter_:
                 # Ensure the items have a spacer between them
                 _update_hasher_recursive(hasher, item, types, extensions=extensions)
@@ -194,7 +194,7 @@ def _update_hasher_iterative(hasher, data, types=True, extensions=None):
                 # BUG: should have a _SEP here.
                 # !>> WHOOPS: THIS IS A BUG. THERE SHOULD BE A
                 # !>> hasher.update(_SEP)
-                # !>> SEPERATOR HERE.
+                # !>> SEPARATOR HERE.
                 # !>> BUT FIXING IT WILL BREAK BACKWARDS COMPAT.
                 # !>> We will need to expose versions of the hasher that can be
                 stack.append((DAT_TYPE, item))

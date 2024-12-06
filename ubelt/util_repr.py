@@ -74,6 +74,11 @@ def urepr(data, **kwargs):
         the final representation. For convenience some of the more frequently
         used kwargs have short aliases. See "Kwargs" for more details.
 
+    Note:
+        For large data items, this can be noticeably slower than pprint.pformat
+        and much slower than the builtin repr. Benchmarks exist in the repo
+        under dev/bench/bench_urepr_vs_alternatives.py
+
     Args:
         data (object):
             an arbitrary python object to form the string "representation" of
@@ -860,11 +865,6 @@ def _dict_itemstrs(dict_, **kwargs):
         dict_ (dict): the dict
         **kwargs: explicit, precision, kvsep, strkeys, _return_info, cbr,
             compact_brace, sort
-
-    Ignore:
-        from ubelt.util_repr import _dict_itemstrs
-        import xinspect
-        print(', '.join(xinspect.get_kwargs(_dict_itemstrs, max_depth=0).keys()))
 
     Example:
         >>> from ubelt.util_repr import *

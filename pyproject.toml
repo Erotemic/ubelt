@@ -16,6 +16,7 @@ author = "Jon Crall"
 typed = "partial"
 author_email = "erotemic@gmail.com"
 description = "A Python utility belt containing simple tools, a stdlib like feel, and extra batteries"
+#ci_cpython_versions=["3.6", "3.7", "3.8", "3.9", "3.10", "3.11", "3.12", "3.13.0-beta.2"]
 license = "Apache 2"
 dev_status = "stable"
 classifiers = [
@@ -69,3 +70,9 @@ omit = [
     "ubelt/_win32_links.py",
      "*/setup.py",
 ]
+
+[tool.codespell]
+skip = ['./docs/build', './*.egg-info', './build', './htmlcov']
+count = true
+quiet-level = 3
+ignore-words-list = ['wont', 'cant', 'ANS', 'doesnt', 'arent', 'ans', 'thats', 'datas', 'isnt']
