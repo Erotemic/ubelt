@@ -336,6 +336,17 @@ def _rectify_base(base):
     """
     transforms base shorthand into the full list representation
 
+    Args:
+        base (str | int | List[str]):
+            Can be a list of characters in the base.
+            Can be a number indicating the size of the base (only 26, 32, 26,
+            16, and 10 are currently allowed).
+            Can be special string key identifying a supported list of characters:
+                abc123 or alphanum
+                abc or alpha
+                hex
+                dec
+
     Example:
         >>> assert _rectify_base(NoParam) is DEFAULT_ALPHABET
         >>> assert _rectify_base('hex') is _ALPHABET_16
@@ -1181,7 +1192,8 @@ def hash_data(data, hasher=NoParam, base=NoParam, types=False, convert=False,
 
         base (List[str] | str | NoParamType):
             list of symbols or shorthand key.
-            Valid keys are 'abc', 'hex', and 'dec'. Defaults to 'hex'
+            Valid keys are 'dec', 'hex', 'abc', and 'alphanum', 10, 16, 26, 32.
+            Defaults to 'hex'.
 
         types (bool):
             If True data types are included in the hash, otherwise only the raw
@@ -1272,7 +1284,7 @@ def hash_file(fpath, blocksize=1048576, stride=1, maxbytes=None,
 
         base (List[str] | int | str | NoParamType):
             list of symbols or shorthand key.
-            Valid keys are 'abc', 'hex', and 'dec', 10, 16, 26, 32.
+            Valid keys are 'dec', 'hex', 'abc', and 'alphanum', 10, 16, 26, 32.
             Defaults to 'hex'.
 
     Returns:
