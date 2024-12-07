@@ -6,6 +6,7 @@
 
 name: PurePyCI
 
+
 on:
   push:
   pull_request:
