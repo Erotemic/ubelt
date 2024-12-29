@@ -45,7 +45,7 @@ achieve 100% test coverage (with minor exceptions on Windows).
 * Motto: Good utilities lift all codes.
 
 
-Read the docs here: http://ubelt.readthedocs.io/en/latest/auto/
+Read the docs here: https://ubelt.readthedocs.io/en/latest
 
 These are some of the tasks that ubelt's API enables:
 
