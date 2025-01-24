@@ -195,7 +195,7 @@ jobs:
           arch: auto
         - python-version: '3.7'
           install-extras: tests,optional
-          os: ubuntu-latest
+          os: ubuntu-22.04
           arch: auto
         - python-version: '3.8'
           install-extras: tests,optional
