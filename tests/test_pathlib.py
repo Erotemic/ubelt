@@ -570,18 +570,6 @@ def test_walk_compat_312():
     subdirs2 = list(theirs.walk())
     assert subdirs1 == subdirs2
 
-    if 1:
-        import timerit
-        ti = timerit.Timerit(100, bestof=10, verbose=2)
-        for timer in ti.reset('time ours'):
-            with timer:
-                list(ours.walk())
-
-        # note: theirs is faster
-        for timer in ti.reset('time theirs'):
-            with timer:
-                list(theirs.walk())
-
 
 def test_walk_bad_kwargs():
     import ubelt as ub
