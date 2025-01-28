@@ -442,7 +442,7 @@ jobs:
         $GPG_EXECUTABLE --list-keys  || echo "first invocation of gpg creates directories and returns 1"
         $GPG_EXECUTABLE --list-keys
         VERSION=$(python -c "import setup; print(setup.VERSION)")
-        pip install twine
+        pip install twine packaging -U
         pip install urllib3 requests[security] twine
         GPG_KEYID=$(cat dev/public_gpg_key)
         echo "GPG_KEYID = '$GPG_KEYID'"
@@ -517,7 +517,7 @@ jobs:
         $GPG_EXECUTABLE --list-keys  || echo "first invocation of gpg creates directories and returns 1"
         $GPG_EXECUTABLE --list-keys
         VERSION=$(python -c "import setup; print(setup.VERSION)")
-        pip install twine
+        pip install twine packaging -U
         pip install urllib3 requests[security] twine
         GPG_KEYID=$(cat dev/public_gpg_key)
         echo "GPG_KEYID = '$GPG_KEYID'"
