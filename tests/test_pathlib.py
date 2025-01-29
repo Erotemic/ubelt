@@ -540,3 +540,40 @@ def test_copy_dir_to_existing_dir_withconflict():
 
 def _comparable_walk(p):
     return sorted([(tuple(sorted(f)), tuple(sorted(d))) for (r, f, d) in (p).walk()])
+
+
+def test_walk_compat_312():
+    """
+    Test that our version works the same as the 3.12 version
+    """
+    import sys
+    if sys.version_info[0:2] < (3, 12):
+        import pytest
+        pytest.skip('only test on 3.12')
+
+    import ubelt as ub
+    import pathlib
+
+    ours = ub.Path.appdir('ubelt/tests/ls')
+    theirs = pathlib.Path(ours)
+
+    (ours / 'dir1').ensuredir()
+    (ours / 'dir2').ensuredir()
+    (ours / 'file1').touch()
+    (ours / 'file2').touch()
+    (ours / 'dir1/file3').touch()
+    (ours / 'dir2/file4').touch()
+
+    subdirs1 = list(ours.walk())
+    assert len(subdirs1) == 3
+
+    subdirs2 = list(theirs.walk())
+    assert subdirs1 == subdirs2
+
+
+def test_walk_bad_kwargs():
+    import ubelt as ub
+    import pytest
+    self = ub.Path('foo')
+    with pytest.raises(TypeError):
+        list(self.walk(does_not_exist=True))

@@ -48,6 +48,9 @@ __all__ = [
 
 WIN32 = sys.platform.startswith('win32')
 
+PYTHON_LT_3_8 = sys.version_info[0:2] < (3, 8)
+PYTHON_GE_3_12 = sys.version_info[0:2] >= (3, 12)
+
 
 def augpath(path, suffix='', prefix='', ext=None, tail='', base=None,
             dpath=None, relative=None, multidot=False):
@@ -1228,7 +1231,57 @@ class Path(_PathBase):
         super().touch(mode=mode, exist_ok=exist_ok)
         return self
 
-    def walk(self, topdown=True, onerror=None, followlinks=False):
+    def relative_to(self, *other, **kwargs):
+        """
+        Return the relative path to another path identified by the passed
+        arguments.  If the operation is not possible (because this is not a
+        subpath of the other path), raise ValueError.
+
+        Includes a Backport of :meth:`pathlib.Path.relative_to` with
+        ``walk_up=True`` that's not available pre 3.12.
+
+        Args:
+            other (Path | str): the base path
+
+            walk_up (bool):
+                controls whether `..` may be used to resolve the path.
+
+        Returns:
+            Path: the new relative path
+
+        References:
+            https://stackoverflow.com/questions/38083555/using-pathlibs-relative-to-for-directories-on-the-same-level
+            https://github.com/p2p-ld/numpydantic/blob/66fffc49f87bfaaa2f4d05bf1730c343b10c9cc6/src/numpydantic/serialization.py#L107-L142
+
+        Example:
+            >>> import ubelt as ub
+            >>> import pytest
+            >>> self = ub.Path('foo/bar')
+            >>> other = ub.Path('foo/bar/baz')
+            >>> result = self.relative_to(other, walk_up=True)
+            >>> assert result == ub.Path('..')
+            >>> with pytest.raises(ValueError):
+            >>>     self.relative_to(other)
+            >>> with pytest.raises(ValueError):
+            >>>     self.relative_to(other, walk_up=False)
+            >>> with pytest.raises(TypeError):
+            >>>     self.relative_to(other, not_a_kwarg=False)
+        """
+        if PYTHON_GE_3_12:
+            return super().relative_to(*other, **kwargs)
+        else:
+            # Test to see if we need the backport
+            walk_up = kwargs.pop('walk_up', False)
+            if len(kwargs):
+                bad_key = list(kwargs)[0]
+                raise TypeError(f'{self.__class__.__name__}.relative_to() got an unexpected keyword argument {bad_key!r}')
+            if not walk_up:
+                return super().relative_to(*other, **kwargs)
+            else:
+                # Use the backport
+                return _relative_path_backport(self, other, walk_up=walk_up)
+
+    def walk(self, topdown=True, onerror=None, followlinks=False, **kwargs):
         """
         A variant of :func:`os.walk` for pathlib
 
@@ -1243,6 +1296,11 @@ class Path(_PathBase):
 
             followlinks (bool):
                 if True recurse into symbolic directory links
+
+            **kwargs:
+                Accepts aliases the 3.12 version of the above names: top_down,
+                on_error, follow_symlinks. In the future we may switch the 3.12
+                variants to be the primary arguments.
 
         Yields:
             Tuple['Path', List[str], List[str]]:
@@ -1274,11 +1332,28 @@ class Path(_PathBase):
             >>>     if 'CVS' in dirs:
             >>>         dirs.remove('CVS')  # don't visit CVS directories
         """
-        cls = self.__class__
-        walker = os.walk(self, topdown=topdown, onerror=onerror,
-                         followlinks=followlinks)
-        for root, dnames, fnames in walker:
-            yield (cls(root), dnames, fnames)
+        # Add kwargs to support ubelt original kwargs as well as pathlib kwargs
+        top_down = kwargs.pop('top_down', topdown)
+        on_error = kwargs.pop('on_error', onerror)
+        follow_symlinks = kwargs.pop('follow_symlinks', followlinks)
+
+        if len(kwargs):
+            bad_key = list(kwargs)[0]
+            raise TypeError(f'{self.__class__.__name__}.relative_to() got an unexpected keyword argument {bad_key!r}')
+
+        if PYTHON_GE_3_12:
+            # Use the parent implementation if available
+            yield from super().walk(
+                top_down=top_down, on_error=on_error,
+                follow_symlinks=follow_symlinks)
+        else:
+            # TODO: backport the 3.12 implementation, which is more efficient
+            # Our original implementation
+            cls = self.__class__
+            walker = os.walk(self, topdown=top_down, onerror=on_error,
+                             followlinks=follow_symlinks)
+            for root, dnames, fnames in walker:
+                yield (cls(root), dnames, fnames)
 
     def __add__(self, other):
         """
@@ -1565,7 +1640,7 @@ class Path(_PathBase):
             _patch_win32_stats_on_pypy()
 
         if self.is_dir():
-            if sys.version_info[0:2] < (3, 8):  # nocover
+            if PYTHON_LT_3_8:  # nocover
                 copytree = _compat_copytree
             else:
                 copytree = shutil.copytree
@@ -1894,7 +1969,35 @@ def _patch_win32_stats_on_pypy():
         stat.IO_REPARSE_TAG_SYMLINK = 0xa000000c      # windows
 
 
-if sys.version_info[0:2] < (3, 8):  # nocover
+def _relative_path_backport(self, other, walk_up=False):
+    if not isinstance(other, _PathBase):
+        other = type(self)(*other)
+        # other = self.with_segments(other)
+    # anchor0, parts0 = self._stack
+    # anchor1, parts1 = other._stack
+    self_parts = self.parts
+    other_parts = other.parts
+    anchor0, parts0 = self_parts[0], list(reversed(self_parts[1:]))
+    anchor1, parts1 = other_parts[0], list(reversed(other_parts[1:]))
+    if anchor0 != anchor1:
+        raise ValueError(f"{self._raw_path!r} and {other._raw_path!r} have different anchors")
+    while parts0 and parts1 and parts0[-1] == parts1[-1]:
+        parts0.pop()
+        parts1.pop()
+    for part in parts1:
+        if not part or part == '.':
+            pass
+        elif not walk_up:
+            raise ValueError(f"{self._raw_path!r} is not in the subpath of {other._raw_path!r}")
+        elif part == '..':
+            raise ValueError(f"'..' segment in {other._raw_path!r} cannot be walked")
+        else:
+            parts0.append('..')
+    # return self.with_segments('', *reversed(parts0))
+    return type(self)('', *reversed(parts0))
+
+
+if PYTHON_LT_3_8:  # nocover
 
     # Vendor in a nearly modern copytree for Python 3.6 and 3.7
     def _compat_copytree(src, dst, symlinks=False, ignore=None,

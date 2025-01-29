@@ -6,6 +6,12 @@ This project (loosely) adheres to [Semantic Versioning](https://semver.org/spec/
 
 ## Version 1.3.8 - Unreleased
 
+### Added
+* Added: `ub.Path.relative_to` now backports the `walk_up` feature from Python 3.12 
+
+### Changed
+* `ub.Path.walk` now supports the same signature as the new version in Python 3.12
+
 
 ## Version 1.3.7 - Released 2024-12-06
 
