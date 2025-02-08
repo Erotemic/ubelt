@@ -174,6 +174,9 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
 
         shell (bool):
             if True, process is run in shell. Defaults to False.
+            This is required if your command is shell-specific (e.g. uses bash
+            pipe), and in which case the backend shell depends on the operating
+            system.
 
         detach (bool):
             if True, process is detached and run in background. Defaults to False.
