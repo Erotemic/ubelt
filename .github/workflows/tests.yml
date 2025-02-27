@@ -446,7 +446,8 @@ jobs:
         $GPG_EXECUTABLE --list-keys
         VERSION=$(python -c "import setup; print(setup.VERSION)")
         python -m pip install pip -U
-        python -m pip install urllib3 requests[security] packaging twine
+        python -m pip install packaging twine -U
+        python -m pip install urllib3 requests[security]
         GPG_KEYID=$(cat dev/public_gpg_key)
         echo "GPG_KEYID = '$GPG_KEYID'"
         GPG_SIGN_CMD="$GPG_EXECUTABLE --batch --yes --detach-sign --armor --local-user $GPG_KEYID"
@@ -521,7 +522,8 @@ jobs:
         $GPG_EXECUTABLE --list-keys
         VERSION=$(python -c "import setup; print(setup.VERSION)")
         python -m pip install pip -U
-        python -m pip install urllib3 requests[security] packaging twine
+        python -m pip install packaging twine -U
+        python -m pip install urllib3 requests[security]
         GPG_KEYID=$(cat dev/public_gpg_key)
         echo "GPG_KEYID = '$GPG_KEYID'"
         GPG_SIGN_CMD="$GPG_EXECUTABLE --batch --yes --detach-sign --armor --local-user $GPG_KEYID"
