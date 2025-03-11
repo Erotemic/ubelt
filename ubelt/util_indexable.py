@@ -344,8 +344,6 @@ class IndexableWalker(Generator):
             ]
             >>> assert not any(['emptynest' in p for p in keys])
             >>> assert any(['emptynest' in p for p in keys_with_nonleafs])
-
-
         """
         for path, value in self._walk():
             if non_leaf or not isinstance(value, self.indexable_cls):
