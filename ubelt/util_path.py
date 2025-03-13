@@ -1267,9 +1267,9 @@ class Path(_PathBase):
             >>> with pytest.raises(TypeError):
             >>>     self.relative_to(other, not_a_kwarg=False)
         """
-        if PYTHON_GE_3_12:
+        if PYTHON_GE_3_12:  # nocover
             return super().relative_to(*other, **kwargs)
-        else:
+        else:  # nocover
             # Test to see if we need the backport
             walk_up = kwargs.pop('walk_up', False)
             if len(kwargs):
@@ -1341,12 +1341,12 @@ class Path(_PathBase):
             bad_key = list(kwargs)[0]
             raise TypeError(f'{self.__class__.__name__}.relative_to() got an unexpected keyword argument {bad_key!r}')
 
-        if PYTHON_GE_3_12:
+        if PYTHON_GE_3_12:  # nocover
             # Use the parent implementation if available
             yield from super().walk(
                 top_down=top_down, on_error=on_error,
                 follow_symlinks=follow_symlinks)
-        else:
+        else:   # nocover
             # TODO: backport the 3.12 implementation, which is more efficient
             # Our original implementation
             cls = self.__class__
@@ -1636,7 +1636,7 @@ class Path(_PathBase):
             follow_file_symlinks=follow_file_symlinks,
             follow_dir_symlinks=follow_dir_symlinks, meta=meta)
 
-        if WIN32 and platform.python_implementation() == 'PyPy':
+        if WIN32 and platform.python_implementation() == 'PyPy':  # nocover
             _patch_win32_stats_on_pypy()
 
         if self.is_dir():
@@ -1727,7 +1727,7 @@ class Path(_PathBase):
                 'Moves are only allowed to locations that dont exist')
         import shutil
 
-        if WIN32 and platform.python_implementation() == 'PyPy':
+        if WIN32 and platform.python_implementation() == 'PyPy':  # nocover
             _patch_win32_stats_on_pypy()
 
         copy_function = self._request_copy_function(
@@ -1962,14 +1962,14 @@ def _patch_win32_stats_on_pypy():
         [PyPyIssue4953] https://github.com/pypy/pypy/issues/4953#event-12838738353
         [PyPyDiscuss4952] https://github.com/orgs/pypy/discussions/4952#discussioncomment-9481845
     """
-    if not hasattr(stat, 'IO_REPARSE_TAG_MOUNT_POINT'):
+    if not hasattr(stat, 'IO_REPARSE_TAG_MOUNT_POINT'):  # nocover
         os.supports_follow_symlinks.add(os.stat)
         stat.IO_REPARSE_TAG_APPEXECLINK = 0x8000001b  # windows
         stat.IO_REPARSE_TAG_MOUNT_POINT = 0xa0000003  # windows
         stat.IO_REPARSE_TAG_SYMLINK = 0xa000000c      # windows
 
 
-def _relative_path_backport(self, other, walk_up=False):
+def _relative_path_backport(self, other, walk_up=False):  # nocover
     if not isinstance(other, _PathBase):
         other = type(self)(*other)
         # other = self.with_segments(other)
