@@ -69,6 +69,7 @@ exclude_lines = [
 omit = [
     "ubelt/__main__.py",
     "ubelt/_win32_links.py",
+    "ubelt/_win32_jaraco.py",
      "*/setup.py",
 ]
 

@@ -16,7 +16,7 @@ from typing import NamedTuple, Tuple, Any
 
 try:
     from functools import cache
-except ImportError:
+except ImportError:  # nocover
     from ubelt.util_memoize import memoize as cache
 
 
@@ -24,7 +24,7 @@ except ImportError:
 def _lazy_numpy():
     try:
         import numpy as np
-    except ImportError:
+    except ImportError:  # nocover
         return None
     return np
 
@@ -724,7 +724,7 @@ class IndexableWalker(Generator):
 
 def _make_isclose_fn(rel_tol, abs_tol, equal_nan):
     np = _lazy_numpy()
-    if np is None:
+    if np is None:  # nocover
         _isclose_fn = isclose
         _iskw = dict(rel_tol=rel_tol, abs_tol=abs_tol)
         if equal_nan:
