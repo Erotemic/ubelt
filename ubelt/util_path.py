@@ -2016,7 +2016,7 @@ def _is_relative_to_backport(self, other):
         ...     want = case['want']
         ...     if ub.WIN32:
         ...         want = case.get('want_win32', want)
-        ...     if got != case['want']:
+        ...     if got != want:
         ...         failures.append(f'[FAIL] got={got!r} self={self!r}, other={other!r}, case={case!r}')
         ...     # Check agreement with builtin, if possible
         ...     try:

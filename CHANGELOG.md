@@ -14,6 +14,9 @@ This project (loosely) adheres to [Semantic Versioning](https://semver.org/spec/
 * `ub.Path.walk` now supports the same signature as the new version in Python 3.12
 * Support `FORCE_COLOR`
 
+### Fixed
+* Version checking issue in util-import
+
 
 ## Version 1.3.7 - Released 2024-12-06
 
