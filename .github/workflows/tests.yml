@@ -117,7 +117,7 @@ jobs:
         os:
         - ubuntu-latest
         python-version:
-        - '3.13'
+        - python:3.14.0-rc.1
         arch:
         - auto
     steps:
@@ -171,23 +171,23 @@ jobs:
           install-extras: tests-strict,runtime-strict
           os: windows-latest
           arch: auto
-        - python-version: '3.13'
+        - python-version: python:3.14.0-rc.1
           install-extras: tests-strict,runtime-strict,optional-strict
           os: ubuntu-latest
           arch: auto
-        - python-version: '3.13'
+        - python-version: python:3.14.0-rc.1
           install-extras: tests-strict,runtime-strict,optional-strict
           os: macOS-latest
           arch: auto
-        - python-version: '3.13'
+        - python-version: python:3.14.0-rc.1
           install-extras: tests-strict,runtime-strict,optional-strict
           os: windows-latest
           arch: auto
-        - python-version: '3.13'
+        - python-version: python:3.14.0-rc.1
           install-extras: tests
           os: macOS-latest
           arch: auto
-        - python-version: '3.13'
+        - python-version: python:3.14.0-rc.1
           install-extras: tests
           os: windows-latest
           arch: auto
@@ -223,6 +223,10 @@ jobs:
           install-extras: tests,optional
           os: ubuntu-latest
           arch: auto
+        - python-version: python:3.14.0-rc.1
+          install-extras: tests,optional
+          os: ubuntu-latest
+          arch: auto
         - python-version: pypy-3.9
           install-extras: tests,optional
           os: ubuntu-latest
@@ -259,6 +263,10 @@ jobs:
           install-extras: tests,optional
           os: macOS-latest
           arch: auto
+        - python-version: python:3.14.0-rc.1
+          install-extras: tests,optional
+          os: macOS-latest
+          arch: auto
         - python-version: pypy-3.9
           install-extras: tests,optional
           os: macOS-latest
@@ -292,6 +300,10 @@ jobs:
           os: windows-latest
           arch: auto
         - python-version: '3.13'
+          install-extras: tests,optional
+          os: windows-latest
+          arch: auto
+        - python-version: python:3.14.0-rc.1
           install-extras: tests,optional
           os: windows-latest
           arch: auto
