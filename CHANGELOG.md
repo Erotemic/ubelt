@@ -16,6 +16,7 @@ This project (loosely) adheres to [Semantic Versioning](https://semver.org/spec/
 
 ### Fixed
 * Version checking issue in util-import
+* Rare issue in Path.copy on windows with older pythons
 
 
 ## Version 1.3.7 - Released 2024-12-06

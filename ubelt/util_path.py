@@ -1647,7 +1647,7 @@ class Path(_PathBase):
                 copytree = shutil.copytree
 
             dst = copytree(
-                self, dst, copy_function=copy_function,
+                os.fspath(self), os.fspath(dst), copy_function=copy_function,
                 symlinks=not follow_dir_symlinks, dirs_exist_ok=overwrite)
         elif self.is_file():
             if not overwrite:
@@ -1658,7 +1658,7 @@ class Path(_PathBase):
                     real_dst = dst
                 if real_dst.exists():
                     raise FileExistsError('Cannot overwrite existing file unless overwrite=True')
-            dst = copy_function(self, dst)
+            dst = copy_function(os.fspath(self), os.fspath(dst))
         else:
             raise FileExistsError('The source path does not exist')
         return Path(dst)
@@ -1734,7 +1734,7 @@ class Path(_PathBase):
         copy_function = self._request_copy_function(
             follow_file_symlinks=follow_file_symlinks,
             follow_dir_symlinks=follow_dir_symlinks, meta=meta)
-        real_dst = shutil.move(self, dst, copy_function=copy_function)
+        real_dst = shutil.move(os.fspath(self), os.fspath(dst), copy_function=copy_function)
         return Path(real_dst)
 
 
