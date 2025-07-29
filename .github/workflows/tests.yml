@@ -351,7 +351,28 @@ jobs:
             fpath = sorted(candidates)[-1]
             print(str(fpath).replace(chr(92), chr(47)))
         ")
-        export MOD_VERSION=$(export MOD_VERSION=$(echo "$WHEEL_FPATH" | sed -E 's#.*/[^/]+-([0-9]+\.[0-9]+\.[0-9]+)[-.].*#\1#'))
+        export MOD_VERSION=$(python -c "if 1:
+            from pkginfo import Wheel, SDist
+            import pathlib
+            fpath = '$WHEEL_FPATH'
+            cls = Wheel if fpath.endswith('.whl') else SDist
+            item = cls(fpath)
+            if item.version is None:
+                import re
+                # This is very fragile
+                fname = pathlib.Path(fpath).name
+                match = re.match(r'^([^-]+)-([^-]+)(.whl|.tar.gz)$', fname)
+                bs = chr(92)
+                pat = '([0-9]+' + bs + '.[0-9]+' + bs + '.[0-9]+)'
+                import re
+                # Not sure why version is None in 3.6 and 3.7
+                match = re.search(pat, fname)
+                assert match is not None
+                version = match.groups()[0]
+                print(version)
+            else:
+                print(item.version)
+        ")
         echo "WHEEL_FPATH=$WHEEL_FPATH"
         echo "INSTALL_EXTRAS=$INSTALL_EXTRAS"
         echo "MOD_VERSION=$MOD_VERSION"
