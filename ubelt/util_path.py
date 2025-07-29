@@ -2007,14 +2007,22 @@ def _is_relative_to_backport(self, other):
         >>>     {"self": "C:\\a\\b", "other": "D:\\a\\b", "want": False},
         >>>     {"self": "/symlink/a/b", "other": "/real/x/a", "want": False},
         >>> ]
+        >>> failures = []
         >>> for case in test_cases:
-        >>>     self = ub.Path(case['self'])
-        >>>     other = ub.Path(case['other'])
-        >>>     got = _is_relative_to_backport(self, other)
-        >>>     want = case['want']
-        >>>     assert got == want, f'(got != want): {got} != {want}'
-        >>>     # Test agreement with builtin method
-        >>>     assert got == self.is_relative_to(other)
+        ...     self = ub.Path(case['self'])
+        ...     other = ub.Path(case['other'])
+        ...     got = _is_relative_to_backport(self, other)
+        ...     if got != case['want']:
+        ...         failures.append(f'[FAIL] got={got!r} self={self!r}, other={other!r}, case={case!r}')
+        ...     # Check agreement with builtin, if possible
+        ...     try:
+        ...         builtin = self.is_relative_to(other)
+        ...         if got != builtin:
+        ...             failures.append(f'[MISMATCH] got={got!r} builtin={builtin!r} self={self!r}, other={other!r}, case={case!r}')
+        ...     except Exception as ex:
+        ...         failures.append(f'[EX] ex={ex} self={self!r}, other={other!r}, case={case!r}')
+        >>> if failures:
+        ...     raise AssertionError("Some test cases failed:" + chr(10) + chr(10).join(failures))
     """
     try:
         self.relative_to(other)
