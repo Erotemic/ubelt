@@ -21,9 +21,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout source
-      uses: actions/checkout@v4.1.1
+      uses: actions/checkout@v4.2.2
     - name: Set up Python 3.13 for linting
-      uses: actions/setup-python@v5.1.1
+      uses: actions/setup-python@v5.6.0
       with:
         python-version: '3.13'
     - name: Install dependencies
@@ -49,9 +49,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout source
-      uses: actions/checkout@v4.1.1
+      uses: actions/checkout@v4.2.2
     - name: Set up Python 3.13
-      uses: actions/setup-python@v5.1.1
+      uses: actions/setup-python@v5.6.0
       with:
         python-version: '3.13'
     - name: Upgrade pip
@@ -117,19 +117,19 @@ jobs:
         os:
         - ubuntu-latest
         python-version:
-        - python:3.14.0-rc.1
+        - '3.13'
         arch:
         - auto
     steps:
     - name: Checkout source
-      uses: actions/checkout@v4.1.1
+      uses: actions/checkout@v4.2.2
     - name: Set up QEMU
       uses: docker/setup-qemu-action@v3.0.0
       if: runner.os == 'Linux' && matrix.arch != 'auto'
       with:
         platforms: all
     - name: Setup Python
-      uses: actions/setup-python@v5.1.1
+      uses: actions/setup-python@v5.6.0
       with:
         python-version: ${{ matrix.python-version }}
     - name: Build pure wheel
@@ -171,23 +171,23 @@ jobs:
           install-extras: tests-strict,runtime-strict
           os: windows-latest
           arch: auto
-        - python-version: python:3.14.0-rc.1
+        - python-version: '3.13'
           install-extras: tests-strict,runtime-strict,optional-strict
           os: ubuntu-latest
           arch: auto
-        - python-version: python:3.14.0-rc.1
+        - python-version: '3.13'
           install-extras: tests-strict,runtime-strict,optional-strict
           os: macOS-latest
           arch: auto
-        - python-version: python:3.14.0-rc.1
+        - python-version: '3.13'
           install-extras: tests-strict,runtime-strict,optional-strict
           os: windows-latest
           arch: auto
-        - python-version: python:3.14.0-rc.1
+        - python-version: '3.13'
           install-extras: tests
           os: macOS-latest
           arch: auto
-        - python-version: python:3.14.0-rc.1
+        - python-version: '3.13'
           install-extras: tests
           os: windows-latest
           arch: auto
@@ -223,7 +223,7 @@ jobs:
           install-extras: tests,optional
           os: ubuntu-latest
           arch: auto
-        - python-version: python:3.14.0-rc.1
+        - python-version: 3.14.0-rc.1
           install-extras: tests,optional
           os: ubuntu-latest
           arch: auto
@@ -263,7 +263,7 @@ jobs:
           install-extras: tests,optional
           os: macOS-latest
           arch: auto
-        - python-version: python:3.14.0-rc.1
+        - python-version: 3.14.0-rc.1
           install-extras: tests,optional
           os: macOS-latest
           arch: auto
@@ -303,7 +303,7 @@ jobs:
           install-extras: tests,optional
           os: windows-latest
           arch: auto
-        - python-version: python:3.14.0-rc.1
+        - python-version: 3.14.0-rc.1
           install-extras: tests,optional
           os: windows-latest
           arch: auto
@@ -313,7 +313,7 @@ jobs:
           arch: auto
     steps:
     - name: Checkout source
-      uses: actions/checkout@v4.1.1
+      uses: actions/checkout@v4.2.2
     - name: Enable MSVC 64bit
       uses: ilammy/msvc-dev-cmd@v1
       if: matrix.os == 'windows-latest'
@@ -323,7 +323,7 @@ jobs:
       with:
         platforms: all
     - name: Setup Python
-      uses: actions/setup-python@v5.1.1
+      uses: actions/setup-python@v5.6.0
       with:
         python-version: ${{ matrix.python-version }}
     - uses: actions/download-artifact@v4.1.8
@@ -408,7 +408,7 @@ jobs:
         echo '### The cwd should now have a coverage.xml'
         ls -altr
         pwd
-    - uses: codecov/codecov-action@v4.5.0
+    - uses: codecov/codecov-action@v5.4.3
       name: Codecov Upload
       with:
         file: ./coverage.xml
@@ -422,7 +422,7 @@ jobs:
     - build_purepy_wheels
     steps:
     - name: Checkout source
-      uses: actions/checkout@v4.1.1
+      uses: actions/checkout@v4.2.2
     - uses: actions/download-artifact@v4.1.8
       name: Download wheels
       with:
@@ -498,7 +498,7 @@ jobs:
     - build_purepy_wheels
     steps:
     - name: Checkout source
-      uses: actions/checkout@v4.1.1
+      uses: actions/checkout@v4.2.2
     - uses: actions/download-artifact@v4.1.8
       name: Download wheels
       with:
@@ -575,7 +575,7 @@ jobs:
     - live_deploy
     steps:
     - name: Checkout source
-      uses: actions/checkout@v4.1.1
+      uses: actions/checkout@v4.2.2
     - uses: actions/download-artifact@v4.1.8
       name: Download artifacts
       with:
