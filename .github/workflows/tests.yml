@@ -351,12 +351,7 @@ jobs:
             fpath = sorted(candidates)[-1]
             print(str(fpath).replace(chr(92), chr(47)))
         ")
-        export MOD_VERSION=$(python -c "if 1:
-            from pkginfo import Wheel, SDist
-            fpath = '$WHEEL_FPATH'
-            cls = Wheel if fpath.endswith('.whl') else SDist
-            print(cls(fpath).version)
-        ")
+        export MOD_VERSION=$(export MOD_VERSION=$(echo "$WHEEL_FPATH" | sed -E 's#.*/[^/]+-([0-9]+\.[0-9]+\.[0-9]+)[-.].*#\1#'))
         echo "WHEEL_FPATH=$WHEEL_FPATH"
         echo "INSTALL_EXTRAS=$INSTALL_EXTRAS"
         echo "MOD_VERSION=$MOD_VERSION"

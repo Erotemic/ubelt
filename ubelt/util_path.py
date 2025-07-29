@@ -2011,8 +2011,10 @@ def _is_relative_to_backport(self, other):
         >>>     self = ub.Path(case['self'])
         >>>     other = ub.Path(case['other'])
         >>>     got = _is_relative_to_backport(self, other)
+        >>>     want = case['want']
+        >>>     assert got == want, f'(got != want): {got} != {want}'
+        >>>     # Test agreement with builtin method
         >>>     assert got == self.is_relative_to(other)
-        >>>     assert got == case['want']
     """
     try:
         self.relative_to(other)
