@@ -81,6 +81,6 @@ def dict_isect_variant3(*args):
 if __name__ == '__main__':
     """
     CommandLine:
-        python ~/code/ubelt/dev/bench_dict_operations.py
+        python ~/code/ubelt/dev/bench/bench_dict_operations.py
     """
     bench_dict_isect()

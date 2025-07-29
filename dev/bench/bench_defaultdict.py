@@ -36,29 +36,52 @@ def benchmark_template():
     # Define the methods you want to benchmark. The arguments should be
     # parameters that you want to vary in the test.
 
+    import benedict
     @register_method
-    def accum_defaultdict(input_data):
-        d = defaultdict(list)
+    def accumulate_benedict_tryexcept(input_data):
+        d = benedict.BeneDict()
         for item in input_data:
-            d[item].append(item)
-        return d
-
-    @register_method
-    def accumulate_dict_setdefault(input_data):
-        d = dict()
-        for item in input_data:
-            d.setdefault(item, [])
-            d[item].append(item)
-        return d
-
-    @register_method
-    def accumulate_dict_ifcontains(input_data):
-        d = dict()
-        for item in input_data:
-            if item not in d:
+            try:
+                d[item].append(item)
+            except KeyError:
                 d[item] = []
-            d[item].append(item)
+                d[item].append(item)
         return d
+
+    @register_method
+    def accumulate_udict_tryexcept(input_data):
+        d = ub.udict()
+        for item in input_data:
+            try:
+                d[item].append(item)
+            except KeyError:
+                d[item] = []
+                d[item].append(item)
+        return d
+
+    # @register_method
+    # def accum_defaultdict(input_data):
+    #     d = defaultdict(list)
+    #     for item in input_data:
+    #         d[item].append(item)
+    #     return d
+
+    # @register_method
+    # def accumulate_dict_setdefault(input_data):
+    #     d = dict()
+    #     for item in input_data:
+    #         d.setdefault(item, [])
+    #         d[item].append(item)
+    #     return d
+
+    # @register_method
+    # def accumulate_dict_ifcontains(input_data):
+    #     d = dict()
+    #     for item in input_data:
+    #         if item not in d:
+    #             d[item] = []
+    #         d[item].append(item)
+    #     return d
 
     @register_method
     def accumulate_dict_tryexcept(input_data):
