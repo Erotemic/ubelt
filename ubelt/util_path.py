@@ -2003,7 +2003,8 @@ def _is_relative_to_backport(self, other):
         >>>     {"self": "a", "other": "", "want": True},
         >>>     {"self": "/a/b/..", "other": "/a", "want": True},
         >>>     {"self": "/a/b/../../x", "other": "/x", "want": False},
-        >>>     {"self": "C:\\a\\b\\c", "other": "C:\\a\\b", "want": False},
+        >>>     {"self": "C:/a/b/c", "other": "C:/a/b", "want": True},
+        >>>     {"self": "C:\\a\\b\\c", "other": "C:\\a\\b", "want": False, "want_win32": True},  # different result on windows
         >>>     {"self": "C:\\a\\b", "other": "D:\\a\\b", "want": False},
         >>>     {"self": "/symlink/a/b", "other": "/real/x/a", "want": False},
         >>> ]
@@ -2012,6 +2013,9 @@ def _is_relative_to_backport(self, other):
         ...     self = ub.Path(case['self'])
         ...     other = ub.Path(case['other'])
         ...     got = _is_relative_to_backport(self, other)
+        ...     want = case['want']
+        ...     if ub.WIN32:
+        ...         want = case.get('want_win32', want)
         ...     if got != case['want']:
         ...         failures.append(f'[FAIL] got={got!r} self={self!r}, other={other!r}, case={case!r}')
         ...     # Check agreement with builtin, if possible
