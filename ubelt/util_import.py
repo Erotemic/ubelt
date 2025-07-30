@@ -27,6 +27,7 @@ __all__ = [
 ]
 
 IS_PY_GE_308 = sys.version_info[0:2] >= (3, 8)  # type: bool
+IS_PY_LT_314 = sys.version_info[0:2] < (3, 14)  # type: bool
 
 
 class PythonPathContext(object):
@@ -998,8 +999,6 @@ def _static_parse(varname, fpath):
         >>> assert _static_parse('a', fpath) == ("3", 5, 6)
         >>> fpath.write_text('b = 10' + chr(10) + 'a = None')
         >>> assert _static_parse('a', fpath) is None
-        >>> fpath.write_text('a = None')
-        >>> assert _static_parse('a', fpath) is None
         >>> import pytest
         >>> with pytest.raises(TypeError):
         >>>     fpath.write_text('a = list(range(10))')
@@ -1046,12 +1045,6 @@ def _static_parse(varname, fpath):
 def _parse_static_node_value(node):
     """
     Extract a constant value from a node if possible
-
-    Args:
-        node (ast.AST): input node
-
-    Returns:
-        Any: parsed value
     """
     import ast
     from collections import OrderedDict
@@ -1069,6 +1062,8 @@ def _parse_static_node_value(node):
         values = map(_parse_static_node_value, node.values)
         value = OrderedDict(zip(keys, values))
         # value = dict(zip(keys, values))
+    elif IS_PY_LT_314 and isinstance(node, (ast.NameConstant)):
+        value = node.value
     elif isinstance(node, ast.Constant):
         value = node.value
     else:
