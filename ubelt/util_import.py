@@ -1062,7 +1062,7 @@ def _parse_static_node_value(node):
         values = map(_parse_static_node_value, node.values)
         value = OrderedDict(zip(keys, values))
         # value = dict(zip(keys, values))
-    elif IS_PY_LT_314 and isinstance(node, (ast.NameConstant)):
+    elif IS_PY_LT_314 and isinstance(node, (ast.NameConstant)):  # nocover
         value = node.value
     elif isinstance(node, ast.Constant):
         value = node.value
