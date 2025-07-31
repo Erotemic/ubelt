@@ -234,7 +234,7 @@ class Cacher:
                 modname='ubelt',
                 migration='Use depends instead', name='cfgstr',
                 type='Cacher class arg', deprecate='1.1.0', error='1.3.0',
-                remove='1.4.0',
+                remove='1.5.0',
             )
             depends = cfgstr
 
@@ -287,7 +287,7 @@ class Cacher:
                     'attribute instead, but in general it is recommend to '
                     'avoid this.'
                 ), name='cfgstr', type='Cacher method arg', deprecate='1.1.0',
-                error='1.3.0', remove='1.4.0',
+                error='1.3.0', remove='1.5.0',
             )
 
         cfgstr = self.cfgstr if cfgstr is None else cfgstr
@@ -900,7 +900,7 @@ class CacheStamp(object):
                     modname='ubelt',
                     migration='Pass hasher as a string',
                     name='hasher', type='CacheStamp arg',
-                    deprecate='1.1.0', error='1.3.0', remove='1.4.0')
+                    deprecate='1.1.0', error='1.3.0', remove='1.5.0')
                 hasher_name = self.hasher.name
             else:
                 hasher_name = self.hasher
@@ -1013,7 +1013,7 @@ class CacheStamp(object):
                 modname='ubelt',
                 migration='Do not pass cfgstr to expired. Use the class depends arg',
                 name='cfgstr', type='CacheStamp.expires arg',
-                deprecate='1.1.0', error='1.3.0', remove='1.4.0',
+                deprecate='1.1.0', error='1.3.0', remove='1.5.0',
             )
         if product is not None:  # nocover
             from ubelt import schedule_deprecation
@@ -1021,7 +1021,7 @@ class CacheStamp(object):
                 modname='ubelt',
                 migration='Do not pass product to expired. Use the class product arg',
                 name='product', type='CacheStamp.expires arg',
-                deprecate='1.1.0', error='1.3.0', remove='1.4.0',
+                deprecate='1.1.0', error='1.3.0', remove='1.5.0',
             )
 
         if not self.cacher.enabled:
@@ -1231,7 +1231,7 @@ class CacheStamp(object):
                 modname='ubelt',
                 migration='Do not pass cfgstr to renew. Use the class depends arg',
                 name='cfgstr', type='CacheStamp.renew arg',
-                deprecate='1.1.0', error='1.3.0', remove='1.4.0',
+                deprecate='1.1.0', error='1.3.0', remove='1.5.0',
             )
         if product is not None:  # nocover
             from ubelt import schedule_deprecation
@@ -1239,7 +1239,7 @@ class CacheStamp(object):
                 modname='ubelt',
                 migration='Do not pass product to renew. Use the class product arg',
                 name='product', type='CacheStamp.renew arg',
-                deprecate='1.1.0', error='1.3.0', remove='1.4.0',
+                deprecate='1.1.0', error='1.3.0', remove='1.5.0',
             )
         certificate = self._new_certificate(cfgstr, product)
         err = self._check_certificate_hashes(certificate)
