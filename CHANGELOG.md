@@ -4,7 +4,10 @@ We are currently working on porting this changelog to the specifications in
 [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 This project (loosely) adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Version 1.3.8 - Unreleased
+## Version 1.3.9 - Unreleased
+
+
+## Version 1.3.8 - Released 2025-07-31
 
 ### Added
 * Added: `ub.Path.relative_to` now backports the `walk_up` feature from Python 3.12 
