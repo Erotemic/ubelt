@@ -32,7 +32,10 @@ def static_parse(varname, fpath):
         def visit_Assign(self, node):
             for target in node.targets:
                 if getattr(target, "id", None) == varname:
-                    self.static_value = node.value.s
+                    try:
+                        self.static_value = node.value.value
+                    except AttributeError:
+                        self.static_value = node.value.s
 
     visitor = StaticVisitor()
     visitor.visit(pt)
@@ -70,7 +73,7 @@ def parse_requirements(fname="requirements.txt", versions=False):
 
     Args:
         fname (str): path to requirements file
-        versions (bool | str, default=False):
+        versions (bool | str):
             If true include version specs.
             If strict, then pin to the minimum version.
 
@@ -106,7 +109,7 @@ def parse_requirements(fname="requirements.txt", versions=False):
                 info["package"] = line.split("#egg=")[1]
             else:
                 if "--find-links" in line:
-                    # setuptools doesnt seem to handle find links
+                    # setuptools does not seem to handle find links
                     line = line.split("--find-links")[0]
                 if ";" in line:
                     pkgpart, platpart = line.split(";")
@@ -159,7 +162,8 @@ def parse_requirements(fname="requirements.txt", versions=False):
                     if plat_deps is not None:
                         parts.append(";" + plat_deps)
                 item = "".join(parts)
-                yield item
+                if item:
+                    yield item
 
     packages = list(gen_packages_items())
     return packages
@@ -198,7 +202,6 @@ def parse_requirements(fname="requirements.txt", versions=False):
 NAME = "ubelt"
 INIT_PATH = "ubelt/__init__.py"
 VERSION = parse_version(INIT_PATH)
-
 if __name__ == "__main__":
     setupkw = {}
 
@@ -206,32 +209,36 @@ if __name__ == "__main__":
         "requirements/runtime.txt", versions="loose"
     )
     setupkw["extras_require"] = {
-        "all"             : parse_requirements("requirements.txt", versions="loose"),
-        "all-strict"      : parse_requirements("requirements.txt", versions="strict"),
-        "docs"            : parse_requirements("requirements/docs.txt", versions="loose"),
-        "docs-strict"     : parse_requirements("requirements/docs.txt", versions="strict"),
-        "optional"        : parse_requirements("requirements/optional.txt", versions="loose"),
-        "optional-strict" : parse_requirements("requirements/optional.txt", versions="strict"),
-        "runtime"         : parse_requirements("requirements/runtime.txt", versions="loose"),
-        "runtime-strict"  : parse_requirements("requirements/runtime.txt", versions="strict"),
-        "tests"           : parse_requirements("requirements/tests.txt", versions="loose"),
-        "tests-strict"    : parse_requirements("requirements/tests.txt", versions="strict"),
-        "types"           : parse_requirements("requirements/types.txt", versions="loose"),
-        "types-strict"    : parse_requirements("requirements/types.txt", versions="strict"),
+        "all": parse_requirements("requirements.txt", versions="loose"),
+        "runtime": parse_requirements("requirements/runtime.txt", versions="loose"),
+        "tests": parse_requirements("requirements/tests.txt", versions="loose"),
+        "optional": parse_requirements("requirements/optional.txt", versions="loose"),
+        "docs": parse_requirements("requirements/docs.txt", versions="loose"),
+        "types": parse_requirements("requirements/types.txt", versions="loose"),
+        "all-strict": parse_requirements("requirements.txt", versions="strict"),
+        "runtime-strict": parse_requirements(
+            "requirements/runtime.txt", versions="strict"
+        ),
+        "tests-strict": parse_requirements("requirements/tests.txt", versions="strict"),
+        "optional-strict": parse_requirements(
+            "requirements/optional.txt", versions="strict"
+        ),
+        "docs-strict": parse_requirements("requirements/docs.txt", versions="strict"),
+        "types-strict": parse_requirements("requirements/types.txt", versions="strict"),
     }
     setupkw["name"] = NAME
     setupkw["version"] = VERSION
     setupkw["author"] = "Jon Crall"
     setupkw["author_email"] = "erotemic@gmail.com"
     setupkw["url"] = "https://github.com/Erotemic/ubelt"
-    setupkw[
-        "description"
-    ] = "A Python utility belt containing simple tools, a stdlib like feel, and extra batteries"
+    setupkw["description"] = (
+        "A Python utility belt containing simple tools, a stdlib like feel, and extra batteries"
+    )
     setupkw["long_description"] = parse_description()
     setupkw["long_description_content_type"] = "text/x-rst"
     setupkw["license"] = "Apache 2"
     setupkw["packages"] = find_packages(".")
-    setupkw["python_requires"] = ">=3.6"
+    setupkw["python_requires"] = ">=3.8"
     setupkw["classifiers"] = [
         "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Developers",
@@ -242,16 +249,18 @@ if __name__ == "__main__":
         "Operating System :: MacOS",
         "Operating System :: POSIX :: Linux",
         "Typing :: Stubs Only",
-        "Programming Language :: Python :: 3.6",
-        "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
         "Programming Language :: Python :: 3.12",
         "Programming Language :: Python :: 3.13",
+        "Programming Language :: Python :: 3.14",
     ]
-    setupkw["package_data"] = {"ubelt": ["py.typed", "*.pyi"]}
+    setupkw["package_data"] = {
+        "": ["requirements/*.txt"],
+        "ubelt": ["py.typed", "*.pyi"],
+    }
     setupkw["keywords"] = [
         "utility",
         "python",

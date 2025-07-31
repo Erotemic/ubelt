@@ -159,11 +159,15 @@ jobs:
         # Xcookie generates an explicit list of environments that will be used
         # for testing instead of using the more concise matrix notation.
         include:
-        - python-version: '3.6'
+        - python-version: '3.8'
           install-extras: tests-strict,runtime-strict
-          os: macos-13
+          os: ubuntu-latest
           arch: auto
-        - python-version: '3.6'
+        - python-version: '3.8'
+          install-extras: tests-strict,runtime-strict
+          os: macOS-latest
+          arch: auto
+        - python-version: '3.8'
           install-extras: tests-strict,runtime-strict
           os: windows-latest
           arch: auto
@@ -186,10 +190,6 @@ jobs:
         - python-version: '3.13'
           install-extras: tests
           os: windows-latest
-          arch: auto
-        - python-version: '3.7'
-          install-extras: tests,optional
-          os: ubuntu-22.04
           arch: auto
         - python-version: '3.8'
           install-extras: tests,optional
@@ -223,14 +223,6 @@ jobs:
           install-extras: tests,optional
           os: ubuntu-latest
           arch: auto
-        - python-version: '3.6'
-          install-extras: tests,optional
-          os: macos-13
-          arch: auto
-        - python-version: '3.7'
-          install-extras: tests,optional
-          os: macos-13
-          arch: auto
         - python-version: '3.8'
           install-extras: tests,optional
           os: macOS-latest
@@ -262,14 +254,6 @@ jobs:
         - python-version: pypy-3.9
           install-extras: tests,optional
           os: macOS-latest
-          arch: auto
-        - python-version: '3.6'
-          install-extras: tests,optional
-          os: windows-latest
-          arch: auto
-        - python-version: '3.7'
-          install-extras: tests,optional
-          os: windows-latest
           arch: auto
         - python-version: '3.8'
           install-extras: tests,optional
@@ -349,21 +333,7 @@ jobs:
             fpath = '$WHEEL_FPATH'
             cls = Wheel if fpath.endswith('.whl') else SDist
             item = cls(fpath)
-            if item.version is None:
-                import re
-                # This is very fragile
-                fname = pathlib.Path(fpath).name
-                match = re.match(r'^([^-]+)-([^-]+)(.whl|.tar.gz)$', fname)
-                bs = chr(92)
-                pat = '([0-9]+' + bs + '.[0-9]+' + bs + '.[0-9]+)'
-                import re
-                # Not sure why version is None in 3.6 and 3.7
-                match = re.search(pat, fname)
-                assert match is not None
-                version = match.groups()[0]
-                print(version)
-            else:
-                print(item.version)
+            print(item.version)
         ")
         echo "WHEEL_FPATH=$WHEEL_FPATH"
         echo "INSTALL_EXTRAS=$INSTALL_EXTRAS"
