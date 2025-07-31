@@ -48,7 +48,6 @@ __all__ = [
 
 WIN32 = sys.platform.startswith('win32')
 
-PYTHON_LT_3_8 = sys.version_info[0:2] < (3, 8)
 PYTHON_LE_3_8 = sys.version_info[0:2] <= (3, 8)
 PYTHON_GE_3_12 = sys.version_info[0:2] >= (3, 12)
 
@@ -1641,10 +1640,7 @@ class Path(_PathBase):
             _patch_win32_stats_on_pypy()
 
         if self.is_dir():
-            if PYTHON_LT_3_8:  # nocover
-                copytree = _compat_copytree
-            else:
-                copytree = shutil.copytree
+            copytree = shutil.copytree
 
             dst = copytree(
                 os.fspath(self), os.fspath(dst), copy_function=copy_function,
@@ -2065,87 +2061,3 @@ def _relative_path_backport(self, other, walk_up=False):  # nocover
 
 if PYTHON_LE_3_8:  # nocover
     Path.is_relative_to = _is_relative_to_backport
-
-
-if PYTHON_LT_3_8:  # nocover
-
-    # Vendor in a nearly modern copytree for Python 3.6 and 3.7
-    def _compat_copytree(src, dst, symlinks=False, ignore=None,
-                         copy_function=None, ignore_dangling_symlinks=False,
-                         dirs_exist_ok=False):
-        """
-        A vendored shutil.copytree for older pythons based on the 3.10
-        implementation
-        """
-        from shutil import Error, copystat, copy2, copy
-        with os.scandir(src) as itr:
-            entries = list(itr)
-
-        if ignore is not None:
-            ignored_names = ignore(os.fspath(src), [x.name for x in entries])
-        else:
-            ignored_names = set()
-
-        os.makedirs(dst, exist_ok=dirs_exist_ok)
-        errors = []
-        use_srcentry = copy_function is copy2 or copy_function is copy
-
-        for srcentry in entries:
-            if srcentry.name in ignored_names:
-                continue
-            srcname = os.path.join(src, srcentry.name)
-            dstname = os.path.join(dst, srcentry.name)
-            srcobj = srcentry if use_srcentry else srcname
-            try:
-                is_symlink = srcentry.is_symlink()
-                if is_symlink and os.name == 'nt':
-                    # Special check for directory junctions, which appear as
-                    # symlinks but we want to recurse.
-                    # Not available on 3.6, use our impl instead
-                    # lstat = srcentry.stat(follow_symlinks=False)
-                    # if lstat.st_reparse_tag == stat.IO_REPARSE_TAG_MOUNT_POINT:
-                    #   is_symlink = False
-                    from ubelt._win32_links import _win32_is_junction
-                    if _win32_is_junction(srcentry):
-                        is_symlink = False
-                if is_symlink:
-                    linkto = os.readlink(srcname)
-                    if symlinks:
-                        # We can't just leave it to `copy_function` because legacy
-                        # code with a custom `copy_function` may rely on copytree
-                        # doing the right thing.
-                        os.symlink(linkto, dstname)
-                        copystat(srcobj, dstname, follow_symlinks=not symlinks)
-                    else:
-                        # ignore dangling symlink if the flag is on
-                        if not os.path.exists(linkto) and ignore_dangling_symlinks:
-                            continue
-                        # otherwise let the copy occur. copy2 will raise an error
-                        if srcentry.is_dir():
-                            _compat_copytree(srcobj, dstname, symlinks, ignore,
-                                             copy_function,
-                                             dirs_exist_ok=dirs_exist_ok)
-                        else:
-                            copy_function(srcobj, dstname)
-                elif srcentry.is_dir():
-                    _compat_copytree(srcobj, dstname, symlinks, ignore,
-                                     copy_function,
-                                     dirs_exist_ok=dirs_exist_ok)
-                else:
-                    # Will raise a SpecialFileError for unsupported file types
-                    copy_function(srcobj, dstname)
-            # catch the Error from the recursive copytree so that we can
-            # continue with other files
-            except Error as err:
-                errors.extend(err.args[0])
-            except OSError as why:
-                errors.append((srcname, dstname, str(why)))
-        try:
-            copystat(src, dst)
-        except OSError as why:
-            # Copying file access times may fail on Windows
-            if getattr(why, 'winerror', None) is None:
-                errors.append((src, dst, str(why)))
-        if errors:
-            raise Error(errors)
-        return dst
