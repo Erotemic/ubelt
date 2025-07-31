@@ -461,7 +461,7 @@ def grabdata(url, fpath=None, dpath=None, fname=None, redo=False,
                 modname='ubelt',
                 migration='Pass hasher as a string, otherwise unexpected behavior can occur',
                 name='hasher', type='grabdata arg',
-                deprecate='1.1.0', error='1.3.0', remove='1.4.0')
+                deprecate='1.1.0', error='1.3.0', remove='1.5.0')
             hasher_name = hasher.name
         else:
             hasher_name = hasher

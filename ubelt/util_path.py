@@ -471,7 +471,7 @@ class TempDir:
         schedule_deprecation(
             modname='ubelt',
             migration='Use tempfile instead', name='TempDir',
-            type='class', deprecate='1.2.0', error='1.4.0',
+            type='class', deprecate='1.2.0', error='1.5.0',
             remove='1.5.0',
         )
         self.dpath = None
@@ -891,7 +891,7 @@ class Path(_PathBase):
             from ubelt.util_deprecate import schedule_deprecation
             schedule_deprecation(
                 'ubelt', 'suffix', 'arg',
-                deprecate='1.1.3', remove='1.4.0',
+                deprecate='1.1.3', remove='1.5.0',
                 migration='Use stemsuffix instead',
             )
             if not stemsuffix:
