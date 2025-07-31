@@ -161,10 +161,6 @@ jobs:
         include:
         - python-version: '3.6'
           install-extras: tests-strict,runtime-strict
-          os: ubuntu-18.04
-          arch: auto
-        - python-version: '3.6'
-          install-extras: tests-strict,runtime-strict
           os: macos-13
           arch: auto
         - python-version: '3.6'
@@ -190,10 +186,6 @@ jobs:
         - python-version: '3.13'
           install-extras: tests
           os: windows-latest
-          arch: auto
-        - python-version: '3.6'
-          install-extras: tests,optional
-          os: ubuntu-18.04
           arch: auto
         - python-version: '3.7'
           install-extras: tests,optional
