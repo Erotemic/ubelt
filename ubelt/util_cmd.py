@@ -174,6 +174,9 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
 
         shell (bool):
             if True, process is run in shell. Defaults to False.
+            This is required if your command is shell-specific (e.g. uses bash
+            pipe), and in which case the backend shell depends on the operating
+            system.
 
         detach (bool):
             if True, process is detached and run in background. Defaults to False.
@@ -339,45 +342,11 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
     log = print
 
     import subprocess
-    # TODO: stdout, stderr - experimental - custom file to pipe stdout/stderr to
-    # Determine if command is specified as text or a tuple
-    if isinstance(command, str):
-        command_text = command
-        command_tup = None
-    elif isinstance(command, os.PathLike):
-        command_text = os.fspath(command)
-        command_tup = None
-    else:
-        import shlex
-        command_parts = []
-        # Allow the user to specify paths as part of the command
-        for part in command:
-            if isinstance(part, os.PathLike):
-                part = os.fspath(part)
-            command_parts.append(part)
-        command_tup = list(command_parts)
-        command_text = ' '.join(list(map(shlex.quote, command_tup)))
 
-    # Inputs can either be text or tuple based. On UNIX we ensure conversion
-    # to text if shell is True, and to tuple if shell is False. On windows,
-    # the input is text if shell is True, but can be either if shell is
-    # False as noted in [SO_33560364]_.
-    if shell or system:
-        # When shell=True, args is sent to the shell (e.g. bin/sh) as text
-        args = command_text
-    else:
-        # When shell=False, args is a list of executable and arguments
-        if command_tup is None:
-            if sys.platform.startswith('win32'):  # nocover
-                # On windows when shell=False, args can be a str | List[str]
-                # as noted in [SO_33560364]
-                args = command_text
-            else:
-                # On linux when shell=False, args must be a List[str]
-                import shlex
-                args = shlex.split(command_text)
-        else:
-            args = command_tup
+    # TODO: stdout, stderr - experimental - custom file to pipe stdout/stderr to
+
+    # Transform the input into Tuple[str] or str, depending on shell / system
+    args, command_text = _resolve_command(command, shell=shell, system=system)
 
     if tee is None:
         tee = verbose > 0
@@ -526,6 +495,56 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
                 raise subprocess.CalledProcessError(
                     info['ret'], info['command'], info['out'], info['err'])
     return info
+
+
+def _resolve_command(command, shell=False, system=False):
+    """
+    Transform the input into the appropriate Tuple[str] or str form.
+
+    Returns:
+        Tuple[str | Tuple[str, ...], str]:
+            Arguments that can be passed to the backend and the text form of
+            the command.
+    """
+    # Determine if command is specified as text or a tuple
+    if isinstance(command, str):
+        command_text = command
+        command_tup = None
+    elif isinstance(command, os.PathLike):
+        command_text = os.fspath(command)
+        command_tup = None
+    else:
+        import shlex
+        command_parts = []
+        # Allow the user to specify paths as part of the command
+        for part in command:
+            if isinstance(part, os.PathLike):
+                part = os.fspath(part)
+            command_parts.append(part)
+        command_tup = list(command_parts)
+        command_text = ' '.join(list(map(shlex.quote, command_tup)))
+
+    # Inputs can either be text or tuple based. On UNIX we ensure conversion
+    # to text if shell is True, and to tuple if shell is False. On windows,
+    # the input is text if shell is True, but can be either if shell is
+    # False as noted in [SO_33560364]_.
+    if shell or system:
+        # When shell=True, args is sent to the shell (e.g. bin/sh) as text
+        args = command_text
+    else:
+        # When shell=False, args is a list of executable and arguments
+        if command_tup is None:
+            if sys.platform.startswith('win32'):  # nocover
+                # On windows when shell=False, args can be a str | List[str]
+                # as noted in [SO_33560364]
+                args = command_text
+            else:
+                # On linux when shell=False, args must be a List[str]
+                import shlex
+                args = shlex.split(command_text)
+        else:
+            args = command_tup
+    return args, command_text
 
 
 def _textio_iterlines(stream):

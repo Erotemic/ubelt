@@ -16,7 +16,7 @@ from typing import NamedTuple, Tuple, Any
 
 try:
     from functools import cache
-except ImportError:
+except ImportError:  # nocover
     from ubelt.util_memoize import memoize as cache
 
 
@@ -24,7 +24,7 @@ except ImportError:
 def _lazy_numpy():
     try:
         import numpy as np
-    except ImportError:
+    except ImportError:  # nocover
         return None
     return np
 
@@ -310,6 +310,75 @@ class IndexableWalker(Generator):
         for k in prefix:
             d = d[k]
         del d[key]
+
+    def keys(self, non_leaf=False):
+        """
+        Iterate over the nested paths in the container.
+
+        Args:
+            non_leaf (bool):
+                if True, also returns non-leaf indexes, which are
+                indexes to intermediate nested structures.
+                Defaults to False.
+
+        Yields:
+            List: a path of indexes into the nested structure
+
+        Example:
+            >>> import ubelt as ub
+            >>> data = {
+            >>>     'foo': {'bar': 1},
+            >>>     'baz': [{'biz': 3}, 'mid', {'buz': [4, 5, 6]}],
+            >>>     'emptynest': [[]],
+            >>> }
+            >>> keys = list(ub.IndexableWalker(data).keys())
+            >>> keys_with_nonleafs = list(ub.IndexableWalker(data).keys(non_leaf=True))
+            >>> print(f'keys = {ub.urepr(keys, nl=1)}')
+            keys = [
+                ['baz', 1],
+                ['baz', 2, 'buz', 0],
+                ['baz', 2, 'buz', 1],
+                ['baz', 2, 'buz', 2],
+                ['baz', 0, 'biz'],
+                ['foo', 'bar'],
+            ]
+            >>> assert not any(['emptynest' in p for p in keys])
+            >>> assert any(['emptynest' in p for p in keys_with_nonleafs])
+        """
+        for path, value in self._walk():
+            if non_leaf or not isinstance(value, self.indexable_cls):
+                yield path
+
+    def values(self, non_leaf=False):
+        """
+        Iterate over the values nested within the container.
+
+        Args:
+            non_leaf (bool):
+                if True, also returns non-leaf indexes, which are
+                indexes to intermediate nested structures.
+                Defaults to False.
+
+        Yields:
+            Any: the value at each nested path.
+
+        Example:
+            >>> import ubelt as ub
+            >>> data = {
+            >>>     'foo': {'bar': 1},
+            >>>     'baz': [{'biz': 3}, 'mid', {'buz': [4, 5, 6]}],
+            >>>     'emptynest': [[]],
+            >>> }
+            >>> values = list(ub.IndexableWalker(data).values())
+            >>> keys_with_nonleafs = list(ub.IndexableWalker(data).values(non_leaf=True))
+            >>> print(values)
+            ['mid', 4, 5, 6, 3, 1]
+            >>> assert not any(isinstance(v, list) for v in values)
+            >>> assert any(isinstance(v, list) for v in keys_with_nonleafs)
+        """
+        for path, value in self._walk():
+            if non_leaf or not isinstance(value, self.indexable_cls):
+                yield value
 
     def _walk(self, data=None, prefix=[]):
         """
@@ -655,7 +724,7 @@ class IndexableWalker(Generator):
 
 def _make_isclose_fn(rel_tol, abs_tol, equal_nan):
     np = _lazy_numpy()
-    if np is None:
+    if np is None:  # nocover
         _isclose_fn = isclose
         _iskw = dict(rel_tol=rel_tol, abs_tol=abs_tol)
         if equal_nan:

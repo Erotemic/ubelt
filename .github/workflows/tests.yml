@@ -21,14 +21,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout source
-      uses: actions/checkout@v4.1.1
+      uses: actions/checkout@v4.2.2
     - name: Set up Python 3.13 for linting
-      uses: actions/setup-python@v5.1.1
+      uses: actions/setup-python@v5.6.0
       with:
         python-version: '3.13'
     - name: Install dependencies
       run: |-
-        python -m pip install --upgrade pip
+        python -m pip install pip -U
         python -m pip install flake8
     - name: Lint with flake8
       run: |-
@@ -49,26 +49,27 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout source
-      uses: actions/checkout@v4.1.1
+      uses: actions/checkout@v4.2.2
     - name: Set up Python 3.13
-      uses: actions/setup-python@v5.1.1
+      uses: actions/setup-python@v5.6.0
       with:
         python-version: '3.13'
     - name: Upgrade pip
       run: |-
-        python -m pip install --upgrade pip
+        python -m pip install pip -U
         python -m pip install --prefer-binary -r requirements/tests.txt
         python -m pip install --prefer-binary -r requirements/runtime.txt
     - name: Build sdist
       shell: bash
       run: |-
+        python -m pip install pip -U
         python -m pip install setuptools>=0.8 wheel build twine
         python -m build --sdist --outdir wheelhouse
         python -m twine check ./wheelhouse/ubelt*.tar.gz
     - name: Install sdist
       run: |-
         ls -al wheelhouse
-        pip install --prefer-binary wheelhouse/ubelt*.tar.gz -v
+        python -m pip install --prefer-binary wheelhouse/ubelt*.tar.gz -v
     - name: Test minimal loose sdist
       run: |-
         pwd
@@ -121,19 +122,20 @@ jobs:
         - auto
     steps:
     - name: Checkout source
-      uses: actions/checkout@v4.1.1
+      uses: actions/checkout@v4.2.2
     - name: Set up QEMU
       uses: docker/setup-qemu-action@v3.0.0
       if: runner.os == 'Linux' && matrix.arch != 'auto'
       with:
         platforms: all
     - name: Setup Python
-      uses: actions/setup-python@v5.1.1
+      uses: actions/setup-python@v5.6.0
       with:
         python-version: ${{ matrix.python-version }}
     - name: Build pure wheel
       shell: bash
       run: |-
+        python -m pip install pip -U
         python -m pip install setuptools>=0.8 wheel build twine
         python -m build --wheel --outdir wheelhouse
         python -m twine check ./wheelhouse/ubelt*.whl
@@ -159,7 +161,7 @@ jobs:
         include:
         - python-version: '3.6'
           install-extras: tests-strict,runtime-strict
-          os: ubuntu-20.04
+          os: ubuntu-18.04
           arch: auto
         - python-version: '3.6'
           install-extras: tests-strict,runtime-strict
@@ -191,7 +193,7 @@ jobs:
           arch: auto
         - python-version: '3.6'
           install-extras: tests,optional
-          os: ubuntu-20.04
+          os: ubuntu-18.04
           arch: auto
         - python-version: '3.7'
           install-extras: tests,optional
@@ -221,6 +223,10 @@ jobs:
           install-extras: tests,optional
           os: ubuntu-latest
           arch: auto
+        - python-version: 3.14.0-rc.1
+          install-extras: tests,optional
+          os: ubuntu-latest
+          arch: auto
         - python-version: pypy-3.9
           install-extras: tests,optional
           os: ubuntu-latest
@@ -257,6 +263,10 @@ jobs:
           install-extras: tests,optional
           os: macOS-latest
           arch: auto
+        - python-version: 3.14.0-rc.1
+          install-extras: tests,optional
+          os: macOS-latest
+          arch: auto
         - python-version: pypy-3.9
           install-extras: tests,optional
           os: macOS-latest
@@ -293,13 +303,17 @@ jobs:
           install-extras: tests,optional
           os: windows-latest
           arch: auto
+        - python-version: 3.14.0-rc.1
+          install-extras: tests,optional
+          os: windows-latest
+          arch: auto
         - python-version: pypy-3.9
           install-extras: tests,optional
           os: windows-latest
           arch: auto
     steps:
     - name: Checkout source
-      uses: actions/checkout@v4.1.1
+      uses: actions/checkout@v4.2.2
     - name: Enable MSVC 64bit
       uses: ilammy/msvc-dev-cmd@v1
       if: matrix.os == 'windows-latest'
@@ -309,7 +323,7 @@ jobs:
       with:
         platforms: all
     - name: Setup Python
-      uses: actions/setup-python@v5.1.1
+      uses: actions/setup-python@v5.6.0
       with:
         python-version: ${{ matrix.python-version }}
     - uses: actions/download-artifact@v4.1.8
@@ -326,8 +340,9 @@ jobs:
         echo "Finding the path to the wheel"
         ls wheelhouse || echo "wheelhouse does not exist"
         echo "Installing helpers"
-        pip install setuptools>=0.8 setuptools_scm wheel build -U
-        pip install tomli pkginfo
+        python -m pip install pip -U
+        python -m pip install setuptools>=0.8 setuptools_scm wheel build -U
+        python -m pip install tomli pkginfo
         export WHEEL_FPATH=$(python -c "if 1:
             import pathlib
             dist_dpath = pathlib.Path('wheelhouse')
@@ -338,14 +353,30 @@ jobs:
         ")
         export MOD_VERSION=$(python -c "if 1:
             from pkginfo import Wheel, SDist
+            import pathlib
             fpath = '$WHEEL_FPATH'
             cls = Wheel if fpath.endswith('.whl') else SDist
-            print(cls(fpath).version)
+            item = cls(fpath)
+            if item.version is None:
+                import re
+                # This is very fragile
+                fname = pathlib.Path(fpath).name
+                match = re.match(r'^([^-]+)-([^-]+)(.whl|.tar.gz)$', fname)
+                bs = chr(92)
+                pat = '([0-9]+' + bs + '.[0-9]+' + bs + '.[0-9]+)'
+                import re
+                # Not sure why version is None in 3.6 and 3.7
+                match = re.search(pat, fname)
+                assert match is not None
+                version = match.groups()[0]
+                print(version)
+            else:
+                print(item.version)
         ")
         echo "WHEEL_FPATH=$WHEEL_FPATH"
         echo "INSTALL_EXTRAS=$INSTALL_EXTRAS"
         echo "MOD_VERSION=$MOD_VERSION"
-        pip install --prefer-binary "ubelt[$INSTALL_EXTRAS]==$MOD_VERSION" -f wheelhouse
+        python -m pip install --prefer-binary "ubelt[$INSTALL_EXTRAS]==$MOD_VERSION" -f wheelhouse
         echo "Install finished."
     - name: Test wheel ${{ matrix.install-extras }}
       shell: bash
@@ -385,7 +416,7 @@ jobs:
         pwd
         cp .wheelhouse/.coverage* . || true
         ls -al
-        python -m pip install coverage[toml]
+        uv pip install coverage[toml] | pip install coverage[toml]
         echo '############ combine'
         coverage combine . || true
         echo '############ XML'
@@ -393,7 +424,7 @@ jobs:
         echo '### The cwd should now have a coverage.xml'
         ls -altr
         pwd
-    - uses: codecov/codecov-action@v4.5.0
+    - uses: codecov/codecov-action@v5.4.3
       name: Codecov Upload
       with:
         file: ./coverage.xml
@@ -407,7 +438,7 @@ jobs:
     - build_purepy_wheels
     steps:
     - name: Checkout source
-      uses: actions/checkout@v4.1.1
+      uses: actions/checkout@v4.2.2
     - uses: actions/download-artifact@v4.1.8
       name: Download wheels
       with:
@@ -442,8 +473,9 @@ jobs:
         $GPG_EXECUTABLE --list-keys  || echo "first invocation of gpg creates directories and returns 1"
         $GPG_EXECUTABLE --list-keys
         VERSION=$(python -c "import setup; print(setup.VERSION)")
-        pip install twine packaging -U
-        pip install urllib3 requests[security] twine
+        python -m pip install pip -U
+        python -m pip install packaging twine -U
+        python -m pip install urllib3 requests[security]
         GPG_KEYID=$(cat dev/public_gpg_key)
         echo "GPG_KEYID = '$GPG_KEYID'"
         GPG_SIGN_CMD="$GPG_EXECUTABLE --batch --yes --detach-sign --armor --local-user $GPG_KEYID"
@@ -459,7 +491,7 @@ jobs:
             $GPG_EXECUTABLE --verify $WHEEL_PATH.asc $WHEEL_PATH
         done
         ls -la wheelhouse
-        pip install opentimestamps-client
+        python -m pip install opentimestamps-client
         ots stamp wheelhouse/*.whl wheelhouse/*.tar.gz wheelhouse/*.asc
         ls -la wheelhouse
         twine upload --username __token__ --password "$TWINE_PASSWORD" --repository-url "$TWINE_REPOSITORY_URL" wheelhouse/*.whl wheelhouse/*.tar.gz --skip-existing --verbose || { echo "failed to twine upload" ; exit 1; }
@@ -482,7 +514,7 @@ jobs:
     - build_purepy_wheels
     steps:
     - name: Checkout source
-      uses: actions/checkout@v4.1.1
+      uses: actions/checkout@v4.2.2
     - uses: actions/download-artifact@v4.1.8
       name: Download wheels
       with:
@@ -517,8 +549,9 @@ jobs:
         $GPG_EXECUTABLE --list-keys  || echo "first invocation of gpg creates directories and returns 1"
         $GPG_EXECUTABLE --list-keys
         VERSION=$(python -c "import setup; print(setup.VERSION)")
-        pip install twine packaging -U
-        pip install urllib3 requests[security] twine
+        python -m pip install pip -U
+        python -m pip install packaging twine -U
+        python -m pip install urllib3 requests[security]
         GPG_KEYID=$(cat dev/public_gpg_key)
         echo "GPG_KEYID = '$GPG_KEYID'"
         GPG_SIGN_CMD="$GPG_EXECUTABLE --batch --yes --detach-sign --armor --local-user $GPG_KEYID"
@@ -534,7 +567,7 @@ jobs:
             $GPG_EXECUTABLE --verify $WHEEL_PATH.asc $WHEEL_PATH
         done
         ls -la wheelhouse
-        pip install opentimestamps-client
+        python -m pip install opentimestamps-client
         ots stamp wheelhouse/*.whl wheelhouse/*.tar.gz wheelhouse/*.asc
         ls -la wheelhouse
         twine upload --username __token__ --password "$TWINE_PASSWORD" --repository-url "$TWINE_REPOSITORY_URL" wheelhouse/*.whl wheelhouse/*.tar.gz --skip-existing --verbose || { echo "failed to twine upload" ; exit 1; }
@@ -558,7 +591,7 @@ jobs:
     - live_deploy
     steps:
     - name: Checkout source
-      uses: actions/checkout@v4.1.1
+      uses: actions/checkout@v4.2.2
     - uses: actions/download-artifact@v4.1.8
       name: Download artifacts
       with:

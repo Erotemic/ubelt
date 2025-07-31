@@ -582,6 +582,8 @@ class Cacher:
         # Make sure the cache directory exists
         ensuredir(self.dpath)
 
+        # TODO: make saving metadata optional.
+        # TODO: allow the user to customize metadata.
         data_fpath = self.get_fpath(cfgstr=cfgstr)
         meta_fpath = data_fpath + '.meta'
 
@@ -633,6 +635,7 @@ class Cacher:
         return data
 
     def _backend_dump(self, data_fpath, data):
+        # TODO: allow the user to customize the save backend.
         if self.backend == 'pickle':
             import pickle
             with open(data_fpath, 'wb') as file_:
@@ -647,12 +650,16 @@ class Cacher:
 
     def ensure(self, func, *args, **kwargs):
         """
-        Wraps around a function. A cfgstr must be stored in the base cacher.
+        Calls a function, caches, and returns the result. If a valid cache
+        already exist it loads and returns the cache result instead.
 
         Args:
             func (Callable): function that will compute data on cache miss
             *args: passed to func
             **kwargs: passed to func
+
+        Returns:
+            Any: the result the input function and arguments.
 
         Example:
             >>> from ubelt.util_cache import *  # NOQA
@@ -683,6 +690,9 @@ class Cacher:
         Args:
             func (Callable): function to decorate. Must have no arguments.
 
+        Returns:
+            Callable: the wrapped function
+
         Example:
             >>> from ubelt.util_cache import *  # NOQA
             >>> @Cacher('demo_cacher_call', depends='foobar')
@@ -695,6 +705,11 @@ class Cacher:
             >>> func.cacher.clear()
         """
         # Can't return arguments because cfgstr won't take them into account
+        # TODO: can we expand this to hash the arguments, or at least specific
+        # arguments? This would let the user modify the depeneds / cfgstr
+        # dynamically so the cache depends on function args. This might be a
+        # better UX, and I know there are existing libraires out there that we
+        # would need to compare to in order to
         def _wrapper():
             data = self.ensure(func)
             return data

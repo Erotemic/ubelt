@@ -49,6 +49,7 @@ __all__ = [
 WIN32 = sys.platform.startswith('win32')
 
 PYTHON_LT_3_8 = sys.version_info[0:2] < (3, 8)
+PYTHON_LE_3_8 = sys.version_info[0:2] <= (3, 8)
 PYTHON_GE_3_12 = sys.version_info[0:2] >= (3, 12)
 
 
@@ -1168,7 +1169,7 @@ class Path(_PathBase):
         os.chmod(self, mode, follow_symlinks=follow_symlinks)
         return self
 
-    # Should not need to modify unless we want chanability here.
+    # Should not need to modify unless we want chainability here.
     # def lchmod(self, mode):
     #     """
     #     Like chmod(), except if the path points to a symlink, the symlink's
@@ -1267,9 +1268,9 @@ class Path(_PathBase):
             >>> with pytest.raises(TypeError):
             >>>     self.relative_to(other, not_a_kwarg=False)
         """
-        if PYTHON_GE_3_12:
+        if PYTHON_GE_3_12:  # nocover
             return super().relative_to(*other, **kwargs)
-        else:
+        else:  # nocover
             # Test to see if we need the backport
             walk_up = kwargs.pop('walk_up', False)
             if len(kwargs):
@@ -1341,12 +1342,12 @@ class Path(_PathBase):
             bad_key = list(kwargs)[0]
             raise TypeError(f'{self.__class__.__name__}.relative_to() got an unexpected keyword argument {bad_key!r}')
 
-        if PYTHON_GE_3_12:
+        if PYTHON_GE_3_12:  # nocover
             # Use the parent implementation if available
             yield from super().walk(
                 top_down=top_down, on_error=on_error,
                 follow_symlinks=follow_symlinks)
-        else:
+        else:   # nocover
             # TODO: backport the 3.12 implementation, which is more efficient
             # Our original implementation
             cls = self.__class__
@@ -1636,7 +1637,7 @@ class Path(_PathBase):
             follow_file_symlinks=follow_file_symlinks,
             follow_dir_symlinks=follow_dir_symlinks, meta=meta)
 
-        if WIN32 and platform.python_implementation() == 'PyPy':
+        if WIN32 and platform.python_implementation() == 'PyPy':  # nocover
             _patch_win32_stats_on_pypy()
 
         if self.is_dir():
@@ -1646,7 +1647,7 @@ class Path(_PathBase):
                 copytree = shutil.copytree
 
             dst = copytree(
-                self, dst, copy_function=copy_function,
+                os.fspath(self), os.fspath(dst), copy_function=copy_function,
                 symlinks=not follow_dir_symlinks, dirs_exist_ok=overwrite)
         elif self.is_file():
             if not overwrite:
@@ -1657,7 +1658,7 @@ class Path(_PathBase):
                     real_dst = dst
                 if real_dst.exists():
                     raise FileExistsError('Cannot overwrite existing file unless overwrite=True')
-            dst = copy_function(self, dst)
+            dst = copy_function(os.fspath(self), os.fspath(dst))
         else:
             raise FileExistsError('The source path does not exist')
         return Path(dst)
@@ -1727,13 +1728,13 @@ class Path(_PathBase):
                 'Moves are only allowed to locations that dont exist')
         import shutil
 
-        if WIN32 and platform.python_implementation() == 'PyPy':
+        if WIN32 and platform.python_implementation() == 'PyPy':  # nocover
             _patch_win32_stats_on_pypy()
 
         copy_function = self._request_copy_function(
             follow_file_symlinks=follow_file_symlinks,
             follow_dir_symlinks=follow_dir_symlinks, meta=meta)
-        real_dst = shutil.move(self, dst, copy_function=copy_function)
+        real_dst = shutil.move(os.fspath(self), os.fspath(dst), copy_function=copy_function)
         return Path(real_dst)
 
 
@@ -1817,11 +1818,13 @@ def _resolve_chmod_code(old_mode, code):
     Example:
         >>> # test normal user / group / other, read / write / execute perms
         >>> from ubelt.util_path import _resolve_chmod_code
+        >>> print(oct(_resolve_chmod_code(0, '+x')))
         >>> print(oct(_resolve_chmod_code(0, '+rwx')))
         >>> print(oct(_resolve_chmod_code(0, 'ugo+rwx')))
         >>> print(oct(_resolve_chmod_code(0, 'a-rwx')))
         >>> print(oct(_resolve_chmod_code(0, 'u+rw,go+r,go-wx')))
         >>> print(oct(_resolve_chmod_code(0o0777, 'u+rw,go+r,go-wx')))
+        0o111
         0o777
         0o777
         0o0
@@ -1933,9 +1936,9 @@ def _encode_chmod_int(int_code):
         if int_code & val:
             target_to_perms[target].append(perm)
 
-    # The following commented logic might be useful if we want to created the
-    # "dashed" ls representation of permissions, but that is not needed for
-    # chmod itself, so it is not necessary to implement here.
+    # The following commented code might be useful, but is not needed for chmod
+    # itself, so it is not necessary to implement here.
+    # Creates the "dashed" ls representation of permissions
     # if concise:
     #     special_chars = {'u': 's', 'g': 's', 'o': 't'}
     #     for k, s in special_chars.items():
@@ -1962,14 +1965,78 @@ def _patch_win32_stats_on_pypy():
         [PyPyIssue4953] https://github.com/pypy/pypy/issues/4953#event-12838738353
         [PyPyDiscuss4952] https://github.com/orgs/pypy/discussions/4952#discussioncomment-9481845
     """
-    if not hasattr(stat, 'IO_REPARSE_TAG_MOUNT_POINT'):
+    if not hasattr(stat, 'IO_REPARSE_TAG_MOUNT_POINT'):  # nocover
         os.supports_follow_symlinks.add(os.stat)
         stat.IO_REPARSE_TAG_APPEXECLINK = 0x8000001b  # windows
         stat.IO_REPARSE_TAG_MOUNT_POINT = 0xa0000003  # windows
         stat.IO_REPARSE_TAG_SYMLINK = 0xa000000c      # windows
 
 
-def _relative_path_backport(self, other, walk_up=False):
+def _is_relative_to_backport(self, other):
+    r"""
+    A backport of is_relative_to for Python <=3.8
+
+    Example:
+        >>> import ubelt as ub
+        >>> from ubelt.util_path import _is_relative_to_backport
+        >>> self = ub.Path('/path1/file')
+        >>> other = ub.Path('/path1')
+        >>> other2 = ub.Path('/path2')
+        >>> assert _is_relative_to_backport(self, other)
+        >>> assert not _is_relative_to_backport(self, other2)
+
+    Example:
+        >>> import ubelt as ub
+        >>> from ubelt.util_path import _is_relative_to_backport
+        >>> test_cases = [
+        >>>     {"self": "/a/b/c", "other": "/a/b", "want": True},
+        >>>     {"self": "/a/b/c", "other": "/a/b/c", "want": True},
+        >>>     {"self": "/a/b/c", "other": "/x/y", "want": False},
+        >>>     {"self": "/a/b/c", "other": "/a/b/c/d", "want": False},
+        >>>     {"self": "a/b/c", "other": "a/b", "want": True},
+        >>>     {"self": "a/b/c", "other": "x/y", "want": False},
+        >>>     {"self": "../a/b", "other": "../a", "want": True},
+        >>>     {"self": "./a/b", "other": "./a", "want": True},
+        >>>     {"self": "/", "other": "/", "want": True},
+        >>>     {"self": "/a", "other": "/", "want": True},
+        >>>     {"self": "", "other": "", "want": True},
+        >>>     {"self": "a", "other": "", "want": True},
+        >>>     {"self": "/a/b/..", "other": "/a", "want": True},
+        >>>     {"self": "/a/b/../../x", "other": "/x", "want": False},
+        >>>     {"self": "C:/a/b/c", "other": "C:/a/b", "want": True},
+        >>>     {"self": "C:\\a\\b\\c", "other": "C:\\a\\b", "want": False, "want_win32": True},  # different result on windows
+        >>>     {"self": "C:\\a\\b", "other": "D:\\a\\b", "want": False},
+        >>>     {"self": "/symlink/a/b", "other": "/real/x/a", "want": False},
+        >>> ]
+        >>> failures = []
+        >>> for case in test_cases:
+        ...     self = ub.Path(case['self'])
+        ...     other = ub.Path(case['other'])
+        ...     got = _is_relative_to_backport(self, other)
+        ...     want = case['want']
+        ...     if ub.WIN32:
+        ...         want = case.get('want_win32', want)
+        ...     if got != want:
+        ...         failures.append(f'[FAIL] got={got!r} self={self!r}, other={other!r}, case={case!r}')
+        ...     # Check agreement with builtin, if possible
+        ...     try:
+        ...         builtin = self.is_relative_to(other)
+        ...         if got != builtin:
+        ...             failures.append(f'[MISMATCH] got={got!r} builtin={builtin!r} self={self!r}, other={other!r}, case={case!r}')
+        ...     except Exception as ex:
+        ...         failures.append(f'[EX] ex={ex} self={self!r}, other={other!r}, case={case!r}')
+        >>> if failures:
+        ...     raise AssertionError("Some test cases failed:" + chr(10) + chr(10).join(failures))
+    """
+    try:
+        self.relative_to(other)
+    except ValueError:
+        return False
+    else:
+        return True
+
+
+def _relative_path_backport(self, other, walk_up=False):  # nocover
     if not isinstance(other, _PathBase):
         other = type(self)(*other)
         # other = self.with_segments(other)
@@ -1995,6 +2062,9 @@ def _relative_path_backport(self, other, walk_up=False):
             parts0.append('..')
     # return self.with_segments('', *reversed(parts0))
     return type(self)('', *reversed(parts0))
+
+if PYTHON_LE_3_8:  # nocover
+    Path.is_relative_to = _is_relative_to_backport
 
 
 if PYTHON_LT_3_8:  # nocover

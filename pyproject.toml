@@ -11,9 +11,10 @@ mod_name = "ubelt"
 repo_name = "ubelt"
 rel_mod_parent_dpath = "."
 os = ["all"]
-min_python = 3.6
+min_python = '3.6'
 author = "Jon Crall"
 typed = "partial"
+use_uv = false  # need 3.8+
 author_email = "erotemic@gmail.com"
 description = "A Python utility belt containing simple tools, a stdlib like feel, and extra batteries"
 #ci_cpython_versions=["3.6", "3.7", "3.8", "3.9", "3.10", "3.11", "3.12", "3.13.0-beta.2"]
@@ -36,8 +37,8 @@ classifiers = [
 keywords = ["utility", "python", "hashing", "caching", "stdlib", "path", "pathlib", "dictionary", "download"]
 
 [tool.pytest.ini_options]
-addopts = "-p no:doctest --xdoctest --xdoctest-style=google --ignore-glob=setup.py --ignore-glob=docs"
-norecursedirs = ".git ignore build __pycache__ dev _skbuild docs"
+addopts = "-p no:doctest --xdoctest --xdoctest-style=google --ignore-glob=setup.py --ignore-glob=docs --ignore-glob=htmlcov"
+norecursedirs = ".git ignore build __pycache__ dev _skbuild docs htmlcov"
 filterwarnings = [
     "default",
     "ignore:.*No cfgstr given in Cacher constructor or call.*:Warning",
@@ -68,6 +69,7 @@ exclude_lines = [
 omit = [
     "ubelt/__main__.py",
     "ubelt/_win32_links.py",
+    "ubelt/_win32_jaraco.py",
      "*/setup.py",
 ]
 

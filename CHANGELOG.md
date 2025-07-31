@@ -8,9 +8,15 @@ This project (loosely) adheres to [Semantic Versioning](https://semver.org/spec/
 
 ### Added
 * Added: `ub.Path.relative_to` now backports the `walk_up` feature from Python 3.12 
+* Add `keys` and `values` method to `IndexableWalker`
 
 ### Changed
 * `ub.Path.walk` now supports the same signature as the new version in Python 3.12
+* Support `FORCE_COLOR`
+
+### Fixed
+* Version checking issue in util-import
+* Rare exception in Path.copy on windows with older pythons
 
 
 ## Version 1.3.7 - Released 2024-12-06

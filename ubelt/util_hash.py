@@ -575,7 +575,7 @@ class HashableExtensions(object):
             base_msg = f'No registered hash func for hashable type={query_hash_type!r}'
             try:
                 msg = f'{base_msg} with mro: {query_hash_type.__mro__}'
-            except AttributeError:
+            except AttributeError:  # nocover
                 msg = base_msg
             raise TypeError(msg)
         return hash_func

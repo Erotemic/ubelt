@@ -330,3 +330,25 @@ def test_move_directory_cases():
             assert new_dpath.name == 'sub2'
             # Unlike cp, Path.move will create the intermediate directories
             assert contents1 == relative_contents(new_dpath)
+
+
+def test_follow_file_symlinks():
+    import ubelt as ub
+    root = ub.Path.appdir('ubelt', 'tests', 'path', 'copy-file-symlink').delete().ensuredir()
+    fpath1 = (root / 'file').touch()
+    flink1 = (root / 'flink1')
+    flink1.symlink_to(fpath1)
+    fcopy1 = flink1.copy(root / 'fcopy1', follow_file_symlinks=True, meta=None)
+    fcopy2 = flink1.copy(root / 'fcopy2', follow_file_symlinks=False, meta=None)
+    assert not fcopy1.is_symlink(), 'should have followed symlink'
+    assert fcopy2.is_symlink(), 'should not have followed symlink'
+
+    fcopy3 = flink1.copy(root / 'fcopy3', follow_file_symlinks=True, meta='mode')
+    fcopy4 = flink1.copy(root / 'fcopy4', follow_file_symlinks=False, meta='mode')
+    assert not fcopy3.is_symlink(), 'should have followed symlink'
+    assert fcopy4.is_symlink(), 'should not have followed symlink'
+
+    fcopy5 = flink1.copy(root / 'fcopy5', follow_file_symlinks=True, meta='stats')
+    fcopy6 = flink1.copy(root / 'fcopy6', follow_file_symlinks=False, meta='stats')
+    assert not fcopy5.is_symlink(), 'should have followed symlink'
+    assert fcopy6.is_symlink(), 'should not have followed symlink'

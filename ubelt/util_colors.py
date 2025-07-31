@@ -42,6 +42,8 @@ import os
 # (which is mainly to address non-ANSI compliant windows consoles)
 # compliant with https://no-color.org/
 NO_COLOR = bool(os.environ.get('NO_COLOR'))  # type: bool
+# https://force-color.org/
+FORCE_COLOR = bool(os.environ.get('NO_COLOR'))  # type: bool
 
 
 def highlight_code(text, lexer_name='python', backend='pygments', **kwargs):
@@ -195,7 +197,7 @@ def color_text(text, color):
         >>> for color in known_colors:
         ...     print(ub.color_text(color, color))
     """
-    if NO_COLOR or color is None:
+    if (NO_COLOR and not FORCE_COLOR) or color is None:
         return text
     try:
 
