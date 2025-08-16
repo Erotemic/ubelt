@@ -503,6 +503,23 @@ def test_base32():
     assert hashstr == 'VGMT4NSHA2AWVOR6EVYXQUGCNSONBWE5'
 
 
+def test_hash_dataclasses():
+    from dataclasses import dataclass
+    import ubelt as ub
+    #
+    @dataclass
+    class P:
+        x: int
+        y: int
+    #
+    a = P(1, 2)
+    b = P(1, 2)
+    c = P(2, 1)
+    #
+    assert ub.hash_data(a) == ub.hash_data(b)
+    assert ub.hash_data(a) != ub.hash_data(c)
+
+
 def test_compatible_hash_bases():
     """
     Ubelt ~1.2.3 has a ~bug~ incompatibility with non-hex hash bases. Depending
@@ -712,6 +729,104 @@ def test_compatible_hash_bases():
             #              b32tab2[(c >> 10) & 0x3ff] + # bits 21 - 30
             #              b32tab2[c & 0x3ff]           # bits 31 - 40
             #              )
+
+
+def test_hash_data_simple_equivalence_and_sensitivity():
+    from dataclasses import dataclass
+    @dataclass
+    class Point:
+        x: int
+        y: int
+
+    @dataclass(frozen=True)
+    class FrozenPoint:
+        x: int
+        y: int
+
+    # slots=True requires Python 3.10+
+    SlottedPoint = None
+    try:
+        @dataclass(slots=True)
+        class _SlottedPoint:
+            x: int
+            y: int
+        SlottedPoint = _SlottedPoint
+    except TypeError:  # pragma: no cover
+        pass
+
+    classes = [Point, FrozenPoint] + ([SlottedPoint] if SlottedPoint else [])
+
+    for cls in classes:
+        a = cls(1, 2)
+        b = cls(1, 2)
+        c = cls(2, 1)
+
+        ha = ub.hash_data(a)
+        hb = ub.hash_data(b)
+        hc = ub.hash_data(c)
+
+        # Equal objects should hash the same
+        assert ha == hb
+
+        # Changing field values should change the hash
+        assert ha != hc
+
+
+def test_hash_data_nested_dataclass_structure():
+    from dataclasses import dataclass, field
+    @dataclass
+    class Point:
+        x: int
+        y: int
+
+    @dataclass
+    class Box:
+        p1: Point
+        p2: Point
+        tags: tuple[str, ...] = ()
+        notes: list[str] = field(default_factory=list)
+
+    p1a = Point(0, 0)
+    p2a = Point(3, 4)
+    box1 = Box(p1a, p2a, tags=("blue", "rect"), notes=["hello"])
+
+    p1b = Point(0, 0)
+    p2b = Point(3, 4)
+    box2 = Box(p1b, p2b, tags=("blue", "rect"), notes=["hello"])
+
+    # identical nested structures hash the same
+    h1 = ub.hash_data(box1)
+    h2 = ub.hash_data(box2)
+    assert h1 == h2
+
+    # small change in a nested field changes the hash
+    box3 = Box(Point(0, 0), Point(3, 5), tags=("blue", "rect"), notes=["hello"])
+    h3 = ub.hash_data(box3)
+    assert h1 != h3
+
+
+def test_hash_data_mutable_field_stability():
+    from dataclasses import dataclass, field
+    @dataclass
+    class Point:
+        x: int
+        y: int
+
+    @dataclass
+    class Box:
+        p1: Point
+        p2: Point
+        tags: tuple[str, ...] = ()
+        notes: list[str] = field(default_factory=list)
+
+    # Ensure hashing uses values, not object identity of mutable defaults
+    box_a = Box(Point(1, 1), Point(2, 2), notes=["a", "b"])
+    box_b = Box(Point(1, 1), Point(2, 2), notes=["a", "b"])
+    assert ub.hash_data(box_a) == ub.hash_data(box_b)
+
+    # Changing the contents (not just the list object) should change the hash
+    box_b.notes.append("c")
+    assert ub.hash_data(box_a) != ub.hash_data(box_b)
 
 
 if __name__ == '__main__':

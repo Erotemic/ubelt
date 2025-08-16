@@ -59,6 +59,7 @@ Note:
     getting into the weeds of how we coerce technically non-hashable sequences
     into a hashable encoding.
 """
+import dataclasses
 import hashlib
 import math
 from collections import OrderedDict
@@ -567,6 +568,10 @@ class HashableExtensions(object):
             # is unclear how to build a test in for this.
             self._evaluate_lazy_queue()
 
+        if dataclasses.is_dataclass(data):
+            # Handle dataclasses out of the box
+            return self._hash_dataclass
+
         query_hash_type = data.__class__
         # TODO: recognize some special dunder method instead
         # of strictly using this registry.
@@ -579,6 +584,41 @@ class HashableExtensions(object):
                 msg = base_msg
             raise TypeError(msg)
         return hash_func
+
+    def _hash_dataclass(self, data):
+        """
+        Dataclasses don't dispatch.
+
+        Example:
+            >>> from dataclasses import dataclass
+            >>> import ubelt as ub
+            >>> #
+            >>> @dataclass
+            >>> class P:
+            >>>     x: int
+            >>>     y: int
+            >>> #
+            >>> a = P(1, 2)
+            >>> b = P(1, 2)
+            >>> c = P(2, 1)
+            >>> #
+            >>> assert ub.hash_data(a) == ub.hash_data(b)
+            >>> assert ub.hash_data(a) != ub.hash_data(c)
+        """
+        import dataclasses
+        cls = data.__class__
+        header = (cls.__module__, cls.__qualname__)
+        # fields() order is the definition order, which is guaranteed
+        items = [(f.name, getattr(data, f.name)) for f in dataclasses.fields(data)]
+        # Use the existing machinery to serialize recursively
+        seq = _hashable_sequence(
+            (header, items),
+            extensions=self,
+            types=_COMPATIBLE_HASHABLE_SEQUENCE_TYPES_DEFAULT
+        )
+        prefix = b'DCLASS'
+        hashable = b''.join(seq)
+        return prefix, hashable
 
     def add_iterable_check(self, func):
         """
