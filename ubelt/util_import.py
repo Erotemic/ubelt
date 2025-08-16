@@ -658,6 +658,10 @@ def _importlib_modname_to_modpath(modname):  # nocover
     Args:
         modname (str): the module name.
 
+    Note:
+        This has a side effect when you import subpckages, it forces the parent
+        package itself to import!
+
     Example:
         >>> # xdoctest: +SKIP
         >>> from ubelt.util_import import _importlib_modname_to_modpath
@@ -670,11 +674,12 @@ def _importlib_modname_to_modpath(modname):  # nocover
 
     Ignore:
         >>> _importlib_modname_to_modpath('cv2')
-
+        >>> from ubelt.util_import import _importlib_modname_to_modpath
+        >>> from ubelt.util_import import _syspath_modname_to_modpath
         >>> import timerit
         >>> for _ in timerit(label='ours'):
         >>>     _syspath_modname_to_modpath('xdoctest.static_analysis')
-        >>> for _ in timerit(label='stdlib'):
+        >>> for _ in timerit(label='importlib'):
         >>>     _importlib_modname_to_modpath('xdoctest.static_analysis')
         Timed ours for: 10 loops, best of 5
             time per loop: best=20.237 ms, mean=20.244 ± 0.0 ms
