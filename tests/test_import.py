@@ -437,7 +437,7 @@ def test_splitmodpath():
 if __name__ == '__main__':
     r"""
     CommandLine:
-        pytest ubelt/tests/test_import.py
+        pytest tests/test_import.py
     """
     import xdoctest
     xdoctest.doctest_module(__file__)

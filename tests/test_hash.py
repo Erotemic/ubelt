@@ -774,6 +774,8 @@ def test_hash_data_simple_equivalence_and_sensitivity():
 
 def test_hash_data_nested_dataclass_structure():
     from dataclasses import dataclass, field
+    from typing import Tuple, List
+
     @dataclass
     class Point:
         x: int
@@ -783,8 +785,8 @@ def test_hash_data_nested_dataclass_structure():
     class Box:
         p1: Point
         p2: Point
-        tags: tuple[str, ...] = ()
-        notes: list[str] = field(default_factory=list)
+        tags: Tuple[str, ...] = ()
+        notes: List[str] = field(default_factory=list)
 
     p1a = Point(0, 0)
     p2a = Point(3, 4)
@@ -807,6 +809,7 @@ def test_hash_data_nested_dataclass_structure():
 
 def test_hash_data_mutable_field_stability():
     from dataclasses import dataclass, field
+    from typing import Tuple, List
     @dataclass
     class Point:
         x: int
@@ -816,8 +819,8 @@ def test_hash_data_mutable_field_stability():
     class Box:
         p1: Point
         p2: Point
-        tags: tuple[str, ...] = ()
-        notes: list[str] = field(default_factory=list)
+        tags: Tuple[str, ...] = ()
+        notes: List[str] = field(default_factory=list)
 
     # Ensure hashing uses values, not object identity of mutable defaults
     box_a = Box(Point(1, 1), Point(2, 2), notes=["a", "b"])
