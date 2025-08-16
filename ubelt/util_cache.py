@@ -717,7 +717,7 @@ class Cacher:
         return _wrapper
 
 
-class CacheStamp(object):
+class CacheStamp:
     """
     Quickly determine if a file-producing computation has been done.
 

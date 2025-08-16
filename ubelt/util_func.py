@@ -77,7 +77,7 @@ def inject_method(self, func, name=None):
 
     Example:
         >>> import ubelt as ub
-        >>> class Foo(object):
+        >>> class Foo:
         >>>     def bar(self):
         >>>         return 'bar'
         >>> def baz(self):

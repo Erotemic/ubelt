@@ -34,7 +34,7 @@ __all__ = [
 ]
 
 
-class chunks(object):
+class chunks:
     """
     Generates successive n-sized chunks from ``items``.
 

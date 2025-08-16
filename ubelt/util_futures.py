@@ -127,7 +127,7 @@ class SerialFuture(concurrent.futures.Future):
 
 
 # Rename to SerialPoolExecutor?
-class SerialExecutor(object):
+class SerialExecutor:
     """
     Implements the concurrent.futures API around a single-threaded backend
 
@@ -226,7 +226,7 @@ class SerialExecutor(object):
 # work ona potential AsyncIOExecutor class
 
 
-class Executor(object):
+class Executor:
     """
     A concrete asynchronous executor with a configurable backend.
 
@@ -397,7 +397,7 @@ class Executor(object):
                                 chunksize=chunksize)
 
 
-class JobPool(object):
+class JobPool:
     """
     Abstracts away boilerplate of submitting and collecting jobs
 

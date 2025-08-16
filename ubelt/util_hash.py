@@ -184,7 +184,7 @@ def _bytes_to_int(bytes_):
     return int_
 
 
-class _Hashers(object):
+class _Hashers:
     """
     We offer hashers beyond what is available in hashlib.
     This class is used to lazy load them.
@@ -379,7 +379,7 @@ def _rectify_base(base):
         return base
 
 
-class HashableExtensions(object):
+class HashableExtensions:
     """
     Helper class for managing non-primitive (e.g. numpy) hash types
 
@@ -425,7 +425,7 @@ class HashableExtensions(object):
         Example:
             >>> import ubelt as ub
             >>> import pytest
-            >>> class MyType(object):
+            >>> class MyType:
             ...     def __init__(self, id):
             ...         self.id = id
             >>> data = MyType(1)
@@ -452,9 +452,9 @@ class HashableExtensions(object):
             >>> import ubelt as ub
             >>> import pytest
             >>> extensions = ub.util_hash.HashableExtensions()
-            >>> class Type1(object):
+            >>> class Type1:
             >>>     ...
-            >>> class Type2(object):
+            >>> class Type2:
             >>>     ...
             >>> @extensions.register([Type1, Type2])
             >>> def hash_my_type(data):
@@ -470,7 +470,7 @@ class HashableExtensions(object):
             >>> # the global state.
             >>> import ubelt as ub
             >>> import pytest
-            >>> class MyType(object):
+            >>> class MyType:
             ...     def __init__(self, id):
             ...         self.id = id
             >>> data = MyType(1)
@@ -529,7 +529,7 @@ class HashableExtensions(object):
             >>> data = np.array([1, 2, 3])
             >>> self.lookup(data[0])
 
-            >>> class Foo(object):
+            >>> class Foo:
             >>>     def __init__(f):
             >>>         f.attr = 1
             >>> data = Foo()
@@ -940,7 +940,7 @@ def _lazy_init():
 _HASHABLE_EXTENSIONS._lazy_queue.append(_lazy_init)
 
 
-class _HashTracer(object):
+class _HashTracer:
     """
     Helper class to extract hashed sequences
 

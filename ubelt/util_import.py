@@ -30,7 +30,7 @@ IS_PY_GE_308 = sys.version_info[0:2] >= (3, 8)  # type: bool
 IS_PY_LT_314 = sys.version_info[0:2] < (3, 14)  # type: bool
 
 
-class PythonPathContext(object):
+class PythonPathContext:
     """
     Context for temporarily adding a dir to the PYTHONPATH.
 

@@ -9,7 +9,7 @@ def bench_memoize():
     def raw_func():
         return object()
 
-    class Foo(object):
+    class Foo:
         @ub.memoize_property
         def a_memoized_property(self):
             return object()

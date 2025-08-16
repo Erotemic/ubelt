@@ -176,7 +176,7 @@ class memoize_method:
         >>> import ubelt as ub
         >>> closure1 = closure = {'a': 'b', 'c': 'd', 'z': 'z1'}
         >>> incr = [0]
-        >>> class Foo(object):
+        >>> class Foo:
         >>>     def __init__(self, instance_id):
         >>>         self.instance_id = instance_id
         >>>     @ub.memoize_method
@@ -293,7 +293,7 @@ def memoize_property(fget):
 
     Example:
         >>> import ubelt as ub
-        >>> class C(object):
+        >>> class C:
         ...     load_name_count = 0
         ...     @ub.memoize_property
         ...     def name(self):

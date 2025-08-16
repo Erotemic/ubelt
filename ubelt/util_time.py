@@ -476,7 +476,7 @@ def _timezone_coerce(tzinfo, allow_dateutil=True):
     return out_tzinfo
 
 
-class Timer(object):
+class Timer:
     """
     Measures time elapsed between a start and end point. Can be used as a
     with-statement context manager, or using the tic/toc api.
