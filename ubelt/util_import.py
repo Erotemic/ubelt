@@ -651,41 +651,39 @@ def _importlib_import_modpath(modpath):  # nocover
 
 
 def _importlib_modname_to_modpath(modname):  # nocover
-    import importlib.util
-    spec = importlib.util.find_spec(modname)
-    modpath = spec.origin.replace('.pyc', '.py')
-    return modpath
-
-
-def _pkgutil_modname_to_modpath(modname):  # nocover
     """
-    faster version of :func:`_syspath_modname_to_modpath` using builtin python
-    mechanisms, but unfortunately it doesn't play nice with pytest.
-
-    Note:
-        pkgutil.find_loader is deprecated in 3.12 and removed in 3.14
+    faster version of :func:`_syspath_modname_to_modpath` using builtin
+    python mechanisms, but unfortunately it doesn't play nice with pytest.
 
     Args:
         modname (str): the module name.
 
     Example:
         >>> # xdoctest: +SKIP
-        >>> from ubelt.util_import import _pkgutil_modname_to_modpath
+        >>> from ubelt.util_import import _importlib_modname_to_modpath
         >>> modname = 'xdoctest.static_analysis'
-        >>> _pkgutil_modname_to_modpath(modname)
+        >>> _importlib_modname_to_modpath(modname)
         ...static_analysis.py
         >>> # xdoctest: +REQUIRES(CPython)
-        >>> _pkgutil_modname_to_modpath('_ctypes')
+        >>> _importlib_modname_to_modpath('_ctypes')
         ..._ctypes...
 
     Ignore:
-        >>> _pkgutil_modname_to_modpath('cv2')
+        >>> _importlib_modname_to_modpath('cv2')
+
+        >>> import timerit
+        >>> for _ in timerit(label='ours'):
+        >>>     _syspath_modname_to_modpath('xdoctest.static_analysis')
+        >>> for _ in timerit(label='stdlib'):
+        >>>     _importlib_modname_to_modpath('xdoctest.static_analysis')
+        Timed ours for: 10 loops, best of 5
+            time per loop: best=20.237 ms, mean=20.244 ± 0.0 ms
+        Timed stdlib for: 445407 loops, best of 5
+            time per loop: best=387.000 ns, mean=424.680 ± 19.7 ns
     """
-    import pkgutil
-    loader = pkgutil.find_loader(modname)
-    if loader is None:
-        raise Exception('No module named {} in the PYTHONPATH'.format(modname))
-    modpath = loader.get_filename().replace('.pyc', '.py')
+    import importlib.util
+    spec = importlib.util.find_spec(modname)
+    modpath = spec.origin.replace('.pyc', '.py')  # is pyc replace needed anymore?
     return modpath
 
 
@@ -740,7 +738,6 @@ def modname_to_modpath(modname, hide_init=True, hide_main=False, sys_path=None):
         #     modpath = _importlib_modname_to_modpath(modname)
         # except Exception:
         #     modpath = _syspath_modname_to_modpath(modname, sys_path)
-        # modpath = _pkgutil_modname_to_modpath(modname, sys_path)
         modpath = _syspath_modname_to_modpath(modname, sys_path)
 
     if modpath is None:
