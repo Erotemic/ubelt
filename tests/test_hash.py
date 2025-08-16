@@ -751,7 +751,7 @@ def test_hash_data_simple_equivalence_and_sensitivity():
             x: int
             y: int
         SlottedPoint = _SlottedPoint
-    except TypeError:  # pragma: no cover
+    except TypeError:
         pass
 
     classes = [Point, FrozenPoint] + ([SlottedPoint] if SlottedPoint else [])

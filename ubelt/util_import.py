@@ -1064,7 +1064,7 @@ def _parse_static_node_value(node):
         # value = dict(zip(keys, values))
     elif IS_PY_LT_314 and isinstance(node, (ast.NameConstant)):  # nocover
         value = node.value
-    elif isinstance(node, ast.Constant):
+    elif isinstance(node, ast.Constant):  # nocover
         value = node.value
     else:
         raise TypeError('Cannot parse a static value from non-static node '
