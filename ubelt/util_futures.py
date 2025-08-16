@@ -301,8 +301,8 @@ class Executor:
         >>> if sys.version_info[0:2] >= (3, 14):
         >>>     executor = ub.Executor(mode='interpreter', max_workers=2)
         >>>     jobs = [executor.submit(sum, [i + 1, i]) for i in range(10)]
-        >>>     print([job.result() for job in jobs])
-        [1, 3, 5, 7, 9, 11, 13, 15, 17, 19]
+        >>>     results = [job.result() for job in jobs]
+        >>>     assert results == [1, 3, 5, 7, 9, 11, 13, 15, 17, 19]
     """
 
     def __init__(self, mode='thread', max_workers=0):
