@@ -71,6 +71,8 @@ jobs:
         ls -al wheelhouse
         python -m uv pip install wheelhouse/ubelt*.tar.gz -v
     - name: Test minimal loose sdist
+      env:
+        COVERAGE_CORE: ctrace
       run: |-
         pwd
         ls -al
@@ -85,6 +87,8 @@ jobs:
         python -m pytest --verbose --cov=ubelt $MOD_DPATH ../tests
         cd ..
     - name: Test full loose sdist
+      env:
+        COVERAGE_CORE: ctrace
       run: |-
         pwd
         ls -al
@@ -315,9 +319,11 @@ jobs:
       run: |-
         echo "Finding the path to the wheel"
         ls wheelhouse || echo "wheelhouse does not exist"
-        echo "Installing helpers"
+        echo "Installing helpers: update pip"
         python -m pip install pip uv -U
+        echo "Installing helpers: setuptools"
         python -m uv pip install setuptools>=0.8 setuptools_scm wheel build -U
+        echo "Installing helpers: tomli and pkginfo"
         python -m uv pip install tomli pkginfo
         export WHEEL_FPATH=$(python -c "if 1:
             import pathlib
@@ -337,13 +343,15 @@ jobs:
         ")
         echo "WHEEL_FPATH=$WHEEL_FPATH"
         echo "INSTALL_EXTRAS=$INSTALL_EXTRAS"
+        echo "UV_RESOLUTION=$UV_RESOLUTION"
         echo "MOD_VERSION=$MOD_VERSION"
-        python -m uv pip install "ubelt[$INSTALL_EXTRAS]==$MOD_VERSION" -f wheelhouse
+        python -m uv pip install --prerelease=allow "ubelt[$INSTALL_EXTRAS]==$MOD_VERSION" -f wheelhouse
         echo "Install finished."
     - name: Test wheel ${{ matrix.install-extras }}
       shell: bash
       env:
         CI_PYTHON_VERSION: py${{ matrix.python-version }}
+        COVERAGE_CORE: ctrace
       run: |-
         echo "Creating test sandbox directory"
         export WORKSPACE_DNAME="testdir_${CI_PYTHON_VERSION}_${GITHUB_RUN_ID}_${RUNNER_OS}"
