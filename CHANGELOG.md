@@ -9,6 +9,7 @@ This project (loosely) adheres to [Semantic Versioning](https://semver.org/spec/
 ### Changed
 * Removed support for 3.6 and 3.7
 * `ub.hash_data` can how hash dataclasses by default
+* Add experimental support for "interpreter" backend in Executor.
 
 
 ## Version 1.3.8 - Released 2025-07-31

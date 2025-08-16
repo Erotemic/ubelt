@@ -238,6 +238,7 @@ class Executor(object):
     SeeAlso:
         * :class:`concurrent.futures.ThreadPoolExecutor`
         * :class:`concurrent.futures.ProcessPoolExecutor`
+        * :class:`concurrent.futures.InterpreterPoolExecutor`
         * :class:`SerialExecutor`
         * :class:`JobPool`
 
@@ -290,9 +291,17 @@ class Executor(object):
         [1, 3, 5, 7, 9, 11, 13, 15, 17, 19]
 
         >>> # Enable parallelism by only changing one parameter
-        >>> executor = ub.Executor(mode='process', max_workers=0)
+        >>> executor = ub.Executor(mode='process', max_workers=2)
         >>> jobs = [executor.submit(sum, [i + 1, i]) for i in range(10)]
         >>> print([job.result() for job in jobs])
+        [1, 3, 5, 7, 9, 11, 13, 15, 17, 19]
+
+        >>> # In 3.14 the interpreter backend is available
+        >>> import sys
+        >>> if sys.version_info[0:2] >= (3, 14):
+        >>>     executor = ub.Executor(mode='interpreter', max_workers=2)
+        >>>     jobs = [executor.submit(sum, [i + 1, i]) for i in range(10)]
+        >>>     print([job.result() for job in jobs])
         [1, 3, 5, 7, 9, 11, 13, 15, 17, 19]
     """
 
@@ -313,6 +322,9 @@ class Executor(object):
             backend = futures.ThreadPoolExecutor(max_workers=max_workers)
         elif mode == 'process':
             backend = futures.ProcessPoolExecutor(max_workers=max_workers)
+        elif mode == 'interpreter':
+            # Requires 3.14+
+            backend = futures.InterpreterPoolExecutor(max_workers=max_workers)
         # elif mode == 'asyncio':
         #     # Experimental
         #     backend = AsyncIOExecutor()
