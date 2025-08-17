@@ -107,16 +107,6 @@ def test_modname_to_modpath_package():
     """
     CommandLine:
         pytest testing/test_static.py::test_modname_to_modpath_package
-
-    Ignore:
-        import sys
-        sys.path.append('/home/joncrall/code/xdoctest/testing')
-        from test_static import *
-        temp = ub.TempDir()
-        temp.__enter__()
-        sys.path.append(temp.dpath)
-
-        temp.__exit__(None, None, None)
     """
     with pytest.warns(DeprecationWarning):
         temp = ub.TempDir()
@@ -242,18 +232,10 @@ def test_modname_to_modpath_package():
 
 def test_modname_to_modpath_namespace():
     """
-    Ignore:
-        import sys
-        sys.path.append('/home/joncrall/code/xdoctest/testing')
-        from test_static import *
-        temp = ub.TempDir()
-        temp.__enter__()
-        sys.path.append(temp.dpath)
-
-        temp.__exit__(None, None, None)
-
+    from ubelt.util_import import _importlib_modname_to_modpath
+    from ubelt.util_import import _syspath_modname_to_modpath
     %timeit _syspath_modname_to_modpath('xdoctest.static_analysis')
-    %timeit _pkgutil_modname_to_modpath('xdoctest.static_analysis')
+    %timeit _importlib_modname_to_modpath('xdoctest.static_analysis')
     """
     with pytest.warns(DeprecationWarning):
         temp = ub.TempDir()
@@ -292,17 +274,6 @@ def test_package_submodules():
     CommandLine:
         pytest testing/test_static.py::test_package_submodules -s
         xdoctest -m ~/code/ubelt/tests/test_import.py test_package_submodules
-        pass
-
-    Ignore:
-        import sys
-        sys.path.append('/home/joncrall/code/xdoctest/testing')
-        from test_static import *
-        temp = ub.TempDir()
-        temp.__enter__()
-        sys.path.append(temp.dpath)
-
-        temp.__exit__(None, None, None)
     """
     from xdoctest import static_analysis as static
     with pytest.warns(DeprecationWarning):
@@ -466,7 +437,7 @@ def test_splitmodpath():
 if __name__ == '__main__':
     r"""
     CommandLine:
-        pytest ubelt/tests/test_import.py
+        pytest tests/test_import.py
     """
     import xdoctest
     xdoctest.doctest_module(__file__)

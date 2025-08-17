@@ -125,7 +125,7 @@ class FakeFuture:
         return self.executor.loop.run_until_complete(self.task)
 
 
-class _AsyncWorkItem(object):
+class _AsyncWorkItem:
     def __init__(self, future, fn, args, kwargs):
         self.future = future
         self.fn = fn

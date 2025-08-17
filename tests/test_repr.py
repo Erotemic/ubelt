@@ -301,7 +301,7 @@ def test_urepr_tuple_keys():
 
 def test_newline_keys():
     import ubelt as ub
-    class NLRepr(object):
+    class NLRepr:
         def __repr__(self):
             return ub.codeblock(
                 '''

@@ -59,6 +59,7 @@ Note:
     getting into the weeds of how we coerce technically non-hashable sequences
     into a hashable encoding.
 """
+import dataclasses
 import hashlib
 import math
 from collections import OrderedDict
@@ -183,7 +184,7 @@ def _bytes_to_int(bytes_):
     return int_
 
 
-class _Hashers(object):
+class _Hashers:
     """
     We offer hashers beyond what is available in hashlib.
     This class is used to lazy load them.
@@ -378,7 +379,7 @@ def _rectify_base(base):
         return base
 
 
-class HashableExtensions(object):
+class HashableExtensions:
     """
     Helper class for managing non-primitive (e.g. numpy) hash types
 
@@ -424,7 +425,7 @@ class HashableExtensions(object):
         Example:
             >>> import ubelt as ub
             >>> import pytest
-            >>> class MyType(object):
+            >>> class MyType:
             ...     def __init__(self, id):
             ...         self.id = id
             >>> data = MyType(1)
@@ -451,9 +452,9 @@ class HashableExtensions(object):
             >>> import ubelt as ub
             >>> import pytest
             >>> extensions = ub.util_hash.HashableExtensions()
-            >>> class Type1(object):
+            >>> class Type1:
             >>>     ...
-            >>> class Type2(object):
+            >>> class Type2:
             >>>     ...
             >>> @extensions.register([Type1, Type2])
             >>> def hash_my_type(data):
@@ -469,7 +470,7 @@ class HashableExtensions(object):
             >>> # the global state.
             >>> import ubelt as ub
             >>> import pytest
-            >>> class MyType(object):
+            >>> class MyType:
             ...     def __init__(self, id):
             ...         self.id = id
             >>> data = MyType(1)
@@ -528,7 +529,7 @@ class HashableExtensions(object):
             >>> data = np.array([1, 2, 3])
             >>> self.lookup(data[0])
 
-            >>> class Foo(object):
+            >>> class Foo:
             >>>     def __init__(f):
             >>>         f.attr = 1
             >>> data = Foo()
@@ -567,6 +568,10 @@ class HashableExtensions(object):
             # is unclear how to build a test in for this.
             self._evaluate_lazy_queue()
 
+        if dataclasses.is_dataclass(data):
+            # Handle dataclasses out of the box
+            return self._hash_dataclass
+
         query_hash_type = data.__class__
         # TODO: recognize some special dunder method instead
         # of strictly using this registry.
@@ -579,6 +584,41 @@ class HashableExtensions(object):
                 msg = base_msg
             raise TypeError(msg)
         return hash_func
+
+    def _hash_dataclass(self, data):
+        """
+        Dataclasses don't dispatch.
+
+        Example:
+            >>> from dataclasses import dataclass
+            >>> import ubelt as ub
+            >>> #
+            >>> @dataclass
+            >>> class P:
+            >>>     x: int
+            >>>     y: int
+            >>> #
+            >>> a = P(1, 2)
+            >>> b = P(1, 2)
+            >>> c = P(2, 1)
+            >>> #
+            >>> assert ub.hash_data(a) == ub.hash_data(b)
+            >>> assert ub.hash_data(a) != ub.hash_data(c)
+        """
+        import dataclasses
+        cls = data.__class__
+        header = (cls.__module__, cls.__qualname__)
+        # fields() order is the definition order, which is guaranteed
+        items = [(f.name, getattr(data, f.name)) for f in dataclasses.fields(data)]
+        # Use the existing machinery to serialize recursively
+        seq = _hashable_sequence(
+            (header, items),
+            extensions=self,
+            types=_COMPATIBLE_HASHABLE_SEQUENCE_TYPES_DEFAULT
+        )
+        prefix = b'DCLASS'
+        hashable = b''.join(seq)
+        return prefix, hashable
 
     def add_iterable_check(self, func):
         """
@@ -900,7 +940,7 @@ def _lazy_init():
 _HASHABLE_EXTENSIONS._lazy_queue.append(_lazy_init)
 
 
-class _HashTracer(object):
+class _HashTracer:
     """
     Helper class to extract hashed sequences
 

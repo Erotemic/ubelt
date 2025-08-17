@@ -317,7 +317,7 @@ def _rectify_leaf_info(_leaf_info):
     return _leaf_info
 
 
-class ReprExtensions(object):
+class ReprExtensions:
     """
     Helper class for managing non-builtin (e.g. numpy) format types.
 
@@ -328,7 +328,7 @@ class ReprExtensions(object):
 
     Example:
         >>> import ubelt as ub
-        >>> class MyObject(object):
+        >>> class MyObject:
         >>>     pass
         >>> data = {'a': [1, 2.2222, MyObject()], 'b': MyObject()}
         >>> # Create a custom set of extensions

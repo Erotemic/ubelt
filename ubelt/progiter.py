@@ -123,7 +123,7 @@ def _infer_length(iterable):
         return hint
 
 
-class _TQDMCompat(object):
+class _TQDMCompat:
     """
     Base class for ProgIter that implements a restricted TQDM Compatibility API
     """
@@ -252,7 +252,7 @@ class _TQDMCompat(object):
             self.refresh()
 
 
-class _BackwardsCompat(object):
+class _BackwardsCompat:
     """
     Base class for ProgIter that maintains backwards compatibility with older
     versions of the ProgIter API.

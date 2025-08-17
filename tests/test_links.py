@@ -522,7 +522,7 @@ def test_symlink_to_rel_symlink():
     # ub.symlink(real_path=link1, link_path=link2, verbose=1)
 
 
-# class TestSymlinksForceJunction(object):
+# class TestSymlinksForceJunction:
 fj_test_delete_symlinks = _force_junction(test_delete_symlinks)
 fj_test_modify_directory_symlinks = _force_junction(test_modify_directory_symlinks)
 fj_test_modify_file_symlinks = _force_junction(test_modify_file_symlinks)

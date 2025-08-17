@@ -36,7 +36,7 @@ Example:
 __all__ = ['NoParam']
 
 
-class NoParamType(object):
+class NoParamType:
     r"""
     Class used to define :data:`NoParam`, a sentinel that acts like None when
     None might be a valid value. The value of :data:`NoParam` is robust to
