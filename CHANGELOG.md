@@ -4,7 +4,10 @@ We are currently working on porting this changelog to the specifications in
 [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 This project (loosely) adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Version 1.4.0 - Unreleased
+## Version 1.4.1 - Unreleased
+
+
+## Version 1.4.0 - Released 2025-08-16
 
 ### Changed
 * Removed support for 3.6 and 3.7
