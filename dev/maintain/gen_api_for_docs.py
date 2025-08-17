@@ -26,11 +26,15 @@ def count_package_usage(modname):
         'mkinit', 'futures_actors', 'graphid',
 
         'kwutil', 'git_well', 'line_profiler', 'delayed_image', 'simple_dvc',
-        'pypogo',
+        'pypogo', 'cmd_queue'
 
         'ibeis', 'plottool_ibeis', 'guitool_ibeis', 'utool', 'dtool_ibeis',
-        'vtool_ibeis', 'hesaff', 'torch_liberator', 'liberator',
+        'vtool_ibeis', 'pyhesaff', 'torch_liberator', 'liberator',
+        'pyflann_ibeis', 'networkx_algo_common_subtree', 'shitspotter',
+        'kwgis', 'geowatch', 'sm64-random-assets', 'bioharn',
     ] + config['extra_modnames']
+
+    names = list(ub.unique(names))
 
     code_repos = [ub.Path('~/code').expand() / name for name in names]
     repo_dpaths = code_repos + [
@@ -38,11 +42,17 @@ def count_package_usage(modname):
         ub.Path('~/misc').expand(),
     ]
     all_fpaths = []
+    all_tlds = []
     for repo_dpath in repo_dpaths:
         name = repo_dpath.stem
         fpaths = glob.glob(join(repo_dpath, '**', '*.py'), recursive=True)
         for fpath in fpaths:
+            if ub.Path(fpath).relative_to(repo_dpath).parts[0] in {'build', 'dist'}:
+                continue
+            all_tlds.append(repo_dpath / ub.Path(fpath).relative_to(repo_dpath).parts[0])
             all_fpaths.append((name, fpath))
+    all_tlds = list(ub.unique(all_tlds))
+    print(f'all_tlds = {ub.urepr(all_tlds, nl=1)}')
 
     pat = re.compile(r'\bub\.(?P<attr>[a-zA-Z_][A-Za-z_0-9]*)\b')
 
@@ -52,15 +62,20 @@ def count_package_usage(modname):
     package_allvar = module.__all__
 
     pat = re.compile(r'\b' + package_name + r'\.(?P<attr>[a-zA-Z_][A-Za-z_0-9]*)\b')
+    pats = [
+        re.compile(r'\bub\.(?P<attr>[A-Za-z_][A-Za-z0-9_]*)\b'),
+        re.compile(r'\bubelt\.(?P<attr>[A-Za-z_][A-Za-z0-9_]*)\b'),
+    ]
 
     pkg_to_hist = ub.ddict(lambda: ub.ddict(int))
     for name, fpath in ub.ProgIter(all_fpaths):
         with open(fpath, 'r') as file:
             text = file.read()
-        for match in pat.finditer(text):
-            attr = match.groupdict()['attr']
-            if attr in package_allvar:
-                pkg_to_hist[name][attr] += 1
+        for pat in pats:
+            for match in pat.finditer(text):
+                attr = match.groupdict()['attr']
+                if attr in package_allvar:
+                    pkg_to_hist[name][attr] += 1
 
     hist_iter = iter(pkg_to_hist.values())
     usage = next(hist_iter).copy()
@@ -249,6 +264,6 @@ if __name__ == '__main__':
         python ~/code/ubelt/dev/maintain/gen_api_for_docs.py --extra_modnames=bioharn,geowatch --remove_zeros=False
 
         # Then edit: TODO make less manual
-        ~/code/ubelt/docs/source/function_usefulness.rst
+        ~/code/ubelt/docs/source/manual/function_usefulness.rst
     """
     gen_api_for_docs('ubelt')
