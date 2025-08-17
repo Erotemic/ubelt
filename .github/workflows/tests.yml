@@ -71,8 +71,7 @@ jobs:
         ls -al wheelhouse
         python -m uv pip install wheelhouse/ubelt*.tar.gz -v
     - name: Test minimal loose sdist
-      env:
-        COVERAGE_CORE: ctrace
+      env: {}
       run: |-
         pwd
         ls -al
@@ -87,8 +86,7 @@ jobs:
         python -m pytest --verbose --cov=ubelt $MOD_DPATH ../tests
         cd ..
     - name: Test full loose sdist
-      env:
-        COVERAGE_CORE: ctrace
+      env: {}
       run: |-
         pwd
         ls -al
@@ -351,7 +349,6 @@ jobs:
       shell: bash
       env:
         CI_PYTHON_VERSION: py${{ matrix.python-version }}
-        COVERAGE_CORE: ctrace
       run: |-
         echo "Creating test sandbox directory"
         export WORKSPACE_DNAME="testdir_${CI_PYTHON_VERSION}_${GITHUB_RUN_ID}_${RUNNER_OS}"
