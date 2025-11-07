@@ -2,7 +2,7 @@ r"""
 Expose functions to simplify importing from module names and paths.
 
 The :func:`ubelt.import_module_from_path` function does its best to load a
-python file into th current set of global modules.
+python file into the current set of global modules.
 
 The :func:`ubelt.import_module_from_name` works similarly.
 
@@ -335,21 +335,9 @@ def import_module_from_name(modname):
         >>> assert [m.__name__ for m in modules] == modname_list
         >>> assert all(m in sys.modules for m in modname_list)
     """
-    if True:
-        # See if this fixes the Docker issue we saw but were unable to
-        # reproduce on another environment. Either way its better to use the
-        # standard importlib implementation than the one I wrote a long time
-        # ago.
-        import importlib
-        module = importlib.import_module(modname)
-    else:  # nocover
-        # The __import__ statement is weird
-        if '.' in modname:
-            fromlist = modname.split('.')[-1]
-            fromlist_ = list(map(str, fromlist))  # needs to be ascii for python2.7
-            module = __import__(modname, {}, {}, fromlist_, 0)
-        else:
-            module = __import__(modname, {}, {}, [], 0)
+    # Modern python has a stdlib solution for this.
+    import importlib
+    module = importlib.import_module(modname)
     return module
 
 
