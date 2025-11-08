@@ -172,11 +172,14 @@ def symlink(real_path, link_path, overwrite=False, verbose=0):
             if not link_parent:
                 link_parent = '.'
             abs_link_parent = os.path.abspath(link_parent)
-            abs_target = os.path.abspath(join(abs_link_parent, path))
-            # Reconstruct the pointer based on where the link will live so that
-            # callers supplying a valid relative path keep the same textual
-            # pointer, but inputs like "../target" still resolve correctly if
-            # the link is created from a different working directory.
+            abs_target = os.path.abspath(path)
+            # Reconstruct the pointer text relative to where the link will
+            # live.  This ensures strings like ``"dir1/real"`` (which are
+            # relative to the caller's working directory) resolve correctly
+            # when read from inside ``link_parent`` (yielding
+            # ``"../dir1/real"`` in that example).  When callers already
+            # provide paths relative to ``link_parent`` we end up with the
+            # same text after the relpath normalization.
             path = os.path.relpath(abs_target, abs_link_parent)
 
     if verbose:
