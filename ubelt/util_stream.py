@@ -9,6 +9,7 @@ The :class:`TeeStringIO` does the same thing but for arbitrary streams. It is
 how the former is implemented.
 
 """
+from __future__ import annotations
 import sys
 import io
 
