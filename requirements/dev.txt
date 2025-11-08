@@ -1,0 +1,4 @@
+# Developer tools used to maintain the library
+# not needed by any specific library code
+xdev>=1.5.5
+mkinit>=1.1.0
