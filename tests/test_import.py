@@ -230,6 +230,39 @@ def test_modname_to_modpath_package():
             assert '_tmproot927.sub1.mod2.mod2' not in sys.modules
 
 
+def test_modname_to_modpath_editable_suffix(monkeypatch, tmp_path):
+    site_dpath = ub.Path(tmp_path / 'site').ensuredir()
+    pkg_project = ub.Path(tmp_path / 'proj_pkg')
+    pkg_suffix_project = ub.Path(tmp_path / 'proj_pkg_suffix')
+
+    for project, name in [(pkg_project, 'pkg'), (pkg_suffix_project, 'pkg_suffix')]:
+        pkg_dir = project / 'src' / name
+        pkg_dir.ensuredir()
+        (pkg_dir / '__init__.py').write_text('VALUE = {!r}'.format(name))
+
+    finder_pkg = site_dpath / '__editable___pkg_finder.py'
+    finder_pkg.write_text(
+        "MAPPING = {'pkg': %r}\n" % os.fspath(pkg_project / 'src' / 'pkg')
+    )
+
+    finder_pkg_suffix = site_dpath / '__editable___pkg_suffix_finder.py'
+    finder_pkg_suffix.write_text(
+        "MAPPING = {'pkg-suffix': %r}\n" % os.fspath(pkg_suffix_project / 'src' / 'pkg_suffix')
+    )
+
+    monkeypatch.syspath_prepend(os.fspath(site_dpath))
+
+    # ``pkg`` and ``pkg_suffix`` both exist, but only ``pkg_suffix`` has a dash
+    # in its editable mapping.  The resolver should still pick the correct
+    # target even though the keys share a prefix.
+
+    modpath_pkg = ub.modname_to_modpath('pkg', sys_path=sys.path)
+    modpath_pkg_suffix = ub.modname_to_modpath('pkg_suffix', sys_path=sys.path)
+
+    assert os.fspath(pkg_project / 'src' / 'pkg') == modpath_pkg
+    assert os.fspath(pkg_suffix_project / 'src' / 'pkg_suffix') == modpath_pkg_suffix
+
+
 def test_modname_to_modpath_namespace():
     """
     from ubelt.util_import import _importlib_modname_to_modpath

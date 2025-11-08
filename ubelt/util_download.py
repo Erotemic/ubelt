@@ -198,17 +198,48 @@ def download(url, fpath=None, dpath=None, fname=None, appname=None,
     urldata = urlopen(req, timeout=timeout)
 
     meta = urldata.info()
+
+    def _safe_content_length(headers):
+        """Best-effort extraction of ``Content-Length`` from header metadata."""
+
+        # ``urllib`` header containers have multiple access patterns depending on
+        # Python version / backend.  We try each in a conservative order and
+        # ignore anything that fails to coerce cleanly to an integer instead of
+        # raising, because a missing header should simply fall back to an
+        # indeterminate progress bar rather than breaking the download.
+
+        def _coerce_int(value):
+            try:
+                if isinstance(value, bytes):  # nocover
+                    value = value.decode('ascii', 'ignore')
+                return int(value)
+            except Exception:
+                return None
+
+        if hasattr(headers, 'get'):
+            header_val = headers.get('Content-Length')
+            if header_val is not None:
+                result = _coerce_int(header_val)
+                if result is not None:
+                    return result
+
+        for accessor_name in ['get_all', 'getheaders']:
+            accessor = getattr(headers, accessor_name, None)
+            if accessor is None:
+                continue
+            try:
+                values = accessor("Content-Length")
+            except Exception:  # nocover
+                continue
+            if not values:
+                continue
+            result = _coerce_int(values[0])
+            if result is not None:
+                return result
+        return None
+
     if filesize is None:
-        try:
-            if hasattr(meta, 'getheaders'):  # nocover
-                filesize = int(meta.getheaders("Content-Length")[0])
-            else:
-                filesize = int(meta.get_all("Content-Length")[0])
-        except Exception:  # nocover
-            # sometimes the url does not contain content length metadata
-            # TODO: find a public URL that exemplifies this or figure out how to
-            # mock it locally.
-            filesize = None
+        filesize = _safe_content_length(meta)
 
     if hash_prefix:
         if isinstance(hasher, str):

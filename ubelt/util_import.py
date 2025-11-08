@@ -468,19 +468,22 @@ def _syspath_modname_to_modpath(modname, sys_path=None, exclude=None):
     if sys_path is None:
         sys_path = sys.path
 
+    def _normalize(p):
+        if sys.platform.startswith('win32'):  # nocover
+            return realpath(p).lower()
+        else:
+            return realpath(p)
+
     # the empty string in sys.path indicates cwd. Change this to a '.'
     candidate_dpaths = ['.' if p == '' else p for p in sys_path]
 
     if exclude:
-        def normalize(p):
-            if sys.platform.startswith('win32'):  # nocover
-                return realpath(p).lower()
-            else:
-                return realpath(p)
         # Keep only the paths not in exclude
-        real_exclude = {normalize(p) for p in exclude}
+        real_exclude = {_normalize(p) for p in exclude}
         candidate_dpaths = [p for p in candidate_dpaths
-                            if normalize(p) not in real_exclude]
+                            if _normalize(p) not in real_exclude]
+    else:
+        real_exclude = set()
 
     def check_dpath(dpath):
         # Check for directory-based modules (has precedence over files)
@@ -516,6 +519,39 @@ def _syspath_modname_to_modpath(modname, sys_path=None, exclude=None):
     _editable_fname_finder_py_pat = '__editable___*_*finder.py'
 
     found_modpath = None
+
+    def _iter_editable_mapping_targets(mapping):
+        """Yield candidate target roots extracted from editable metadata."""
+
+        # Newer editable installs sometimes store multiple keys for a single
+        # project (``pkg``, ``pkg-name``, ``package.module``).  We build a list of
+        # the most common aliases derived from both the package *and* module
+        # names and walk through each possibility before falling back to a
+        # normalised comparison.  That lets us keep the resolver permissive
+        # without assuming a specific key layout from setuptools.
+
+        def _unique_append(seq, item):
+            if item and item not in seq:
+                seq.append(item)
+
+        candidate_keys = []
+        _unique_append(candidate_keys, _pkg_name)
+        _unique_append(candidate_keys, _pkg_name_hypen)
+        _unique_append(candidate_keys, _pkg_name_hypen.replace('-', '_'))
+        _unique_append(candidate_keys, modname)
+        _unique_append(candidate_keys, modname.replace('.', '-'))
+        _unique_append(candidate_keys, modname.replace('.', '_'))
+
+        for key in candidate_keys:
+            if key in mapping:
+                yield mapping[key]
+
+        normalized_candidates = {key.replace('-', '_') for key in candidate_keys}
+        for key, value in mapping.items():
+            # Some installers only differ by dash / underscore usage, so we do a
+            # second pass with that lightweight normalization to catch those.
+            if key.replace('-', '_') in normalized_candidates:
+                yield value
     for dpath in candidate_dpaths:
         modpath = check_dpath(dpath)
         if modpath:
@@ -537,22 +573,43 @@ def _syspath_modname_to_modpath(modname, sys_path=None, exclude=None):
             # ultimately be good. Hopefully the new standards mean it does not
             # break with pytest anymore? Nope, pytest still doesn't work right
             # with it.
+            finder_base = None
             for finder_fpath in new_editable_finder_paths:
                 try:
                     mapping = _static_parse('MAPPING', finder_fpath)
                 except AttributeError:
                     ...
                 else:
-                    try:
-                        target = dirname(mapping[_pkg_name])
-                    except KeyError:
-                        ...
-                    else:
-                        if not exclude or normalize(target) not in real_exclude:  # pragma: nobranch
-                            modpath = check_dpath(target)
-                            if modpath:  # pragma: nobranch
-                                found_modpath = modpath
-                                break
+                    finder_base = finder_base or dirname(finder_fpath)
+                    # Each finder can include relative paths (especially for
+                    # ``src`` layouts).  Normalise those relative to the finder
+                    # file first, then probe both the leaf path and its parent
+                    # to cover ``package/__init__.py`` as well as
+                    # ``package/__init__.py``-less structures.
+                    for mapping_target in _iter_editable_mapping_targets(mapping):
+                        if mapping_target is None:
+                            continue
+                        target = os.fspath(mapping_target)
+                        if not os.path.isabs(target) and finder_base:
+                            target = join(finder_base, target)
+                        candidate_roots = []
+                        if isfile(target):
+                            candidate_roots.append(dirname(target))
+                        else:
+                            candidate_roots.append(target)
+                            candidate_roots.append(dirname(target))
+                        for target_root in candidate_roots:
+                            if not target_root:
+                                continue
+                            if not real_exclude or _normalize(target_root) not in real_exclude:  # pragma: nobranch
+                                modpath = check_dpath(target_root)
+                                if modpath:  # pragma: nobranch
+                                    found_modpath = modpath
+                                    break
+                        if found_modpath is not None:
+                            break
+                    if found_modpath is not None:
+                        break
             if found_modpath is not None:
                 break
 
@@ -566,11 +623,24 @@ def _syspath_modname_to_modpath(modname, sys_path=None, exclude=None):
             for editable_pth in new_editable_pth_paths:
                 editable_pth = pathlib.Path(editable_pth)
                 target = editable_pth.read_text().strip().split('\n')[-1]
-                if not exclude or normalize(target) not in real_exclude:
-                    modpath = check_dpath(target)
-                    if modpath:  # pragma: nobranch
-                        found_modpath = modpath
-                        break
+                if not os.path.isabs(target):
+                    target = join(dpath, target)
+                candidate_roots = []
+                if isdir(target):
+                    candidate_roots.append(target)
+                    candidate_roots.append(dirname(target))
+                else:
+                    candidate_roots.append(dirname(target))
+                for candidate_root in candidate_roots:
+                    if not candidate_root:
+                        continue
+                    if not real_exclude or _normalize(candidate_root) not in real_exclude:
+                        modpath = check_dpath(candidate_root)
+                        if modpath:  # pragma: nobranch
+                            found_modpath = modpath
+                            break
+                if found_modpath is not None:
+                    break
             if found_modpath is not None:
                 break
 
@@ -596,7 +666,9 @@ def _syspath_modname_to_modpath(modname, sys_path=None, exclude=None):
             # The docs state there should only be one line, but I see two.
             with open(linkpath, 'r') as file:
                 target = file.readline().strip()
-            if not exclude or normalize(target) not in real_exclude:
+            if not isdir(target):
+                target = dirname(target)
+            if not real_exclude or _normalize(target) not in real_exclude:
                 modpath = check_dpath(target)
                 if modpath:
                     found_modpath = modpath
