@@ -1,9 +1,11 @@
-import ubelt as ub
+import io
 import os
-import pytest
+import platform
 import sys
 from os.path import basename, join, exists
-import platform
+
+import pytest
+import ubelt as ub
 
 
 IS_PYPY = platform.python_implementation() == 'PyPy'
@@ -209,6 +211,53 @@ def test_grabdata_with_fpath():
 
     ub.grabdata(url, fpath=fpath, verbose=3)
     assert exists(fpath)
+
+
+def test_grabdata_missing_content_length(monkeypatch, tmp_path):
+    class _FakeHeaders:
+        def get(self, name, default=None):
+            return None
+
+        def get_all(self, name):
+            return None
+
+        def getheaders(self, name):
+            raise KeyError(name)
+
+    class _FakeResponse:
+        def __init__(self, payload):
+            self._buffer = io.BytesIO(payload)
+
+        def read(self, size=-1):
+            return self._buffer.read(size)
+
+        def info(self):
+            return _FakeHeaders()
+
+    payload = b'downloaded data'
+    url = 'https://example.com/no-content-length'
+    destination = tmp_path / 'content.bin'
+
+    calls = []
+
+    def _fake_urlopen(request, timeout=ub.NoParam):
+        calls.append(request)
+        return _FakeResponse(payload)
+
+    monkeypatch.setattr('urllib.request.urlopen', _fake_urlopen)
+
+    result = ub.grabdata(url, fpath=os.fspath(destination), hasher=None, verbose=0)
+    assert result == os.fspath(destination)
+    assert destination.read_bytes() == payload
+    assert len(calls) == 1
+
+    def _unexpected(*args, **kwargs):
+        # A cached result should avoid issuing any network calls on subsequent
+        # invocations, so fail loudly if ``grabdata`` reaches this stub.
+        raise AssertionError('grabdata should reuse the cached file')
+
+    monkeypatch.setattr('urllib.request.urlopen', _unexpected)
+    ub.grabdata(url, fpath=os.fspath(destination), hasher=None, verbose=0)
 
 
 def test_grabdata_value_error():

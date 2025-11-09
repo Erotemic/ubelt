@@ -12,6 +12,7 @@ This project (loosely) adheres to [Semantic Versioning](https://semver.org/spec/
 ### Fixes
 * Cleanup in `util_import`
 * Fixes and refactor in `util_stream`. Implemented `CaptureStream`.
+* Improved download inference of content length and progress reporting.
 
 
 ## Version 1.4.0 - Released 2025-08-16
