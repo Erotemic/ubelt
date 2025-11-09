@@ -522,6 +522,28 @@ def test_symlink_to_rel_symlink():
     # ub.symlink(real_path=link1, link_path=link2, verbose=1)
 
 
+def test_symlink_preserves_relative_target(tmp_path):
+    import ubelt as ub
+    if ub.WIN32:
+        pytest.skip('dont try on windows')
+
+    real_dir = tmp_path / 'real_dir'
+    real_dir.mkdir()
+    real_file = real_dir / 'data.txt'
+    real_file.write_text('payload')
+
+    link_dir = tmp_path / 'links'
+    link_dir.mkdir()
+    rel_target = os.path.relpath(real_file, link_dir)
+    link_path = link_dir / 'data-link.txt'
+
+    ub.symlink(real_path=rel_target, link_path=link_path)
+
+    assert link_path.is_symlink()
+    assert os.readlink(os.fspath(link_path)) == rel_target
+    assert link_path.read_text() == 'payload'
+
+
 # class TestSymlinksForceJunction:
 fj_test_delete_symlinks = _force_junction(test_delete_symlinks)
 fj_test_modify_directory_symlinks = _force_junction(test_modify_directory_symlinks)
