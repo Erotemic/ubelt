@@ -175,10 +175,34 @@ def symlink(
             # On windows, we need to use absolute paths
             path = os.path.abspath(path)
         else:
-            # FIXME: This behavior seems like it might be wrong.
-            path = os.path.relpath(path, os.path.dirname(link))
-            # abs_path = join(os.path.dirname(link), path)
-            ...
+            link_parent = os.path.dirname(link)
+            if not link_parent:
+                link_parent = '.'
+            abs_link_parent = os.path.abspath(link_parent)
+            abs_target_from_cwd = os.path.abspath(path)
+            abs_target_from_link = os.path.abspath(
+                os.path.join(abs_link_parent, path))
+
+            # Prefer whichever interpretation actually resolves.  This keeps
+            # caller-supplied pointers that already reference the link's
+            # directory (common on POSIX) while still honoring historic
+            # behavior where the path was implicitly relative to the caller's
+            # working directory (common in the Windows tests).
+            choose_link_relative = (
+                os.path.exists(abs_target_from_link)
+                and not os.path.exists(abs_target_from_cwd)
+            )
+            if choose_link_relative:
+                # Keep the pointer text so the link sees the same target the
+                # caller requested.
+                pass
+            else:
+                # Reconstruct the pointer text relative to where the link will
+                # live.  This ensures strings like ``"dir1/real"`` (which are
+                # relative to the caller's working directory) resolve correctly
+                # when read from inside ``link_parent`` (yielding
+                # ``"../dir1/real"`` in that example).
+                path = os.path.relpath(abs_target_from_cwd, abs_link_parent)
 
     if verbose:
         print('Symlink: {link} -> {path}'.format(path=path, link=link))
