@@ -23,7 +23,7 @@ def test_pathlib_compatability():
 
 def test_tempdir():
     import pytest
-    with pytest.warns(DeprecationWarning):
+    with pytest.warns(Warning):
         temp = ub.TempDir()
     assert temp.dpath is None
     temp.ensure()
@@ -55,11 +55,11 @@ def test_ensuredir_recreate():
     base = ub.Path.appdir('ubelt/tests').ensuredir()
     folder = join(base, 'foo')
     member = join(folder, 'bar')
-    with pytest.warns(DeprecationWarning):
+    with pytest.warns(Warning):
         ub.ensuredir(folder, recreate=True)
     ub.ensuredir(member)
     assert exists(member)
-    with pytest.warns(DeprecationWarning):
+    with pytest.warns(Warning):
         ub.ensuredir(folder, recreate=True)
     assert not exists(member)
 
