@@ -13,6 +13,11 @@ This project (loosely) adheres to [Semantic Versioning](https://semver.org/spec/
 * Cleanup in `util_import`
 * Fixes and refactor in `util_stream`. Implemented `CaptureStream`.
 
+### Changed
+* Changed the default warning in `schedule_deprecation` from
+  `DeprecationWarning` to `FutureWarning`, which makes deprecations loud by
+  default.
+
 
 ## Version 1.4.0 - Released 2025-08-16
 

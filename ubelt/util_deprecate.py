@@ -5,12 +5,16 @@ easily mark features in their libraries as deprecated.
 """
 
 
+# DEFAULT_WARN_CLASS = DeprecationWarning
+DEFAULT_WARN_CLASS = FutureWarning
+
+
 def schedule_deprecation(modname=None, name='?', type='?', migration='',
                          deprecate=None, error=None, remove=None,
                          # TODO: let the user have more control over the
                          # message.
                          # message=None,
-                         warncls=DeprecationWarning, stacklevel=1):
+                         warncls='default', stacklevel=1):
     """
     Raise a deprecation warning or error based on the version of a package.
 
@@ -62,9 +66,11 @@ def schedule_deprecation(modname=None, name='?', type='?', migration='',
             reminding the developer to remove the feature (or extend the remove
             version).  Can also be the strings: "soon" or "now".
 
-        warncls (type):
-            This is the category of warning to use. Defaults to
-            :class:`DeprecationWarning`.
+        warncls (type | str):
+            This is the category of warning to use.
+            If given as the string "default", it will defaults the global
+            ``DEFAULT_WARN_CLASS``, which can be overwritten by an application,
+            but is hard coded as :class:`FutureWarning`.
 
         stacklevel (int):
             The stacklevel can be used by wrapper functions to indicate where
@@ -80,7 +86,8 @@ def schedule_deprecation(modname=None, name='?', type='?', migration='',
 
     Note:
         The :class:`DeprecationWarning` is not visible by default.
-        https://docs.python.org/3/library/warnings.html
+        https://docs.python.org/3/library/warnings.html which is why we default
+        to :class`FutureWarning`.
 
     Example:
         >>> # xdoctest: +REQUIRES(module:packaging)
@@ -98,7 +105,7 @@ def schedule_deprecation(modname=None, name='?', type='?', migration='',
         >>> # But when the module version increases above the threshold,
         >>> # the warning is raised.
         >>> dummy_module.__version__ = '1.1.0'
-        >>> with pytest.warns(DeprecationWarning):
+        >>> with pytest.warns(Warning):
         ...     msg = ub.schedule_deprecation(
         ...         'dummy_module', 'myfunc', 'function', 'do something else',
         ...         deprecate='1.1.0', error='1.2.0', remove='1.3.0')
@@ -118,7 +125,7 @@ def schedule_deprecation(modname=None, name='?', type='?', migration='',
         >>> # When less than the deprecated version this does nothing
         >>> dummy_module.__version__ = '1.1.0'
         >>> # Now this raises warning
-        >>> with pytest.warns(DeprecationWarning):
+        >>> with pytest.warns(Warning):
         ...     dummy_module.__version__ = '1.1.0'
         ...     ub.schedule_deprecation(
         ...         'dummy_module', 'myfunc', 'function', 'do something else',
@@ -136,7 +143,7 @@ def schedule_deprecation(modname=None, name='?', type='?', migration='',
         ...         'dummy_module', 'myfunc', 'function', 'do something else',
         ...         deprecate='1.1.0', error='1.2.0', remove='1.3.0')
         >>> # When no versions are specified, it simply emits the warning
-        >>> with pytest.warns(DeprecationWarning):
+        >>> with pytest.warns(Warning):
         ...     dummy_module.__version__ = '1.1.0'
         ...     ub.schedule_deprecation(
         ...         'dummy_module', 'myfunc', 'function', 'do something else')
@@ -172,6 +179,9 @@ def schedule_deprecation(modname=None, name='?', type='?', migration='',
         # TODO: use the inspect module to get the function / module this was
         # called from and fill in unspecified values.
         current = 'unknown'
+
+    if warncls == 'default':
+        warncls = DEFAULT_WARN_CLASS
 
     if modname is None:
         modname_str = ''

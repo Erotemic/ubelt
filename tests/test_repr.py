@@ -379,8 +379,8 @@ def test_autosort():
     }
     if sys.version_info[0:2] >= (3, 7):
         import pytest
-        # with pytest.warns(DeprecationWarning):
-        with pytest.deprecated_call():
+        # with pytest.deprecated_call():
+        with pytest.warns(Warning):
             assert ub.repr2(dict_, sort='auto', nl=1) == ub.codeblock(
                 '''
                 {

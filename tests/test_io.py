@@ -20,8 +20,8 @@ def test_readwrite():
     if fpath.exists():
         os.remove(fpath)
     to_write = 'utf-8 symbols Δ, Й, ק, م, ๗, あ, 叶, 葉, and 말.'
-    with pytest.warns(DeprecationWarning):
+    with pytest.warns(Warning):
         ub.writeto(fpath, to_write, verbose=True)
-    with pytest.warns(DeprecationWarning):
+    with pytest.warns(Warning):
         read_ = ub.readfrom(fpath, verbose=True)
     assert read_ == to_write
