@@ -38,8 +38,13 @@ import pathlib
 import platform
 import stat
 import warnings
-from typing import TYPE_CHECKING, TypeAlias
+from typing import TYPE_CHECKING
 from ubelt import util_io
+
+try:
+    from typing import TypeAlias
+except ImportError:  # pragma: no cover
+    TypeAlias = object  # type: ignore[misc,assignment]
 
 
 __all__ = [

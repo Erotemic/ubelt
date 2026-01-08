@@ -1004,7 +1004,7 @@ class OrderedIterableMixin(IterableMixin[VT]):
     window = iter_window
 
 
-class UList(list[VT], OrderedIterableMixin[VT]):
+class UList(list, OrderedIterableMixin[VT], Generic[VT]):
     """
     An extended list class that features additional helper methods.
 
