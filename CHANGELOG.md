@@ -19,6 +19,9 @@ This project (loosely) adheres to [Semantic Versioning](https://semver.org/spec/
   default.
 * All .pyi files have been removed. Type annotations are now inline and validated with mypy and ty.
 
+### Deprecated
+* Deprecated `DownloadManager`, due to being over scoped.
+
 
 ## Version 1.4.0 - Released 2025-08-16
 
