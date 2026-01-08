@@ -38,6 +38,7 @@ import pathlib
 import platform
 import stat
 import warnings
+from typing import TYPE_CHECKING, TypeAlias
 from ubelt import util_io
 
 
@@ -523,7 +524,13 @@ class TempDir:
         self.cleanup()
 
 
-_PathBase = pathlib.WindowsPath if os.name == 'nt' else pathlib.PosixPath
+if TYPE_CHECKING:
+    _PathBase: TypeAlias = pathlib.Path
+else:
+    if os.name == 'nt':  # pragma: no cover
+        _PathBase = pathlib.WindowsPath
+    else:
+        _PathBase = pathlib.PosixPath
 
 
 class Path(_PathBase):
@@ -2060,4 +2067,4 @@ def _relative_path_backport(self, other, walk_up=False):  # nocover
     return type(self)('', *reversed(parts0))
 
 if PYTHON_LE_3_8:  # nocover
-    Path.is_relative_to = _is_relative_to_backport
+    Path.is_relative_to = _is_relative_to_backport  # type: ignore[assignment,method-assign]

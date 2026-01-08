@@ -33,6 +33,10 @@ Example:
     no param specified
 """
 
+from __future__ import annotations
+
+import typing
+
 __all__ = ['NoParam']
 
 
@@ -126,43 +130,43 @@ class NoParamType:
         >>> assert all(not v for v in versions.values())
         >>> assert all(not bool(v) for v in versions.values())
     """
-    def __new__(cls):
+    def __new__(cls) -> NoParamType:
         """
         Returns:
             NoParamType
         """
         return NoParam
-    def __reduce__(self):
+    def __reduce__(self) -> tuple[type, tuple]:
         """
         Returns:
-            Tuple[type, Tuple]
+            tuple[type, tuple]
         """
         return (NoParamType, ())
-    def __copy__(self):
+    def __copy__(self) -> NoParamType:
         """
         Returns:
             NoParamType
         """
         return NoParam
-    def __deepcopy__(self, memo):
+    def __deepcopy__(self, memo: object) -> NoParamType:
         """
         Returns:
             NoParamType
         """
         return NoParam
-    def __str__(cls):
+    def __str__(self) -> str:
         """
         Returns:
             str
         """
         return 'NoParam'
-    def __repr__(cls):
+    def __repr__(self) -> str:
         """
         Returns:
             str
         """
         return 'NoParam'
-    def __bool__(self):
+    def __bool__(self) -> bool:
         """
         Returns:
             bool
@@ -173,16 +177,18 @@ class NoParamType:
 # Backwards compat
 _NoParamType = NoParamType
 
+NoParam: NoParamType
+
 # Create the only instance of NoParamType that should ever exist
-try:
+if 'NoParam' in globals():  # pragma: no cover
     # If the module is reloaded (via imp.reload), globals() will contain
     # NoParam. This skips the code that would instantiate a second object
-    NoParam  # pragma: no cover
+    NoParam = typing.cast(NoParamType, globals()['NoParam'])
     # Note: it is possible to hack around this via
     # >>> del util_const.NoParam
     # >>> imp.reload(util_const)
-except NameError:  # pragma: no cover
+else:  # pragma: no cover
     # When the module is first loaded, globals() will not contain NoParam. A
     # NameError will be thrown, causing the first instance of NoParam to be
     # instantiated.
-    NoParam = object.__new__(NoParamType)  # type: NoParamType
+    NoParam = object.__new__(NoParamType)

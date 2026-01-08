@@ -51,6 +51,20 @@ References:
     .. [Pep3106] https://peps.python.org/pep-3106/
     .. [GHDictMap] https://github.com/ulisesojeda/dictionary_map
 """
+from __future__ import annotations
+
+import typing
+
+if typing.TYPE_CHECKING:
+    from collections.abc import Generator
+    from typing import Any, Callable, Dict, Iterable, List, Mapping, Optional, Set, Tuple, Type, TypeVar, Union
+    from _typeshed import SupportsKeysAndGetItem
+    from ubelt.util_const import NoParamType
+
+    KT = TypeVar("KT")
+    VT = TypeVar("VT")
+    T = TypeVar("T")
+
 import sys
 import operator as op
 import itertools as it
@@ -100,7 +114,7 @@ else:  # nocover
     DictBase = dict
 
 
-def dzip(items1, items2, cls=dict):
+def dzip(items1: Iterable[KT], items2: Iterable[VT], cls: Type[dict] = dict) -> Dict[KT, VT]:
     """
     Zips elementwise pairs between items1 and items2 into a dictionary.
 
@@ -113,10 +127,10 @@ def dzip(items1, items2, cls=dict):
             can either be a sequence of one item or a sequence of equal length
             to ``items1``
 
-        cls (Type[dict]): dictionary type to use. Defaults to ``dict``.
+        cls (type[dict]): dictionary type to use. Defaults to ``dict``.
 
     Returns:
-        Dict[KT, VT]: similar to ``dict(zip(items1, items2))``.
+        dict[KT, VT]: similar to ``dict(zip(items1, items2))``.
 
     Example:
         >>> import ubelt as ub
@@ -147,7 +161,7 @@ def dzip(items1, items2, cls=dict):
     return cls(zip(items1, items2))
 
 
-def group_items(items, key):
+def group_items(items: Iterable[VT], key: Union[Iterable[KT], Callable[[VT], KT]]) -> dict[KT, List[VT]]:
     """
     Groups a list of items by group id.
 
@@ -159,7 +173,7 @@ def group_items(items, key):
             a function used to map each item to a group-id.
 
     Returns:
-        dict[KT, List[VT]]:
+        dict[KT, list[VT]]:
             a mapping from each group-id to the list of corresponding items
 
     Example:
@@ -216,7 +230,7 @@ def group_items(items, key):
     return id_to_items
 
 
-def dict_hist(items, weights=None, ordered=False, labels=None):
+def dict_hist(items: Iterable[T], weights: Optional[Iterable[float]] = None, ordered: bool = False, labels: Optional[Iterable[T]] = None) -> dict[T, int]:
     """
     Builds a histogram of items, counting the number of time each item appears
     in the input.
@@ -298,7 +312,7 @@ def dict_hist(items, weights=None, ordered=False, labels=None):
     return hist
 
 
-def find_duplicates(items, k=2, key=None):
+def find_duplicates(items: Iterable[T], k: int = 2, key: Optional[Callable[[T], Any]] = None) -> dict[T, List[int]]:
     """
     Find all duplicate items in a list.
 
@@ -318,7 +332,7 @@ def find_duplicates(items, k=2, key=None):
             least k times. Default to None.
 
     Returns:
-        dict[T, List[int]] :
+        dict[T, list[int]] :
             Maps each duplicate item to the indices at which it appears
 
     Notes:
@@ -367,27 +381,27 @@ def find_duplicates(items, k=2, key=None):
     return duplicates
 
 
-def dict_subset(dict_, keys, default=NoParam, cls=OrderedDict):
+def dict_subset(dict_: Dict[KT, VT], keys: Iterable[KT], default: Union[object, NoParamType] = NoParam, cls: Type[Dict] = OrderedDict) -> Dict[KT, VT]:
     """
     Get a subset of a dictionary
 
     Args:
-        dict_ (Dict[KT, VT]): superset dictionary
+        dict_ (dict[KT, VT]): superset dictionary
 
         keys (Iterable[KT]): keys to take from ``dict_``
 
         default (Any | NoParamType):
             if specified uses default if keys are missing.
 
-        cls (Type[Dict]): type of the returned dictionary.
+        cls (type[dict]): type of the returned dictionary.
             Defaults to ``OrderedDict``.
 
     Returns:
-        Dict[KT, VT]: subset dictionary
+        dict[KT, VT]: subset dictionary
 
     SeeAlso:
         :func:`dict_isect` - similar functionality, but ignores missing keys
-        ::py:meth:`UDict.subdict` - object oriented version of this function
+        :py:meth:`UDict.subdict` - object oriented version of this function
 
     Example:
         >>> import ubelt as ub
@@ -404,7 +418,7 @@ def dict_subset(dict_, keys, default=NoParam, cls=OrderedDict):
     return subdict_
 
 
-def dict_union(*args):
+def dict_union(*args: Dict) -> Union[Dict, OrderedDict]:
     """
     Dictionary set extension for ``set.union``
 
@@ -413,11 +427,12 @@ def dict_union(*args):
     precedence.
 
     Args:
-        *args (List[Dict]) : A sequence of dictionaries.
-            Values are taken from the last
+        *args (dict[KT, VT]): A sequence of dictionaries.
+            Values are taken from the last dictionary in the sequence when
+            keys overlap.
 
     Returns:
-        Dict | OrderedDict :
+        dict | OrderedDict :
             OrderedDict if the first argument is an OrderedDict, otherwise dict
 
     Notes:
@@ -432,7 +447,7 @@ def dict_union(*args):
         :func:`collections.ChainMap` - a standard python builtin data structure
         that provides a view that treats multiple dicts as a single dict.
         `<https://docs.python.org/3/library/collections.html#chainmap-objects>`_
-        ::py:meth:`UDict.union` - object oriented version of this function
+        :py:meth:`UDict.union` - object oriented version of this function
 
     Example:
         >>> import ubelt as ub
@@ -453,7 +468,7 @@ def dict_union(*args):
         return dictclass(it.chain.from_iterable(d.items() for d in args))
 
 
-def dict_diff(*args):
+def dict_diff(*args: Union[Dict[KT, VT], Iterable[KT]]) -> Union[Dict[KT, VT], OrderedDict[KT, VT]]:
     """
     Dictionary set extension for :func:`set.difference`
 
@@ -461,17 +476,17 @@ def dict_diff(*args):
     which are not in any of the following args.
 
     Args:
-        *args (List[Dict[KT, VT] | Iterable[KT]]) :
+        *args (dict[KT, VT] | Iterable[KT]) :
             A sequence of dictionaries (or sets of keys). The first argument
             should always be a dictionary, but the subsequent arguments can
             just be sets of keys.
 
     Returns:
-        Dict[KT, VT] | OrderedDict[KT, VT] :
+        dict[KT, VT] | OrderedDict[KT, VT] :
             OrderedDict if the first argument is an OrderedDict, otherwise dict
 
     SeeAlso:
-        ::py:meth:`UDict.difference` - object oriented version of this function
+        :py:meth:`UDict.difference` - object oriented version of this function
 
     Example:
         >>> import ubelt as ub
@@ -496,7 +511,7 @@ def dict_diff(*args):
         return new
 
 
-def dict_isect(*args):
+def dict_isect(*args: Union[Dict[KT, VT], Iterable[KT]]) -> Union[Dict[KT, VT], OrderedDict[KT, VT]]:
     """
     Dictionary set extension for :func:`set.intersection`
 
@@ -504,17 +519,17 @@ def dict_isect(*args):
     The returned values will only belong to the first dictionary.
 
     Args:
-        *args (List[Dict[KT, VT] | Iterable[KT]]) :
+        *args (dict[KT, VT] | Iterable[KT]) :
             A sequence of dictionaries (or sets of keys). The first argument
             should always be a dictionary, but the subsequent arguments can
             just be sets of keys.
 
     Returns:
-        Dict[KT, VT] | OrderedDict[KT, VT] :
+        dict[KT, VT] | OrderedDict[KT, VT] :
             OrderedDict if the first argument is an OrderedDict, otherwise dict
 
     SeeAlso:
-        ::py:meth:`UDict.intersection` - object oriented version of this function
+        :py:meth:`UDict.intersection` - object oriented version of this function
 
     Note:
         This function can be used as an alternative to :func:`dict_subset`
@@ -545,7 +560,7 @@ def dict_isect(*args):
                          if k in common_keys)
 
 
-def map_values(func, dict_, cls=None):
+def map_values(func: Union[Callable[[VT], T], Mapping[VT, T]], dict_: Dict[KT, VT], cls: Optional[type] = None) -> Dict[KT, T]:
     """
     Apply a function to every value in a dictionary.
 
@@ -553,16 +568,16 @@ def map_values(func, dict_, cls=None):
 
     Args:
         func (Callable[[VT], T] | Mapping[VT, T]): a function or indexable object
-        dict_ (Dict[KT, VT]): a dictionary
+        dict_ (dict[KT, VT]): a dictionary
         cls (type | None): specifies the dict subclassof the result.
             if unspecified will be dict or OrderedDict. This behavior may
             change.
 
     SeeAlso:
-        ::py:meth:`UDict.map_values` - object oriented version of this function
+        :py:meth:`UDict.map_values` - object oriented version of this function
 
     Returns:
-        Dict[KT, T]: transformed dictionary
+        dict[KT, T]: transformed dictionary
 
     Notes:
         Similar to :py:mod:`dictmap.dict_map`
@@ -593,7 +608,7 @@ def map_values(func, dict_, cls=None):
 map_vals = map_values  # backwards compatibility
 
 
-def map_keys(func, dict_, cls=None):
+def map_keys(func: Union[Callable[[KT], T], Mapping[KT, T]], dict_: Dict[KT, VT], cls: Optional[type] = None) -> Dict[T, VT]:
     """
     Apply a function to every key in a dictionary.
 
@@ -602,16 +617,16 @@ def map_keys(func, dict_, cls=None):
 
     Args:
         func (Callable[[KT], T] | Mapping[KT, T]): a function or indexable object
-        dict_ (Dict[KT, VT]): a dictionary
+        dict_ (dict[KT, VT]): a dictionary
         cls (type | None): specifies the dict subclassof the result.
             if unspecified will be dict or OrderedDict. This behavior may
             change.
 
     SeeAlso:
-        ::py:meth:`UDict.map_keys` - object oriented version of this function
+        :py:meth:`UDict.map_keys` - object oriented version of this function
 
     Returns:
-        Dict[T, VT]: transformed dictionary
+        dict[T, VT]: transformed dictionary
 
     Raises:
         Exception : if multiple keys map to the same value
@@ -640,12 +655,12 @@ def map_keys(func, dict_, cls=None):
     return newdict
 
 
-def sorted_values(dict_, key=None, reverse=False, cls=OrderedDict):
+def sorted_values(dict_: Dict[KT, VT], key: Optional[Callable[[VT], Any]] = None, reverse: bool = False, cls: type = OrderedDict) -> OrderedDict[KT, VT]:
     """
     Return an ordered dictionary sorted by its values
 
     Args:
-        dict_ (Dict[KT, VT]):
+        dict_ (dict[KT, VT]):
             dictionary to sort. The values must be of comparable types.
 
         key (Callable[[VT], Any] | None):
@@ -658,7 +673,7 @@ def sorted_values(dict_, key=None, reverse=False, cls=OrderedDict):
         cls (type): Specifies the dict return type. Default to OrderedDict.
 
     SeeAlso:
-        ::py:meth:`UDict.sorted_values` - object oriented version of this function
+        :py:meth:`UDict.sorted_values` - object oriented version of this function
 
     Returns:
         OrderedDict[KT, VT]: new dictionary where the values are ordered
@@ -688,12 +703,12 @@ def sorted_values(dict_, key=None, reverse=False, cls=OrderedDict):
 sorted_vals = sorted_values  # backwards compatibility
 
 
-def sorted_keys(dict_, key=None, reverse=False, cls=OrderedDict):
+def sorted_keys(dict_: Dict[KT, VT], key: Optional[Callable[[KT], Any]] = None, reverse: bool = False, cls: type = OrderedDict) -> OrderedDict[KT, VT]:
     """
     Return an ordered dictionary sorted by its keys
 
     Args:
-        dict_ (Dict[KT, VT]):
+        dict_ (dict[KT, VT]):
             Dictionary to sort. The keys must be of comparable types.
 
         key (Callable[[KT], Any] | None):
@@ -706,7 +721,7 @@ def sorted_keys(dict_, key=None, reverse=False, cls=OrderedDict):
         cls (type): specifies the dict return type
 
     SeeAlso:
-        ::py:meth:`UDict.sorted_keys` - object oriented version of this function
+        :py:meth:`UDict.sorted_keys` - object oriented version of this function
 
     Returns:
         OrderedDict[KT, VT]: new dictionary where the keys are ordered
@@ -733,12 +748,12 @@ def sorted_keys(dict_, key=None, reverse=False, cls=OrderedDict):
     return newdict
 
 
-def invert_dict(dict_, unique_vals=True, cls=None):
+def invert_dict(dict_: Dict[KT, VT], unique_vals: bool = True, cls: Optional[type] = None) -> Union[Dict[VT, KT], Dict[VT, Set[KT]]]:
     """
     Swaps the keys and values in a dictionary.
 
     Args:
-        dict_ (Dict[KT, VT]): dictionary to invert
+        dict_ (dict[KT, VT]): dictionary to invert
 
         unique_vals (bool): if False, the values of the new
             dictionary are sets of the original keys. Defaults to True.
@@ -748,10 +763,10 @@ def invert_dict(dict_, unique_vals=True, cls=None):
             change.
 
     SeeAlso:
-        ::py:meth:`UDict.invert` - object oriented version of this function
+        :py:meth:`UDict.invert` - object oriented version of this function
 
     Returns:
-        Dict[VT, KT] | Dict[VT, Set[KT]]:
+        dict[VT, KT] | dict[VT, set[KT]]:
             the inverted dictionary
 
     Note:
@@ -797,7 +812,7 @@ def invert_dict(dict_, unique_vals=True, cls=None):
     return inverted
 
 
-def named_product(_=None, **basis):
+def named_product(_: Optional[Dict[str, List[VT]]] = None, **basis: Dict[str, List[VT]]) -> Generator[Dict[str, VT], None, None]:
     """
     Generates the Cartesian product of the ``basis.values()``, where each
     generated item labeled by ``basis.keys()``.
@@ -808,7 +823,7 @@ def named_product(_=None, **basis):
     variables to values).
 
     Args:
-        _ (Dict[str, List[VT]] | None):
+        _ (dict[str, list[VT]] | None):
             Use of this positional argument is not recommend. Instead specify
             all arguments as keyword args. Defaults to None.
 
@@ -816,7 +831,7 @@ def named_product(_=None, **basis):
             keyword args.  This exists to support ordered dictionaries before
             Python 3.6, and may eventually be removed.
 
-        basis (Dict[str, List[VT]]):
+        basis (dict[str, list[VT]]):
             A dictionary where the keys correspond to "columns" and the values
             are a list of possible values that "column" can take.
 
@@ -824,7 +839,7 @@ def named_product(_=None, **basis):
             possible values for that "axes".
 
     Yields:
-        Dict[str, VT] :
+        dict[str, VT] :
             a "row" in the "longform" data containing a point in the Cartesian
             product.
 
@@ -897,12 +912,12 @@ def named_product(_=None, **basis):
         yield kw
 
 
-def varied_values(longform, min_variations=0, default=NoParam):
+def varied_values(longform: List[Dict[KT, VT]], min_variations: int = 0, default: Union[VT, NoParamType] = NoParam) -> Dict[KT, Set[VT]]:
     """
     Given a list of dictionaries, find the values that differ between them.
 
     Args:
-        longform (List[Dict[KT, VT]]):
+        longform (list[dict[KT, VT]]):
             This is longform data, as described in [SeabornLongform]_. It is a
             list of dictionaries.
 
@@ -920,7 +935,7 @@ def varied_values(longform, min_variations=0, default=NoParam):
             Defaults to NoParam.
 
     Returns:
-        Dict[KT, List[VT]] :
+        dict[KT, list[VT]] :
             a mapping from each "column" to the set of unique values it took
             over each "row". If a column is not specified for each row, it is
             assumed to take a `default` value, if it is specified.
@@ -1267,7 +1282,7 @@ class SetDict(dict):
 
     """
 
-    def copy(self):
+    def copy(self) -> SetDict:
         """
         Example:
             >>> import ubelt as ub
@@ -1286,19 +1301,19 @@ class SetDict(dict):
         return self.__class__(self)
 
     # We could just use the builtin variant for this specific operation
-    def __or__(self, other):
+    def __or__(self, other: Union[SupportsKeysAndGetItem[Any, Any], Iterable[Tuple[Any, Any]]]) -> SetDict:
         """
         The ``|`` union operator
 
         Args:
-            other (SupportsKeysAndGetItem[Any, Any] | Iterable[Tuple[Any, Any]]):
+            other (SupportsKeysAndGetItem[Any, Any] | Iterable[tuple[Any, Any]]):
 
         Returns:
             SetDict
         """
         return self.union(other)
 
-    def __and__(self, other):
+    def __and__(self, other: Union[Mapping, Iterable]) -> SetDict:
         """
         The ``&`` intersection operator
 
@@ -1310,7 +1325,7 @@ class SetDict(dict):
         """
         return self.intersection(other)
 
-    def __sub__(self, other):
+    def __sub__(self, other: Union[Mapping, Iterable]) -> SetDict:
         """
         The ``-`` difference operator
 
@@ -1322,7 +1337,7 @@ class SetDict(dict):
         """
         return self.difference(other)
 
-    def __xor__(self, other):
+    def __xor__(self, other: Mapping) -> SetDict:
         """
         The ``^`` symmetric_difference operator
 
@@ -1336,7 +1351,7 @@ class SetDict(dict):
 
     # - reverse versions
 
-    def __ror__(self, other):
+    def __ror__(self, other: Mapping) -> dict:
         """
         Args:
             other (Mapping):
@@ -1359,7 +1374,7 @@ class SetDict(dict):
         """
         return SetDict.union(other, self, cls=self.__class__)
 
-    def __rand__(self, other):
+    def __rand__(self, other: Mapping) -> dict:
         """
         Args:
             other (Mapping):
@@ -1382,7 +1397,7 @@ class SetDict(dict):
         """
         return SetDict.intersection(other, self, cls=self.__class__)
 
-    def __rsub__(self, other):
+    def __rsub__(self, other: Mapping) -> dict:
         """
         Args:
             other (Mapping):
@@ -1405,7 +1420,7 @@ class SetDict(dict):
         """
         return SetDict.difference(other, self, cls=self.__class__)
 
-    def __rxor__(self, other):
+    def __rxor__(self, other: Mapping) -> dict:
         """
         Args:
             other (Mapping):
@@ -1430,12 +1445,12 @@ class SetDict(dict):
 
     # - inplace versions
 
-    def __ior__(self, other):
+    def __ior__(self, other: Union[SupportsKeysAndGetItem[Any, Any], Iterable[Tuple[Any, Any]]]) -> SetDict:
         """
         The inplace union operator ``|=``.
 
         Args:
-            other (SupportsKeysAndGetItem[Any, Any] | Iterable[Tuple[Any, Any]]):
+            other (SupportsKeysAndGetItem[Any, Any] | Iterable[tuple[Any, Any]]):
 
         Returns:
             SetDict
@@ -1454,7 +1469,7 @@ class SetDict(dict):
         self.update(other)
         return self
 
-    def __iand__(self, other):
+    def __iand__(self, other: Union[Mapping, Iterable]) -> SetDict:
         """
         The inplace intersection operator ``&=``.
 
@@ -1477,7 +1492,7 @@ class SetDict(dict):
             del self[k]
         return self
 
-    def __isub__(self, other):
+    def __isub__(self, other: Union[Mapping, Iterable]) -> SetDict:
         """
         The inplace difference operator ``-=``.
 
@@ -1519,7 +1534,7 @@ class SetDict(dict):
             del self[k]
         return self
 
-    def __ixor__(self, other):
+    def __ixor__(self, other: Mapping) -> SetDict:
         """
         The inplace symmetric difference operator ``^=``.
 
@@ -1547,7 +1562,7 @@ class SetDict(dict):
 
     ### Main set operations
 
-    def union(self, *others, cls=None, merge=None):
+    def union(self, *others: object, cls: Optional[type] = None, merge: Optional[Callable] = None) -> dict:
         """
         Return the key-wise union of two or more dictionaries.
 
@@ -1604,7 +1619,7 @@ class SetDict(dict):
             raise NotImplementedError('merge function is not yet implemented')
         return new
 
-    def intersection(self, *others, cls=None, merge=None):
+    def intersection(self, *others: object, cls: Optional[type] = None, merge: Optional[Callable] = None) -> dict:
         """
         Return the key-wise intersection of two or more dictionaries.
 
@@ -1666,7 +1681,7 @@ class SetDict(dict):
             raise NotImplementedError('merge function is not yet implemented')
         return new
 
-    def difference(self, *others, cls=None, merge=None):
+    def difference(self, *others: object, cls: Optional[type] = None, merge: Optional[Callable] = None) -> dict:
         """
         Return the key-wise difference between this dictionary and one or
         more other dictionary / keys.
@@ -1721,7 +1736,7 @@ class SetDict(dict):
             raise NotImplementedError('merge function is not yet implemented')
         return new
 
-    def symmetric_difference(self, *others, cls=None, merge=None):
+    def symmetric_difference(self, *others: object, cls: Optional[type] = None, merge: Optional[Callable] = None) -> dict:
         """
         Return the key-wise symmetric difference between this dictionary and
         one or more other dictionaries.
@@ -1823,7 +1838,7 @@ class UDict(SetDict):
     are less common, but still useful to have.
 
     TODO:
-        - [ ] UbeltDict, UltraDict, not sure what the name is.  We may just rename this to Dict,
+        - [ ] UbeltDict, UltraDict, not sure what the name is.  We may just rename this to dict,
 
     Example:
         >>> import ubelt as ub
@@ -1850,12 +1865,12 @@ class UDict(SetDict):
         >>> assert a.map_values(lambda x: x * 10) == {1: 200, 2: 200, 3: 300, 4: 400}
     """
 
-    def subdict(self, keys, default=NoParam):
+    def subdict(self, keys: Iterable[KT], default: Union[object, NoParamType] = NoParam) -> UDict:
         """
         Get a subset of a dictionary
 
         Args:
-            self (Dict[KT, VT]): dictionary or the implicit instance
+            self (dict[KT, VT]): dictionary or the implicit instance
 
             keys (Iterable[KT]): keys to take from ``self``
 
@@ -1890,12 +1905,12 @@ class UDict(SetDict):
             new = cls([(k, self.get(k, default)) for k in keys])
         return new
 
-    def take(self, keys, default=NoParam):
+    def take(self, keys: Iterable[KT], default: Union[object, NoParamType] = NoParam) -> Generator[VT, None, None]:
         """
         Get values of an iterable of keys.
 
         Args:
-            self (Dict[KT, VT]): dictionary or the implicit instance
+            self (dict[KT, VT]): dictionary or the implicit instance
 
             keys (Iterable[KT]): keys to take from ``self``
 
@@ -1932,12 +1947,12 @@ class UDict(SetDict):
             for k in keys:
                 yield self.get(k, default)
 
-    def invert(self, unique_vals=True):
+    def invert(self, unique_vals: bool = True) -> Union[Dict[VT, KT], Dict[VT, Set[KT]]]:
         """
         Swaps the keys and values in a dictionary.
 
         Args:
-            self (Dict[KT, VT]): dictionary or the implicit instance to invert
+            self (dict[KT, VT]): dictionary or the implicit instance to invert
 
             unique_vals (bool, default=True): if False, the values of the new
                 dictionary are sets of the original keys.
@@ -1947,7 +1962,7 @@ class UDict(SetDict):
                 change.
 
         Returns:
-            Dict[VT, KT] | Dict[VT, Set[KT]]:
+            dict[VT, KT] | dict[VT, set[KT]]:
                 the inverted dictionary
 
         Note:
@@ -1965,18 +1980,18 @@ class UDict(SetDict):
         """
         return invert_dict(self, unique_vals=unique_vals, cls=self.__class__)
 
-    def map_keys(self, func):
+    def map_keys(self, func: Union[Callable[[KT], T], Mapping[KT, T]]) -> Dict[T, VT]:
         """
         Apply a function to every value in a dictionary.
 
         Creates a new dictionary with the same keys and modified values.
 
         Args:
-            self (Dict[KT, VT]): a dictionary or the implicit instance.
+            self (dict[KT, VT]): a dictionary or the implicit instance.
             func (Callable[[VT], T] | Mapping[VT, T]): a function or indexable object
 
         Returns:
-            Dict[KT, T]: transformed dictionary
+            dict[KT, T]: transformed dictionary
 
         Example:
             >>> import ubelt as ub
@@ -1985,18 +2000,18 @@ class UDict(SetDict):
         """
         return map_keys(func, self, cls=self.__class__)
 
-    def map_values(self, func):
+    def map_values(self, func: Union[Callable[[VT], T], Mapping[VT, T]]) -> Dict[KT, T]:
         """
         Apply a function to every value in a dictionary.
 
         Creates a new dictionary with the same keys and modified values.
 
         Args:
-            self (Dict[KT, VT]): a dictionary or the implicit instance.
+            self (dict[KT, VT]): a dictionary or the implicit instance.
             func (Callable[[VT], T] | Mapping[VT, T]): a function or indexable object
 
         Returns:
-            Dict[KT, T]: transformed dictionary
+            dict[KT, T]: transformed dictionary
 
         Example:
             >>> import ubelt as ub
@@ -2005,12 +2020,12 @@ class UDict(SetDict):
         """
         return map_values(func, self, cls=self.__class__)
 
-    def sorted_keys(self, key=None, reverse=False):
+    def sorted_keys(self, key: Optional[Callable[[KT], Any]] = None, reverse: bool = False) -> OrderedDict[KT, VT]:
         """
         Return an ordered dictionary sorted by its keys
 
         Args:
-            self (Dict[KT, VT]):
+            self (dict[KT, VT]):
                 dictionary to sort or the implicit instance.
                 The keys must be of comparable types.
 
@@ -2031,12 +2046,12 @@ class UDict(SetDict):
         """
         return sorted_keys(self, key=key, reverse=reverse, cls=self.__class__)
 
-    def sorted_values(self, key=None, reverse=False):
+    def sorted_values(self, key: Optional[Callable[[VT], Any]] = None, reverse: bool = False) -> OrderedDict[KT, VT]:
         """
         Return an ordered dictionary sorted by its values
 
         Args:
-            self (Dict[KT, VT]):
+            self (dict[KT, VT]):
                 dictionary to sort or the implicit instance.
                 The values must be of comparable types.
 
@@ -2057,12 +2072,12 @@ class UDict(SetDict):
         """
         return sorted_values(self, key=key, reverse=reverse, cls=self.__class__)
 
-    def peek_key(self, default=NoParam):
+    def peek_key(self, default: Union[KT, NoParamType] = NoParam) -> KT:
         """
         Get the first key in the dictionary
 
         Args:
-            self (Dict): a dictionary or the implicit instance
+            self (dict): a dictionary or the implicit instance
 
             default (KT | NoParamType): default item to return if the iterable is empty,
                 otherwise a StopIteration error is raised
@@ -2077,12 +2092,12 @@ class UDict(SetDict):
         from ubelt.util_list import peek
         return peek(self.keys(), default=default)
 
-    def peek_value(self, default=NoParam):
+    def peek_value(self, default: Union[VT, NoParamType] = NoParam) -> VT:
         """
         Get the first value in the dictionary
 
         Args:
-            self (Dict[KT, VT]): a dictionary or the implicit instance
+            self (dict[KT, VT]): a dictionary or the implicit instance
             default (VT | NoParamType): default item to return if the iterable is empty,
                 otherwise a StopIteration error is raised
 
@@ -2115,7 +2130,7 @@ class AutoDict(UDict):
     """
     _base = UDict
 
-    def __getitem__(self, key):
+    def __getitem__(self, key: KT) -> Union[VT, AutoDict]:
         """
         Args:
             key (KT): key to lookup
@@ -2130,7 +2145,7 @@ class AutoDict(UDict):
             value = self[key] = self.__class__()
         return value
 
-    def to_dict(self):
+    def to_dict(self) -> dict:
         """
         Recursively casts a AutoDict into a regular dictionary. All directly
         nested AutoDict values are also converted.

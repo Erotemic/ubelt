@@ -11,13 +11,23 @@ exists on the command line.
 The :func:`argval` function returns the value of a ``--key=value`` style CLI
 argument.
 """
+from __future__ import annotations
 import sys
 from ubelt import util_const
+import typing
 
 __all__ = ['argval', 'argflag']
 
+if typing.TYPE_CHECKING:
+    from typing import TypeVar, Union, Tuple, Optional, Sequence
+    T = TypeVar('T')
 
-def argval(key, default=util_const.NoParam, argv=None):
+
+def argval(
+    key: Union[str, Tuple[str, ...]],
+    default: Union[T, util_const.NoParamType] = util_const.NoParam,
+    argv: Optional[Sequence[str]] = None,
+) -> Union[str, T, util_const.NoParamType]:
     """
     Get the value of a keyword argument specified on the command line.
 
@@ -29,19 +39,19 @@ def argval(key, default=util_const.NoParam, argv=None):
     line parsing that wont be exposed in CLI help docs.
 
     Args:
-        key (str | Tuple[str, ...]):
+        key (str | tuple[str, ...]):
             string or tuple of strings. Each key should be prefixed with two
             hyphens (i.e. ``--``)
 
-        default (Any | NoParamType):
+        default (T | NoParamType):
             a value to return if not specified.
 
-        argv (List[str] | None):
+        argv (list[str] | None):
            The command line arguments to parse.
            If unspecified, uses ``sys.argv`` directly.
 
     Returns:
-        str | Any:
+        str | T | NoParamType:
             value - the value specified after the key. It they key is specified
             multiple times, then the first value is returned.
 
@@ -97,11 +107,13 @@ def argval(key, default=util_const.NoParam, argv=None):
             elif item.startswith(key_ + '='):
                 value = '='.join(item.split('=')[1:])
                 return value
-    value = default
-    return value
+    return default
 
 
-def argflag(key, argv=None):
+def argflag(
+    key: Union[str, Tuple[str, ...]],
+    argv: Optional[Sequence[str]] = None,
+) -> bool:
     """
     Determines if a key is specified on the command line.
 
@@ -109,11 +121,11 @@ def argflag(key, argv=None):
     for multiple aliases of the same flag to be specified.
 
     Args:
-        key (str | Tuple[str, ...]):
+        key (str | tuple[str, ...]):
             string or tuple of strings. Each key should be prefixed with two
             hyphens (i.e. ``--``).
 
-        argv (List[str] | None):
+        argv (list[str] | None):
            The command line arguments to parse.
            If unspecified, uses ``sys.argv`` directly.
 

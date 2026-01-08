@@ -19,11 +19,18 @@ lesser known, but very useful numpy equivalents.
 There are also other numpy inspired functions: :func:`unique`,
 :func:`argunique`, :func:`unique_flags`, and :func:`boolmask`.
 """
+from __future__ import annotations
 import itertools as it
 import math
 import operator
 from collections import abc as collections_abc
 from itertools import zip_longest
+import typing
+if typing.TYPE_CHECKING:
+    from typing import Any, Callable, Iterator, TypeVar
+    VT = TypeVar('VT')
+    T = TypeVar('T')
+    KT = TypeVar('KT')
 from ubelt import util_const
 from ubelt import util_dict
 
@@ -60,7 +67,7 @@ class chunks:
             :func:`more_itertools.divide`,
 
     Yields:
-        List[T]:
+        list[VT]:
             subsequent non-overlapping chunks of the input items
 
     Attributes:
@@ -142,8 +149,13 @@ class chunks:
         >>>     print(subdf)
 
     """
-    def __init__(self, items, chunksize=None, nchunks=None, total=None,
-                 bordermode='none', legacy=False):
+    def __init__(self,
+                 items: collections_abc.Iterable[VT],
+                 chunksize: int | None = None,
+                 nchunks: int | None = None,
+                 total: int | None = None,
+                 bordermode: str = 'none',
+                 legacy: bool = False) -> None:
         """
         Args:
             items (Iterable): input to iterate over
@@ -178,6 +190,7 @@ class chunks:
             bordermode = 'none'
 
         if nchunks is None:
+            assert chunksize is not None
             if total is not None:
                 nchunks = int(math.ceil(total / chunksize))
             remainder = 0
@@ -187,18 +200,18 @@ class chunks:
                     'Need to specify total to use nchunks on an iterable '
                     'without length hints')
             if legacy:
-                chunksize: int = int(math.ceil(total / nchunks))
+                chunksize = int(math.ceil(total / nchunks))
                 remainder = 0
             else:
                 if bordermode == 'none':
                     # I feel like this could be simpler
-                    chunksize: int = max(int(math.floor(total / nchunks)), 1)
-                    nchunks: int = min(int(math.ceil(total / chunksize)), nchunks)
-                    chunked_total: int = chunksize * nchunks
-                    remainder: int = total - chunked_total
+                    chunksize = max(int(math.floor(total / nchunks)), 1)
+                    nchunks = min(int(math.ceil(total / chunksize)), nchunks)
+                    chunked_total = chunksize * nchunks
+                    remainder = total - chunked_total
                 else:
                     # not working
-                    chunksize: int = max(int(math.ceil(total / nchunks)), 1)
+                    chunksize = max(int(math.ceil(total / nchunks)), 1)
                     # Can artificially extend the size in this case
                     # total = chunksize * nchunks
                     remainder = 0
@@ -208,15 +221,16 @@ class chunks:
         self.items = items
         self.total = total
         self.nchunks = nchunks
-        self.chunksize = chunksize
+        assert chunksize is not None
+        self.chunksize: int = chunksize
         self.bordermode = bordermode
 
-    def __len__(self):
+    def __len__(self) -> int:
         if self.nchunks is None:
             raise TypeError('length is unknown')
         return self.nchunks
 
-    def __iter__(self):
+    def __iter__(self) -> collections_abc.Iterator[list[VT]]:
         bordermode = self.bordermode
         items = self.items
         chunksize = self.chunksize
@@ -232,8 +246,7 @@ class chunks:
                 return self.replicate(items, chunksize)
             else:
                 raise ValueError('unknown bordermode=%r' % (bordermode,))
-
-    def _new_iterator(self):
+    def _new_iterator(self) -> collections_abc.Iterator[list[VT]]:
         chunksize = self.chunksize
         nchunks = self.nchunks
         chunksize = self.chunksize
@@ -242,7 +255,7 @@ class chunks:
         if self.bordermode == 'cycle':
             iterator = it.cycle(iter(self.items))
         elif self.bordermode == 'replicate':
-            def replicator(items):
+            def replicator(items: collections_abc.Iterable[VT]) -> collections_abc.Iterator[VT]:
                 for item in items:
                     yield item
                 while True:
@@ -271,7 +284,8 @@ class chunks:
             yield chunk
 
     @staticmethod
-    def noborder(items, chunksize):
+    def noborder(items: collections_abc.Iterable[VT],
+                chunksize: int) -> collections_abc.Generator[list[VT], None, None]:
         # feed the same iter to zip_longest multiple times, this causes it to
         # consume successive values of the same sequence
         sentinel = object()
@@ -282,18 +296,19 @@ class chunks:
             yield [item for item in chunk if item is not sentinel]
 
     @staticmethod
-    def cycle(items, chunksize):
+    def cycle(items: collections_abc.Iterable[VT],
+              chunksize: int) -> collections_abc.Generator[list[VT], None, None]:
         sentinel = object()
         copied_iters = [iter(items)] * chunksize
         chunks_with_sentinals = zip_longest(*copied_iters, fillvalue=sentinel)
         # Fill empty space in the last chunk with values from the beginning
         bordervalues = it.cycle(iter(items))
         for chunk in chunks_with_sentinals:
-            yield [item if item is not sentinel else next(bordervalues)
-                   for item in chunk]
+            yield [item if item is not sentinel else next(bordervalues) for item in chunk]
 
     @staticmethod
-    def replicate(items, chunksize):
+    def replicate(items: collections_abc.Iterable[VT],
+                  chunksize: int) -> collections_abc.Generator[list[VT], None, None]:
         sentinel = object()
         copied_iters = [iter(items)] * chunksize
         # Fill empty space in the last chunk by replicating the last value
@@ -308,7 +323,7 @@ class chunks:
                 yield padded_chunk
 
 
-def iterable(obj, strok=False):
+def iterable(obj: object, strok: bool = False) -> bool:
     """
     Checks if the input implements the iterator interface. An exception is made
     for strings, which return False unless ``strok`` is True
@@ -339,7 +354,11 @@ def iterable(obj, strok=False):
         return strok or not isinstance(obj, str)
 
 
-def take(items, indices, default=util_const.NoParam):
+
+
+def take(items: collections_abc.Sequence[VT] | collections_abc.Mapping[KT, VT],
+         indices: collections_abc.Iterable[int | KT],
+         default: object = util_const.NoParam) -> collections_abc.Generator[VT, None, None]:
     """
     Lookup a subset of an indexable object using a sequence of indices.
 
@@ -404,13 +423,15 @@ def take(items, indices, default=util_const.NoParam):
     """
     if default is util_const.NoParam:
         for index in indices:
-            yield items[index]
+            yield items[index]  # type: ignore[index]
     else:
+        mapping = typing.cast(collections_abc.Mapping, items)
         for index in indices:
-            yield items.get(index, default)
+            yield mapping.get(index, default)  # type: ignore[arg-type]
 
 
-def compress(items, flags):
+def compress(items: collections_abc.Iterable[Any],
+             flags: collections_abc.Iterable[bool]) -> collections_abc.Iterable[Any]:
     """
     Selects from ``items`` where the corresponding value in ``flags`` is True.
 
@@ -440,7 +461,7 @@ def compress(items, flags):
     return it.compress(items, flags)
 
 
-def flatten(nested):
+def flatten(nested: collections_abc.Iterable[collections_abc.Iterable[T]]) -> collections_abc.Iterable[T]:
     """
     Transforms a nested iterable into a flat iterable.
 
@@ -463,7 +484,8 @@ def flatten(nested):
     return it.chain.from_iterable(nested)
 
 
-def unique(items, key=None):
+def unique(items: collections_abc.Iterable[T],
+           key: Callable[[T], Any] | None = None) -> collections_abc.Generator[T, None, None]:
     """
     Generates unique items in the order they appear.
 
@@ -510,7 +532,8 @@ def unique(items, key=None):
                 yield item
 
 
-def argunique(items, key=None):
+def argunique(items: collections_abc.Sequence[VT],
+              key: Callable[[VT], Any] | None = None) -> Iterator[int]:
     """
     Returns indices corresponding to the first instance of each unique item.
 
@@ -539,7 +562,8 @@ def argunique(items, key=None):
         return unique(range(len(items)), key=lambda i: key(items[i]))
 
 
-def unique_flags(items, key=None):
+def unique_flags(items: collections_abc.Sequence[VT],
+                 key: Callable[[VT], Any] | None = None) -> list[bool]:
     """
     Returns a list of booleans corresponding to the first instance of each
     unique item.
@@ -553,7 +577,7 @@ def unique_flags(items, key=None):
             otherwise.
 
     Returns:
-        List[bool] : flags the items that are unique
+        list[bool] : flags the items that are unique
 
     Example:
         >>> import ubelt as ub
@@ -564,6 +588,7 @@ def unique_flags(items, key=None):
         >>> assert flags == [True, False, True, False, False, False, False]
     """
     len_ = len(items)
+    indices: collections_abc.Iterable[int]
     if key is None:
         item_to_index = dict(zip(reversed(items), reversed(range(len_))))
         indices = item_to_index.values()
@@ -573,20 +598,21 @@ def unique_flags(items, key=None):
     return flags
 
 
-def boolmask(indices, maxval=None):
+def boolmask(indices: collections_abc.Iterable[int],
+             maxval: int | None = None) -> list[bool]:
     """
     Constructs a list of booleans where an item is True if its position is in
     ``indices`` otherwise it is False.
 
     Args:
-        indices (List[int]): list of integer indices
+        indices (list[int]): list of integer indices
 
         maxval (int | None):
             length of the returned list. If not specified this is inferred
             using ``max(indices)``
 
     Returns:
-        List[bool]:
+        list[bool]:
             mask - a list of booleans. mask[idx] is True if idx in indices
 
     Note:
@@ -609,7 +635,10 @@ def boolmask(indices, maxval=None):
     return mask
 
 
-def iter_window(iterable, size=2, step=1, wrap=False):
+def iter_window(iterable: collections_abc.Iterable[T],
+                size: int = 2,
+                step: int = 1,
+                wrap: bool = False) -> collections_abc.Iterable[tuple[T, ...]]:
     """
     Iterates through iterable with a window size. This is essentially a 1D
     sliding window.
@@ -673,7 +702,7 @@ def iter_window(iterable, size=2, step=1, wrap=False):
         window_list = []
     """
     # it.tee may be slow, but works on all iterables
-    iter_list = it.tee(iterable, size)
+    iter_list: list[Iterator[T]] | tuple[Iterator[T], ...] = it.tee(iterable, size)
     if wrap:
         # Secondary iterables need to be cycled for wraparound
         iter_list = [iter_list[0]] + list(map(it.cycle, iter_list[1:]))
@@ -691,7 +720,8 @@ def iter_window(iterable, size=2, step=1, wrap=False):
         return window_iter
 
 
-def allsame(iterable, eq=operator.eq):
+def allsame(iterable: collections_abc.Iterable[T],
+            eq: Callable[[T, T], bool] = operator.eq) -> bool:
     """
     Determine if all items in a sequence are the same
 
@@ -734,7 +764,9 @@ def allsame(iterable, eq=operator.eq):
     return all(eq(first, item) for item in iter_)
 
 
-def argsort(indexable, key=None, reverse=False):
+def argsort(indexable: 'collections_abc.Iterable[VT] | collections_abc.Mapping[KT, VT]',
+            key: Callable[[VT], Any] | None = None,
+            reverse: bool = False) -> 'list[int] | list[KT]':
     """
     Returns the indices that would sort a indexable object.
 
@@ -750,7 +782,7 @@ def argsort(indexable, key=None, reverse=False):
         reverse (bool): if True returns in descending order. Default to False.
 
     Returns:
-        List[int] | List[KT]:
+        list[int] | list[KT]:
             indices - list of indices that sorts the indexable
 
     Example:
@@ -786,12 +818,13 @@ def argsort(indexable, key=None, reverse=False):
         indices = [k for v, k in sorted(vk_iter, reverse=reverse)]
     else:
         # If key is provided, call it using the value as input
-        indices = [k for v, k in sorted(vk_iter, key=lambda vk: key(vk[0]),
-                                        reverse=reverse)]
+        key_func = (lambda vk: key(vk[0]))
+        indices = [k for v, k in sorted(vk_iter, key=key_func, reverse=reverse)]
     return indices
 
 
-def argmax(indexable, key=None):
+def argmax(indexable: 'collections_abc.Iterable[VT] | collections_abc.Mapping[KT, VT]',
+           key: Callable[[VT], Any] | None = None) -> int | KT:
     """
     Returns index / key of the item with the largest value.
 
@@ -821,13 +854,18 @@ def argmax(indexable, key=None):
         if key is None:
             return indexable.index(max(indexable))
         else:
-            return indexable.index(max(indexable, key=key))
+            key_func = key
+            return indexable.index(max(
+                indexable,
+                key=key_func,
+            ))
     else:
         # less efficient, but catch all solution
         return argsort(indexable, key=key)[-1]
 
 
-def argmin(indexable, key=None):
+def argmin(indexable: 'collections_abc.Iterable[VT] | collections_abc.Mapping[KT, VT]',
+           key: Callable[[VT], Any] | None = None) -> int | KT:
     """
     Returns index / key of the item with the smallest value.
 
@@ -837,7 +875,7 @@ def argmin(indexable, key=None):
     Args:
         indexable (Iterable[VT] | Mapping[KT, VT]): indexable to sort by
 
-        key (Callable[[VT], VT] | None):
+        key (Callable[[VT], Any] | None):
             If specified, customizes the ordering of the indexable.
 
     Returns:
@@ -857,13 +895,18 @@ def argmin(indexable, key=None):
         if key is None:
             return indexable.index(min(indexable))
         else:
-            return indexable.index(min(indexable, key=key))
+            key_func = key
+            return indexable.index(min(
+                indexable,
+                key=key_func,
+            ))
     else:
         # less efficient, but catch all solution
         return argsort(indexable, key=key)[0]
 
 
-def peek(iterable, default=util_const.NoParam):
+def peek(iterable: collections_abc.Iterable[T],
+         default: T | util_const.NoParamType = util_const.NoParam) -> T | util_const.NoParamType:
     """
     Look at the first item of an iterable. If the input is an iterator, then
     the next element is exhausted (i.e. a pop operation).
@@ -915,8 +958,17 @@ class IterableMixin:
     duplicates = util_dict.find_duplicates
     group = util_dict.group_items
 
-    def chunks(self, size=None, num=None, bordermode='none'):
-        return chunks(self, chunksize=size, nchunks=num, total=len(self), bordermode=bordermode)
+    def chunks(self,
+               size: int | None = None,
+               num: int | None = None,
+               bordermode: str = 'none') -> chunks:
+        return chunks(
+            self,
+            chunksize=size,
+            nchunks=num,
+            total=len(self),
+            bordermode=bordermode,
+        )
 
     # def histogram(self, weights=None, ordered=False, labels=None):
     #     util_dict.dict_hist.__doc__

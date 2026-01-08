@@ -59,41 +59,51 @@ Note:
     getting into the weeds of how we coerce technically non-hashable sequences
     into a hashable encoding.
 """
+from __future__ import annotations
 import dataclasses
 import hashlib
 import math
+import typing
 from collections import OrderedDict
 from ubelt.util_const import NoParam
+
+if typing.TYPE_CHECKING:
+    from os import PathLike
+    from ubelt.util_const import NoParamType
+    # A constructor / factory that returns a hashlib-style hash object.
+    # Kept behind TYPE_CHECKING to ensure near-zero runtime/import-time cost.
+    Hasher = typing.Callable[..., typing.Any]
+
 
 __all__ = ['hash_data', 'hash_file']
 
 # incremented when we make a change that modifies hashes
-HASH_VERSION = 2  # type: int
+HASH_VERSION: int = 2
 
-_ALPHABET_10 = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']  # type: List[str]
+_ALPHABET_10: list[str] = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
 
-_ALPHABET_16 = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
-                'a', 'b', 'c', 'd', 'e', 'f']
+_ALPHABET_16: list[str] = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+                           'a', 'b', 'c', 'd', 'e', 'f']
 
-_ALPHABET_26 = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j',
-                'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't',
-                'u', 'v', 'w', 'x', 'y', 'z']
+_ALPHABET_26: list[str] = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j',
+                           'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't',
+                           'u', 'v', 'w', 'x', 'y', 'z']
 
-_ALPHABET_36 = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
-                'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j',
-                'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't',
-                'u', 'v', 'w', 'x', 'y', 'z']
+_ALPHABET_36: list[str] = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+                           'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j',
+                           'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't',
+                           'u', 'v', 'w', 'x', 'y', 'z']
 
 # RFC 4648 Base32 alphabet
-_ALPHABET_32 = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L',
-                'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X',
-                'Y', 'Z', '2', '3', '4', '5', '6', '7']
+_ALPHABET_32: list[str] = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L',
+                           'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X',
+                           'Y', 'Z', '2', '3', '4', '5', '6', '7']
 
 
-DEFAULT_ALPHABET = _ALPHABET_16  # type: List[str]
+DEFAULT_ALPHABET: list[str] = _ALPHABET_16
 
 
-def b(s):
+def b(s: str) -> bytes:
     """
     Args:
         s (str):
@@ -121,7 +131,7 @@ def b(s):
 # DEFAULT_HASHER = hashlib.sha1  # fast algo, but has a known collision
 # DEFAULT_HASHER = hashlib.sha512  # most robust algo, but slower than others
 
-DEFAULT_HASHER = hashlib.sha512  # type: Callable
+DEFAULT_HASHER: typing.Callable[..., "hashlib._Hash"] = hashlib.sha512
 
 
 # This controls if types are used when generating hashable sequences for more
@@ -138,7 +148,7 @@ _COMPATIBLE_HASHABLE_SEQUENCE_TYPES_DEFAULT = True
 #     # Python seems to have been compiled without OpenSSL
 #     HASH = None
 
-def _int_to_bytes(int_):
+def _int_to_bytes(int_: int) -> bytes:
     r"""
     Converts an integer into its byte representation
     assumes int32 by default, but dynamically handles larger ints
@@ -165,7 +175,7 @@ def _int_to_bytes(int_):
     return bytes_
 
 
-def _bytes_to_int(bytes_):
+def _bytes_to_int(bytes_: bytes) -> int:
     r"""
     Converts a string of bytes into its integer representation (big-endian)
 
@@ -190,30 +200,30 @@ class _Hashers:
     This class is used to lazy load them.
 
     Attributes:
-        algos (Dict[str, object]):
-        aliases (Dict[str, str]):
+        algos (dict[str, object]):
+        aliases (dict[str, str]):
     """
-    def __init__(self):
-        self.algos = {}    # type: Dict[str, object]
-        self.aliases = {}  # type: Dict[str, str]
+    def __init__(self) -> None:
+        self.algos: dict[str, object] = {}
+        self.aliases: dict[str, str] = {}
         self._lazy_queue = [
             self._register_xxhash,
             self._register_blake3,
             self._register_hashlib,
         ]
 
-    def available(self):
+    def available(self) -> list[str]:
         """
         The names of available hash algorithms
 
         Returns:
-            List[str]
+            list[str]
         """
         if self._lazy_queue:  # nocover
             self._evaluate_registration_queue()
         return list(self.algos.keys())
 
-    def _evaluate_registration_queue(self):
+    def _evaluate_registration_queue(self) -> None:
         for func in self._lazy_queue:
             try:
                 func()
@@ -221,7 +231,7 @@ class _Hashers:
                 ...
         self._lazy_queue.clear()
 
-    def __contains__(self, key):
+    def __contains__(self, key: str) -> bool:
         """
         Args:
             key (str): name of hash algo to check
@@ -248,7 +258,7 @@ class _Hashers:
         self.algos['blake3'] = blake3.blake3
         self.aliases['b3'] = 'blake3'
 
-    def _register_hashlib(self):
+    def _register_hashlib(self) -> None:
         guaranteed = set(hashlib.algorithms_guaranteed)
         for key in guaranteed:  # nocover
             self.algos[key] = getattr(hashlib, key)
@@ -260,14 +270,14 @@ class _Hashers:
             for key in extra:
                 self.algos[key] = hashlib.new(key)
 
-    def lookup(self, hasher):
+    def lookup(self, hasher: "typing.Union[NoParamType, str, typing.Any]") -> "typing.Callable[[], typing.Any]":
         """
         Args:
-            hasher (NoParamType | str | Any):
+            hasher (NoParamType | str | object):
                 something coercible to a hasher
 
         Returns:
-            Callable: a function to construct the requested hahser
+            typing.Callable: a function to construct the requested hahser
         """
         if hasher is NoParam or hasher == 'default':
             hasher = DEFAULT_HASHER
@@ -338,7 +348,7 @@ def _rectify_base(base):
     transforms base shorthand into the full list representation
 
     Args:
-        base (str | int | List[str]):
+        base (str | int | list[str] | tuple[str, ...]):
             Can be a list of characters in the base.
             Can be a number indicating the size of the base (only 26, 32, 26,
             16, and 10 are currently allowed).
@@ -388,11 +398,11 @@ class HashableExtensions:
         this class can be created and passed as arguments to hash_data.
 
     Attributes:
-        iterable_checks (List[Callable]):
+        iterable_checks (list[typing.Callable[..., bool]]):
     """
-    def __init__(self):
-        self.iterable_checks = []
-        self._lazy_queue = []  # type: List[Callable]  # NOQA
+    def __init__(self) -> None:
+        self.iterable_checks: list[typing.Callable[..., bool]] = []
+        self._lazy_queue: list[typing.Callable[[], None]] = []
 
         # New singledispatch registry implementation
         from functools import singledispatch
@@ -401,12 +411,12 @@ class HashableExtensions:
         _hash_dispatch.__is_base__ = True
         self._hash_dispatch = singledispatch(_hash_dispatch)
 
-    def _evaluate_lazy_queue(self):
+    def _evaluate_lazy_queue(self) -> None:
         for func in self._lazy_queue:
             func()
         self._lazy_queue.clear()
 
-    def register(self, hash_types):
+    def register(self, hash_types: "typing.Union[type, tuple[type, ...], list[type]]") -> "typing.Callable[..., typing.Any]":
         """
         Registers a function to generate a hash for data of the appropriate
         types. This can be used to register custom classes. Internally this is
@@ -417,10 +427,10 @@ class HashableExtensions:
         hashed.
 
         Args:
-            hash_types (type | Tuple[type]):
+            hash_types (type | tuple[type, ...] | list[type]):
 
         Returns:
-            Callable: closure to be used as the decorator
+            typing.Callable: closure to be used as the decorator
 
         Example:
             >>> import ubelt as ub
@@ -502,7 +512,7 @@ class HashableExtensions:
             return hash_func
         return _decor_closure
 
-    def lookup(self, data):
+    def lookup(self, data: object) -> "typing.Callable[..., tuple[bytes, bytes]]":
         """
         Returns an appropriate function to hash ``data`` if one has been
         registered.
@@ -511,7 +521,7 @@ class HashableExtensions:
             data (object): the object the user would like to hash
 
         Returns:
-            Callable: a function that can hash the object
+            typing.Callable: a function that can hash the object
 
         Raises:
             TypeError : if data has no registered hash methods
@@ -620,15 +630,15 @@ class HashableExtensions:
         hashable = b''.join(seq)
         return prefix, hashable
 
-    def add_iterable_check(self, func):
+    def add_iterable_check(self, func: "typing.Callable[..., bool]") -> "typing.Callable[..., bool]":
         """
         Registers a function that detects when a type is iterable
 
         Args:
-            func (Callable):
+            func (typing.Callable):
 
         Returns:
-            Callable
+            typing.Callable
         """
         self.iterable_checks.append(func)
         return func
@@ -945,20 +955,20 @@ class _HashTracer:
     Helper class to extract hashed sequences
 
     Attributes:
-        sequence (List[bytes]):
+        sequence (list[bytes]):
     """
 
-    def __init__(self):
-        self.sequence = []  # type: List[bytes]
+    def __init__(self) -> None:
+        self.sequence: list[bytes] = []
 
-    def update(self, item):
+    def update(self, item: bytes) -> None:
         """
         Args:
             item (bytes):
         """
         self.sequence.append(item)
 
-    def hexdigest(self):
+    def hexdigest(self) -> bytes:
         """
         Returns:
             bytes
@@ -992,7 +1002,7 @@ def _convert_to_hashable(data, types=True, extensions=None):
         types (bool): include type prefixes in the hash
 
     Returns:
-        Tuple[bytes, bytes]: prefix, hashable:
+        tuple[bytes, bytes]: prefix, hashable:
             a prefix hinting the original data type and the byte representation
             of ``data``.
 
@@ -1215,8 +1225,14 @@ def _digest_hasher(hasher, base):
 
 
 # @profile
-def hash_data(data, hasher=NoParam, base=NoParam, types=False, convert=False,
-              extensions=None):
+def hash_data(
+    data: object,
+    hasher: "typing.Union[str, Hasher, NoParamType]" = NoParam,
+    base: "typing.Union[list[str], tuple[str, ...], str, NoParamType]" = NoParam,
+    types: bool = False,
+    convert: bool = False,
+    extensions: "typing.Optional[HashableExtensions]" = None,
+) -> str:
     """
     Get a unique hash depending on the state of the data.
 
@@ -1230,7 +1246,7 @@ def hash_data(data, hasher=NoParam, base=NoParam, types=False, convert=False,
             (e.g.  'sha1', 'sha512', 'md5') as well as 'xxh32' and 'xxh64' if
             :mod:`xxhash` is installed. Defaults to 'sha512'.
 
-        base (List[str] | str | NoParamType):
+        base (list[str] | tuple[str, ...] | str | NoParamType):
             list of symbols or shorthand key.
             Valid keys are 'dec', 'hex', 'abc', and 'alphanum', 10, 16, 26, 32.
             Defaults to 'hex'.
@@ -1290,8 +1306,14 @@ def hash_data(data, hasher=NoParam, base=NoParam, types=False, convert=False,
     return text
 
 
-def hash_file(fpath, blocksize=1048576, stride=1, maxbytes=None,
-              hasher=NoParam, base=NoParam):
+def hash_file(
+    fpath: "typing.Union[str, PathLike[str]]",
+    blocksize: int = 1048576,
+    stride: int = 1,
+    maxbytes: "typing.Optional[int]" = None,
+    hasher: "typing.Union[str, Hasher, NoParamType]" = NoParam,
+    base: "typing.Union[list[str], tuple[str, ...], int, str, NoParamType]" = NoParam,
+) -> str:
     r"""
     Hashes the data in a file on disk.
 
@@ -1299,7 +1321,7 @@ def hash_file(fpath, blocksize=1048576, stride=1, maxbytes=None,
     sha1sum, sha512sum, md5sum, etc...)
 
     Args:
-        fpath (PathLike):
+        fpath (str | PathLike[str]):
             location of the file to be hashed.
 
         blocksize (int):
@@ -1322,7 +1344,7 @@ def hash_file(fpath, blocksize=1048576, stride=1, maxbytes=None,
             (e.g.  'sha1', 'sha512', 'md5') as well as 'xxh32' and 'xxh64' if
             :mod:`xxhash` is installed.  Defaults to 'sha512'.
 
-        base (List[str] | int | str | NoParamType):
+        base (list[str] | tuple[str, ...] | int | str | NoParamType):
             list of symbols or shorthand key.
             Valid keys are 'dec', 'hex', 'abc', and 'alphanum', 10, 16, 26, 32.
             Defaults to 'hex'.
@@ -1454,8 +1476,8 @@ def hash_file(fpath, blocksize=1048576, stride=1, maxbytes=None,
 
 # Give the hash_data function itself a reference to the default extensions
 # register method so the user can modify them without accessing this module
-hash_data.extensions = _HASHABLE_EXTENSIONS
-hash_data.register = _HASHABLE_EXTENSIONS.register
+hash_data.extensions = _HASHABLE_EXTENSIONS  # type: ignore[attr-defined]
+hash_data.register = _HASHABLE_EXTENSIONS.register  # type: ignore[attr-defined]
 
 
 # class Hasher:

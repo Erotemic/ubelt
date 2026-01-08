@@ -13,17 +13,50 @@ checks if the data already exists in the download location, and only downloads
 if it needs to.
 
 """
+
+from __future__ import annotations
+
+import typing
+
 from ubelt.util_const import NoParam
 from os.path import basename, join, exists, dirname, split
 import os
 
 
+if typing.TYPE_CHECKING:
+    import datetime
+    from ubelt.util_const import NoParamType
+
+    class _Hasher(typing.Protocol):
+        """Minimal protocol for runtime hash objects used by :func:`download`.
+
+        This is *type-checking only* and never evaluated at runtime.
+        """
+
+        name: str
+
+        def update(self, data: bytes) -> None: ...
+        def hexdigest(self) -> str: ...
+
+
 __all__ = ['download', 'grabdata']
 
 
-def download(url, fpath=None, dpath=None, fname=None, appname=None,
-             hash_prefix=None, hasher='sha512', chunksize=8192, filesize=None,
-             verbose=1, timeout=NoParam, progkw=None, requestkw=None):
+def download(
+    url: str,
+    fpath: typing.Optional[typing.Union[str, os.PathLike, typing.BinaryIO]] = None,
+    dpath: typing.Optional[typing.Union[str, os.PathLike]] = None,
+    fname: typing.Optional[str] = None,
+    appname: typing.Optional[str] = None,
+    hash_prefix: typing.Optional[str] = None,
+    hasher: typing.Union[str, '_Hasher'] = 'sha512',
+    chunksize: int = 8192,
+    filesize: typing.Optional[int] = None,
+    verbose: typing.Union[int, bool] = 1,
+    timeout: typing.Union[float, 'NoParamType'] = NoParam,
+    progkw: typing.Union[typing.Mapping[str, typing.Any], 'NoParamType', None] = None,
+    requestkw: typing.Union[typing.Mapping[str, typing.Any], 'NoParamType', None] = None,
+) -> typing.Union[str, os.PathLike, typing.BinaryIO]:
     """
     Downloads a url to a file on disk and returns the path.
 
@@ -36,13 +69,13 @@ def download(url, fpath=None, dpath=None, fname=None, appname=None,
         url (str):
             The url to download.
 
-        fpath (str | PathLike | io.BytesIO | None):
+        fpath (str | os.PathLike[str] | typing.BinaryIO | None):
             The path to download to. Defaults to basename of url and ubelt's
             application cache. If this is a :class:`io.BytesIO` object then
             information is directly written to this object (note this prevents
             the use of temporary files).
 
-        dpath (str | PathLike | None):
+        dpath (str | os.PathLike[str] | None):
             where to download the file. If unspecified `appname` is used to
             determine this. Mutually exclusive with fpath.
 
@@ -54,11 +87,11 @@ def download(url, fpath=None, dpath=None, fname=None, appname=None,
             ``ub.Path.appdir(appname or 'ubelt', type='cache')``
             if dpath and fpath are not given.
 
-        hash_prefix (None | str):
+        hash_prefix (str | None):
             If specified, download will retry / error if the file hash
             does not match this value. Defaults to None.
 
-        hasher (str | Hasher):
+        hasher (str | _Hasher):
             If hash_prefix is specified, this indicates the hashing
             algorithm to apply to the file. Defaults to sha512.
 
@@ -78,20 +111,20 @@ def download(url, fpath=None, dpath=None, fname=None, appname=None,
             This only works for HTTP, HTTPS and FTP connections for blocking
             operations like the connection attempt.
 
-        progkw (Dict | NoParamType | None):
+        progkw (dict[str, object] | NoParamType | None):
             if specified provides extra arguments to the progress iterator.
             See :class:`ubelt.progiter.ProgIter` for available options.
 
-        requestkw (Dict | NoParamType | None):
+        requestkw (dict[str, object] | NoParamType | None):
             if specified provides extra arguments to
             :class:`urllib.request.Request`, which can be used to customize
             headers and other low level information sent to the target server.
-            The common use-case would be to specify ``headers: Dict[str, str]``
+            The common use-case would be to specify ``headers: dict[str, str]``
             in order to "spoof" the user agent. E.g.
             ``headers={'User-Agent': 'Mozilla/5.0'}``. (new in ubelt 1.3.7).
 
     Returns:
-        str | PathLike: fpath - path to the downloaded file.
+        str | os.PathLike[str] | typing.BinaryIO: fpath - path to the downloaded file.
 
     Raises:
 
@@ -317,9 +350,19 @@ def download(url, fpath=None, dpath=None, fname=None, appname=None,
     return fpath
 
 
-def grabdata(url, fpath=None, dpath=None, fname=None, redo=False,
-             verbose=1, appname=None, hash_prefix=None, hasher='sha512',
-             expires=None, **download_kw):
+def grabdata(
+    url: str,
+    fpath: typing.Optional[typing.Union[str, os.PathLike]] = None,
+    dpath: typing.Optional[typing.Union[str, os.PathLike]] = None,
+    fname: typing.Optional[str] = None,
+    redo: bool = False,
+    verbose: int = 1,
+    appname: typing.Optional[str] = None,
+    hash_prefix: typing.Optional[str] = None,
+    hasher: typing.Union[str, '_Hasher'] = 'sha512',
+    expires: typing.Optional[typing.Union[str, int, 'datetime.datetime']] = None,
+    **download_kw: typing.Any,
+) -> typing.Union[str, os.PathLike]:
     """
     Downloads a file, caches it, and returns its local path.
 
@@ -330,15 +373,15 @@ def grabdata(url, fpath=None, dpath=None, fname=None, redo=False,
     Args:
         url (str): url of the file to download
 
-        fpath (Optional[str | PathLike]):
+        fpath (str | os.PathLike[str] | None):
             The full path to download the file to. If unspecified, the
             arguments `dpath` and `fname` are used to determine this.
 
-        dpath (Optional[str | PathLike]):
+        dpath (str | os.PathLike[str] | None):
             where to download the file. If unspecified `appname` is used to
             determine this. Mutually exclusive with fpath.
 
-        fname (Optional[str]):
+        fname (str | None):
             What to name the downloaded file. Defaults to the url basename.
             Mutually exclusive with fpath.
 
@@ -351,12 +394,12 @@ def grabdata(url, fpath=None, dpath=None, fname=None, redo=False,
             ``ub.get_app_cache_dir(appname or 'ubelt')`` if dpath and fpath are
             not given.
 
-        hash_prefix (None | str):
+        hash_prefix (str | None):
             If specified, grabdata verifies that this matches the hash of the
             file, and then saves the hash in a adjacent file to certify that
             the download was successful. Defaults to None.
 
-        hasher (str | Hasher):
+        hasher (str | _Hasher):
             If hash_prefix is specified, this indicates the hashing
             algorithm to apply to the file. Defaults to sha512.
             NOTE: Only pass hasher as a string. Passing as an instance is
@@ -380,7 +423,7 @@ def grabdata(url, fpath=None, dpath=None, fname=None, redo=False,
         print(', '.join([f'``{k}``' for k in extra.keys()]))
 
     Returns:
-        str | PathLike: fpath - path to downloaded or cached file.
+        str | os.PathLike[str]: fpath - path to downloaded or cached file.
 
     CommandLine:
         xdoctest -m ubelt.util_download grabdata --network

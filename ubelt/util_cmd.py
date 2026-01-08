@@ -8,7 +8,7 @@ means for interacting with the command line.  This uses
 write to stdout and stderr.
 
 (2) Always specify the command as a string. The :mod:`subprocess` module
-expects the command as either a  ``List[str]`` if ``shell=False`` and ``str``
+expects the command as either a  ``list[str]`` if ``shell=False`` and ``str``
 if ``shell=True``. If necessary, :func:`ubelt.util_cmd.cmd` will automatically
 convert from one format to the other, so passing in either case will work.
 
@@ -80,8 +80,19 @@ Get programmatic access AND show it on screen
     # ubelt has "tee" functionality
     ub.cmd(['ls', '-l'], verbose=1)
 """
-import sys
+from __future__ import annotations
+
 import os
+import sys
+import typing
+
+if typing.TYPE_CHECKING:
+    from collections.abc import Iterator, Sequence
+
+    import io
+    import queue
+    import subprocess
+    import threading
 
 
 __pitch__ = """
@@ -119,30 +130,30 @@ class CmdOutput(dict):
     """
 
     @property
-    def stdout(self):
+    def stdout(self) -> str | bytes | None:
         """
         Returns:
-            str | bytes
+            str | bytes | None
         """
         return self['out']
 
     @property
-    def stderr(self):
+    def stderr(self) -> str | bytes | None:
         """
         Returns:
-            str | bytes
+            str | bytes | None
         """
         return self['err']
 
     @property
-    def returncode(self):
+    def returncode(self) -> int:
         """
         Returns:
             int
         """
         return self['ret']
 
-    def check_returncode(self):
+    def check_returncode(self) -> None:
         """Raise CalledProcessError if the exit code is non-zero."""
         import subprocess
         if self.returncode:
@@ -150,13 +161,23 @@ class CmdOutput(dict):
                 self.returncode, self.args, self.stdout, self.stderr)
 
 
-def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
-        env=None, tee_backend='auto', check=False, system=False, timeout=None,
-        capture=True,
-        # Do we support these?
-        # universal_newlines=True,
-        # stdout='unused', stderr='unused'
-        ):
+def cmd(
+    command: str | os.PathLike[str] | Sequence[str | os.PathLike[str]],
+    shell: bool = False,
+    detach: bool = False,
+    verbose: int = 0,
+    tee: bool | None = None,
+    cwd: str | os.PathLike[str] | None = None,
+    env: dict[str, str] | None = None,
+    tee_backend: str = 'auto',
+    check: bool = False,
+    system: bool = False,
+    timeout: float | None = None,
+    capture: bool = True,
+    # Do we support these?
+    # universal_newlines=True,
+    # stdout='unused', stderr='unused'
+) -> CmdOutput:
     """
     Executes a command in a subprocess.
 
@@ -169,7 +190,7 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
     run in the background (eventually we may return a Future object instead).
 
     Args:
-        command (str | List[str]):
+        command (str | os.PathLike[str] | Sequence[str | os.PathLike[str]]):
             command string, tuple of executable and args, or shell command.
 
         shell (bool):
@@ -189,11 +210,11 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
             from the command. If not specified, defaults to True if verbose >
             0.  If detach is True, then this argument is ignored.
 
-        cwd (str | PathLike | None):
+        cwd (str | os.PathLike[str] | None):
             Path to run command. Defaults to current working directory if
             unspecified.
 
-        env (Dict[str, str] | None):
+        env (dict[str, str] | None):
             environment passed to Popen
 
         tee_backend (str): backend for tee output.
@@ -220,7 +241,7 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
             information dictionary. Ignored if detach or system is True.
 
     Returns:
-        dict | CmdOutput:
+        CmdOutput:
             info - information about command status.
             if detach is False ``info`` contains captured standard out,
             standard error, and the return code
@@ -345,7 +366,7 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
 
     # TODO: stdout, stderr - experimental - custom file to pipe stdout/stderr to
 
-    # Transform the input into Tuple[str] or str, depending on shell / system
+    # Transform the input into tuple[str] or str, depending on shell / system
     args, command_text = _resolve_command(command, shell=shell, system=system)
 
     if tee is None:
@@ -497,12 +518,16 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
     return info
 
 
-def _resolve_command(command, shell=False, system=False):
+def _resolve_command(
+    command: str | os.PathLike[str] | Sequence[str | os.PathLike[str]],
+    shell: bool = False,
+    system: bool = False,
+) -> tuple[str | list[str], str]:
     """
-    Transform the input into the appropriate Tuple[str] or str form.
+    Transform the input into the appropriate tuple[str] or str form.
 
     Returns:
-        Tuple[str | Tuple[str, ...], str]:
+        tuple[str | list[str], str]:
             Arguments that can be passed to the backend and the text form of
             the command.
     """
@@ -535,11 +560,11 @@ def _resolve_command(command, shell=False, system=False):
         # When shell=False, args is a list of executable and arguments
         if command_tup is None:
             if sys.platform.startswith('win32'):  # nocover
-                # On windows when shell=False, args can be a str | List[str]
+                # On windows when shell=False, args can be a str | list[str]
                 # as noted in [SO_33560364]
                 args = command_text
             else:
-                # On linux when shell=False, args must be a List[str]
+                # On linux when shell=False, args must be a list[str]
                 import shlex
                 args = shlex.split(command_text)
         else:
@@ -547,13 +572,13 @@ def _resolve_command(command, shell=False, system=False):
     return args, command_text
 
 
-def _textio_iterlines(stream):
+def _textio_iterlines(stream: io.TextIOBase) -> Iterator[str]:
     """
     Iterates over lines in a TextIO stream until an EOF is encountered.
     This is the iterator version of stream.readlines()
 
     Args:
-        stream (io.TextIOWrapper): The stream to finish reading.
+        stream (io.TextIOBase): The stream to finish reading.
 
     Yields:
         str: a line read from the stream.
@@ -576,22 +601,33 @@ def _textio_iterlines(stream):
         ...
 
 
-def _proc_async_iter_stream(proc, stream, buffersize=1, timeout=None):
+def _proc_async_iter_stream(
+    proc: subprocess.Popen,
+    stream: io.TextIOBase,
+    buffersize: int = 1,
+    timeout: float | None = None,
+) -> tuple[threading.Thread, "queue.Queue[str | None]", "queue.Queue[object]"]:
     """
-    Reads output from a process in a separate thread
+    Reads output from a process in a separate thread.
 
     Args:
-        proc (subprocess.Popen): The process being run
+        proc (subprocess.Popen): The process being run.
 
-        stream (io.TextIOWrapper): A stream belonging to the process
-            e.g. ``proc.stdout`` or ``proc.stderr``.
+        stream (io.TextIOBase):
+            A stream belonging to the process, e.g. ``proc.stdout`` or
+            ``proc.stderr``.
 
-        buffersize (int): Size of the returned queue.
+        buffersize (int): Maximum size of the returned output queue.
+
+        timeout (float | None):
+            If specified, the worker periodically checks if it was asked to
+            stop early.
 
     Returns:
-        queue.Queue:
-            The queue that the output lines will be asynchronously written to
-            as they are read from the stream.
+        tuple[threading.Thread, queue.Queue[str | None], queue.Queue[object]]:
+            A 3-tuple of (io_thread, out_queue, control_queue). The thread reads
+            lines from ``stream`` and pushes them onto ``out_queue``.
+            Putting any item into ``control_queue`` requests the worker stop.
     """
     import queue
     import threading
@@ -606,7 +642,13 @@ def _proc_async_iter_stream(proc, stream, buffersize=1, timeout=None):
     return io_thread, out_queue, control_queue
 
 
-def _enqueue_output_thread_worker(proc, stream, out_queue, control_queue, timeout=None):
+def _enqueue_output_thread_worker(
+    proc: subprocess.Popen,
+    stream: io.TextIOBase,
+    out_queue: "queue.Queue[str | None]",
+    control_queue: "queue.Queue[object]",
+    timeout: float | None = None,
+) -> None:
     """
     Thread worker function
 
@@ -617,14 +659,14 @@ def _enqueue_output_thread_worker(proc, stream, out_queue, control_queue, timeou
     Args:
         proc (subprocess.Popen): The process being run
 
-        stream (io.TextIOWrapper): A stream belonging to the process
+        stream (io.TextIOBase): A stream belonging to the process
             e.g. ``proc.stdout`` or ``proc.stderr``.
 
-        out_queue (queue.Queue): The queue to write to.
+        out_queue (queue.Queue[str | None]): The queue to write to.
 
-        control_queue (queue.Queue): For sending a signal to stop the thread
+        control_queue (queue.Queue[object]): For sending a signal to stop the thread.
 
-        timeout (None | float): amount of time to allow before stopping
+        timeout (float | None): amount of time to allow before stopping
     """
     import queue
     # logger.debug(f"Start worker for {id(stream)=} with {timeout=}")
@@ -692,7 +734,7 @@ def _enqueue_output_thread_worker(proc, stream, out_queue, control_queue, timeou
         return
 
 
-def _proc_iteroutput_thread(proc, timeout=None):
+def _proc_iteroutput_thread(proc: subprocess.Popen, timeout: float | None = None) -> Iterator[tuple[str | None, str | None]]:
     """
     Iterates over output from a process line by line.
 
@@ -705,7 +747,10 @@ def _proc_iteroutput_thread(proc, timeout=None):
         but I cannot guarantee that there isn't an issue on our end.
 
     Yields:
-        Tuple[str, str]: oline, eline - stdout and stderr line
+        tuple[str | None, str | None]: oline, eline - stdout / stderr lines (at least one is not None).
+
+    Note:
+        If a timeout is specified and exceeded, this yields ``(subprocess.TimeoutExpired, subprocess.TimeoutExpired)`` as a sentinel.
 
     References:
         .. [SO_375427] https://stackoverflow.com/questions/375427/non-blocking-read-subproc
@@ -758,7 +803,7 @@ def _proc_iteroutput_thread(proc, timeout=None):
             yield oline, eline
 
 
-def _proc_iteroutput_select(proc, timeout=None):
+def _proc_iteroutput_select(proc: subprocess.Popen, timeout: float | None = None) -> Iterator[tuple[str | None, str | None]]:
     """
     Iterates over output from a process line by line
 
@@ -768,10 +813,13 @@ def _proc_iteroutput_select(proc, timeout=None):
     Args:
         proc (subprocess.Popen): the process being run
 
-        timeout (None | float): amount of time to allow before stopping
+        timeout (float | None): amount of time to allow before stopping
 
     Yields:
-        Tuple[str, str]: oline, eline - stdout and stderr line
+        tuple[str | None, str | None]: oline, eline - stdout / stderr lines (at least one is not None).
+
+    Note:
+        If a timeout is specified and exceeded, this yields ``(subprocess.TimeoutExpired, subprocess.TimeoutExpired)`` as a sentinel.
     """
     from itertools import zip_longest
     import select
@@ -806,8 +854,14 @@ def _proc_iteroutput_select(proc, timeout=None):
         yield oline, eline
 
 
-def _tee_output(proc, stdout=None, stderr=None, backend='thread',
-                timeout=None, command_text=None):
+def _tee_output(
+    proc: subprocess.Popen,
+    stdout: io.TextIOBase | None = None,
+    stderr: io.TextIOBase | None = None,
+    backend: str = "thread",
+    timeout: float | None = None,
+    command_text: str | None = None,
+) -> tuple[str, str]:
     """
     Simultaneously reports and captures stdout and stderr from a process
 
@@ -817,9 +871,9 @@ def _tee_output(proc, stdout=None, stderr=None, backend='thread',
     Args:
         proc (subprocess.Popen): the process being run
 
-        stdout (io.TextIOWrapper): typically sys.stdout
+        stdout (io.TextIOBase | None): typically sys.stdout
 
-        stderr (io.TextIOWrapper): typically sys.stderr
+        stderr (io.TextIOBase | None): typically sys.stderr
 
         backend (str): thread, select or auto
 
@@ -828,7 +882,7 @@ def _tee_output(proc, stdout=None, stderr=None, backend='thread',
         command_text (str): used only to construct a TimeoutExpired error.
 
     Returns:
-        Tuple[str, str]: recorded stdout and stderr
+        tuple[str, str]: recorded stdout and stderr (text)
     """
     import subprocess
     logged_out = []
