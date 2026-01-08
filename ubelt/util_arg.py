@@ -13,7 +13,7 @@ argument.
 """
 from __future__ import annotations
 import sys
-from typing import TypeVar
+from typing import List, Optional, Tuple, TypeVar, Union
 from ubelt import util_const
 
 __all__ = ['argval', 'argflag']
@@ -21,9 +21,11 @@ __all__ = ['argval', 'argflag']
 T = TypeVar('T')
 
 
-def argval(key: 'str | tuple[str, ...]',
-           default: 'T | util_const.NoParamType' = util_const.NoParam,
-           argv: 'list[str] | None' = None) -> 'str | T | util_const.NoParamType':
+def argval(
+    key: Union[str, Tuple[str, ...]],
+    default: Union[T, util_const.NoParamType] = util_const.NoParam,
+    argv: Optional[List[str]] = None,
+) -> Union[str, T, util_const.NoParamType]:
     """
     Get the value of a keyword argument specified on the command line.
 
@@ -106,8 +108,10 @@ def argval(key: 'str | tuple[str, ...]',
     return default
 
 
-def argflag(key: 'str | tuple[str, ...]',
-            argv: 'list[str] | None' = None) -> bool:
+def argflag(
+    key: Union[str, Tuple[str, ...]],
+    argv: Optional[List[str]] = None,
+) -> bool:
     """
     Determines if a key is specified on the command line.
 

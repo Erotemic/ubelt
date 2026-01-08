@@ -33,7 +33,7 @@ Example:
     no param specified
 """
 
-from typing import cast
+from typing import Dict, Tuple, Type, cast
 
 __all__ = ['NoParam']
 
@@ -128,43 +128,43 @@ class NoParamType:
         >>> assert all(not v for v in versions.values())
         >>> assert all(not bool(v) for v in versions.values())
     """
-    def __new__(cls):
+    def __new__(cls) -> 'NoParamType':
         """
         Returns:
             NoParamType
         """
         return NoParam
-    def __reduce__(self):
+    def __reduce__(self) -> Tuple[Type['NoParamType'], Tuple[()]]:
         """
         Returns:
             Tuple[type, Tuple]
         """
         return (NoParamType, ())
-    def __copy__(self):
+    def __copy__(self) -> 'NoParamType':
         """
         Returns:
             NoParamType
         """
         return NoParam
-    def __deepcopy__(self, memo):
+    def __deepcopy__(self, memo: Dict[int, object]) -> 'NoParamType':
         """
         Returns:
             NoParamType
         """
         return NoParam
-    def __str__(cls):
+    def __str__(cls) -> str:
         """
         Returns:
             str
         """
         return 'NoParam'
-    def __repr__(cls):
+    def __repr__(cls) -> str:
         """
         Returns:
             str
         """
         return 'NoParam'
-    def __bool__(self):
+    def __bool__(self) -> bool:
         """
         Returns:
             bool

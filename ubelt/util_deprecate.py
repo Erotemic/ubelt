@@ -4,17 +4,27 @@ Currently this module provides one utility
 easily mark features in their libraries as deprecated.
 """
 
+from typing import Optional, Tuple, Type, Union, cast
+
 
 # DEFAULT_WARN_CLASS = DeprecationWarning
 DEFAULT_WARN_CLASS = FutureWarning
 
 
-def schedule_deprecation(modname=None, name='?', type='?', migration='',
-                         deprecate=None, error=None, remove=None,
-                         # TODO: let the user have more control over the
-                         # message.
-                         # message=None,
-                         warncls='default', stacklevel=1):
+def schedule_deprecation(
+    modname: Optional[str] = None,
+    name: str = '?',
+    type: str = '?',
+    migration: str = '',
+    deprecate: Optional[Union[str, bool, int]] = None,
+    error: Optional[Union[str, bool, int]] = None,
+    remove: Optional[Union[str, bool, int]] = None,
+    # TODO: let the user have more control over the
+    # message.
+    # message=None,
+    warncls: Union[Type[Warning], str] = 'default',
+    stacklevel: int = 1,
+) -> str:
     """
     Raise a deprecation warning or error based on the version of a package.
 
@@ -170,8 +180,10 @@ def schedule_deprecation(modname=None, name='?', type='?', migration='',
     """
     import sys
     import warnings
+    from packaging.version import Version as PackagingVersion
     from packaging.version import parse as Version
 
+    current: Union[str, PackagingVersion]
     if modname is not None:
         module = sys.modules[modname]
         current = Version(module.__version__)
@@ -188,7 +200,7 @@ def schedule_deprecation(modname=None, name='?', type='?', migration='',
     else:
         modname_str = f'{modname} '
 
-    def _handle_when(when, default):
+    def _handle_when(when: object, default: bool) -> Tuple[bool, str]:
         if when is None:
             is_now = default
             when_str = ''
@@ -202,7 +214,8 @@ def schedule_deprecation(modname=None, name='?', type='?', migration='',
                 if current == 'unknown':
                     is_now = default
                 else:
-                    is_now = current >= when
+                    current_version = cast(PackagingVersion, current)
+                    is_now = current_version >= when
         else:
             is_now = bool(when)
             when_str = ''
@@ -227,6 +240,7 @@ def schedule_deprecation(modname=None, name='?', type='?', migration='',
         raise RuntimeError(msg)
 
     if deprecate_now:
-        warnings.warn(msg, warncls, stacklevel=1 + stacklevel)
+        warncls_type = cast(Type[Warning], warncls)
+        warnings.warn(msg, warncls_type, stacklevel=1 + stacklevel)
 
     return msg

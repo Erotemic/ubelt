@@ -64,7 +64,7 @@ import dataclasses
 import hashlib
 import math
 from collections import OrderedDict
-from typing import Callable
+from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, Type, Union, cast
 from ubelt.util_const import NoParam
 
 __all__ = ['hash_data', 'hash_file']
@@ -167,7 +167,7 @@ def _int_to_bytes(int_):
     return bytes_
 
 
-def _bytes_to_int(bytes_):
+def _bytes_to_int(bytes_: bytes) -> int:
     r"""
     Converts a string of bytes into its integer representation (big-endian)
 
@@ -195,16 +195,16 @@ class _Hashers:
         algos (Dict[str, object]):
         aliases (Dict[str, str]):
     """
-    def __init__(self):
-        self.algos = {}    # type: Dict[str, object]
-        self.aliases = {}  # type: Dict[str, str]
-        self._lazy_queue = [
+    def __init__(self) -> None:
+        self.algos: Dict[str, object] = {}
+        self.aliases: Dict[str, str] = {}
+        self._lazy_queue: List[Callable[[], None]] = [
             self._register_xxhash,
             self._register_blake3,
             self._register_hashlib,
         ]
 
-    def available(self):
+    def available(self) -> List[str]:
         """
         The names of available hash algorithms
 
@@ -215,7 +215,7 @@ class _Hashers:
             self._evaluate_registration_queue()
         return list(self.algos.keys())
 
-    def _evaluate_registration_queue(self):
+    def _evaluate_registration_queue(self) -> None:
         for func in self._lazy_queue:
             try:
                 func()
@@ -223,7 +223,7 @@ class _Hashers:
                 ...
         self._lazy_queue.clear()
 
-    def __contains__(self, key):
+    def __contains__(self, key: str) -> bool:
         """
         Args:
             key (str): name of hash algo to check
@@ -235,7 +235,7 @@ class _Hashers:
             self._evaluate_registration_queue()
         return key in self.algos or key in self.aliases
 
-    def _register_xxhash(self):  # nocover
+    def _register_xxhash(self) -> None:  # nocover
         import xxhash  # type: ignore
         self.algos['xxh32'] = xxhash.xxh32
         self.algos['xxh64'] = xxhash.xxh64
@@ -245,12 +245,12 @@ class _Hashers:
             'xx64': 'xxh64',
         })
 
-    def _register_blake3(self):  # nocover
+    def _register_blake3(self) -> None:  # nocover
         import blake3  # type: ignore
         self.algos['blake3'] = blake3.blake3
         self.aliases['b3'] = 'blake3'
 
-    def _register_hashlib(self):
+    def _register_hashlib(self) -> None:
         guaranteed = set(hashlib.algorithms_guaranteed)
         for key in guaranteed:  # nocover
             self.algos[key] = getattr(hashlib, key)
@@ -392,23 +392,26 @@ class HashableExtensions:
     Attributes:
         iterable_checks (List[Callable]):
     """
-    def __init__(self):
-        self.iterable_checks: list[Callable[..., bool]] = []
-        self._lazy_queue: list[Callable[[], None]] = []
+    def __init__(self) -> None:
+        self.iterable_checks: List[Callable[..., bool]] = []
+        self._lazy_queue: List[Callable[[], None]] = []
 
         # New singledispatch registry implementation
         from functools import singledispatch
-        def _hash_dispatch(data):
+        def _hash_dispatch(data: object) -> Tuple[bytes, bytes]:
             raise NotImplementedError
-        _hash_dispatch.__is_base__ = True
+        _hash_dispatch.__is_base__ = True  # type: ignore[attr-defined]
         self._hash_dispatch = singledispatch(_hash_dispatch)
 
-    def _evaluate_lazy_queue(self):
+    def _evaluate_lazy_queue(self) -> None:
         for func in self._lazy_queue:
             func()
         self._lazy_queue.clear()
 
-    def register(self, hash_types):
+    def register(
+        self,
+        hash_types: Union[Sequence[Type[Any]], Type[Any]],
+    ) -> Callable[[Callable[[Any], Tuple[bytes, bytes]]], Callable[[Any], Tuple[bytes, bytes]]]:
         """
         Registers a function to generate a hash for data of the appropriate
         types. This can be used to register custom classes. Internally this is
@@ -497,14 +500,18 @@ class HashableExtensions:
         """
         # ensure iterable
         if not isinstance(hash_types, (list, tuple)):
-            hash_types = [hash_types]
-        def _decor_closure(hash_func):
-            for hash_type in hash_types:
+            hash_types_list: List[Type[Any]] = [cast(Type[Any], hash_types)]
+        else:
+            hash_types_list = list(hash_types)
+        def _decor_closure(
+            hash_func: Callable[[Any], Tuple[bytes, bytes]],
+        ) -> Callable[[Any], Tuple[bytes, bytes]]:
+            for hash_type in hash_types_list:
                 self._hash_dispatch.register(hash_type)(hash_func)
             return hash_func
         return _decor_closure
 
-    def lookup(self, data):
+    def lookup(self, data: object) -> Callable[[Any], Tuple[bytes, bytes]]:
         """
         Returns an appropriate function to hash ``data`` if one has been
         registered.
@@ -587,7 +594,7 @@ class HashableExtensions:
             raise TypeError(msg)
         return hash_func
 
-    def _hash_dataclass(self, data):
+    def _hash_dataclass(self, data: object) -> Tuple[bytes, bytes]:
         """
         Dataclasses don't dispatch.
 
@@ -611,7 +618,7 @@ class HashableExtensions:
         cls = data.__class__
         header = (cls.__module__, cls.__qualname__)
         # fields() order is the definition order, which is guaranteed
-        items = [(f.name, getattr(data, f.name)) for f in dataclasses.fields(data)]
+        items = [(f.name, getattr(data, f.name)) for f in dataclasses.fields(cast(Any, data))]
         # Use the existing machinery to serialize recursively
         seq = _hashable_sequence(
             (header, items),
@@ -622,7 +629,10 @@ class HashableExtensions:
         hashable = b''.join(seq)
         return prefix, hashable
 
-    def add_iterable_check(self, func):
+    def add_iterable_check(
+        self,
+        func: Callable[[object], bool],
+    ) -> Callable[[object], bool]:
         """
         Registers a function that detects when a type is iterable
 
@@ -635,7 +645,7 @@ class HashableExtensions:
         self.iterable_checks.append(func)
         return func
 
-    def _register_numpy_extensions(self):
+    def _register_numpy_extensions(self) -> None:
         """
         Registers custom functions to hash numpy data structures.
 
@@ -701,7 +711,7 @@ class HashableExtensions:
             prefix = b'RNG'
             return prefix, hashable
 
-    def _register_builtin_class_extensions(self):
+    def _register_builtin_class_extensions(self) -> None:
         """
         Register hashing extensions for a selection of classes included in
         python stdlib.
@@ -903,7 +913,7 @@ class HashableExtensions:
         self.register(pathlib.Path)(lambda x: (b'PATH', str(x).encode('utf-8')))
         # other data structures
 
-    def _register_agressive_extensions(self):  # nocover
+    def _register_agressive_extensions(self) -> None:  # nocover
         """
         Extensions that might be desired, but we do not enable them by default
 
@@ -912,7 +922,7 @@ class HashableExtensions:
         """
         pass
 
-    def _register_torch_extensions(self):  # nocover
+    def _register_torch_extensions(self) -> None:  # nocover
         """
         Experimental. Define a default hash function for torch tensors, but do
         not use it by default. Currently, the user must call this explicitly.
@@ -927,7 +937,7 @@ class HashableExtensions:
 _HASHABLE_EXTENSIONS = HashableExtensions()
 
 
-def _lazy_init():
+def _lazy_init() -> None:
     """
     Delay the registration of any external libraries until a hashable extension
     is needed.
@@ -950,17 +960,17 @@ class _HashTracer:
         sequence (List[bytes]):
     """
 
-    def __init__(self):
-        self.sequence = []  # type: List[bytes]
+    def __init__(self) -> None:
+        self.sequence: List[bytes] = []
 
-    def update(self, item):
+    def update(self, item: bytes) -> None:
         """
         Args:
             item (bytes):
         """
         self.sequence.append(item)
 
-    def hexdigest(self):
+    def hexdigest(self) -> bytes:
         """
         Returns:
             bytes
@@ -968,7 +978,11 @@ class _HashTracer:
         return b''.join(self.sequence)
 
 
-def _hashable_sequence(data, types=False, extensions=None):
+def _hashable_sequence(
+    data: object,
+    types: bool = False,
+    extensions: Optional[HashableExtensions] = None,
+) -> List[bytes]:
     r"""
     Extracts the sequence of bytes that would be hashed by hash_data
 
@@ -984,7 +998,11 @@ def _hashable_sequence(data, types=False, extensions=None):
     return hasher.sequence
 
 
-def _convert_to_hashable(data, types=True, extensions=None):
+def _convert_to_hashable(
+    data: object,
+    types: bool = True,
+    extensions: Optional[HashableExtensions] = None,
+) -> Tuple[bytes, bytes]:
     r"""
     Converts ``data`` into a hashable byte representation if an appropriate
     hashing function is known.

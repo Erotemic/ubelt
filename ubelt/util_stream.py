@@ -12,7 +12,8 @@ how the former is implemented.
 from __future__ import annotations
 import sys
 import io
-from typing import TextIO
+from types import TracebackType
+from typing import Literal, Optional, TextIO, Type
 
 __all__ = [
     'TeeStringIO',
@@ -38,12 +39,12 @@ class TeeStringIO(io.StringIO):
         >>> assert self.getvalue() == 'spam'
         >>> assert redirect.getvalue() == 'spam'
     """
-    def __init__(self, redirect=None):
+    def __init__(self, redirect: Optional[TextIO] = None) -> None:
         """
         Args:
             redirect (io.IOBase): The other stream to write to.
         """
-        self.redirect = redirect  # type: io.IOBase
+        self.redirect: Optional[TextIO] = redirect
         super().__init__()
 
         # Logic taken from prompt_toolkit/output/vt100.py version 3.0.5 in
@@ -52,14 +53,14 @@ class TeeStringIO(io.StringIO):
         # allow us to embed in IPython while still capturing and Teeing
         # stdout.
         if redirect is not None:
-            self.buffer = getattr(redirect, 'buffer', redirect)
+            self.buffer = getattr(redirect, 'buffer', redirect)  # type: ignore[misc,assignment,arg-type]
         else:
-            self.buffer = None
+            self.buffer = None  # type: ignore[misc,assignment]
 
         # Note: mypy doesn't like this type
         # buffer (io.BufferedIOBase | io.IOBase | None): the redirected buffer attribute
 
-    def isatty(self):  # nocover
+    def isatty(self) -> bool:  # nocover
         """
         Returns true of the redirect is a terminal.
 
@@ -76,7 +77,7 @@ class TeeStringIO(io.StringIO):
         return (self.redirect is not None and
                 hasattr(self.redirect, 'isatty') and self.redirect.isatty())
 
-    def fileno(self):
+    def fileno(self) -> int:
         """
         Returns underlying file descriptor of the redirected IOBase object
         if one exists.
@@ -114,8 +115,8 @@ class TeeStringIO(io.StringIO):
         else:
             return super().fileno()
 
-    @property
-    def encoding(self):
+    @property  # type: ignore[override]
+    def encoding(self) -> Optional[str]:  # type: ignore[override]
         """
         Gets the encoding of the `redirect` IO object
 
@@ -147,11 +148,11 @@ class TeeStringIO(io.StringIO):
             return super().encoding
 
     @encoding.setter
-    def encoding(self, value):
+    def encoding(self, value: str) -> None:
         # Adding a setter to make mypy happy
         raise AttributeError('encoding is read-only on TeeStringIO')
 
-    def write(self, msg):
+    def write(self, msg: str) -> int:
         """
         Write to this and the redirected stream
 
@@ -176,7 +177,7 @@ class TeeStringIO(io.StringIO):
             self.redirect.write(msg)
         return super().write(msg)
 
-    def flush(self):  # nocover
+    def flush(self) -> None:  # nocover
         """
         Flush to this and the redirected stream
 
@@ -272,11 +273,16 @@ class CaptureStream:
             finally:
                 self.cap_stream = None
 
-    def __enter__(self):
+    def __enter__(self) -> CaptureStream:
         self.start()
         return self
 
-    def __exit__(self, ex_type, ex_value, ex_traceback):
+    def __exit__(
+        self,
+        ex_type: Optional[Type[BaseException]],
+        ex_value: Optional[BaseException],
+        ex_traceback: Optional[TracebackType],
+    ) -> Optional[Literal[False]]:
         """
         On exit, append the final part, stop, and close the proxy.
 
@@ -296,6 +302,7 @@ class CaptureStream:
                 self.close()
         if ex_traceback is not None:
             return False  # propagate exception
+        return None
 
     def __del__(self):  # nocover
         # Be robust during interpreter shutdown
