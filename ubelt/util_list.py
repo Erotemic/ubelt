@@ -25,7 +25,8 @@ import math
 import operator
 from collections import abc as collections_abc
 from itertools import zip_longest
-from typing import Any, Callable, Iterator, TypeVar, Generic, overload, cast
+from typing import Any, Callable, Iterable, Iterator, Mapping, Tuple, TypeVar
+from typing import Generic, overload, cast
 from ubelt import util_const
 from ubelt import util_dict
 
@@ -348,7 +349,7 @@ def iterable(obj: object, strok: bool = False) -> bool:
         >>> assert result == [False, True, True, True, True, True]
     """
     try:
-        iter(cast(collections_abc.Iterable[object], obj))
+        iter(cast(Iterable[object], obj))
     except Exception:
         return False
     else:
@@ -438,7 +439,7 @@ def take(items: collections_abc.Sequence[VT] | collections_abc.Mapping[KT, VT],
         for index in indices:
             yield items[index]  # type: ignore[index]
     else:
-        mapping = cast(collections_abc.Mapping[KT, VT], items)
+        mapping = cast(Mapping[KT, VT], items)
         for index in indices:
             yield mapping.get(index, default)  # type: ignore[arg-type]
 
@@ -831,7 +832,7 @@ def argsort(indexable: 'collections_abc.Iterable[VT] | collections_abc.Mapping[K
         indices = [k for v, k in sorted(vk_iter, reverse=reverse)]
     else:
         # If key is provided, call it using the value as input
-        key_func = cast(Callable[[tuple[VT, KT]], Any], lambda vk: key(vk[0]))
+        key_func = cast(Callable[[Tuple[VT, KT]], Any], lambda vk: key(vk[0]))
         indices = [k for v, k in sorted(vk_iter, key=key_func, reverse=reverse)]
     return indices
 
@@ -865,11 +866,11 @@ def argmax(indexable: 'collections_abc.Iterable[VT] | collections_abc.Mapping[KT
         return max(indexable.items(), key=operator.itemgetter(1))[0]
     elif hasattr(indexable, 'index'):
         if key is None:
-            return indexable.index(max(cast(collections_abc.Iterable[Any], indexable)))
+            return indexable.index(max(cast(Iterable[Any], indexable)))
         else:
             key_func = cast(Callable[[Any], Any], key)
             return indexable.index(max(
-                cast(collections_abc.Iterable[Any], indexable),
+                cast(Iterable[Any], indexable),
                 key=key_func,
             ))
     else:
@@ -906,11 +907,11 @@ def argmin(indexable: 'collections_abc.Iterable[VT] | collections_abc.Mapping[KT
         return min(indexable.items(), key=operator.itemgetter(1))[0]
     elif hasattr(indexable, 'index'):
         if key is None:
-            return indexable.index(min(cast(collections_abc.Iterable[Any], indexable)))
+            return indexable.index(min(cast(Iterable[Any], indexable)))
         else:
             key_func = cast(Callable[[Any], Any], key)
             return indexable.index(min(
-                cast(collections_abc.Iterable[Any], indexable),
+                cast(Iterable[Any], indexable),
                 key=key_func,
             ))
     else:
@@ -976,7 +977,7 @@ class IterableMixin(Generic[VT]):
                num: int | None = None,
                bordermode: str = 'none') -> chunks:
         sized_self = cast(collections_abc.Sized, self)
-        iterable_self = cast(collections_abc.Iterable[VT], self)
+        iterable_self = cast(Iterable[VT], self)
         return chunks(
             iterable_self,
             chunksize=size,
