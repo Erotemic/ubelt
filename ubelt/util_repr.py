@@ -1199,5 +1199,5 @@ def _align_lines(line_list, character='=', replchar=None, pos=0):
 
 # Give the urepr function itself a reference to the default extensions
 # register method so the user can modify them without accessing this module
-urepr.extensions = _REPR_EXTENSIONS
-urepr.register = _REPR_EXTENSIONS.register
+urepr.extensions = _REPR_EXTENSIONS  # type: ignore[attr-defined]
+urepr.register = _REPR_EXTENSIONS.register  # type: ignore[attr-defined]

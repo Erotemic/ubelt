@@ -77,6 +77,7 @@ Example:
 import sys
 import time
 import collections
+from typing import Callable
 from itertools import islice
 
 __all__ = [

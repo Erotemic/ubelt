@@ -59,10 +59,12 @@ Note:
     getting into the weeds of how we coerce technically non-hashable sequences
     into a hashable encoding.
 """
+from __future__ import annotations
 import dataclasses
 import hashlib
 import math
 from collections import OrderedDict
+from typing import Callable
 from ubelt.util_const import NoParam
 
 __all__ = ['hash_data', 'hash_file']
@@ -70,27 +72,27 @@ __all__ = ['hash_data', 'hash_file']
 # incremented when we make a change that modifies hashes
 HASH_VERSION = 2  # type: int
 
-_ALPHABET_10 = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']  # type: List[str]
+_ALPHABET_10: list[str] = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
 
-_ALPHABET_16 = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
-                'a', 'b', 'c', 'd', 'e', 'f']
+_ALPHABET_16: list[str] = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+                           'a', 'b', 'c', 'd', 'e', 'f']
 
-_ALPHABET_26 = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j',
-                'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't',
-                'u', 'v', 'w', 'x', 'y', 'z']
+_ALPHABET_26: list[str] = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j',
+                           'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't',
+                           'u', 'v', 'w', 'x', 'y', 'z']
 
-_ALPHABET_36 = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
-                'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j',
-                'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't',
-                'u', 'v', 'w', 'x', 'y', 'z']
+_ALPHABET_36: list[str] = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+                           'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j',
+                           'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't',
+                           'u', 'v', 'w', 'x', 'y', 'z']
 
 # RFC 4648 Base32 alphabet
-_ALPHABET_32 = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L',
-                'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X',
-                'Y', 'Z', '2', '3', '4', '5', '6', '7']
+_ALPHABET_32: list[str] = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L',
+                           'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X',
+                           'Y', 'Z', '2', '3', '4', '5', '6', '7']
 
 
-DEFAULT_ALPHABET = _ALPHABET_16  # type: List[str]
+DEFAULT_ALPHABET: list[str] = _ALPHABET_16
 
 
 def b(s):
@@ -121,7 +123,7 @@ def b(s):
 # DEFAULT_HASHER = hashlib.sha1  # fast algo, but has a known collision
 # DEFAULT_HASHER = hashlib.sha512  # most robust algo, but slower than others
 
-DEFAULT_HASHER = hashlib.sha512  # type: Callable
+DEFAULT_HASHER: Callable[..., "hashlib._Hash"] = hashlib.sha512
 
 
 # This controls if types are used when generating hashable sequences for more
@@ -391,8 +393,8 @@ class HashableExtensions:
         iterable_checks (List[Callable]):
     """
     def __init__(self):
-        self.iterable_checks = []
-        self._lazy_queue = []  # type: List[Callable]  # NOQA
+        self.iterable_checks: list[Callable[..., bool]] = []
+        self._lazy_queue: list[Callable[[], None]] = []
 
         # New singledispatch registry implementation
         from functools import singledispatch
@@ -1454,8 +1456,8 @@ def hash_file(fpath, blocksize=1048576, stride=1, maxbytes=None,
 
 # Give the hash_data function itself a reference to the default extensions
 # register method so the user can modify them without accessing this module
-hash_data.extensions = _HASHABLE_EXTENSIONS
-hash_data.register = _HASHABLE_EXTENSIONS.register
+hash_data.extensions = _HASHABLE_EXTENSIONS  # type: ignore[attr-defined]
+hash_data.register = _HASHABLE_EXTENSIONS.register  # type: ignore[attr-defined]
 
 
 # class Hasher:

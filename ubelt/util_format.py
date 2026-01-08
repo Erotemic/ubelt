@@ -54,8 +54,8 @@ def repr2(data, **kwargs):
     return urepr(data, **kwargs)
 
 
-repr2.extensions = urepr.extensions
-repr2.register = urepr.register
+repr2.extensions = urepr.extensions  # type: ignore[attr-defined]
+repr2.register = urepr.register  # type: ignore[attr-defined]
 
 
 # Deprecated aliases

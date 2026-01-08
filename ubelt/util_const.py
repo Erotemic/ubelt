@@ -33,6 +33,8 @@ Example:
     no param specified
 """
 
+from typing import cast
+
 __all__ = ['NoParam']
 
 
@@ -173,16 +175,18 @@ class NoParamType:
 # Backwards compat
 _NoParamType = NoParamType
 
+NoParam: NoParamType
+
 # Create the only instance of NoParamType that should ever exist
-try:
+if 'NoParam' in globals():  # pragma: no cover
     # If the module is reloaded (via imp.reload), globals() will contain
     # NoParam. This skips the code that would instantiate a second object
-    NoParam  # pragma: no cover
+    NoParam = cast(NoParamType, globals()['NoParam'])
     # Note: it is possible to hack around this via
     # >>> del util_const.NoParam
     # >>> imp.reload(util_const)
-except NameError:  # pragma: no cover
+else:  # pragma: no cover
     # When the module is first loaded, globals() will not contain NoParam. A
     # NameError will be thrown, causing the first instance of NoParam to be
     # instantiated.
-    NoParam = object.__new__(NoParamType)  # type: NoParamType
+    NoParam = object.__new__(NoParamType)

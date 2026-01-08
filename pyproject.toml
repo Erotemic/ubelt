@@ -30,7 +30,7 @@ classifiers = [
     'Operating System :: Microsoft :: Windows',
     'Operating System :: MacOS',
     'Operating System :: POSIX :: Linux',
-    'Typing :: Stubs Only',
+    'Typing :: Typed',
 ]
 
 [tool.xcookie.setuptools]

@@ -11,13 +11,19 @@ exists on the command line.
 The :func:`argval` function returns the value of a ``--key=value`` style CLI
 argument.
 """
+from __future__ import annotations
 import sys
+from typing import TypeVar
 from ubelt import util_const
 
 __all__ = ['argval', 'argflag']
 
+T = TypeVar('T')
 
-def argval(key, default=util_const.NoParam, argv=None):
+
+def argval(key: 'str | tuple[str, ...]',
+           default: 'T | util_const.NoParamType' = util_const.NoParam,
+           argv: 'list[str] | None' = None) -> 'str | T | util_const.NoParamType':
     """
     Get the value of a keyword argument specified on the command line.
 
@@ -97,11 +103,11 @@ def argval(key, default=util_const.NoParam, argv=None):
             elif item.startswith(key_ + '='):
                 value = '='.join(item.split('=')[1:])
                 return value
-    value = default
-    return value
+    return default
 
 
-def argflag(key, argv=None):
+def argflag(key: 'str | tuple[str, ...]',
+            argv: 'list[str] | None' = None) -> bool:
     """
     Determines if a key is specified on the command line.
 

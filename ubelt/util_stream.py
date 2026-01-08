@@ -12,6 +12,7 @@ how the former is implemented.
 from __future__ import annotations
 import sys
 import io
+from typing import TextIO
 
 __all__ = [
     'TeeStringIO',
@@ -199,16 +200,16 @@ class CaptureStream:
         text (str | None): most recent captured chunk from :meth:`log_part`.
         parts (list[str]): all captured chunks appended by :meth:`log_part`.
         cap_stream (None | TeeStringIO): proxy stream used while capturing.
-        orig_stream (io.TextIOBase | None): original global stream restored on stop.
+        orig_stream (TextIO | None): original global stream restored on stop.
         suppress (bool): if True, do not tee to the original stream while capturing.
         enabled (bool): if False, acts as a no-op context manager.
         started (bool): True while the capture is active.
     """
     # ----- hooks required by subclasses -----
-    def _get_stream(self) -> io.TextIOBase:  # pragma: no cover - abstract-ish
+    def _get_stream(self) -> TextIO:  # pragma: no cover - abstract-ish
         raise NotImplementedError
 
-    def _set_stream(self, value: io.TextIOBase) -> None:  # pragma: no cover
+    def _set_stream(self, value: TextIO) -> None:  # pragma: no cover
         raise NotImplementedError
 
     # ----- implementation -----
@@ -220,7 +221,7 @@ class CaptureStream:
         self.enabled: bool = enabled
         self.suppress: bool = suppress
         self.cap_stream: TeeStringIO | None = None
-        self.orig_stream: io.TextIOBase | None = None
+        self.orig_stream: TextIO | None = None
 
     def _make_proxy(self) -> TeeStringIO:
         """
@@ -354,10 +355,10 @@ class CaptureStdout(CaptureStream):
         >>> assert self.text is None
     """
     # ---- required hooks for CaptureStream ----
-    def _get_stream(self) -> io.TextIOBase:
+    def _get_stream(self) -> TextIO:
         return sys.stdout
 
-    def _set_stream(self, value: io.TextIOBase) -> None:
+    def _set_stream(self, value: TextIO) -> None:
         sys.stdout = value
 
     # Backward-compat aliases expected by existing code/tests
@@ -368,7 +369,7 @@ class CaptureStdout(CaptureStream):
         return self.cap_stream
 
     @property
-    def orig_stdout(self) -> io.TextIOBase | None:
+    def orig_stdout(self) -> TextIO | None:
         """Backward-compatibility alias for orig_stream."""
         return self.orig_stream
 
@@ -387,8 +388,8 @@ class CaptureStderr(CaptureStream):
         ...     print('to stderr (captured)', file=sys.stderr)
         >>> assert 'to stderr (captured)' in (self.text or '')
     """
-    def _get_stream(self) -> io.TextIOBase:
+    def _get_stream(self) -> TextIO:
         return sys.stderr
 
-    def _set_stream(self, value: io.TextIOBase) -> None:
+    def _set_stream(self, value: TextIO) -> None:
         sys.stderr = value

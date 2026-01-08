@@ -248,7 +248,7 @@ if __name__ == "__main__":
         "Operating System :: Microsoft :: Windows",
         "Operating System :: MacOS",
         "Operating System :: POSIX :: Linux",
-        "Typing :: Stubs Only",
+        "Typing :: Typed",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
@@ -259,7 +259,7 @@ if __name__ == "__main__":
     ]
     setupkw["package_data"] = {
         "": ["requirements/*.txt"],
-        "ubelt": ["py.typed", "*.pyi"],
+        "ubelt": ["py.typed"],
     }
     setupkw["keywords"] = [
         "utility",
