@@ -115,7 +115,7 @@ def paragraph(text: str) -> str:
     return out
 
 
-def hzcat(args: list[str], sep: str = ''):
+def hzcat(args: list[str], sep: str = '') -> str:
     """
     Horizontally concatenates strings preserving indentation
 

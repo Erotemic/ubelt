@@ -200,8 +200,13 @@ def timestamp(
     else:
         tzinfo = datetime_obj.tzinfo
 
+    assert datetime_obj is not None
+
     # the arg to utcoffset is confusing
-    offset_seconds = tzinfo.utcoffset(datetime_obj).total_seconds()
+    offset = tzinfo.utcoffset(datetime_obj)
+    if offset is None:
+        raise ValueError(f'{tzinfo!r}.utcoffset({datetime_obj!r}) returned None')
+    offset_seconds = offset.total_seconds()
     # offset_seconds = tzinfo.utcoffset(None).total_seconds()
 
     seconds_per_hour = 3600
@@ -391,7 +396,7 @@ def timeparse(
                 'dateutil is not allowed').format(stamp))
         else:
             try:
-                from dateutil.parser import parse as du_parse  # type: ignore[import-untyped]
+                from dateutil.parser import parse as du_parse
             except (ModuleNotFoundError, ImportError):  # nocover
                 raise ValueError((
                     'Cannot parse timestamp. '
@@ -474,7 +479,7 @@ def _timezone_coerce(tzinfo, allow_dateutil=True):
             out_tzinfo = datetime_mod.timezone.utc
         else:
             if allow_dateutil:
-                from dateutil import tz as tz_mod  # type: ignore[import-untyped]
+                from dateutil import tz as tz_mod
                 out_tzinfo = tz_mod.gettz(tzinfo)
                 if out_tzinfo is None:
                     raise KeyError(tzinfo)
@@ -548,6 +553,7 @@ class Timer:
     verbose: int | None
     newline: bool
     ns: bool
+    _time: Callable[[], float | int]
 
     def __init__(
         self,

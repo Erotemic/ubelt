@@ -60,7 +60,8 @@ __all__ = ['Executor', 'JobPool']
 if typing.TYPE_CHECKING:
     from concurrent.futures import Future, ProcessPoolExecutor, ThreadPoolExecutor
     from types import TracebackType
-    from typing import Any, Callable, Generator, Type
+    from typing import Any, Callable, Generator, Type, Iterator, Iterable, TypeVar
+    T = TypeVar("T")
 
 
 class SerialFuture(concurrent.futures.Future):
@@ -183,7 +184,12 @@ class SerialExecutor:
         """
         return False
 
-    def submit(self, func, *args, **kw) -> concurrent.futures.Future:
+    def submit(
+        self,
+        func: Callable[..., T],
+        *args: Any,
+        **kw: Any,
+    ) -> SerialFuture:
         """
         Submit a job to be executed later
 
@@ -199,13 +205,19 @@ class SerialExecutor:
         """
         pass
 
-    def map(self, fn: Callable[..., Any], *iterables, **kwargs) -> Generator[Any, None, None]:
+    def map(
+        self,
+        fn: Callable[..., T],
+        *iterables: Iterable[Any],
+        **kwargs: Any,
+    ) -> Generator[T, None, None]:
         """Returns an iterator equivalent to map(fn, iter).
 
         Args:
-            fn (Callable[..., Any]):
-                A callable that will take as many arguments as there are passed
-                iterables.
+            fn (Callable[..., T]): Function to apply to items from `iterables`.
+
+            *iterables (Iterable[Any]):
+                One or more iterables supplying arguments to `fn`.
 
             timeout:
                 This argument is ignored for SerialExecutor
@@ -375,7 +387,12 @@ class Executor:
         # Note: the following call will block
         return self.backend.__exit__(ex_type, ex_value, ex_traceback)
 
-    def submit(self, func, *args, **kw) -> concurrent.futures.Future:
+    def submit(
+        self,
+        func: Callable[..., T],
+        *args: Any,
+        **kw: Any,
+    ) -> concurrent.futures.Future:
         """
         Calls the submit function of the underlying backend.
 
@@ -391,9 +408,24 @@ class Executor:
         """
         return self.backend.shutdown()
 
-    def map(self, fn, *iterables, **kwargs):
+    def map(
+        self,
+        fn: Callable[..., T],
+        *iterables: Iterable[Any],
+        **kwargs: Any,
+    ) -> Iterator[T]:
         """
         Calls the map function of the underlying backend.
+
+        Args:
+            fn (Callable[..., T]): Function to apply to items from `iterables`.
+            *iterables (Iterable[Any]): One or more iterables supplying arguments to `fn`.
+            **kwargs (Any): Supports:
+                - chunksize (int): Chunk size hint for process-based backends.
+                - timeout (float | None): Optional timeout in seconds.
+
+        Returns:
+            Iterator[T]: Iterator yielding results from applying `fn`.
 
         CommandLine:
             xdoctest -m ubelt.util_futures Executor.map
@@ -527,7 +559,7 @@ class JobPool:
         """
         return self.executor.__exit__(ex_type, ex_value, ex_traceback)
 
-    def _clear_completed(self):
+    def _clear_completed(self) -> None:
         active_jobs = [job for job in self.jobs if job.running()]
         self.jobs = active_jobs
 
@@ -594,7 +626,7 @@ class JobPool:
                 self.jobs.remove(job)
             yield job
 
-    def join(self, **kwargs) -> list[Any]:
+    def join(self, **kwargs: Any) -> list[Any]:
         """
         Like :func:`JobPool.as_completed`, but executes the `result` method
         of each future and returns only after all processes are complete.
@@ -604,7 +636,7 @@ class JobPool:
             **kwargs: passed to :func:`JobPool.as_completed`
 
         Returns:
-            List[Any]: list of results
+            list[Any]: list of results
 
         Example:
             >>> import ubelt as ub
@@ -629,7 +661,7 @@ class JobPool:
             results.append(result)
         return results
 
-    def __iter__(self) -> concurrent.futures.Future:
+    def __iter__(self) -> Iterator[concurrent.futures.Future]:
         """
         An alternative to as completed.
 

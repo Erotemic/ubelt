@@ -982,7 +982,7 @@ def _list_itemstrs(list_: typing.Any, **kwargs: typing.Any) -> tuple[list[str], 
     """
     items = list(list_)
     kwargs['_return_info'] = True
-    _tups = [urepr(item, **kwargs) for item in items]  # type: ignore[misc]
+    _tups = [urepr(item, **kwargs) for item in items]
     itemstrs = [t[0] for t in _tups]
     max_height = max([t[1]['max_height'] for t in _tups]) if _tups else 0
     _leaf_info = {

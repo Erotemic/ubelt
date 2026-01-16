@@ -210,13 +210,14 @@ def touch(
     return fpath
 
 
-def delete(path: str | os.PathLike, verbose: bool = False) -> None:
+def delete(path: str | os.PathLike, verbose: bool | int = False) -> None:
     """
     Removes a file or recursively removes a directory.
     If a path does not exist, then this is does nothing.
 
     Args:
         path (str | PathLike): file or directory to remove
+
         verbose (bool): if True prints what is being done
 
     SeeAlso:

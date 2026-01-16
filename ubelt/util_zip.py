@@ -31,7 +31,7 @@ __all__ = ['zopen', 'split_archive']
 def split_archive(
     fpath: str | os.PathLike,
     ext: str = '.zip',
-) -> tuple[str, str | None]:
+) -> tuple[str | None, str | None]:
     """
     If fpath specifies a file inside a zipfile, it breaks it into two parts the
     path to the zipfile and the internal path in the zipfile.
