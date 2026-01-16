@@ -59,10 +59,16 @@ import collections
 from ubelt import util_str
 from ubelt import util_list
 
+if typing.TYPE_CHECKING:
+    from typing import Callable, Any
+
 __all__ = ['urepr', 'ReprExtensions']
 
+# TODO: add a wrapper function so _return_info is not available in the top
+# level urepr. This will make type annotations more predictable.
 
-def urepr(data: object, **kwargs: typing.Any) -> str:
+
+def urepr(data: object, **kwargs: Any) -> str | tuple[str, dict[str, int]]:
     """
     Makes a pretty string representation of ``data``.
 
@@ -276,8 +282,8 @@ def urepr(data: object, **kwargs: typing.Any) -> str:
         kwargs['itemsep'] = kwargs.get('itemsep', '')
         kwargs['kvsep'] = kwargs.get('kvsep', '=')
 
-    outstr = None
-    _leaf_info = None
+    outstr: str | None = None
+    _leaf_info: dict[str, int] | None = None
 
     if custom_extensions:
         func = custom_extensions.lookup(data)
@@ -298,6 +304,8 @@ def urepr(data: object, **kwargs: typing.Any) -> str:
         else:
             outstr = _format_object(data, **kwargs)
 
+    assert outstr is not None
+
     if _return_info:
         _leaf_info = _rectify_leaf_info(_leaf_info)
         return outstr, _leaf_info
@@ -305,7 +313,7 @@ def urepr(data: object, **kwargs: typing.Any) -> str:
         return outstr
 
 
-def _rectify_root_info(_root_info: typing.Optional[dict[str, int]]) -> dict[str, int]:
+def _rectify_root_info(_root_info: dict[str, int] | None) -> dict[str, int]:
     if _root_info is None:
         _root_info = {
             'depth': 0,
@@ -313,7 +321,7 @@ def _rectify_root_info(_root_info: typing.Optional[dict[str, int]]) -> dict[str,
     return _root_info
 
 
-def _rectify_leaf_info(_leaf_info: typing.Optional[dict[str, int]]) -> dict[str, int]:
+def _rectify_leaf_info(_leaf_info: dict[str, int] | None) -> dict[str, int]:
     if _leaf_info is None:
         _leaf_info = {
             'max_height': 0,
@@ -372,9 +380,9 @@ class ReprExtensions:
     #     return cls.list_types + cls.set_types
 
     def __init__(self) -> None:
-        self._type_registry: dict[type, typing.Callable[..., typing.Any]] = {}
-        self._typename_registry: dict[str, typing.Callable[..., typing.Any]] = {}
-        self._lazy_queue: list[typing.Callable[[], None]] = []
+        self._type_registry: dict[type, Callable[..., Any]] = {}
+        self._typename_registry: dict[str, Callable[..., Any]] = {}
+        self._lazy_queue: list[Callable[[], None]] = []
         # self._lazy_registrations = [
         #     self._register_numpy_extensions,
         #     self._register_builtin_extensions,
@@ -382,8 +390,8 @@ class ReprExtensions:
 
     def register(
         self,
-        key: typing.Union[type, tuple[type, ...], str],
-    ) -> typing.Callable[[typing.Callable[..., typing.Any]], typing.Callable[..., typing.Any]]:
+        key: type | tuple[type, ...] | str,
+    ) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
         """
         Registers a custom formatting function with ub.urepr
 
@@ -393,18 +401,18 @@ class ReprExtensions:
         Returns:
             collections.abc.Callable: decorator function
         """
-        def _decorator(func: typing.Callable[..., typing.Any]) -> typing.Callable[..., typing.Any]:
+        def _decorator(func: Callable[..., Any]) -> Callable[..., Any]:
             if isinstance(key, tuple):
                 for t in key:
                     self._type_registry[t] = func
-            if isinstance(key, str):
+            elif isinstance(key, str):
                 self._typename_registry[key] = func
             else:
                 self._type_registry[key] = func
             return func
         return _decorator
 
-    def lookup(self, data: typing.Any) -> typing.Optional[typing.Callable[..., typing.Any]]:
+    def lookup(self, data: Any) -> Callable[..., Any] | None:
         """
         Returns an appropriate function to format ``data`` if one has been
         registered.
@@ -446,7 +454,7 @@ class ReprExtensions:
             >>> print(ub.urepr({'akeyfdfj': data}, precision=2))
         """
         @self.register('DataFrame')
-        def format_pandas(data: typing.Any, **kwargs: typing.Any) -> str:  # nocover
+        def format_pandas(data: Any, **kwargs: Any) -> str:  # nocover
             precision = kwargs.get('precision', None)
             float_format = (None if precision is None
                             else '%.{}f'.format(precision))
@@ -515,7 +523,7 @@ class ReprExtensions:
         # TODO: should we register numpy using the new string method?
         import numpy as np
         @self.register(np.ndarray)
-        def format_ndarray(data: typing.Any, **kwargs: typing.Any) -> str:
+        def format_ndarray(data: Any, **kwargs: Any) -> str:
             import re
             strvals = kwargs.get('sv', kwargs.get('strvals', False))
             itemsep = kwargs.get('itemsep', ' ')
@@ -580,7 +588,7 @@ class ReprExtensions:
 
     def _register_builtin_extensions(self) -> None:
         @self.register(float)
-        def format_float(data: float, **kwargs: typing.Any) -> str:
+        def format_float(data: float, **kwargs: Any) -> str:
             precision = kwargs.get('precision', None)
             strvals = kwargs.get('sv', kwargs.get('strvals', False))
 
@@ -606,7 +614,7 @@ class ReprExtensions:
             return text
 
         @self.register(slice)
-        def format_slice(data: slice, **kwargs: typing.Any) -> str:
+        def format_slice(data: slice, **kwargs: Any) -> str:
             if kwargs.get('itemsep', ' ') == '':
                 return 'slice(%r,%r,%r)' % (data.start, data.stop, data.step)
             else:
@@ -634,7 +642,7 @@ def _lazy_init() -> None:
 _REPR_EXTENSIONS._lazy_queue.append(_lazy_init)
 
 
-def _format_object(val: typing.Any, **kwargs: typing.Any) -> str:
+def _format_object(val: Any, **kwargs: Any) -> str:
     stritems = kwargs.get('si', kwargs.get('stritems', False))
     strvals = stritems or kwargs.get('sv', kwargs.get('strvals', False))
     base_valfunc = str if strvals else repr
@@ -642,7 +650,7 @@ def _format_object(val: typing.Any, **kwargs: typing.Any) -> str:
     return itemstr
 
 
-def _format_list(list_: typing.Any, **kwargs: typing.Any) -> tuple[str, dict[str, int]]:
+def _format_list(list_: Any, **kwargs: Any) -> tuple[str, dict[str, int]]:
     """
     Makes a pretty printable / human-readable string representation of a
     sequence. In most cases this string could be evaled.
@@ -710,7 +718,7 @@ def _format_list(list_: typing.Any, **kwargs: typing.Any) -> tuple[str, dict[str
     return retstr, _leaf_info
 
 
-def _format_dict(dict_: dict[typing.Any, typing.Any], **kwargs: typing.Any) -> tuple[str, typing.Optional[dict[str, int]]]:
+def _format_dict(dict_: dict[Any, Any], **kwargs: Any) -> tuple[str, dict[str, int] | None]:
     """
     Makes a pretty printable / human-readable string representation of a
     dictionary. In most cases this string could be evaled.
@@ -805,22 +813,31 @@ def _format_dict(dict_: dict[typing.Any, typing.Any], **kwargs: typing.Any) -> t
             lbr, rbr = 'dict(', ')'
         else:
             lbr, rbr = '{', '}'
+        align_char: str | None
+        if isinstance(align, str):
+            align_char = align
+        elif align is True:
+            # Boolean "align" means use the default alignment character.
+            align_char = '='
+        else:
+            align_char = None
+
         retstr = _join_itemstrs(itemstrs, itemsep, newlines, _leaf_info, nobraces,
-                                trailing_sep, compact_brace, lbr, rbr, align)
+                                trailing_sep, compact_brace, lbr, rbr, align_char)
     return retstr, _leaf_info
 
 
 def _join_itemstrs(
     itemstrs: list[str],
     itemsep: str,
-    newlines: typing.Union[int, bool],
+    newlines: int | bool,
     _leaf_info: dict[str, int],
     nobraces: bool,
     trailing_sep: bool,
     compact_brace: bool,
     lbr: str,
     rbr: str,
-    align: typing.Union[bool, str] = False,
+    align: str | None = None,
 ) -> str:
     """
     Joins string-ified items with separators newlines and container-braces.
@@ -837,7 +854,7 @@ def _join_itemstrs(
     if use_newline:
         sep = ',\n'
         if nobraces:
-            if align:
+            if align is not None:
                 itemstrs = _align_lines(itemstrs, character=align)
             body_str = sep.join(itemstrs)
             if trailing_sep and len(itemstrs) > 0:
@@ -854,7 +871,7 @@ def _join_itemstrs(
                 prefix = ' ' * 4
                 indented = [util_str.indent(s, prefix) for s in itemstrs]
 
-            if align:
+            if align is not None:
                 indented = _align_lines(indented, character=align)
 
             body_str = sep.join(indented)
@@ -875,7 +892,7 @@ def _join_itemstrs(
     return retstr
 
 
-def _dict_itemstrs(dict_: dict[typing.Any, typing.Any], **kwargs: typing.Any) -> tuple[list[str], dict[str, int]]:
+def _dict_itemstrs(dict_: dict[Any, Any], **kwargs: Any) -> tuple[list[str], dict[str, int]]:
     """
     Create a string representation for each item in a dict.
 
@@ -904,7 +921,7 @@ def _dict_itemstrs(dict_: dict[typing.Any, typing.Any], **kwargs: typing.Any) ->
         default_kvsep = '='
     kvsep = kwargs.get('kvsep', default_kvsep)
 
-    def make_item_str(key: typing.Any, val: typing.Any) -> tuple[str, dict[str, int]]:
+    def make_item_str(key: Any, val: Any) -> tuple[str, dict[str, int]]:
         if explicit or kwargs.get('strkeys', default_strkeys):
             key_str = str(key)
         else:
@@ -912,7 +929,8 @@ def _dict_itemstrs(dict_: dict[typing.Any, typing.Any], **kwargs: typing.Any) ->
 
         prefix = key_str + kvsep
         kwargs['_return_info'] = True
-        val_str, _leaf_info = urepr(val, **kwargs)  # type: ignore[misc]
+        _ret = urepr(val, **kwargs)
+        val_str, _leaf_info = _ret
 
         # If the first line does not end with an open nest char
         # (e.g. for ndarrays), otherwise we need to worry about
@@ -933,7 +951,7 @@ def _dict_itemstrs(dict_: dict[typing.Any, typing.Any], **kwargs: typing.Any) ->
                 item_str = ub.hzcat([prefix, val_str])
         else:
             item_str = prefix + val_str
-        return item_str, _leaf_info
+        return item_str, _leaf_info  # type: ignore[invalid-return-type]
 
     items = list(dict_.items())
     _tups = [make_item_str(key, val) for (key, val) in items]
@@ -972,7 +990,7 @@ def _dict_itemstrs(dict_: dict[typing.Any, typing.Any], **kwargs: typing.Any) ->
     return itemstrs, _leaf_info
 
 
-def _list_itemstrs(list_: typing.Any, **kwargs: typing.Any) -> tuple[list[str], dict[str, int]]:
+def _list_itemstrs(list_: Any, **kwargs: Any) -> tuple[list[str], dict[str, int]]:
     """
     Create a string representation for each item in a list.
 
@@ -982,7 +1000,8 @@ def _list_itemstrs(list_: typing.Any, **kwargs: typing.Any) -> tuple[list[str], 
     """
     items = list(list_)
     kwargs['_return_info'] = True
-    _tups = [urepr(item, **kwargs) for item in items]
+    _tups: list[tuple[str, dict[str, int]]]
+    _tups = [urepr(item, **kwargs) for item in items]  # type: ignore[invalid-assignment]
     itemstrs = [t[0] for t in _tups]
     max_height = max([t[1]['max_height'] for t in _tups]) if _tups else 0
     _leaf_info = {
@@ -1003,7 +1022,7 @@ def _list_itemstrs(list_: typing.Any, **kwargs: typing.Any) -> tuple[list[str], 
     return itemstrs, _leaf_info
 
 
-def _sort_itemstrs(items: list[typing.Any], itemstrs: list[str], key: typing.Optional[typing.Callable[[typing.Any], typing.Any]] = None) -> list[str]:
+def _sort_itemstrs(items: list[Any], itemstrs: list[str], key: Callable[[Any], Any] | None = None) -> list[str]:
     """
     Equivalent to ``sorted(items)`` except if ``items`` are unorderable, then
     string values are used to define an ordering.
@@ -1021,7 +1040,7 @@ def _sort_itemstrs(items: list[typing.Any], itemstrs: list[str], key: typing.Opt
     return itemstrs
 
 
-def _rectify_countdown_or_bool(count_or_bool: typing.Any) -> typing.Union[bool, int]:
+def _rectify_countdown_or_bool(count_or_bool: Any) -> bool | int:
     """
     used by recursive functions to specify which level to turn a bool on in
     counting down yields True, True, ..., False
@@ -1064,7 +1083,7 @@ def _rectify_countdown_or_bool(count_or_bool: typing.Any) -> typing.Union[bool, 
     return count_or_bool_
 
 
-def _align_text(text: str, character: str = '=', replchar: typing.Optional[str] = None, pos: int = 0) -> str:
+def _align_text(text: str, character: str = '=', replchar: str | None = None, pos: int = 0) -> str:
     r"""
     Left justifies text on the left side of character
 
@@ -1092,7 +1111,7 @@ def _align_text(text: str, character: str = '=', replchar: typing.Optional[str] 
     return new_text
 
 
-def _align_lines(line_list: list[str], character: str = '=', replchar: typing.Optional[str] = None, pos: typing.Union[int, list[int], None] = 0) -> list[str]:
+def _align_lines(line_list: list[str], character: str = '=', replchar: str | None = None, pos: int | list[int] | None = 0) -> list[str]:
     r"""
     Left justifies text on the left side of character
 

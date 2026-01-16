@@ -70,9 +70,19 @@ from ubelt.util_const import NoParam
 if typing.TYPE_CHECKING:
     from os import PathLike
     from ubelt.util_const import NoParamType
+    from typing import Any, Callable, cast, Union, Optional
     # A constructor / factory that returns a hashlib-style hash object.
     # Kept behind TYPE_CHECKING to ensure near-zero runtime/import-time cost.
-    Hasher = typing.Callable[..., typing.Any]
+
+    BytesLike = bytes | bytearray | memoryview
+
+    class HasherLike(typing.Protocol):
+        def update(self, data: BytesLike, /) -> None: ...
+        def digest(self) -> bytes: ...
+        def hexdigest(self) -> str: ...
+        def copy(self) -> "HasherLike": ...  # or Self if you want (typing.Self on 3.11+)
+
+    HasherType = Callable[..., HasherLike]
 
 
 __all__ = ['hash_data', 'hash_file']
@@ -131,7 +141,7 @@ def b(s: str) -> bytes:
 # DEFAULT_HASHER = hashlib.sha1  # fast algo, but has a known collision
 # DEFAULT_HASHER = hashlib.sha512  # most robust algo, but slower than others
 
-DEFAULT_HASHER: typing.Callable[..., "hashlib._Hash"] = hashlib.sha512
+DEFAULT_HASHER: Callable[..., hashlib._Hash] = hashlib.sha512
 
 
 # This controls if types are used when generating hashable sequences for more
@@ -140,7 +150,7 @@ DEFAULT_HASHER: typing.Callable[..., "hashlib._Hash"] = hashlib.sha512
 _COMPATIBLE_HASHABLE_SEQUENCE_TYPES_DEFAULT = True
 
 
-# Note: the Hasher refers to hashlib._hashlib.HASH
+# Note: the HasherType refers to hashlib._hashlib.HASH
 # but this does not play well with type annotations
 # try:
 #     HASH = hashlib._hashlib.HASH
@@ -204,7 +214,7 @@ class _Hashers:
         aliases (dict[str, str]):
     """
     def __init__(self) -> None:
-        self.algos: dict[str, object] = {}
+        self.algos: dict[str, Callable] = {}
         self.aliases: dict[str, str] = {}
         self._lazy_queue = [
             self._register_xxhash,
@@ -244,7 +254,7 @@ class _Hashers:
         return key in self.algos or key in self.aliases
 
     def _register_xxhash(self):  # nocover
-        import xxhash  # type: ignore
+        import xxhash
         self.algos['xxh32'] = xxhash.xxh32
         self.algos['xxh64'] = xxhash.xxh64
         self.aliases.update({
@@ -254,7 +264,7 @@ class _Hashers:
         })
 
     def _register_blake3(self):  # nocover
-        import blake3  # type: ignore
+        import blake3
         self.algos['blake3'] = blake3.blake3
         self.aliases['b3'] = 'blake3'
 
@@ -270,14 +280,14 @@ class _Hashers:
             for key in extra:
                 self.algos[key] = hashlib.new(key)
 
-    def lookup(self, hasher: "typing.Union[NoParamType, str, typing.Any]") -> "typing.Callable[[], typing.Any]":
+    def lookup(self, hasher: NoParamType | str | Any) -> Callable[[], Any]:
         """
         Args:
             hasher (NoParamType | str | object):
                 something coercible to a hasher
 
         Returns:
-            typing.Callable: a function to construct the requested hahser
+            Callable: a function to construct the requested hahser
         """
         if hasher is NoParam or hasher == 'default':
             hasher = DEFAULT_HASHER
@@ -300,6 +310,8 @@ class _Hashers:
                     # TODO: provide pip install messages for known hashers.
                     raise KeyError('unknown hasher: {}'.format(hasher))
 
+        if typing.TYPE_CHECKING:
+            hasher = cast(HasherType, hasher)
         return hasher
 
 _HASHERS = _Hashers()
@@ -398,17 +410,17 @@ class HashableExtensions:
         this class can be created and passed as arguments to hash_data.
 
     Attributes:
-        iterable_checks (list[typing.Callable[..., bool]]):
+        iterable_checks (list[Callable[..., bool]]):
     """
     def __init__(self) -> None:
-        self.iterable_checks: list[typing.Callable[..., bool]] = []
-        self._lazy_queue: list[typing.Callable[[], None]] = []
+        self.iterable_checks: list[Callable[..., bool]] = []
+        self._lazy_queue: list[Callable[[], None]] = []
 
         # New singledispatch registry implementation
         from functools import singledispatch
         def _hash_dispatch(data):
             raise NotImplementedError
-        _hash_dispatch.__is_base__ = True
+        _hash_dispatch.__is_base__ = True  # type: ignore[unresolved-attribute]
         self._hash_dispatch = singledispatch(_hash_dispatch)
 
     def _evaluate_lazy_queue(self) -> None:
@@ -416,7 +428,7 @@ class HashableExtensions:
             func()
         self._lazy_queue.clear()
 
-    def register(self, hash_types: "typing.Union[type, tuple[type, ...], list[type]]") -> "typing.Callable[..., typing.Any]":
+    def register(self, hash_types: Union[type, tuple[type, ...], list[type]]) -> Callable[..., Any]:
         """
         Registers a function to generate a hash for data of the appropriate
         types. This can be used to register custom classes. Internally this is
@@ -430,7 +442,7 @@ class HashableExtensions:
             hash_types (type | tuple[type, ...] | list[type]):
 
         Returns:
-            typing.Callable: closure to be used as the decorator
+            Callable: closure to be used as the decorator
 
         Example:
             >>> import ubelt as ub
@@ -512,7 +524,7 @@ class HashableExtensions:
             return hash_func
         return _decor_closure
 
-    def lookup(self, data: object) -> "typing.Callable[..., tuple[bytes, bytes]]":
+    def lookup(self, data: object) -> Callable[..., tuple[bytes, bytes]]:
         """
         Returns an appropriate function to hash ``data`` if one has been
         registered.
@@ -521,7 +533,7 @@ class HashableExtensions:
             data (object): the object the user would like to hash
 
         Returns:
-            typing.Callable: a function that can hash the object
+            Callable: a function that can hash the object
 
         Raises:
             TypeError : if data has no registered hash methods
@@ -630,15 +642,15 @@ class HashableExtensions:
         hashable = b''.join(seq)
         return prefix, hashable
 
-    def add_iterable_check(self, func: "typing.Callable[..., bool]") -> "typing.Callable[..., bool]":
+    def add_iterable_check(self, func: Callable[..., bool]) -> Callable[..., bool]:
         """
         Registers a function that detects when a type is iterable
 
         Args:
-            func (typing.Callable):
+            func (Callable):
 
         Returns:
-            typing.Callable
+            Callable
         """
         self.iterable_checks.append(func)
         return func
@@ -1077,7 +1089,7 @@ def _update_hasher(hasher, data, types=True, extensions=None):
     :class:`hashlib._hashlib.HASH` algorithm.
 
     Args:
-        hasher (Hasher): instance of a hashlib algorithm
+        hasher (HasherType): instance of a hashlib algorithm
         data (object): ordered data with structure
         types (bool): include type prefixes in the hash
         extensions (HashableExtensions | None): overrides global extensions
@@ -1227,11 +1239,11 @@ def _digest_hasher(hasher, base):
 # @profile
 def hash_data(
     data: object,
-    hasher: "typing.Union[str, Hasher, NoParamType]" = NoParam,
-    base: "typing.Union[list[str], tuple[str, ...], str, NoParamType]" = NoParam,
+    hasher: str | HasherType | NoParamType = NoParam,
+    base: Union[list[str], tuple[str, ...], str, NoParamType] = NoParam,
     types: bool = False,
     convert: bool = False,
-    extensions: "typing.Optional[HashableExtensions]" = None,
+    extensions: HashableExtensions | None = None,
 ) -> str:
     """
     Get a unique hash depending on the state of the data.
@@ -1240,7 +1252,7 @@ def hash_data(
         data (object):
             Any sort of loosely organized data
 
-        hasher (str | Hasher | NoParamType):
+        hasher (str | HasherType | NoParamType):
             string code or a hash algorithm from hashlib. Valid hashing
             algorithms are defined by :py:obj:`hashlib.algorithms_guaranteed`
             (e.g.  'sha1', 'sha512', 'md5') as well as 'xxh32' and 'xxh64' if
@@ -1307,12 +1319,12 @@ def hash_data(
 
 
 def hash_file(
-    fpath: "typing.Union[str, PathLike[str]]",
+    fpath: Union[str, PathLike[str]],
     blocksize: int = 1048576,
     stride: int = 1,
-    maxbytes: "typing.Optional[int]" = None,
-    hasher: "typing.Union[str, Hasher, NoParamType]" = NoParam,
-    base: "typing.Union[list[str], tuple[str, ...], int, str, NoParamType]" = NoParam,
+    maxbytes: Optional[int] = None,
+    hasher: Union[str, HasherType, NoParamType] = NoParam,
+    base: Union[list[str], tuple[str, ...], int, str, NoParamType] = NoParam,
 ) -> str:
     r"""
     Hashes the data in a file on disk.
@@ -1338,7 +1350,7 @@ def hash_file(
         maxbytes (int | None):
             if specified, only hash the leading `maxbytes` of data in the file.
 
-        hasher (str | Hasher | NoParamType):
+        hasher (str | HasherType | NoParamType):
             string code or a hash algorithm from hashlib. Valid hashing
             algorithms are defined by :py:obj:`hashlib.algorithms_guaranteed`
             (e.g.  'sha1', 'sha512', 'md5') as well as 'xxh32' and 'xxh64' if

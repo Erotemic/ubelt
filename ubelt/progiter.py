@@ -82,16 +82,19 @@ import time
 import collections
 
 if typing.TYPE_CHECKING:
-    from _typeshed import Incomplete, SupportsWrite
+    from _typeshed import SupportsWrite
     from types import TracebackType
-    from typing import Callable, Iterable, List, NamedTuple, Tuple, Type
+    from typing import Type
 from itertools import islice
+from collections.abc import Iterable, Iterator
+
+T = typing.TypeVar('T')
 
 __all__ = [
     'ProgIter',
 ]
 
-default_timer: Callable = time.perf_counter
+default_timer: typing.Callable[[], float] = time.perf_counter
 
 # A measurement takes place at a given iteration and posixtime.
 Measurement = collections.namedtuple('Measurement', ['idx', 'time'])
@@ -176,6 +179,28 @@ class _TQDMCompat:
             desc (str | None): description string
         """
         self.set_description(desc, refresh)
+
+    # ---- Methods / attributes expected on concrete implementations ----
+    # Declared here so type checkers know these exist when called by the
+    # compatibility helpers defined above.
+    desc: str | None
+    total: int | None
+    started: bool
+
+    def step(self, inc: int = 1, force: bool = False) -> None:  # pragma: no cover
+        raise NotImplementedError
+
+    def begin(self) -> typing.Self:  # pragma: no cover
+        raise NotImplementedError
+
+    def end(self) -> None:  # pragma: no cover
+        raise NotImplementedError
+
+    def display_message(self) -> None:  # pragma: no cover
+        raise NotImplementedError
+
+    def set_extra(self, extra: str) -> None:  # pragma: no cover
+        raise NotImplementedError
 
     def update(self, n: int = 1) -> None:
         """ alias of `step` for tqdm compatibility """
@@ -277,31 +302,35 @@ class _BackwardsCompat:
     versions of the ProgIter API.
     """
 
+    # Implemented by ProgIter. Declared here so type checkers understand the
+    # backwards-compatibility aliases below.
+    total: int | None
+    desc: str | None
+
+    def begin(self) -> 'ProgIter[T]':  # pragma: no cover
+        raise NotImplementedError
+
+    def end(self) -> None:  # pragma: no cover
+        raise NotImplementedError
+
     # Backwards Compatibility API
     @property
     def length(self) -> int | None:
-        """ alias of total """
         return self.total
 
     @property
     def label(self) -> str | None:
-        """ alias of desc """
         return self.desc
 
-    def start(self) -> ProgIter:  # nocover
-        """
-        Alias of :func:`ProgIter.begin`
-        """
+    def start(self) -> 'ProgIter[T]':  # nocover
         return self.begin()
 
     def stop(self) -> None:  # nocover
-        """
-        Alias of :func:`ProgIter.end`
-        """
         return self.end()
 
 
-class ProgIter(_TQDMCompat, _BackwardsCompat):
+
+class ProgIter(_TQDMCompat, _BackwardsCompat, Iterable[T]):
     """
     Prints progress as an iterator progresses
 
@@ -338,7 +367,7 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
         100/100... rate=... Hz, total=..., wall=...
     """
     stream: typing.IO
-    iterable: list | Iterable
+    iterable: Iterable[T] | None
     desc: str | None
     total: int | None
     freq: int
@@ -363,7 +392,7 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
 
     def __init__(
         self,
-        iterable: list | Iterable | None = None,
+        iterable: Iterable[T] | None = None,
         desc: str | None = None,
         total: int | None = None,
         freq: int = 1,
@@ -379,12 +408,12 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
         show_total: bool = True,
         show_wall: bool = False,
         enabled: bool = True,
-        verbose: int | None = None,
+        verbose: int | bool | None = None,
         stream: typing.IO | None = None,
         chunksize: int | None = None,
         rel_adjust_limit: float = 4.0,
         homogeneous: bool | str = 'auto',
-        timer: Callable | None = None,
+        timer: typing.Callable[[], float] | None = None,
         **kwargs,
     ) -> None:
         """
@@ -484,11 +513,11 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
             if verbose <= 0:  # nocover
                 enabled = False
             elif verbose == 1:  # nocover
-                enabled, clearline, adjust = 1, 1, 1
+                enabled, clearline, adjust = True, True, True
             elif verbose == 2:  # nocover
-                enabled, clearline, adjust = 1, 0, 1
+                enabled, clearline, adjust = True, False, True
             elif verbose >= 3:  # nocover
-                enabled, clearline, adjust = 1, 0, 0
+                enabled, clearline, adjust = True, False, False
 
         # Potential new additions to the API
         self._microseconds = kwargs.pop('microseconds', False)
@@ -557,7 +586,7 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
 
         self._reset_internals()
 
-    def __call__(self, iterable: Iterable) -> Iterable:
+    def __call__(self, iterable: Iterable[T]) -> Iterator[T]:
         """
         Overwrites the current iterator with iterable and starts iterating on
         it.
@@ -608,17 +637,18 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
         else:
             self.end()
 
-    def __iter__(self) -> Iterable:
+    def __iter__(self) -> Iterator[T]:
         """
         Returns:
             Iterable
         """
+        if self.iterable is None:
+            raise TypeError("ProgIter(iterable=None) is manual-mode; it is not iterable")
         if not self.enabled:
             return iter(self.iterable)
-        else:
-            return self._iterate()
+        return self._iterate()
 
-    def set_extra(self, extra: str | Callable) -> None:
+    def set_extra(self, extra: str | typing.Callable[[], str]) -> None:
         """
         specify a custom info appended to the end of the next message
 
@@ -638,10 +668,11 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
              100.00% 2/2...processesing num 200
         """
         if callable(extra):
-            self._extra_fn = extra
+            self._extra_fn = typing.cast(typing.Callable[[], str], extra)
+            self.extra = ""
         else:
             self._extra_fn = None
-        self.extra = extra
+            self.extra = extra
 
     def _reset_internals(self):
         """
@@ -691,7 +722,7 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
                 a chainable self-reference
         """
         if not self.enabled:
-            return
+            return self
 
         self._reset_internals()
 
@@ -742,10 +773,12 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
         self._cursor_at_newline = True
         self.finished = True
 
-    def _iterate(self):
+    def _iterate(self) -> Iterator[T]:
         """ iterates with progress """
         if not self.started:
             self.begin()
+        if self.iterable is None:
+            raise TypeError("ProgIter(iterable=None) is manual-mode; it is not iterable")
         # Wrap input sequence in a generator
         gen = enumerate(self.iterable, start=self.initial + 1)
         # Iterating is performance sensitive, so separate both cases - where
@@ -931,14 +964,16 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
             {desc} {percent:03.2f}% {iter_idx:1d}/0...{extra} rate={rate:{rate_format}} Hz, total={total}
         """
         from math import log10, floor
-        length_unknown = self.total is None or self.total < 0
+        tot = self.total
+        length_unknown = tot is None or tot < 0
         if length_unknown:
             n_chrs = 4
         else:
-            if self.total == 0:
+            assert tot is not None
+            if tot == 0:
                 n_chrs = 1
             else:
-                n_chrs = int(floor(log10(float(self.total))) + 1)
+                n_chrs = int(floor(log10(float(tot))) + 1)
 
         if self.chunksize and not length_unknown:
             msg_body = [

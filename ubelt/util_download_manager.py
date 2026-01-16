@@ -75,7 +75,7 @@ class DownloadManager:
         self,
         download_root: str | os.PathLike | None = None,
         mode: str = 'thread',
-        max_workers: int | None = None,
+        max_workers: int = 0,
         cache: bool = True,
     ) -> None:
         """
@@ -167,9 +167,9 @@ class DownloadManager:
         if prog is True:
             import ubelt as ub
             prog = ub.ProgIter
-        if prog is not None:
-            return prog(self._pool.as_completed(), total=len(self), desc=desc,
-                        verbose=verbose)
+        if prog:
+            _iter = self._pool.as_completed()
+            return prog(_iter, total=len(self), desc=desc, verbose=verbose)
         else:
             return self._pool.as_completed()
 

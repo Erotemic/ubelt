@@ -66,6 +66,10 @@ exclude_lines = [
     "if _debug:",
     "if __name__ == .__main__.:",
     ".*if six.PY2:",
+    ".*if typing.TYPE_CHECKING:",
+    ".*if TYPE_CHECKING:",
+    "@typing.overload",
+    "@overload",
 ]
 omit = [
     "ubelt/__main__.py",
@@ -79,3 +83,10 @@ skip = ['./docs/build', './*.egg-info', './build', './htmlcov']
 count = true
 quiet-level = 3
 ignore-words-list = ['wont', 'cant', 'ANS', 'doesnt', 'arent', 'ans', 'thats', 'datas', 'isnt']
+
+[tool.ty.src]
+# tmp
+exclude = [
+    #'ubelt/util_path.py',
+    #'ubelt/util_stream.py'
+]

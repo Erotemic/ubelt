@@ -129,6 +129,8 @@ class CmdOutput(dict):
     code that uses :func:`subprocess.run` to switch to :func:`ubelt.cmd`.
     """
 
+    args: tuple
+
     @property
     def stdout(self) -> str | bytes | None:
         """
@@ -416,7 +418,7 @@ def cmd(
             # piping to devnull
             popen_kwargs['stdout'] = subprocess.DEVNULL
             popen_kwargs['stderr'] = subprocess.DEVNULL
-        proc = subprocess.Popen(args, **popen_kwargs)
+        proc = subprocess.Popen(args, **popen_kwargs)  # type: ignore
         return proc
 
     if system:
@@ -450,7 +452,7 @@ def cmd(
             proc = make_proc()
             with proc:
                 out, err = _tee_output(
-                    proc=proc, stdout=stdout, stderr=stderr,
+                    proc=proc, stdout=stdout, stderr=stderr,    # type: ignore[invalid-argument-type]
                     backend=tee_backend, timeout=timeout,
                     command_text=command_text)
                 (out_, err_) = proc.communicate(timeout=timeout)
@@ -501,7 +503,7 @@ def cmd(
         })
 
     # For subprocess compatibility
-    info.args = args
+    info.args = args  # type: ignore[unresolved-attribute]
 
     if not detach:
         if verbose > 2:
@@ -759,8 +761,8 @@ def _proc_iteroutput_thread(proc: subprocess.Popen, timeout: float | None = None
 
     # logger.debug("Create stdout/stderr streams")
     # Create threads that read stdout / stderr and queue up the output
-    stdout_thread, stdout_queue, stdout_ctrl = _proc_async_iter_stream(proc, proc.stdout, timeout=timeout)
-    stderr_thread, stderr_queue, stderr_ctrl = _proc_async_iter_stream(proc, proc.stderr, timeout=timeout)
+    stdout_thread, stdout_queue, stdout_ctrl = _proc_async_iter_stream(proc, proc.stdout, timeout=timeout)  # type: ignore[invalid-argument-type]
+    stderr_thread, stderr_queue, stderr_ctrl = _proc_async_iter_stream(proc, proc.stderr, timeout=timeout)  # type: ignore[invalid-argument-type]
 
     stdout_live = True
     stderr_live = True
@@ -837,19 +839,19 @@ def _proc_iteroutput_select(proc: subprocess.Popen, timeout: float | None = None
                 yield subprocess.TimeoutExpired, subprocess.TimeoutExpired
                 return  # nocover
 
-        reads = [proc.stdout.fileno(), proc.stderr.fileno()]
+        reads = [proc.stdout.fileno(), proc.stderr.fileno()]  # type: ignore[possibly-missing-attribute]
         ret = select.select(reads, [], [], timeout)
         oline = eline = None
         for fd in ret[0]:
-            if fd == proc.stdout.fileno():
-                oline = proc.stdout.readline()
-            if fd == proc.stderr.fileno():
-                eline = proc.stderr.readline()
+            if fd == proc.stdout.fileno():  # type: ignore[possibly-missing-attribute]
+                oline = proc.stdout.readline()  # type: ignore[possibly-missing-attribute]
+            if fd == proc.stderr.fileno():  # type: ignore[possibly-missing-attribute]
+                eline = proc.stderr.readline()  # type: ignore[possibly-missing-attribute]
         yield oline, eline
 
     # Grab any remaining data in stdout and stderr after the process finishes
-    oline_iter = _textio_iterlines(proc.stdout)
-    eline_iter = _textio_iterlines(proc.stderr)
+    oline_iter = _textio_iterlines(proc.stdout)  # type: ignore[invalid-argument-type]
+    eline_iter = _textio_iterlines(proc.stderr)  # type: ignore[invalid-argument-type]
     for oline, eline in zip_longest(oline_iter, eline_iter):
         yield oline, eline
 

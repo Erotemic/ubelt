@@ -197,7 +197,7 @@ class Cacher:
         appname: str = 'ubelt',
         ext: str = '.pkl',
         meta: typing.Optional[object] = None,
-        verbose: typing.Optional[int] = None,
+        verbose: int | bool| None = None,
         enabled: bool = True,
         log: typing.Optional[typing.Callable[[str], typing.Any]] = None,
         hasher: str = 'sha1',
@@ -309,7 +309,7 @@ class Cacher:
         if len(self.ext) > 0 and self.ext[0] != '.':
             raise ValueError('Please be explicit and use a dot in ext')
 
-    def _rectify_cfgstr(self, cfgstr: typing.Optional[str] = None) -> typing.Optional[str]:
+    def _rectify_cfgstr(self, cfgstr: typing.Optional[str] = None) -> str:
         if cfgstr is not None:  # nocover
             from ubelt import schedule_deprecation
             schedule_deprecation(
@@ -341,6 +341,7 @@ class Cacher:
             raise AssertionError('no fname specified in Cacher')
         if self.dpath is None:
             raise AssertionError('no dpath specified in Cacher')
+        assert cfgstr is not None
         return cfgstr
 
     def _condense_cfgstr(self, cfgstr: typing.Optional[str] = None) -> str:
@@ -361,7 +362,7 @@ class Cacher:
         from ubelt.util_path import Path
         return Path(self.get_fpath())
 
-    def get_fpath(self, cfgstr: typing.Optional[str] = None) -> typing.Union[str, os.PathLike]:
+    def get_fpath(self, cfgstr: typing.Optional[str] = None) -> str:
         """
         Reports the filepath that the cacher will use.
 
@@ -372,7 +373,7 @@ class Cacher:
             cfgstr (str | None): overrides the instance-level cfgstr
 
         Returns:
-            str | os.PathLike[str]
+            str
 
         Example:
             >>> # xdoctest: +REQUIRES(module:pytest)
@@ -747,12 +748,11 @@ class Cacher:
         def _wrapper():
             data = self.ensure(func)
             return data
-        _wrapper.cacher = self
+        setattr(_wrapper, 'cacher', self)
         return _wrapper
 
 
 class CacheStamp:
-
     """
     Quickly determine if a file-producing computation has been done.
 
@@ -810,19 +810,19 @@ class CacheStamp:
     """
 
     cacher: Cacher
-    product: typing.Optional[typing.Union[str, os.PathLike, typing.Sequence[typing.Union[str, os.PathLike]]]]
-    hasher: typing.Optional[str]
-    expires: typing.Optional[typing.Union[str, int, datetime_mod.datetime, datetime_mod.timedelta]]
-    hash_prefix: typing.Optional[typing.Union[str, list[str]]]
+    product: str | os.PathLike | typing.Sequence[str | os.PathLike] | None
+    hasher: str | None
+    expires: typing.Union[str, int, datetime_mod.datetime, datetime_mod.timedelta] | None
+    hash_prefix: typing.Union[str, list[str]] | None
 
     def __init__(
         self,
         fname: str,
         dpath: typing.Optional[typing.Union[str, os.PathLike]],
         cfgstr: typing.Optional[str] = None,
-        product: typing.Optional[typing.Union[str, os.PathLike, typing.Sequence[typing.Union[str, os.PathLike]]]] = None,
+        product: str | os.PathLike | typing.Sequence[str | os.PathLike] | None = None,
         hasher: str = 'sha1',
-        verbose: typing.Optional[bool] = None,
+        verbose: int | bool | None = None,
         enabled: bool = True,
         depends: typing.Optional[typing.Union[str, list[str]]] = None,
         meta: typing.Optional[object] = None,
@@ -926,7 +926,7 @@ class CacheStamp:
             return None
         if not isinstance(products, (list, tuple)):
             products = [products]
-        products = list(map(Path, products))
+        products = list(map(Path, products))  # type: ignore[invalid-argument-type]
         return products
 
     def _rectify_hash_prefixes(self):
@@ -1160,6 +1160,7 @@ class CacheStamp:
         certificate_hash = certificate.get('hash', None)
         hash_prefixes = self._rectify_hash_prefixes()
         if hash_prefixes is not None:
+            assert certificate_hash is not None
             for pref_hash, cert_hash in zip(hash_prefixes, certificate_hash):
                 if not cert_hash.startswith(pref_hash):
                     if self.cacher.verbose > 0:
@@ -1208,7 +1209,7 @@ class CacheStamp:
         expires = self.expires
         if expires is None:
             expires_abs = None
-        elif isinstance(expires, numbers.Number):
+        elif isinstance(expires, (int, float)):
             expires_abs = now + datetime_mod.timedelta(seconds=expires)
         elif isinstance(expires, datetime_mod.timedelta):
             expires_abs = now + expires

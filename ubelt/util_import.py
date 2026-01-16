@@ -87,7 +87,7 @@ class PythonPathContext:
         >>> with pytest.raises(RuntimeError):
         >>>     self.__exit__(None, None, None)
     """
-    dpath: str | os.PathLike
+    dpath: str
     index: int
 
     def __init__(self, dpath: str | os.PathLike, index: int = 0) -> None:
@@ -292,9 +292,33 @@ def import_module_from_path(
                 zimp_file = zipimport.zipimporter(archivepath)
                 try:
                     try:
-                        module = zimp_file.load_module(modname)
+                        # module = zimp_file.load_module(modname)
+                        if hasattr(zimp_file, "exec_module"):
+                            import importlib
+                            # Modern path (3.4+; preferred, no deprecation)
+                            spec = importlib.util.spec_from_loader(modname, zimp_file)
+                            if spec is None:
+                                raise ImportError(f"Cannot create spec for {modname!r}")
+                            module = importlib.util.module_from_spec(spec)
+                            sys.modules[modname] = module  # important for recursive imports
+                            zimp_file.exec_module(module)
+                        else:   # nocover
+                            # Legacy fallback (deprecated; only used on very old Pythons)
+                            module = zimp_file.load_module(modname)
                     except Exception:  # nocover
-                        module = zimp_file.load_module(modname.replace('\\', '/'))  # hack
+                        _modname = modname.replace('\\', '/')  # hack
+                        if hasattr(zimp_file, "exec_module"):
+                            import importlib
+                            # Modern path (3.4+; preferred, no deprecation)
+                            spec = importlib.util.spec_from_loader(_modname, zimp_file)
+                            if spec is None:
+                                raise ImportError(f"Cannot create spec for {modname!r}")
+                            module = importlib.util.module_from_spec(spec)
+                            sys.modules[_modname] = module  # important for recursive imports
+                            zimp_file.exec_module(module)
+                        else:
+                            # Legacy fallback (deprecated; only used on very old Pythons)
+                            module = zimp_file.load_module(_modname)
                 except Exception as ex:  # nocover
                     text = (
                         'Encountered error in import_module_from_path '
@@ -397,7 +421,7 @@ def _platform_pylib_exts():  # nocover
     return tuple(valid_exts)
 
 
-def _syspath_modname_to_modpath(modname, sys_path=None, exclude=None):
+def _syspath_modname_to_modpath(modname, sys_path=None, exclude=None) -> str | None:
     """
     syspath version of modname_to_modpath
 
@@ -413,7 +437,7 @@ def _syspath_modname_to_modpath(modname, sys_path=None, exclude=None):
             Defaults to None.
 
     Returns:
-        str: path to the module.
+        str | None: path to the module or None if it does not exist.
 
     Note:
         This is much slower than the pkgutil mechanisms.
@@ -620,6 +644,8 @@ def _syspath_modname_to_modpath(modname, sys_path=None, exclude=None):
                     found_modpath = modpath
                     break
 
+    if typing.TYPE_CHECKING:
+        found_modpath = typing.cast(str | None, found_modpath)
     return found_modpath
 
 
@@ -651,7 +677,9 @@ def _importlib_import_modpath(modpath):  # nocover
     modname = modpath_to_modname(modpath)
     import importlib.util
     spec = importlib.util.spec_from_file_location(modname, modpath)
+    assert spec is not None
     module = importlib.util.module_from_spec(spec)
+    assert spec.loader is not None
     spec.loader.exec_module(module)
     return module
 
@@ -694,6 +722,8 @@ def _importlib_modname_to_modpath(modname):  # nocover
     """
     import importlib.util
     spec = importlib.util.find_spec(modname)
+    assert spec is not None
+    assert spec.origin is not None
     modpath = spec.origin.replace('.pyc', '.py')  # is pyc replace needed anymore?
     return modpath
 
@@ -761,6 +791,9 @@ def modname_to_modpath(
 
     modpath = normalize_modpath(modpath, hide_init=hide_init,
                                 hide_main=hide_main)
+
+    if typing.TYPE_CHECKING:
+        modpath = typing.cast(str, modpath)
     return modpath
 
 
@@ -918,7 +951,7 @@ def modpath_to_modname(
     return modname
 
 
-def split_modpath(modpath: str, check: bool = True) -> tuple[str, str]:
+def split_modpath(modpath: str | os.PathLike, check: bool = True) -> tuple[str, str]:
     """
     Splits the modpath into the dir that must be in PYTHONPATH for the module
     to be imported and the modulepath relative to this directory.
@@ -1075,9 +1108,9 @@ def _parse_static_node_value(node):
     import ast
     from collections import OrderedDict
     import numbers
-    if (isinstance(node, ast.Constant) and isinstance(node.value, numbers.Number) if IS_PY_GE_308 else isinstance(node, ast.Num)):
+    if (isinstance(node, ast.Constant) and isinstance(node.value, numbers.Number) if IS_PY_GE_308 else isinstance(node, ast.Num)):  # type: ignore[deprecated]
         value = node.value if IS_PY_GE_308 else node.n
-    elif (isinstance(node, ast.Constant) and isinstance(node.value, str) if IS_PY_GE_308 else isinstance(node, ast.Str)):
+    elif (isinstance(node, ast.Constant) and isinstance(node.value, str) if IS_PY_GE_308 else isinstance(node, ast.Str)):  # type: ignore[deprecated]
         value = node.value if IS_PY_GE_308 else node.s
     elif isinstance(node, ast.List):
         value = list(map(_parse_static_node_value, node.elts))
@@ -1088,7 +1121,7 @@ def _parse_static_node_value(node):
         values = map(_parse_static_node_value, node.values)
         value = OrderedDict(zip(keys, values))
         # value = dict(zip(keys, values))
-    elif IS_PY_LT_314 and isinstance(node, (ast.NameConstant)):  # nocover
+    elif IS_PY_LT_314 and isinstance(node, (ast.NameConstant)):  # nocover  # type: ignore[deprecated]
         value = node.value
     elif isinstance(node, ast.Constant):  # nocover
         value = node.value

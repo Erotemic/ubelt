@@ -304,7 +304,7 @@ def ensure_app_cache_dir(appname: str, *args) -> str:
 def find_exe(
     name: str | os.PathLike,
     multi: bool = False,
-    path: str | os.PathLike | Iterable[str | os.PathLike] | None = None,
+    path: str | Iterable[str | os.PathLike] | None = None,
 ) -> str | list[str] | None:
     """
     Locate a command.
@@ -319,7 +319,7 @@ def find_exe(
             if True return all matches instead of just the first.
             Defaults to False.
 
-        path (str | PathLike | Iterable[str | PathLike] | None):
+        path (str | Iterable[str | PathLike] | None):
             If specified, overrides the system PATH variable.
 
     Returns:

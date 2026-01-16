@@ -130,7 +130,7 @@ class SerialFuture(concurrent.futures.Future):
             for waiter in self._waiters:  # nocover
                 waiter.add_result(self)
             self._condition.notify_all()
-        self._invoke_callbacks()
+        self._invoke_callbacks()  # type: ignore[unresolved-attribute]
 
     def _Future__get_result(self):
         # overrides private __getresult method
@@ -355,9 +355,12 @@ class Executor:
             backend = futures.ThreadPoolExecutor(max_workers=max_workers)
         elif mode == 'process':
             backend = futures.ProcessPoolExecutor(max_workers=max_workers)
-        elif mode == 'interpreter':
+        elif mode == 'interpreter':  # nocover
             # Requires 3.14+
-            backend = futures.InterpreterPoolExecutor(max_workers=max_workers)
+            InterpreterPoolExecutor = getattr(futures, "InterpreterPoolExecutor", None)
+            if InterpreterPoolExecutor is None:
+                raise RuntimeError("Executor(mode='interpreter') requires Python 3.14+")
+            backend = InterpreterPoolExecutor(max_workers=max_workers)
         # elif mode == 'asyncio':
         #     # Experimental
         #     backend = AsyncIOExecutor()
@@ -535,7 +538,7 @@ class JobPool:
         return job
 
     def shutdown(self) -> None:
-        self.jobs = None
+        self.jobs = []
         return self.executor.shutdown()
 
     def __enter__(self) -> JobPool:
@@ -617,6 +620,7 @@ class JobPool:
                 progkw = {}
             job_iter = ProgIter(
                 job_iter, desc=desc, total=len(self.jobs), **progkw)
+            # adding types to ProgIter should make this not a problem
             self._prog = job_iter
         for job in job_iter:
             if self.transient:

@@ -59,7 +59,10 @@ def repr2(data: object, **kwargs: Any) -> str:
         deprecate='1.2.5', error='2.0.0', remove='2.1.0',
     )
     kwargs['_dict_sort_behavior'] = kwargs.get('_dict_sort_behavior', 'old')
-    return urepr(data, **kwargs)
+    kwargs.pop('_return_info',  None)
+    text = urepr(data, **kwargs)
+    assert isinstance(text, str)
+    return text
 
 
 repr2.extensions = urepr.extensions  # type: ignore[attr-defined]
