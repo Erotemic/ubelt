@@ -280,7 +280,7 @@ class ProjectStructure():
                     setup(
                         {package_dir_line}
                         package_data={{
-                            '{self.mod_name}': ['py.typed'],
+                            '{self.mod_name}': ['py.typed', '*.pyi'],
                         }},
                         install_requires=['packaging'],
                         name='{self.mod_name}',
@@ -291,7 +291,8 @@ class ProjectStructure():
                     )
                 '''))
             (self.mod_dpath / 'py.typed').write_text('')
-            (self.mod_dpath / 'submod.py').write_text('A: int = 1')
+            (self.mod_dpath / 'submod.py').write_text('A = 1')
+            (self.mod_dpath / 'submod.pyi').write_text('A: int')
 
     def analyze(self):
         """
