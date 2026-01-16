@@ -22,9 +22,17 @@ See Also:
 
     :mod:`kwutil.util_time` - https://kwutil.readthedocs.io/en/latest/auto/kwutil.util_time.html
 """
+from __future__ import annotations
+
+import typing
 import time
 import sys
 from functools import lru_cache
+
+if typing.TYPE_CHECKING:
+    import datetime
+    from types import TracebackType
+    from typing import Callable, Type
 
 __all__ = ['timestamp', 'timeparse', 'Timer']
 
@@ -46,8 +54,12 @@ def _needs_workaround39103():
     return len(datetime_cls(1, 1, 1).strftime('%Y')) != 4
 
 
-def timestamp(datetime=None, precision=0, default_timezone='local',
-              allow_dateutil=True):
+def timestamp(
+    datetime: datetime.datetime | datetime.date | None = None,
+    precision: int = 0,
+    default_timezone: str | datetime.timezone = 'local',
+    allow_dateutil: bool = True,
+) -> str:
     """
     Make a concise iso8601 timestamp suitable for use in filenames.
 
@@ -220,7 +232,11 @@ def timestamp(datetime=None, precision=0, default_timezone='local',
     return stamp
 
 
-def timeparse(stamp, default_timezone='local', allow_dateutil=True):
+def timeparse(
+    stamp: str,
+    default_timezone: str = 'local',
+    allow_dateutil: bool = True,
+) -> datetime.datetime:
     """
     Create a :class:`datetime.datetime` object from a string timestamp.
 
@@ -524,7 +540,22 @@ class Timer:
     """
     _default_time = time.perf_counter
 
-    def __init__(self, label='', verbose=None, newline=True, ns=False):
+    elapsed: float
+    tstart: float
+    write: Callable
+    flush: Callable
+    label: str
+    verbose: int | None
+    newline: bool
+    ns: bool
+
+    def __init__(
+        self,
+        label: str = '',
+        verbose: int | None = None,
+        newline: bool = True,
+        ns: bool = False,
+    ) -> None:
         """
         Args:
             label (str):
@@ -556,7 +587,7 @@ class Timer:
         else:
             self._time = self._default_time
 
-    def tic(self):
+    def tic(self) -> Timer:
         """
         starts the timer
 
@@ -572,7 +603,7 @@ class Timer:
         self.tstart = self._time()
         return self
 
-    def toc(self):
+    def toc(self) -> float | int:
         """
         stops the timer
 
@@ -588,7 +619,7 @@ class Timer:
             self.flush()
         return elapsed
 
-    def __enter__(self):
+    def __enter__(self) -> Timer:
         """
         Returns:
             Timer: self
@@ -596,7 +627,12 @@ class Timer:
         self.tic()
         return self
 
-    def __exit__(self, ex_type, ex_value, ex_traceback):
+    def __exit__(
+        self,
+        ex_type: Type[BaseException] | None,
+        ex_value: BaseException | None,
+        ex_traceback: TracebackType | None,
+    ) -> bool | None:
         """
         Args:
             ex_type (Type[BaseException] | None):

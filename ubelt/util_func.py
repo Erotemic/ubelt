@@ -12,9 +12,16 @@ The :func:`compatible` introspects a functions signature for accepted keyword
 arguments and returns the subset of a configuration dictionary that agrees with
 that signature.
 """
+from __future__ import annotations
+
+import typing
 
 
-def identity(arg=None, *args, **kwargs):
+def identity(
+    arg: typing.Any | None = None,
+    *args: typing.Any,
+    **kwargs: typing.Any,
+) -> typing.Any:
     """
     Return the value of the first argument unchanged.
 
@@ -56,7 +63,11 @@ def identity(arg=None, *args, **kwargs):
     return arg
 
 
-def inject_method(self, func, name=None):
+def inject_method(
+    self,
+    func: typing.Callable[..., typing.Any],
+    name: str | None = None,
+) -> None:
     """
     Injects a function into an object instance as a bound method
 
@@ -98,7 +109,12 @@ def inject_method(self, func, name=None):
     setattr(self, name, new_method)
 
 
-def compatible(config, func, start=0, keywords=True):
+def compatible(
+    config: dict[str, typing.Any],
+    func: typing.Callable,
+    start: int = 0,
+    keywords: bool | typing.Iterable[str] = True,
+) -> dict[str, typing.Any]:
     """
     Take the "compatible" subset of a dictionary that a function will accept as
     keyword arguments.

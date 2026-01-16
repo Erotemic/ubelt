@@ -9,6 +9,7 @@ The :func:`hzcat` function horizontally concatenates multiline text.
 The :func:`indent` prefixes all lines in a text block with a given prefix. By
 default that prefix is 4 spaces.
 """
+from __future__ import annotations
 
 __all__ = [
     'indent',
@@ -19,7 +20,7 @@ __all__ = [
 ]
 
 
-def indent(text, prefix='    '):
+def indent(text: str, prefix: str = '    ') -> str:
     """
     Indents a block of text
 
@@ -41,7 +42,7 @@ def indent(text, prefix='    '):
     return prefix + text.replace('\n', '\n' + prefix)
 
 
-def codeblock(text):
+def codeblock(text: str) -> str:
     """
     Create a block of text that preserves all newlines and relative indentation
 
@@ -80,7 +81,7 @@ def codeblock(text):
     return textwrap.dedent(text).strip('\n')
 
 
-def paragraph(text):
+def paragraph(text: str) -> str:
     r"""
     Wraps multi-line strings and restructures the text to remove all newlines,
     heading, trailing, and double spaces.
@@ -114,7 +115,7 @@ def paragraph(text):
     return out
 
 
-def hzcat(args, sep=''):
+def hzcat(args: list[str], sep: str = ''):
     """
     Horizontally concatenates strings preserving indentation
 
@@ -178,7 +179,7 @@ def hzcat(args, sep=''):
     return ret
 
 
-def ensure_unicode(text):
+def ensure_unicode(text: str | bytes) -> str:
     r"""
     Casts bytes into utf8 (mostly for python2 compatibility).
 

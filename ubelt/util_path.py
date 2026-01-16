@@ -29,6 +29,9 @@ Note:
     In the future the part of this module that defines Path may be renamed to
     util_pathlib.
 """
+from __future__ import annotations
+
+import typing
 from os.path import (
     dirname, exists, expanduser, expandvars, join, normpath, split, splitext,
 )
@@ -38,8 +41,12 @@ import pathlib
 import platform
 import stat
 import warnings
-from typing import TYPE_CHECKING, TypeAlias
 from ubelt import util_io
+
+if typing.TYPE_CHECKING:
+    from types import TracebackType
+    from typing import Callable, Type
+    from collections.abc import Generator
 
 
 __all__ = [
@@ -53,8 +60,17 @@ PYTHON_LE_3_8 = sys.version_info[0:2] <= (3, 8)
 PYTHON_GE_3_12 = sys.version_info[0:2] >= (3, 12)
 
 
-def augpath(path, suffix='', prefix='', ext=None, tail='', base=None,
-            dpath=None, relative=None, multidot=False):
+def augpath(
+    path: str | os.PathLike,
+    suffix: str = '',
+    prefix: str = '',
+    ext: str | None = None,
+    tail: str | None = '',
+    base: str | None = None,
+    dpath: str | os.PathLike | None = None,
+    relative: str | os.PathLike | None = None,
+    multidot: bool = False,
+) -> str:
     """
     Create a new path with a different extension, basename, directory, prefix,
     and/or suffix.
@@ -171,7 +187,7 @@ def augpath(path, suffix='', prefix='', ext=None, tail='', base=None,
     return newpath
 
 
-def userhome(username=None):
+def userhome(username: str | None = None) -> str:
     """
     Returns the path to some user's home directory.
 
@@ -240,7 +256,7 @@ def userhome(username=None):
     return userhome_dpath
 
 
-def shrinkuser(path, home='~'):
+def shrinkuser(path: str | os.PathLike, home: str = '~') -> str:
     """
     Inverse of :func:`os.path.expanduser`.
 
@@ -276,7 +292,7 @@ def shrinkuser(path, home='~'):
     return path
 
 
-def expandpath(path):
+def expandpath(path: str | os.PathLike) -> str:
     """
     Shell-like environment variable and tilde path expansion.
 
@@ -300,7 +316,12 @@ def expandpath(path):
     return path
 
 
-def ensuredir(dpath, mode=0o1777, verbose=0, recreate=False):
+def ensuredir(
+    dpath: str | os.PathLike | tuple[str | os.PathLike],
+    mode: int = 0o1777,
+    verbose: int = 0,
+    recreate: bool = False,
+) -> str:
     r"""
     Ensures that directory will exist. Creates new dir with sticky bits by
     default
@@ -399,7 +420,7 @@ class ChDir:
         >>>         assert ub.Path.cwd() == dir1
         >>>     assert ub.Path.cwd() == dpath
     """
-    def __init__(self, dpath):
+    def __init__(self, dpath: str | os.PathLike | None) -> None:
         """
         Args:
             dpath (str | PathLike | None):
@@ -409,7 +430,7 @@ class ChDir:
         self._context_dpath = dpath
         self._orig_dpath = None
 
-    def __enter__(self):
+    def __enter__(self) -> ChDir:
         """
         Returns:
             ChDir: self
@@ -419,7 +440,12 @@ class ChDir:
             os.chdir(self._context_dpath)
         return self
 
-    def __exit__(self, ex_type, ex_value, ex_traceback):
+    def __exit__(
+        self,
+        ex_type: Type[BaseException] | None,
+        ex_value: BaseException | None,
+        ex_traceback: TracebackType | None,
+    ) -> bool | None:
         """
         Args:
             ex_type (Type[BaseException] | None):
@@ -467,7 +493,9 @@ class TempDir:
         >>> self.cleanup()
         >>> assert not exists(dpath)
     """
-    def __init__(self):
+    dpath: str | None
+
+    def __init__(self) -> None:
         from ubelt import schedule_deprecation
         schedule_deprecation(
             modname='ubelt',
@@ -477,10 +505,10 @@ class TempDir:
         )
         self.dpath = None
 
-    def __del__(self):
+    def __del__(self) -> None:
         self.cleanup()
 
-    def ensure(self):
+    def ensure(self) -> str:
         """
         Returns:
             str: the path
@@ -490,13 +518,13 @@ class TempDir:
             self.dpath = tempfile.mkdtemp()
         return self.dpath
 
-    def cleanup(self):
+    def cleanup(self) -> None:
         if self.dpath:
             import shutil
             shutil.rmtree(self.dpath)
             self.dpath = None
 
-    def start(self):
+    def start(self) -> TempDir:
         """
         Returns:
             TempDir: self
@@ -504,14 +532,19 @@ class TempDir:
         self.ensure()
         return self
 
-    def __enter__(self):
+    def __enter__(self) -> TempDir:
         """
         Returns:
             TempDir: self
         """
         return self.start()
 
-    def __exit__(self, ex_type, ex_value, ex_traceback):
+    def __exit__(
+        self,
+        ex_type: Type[BaseException] | None,
+        ex_value: BaseException | None,
+        ex_traceback: TracebackType | None,
+    ) -> bool | None:
         """
         Args:
             ex_type (Type[BaseException] | None):
@@ -524,8 +557,8 @@ class TempDir:
         self.cleanup()
 
 
-if TYPE_CHECKING:
-    _PathBase: TypeAlias = pathlib.Path
+if typing.TYPE_CHECKING:
+    _PathBase = pathlib.Path
 else:
     if os.name == 'nt':  # pragma: no cover
         _PathBase = pathlib.WindowsPath
@@ -689,7 +722,12 @@ class Path(_PathBase):
     __slots__ = ()
 
     @classmethod
-    def appdir(cls, appname=None, *args, type='cache'):
+    def appdir(
+        cls,
+        appname: str | None = None,
+        *args,
+        type: str = 'cache',
+    ) -> 'Path':
         """
         Returns a standard platform specific directory for an application to
         use as cache, config, or data.
@@ -768,8 +806,18 @@ class Path(_PathBase):
         else:
             return cls(base, appname, *args)
 
-    def augment(self, prefix='', stemsuffix='', ext=None, stem=None, dpath=None,
-                tail='', relative=None, multidot=False, suffix=''):
+    def augment(
+        self,
+        prefix: str = '',
+        stemsuffix: str = '',
+        ext: str | None = None,
+        stem: str | None = None,
+        dpath: str | os.PathLike | None = None,
+        tail: str | None = '',
+        relative: str | os.PathLike | None = None,
+        multidot: bool = False,
+        suffix: str = '',
+    ) -> 'Path':
         """
         Create a new path with a different extension, basename, directory,
         prefix, and/or suffix.
@@ -923,7 +971,7 @@ class Path(_PathBase):
         new = self.__class__(aug)
         return new
 
-    def delete(self):
+    def delete(self) -> 'Path':
         """
         Removes a file or recursively removes a directory.
         If a path does not exist, then this is does nothing.
@@ -953,7 +1001,7 @@ class Path(_PathBase):
         util_io.delete(self)
         return self
 
-    def ensuredir(self, mode=0o777):
+    def ensuredir(self, mode: int = 0o777) -> 'Path':
         """
         Concise alias of ``self.mkdir(parents=True, exist_ok=True)``
 
@@ -978,7 +1026,12 @@ class Path(_PathBase):
         self.mkdir(mode=mode, parents=True, exist_ok=True)
         return self
 
-    def mkdir(self, mode=511, parents=False, exist_ok=False):
+    def mkdir(
+        self,
+        mode: int = 511,
+        parents: bool = False,
+        exist_ok: bool = False,
+    ) -> 'Path':
         """
         Create a new directory at this given path.
 
@@ -997,7 +1050,7 @@ class Path(_PathBase):
         super().mkdir(mode=mode, parents=parents, exist_ok=exist_ok)
         return self
 
-    def expand(self):
+    def expand(self) -> 'Path':
         """
         Expands user tilde and environment variables.
 
@@ -1016,7 +1069,7 @@ class Path(_PathBase):
         """
         return self.expandvars().expanduser()
 
-    def expandvars(self):
+    def expandvars(self) -> 'Path':
         """
         As discussed in [CPythonIssue21301]_, CPython won't be adding
         expandvars to pathlib. I think this is a mistake, so I added it in this
@@ -1030,7 +1083,7 @@ class Path(_PathBase):
         """
         return self.__class__(os.path.expandvars(self))
 
-    def ls(self, pattern=None):
+    def ls(self, pattern: None | str = None) -> list['Path']:
         """
         A convenience function to list all paths in a directory.
 
@@ -1092,7 +1145,7 @@ class Path(_PathBase):
     #     import glob
     #     yield from map(self.__class__, glob.glob(self))
 
-    def shrinkuser(self, home='~'):
+    def shrinkuser(self, home: str = '~') -> 'Path':
         """
         Shrinks your home directory by replacing it with a tilde.
 
@@ -1220,7 +1273,7 @@ class Path(_PathBase):
     #     super().hardlink_to(target)
     #     return self
 
-    def touch(self, mode=0o0666, exist_ok=True):
+    def touch(self, mode: int = 0o0666, exist_ok: bool = True) -> 'Path':
         """
         Create this file with the given access mode, if it doesn't exist.
 
@@ -1288,7 +1341,13 @@ class Path(_PathBase):
                 # Use the backport
                 return _relative_path_backport(self, other, walk_up=walk_up)
 
-    def walk(self, topdown=True, onerror=None, followlinks=False, **kwargs):
+    def walk(
+        self,
+        topdown: bool = True,
+        onerror: Callable[[OSError], None] | None = None,
+        followlinks: bool = False,
+        **kwargs,
+    ) -> Generator[tuple['Path', list[str], list[str]], None, None]:
         """
         A variant of :func:`os.walk` for pathlib
 
@@ -1362,7 +1421,7 @@ class Path(_PathBase):
             for root, dnames, fnames in walker:
                 yield (cls(root), dnames, fnames)
 
-    def __add__(self, other):
+    def __add__(self, other) -> str:
         """
         Returns a new string starting with this fspath representation.
 
@@ -1388,7 +1447,7 @@ class Path(_PathBase):
         """
         return os.fspath(self) + other
 
-    def __radd__(self, other):
+    def __radd__(self, other) -> str:
         """
         Returns a new string ending with this fspath representation.
 
@@ -1414,7 +1473,7 @@ class Path(_PathBase):
         """
         return other + os.fspath(self)
 
-    def endswith(self, suffix, *args):
+    def endswith(self, suffix: str | tuple[str, ...], *args) -> bool:
         """
         Test if the fspath representation ends with ``suffix``.
 
@@ -1449,7 +1508,7 @@ class Path(_PathBase):
         """
         return os.fspath(self).endswith(suffix, *args)
 
-    def startswith(self, prefix, *args):
+    def startswith(self, prefix: str | tuple[str, ...], *args) -> bool:
         """
         Test if the fspath representation starts with ``prefix``.
 
@@ -1514,8 +1573,14 @@ class Path(_PathBase):
             raise KeyError(meta)
         return copy_function
 
-    def copy(self, dst, follow_file_symlinks=False, follow_dir_symlinks=False,
-             meta='stats', overwrite=False):
+    def copy(
+        self,
+        dst: str | os.PathLike,
+        follow_file_symlinks: bool = False,
+        follow_dir_symlinks: bool = False,
+        meta: str | None = 'stats',
+        overwrite: bool = False,
+    ) -> 'Path':
         """
         Copy this file or directory to dst.
 
@@ -1666,8 +1731,13 @@ class Path(_PathBase):
             raise FileExistsError('The source path does not exist')
         return Path(dst)
 
-    def move(self, dst, follow_file_symlinks=False, follow_dir_symlinks=False,
-             meta='stats'):
+    def move(
+        self,
+        dst: str | os.PathLike,
+        follow_file_symlinks: bool = False,
+        follow_dir_symlinks: bool = False,
+        meta: str | None = 'stats',
+    ) -> 'Path':
         """
         Move a file from one location to another, or recursively move a
         directory from one location to another.

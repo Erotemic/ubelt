@@ -20,8 +20,10 @@ Example:
     >>> result = ub.symlink(real_path, link_path, overwrite=True, verbose=3)
     >>> parts = result.split(os.path.sep)
     >>> print(parts[-1])
-    link_file.txt
+link_file.txt
 """
+from __future__ import annotations
+
 from os.path import exists, islink, join, normpath
 import os
 import sys
@@ -37,7 +39,12 @@ else:
     _win32_links = None
 
 
-def symlink(real_path, link_path, overwrite=False, verbose=0):
+def symlink(
+    real_path: str | os.PathLike,
+    link_path: str | os.PathLike,
+    overwrite: bool = False,
+    verbose: int = 0,
+) -> str | os.PathLike:
     """
     Create a link ``link_path`` that mirrors ``real_path``.
 

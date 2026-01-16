@@ -44,6 +44,9 @@ Example:
     >>> self.my_property2
     >>> self.my_property2
 """
+from __future__ import annotations
+
+import typing
 import functools
 import sys
 from ubelt import util_hash
@@ -106,7 +109,7 @@ def _make_signature_key(args, kwargs):
     return key
 
 
-def memoize(func):
+def memoize(func: typing.Callable) -> typing.Callable:
     """
     memoization decorator that respects args and kwargs
 
@@ -232,7 +235,9 @@ class memoize_method:
         >>> assert method1('z') == ('z2', 'F1')
         >>> assert method2('z') == ('z2', 'F2')
     """
-    def __init__(self, func):
+    __func__: typing.Callable
+
+    def __init__(self, func: typing.Callable) -> None:
         """
         Args:
             func (Callable): method to wrap
@@ -243,7 +248,7 @@ class memoize_method:
         self.__func__ = func
         functools.update_wrapper(self, func)
 
-    def __get__(self, instance, cls=None):
+    def __get__(self, instance: object, cls: type | None = None):
         """
         Descriptor get method. Called when the decorated method is accessed
         from an object instance.
@@ -273,7 +278,7 @@ class memoize_method:
         return bound_memoizer
 
 
-def memoize_property(fget):
+def memoize_property(fget: property | typing.Callable):
     """
     Return a property attribute for new-style classes that only calls its
     getter on the first access. The result is stored and on subsequent accesses

@@ -9,9 +9,15 @@ written and read is unicode text.
 throw an error if the file or directory does not exist. It also contains
 workarounds for win32 issues with :mod:`shutil`.
 """
+from __future__ import annotations
+
+import typing
 import sys
 import os
 from os.path import exists
+
+if typing.TYPE_CHECKING:
+    import io
 
 
 __all__ = [
@@ -19,7 +25,12 @@ __all__ = [
 ]
 
 
-def writeto(fpath, to_write, aslines=False, verbose=None):
+def writeto(
+    fpath: str | os.PathLike,
+    to_write: str,
+    aslines: bool = False,
+    verbose: int | None = None,
+) -> None:
     r"""
     Writes (utf8) text to a file.
 
@@ -106,7 +117,12 @@ def _ensure_bytes(text):
     return text.encode('utf8')
 
 
-def readfrom(fpath, aslines=False, errors='replace', verbose=None):
+def readfrom(
+    fpath: str | os.PathLike,
+    aslines: bool = False,
+    errors: str = 'replace',
+    verbose: int | None = None,
+) -> str:
     """
     Reads (utf8) text from a file.
 
@@ -148,7 +164,13 @@ def readfrom(fpath, aslines=False, errors='replace', verbose=None):
     return text
 
 
-def touch(fpath, mode=0o666, dir_fd=None, verbose=0, **kwargs):
+def touch(
+    fpath: str | os.PathLike,
+    mode: int = 0o666,
+    dir_fd: io.IOBase | None = None,
+    verbose: int = 0,
+    **kwargs,
+) -> str:
     """
     change file timestamps
 
@@ -188,7 +210,7 @@ def touch(fpath, mode=0o666, dir_fd=None, verbose=0, **kwargs):
     return fpath
 
 
-def delete(path, verbose=False):
+def delete(path: str | os.PathLike, verbose: bool = False) -> None:
     """
     Removes a file or recursively removes a directory.
     If a path does not exist, then this is does nothing.

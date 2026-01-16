@@ -37,10 +37,16 @@ References:
     .. [AS_appdirs] https://github.com/ActiveState/appdirs
     .. [PlatDirs] https://pypi.org/project/platformdirs/
 """
+from __future__ import annotations
+
+import typing
 import os
 import sys
 import itertools as it
 from os.path import exists, join, isdir, expanduser, normpath
+
+if typing.TYPE_CHECKING:
+    from collections.abc import Generator, Iterable
 
 
 __all__ = [
@@ -53,14 +59,14 @@ __all__ = [
 
 # References:
 # https://stackoverflow.com/questions/446209/possible-values-from-sys-platform
-WIN32   = sys.platform == 'win32'  # type: bool
-LINUX   = sys.platform.startswith('linux')  # type: bool
-FREEBSD = sys.platform.startswith('freebsd')  # type: bool
-DARWIN  = sys.platform == 'darwin'  # type: bool
-POSIX = 'posix' in sys.builtin_module_names  # type: bool
+WIN32: bool = sys.platform == 'win32'
+LINUX: bool = sys.platform.startswith('linux')
+FREEBSD: bool = sys.platform.startswith('freebsd')
+DARWIN: bool = sys.platform == 'darwin'
+POSIX: bool = 'posix' in sys.builtin_module_names
 
 
-def platform_data_dir():
+def platform_data_dir() -> str:
     """
     Returns path for user-specific data files
 
@@ -79,7 +85,7 @@ def platform_data_dir():
     return dpath
 
 
-def platform_config_dir():
+def platform_config_dir() -> str:
     """
     Returns a directory which should be writable for any application
     This should be used for persistent configuration files.
@@ -99,7 +105,7 @@ def platform_config_dir():
     return dpath
 
 
-def platform_cache_dir():
+def platform_cache_dir() -> str:
     """
     Returns a directory which should be writable for any application
     This should be used for temporary deletable data.
@@ -121,7 +127,7 @@ def platform_cache_dir():
 # ---
 
 
-def get_app_data_dir(appname, *args):
+def get_app_data_dir(appname: str, *args) -> str:
     r"""
     Returns a writable directory for an application.
     This should be used for temporary deletable data.
@@ -149,7 +155,7 @@ def get_app_data_dir(appname, *args):
     return dpath
 
 
-def ensure_app_data_dir(appname, *args):
+def ensure_app_data_dir(appname: str, *args) -> str:
     """
     Calls :func:`get_app_data_dir` but ensures the directory exists.
 
@@ -178,7 +184,7 @@ def ensure_app_data_dir(appname, *args):
     return dpath
 
 
-def get_app_config_dir(appname, *args):
+def get_app_config_dir(appname: str, *args) -> str:
     r"""
     Returns a writable directory for an application
     This should be used for persistent configuration files.
@@ -206,7 +212,7 @@ def get_app_config_dir(appname, *args):
     return dpath
 
 
-def ensure_app_config_dir(appname, *args):
+def ensure_app_config_dir(appname: str, *args) -> str:
     """
     Calls :func:`get_app_config_dir` but ensures the directory exists.
 
@@ -235,7 +241,7 @@ def ensure_app_config_dir(appname, *args):
     return dpath
 
 
-def get_app_cache_dir(appname, *args):
+def get_app_cache_dir(appname: str, *args) -> str:
     r"""
     Returns a writable directory for an application.
     This should be used for temporary deletable data.
@@ -266,7 +272,7 @@ def get_app_cache_dir(appname, *args):
     return dpath
 
 
-def ensure_app_cache_dir(appname, *args):
+def ensure_app_cache_dir(appname: str, *args) -> str:
     """
     Calls :func:`get_app_cache_dir` but ensures the directory exists.
 
@@ -295,7 +301,11 @@ def ensure_app_cache_dir(appname, *args):
     return dpath
 
 
-def find_exe(name, multi=False, path=None):
+def find_exe(
+    name: str | os.PathLike,
+    multi: bool = False,
+    path: str | os.PathLike | Iterable[str | os.PathLike] | None = None,
+) -> str | list[str] | None:
     """
     Locate a command.
 
@@ -373,7 +383,11 @@ def find_exe(name, multi=False, path=None):
         return list(results)
 
 
-def find_path(name, path=None, exact=False):
+def find_path(
+    name: str | os.PathLike,
+    path: str | Iterable[str | os.PathLike] | None = None,
+    exact: bool = False,
+) -> Generator[str, None, None]:
     """
     Search for a file or directory on your local filesystem by name
     (file must be in a directory specified in a PATH environment variable)

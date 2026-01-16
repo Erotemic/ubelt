@@ -33,6 +33,8 @@ References:
 Requirements:
     pip install pygments
 """
+from __future__ import annotations
+
 import sys
 import warnings
 import os
@@ -41,12 +43,17 @@ import os
 # Global state that determines if ANSI-coloring text is allowed
 # (which is mainly to address non-ANSI compliant windows consoles)
 # compliant with https://no-color.org/
-NO_COLOR = bool(os.environ.get('NO_COLOR'))  # type: bool
+NO_COLOR: bool = bool(os.environ.get('NO_COLOR'))
 # https://force-color.org/
-FORCE_COLOR = bool(os.environ.get('NO_COLOR'))  # type: bool
+FORCE_COLOR: bool = bool(os.environ.get('NO_COLOR'))
 
 
-def highlight_code(text, lexer_name='python', backend='pygments', **kwargs):
+def highlight_code(
+    text: str,
+    lexer_name: str = 'python',
+    backend: str = 'pygments',
+    **kwargs,
+) -> str:
     """
     Highlights a block of text using ANSI tags based on language syntax.
 
@@ -152,7 +159,7 @@ def _rich_highlight(text, lexer_name):  # nocover
     return new_text
 
 
-def color_text(text, color):
+def color_text(text: str, color: str | None) -> str:
     r"""
     Colorizes text a single color using ansi tags.
 

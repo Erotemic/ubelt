@@ -12,7 +12,11 @@ how the former is implemented.
 from __future__ import annotations
 import sys
 import io
-from typing import TextIO
+import typing
+
+if typing.TYPE_CHECKING:
+    from types import TracebackType
+    from typing import TextIO, Type
 
 __all__ = [
     'TeeStringIO',
@@ -38,7 +42,7 @@ class TeeStringIO(io.StringIO):
         >>> assert self.getvalue() == 'spam'
         >>> assert redirect.getvalue() == 'spam'
     """
-    def __init__(self, redirect=None):
+    def __init__(self, redirect: io.IOBase | None = None) -> None:
         """
         Args:
             redirect (io.IOBase): The other stream to write to.
@@ -59,7 +63,7 @@ class TeeStringIO(io.StringIO):
         # Note: mypy doesn't like this type
         # buffer (io.BufferedIOBase | io.IOBase | None): the redirected buffer attribute
 
-    def isatty(self):  # nocover
+    def isatty(self) -> bool:  # nocover
         """
         Returns true of the redirect is a terminal.
 
@@ -76,7 +80,7 @@ class TeeStringIO(io.StringIO):
         return (self.redirect is not None and
                 hasattr(self.redirect, 'isatty') and self.redirect.isatty())
 
-    def fileno(self):
+    def fileno(self) -> int:
         """
         Returns underlying file descriptor of the redirected IOBase object
         if one exists.
@@ -151,7 +155,7 @@ class TeeStringIO(io.StringIO):
         # Adding a setter to make mypy happy
         raise AttributeError('encoding is read-only on TeeStringIO')
 
-    def write(self, msg):
+    def write(self, msg: str):
         """
         Write to this and the redirected stream
 
@@ -176,7 +180,7 @@ class TeeStringIO(io.StringIO):
             self.redirect.write(msg)
         return super().write(msg)
 
-    def flush(self):  # nocover
+    def flush(self):
         """
         Flush to this and the redirected stream
 
@@ -213,7 +217,7 @@ class CaptureStream:
         raise NotImplementedError
 
     # ----- implementation -----
-    def __init__(self, suppress: bool = True, enabled: bool = True):
+    def __init__(self, suppress: bool = True, enabled: bool = True) -> None:
         self.text: str | None = None
         self._pos: int = 0
         self.parts: list[str] = []
@@ -272,11 +276,16 @@ class CaptureStream:
             finally:
                 self.cap_stream = None
 
-    def __enter__(self):
+    def __enter__(self) -> CaptureStream:
         self.start()
         return self
 
-    def __exit__(self, ex_type, ex_value, ex_traceback):
+    def __exit__(
+        self,
+        ex_type: Type[BaseException] | None,
+        ex_value: BaseException | None,
+        ex_traceback: TracebackType | None,
+    ) -> bool | None:
         """
         On exit, append the final part, stop, and close the proxy.
 

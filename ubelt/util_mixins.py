@@ -45,6 +45,8 @@ Example:
     g = <Group(3)>
 
 """
+from __future__ import annotations
+
 import warnings
 
 
@@ -143,7 +145,7 @@ class NiceRepr:
                 return '<{0}({1})>'.format(classname, nice)
     """
 
-    def __nice__(self):
+    def __nice__(self) -> str:
         """
         Returns:
             str
@@ -157,7 +159,7 @@ class NiceRepr:
             raise NotImplementedError(
                 'Define the __nice__ method for {!r}'.format(self.__class__))
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """
         Returns:
             str
@@ -170,7 +172,7 @@ class NiceRepr:
             warnings.warn(str(ex), category=RuntimeWarning)
             return object.__repr__(self)
 
-    def __str__(self):
+    def __str__(self) -> str:
         """
         Returns:
             str

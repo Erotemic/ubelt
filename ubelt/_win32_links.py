@@ -19,6 +19,8 @@ Weird Behavior:
     - [ ] In many cases using the win32 API seems to result in privilege errors
           but using shell commands does not have this problem.
 """
+from __future__ import annotations
+
 import os
 import warnings
 import platform
@@ -35,7 +37,7 @@ if sys.platform.startswith('win32'):
         # Use vendored subset of jaraco.windows
         from ubelt import _win32_jaraco as jwfs
 
-__win32_can_symlink__ = None  # type: bool | None
+__win32_can_symlink__: bool | None = None
 
 
 def _win32_can_symlink(verbose=0, force=False, testing=False):

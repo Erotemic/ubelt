@@ -9,10 +9,15 @@ References:
     .. [PypiDictDigger] https://pypi.org/project/dict_digger/
     .. [PypiDeepDiff] https://pypi.org/project/deepdiff/
 """
+from __future__ import annotations
+
+import typing
 from math import isclose
 from collections.abc import Generator
-from typing import NamedTuple, Tuple, Any
 # from collections.abc import Iterable
+
+if typing.TYPE_CHECKING:
+    from types import TracebackType
 
 try:
     from functools import cache
@@ -29,14 +34,14 @@ def _lazy_numpy():
     return np
 
 
-class Difference(NamedTuple):
+class Difference(typing.NamedTuple):
     """
     A result class of indexable_diff that organizes what the difference between
     the indexables is.
     """
-    path: Tuple
-    value1: Any
-    value2: Any
+    path: tuple
+    value1: typing.Any
+    value2: typing.Any
 
 
 class IndexableWalker(Generator):
@@ -178,14 +183,24 @@ class IndexableWalker(Generator):
         >>> assert num_iters == 3 + 3 * 5
     """
 
-    def __init__(self, data, dict_cls=(dict,), list_cls=(list, tuple)):
+    data: dict | list | tuple
+    dict_cls: tuple[type, ...]
+    list_cls: tuple[type, ...]
+    indexable_cls: tuple[type, ...]
+
+    def __init__(
+        self,
+        data,
+        dict_cls: tuple[type, ...] = (dict,),
+        list_cls: tuple[type, ...] = (list, tuple),
+    ) -> None:
         self.data = data
         self.dict_cls = dict_cls
         self.list_cls = list_cls
         self.indexable_cls = self.dict_cls + self.list_cls
         self._walk_gen = None
 
-    def __iter__(self):
+    def __iter__(self) -> Generator[tuple[list, typing.Any], typing.Any, typing.Any]:
         """
         Iterates through the indexable ``self.data``
 
@@ -200,7 +215,7 @@ class IndexableWalker(Generator):
         self._walk_gen = self._walk()
         return self._walk_gen
 
-    def __next__(self):
+    def __next__(self) -> typing.Any:
         """
         returns next item from this generator
 
@@ -213,7 +228,7 @@ class IndexableWalker(Generator):
 
     # TODO: maybe we implement a map function?
 
-    def send(self, arg):
+    def send(self, arg) -> None:
         """
         send(arg) -> send 'arg' into generator,
         return next yielded value or raise StopIteration.
@@ -221,7 +236,12 @@ class IndexableWalker(Generator):
         # Note: this will error if called before __next__
         self._walk_gen.send(arg)
 
-    def throw(self, typ, val=None, tb=None):  # type: ignore
+    def throw(
+        self,
+        typ: typing.Any,
+        val: object | None = None,
+        tb: TracebackType | None = None,
+    ) -> typing.Any:
         """
         throw(typ[,val[,tb]]) -> raise exception in generator,
         return next yielded value or raise StopIteration.
@@ -246,7 +266,7 @@ class IndexableWalker(Generator):
         """
         raise StopIteration
 
-    def __setitem__(self, path, value):
+    def __setitem__(self, path: list, value: typing.Any) -> None:
         """
         Set nested value by path
 
@@ -268,7 +288,7 @@ class IndexableWalker(Generator):
             d = d[k]
         d[key] = value
 
-    def __getitem__(self, path):
+    def __getitem__(self, path: list) -> typing.Any:
         """
         Get nested value by path
 
@@ -290,7 +310,7 @@ class IndexableWalker(Generator):
             d = d[k]
         return d[key]
 
-    def __delitem__(self, path):
+    def __delitem__(self, path: list) -> None:
         """
         Remove nested value by path
 
@@ -421,7 +441,14 @@ class IndexableWalker(Generator):
                     if isinstance(value, self.indexable_cls):
                         stack.append((value, path))
 
-    def allclose(self, other, rel_tol=1e-9, abs_tol=0.0, equal_nan=False, return_info=False):
+    def allclose(
+        self,
+        other: IndexableWalker | list | dict,
+        rel_tol: float = 1e-9,
+        abs_tol: float = 0.0,
+        equal_nan: bool = False,
+        return_info: bool = False,
+    ) -> bool | tuple[bool, dict]:
         """
         Walks through this and another nested data structures and checks if
         everything is roughly the same.
@@ -735,7 +762,13 @@ def _make_isclose_fn(rel_tol, abs_tol, equal_nan):
     return _isclose_fn, _iskw
 
 
-def indexable_allclose(items1, items2, rel_tol=1e-9, abs_tol=0.0, return_info=False):
+def indexable_allclose(
+    items1: dict | list | tuple,
+    items2: dict | list | tuple,
+    rel_tol: float = 1e-9,
+    abs_tol: float = 0.0,
+    return_info: bool = False,
+) -> bool | tuple[bool, dict]:
     """
     Walks through two nested data structures and ensures that everything is
     roughly the same.

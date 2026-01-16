@@ -13,15 +13,25 @@ without the user needing to worry about extracting it first. When possible it
 will read it directly from the archive, but in some cases it may extract it to
 a temporary directory first.
 """
+from __future__ import annotations
+
+import typing
 import io
 import os
 from os.path import exists, join
 from ubelt.util_mixins import NiceRepr
 
+if typing.TYPE_CHECKING:
+    from types import TracebackType
+    from typing import Type
+
 __all__ = ['zopen', 'split_archive']
 
 
-def split_archive(fpath, ext='.zip'):
+def split_archive(
+    fpath: str | os.PathLike,
+    ext: str = '.zip',
+) -> tuple[str, str | None]:
     """
     If fpath specifies a file inside a zipfile, it breaks it into two parts the
     path to the zipfile and the internal path in the zipfile.
@@ -230,7 +240,18 @@ class zopen(NiceRepr):
         >>> self._handle = None
         >>> dir(self)
     """
-    def __init__(self, fpath, mode='r', seekable=False, ext='.zip'):
+    name: str | os.PathLike
+    fpath: str | os.PathLike
+    ext: str
+    mode: str
+
+    def __init__(
+        self,
+        fpath: str | os.PathLike,
+        mode: str = 'r',
+        seekable: bool = False,
+        ext: str = '.zip',
+    ) -> None:
         """
         Args:
             fpath (str | PathLike):
@@ -324,7 +345,7 @@ class zopen(NiceRepr):
             from ubelt.util_io import delete
             delete(self._temp_dpath)
 
-    def __del__(self):
+    def __del__(self) -> None:
         self._cleanup()
 
     def _split_archive(self):
@@ -384,7 +405,12 @@ class zopen(NiceRepr):
     def __enter__(self):
         return self
 
-    def __exit__(self, ex_type, ex_value, ex_traceback):
+    def __exit__(
+        self,
+        ex_type: Type[BaseException] | None,
+        ex_value: BaseException | None,
+        ex_traceback: TracebackType | None,
+    ) -> bool | None:
         """
         Args:
             ex_type (Type[BaseException] | None):

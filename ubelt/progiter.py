@@ -74,24 +74,31 @@ Example:
     check primes  768/1000...Biggest prime so far: 761 rate=136480.12 Hz, eta=0:00:00, total=0:00:00, wall=2020-10-23 17:27 EST
     check primes 1000/1000...Biggest prime so far: 997 rate=115214.95 Hz, eta=0:00:00, total=0:00:00, wall=2020-10-23 17:27 EST
 """
+from __future__ import annotations
+
+import typing
 import sys
 import time
 import collections
-from typing import Callable
+
+if typing.TYPE_CHECKING:
+    from _typeshed import Incomplete, SupportsWrite
+    from types import TracebackType
+    from typing import Callable, Iterable, List, NamedTuple, Tuple, Type
 from itertools import islice
 
 __all__ = [
     'ProgIter',
 ]
 
-default_timer = time.perf_counter  # type: Callable
+default_timer: Callable = time.perf_counter
 
 # A measurement takes place at a given iteration and posixtime.
 Measurement = collections.namedtuple('Measurement', ['idx', 'time'])
 
 
-CLEAR_BEFORE = '\r'
-AT_END = '\n'
+CLEAR_BEFORE: str = '\r'
+AT_END: str = '\n'
 
 
 def _infer_length(iterable):
@@ -130,7 +137,13 @@ class _TQDMCompat:
     """
 
     @classmethod
-    def write(cls, s, file=None, end='\n', nolock=False):
+    def write(
+        cls,
+        s: str,
+        file: SupportsWrite | None = None,
+        end: str = '\n',
+        nolock: bool = False,
+    ) -> None:
         """
         simply writes to stdout
 
@@ -144,7 +157,7 @@ class _TQDMCompat:
         fp.write(s)
         fp.write(end)
 
-    def set_description(self, desc=None, refresh=True):
+    def set_description(self, desc: str | None = None, refresh: bool = True) -> None:
         """
         tqdm api compatibility. Changes the description of progress
 
@@ -155,7 +168,7 @@ class _TQDMCompat:
         if refresh:
             self.refresh()
 
-    def set_description_str(self, desc=None, refresh=True):
+    def set_description_str(self, desc: str | None = None, refresh: bool = True) -> None:
         """
         tqdm api compatibility. Changes the description of progress
 
@@ -164,27 +177,27 @@ class _TQDMCompat:
         """
         self.set_description(desc, refresh)
 
-    def update(self, n=1):
+    def update(self, n: int = 1) -> None:
         """ alias of `step` for tqdm compatibility """
         self.step(n)
 
-    def close(self):
+    def close(self) -> None:
         """ alias of `end` for tqdm compatibility """
         self.end()
 
-    def unpause(self):
+    def unpause(self) -> None:
         """ tqdm api compatibility. does nothing """
         pass
 
-    def moveto(self, n):
+    def moveto(self, n) -> None:
         """ tqdm api compatibility. does nothing """
         pass
 
-    def clear(self, nolock=False):
+    def clear(self, nolock: bool = False) -> None:
         """ tqdm api compatibility. does nothing """
         pass
 
-    def refresh(self, nolock=False):
+    def refresh(self, nolock: bool = False) -> None:
         """
         tqdm api compatibility. redisplays message
         (can cause a message to print twice)
@@ -194,7 +207,7 @@ class _TQDMCompat:
         self.display_message()
 
     @property
-    def pos(self):
+    def pos(self) -> int:
         """
         Returns:
             int
@@ -202,16 +215,21 @@ class _TQDMCompat:
         return 0
 
     @classmethod
-    def set_lock(cls, lock):
+    def set_lock(cls, lock) -> None:
         """ tqdm api compatibility. does nothing """
         pass
 
     @classmethod
-    def get_lock(cls):
+    def get_lock(cls) -> None:
         """ tqdm api compatibility. does nothing """
         pass
 
-    def set_postfix_dict(self, ordered_dict=None, refresh=True, **kwargs):
+    def set_postfix_dict(
+        self,
+        ordered_dict: dict | None = None,
+        refresh: bool = True,
+        **kwargs,
+    ) -> None:
         """
         tqdm api compatibility. calls set_extra
 
@@ -240,13 +258,13 @@ class _TQDMCompat:
                                  for key in postfix.keys())
         self.set_postfix_str(postfix, refresh=refresh)
 
-    def set_postfix(self, postfix, **kwargs):
+    def set_postfix(self, postfix, **kwargs) -> None:
         if isinstance(postfix, str):
             self.set_postfix_str(postfix, **kwargs)
         else:
             self.set_postfix_dict(ordered_dict=postfix, **kwargs)
 
-    def set_postfix_str(self, s='', refresh=True):
+    def set_postfix_str(self, s: str = '', refresh: bool = True) -> None:
         """ tqdm api compatibility. calls set_extra """
         self.set_extra(str(s))
         if refresh:
@@ -261,22 +279,22 @@ class _BackwardsCompat:
 
     # Backwards Compatibility API
     @property
-    def length(self):
+    def length(self) -> int | None:
         """ alias of total """
         return self.total
 
     @property
-    def label(self):
+    def label(self) -> str | None:
         """ alias of desc """
         return self.desc
 
-    def start(self):  # nocover
+    def start(self) -> ProgIter:  # nocover
         """
         Alias of :func:`ProgIter.begin`
         """
         return self.begin()
 
-    def stop(self):  # nocover
+    def stop(self) -> None:  # nocover
         """
         Alias of :func:`ProgIter.end`
         """
@@ -319,13 +337,56 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
         >>>     is_prime(n)
         100/100... rate=... Hz, total=..., wall=...
     """
-    def __init__(self, iterable=None, desc=None, total=None, freq=1,
-                 initial=0, eta_window=64, clearline=True, adjust=True,
-                 time_thresh=2.0, show_percent=True, show_times=True,
-                 show_rate=True, show_eta=True, show_total=True,
-                 show_wall=False, enabled=True, verbose=None, stream=None,
-                 chunksize=None, rel_adjust_limit=4.0, homogeneous='auto',
-                 timer=None, **kwargs):
+    stream: typing.IO
+    iterable: list | Iterable
+    desc: str | None
+    total: int | None
+    freq: int
+    initial: int
+    enabled: bool
+    adjust: bool
+    show_percent: bool
+    show_times: bool
+    show_rate: bool
+    show_eta: bool
+    show_total: bool
+    show_wall: bool
+    eta_window: int
+    time_thresh: float
+    clearline: bool
+    chunksize: int | None
+    rel_adjust_limit: float
+    extra: str
+    started: bool
+    finished: bool
+    homogeneous: bool | str
+
+    def __init__(
+        self,
+        iterable: list | Iterable | None = None,
+        desc: str | None = None,
+        total: int | None = None,
+        freq: int = 1,
+        initial: int = 0,
+        eta_window: int = 64,
+        clearline: bool = True,
+        adjust: bool = True,
+        time_thresh: float = 2.0,
+        show_percent: bool = True,
+        show_times: bool = True,
+        show_rate: bool = True,
+        show_eta: bool = True,
+        show_total: bool = True,
+        show_wall: bool = False,
+        enabled: bool = True,
+        verbose: int | None = None,
+        stream: typing.IO | None = None,
+        chunksize: int | None = None,
+        rel_adjust_limit: float = 4.0,
+        homogeneous: bool | str = 'auto',
+        timer: Callable | None = None,
+        **kwargs,
+    ) -> None:
         """
         See attributes more arg information
 
@@ -496,7 +557,7 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
 
         self._reset_internals()
 
-    def __call__(self, iterable):
+    def __call__(self, iterable: Iterable) -> Iterable:
         """
         Overwrites the current iterator with iterable and starts iterating on
         it.
@@ -513,7 +574,7 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
         self.iterable = iterable
         return iter(self)
 
-    def __enter__(self):
+    def __enter__(self) -> ProgIter:
         """
         Returns:
             ProgIter
@@ -527,7 +588,12 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
         self.begin()
         return self
 
-    def __exit__(self, ex_type, ex_value, ex_traceback):
+    def __exit__(
+        self,
+        ex_type: Type[BaseException] | None,
+        ex_value: BaseException | None,
+        ex_traceback: TracebackType | None,
+    ) -> bool | None:
         """
         Args:
             ex_type (Type[BaseException] | None):
@@ -542,7 +608,7 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
         else:
             self.end()
 
-    def __iter__(self):
+    def __iter__(self) -> Iterable:
         """
         Returns:
             Iterable
@@ -552,7 +618,7 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
         else:
             return self._iterate()
 
-    def set_extra(self, extra):
+    def set_extra(self, extra: str | Callable) -> None:
         """
         specify a custom info appended to the end of the next message
 
@@ -613,7 +679,7 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
 
         self._update_message_template()
 
-    def begin(self):
+    def begin(self) -> ProgIter:
         """
         Initializes information used to measure progress
 
@@ -657,7 +723,7 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
         self._force_next_display = self.freq == 1
         return self
 
-    def end(self):
+    def end(self) -> None:
         """
         Signals that iteration has ended and displays the final message.
 
@@ -748,7 +814,7 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
         if force or (self._display_timedelta >= self.time_thresh):
             self.display_message()
 
-    def step(self, inc=1, force=False):
+    def step(self, inc: int = 1, force: bool = False) -> None:
         """
         Manually step progress update, either directly or by an increment.
 
@@ -918,7 +984,7 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
             parts = ('', ''.join(msg_body), AT_END)
         return parts
 
-    def format_message(self):
+    def format_message(self) -> str:
         """
         Exists only for backwards compatibility.
 
@@ -929,7 +995,7 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
         """
         return ''.join(self.format_message_parts())
 
-    def format_message_parts(self):
+    def format_message_parts(self) -> tuple[str, str, str]:
         r"""
         builds a formatted progress message with the current values.
         This contains the special characters needed to clear lines.
@@ -1006,7 +1072,7 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
 
         return before, msg, after
 
-    def ensure_newline(self):
+    def ensure_newline(self) -> None:
         """
         use before any custom printing when using the progress iter to ensure
         your print statement starts on a new line instead of at the end of a
@@ -1042,7 +1108,7 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
             self._prev_msg_len = 0
             self._cursor_at_newline = True
 
-    def display_message(self):
+    def display_message(self) -> None:
         """
         Writes current progress to the output stream
         """
