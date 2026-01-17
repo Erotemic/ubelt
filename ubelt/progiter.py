@@ -81,11 +81,15 @@ import sys
 import time
 import collections
 
+from itertools import islice
+from collections.abc import Iterable
+
 if typing.TYPE_CHECKING:
-    from _typeshed import Incomplete, SupportsWrite
+    from _typeshed import SupportsWrite
     from types import TracebackType
     from typing import Callable, Iterable, List, NamedTuple, Tuple, Type
-from itertools import islice
+
+T = typing.TypeVar('T')
 
 __all__ = [
     'ProgIter',
@@ -101,7 +105,7 @@ CLEAR_BEFORE: str = '\r'
 AT_END: str = '\n'
 
 
-def _infer_length(iterable):
+def _infer_length(iterable) -> int | None:
     """
     Try and infer the length using the PEP 424 length hint if available.
 
@@ -301,7 +305,7 @@ class _BackwardsCompat:
         return self.end()
 
 
-class ProgIter(_TQDMCompat, _BackwardsCompat):
+class ProgIter(_TQDMCompat, _BackwardsCompat, Iterable[T]):
     """
     Prints progress as an iterator progresses
 
@@ -338,7 +342,7 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
         100/100... rate=... Hz, total=..., wall=...
     """
     stream: typing.IO
-    iterable: list | Iterable
+    iterable: Iterable[T]
     desc: str | None
     total: int | None
     freq: int
@@ -363,7 +367,7 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
 
     def __init__(
         self,
-        iterable: list | Iterable | None = None,
+        iterable: Iterable[T] | None = None,
         desc: str | None = None,
         total: int | None = None,
         freq: int = 1,
@@ -391,7 +395,7 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
         See attributes more arg information
 
         Args:
-            iterable (List | Iterable):
+            iterable (Iterable[T]):
                 A list or iterable to loop over
 
             desc (str | None):
@@ -557,7 +561,7 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
 
         self._reset_internals()
 
-    def __call__(self, iterable: Iterable) -> Iterable:
+    def __call__(self, iterable: Iterable[T]) -> Iterable[T]:
         """
         Overwrites the current iterator with iterable and starts iterating on
         it.
@@ -574,7 +578,7 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
         self.iterable = iterable
         return iter(self)
 
-    def __enter__(self) -> ProgIter:
+    def __enter__(self) -> ProgIter[T]:
         """
         Returns:
             ProgIter
@@ -608,10 +612,10 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
         else:
             self.end()
 
-    def __iter__(self) -> Iterable:
+    def __iter__(self) -> Iterator[T]:
         """
         Returns:
-            Iterable
+            Iterator
         """
         if not self.enabled:
             return iter(self.iterable)
@@ -679,7 +683,7 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
 
         self._update_message_template()
 
-    def begin(self) -> ProgIter:
+    def begin(self) -> ProgIter[T]:
         """
         Initializes information used to measure progress
 
@@ -742,7 +746,7 @@ class ProgIter(_TQDMCompat, _BackwardsCompat):
         self._cursor_at_newline = True
         self.finished = True
 
-    def _iterate(self):
+    def _iterate(self) -> Iterator[T]:
         """ iterates with progress """
         if not self.started:
             self.begin()

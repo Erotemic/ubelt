@@ -122,7 +122,7 @@ def readfrom(
     aslines: bool = False,
     errors: str = 'replace',
     verbose: int | None = None,
-) -> str | bytes:
+) -> str | bytes | list[str] | list[bytes]:
     """
     Reads (utf8) text from a file.
 
