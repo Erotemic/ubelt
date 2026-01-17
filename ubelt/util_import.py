@@ -302,7 +302,7 @@ def import_module_from_path(
                             module = importlib.util.module_from_spec(spec)
                             sys.modules[modname] = module  # important for recursive imports
                             zimp_file.exec_module(module)
-                        else:
+                        else:   # nocover
                             # Legacy fallback (deprecated; only used on very old Pythons)
                             module = zimp_file.load_module(modname)
                     except Exception:  # nocover

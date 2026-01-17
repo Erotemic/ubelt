@@ -355,7 +355,7 @@ class Executor:
             backend = futures.ThreadPoolExecutor(max_workers=max_workers)
         elif mode == 'process':
             backend = futures.ProcessPoolExecutor(max_workers=max_workers)
-        elif mode == 'interpreter':
+        elif mode == 'interpreter':  # nocover
             # Requires 3.14+
             InterpreterPoolExecutor = getattr(futures, "InterpreterPoolExecutor", None)
             if InterpreterPoolExecutor is None:

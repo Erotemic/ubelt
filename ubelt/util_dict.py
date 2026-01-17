@@ -55,15 +55,19 @@ from __future__ import annotations
 
 import typing
 
-if typing.TYPE_CHECKING:
-    from collections.abc import Generator
-    from typing import Any, Callable, Dict, Iterable, List, Mapping, Optional, Set, Tuple, Type, TypeVar, Union
-    from _typeshed import SupportsKeysAndGetItem
-    from ubelt.util_const import NoParamType
+# NOTE: this project prefers near-zero runtime typing overhead.
+# However, ty does not reliably resolve names defined only under TYPE_CHECKING
+# across all contexts. We keep imports type-only, but define TypeVars at module
+# scope so ty can resolve them without relying on TYPE_CHECKING execution.
 
-    KT = TypeVar("KT")
-    VT = TypeVar("VT")
-    T = TypeVar("T")
+KT = typing.TypeVar("KT")
+VT = typing.TypeVar("VT")
+T = typing.TypeVar("T")
+
+if typing.TYPE_CHECKING:
+    from collections.abc import Generator, Iterable, Mapping
+    from typing import Any, Callable, Dict, List, Optional, Set, Tuple, Type, Union
+    from ubelt.util_const import NoParamType
 
 import sys
 import operator as op
@@ -1301,12 +1305,12 @@ class SetDict(dict):
         return self.__class__(self)
 
     # We could just use the builtin variant for this specific operation
-    def __or__(self, other: Union[SupportsKeysAndGetItem[Any, Any], Iterable[Tuple[Any, Any]]]) -> SetDict:
+    def __or__(self, other: Union[Mapping[Any, Any], Iterable[Tuple[Any, Any]]]) -> SetDict:
         """
         The ``|`` union operator
 
         Args:
-            other (SupportsKeysAndGetItem[Any, Any] | Iterable[tuple[Any, Any]]):
+            other (Mapping[Any, Any] | Iterable[tuple[Any, Any]]):
 
         Returns:
             SetDict
@@ -1445,12 +1449,12 @@ class SetDict(dict):
 
     # - inplace versions
 
-    def __ior__(self, other: Union[SupportsKeysAndGetItem[Any, Any], Iterable[Tuple[Any, Any]]]) -> SetDict:
+    def __ior__(self, other: Union[Mapping[Any, Any], Iterable[Tuple[Any, Any]]]) -> SetDict:
         """
         The inplace union operator ``|=``.
 
         Args:
-            other (SupportsKeysAndGetItem[Any, Any] | Iterable[tuple[Any, Any]]):
+            other (Mapping[Any, Any] | Iterable[tuple[Any, Any]]):
 
         Returns:
             SetDict
@@ -2180,3 +2184,4 @@ class AutoDict(UDict):
 # DEPRECATED. This is no longer needed. AutoDict is always ordered
 AutoOrderedDict = AutoDict
 udict = UDict
+
