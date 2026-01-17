@@ -34,6 +34,9 @@ if typing.TYPE_CHECKING:
     VT = TypeVar('VT')
     T = TypeVar('T')
     KT = TypeVar('KT')
+else:
+    from typing import TypeVar
+    VT = TypeVar('VT')
 
 __all__ = [
     'allsame', 'argmax', 'argmin', 'argsort', 'argunique', 'boolmask',
@@ -42,7 +45,7 @@ __all__ = [
 ]
 
 
-class chunks(collections_abc.Iterator[list[VT]]):
+class chunks(typing.Iterable):
     """
     Generates successive n-sized chunks from ``items``.
 
@@ -221,7 +224,7 @@ class chunks(collections_abc.Iterator[list[VT]]):
 
         self.legacy = legacy
         self.remainder: int = remainder
-        self.items = items
+        self.items: collections_abc.Iterable[VT] = items
         self.total = total
         self.nchunks = nchunks
         assert chunksize is not None
@@ -249,6 +252,7 @@ class chunks(collections_abc.Iterator[list[VT]]):
                 return self.replicate(items, chunksize)
             else:
                 raise ValueError('unknown bordermode=%r' % (bordermode,))
+
     def _new_iterator(self) -> collections_abc.Iterator[list[VT]]:
         chunksize = self.chunksize
         nchunks = self.nchunks
@@ -405,7 +409,7 @@ def take(items: collections_abc.Sequence[VT] | collections_abc.Mapping[KT | int,
         >>> items = [0, 1, 2, 3]
         >>> indices = [2, 0]
         >>> list(ub.take(items, indices))
-        [2, 0/
+        [2, 0]
 
     Example:
         >>> import ubelt as ub
@@ -976,7 +980,7 @@ class IterableMixin(collections_abc.Iterable):
     def chunks(self,
                size: int | None = None,
                num: int | None = None,
-               bordermode: str = 'none') -> collections_abc.Iterator[list[VT]]:
+               bordermode: str = 'none') -> collections_abc.Iterable[list[VT]]:
         return chunks(
             self,
             chunksize=size,

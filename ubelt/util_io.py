@@ -104,8 +104,8 @@ def writeto(
 
     with open(fpath, 'wb') as file:
         if aslines:
-            to_write = map(_ensure_bytes , to_write)
-            file.writelines(to_write)
+            to_write_lines = map(_ensure_bytes , to_write)
+            file.writelines(to_write_lines)
         else:
             # convert to bytes for writing
             bytes = _ensure_bytes(to_write)
@@ -122,7 +122,7 @@ def readfrom(
     aslines: bool = False,
     errors: str = 'replace',
     verbose: int | None = None,
-) -> str:
+) -> str | bytes:
     """
     Reads (utf8) text from a file.
 
@@ -167,10 +167,10 @@ def readfrom(
 def touch(
     fpath: str | os.PathLike,
     mode: int = 0o666,
-    dir_fd: io.IOBase | None = None,
+    dir_fd: int | None = None,
     verbose: int = 0,
     **kwargs,
-) -> str:
+) -> str | os.PathLike:
     """
     change file timestamps
 
@@ -186,7 +186,7 @@ def touch(
         **kwargs : extra args passed to :func:`os.utime` (python 3 only).
 
     Returns:
-        str: path to the file
+        str | PathLike: path to the file
 
     References:
         .. [SO_1158076] https://stackoverflow.com/questions/1158076/implement-touch-using-python

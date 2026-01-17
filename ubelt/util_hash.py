@@ -244,7 +244,7 @@ class _Hashers:
         return key in self.algos or key in self.aliases
 
     def _register_xxhash(self):  # nocover
-        import xxhash  # type: ignore
+        import xxhash
         self.algos['xxh32'] = xxhash.xxh32
         self.algos['xxh64'] = xxhash.xxh64
         self.aliases.update({
@@ -254,7 +254,7 @@ class _Hashers:
         })
 
     def _register_blake3(self):  # nocover
-        import blake3  # type: ignore
+        import blake3
         self.algos['blake3'] = blake3.blake3
         self.aliases['b3'] = 'blake3'
 

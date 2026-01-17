@@ -295,6 +295,7 @@ def _dirstats(dpath=None):  # nocover
         print('... does not exist')
     else:
         paths = sorted(os.listdir(dpath))
+        assert not util_platform.WIN32 or _win32_links is not None
         for path in paths:
             full_path = join(dpath, path)
             E = os.path.exists(full_path)

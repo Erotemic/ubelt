@@ -18,6 +18,8 @@ from collections.abc import Generator
 
 if typing.TYPE_CHECKING:
     from types import TracebackType
+    from typing import Any, Mapping, Sequence, MutableMapping, MutableSequence
+
 
 try:
     from functools import cache
@@ -40,8 +42,8 @@ class Difference(typing.NamedTuple):
     the indexables is.
     """
     path: tuple
-    value1: typing.Any
-    value2: typing.Any
+    value1: Any
+    value2: Any
 
 
 class IndexableWalker(Generator):
@@ -187,6 +189,7 @@ class IndexableWalker(Generator):
     dict_cls: tuple[type, ...]
     list_cls: tuple[type, ...]
     indexable_cls: tuple[type, ...]
+    _walk_gen: None | Generator[tuple[list, Any], Any, Any]
 
     def __init__(
         self,
@@ -234,6 +237,8 @@ class IndexableWalker(Generator):
         return next yielded value or raise StopIteration.
         """
         # Note: this will error if called before __next__
+        if self._walk_gen is None:
+            raise TypeError("cannot send to walker before iteration has started")
         self._walk_gen.send(arg)
 
     def throw(
@@ -266,7 +271,7 @@ class IndexableWalker(Generator):
         """
         raise StopIteration
 
-    def __setitem__(self, path: list, value: typing.Any) -> None:
+    def __setitem__(self, path: list, value: Any) -> None:
         """
         Set nested value by path
 
@@ -286,9 +291,11 @@ class IndexableWalker(Generator):
         # *prefix, key = path
         for k in prefix:
             d = d[k]
+        if typing.TYPE_CHECKING:
+            d = typing.cast(MutableMapping[Any, Any] | MutableSequence[Any], d)
         d[key] = value
 
-    def __getitem__(self, path: list) -> typing.Any:
+    def __getitem__(self, path: list) -> Any:
         """
         Get nested value by path
 
@@ -329,6 +336,8 @@ class IndexableWalker(Generator):
         # *prefix, key = path
         for k in prefix:
             d = d[k]
+        if typing.TYPE_CHECKING:
+            d = typing.cast(MutableMapping[Any, Any] | MutableSequence[Any], d)
         del d[key]
 
     def keys(self, non_leaf=False):
@@ -421,6 +430,8 @@ class IndexableWalker(Generator):
             if isinstance(_data, self.list_cls):
                 items = enumerate(_data)
             elif isinstance(_data, self.dict_cls):
+                if typing.TYPE_CHECKING:
+                    _data = typing.cast(Mapping[Any, Any], _data)
                 items = _data.items()
             else:
                 raise TypeError(type(_data))
