@@ -155,7 +155,7 @@ def _rich_highlight(text, lexer_name):  # nocover
     stream = io.StringIO()
     write_console = Console(file=stream, soft_wrap=True, color_system='standard')
     write_console.print(syntax)
-    new_text = write_console.file.getvalue()
+    new_text = write_console.file.getvalue()  # type: ignore[unresolved-attribute]
     return new_text
 
 
