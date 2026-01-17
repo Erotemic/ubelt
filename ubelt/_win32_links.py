@@ -458,7 +458,7 @@ def _win32_read_junction(path):
             None)
 
     if handle == jwfs.api.INVALID_HANDLE_VALUE:
-        raise WindowsError()
+        raise WindowsError()  # type: ignore[unresolved-reference]
 
     res = jwfs.reparse.DeviceIoControl(
             handle, jwfs.api.FSCTL_GET_REPARSE_POINT, None, 10240)

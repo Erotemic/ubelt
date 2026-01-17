@@ -75,7 +75,7 @@ class DownloadManager:
         self,
         download_root: str | os.PathLike | None = None,
         mode: str = 'thread',
-        max_workers: int | None = None,
+        max_workers: int = 0,
         cache: bool = True,
     ) -> None:
         """

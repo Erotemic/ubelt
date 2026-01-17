@@ -362,7 +362,7 @@ def grabdata(
     hasher: typing.Union[str, '_Hasher'] = 'sha512',
     expires: typing.Optional[typing.Union[str, int, 'datetime.datetime']] = None,
     **download_kw: typing.Any,
-) -> typing.Union[str, os.PathLike]:
+) -> str | os.PathLike:
     """
     Downloads a file, caches it, and returns its local path.
 
@@ -543,6 +543,7 @@ def grabdata(
         if needs_download:
             fpath = download(
                 url, fpath, verbose=verbose, hash_prefix=hash_prefix,
-                hasher=hasher, **download_kw)
+                hasher=hasher, **download_kw)  # type: ignore[invalid-assignment]
             stamp.renew()
+    assert fpath is not None
     return fpath
