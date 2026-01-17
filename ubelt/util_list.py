@@ -28,15 +28,14 @@ from itertools import zip_longest
 import typing
 from ubelt import util_const
 from ubelt import util_dict
+from typing import TypeVar
 
 if typing.TYPE_CHECKING:
-    from typing import Any, Callable, Iterator, TypeVar
-    VT = TypeVar('VT')
+    from typing import Any, Callable, Iterator
     T = TypeVar('T')
     KT = TypeVar('KT')
-else:
-    from typing import TypeVar
-    VT = TypeVar('VT')
+
+VT = TypeVar('VT')
 
 __all__ = [
     'allsame', 'argmax', 'argmin', 'argsort', 'argunique', 'boolmask',
@@ -45,7 +44,7 @@ __all__ = [
 ]
 
 
-class chunks(typing.Iterable):
+class chunks(typing.Iterable[list[VT]]):
     """
     Generates successive n-sized chunks from ``items``.
 
