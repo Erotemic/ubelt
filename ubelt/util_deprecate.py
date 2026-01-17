@@ -178,7 +178,9 @@ def schedule_deprecation(
     """
     import sys
     import warnings
-    from packaging.version import parse as Version
+    import importlib
+    packaging_version = importlib.import_module('packaging.version')
+    Version = packaging_version.parse
 
     if modname is not None:
         module = sys.modules[modname]

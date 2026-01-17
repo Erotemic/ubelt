@@ -33,8 +33,9 @@ from __future__ import annotations
 
 import typing
 import itertools as it
+import operator
 from collections import deque
-from collections.abc import MutableSet, Sequence, MutableSequence
+from typing import MutableSet, Sequence
 
 if typing.TYPE_CHECKING:
     from collections.abc import Iterable, Iterator
@@ -155,15 +156,18 @@ class OrderedSet(MutableSet[T], Sequence[T]):
         if isinstance(index, slice) and index == SLICE_ALL:
             return self.copy()
         elif is_iterable(index):
-            return [self.items[i] for i in index]  # type: ignore
-        elif hasattr(index, "__index__") or isinstance(index, slice):
-            result = self.items[index]   # type: ignore
-            if isinstance(result, list):
-                return self.__class__(result)
-            else:
-                return result
+            index_seq = typing.cast(Sequence[int], index)
+            return [self.items[i] for i in index_seq]
+        elif isinstance(index, slice):
+            result = self.items[index]
+        elif hasattr(index, "__index__"):
+            index_value = operator.index(typing.cast(typing.SupportsIndex, index))
+            result = self.items[index_value]
         else:
             raise TypeError("Don't know how to index an OrderedSet by %r" % index)
+        if isinstance(result, list):
+            return self.__class__(result)
+        return result
 
     def copy(self) -> OrderedSet:
         """
@@ -200,7 +204,7 @@ class OrderedSet(MutableSet[T], Sequence[T]):
         else:
             self.__init__(state)
 
-    def __contains__(self, value: T) -> bool:  # type: ignore[invalid-method-override]
+    def __contains__(self, value: object) -> bool:  # type: ignore[override]
         """
         Test if the item is in this ordered set
 

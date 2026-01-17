@@ -356,7 +356,7 @@ def ensuredir(
         >>> dpath.delete()
     """
     if isinstance(dpath, (list, tuple)):
-        dpath = join(*dpath)  # type: ignore
+        dpath = join(*(os.fspath(typing.cast(str | os.PathLike, part)) for part in dpath))
 
     if recreate:
         from ubelt import schedule_deprecation
@@ -1572,14 +1572,24 @@ class Path(_PathBase):
         else:
             raise KeyError(meta)
         return copy_function
+    if typing.TYPE_CHECKING:
+        def copy(
+            self,
+            target: str | os.PathLike,
+            *,
+            follow_symlinks: bool = True,
+            preserve_metadata: bool = False,
+        ) -> 'Path':
+            ...
 
-    def copy(
+        def move(self, target: str | os.PathLike) -> 'Path':
+            ...
+
+    def _copy_impl(
         self,
         dst: str | os.PathLike,
-        follow_file_symlinks: bool = False,
-        follow_dir_symlinks: bool = False,
-        meta: str | None = 'stats',
-        overwrite: bool = False,
+        *args: typing.Any,
+        **kwargs: typing.Any,
     ) -> 'Path':
         """
         Copy this file or directory to dst.
@@ -1635,11 +1645,11 @@ class Path(_PathBase):
                 tries to copy all metadata (i.e. like :py:func:`shutil.copy2`),
                 'mode' which copies just the permission bits (i.e. like
                 :py:func:`shutil.copy`), or None, which ignores all metadata
-                (i.e.  like :py:func:`shutil.copyfile`).
+            (i.e.  like :py:func:`shutil.copyfile`).
 
-            overwrite (bool):
-                if False, and target file exists, this will raise an error,
-                otherwise the file will be overwritten.
+        overwrite (bool):
+            if False, and target file exists, this will raise an error,
+            otherwise the file will be overwritten.
 
         Returns:
             Path: where the path was copied to
@@ -1703,6 +1713,19 @@ class Path(_PathBase):
 
             See: ~/code/ubelt/tests/test_path.py for test cases
         """
+        params = ['follow_file_symlinks', 'follow_dir_symlinks', 'meta', 'overwrite']
+        if len(args) > len(params):
+            raise TypeError('copy() takes at most {} positional arguments'.format(len(params) + 2))
+        for name, value in zip(params, args):
+            if name in kwargs:
+                raise TypeError('copy() got multiple values for {}'.format(name))
+            kwargs[name] = value
+        follow_file_symlinks = kwargs.pop('follow_file_symlinks', False)
+        follow_dir_symlinks = kwargs.pop('follow_dir_symlinks', False)
+        meta = kwargs.pop('meta', 'stats')
+        overwrite = kwargs.pop('overwrite', False)
+        if kwargs:
+            raise TypeError('copy() got unexpected keyword arguments: {}'.format(', '.join(kwargs.keys())))
         import shutil
         copy_function = self._request_copy_function(
             follow_file_symlinks=follow_file_symlinks,
@@ -1731,12 +1754,11 @@ class Path(_PathBase):
             raise FileExistsError('The source path does not exist')
         return Path(dst)
 
-    def move(
+    def _move_impl(
         self,
         dst: str | os.PathLike,
-        follow_file_symlinks: bool = False,
-        follow_dir_symlinks: bool = False,
-        meta: str | None = 'stats',
+        *args: typing.Any,
+        **kwargs: typing.Any,
     ) -> 'Path':
         """
         Move a file from one location to another, or recursively move a
@@ -1795,6 +1817,18 @@ class Path(_PathBase):
             >>> assert all(p.exists() for p in paths.values())
             >>> paths['dpath0'].move(dpath / 'dpath1')
         """
+        params = ['follow_file_symlinks', 'follow_dir_symlinks', 'meta']
+        if len(args) > len(params):
+            raise TypeError('move() takes at most {} positional arguments'.format(len(params) + 2))
+        for name, value in zip(params, args):
+            if name in kwargs:
+                raise TypeError('move() got multiple values for {}'.format(name))
+            kwargs[name] = value
+        follow_file_symlinks = kwargs.pop('follow_file_symlinks', False)
+        follow_dir_symlinks = kwargs.pop('follow_dir_symlinks', False)
+        meta = kwargs.pop('meta', 'stats')
+        if kwargs:
+            raise TypeError('move() got unexpected keyword arguments: {}'.format(', '.join(kwargs.keys())))
         # Behave more like POSIX move to avoid potential confusing behavior
         if exists(dst):
             raise FileExistsError(
@@ -1809,6 +1843,9 @@ class Path(_PathBase):
             follow_dir_symlinks=follow_dir_symlinks, meta=meta)
         real_dst = shutil.move(os.fspath(self), os.fspath(dst), copy_function=copy_function)
         return Path(real_dst)
+
+    copy = typing.cast(typing.Any, _copy_impl)
+    move = typing.cast(typing.Any, _move_impl)
 
 
 def _parse_chmod_code(code):
@@ -2040,9 +2077,9 @@ def _patch_win32_stats_on_pypy():
     """
     if not hasattr(stat, 'IO_REPARSE_TAG_MOUNT_POINT'):  # nocover
         os.supports_follow_symlinks.add(os.stat)
-        stat.IO_REPARSE_TAG_APPEXECLINK = 0x8000001b  # type: ignore[unresolved-attribute]
-        stat.IO_REPARSE_TAG_MOUNT_POINT = 0xa0000003  # type: ignore[unresolved-attribute]
-        stat.IO_REPARSE_TAG_SYMLINK = 0xa000000c      # type: ignore[unresolved-attribute]
+        setattr(stat, 'IO_REPARSE_TAG_APPEXECLINK', 0x8000001b)
+        setattr(stat, 'IO_REPARSE_TAG_MOUNT_POINT', 0xa0000003)
+        setattr(stat, 'IO_REPARSE_TAG_SYMLINK', 0xa000000c)
 
 
 def _is_relative_to_backport(self, other):

@@ -254,7 +254,8 @@ class _Hashers:
         return key in self.algos or key in self.aliases
 
     def _register_xxhash(self):  # nocover
-        import xxhash
+        import importlib
+        xxhash = importlib.import_module('xxhash')
         self.algos['xxh32'] = xxhash.xxh32
         self.algos['xxh64'] = xxhash.xxh64
         self.aliases.update({
@@ -264,7 +265,8 @@ class _Hashers:
         })
 
     def _register_blake3(self):  # nocover
-        import blake3
+        import importlib
+        blake3 = importlib.import_module('blake3')
         self.algos['blake3'] = blake3.blake3
         self.aliases['b3'] = 'blake3'
 
@@ -420,7 +422,7 @@ class HashableExtensions:
         from functools import singledispatch
         def _hash_dispatch(data):
             raise NotImplementedError
-        _hash_dispatch.__is_base__ = True  # type: ignore[unresolved-attribute]
+        typing.cast(typing.Any, _hash_dispatch).__is_base__ = True
         self._hash_dispatch = singledispatch(_hash_dispatch)
 
     def _evaluate_lazy_queue(self) -> None:
@@ -662,7 +664,8 @@ class HashableExtensions:
         By default ubelt enables numpy extensions
         """
         # system checks
-        import numpy as np
+        import importlib
+        np = importlib.import_module('numpy')
 
         @self.add_iterable_check
         def is_object_ndarray(data):
@@ -937,7 +940,8 @@ class HashableExtensions:
         Experimental. Define a default hash function for torch tensors, but do
         not use it by default. Currently, the user must call this explicitly.
         """
-        import torch
+        import importlib
+        torch = importlib.import_module('torch')
         @self.register(torch.Tensor)
         def _convert_torch_tensor(data):
             data_ = data.data.cpu().numpy()
@@ -1488,8 +1492,9 @@ def hash_file(
 
 # Give the hash_data function itself a reference to the default extensions
 # register method so the user can modify them without accessing this module
-hash_data.extensions = _HASHABLE_EXTENSIONS  # type: ignore[attr-defined]
-hash_data.register = _HASHABLE_EXTENSIONS.register  # type: ignore[attr-defined]
+_hash_data = typing.cast(typing.Any, hash_data)
+_hash_data.extensions = _HASHABLE_EXTENSIONS
+_hash_data.register = _HASHABLE_EXTENSIONS.register
 
 
 # class Hasher:

@@ -65,8 +65,10 @@ def repr2(data: object, **kwargs: Any) -> str:
     return text
 
 
-repr2.extensions = urepr.extensions  # type: ignore[attr-defined]
-repr2.register = urepr.register  # type: ignore[attr-defined]
+_urepr = typing.cast(typing.Any, urepr)
+_repr2 = typing.cast(typing.Any, repr2)
+_repr2.extensions = _urepr.extensions
+_repr2.register = _urepr.register
 
 
 # Deprecated aliases

@@ -130,13 +130,14 @@ def _pygments_highlight(text, lexer_name, **kwargs):
             warnings.warn(
                 'colorama is not installed, ansi colors may not work')
 
-    import pygments
-    import pygments.lexers
-    import pygments.formatters
-    import pygments.formatters.terminal
+    import importlib
+    pygments = importlib.import_module('pygments')
+    lexers = importlib.import_module('pygments.lexers')
+    formatters = importlib.import_module('pygments.formatters')
+    terminal = importlib.import_module('pygments.formatters.terminal')
 
-    formatter = pygments.formatters.terminal.TerminalFormatter(bg='dark')
-    lexer = pygments.lexers.get_lexer_by_name(lexer_name, **kwargs)
+    formatter = terminal.TerminalFormatter(bg='dark')
+    lexer = lexers.get_lexer_by_name(lexer_name, **kwargs)
     new_text = pygments.highlight(text, lexer, formatter)
     return new_text
 
@@ -148,14 +149,17 @@ def _rich_highlight(text, lexer_name):  # nocover
     References:
         .. [RichDiscuss3076] https://github.com/Textualize/rich/discussions/3076
     """
-    from rich.syntax import Syntax
-    from rich.console import Console
     import io
+    import importlib
+    rich_syntax = importlib.import_module('rich.syntax')
+    rich_console = importlib.import_module('rich.console')
+    Syntax = rich_syntax.Syntax
+    Console = rich_console.Console
     syntax = Syntax(text, lexer_name, background_color='default')
     stream = io.StringIO()
     write_console = Console(file=stream, soft_wrap=True, color_system='standard')
     write_console.print(syntax)
-    new_text = write_console.file.getvalue()  # type: ignore[unresolved-attribute]
+    new_text = stream.getvalue()
     return new_text
 
 
@@ -219,10 +223,11 @@ def color_text(text: str, color: str | None) -> str:
                 warnings.warn(
                     'colorama is not installed, ansi colors may not work')
 
-        import pygments
-        import pygments.console
+        import importlib
+        pygments = importlib.import_module('pygments')
+        console = importlib.import_module('pygments.console')
         try:
-            ansi_text = pygments.console.colorize(color, text)
+            ansi_text = console.colorize(color, text)
         except KeyError:
             warnings.warn('unable to find color: {!r}'.format(color))
             return text

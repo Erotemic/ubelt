@@ -355,7 +355,7 @@ def iterable(obj: object, strok: bool = False) -> bool:
         >>> assert result == [False, True, True, True, True, True]
     """
     try:
-        iter(obj)  # type: ignore
+        iter(typing.cast(collections_abc.Iterable[object], obj))
     except Exception:
         return False
     else:
@@ -434,7 +434,7 @@ def take(items: collections_abc.Sequence[VT] | collections_abc.Mapping[KT | int,
             else:
                 indices = typing.cast(collections_abc.Iterable[int], indices)
         for index in indices:
-            yield items[index]  # type: ignore[invalid-argument-type]
+            yield typing.cast(typing.Any, items)[index]
     else:
         if typing.TYPE_CHECKING:
             items = typing.cast(collections_abc.Mapping, items)

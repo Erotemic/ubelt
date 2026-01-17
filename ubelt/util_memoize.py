@@ -242,6 +242,8 @@ class memoize_method:
         >>> assert method2('z') == ('z2', 'F2')
     """
     __func__: Callable[..., Any]
+    _cache_name: str
+    _func_name: str
 
     def __init__(self, func: Callable[..., Any]) -> None:
         """
@@ -249,10 +251,17 @@ class memoize_method:
             func (Callable): method to wrap
         """
         self._func = func
-        self._cache_name = '_cache__' + func.__name__  # type: ignore[invalid-assignment]
+        func_name = getattr(func, '__name__', None)
+        if func_name is None:
+            raise ValueError('func must have a __name__ attribute')
+        self._func_name = func_name
+        self._cache_name = '_cache__' + func_name
         # Mimic attributes of a bound method
-        self.__func__ = func  # type: ignore[invalid-assignment]
-        functools.update_wrapper(self, func)  # type: ignore[invalid-argument-type]
+        self.__func__ = typing.cast(typing.Any, func)
+        functools.update_wrapper(
+            typing.cast(typing.Callable, self),
+            typing.cast(typing.Callable, func),
+        )
 
     def __get__(self, instance: object, cls: type | None = None):
         """
@@ -280,7 +289,7 @@ class memoize_method:
 
         # Set the attribute to prevent calling __get__ again
         # Is there a better way to do this?
-        setattr(instance, self._func.__name__, bound_memoizer)  # type: ignore[possibly-missing-attribute]
+        setattr(typing.cast(typing.Any, instance), self._func_name, bound_memoizer)
         return bound_memoizer
 
 
@@ -332,9 +341,15 @@ def memoize_property(fget: property | typing.Callable):
     """
     # Unwrap any existing property decorator
     while hasattr(fget, 'fget'):
-        fget = fget.fget  # type: ignore[invalid-assignment]
+        prop = typing.cast(property, fget)
+        if prop.fget is None:
+            raise ValueError('property is missing a getter')
+        fget = prop.fget
 
-    attr_name = '_' + fget.__name__  # type: ignore[unresolved-attribute]
+    fget_name = getattr(fget, '__name__', None)
+    if fget_name is None:
+        raise ValueError('fget must have a __name__ attribute')
+    attr_name = '_' + fget_name
 
     @functools.wraps(fget)
     def fget_memoized(self):

@@ -193,7 +193,7 @@ def download(
 
     if timeout is NoParam:
         import socket
-        timeout = socket._GLOBAL_DEFAULT_TIMEOUT  # type: ignore[unresolved-attribute]
+        timeout = getattr(socket, '_GLOBAL_DEFAULT_TIMEOUT')
 
     from urllib.request import urlopen, Request
 
@@ -211,8 +211,10 @@ def download(
     # Check if fpath was given as an BytesIO object
     _dst_is_io_object = hasattr(fpath, 'write')
 
-    if not _dst_is_io_object and not exists(dirname(fpath)):  # type: ignore[no-matching-overload]
-        raise Exception('parent of {} does not exist'.format(fpath))
+    if not _dst_is_io_object:
+        fpath = os.fspath(typing.cast(str | os.PathLike, fpath))
+        if not exists(dirname(fpath)):
+            raise Exception('parent of {} does not exist'.format(fpath))
 
     if verbose:
         if _dst_is_io_object:
@@ -221,10 +223,13 @@ def download(
             print('Downloading url={!r} to fpath={!r}'.format(
                 url, fpath))
 
-    requestkw = requestkw or {}
-    requestkw['headers'] = {'User-Agent': 'Mozilla/5.0'}  # type: ignore[invalid-assignment]
-    req = Request(url, **requestkw)  # type: ignore[invalid-argument-type]
-    urldata = urlopen(req, timeout=timeout)  # type: ignore[invalid-argument-type]
+    if requestkw is None or requestkw is NoParam:
+        requestkw = {}
+    else:
+        requestkw = dict(typing.cast(typing.Mapping[str, typing.Any], requestkw))
+    requestkw['headers'] = {'User-Agent': 'Mozilla/5.0'}
+    req = Request(url, **requestkw)
+    urldata = urlopen(req, timeout=typing.cast(typing.Any, timeout))
 
     meta = urldata.info()
     if filesize is None:
@@ -292,10 +297,10 @@ def download(
             msg = fmt_msg.format(num_mb_down, kb_per_second)
             return msg
 
-        if progkw is not None:
-            _progkw.update(progkw)  # type: ignore[no-matching-overload]
+        if progkw is not None and progkw is not NoParam:
+            _progkw.update(dict(typing.cast(typing.Mapping[str, typing.Any], progkw)))
         _progkw['disable'] = not verbose
-        pbar = Progress(**_progkw)  # type: ignore[invalid-argument-type]
+        pbar = Progress(**typing.cast(dict[str, typing.Any], _progkw))
 
         pbar.set_extra(_build_extra)
         with pbar:
@@ -547,9 +552,12 @@ def grabdata(
         else:
             needs_download = 0
         if needs_download:
-            fpath = download(
-                url, fpath, verbose=verbose, hash_prefix=hash_prefix,
-                hasher=hasher, **download_kw)  # type: ignore[invalid-assignment]
+            fpath = typing.cast(
+                typing.Union[str, os.PathLike],
+                download(
+                    url, fpath, verbose=verbose, hash_prefix=hash_prefix,
+                    hasher=hasher, **download_kw)
+            )
             stamp.renew()
     assert fpath is not None
     return fpath

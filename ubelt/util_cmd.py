@@ -82,6 +82,7 @@ Get programmatic access AND show it on screen
 """
 from __future__ import annotations
 
+import io
 import os
 import sys
 import typing
@@ -129,7 +130,7 @@ class CmdOutput(dict):
     code that uses :func:`subprocess.run` to switch to :func:`ubelt.cmd`.
     """
 
-    args: tuple
+    args: str | typing.Sequence[str | os.PathLike[str]]
 
     @property
     def stdout(self) -> str | bytes | None:
@@ -407,7 +408,7 @@ def cmd(
     # Create a new process to execute the command
     def make_proc():
         # delay the creation of the process until we validate all args
-        popen_kwargs = {'cwd': cwd, 'env': env, 'shell': shell}
+        popen_kwargs: dict[str, typing.Any] = {'cwd': cwd, 'env': env, 'shell': shell}
         popen_kwargs['universal_newlines'] = True
 
         if capture:
@@ -418,7 +419,7 @@ def cmd(
             # piping to devnull
             popen_kwargs['stdout'] = subprocess.DEVNULL
             popen_kwargs['stderr'] = subprocess.DEVNULL
-        proc = subprocess.Popen(args, **popen_kwargs)  # type: ignore
+        proc: subprocess.Popen[str] = subprocess.Popen(args, **popen_kwargs)
         return proc
 
     if system:
@@ -451,8 +452,10 @@ def cmd(
             stderr = sys.stderr
             proc = make_proc()
             with proc:
+                stdout = typing.cast(io.TextIOBase | None, stdout)
+                stderr = typing.cast(io.TextIOBase | None, stderr)
                 out, err = _tee_output(
-                    proc=proc, stdout=stdout, stderr=stderr,    # type: ignore[invalid-argument-type]
+                    proc=proc, stdout=stdout, stderr=stderr,
                     backend=tee_backend, timeout=timeout,
                     command_text=command_text)
                 (out_, err_) = proc.communicate(timeout=timeout)
@@ -503,7 +506,7 @@ def cmd(
         })
 
     # For subprocess compatibility
-    info.args = args  # type: ignore[unresolved-attribute]
+    info.args = args
 
     if not detach:
         if verbose > 2:
@@ -707,6 +710,10 @@ def _enqueue_output_thread_worker(
             else:
                 return True
 
+    assert proc.stdout is not None
+    assert proc.stderr is not None
+    stdout_stream = typing.cast(io.TextIOBase, proc.stdout)
+    stderr_stream = typing.cast(io.TextIOBase, proc.stderr)
     while proc.poll() is None:
 
         # Note: if the underlying process has buffered output, we may get this
@@ -761,8 +768,12 @@ def _proc_iteroutput_thread(proc: subprocess.Popen, timeout: float | None = None
 
     # logger.debug("Create stdout/stderr streams")
     # Create threads that read stdout / stderr and queue up the output
-    stdout_thread, stdout_queue, stdout_ctrl = _proc_async_iter_stream(proc, proc.stdout, timeout=timeout)  # type: ignore[invalid-argument-type]
-    stderr_thread, stderr_queue, stderr_ctrl = _proc_async_iter_stream(proc, proc.stderr, timeout=timeout)  # type: ignore[invalid-argument-type]
+    assert proc.stdout is not None
+    assert proc.stderr is not None
+    stdout_stream = typing.cast(io.TextIOBase, proc.stdout)
+    stderr_stream = typing.cast(io.TextIOBase, proc.stderr)
+    stdout_thread, stdout_queue, stdout_ctrl = _proc_async_iter_stream(proc, stdout_stream, timeout=timeout)
+    stderr_thread, stderr_queue, stderr_ctrl = _proc_async_iter_stream(proc, stderr_stream, timeout=timeout)
 
     stdout_live = True
     stderr_live = True
@@ -831,6 +842,11 @@ def _proc_iteroutput_select(proc: subprocess.Popen, timeout: float | None = None
         import subprocess
         start_time = _time()
 
+    assert proc.stdout is not None
+    assert proc.stderr is not None
+    stdout_stream = typing.cast(io.TextIOBase, proc.stdout)
+    stderr_stream = typing.cast(io.TextIOBase, proc.stderr)
+
     # Read output while the external program is running
     while proc.poll() is None:
         if timeout is not None:
@@ -839,19 +855,19 @@ def _proc_iteroutput_select(proc: subprocess.Popen, timeout: float | None = None
                 yield subprocess.TimeoutExpired, subprocess.TimeoutExpired
                 return  # nocover
 
-        reads = [proc.stdout.fileno(), proc.stderr.fileno()]  # type: ignore[possibly-missing-attribute]
+        reads = [stdout_stream.fileno(), stderr_stream.fileno()]
         ret = select.select(reads, [], [], timeout)
         oline = eline = None
         for fd in ret[0]:
-            if fd == proc.stdout.fileno():  # type: ignore[possibly-missing-attribute]
-                oline = proc.stdout.readline()  # type: ignore[possibly-missing-attribute]
-            if fd == proc.stderr.fileno():  # type: ignore[possibly-missing-attribute]
-                eline = proc.stderr.readline()  # type: ignore[possibly-missing-attribute]
+            if fd == stdout_stream.fileno():
+                oline = stdout_stream.readline()
+            if fd == stderr_stream.fileno():
+                eline = stderr_stream.readline()
         yield oline, eline
 
     # Grab any remaining data in stdout and stderr after the process finishes
-    oline_iter = _textio_iterlines(proc.stdout)  # type: ignore[invalid-argument-type]
-    eline_iter = _textio_iterlines(proc.stderr)  # type: ignore[invalid-argument-type]
+    oline_iter = _textio_iterlines(stdout_stream)
+    eline_iter = _textio_iterlines(stderr_stream)
     for oline, eline in zip_longest(oline_iter, eline_iter):
         yield oline, eline
 

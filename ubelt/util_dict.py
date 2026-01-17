@@ -54,7 +54,8 @@ References:
 from __future__ import annotations
 
 import typing
-from typing import Self, Any, Callable, Dict, List, Optional, Set, Tuple, Type, Union, Iterable, Mapping
+from typing import Any, Callable, Dict, List, Optional, Set, Tuple, Type, Union, Iterable, Mapping
+from typing_extensions import Self
 
 # NOTE: this project prefers near-zero runtime typing overhead.
 # However, ty does not reliably resolve names defined only under TYPE_CHECKING
@@ -2186,4 +2187,3 @@ class AutoDict(UDict):
 # DEPRECATED. This is no longer needed. AutoDict is always ordered
 AutoOrderedDict = AutoDict
 udict = UDict
-

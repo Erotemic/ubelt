@@ -352,3 +352,25 @@ def test_follow_file_symlinks():
     fcopy6 = flink1.copy(root / 'fcopy6', follow_file_symlinks=False, meta='stats')
     assert not fcopy5.is_symlink(), 'should have followed symlink'
     assert fcopy6.is_symlink(), 'should not have followed symlink'
+
+
+def test_path_copy_move_duplicate_args():
+    import pytest
+    dpath = ub.Path.appdir('ubelt/tests/path/dup-args').delete().ensuredir()
+    src = (dpath / 'src.txt').touch()
+    dst = dpath / 'dst.txt'
+    with pytest.raises(TypeError):
+        src.copy(dst, True, follow_file_symlinks=True)
+
+    src2 = (dpath / 'src2.txt').touch()
+    move_dst = dpath / 'moved.txt'
+    with pytest.raises(TypeError):
+        src2.move(move_dst, True, follow_file_symlinks=True)
+
+    src3 = (dpath / 'src3.txt').touch()
+    copied = src3.copy(dpath / 'copied.txt', True)
+    assert copied.exists()
+
+    src4 = (dpath / 'src4.txt').touch()
+    moved = src4.move(dpath / 'moved-ok.txt', True)
+    assert moved.exists()

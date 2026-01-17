@@ -30,7 +30,8 @@ except ImportError:  # nocover
 @cache
 def _lazy_numpy():
     try:
-        import numpy as np
+        import importlib
+        np = importlib.import_module('numpy')
     except ImportError:  # nocover
         return None
     return np

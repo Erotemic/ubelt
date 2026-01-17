@@ -58,6 +58,27 @@ def test_download_with_fpath():
 
 
 @pytest.mark.timeout(TIMEOUT)
+def test_download_requestkw():
+    url = _demo_url(1201)
+
+    dpath = ub.Path.appdir('ubelt/tests/test_download').ensuredir()
+    fname = basename(url)
+    fpath = join(dpath, fname)
+
+    ub.delete(fpath)
+    assert not exists(fpath)
+
+    got_fpath = ub.download(
+        url,
+        fpath=fpath,
+        appname='ubelt/tests/test_download',
+        requestkw={'headers': {'User-Agent': 'ubelt-test'}},
+    )
+    assert got_fpath == fpath
+    assert exists(fpath)
+
+
+@pytest.mark.timeout(TIMEOUT)
 def test_download_chunksize():
     # url = 'https://www.dropbox.com/s/jl506apezj42zjz/ibeis-win32-setup-ymd_hm-2015-08-01_16-28.exe?dl=1'
     # url = 'http://i.imgur.com/rqwaDag.png'

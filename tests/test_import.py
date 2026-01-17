@@ -434,6 +434,12 @@ def test_splitmodpath():
     ub.split_modpath('does/not/exists/module.py', check=False)
 
 
+def test_static_parse_annassign(tmp_path):
+    fpath = tmp_path / 'example.py'
+    fpath.write_text('other: int = 1\nvalue: int = 3')
+    assert ub.util_import._static_parse('value', fpath) == 3
+
+
 if __name__ == '__main__':
     r"""
     CommandLine:

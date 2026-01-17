@@ -396,7 +396,9 @@ def timeparse(
                 'dateutil is not allowed').format(stamp))
         else:
             try:
-                from dateutil.parser import parse as du_parse
+                import importlib
+                parser = importlib.import_module('dateutil.parser')
+                du_parse = parser.parse
             except (ModuleNotFoundError, ImportError):  # nocover
                 raise ValueError((
                     'Cannot parse timestamp. '
@@ -479,7 +481,8 @@ def _timezone_coerce(tzinfo, allow_dateutil=True):
             out_tzinfo = datetime_mod.timezone.utc
         else:
             if allow_dateutil:
-                from dateutil import tz as tz_mod
+                import importlib
+                tz_mod = importlib.import_module('dateutil.tz')
                 out_tzinfo = tz_mod.gettz(tzinfo)
                 if out_tzinfo is None:
                     raise KeyError(tzinfo)

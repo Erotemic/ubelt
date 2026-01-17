@@ -926,7 +926,7 @@ class CacheStamp:
             return None
         if not isinstance(products, (list, tuple)):
             products = [products]
-        products = list(map(Path, products))  # type: ignore[invalid-argument-type]
+        products = [Path(os.fspath(typing.cast(str | os.PathLike, item))) for item in products]
         return products
 
     def _rectify_hash_prefixes(self):

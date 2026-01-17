@@ -155,7 +155,8 @@ class NiceRepr:
             # As a convenience we define a default __nice__ for these objects
             # return str(len(self))
             # hasattr doesn't narrow to Sized for ty, so call __len__ directly
-            return str(self.__len__())  # type: ignore[call-non-callable]
+            len_func = object.__getattribute__(self, '__len__')
+            return str(len_func())
         else:
             # In all other cases force the subclass to overload __nice__
             raise NotImplementedError(

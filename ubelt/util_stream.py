@@ -42,6 +42,7 @@ class TeeStringIO(io.StringIO):
         >>> assert self.getvalue() == 'spam'
         >>> assert redirect.getvalue() == 'spam'
     """
+    buffer: io.IOBase | None
     def __init__(self, redirect: io.IOBase | None = None) -> None:
         """
         Args:
@@ -56,9 +57,9 @@ class TeeStringIO(io.StringIO):
         # allow us to embed in IPython while still capturing and Teeing
         # stdout.
         if redirect is not None:
-            self.buffer = getattr(redirect, 'buffer', redirect)  # type: ignore[invalid-assignment]
+            self.buffer = typing.cast(io.IOBase, getattr(redirect, 'buffer', redirect))
         else:
-            self.buffer = None  # type: ignore[invalid-assignment]
+            self.buffer = None
 
         # Note: mypy doesn't like this type
         # buffer (io.BufferedIOBase | io.IOBase | None): the redirected buffer attribute
@@ -145,8 +146,8 @@ class TeeStringIO(io.StringIO):
         # to keep this buggy behavior for legacy reasons.
         # Returns:
         #     None | str
-        if self.redirect is not None:
-            return self.redirect.encoding  # type: ignore[possibly-missing-attribute]
+        if self.redirect is not None and hasattr(self.redirect, 'encoding'):
+            return self.redirect.encoding
         else:
             return super().encoding
 
@@ -233,7 +234,7 @@ class CaptureStream:
         depending on `suppress`. Called at start of each capture.
         """
         redirect = None if self.suppress else self._get_stream()
-        return TeeStringIO(redirect)  # type: ignore[invalid-argument-type]
+        return TeeStringIO(typing.cast(io.IOBase | None, redirect))
 
     def log_part(self) -> None:
         """Log what has been captured since the last call to :meth:`log_part`."""

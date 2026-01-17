@@ -105,6 +105,12 @@ def test_dict_subset_iterable():
     assert dict(got) == dict_
 
 
+def test_dict_subset_default():
+    dict_ = {'a': 1}
+    result = ub.dict_subset(dict_, ['a', 'b'], default=0)
+    assert result == {'a': 1, 'b': 0}
+
+
 # def _benchmark_groupid_sorted():
 #     import random
 #     import ubelt as ub

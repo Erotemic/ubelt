@@ -9,5 +9,6 @@ CommandLine:
 """
 
 if __name__ == '__main__':
-    import xdoctest
+    import importlib
+    xdoctest = importlib.import_module('xdoctest')
     xdoctest.doctest_module('ubelt')

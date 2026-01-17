@@ -521,7 +521,8 @@ class ReprExtensions:
         """
 
         # TODO: should we register numpy using the new string method?
-        import numpy as np
+        import importlib
+        np = importlib.import_module('numpy')
         @self.register(np.ndarray)
         def format_ndarray(data: Any, **kwargs: Any) -> str:
             import re
@@ -816,9 +817,6 @@ def _format_dict(dict_: dict[Any, Any], **kwargs: Any) -> tuple[str, dict[str, i
         align_char: str | None
         if isinstance(align, str):
             align_char = align
-        elif align is True:
-            # Boolean "align" means use the default alignment character.
-            align_char = '='
         else:
             align_char = None
 
@@ -929,7 +927,7 @@ def _dict_itemstrs(dict_: dict[Any, Any], **kwargs: Any) -> tuple[list[str], dic
 
         prefix = key_str + kvsep
         kwargs['_return_info'] = True
-        _ret = urepr(val, **kwargs)
+        _ret = typing.cast(tuple[str, dict[str, int]], urepr(val, **kwargs))
         val_str, _leaf_info = _ret
 
         # If the first line does not end with an open nest char
@@ -951,7 +949,7 @@ def _dict_itemstrs(dict_: dict[Any, Any], **kwargs: Any) -> tuple[list[str], dic
                 item_str = ub.hzcat([prefix, val_str])
         else:
             item_str = prefix + val_str
-        return item_str, _leaf_info  # type: ignore[invalid-return-type]
+        return item_str, _leaf_info
 
     items = list(dict_.items())
     _tups = [make_item_str(key, val) for (key, val) in items]
@@ -1001,7 +999,7 @@ def _list_itemstrs(list_: Any, **kwargs: Any) -> tuple[list[str], dict[str, int]
     items = list(list_)
     kwargs['_return_info'] = True
     _tups: list[tuple[str, dict[str, int]]]
-    _tups = [urepr(item, **kwargs) for item in items]  # type: ignore[invalid-assignment]
+    _tups = [typing.cast(tuple[str, dict[str, int]], urepr(item, **kwargs)) for item in items]
     itemstrs = [t[0] for t in _tups]
     max_height = max([t[1]['max_height'] for t in _tups]) if _tups else 0
     _leaf_info = {
@@ -1236,5 +1234,6 @@ def _align_lines(line_list: list[str], character: str = '=', replchar: str | Non
 
 # Give the urepr function itself a reference to the default extensions
 # register method so the user can modify them without accessing this module
-urepr.extensions = _REPR_EXTENSIONS  # type: ignore[attr-defined]
-urepr.register = _REPR_EXTENSIONS.register  # type: ignore[attr-defined]
+_urepr = typing.cast(typing.Any, urepr)
+_urepr.extensions = _REPR_EXTENSIONS
+_urepr.register = _REPR_EXTENSIONS.register

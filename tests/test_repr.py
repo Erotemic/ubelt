@@ -424,6 +424,12 @@ def test_align_with_nobrace():
         ''')
 
 
+def test_dict_align_true():
+    import ubelt as ub
+    text = ub.urepr({'a': 1, 'bb': 2}, align=True)
+    assert "'a' :" in text
+
+
 if __name__ == '__main__':
     """
     CommandLine:

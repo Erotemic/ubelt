@@ -103,7 +103,7 @@ def inject_method(
         >>> assert self.bar() == 'baz'
     """
     # TODO: if func is a bound method we should probably unbind it
-    new_method = func.__get__(self, self.__class__)  # type: ignore[unresolved-attribute]
+    new_method = typing.cast(typing.Any, func).__get__(self, self.__class__)
     if name is None:
         name = getattr(func, '__name__', None)
         if name is None:
