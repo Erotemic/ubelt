@@ -76,13 +76,13 @@ if typing.TYPE_CHECKING:
 
     BytesLike = bytes | bytearray | memoryview
 
-    class HashLike(typing.Protocol):
+    class HasherLike(typing.Protocol):
         def update(self, data: BytesLike, /) -> None: ...
         def digest(self) -> bytes: ...
         def hexdigest(self) -> str: ...
-        def copy(self) -> "HashLike": ...  # or Self if you want (typing.Self on 3.11+)
+        def copy(self) -> "HasherLike": ...  # or Self if you want (typing.Self on 3.11+)
 
-    HasherType = Callable[..., HashLike]
+    HasherType = Callable[..., HasherLike]
 
 
 __all__ = ['hash_data', 'hash_file']

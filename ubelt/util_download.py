@@ -27,15 +27,11 @@ if typing.TYPE_CHECKING:
     import datetime
     from ubelt.util_const import NoParamType
 
-    class _Hasher(typing.Protocol):
-        """Minimal protocol for runtime hash objects used by :func:`download`.
+    BytesLike = bytes | bytearray | memoryview
 
-        This is *type-checking only* and never evaluated at runtime.
-        """
-
+    class HasherLike(typing.Protocol):
         name: str
-
-        def update(self, data: bytes) -> None: ...
+        def update(self, data: BytesLike, /) -> None: ...
         def hexdigest(self) -> str: ...
 
 
@@ -49,7 +45,7 @@ def download(
     fname: typing.Optional[str] = None,
     appname: typing.Optional[str] = None,
     hash_prefix: typing.Optional[str] = None,
-    hasher: typing.Union[str, '_Hasher'] = 'sha512',
+    hasher: typing.Union[str, HasherLike] = 'sha512',
     chunksize: int = 8192,
     filesize: typing.Optional[int] = None,
     verbose: typing.Union[int, bool] = 1,
@@ -91,7 +87,7 @@ def download(
             If specified, download will retry / error if the file hash
             does not match this value. Defaults to None.
 
-        hasher (str | _Hasher):
+        hasher (str | HasherLike):
             If hash_prefix is specified, this indicates the hashing
             algorithm to apply to the file. Defaults to sha512.
 
@@ -197,7 +193,7 @@ def download(
 
     if timeout is NoParam:
         import socket
-        timeout = socket._GLOBAL_DEFAULT_TIMEOUT
+        timeout = socket._GLOBAL_DEFAULT_TIMEOUT  # type: ignore[unresolved-attribute]
 
     from urllib.request import urlopen, Request
 
@@ -215,7 +211,7 @@ def download(
     # Check if fpath was given as an BytesIO object
     _dst_is_io_object = hasattr(fpath, 'write')
 
-    if not _dst_is_io_object and not exists(dirname(fpath)):
+    if not _dst_is_io_object and not exists(dirname(fpath)):  # type: ignore[no-matching-overload]
         raise Exception('parent of {} does not exist'.format(fpath))
 
     if verbose:
@@ -226,9 +222,9 @@ def download(
                 url, fpath))
 
     requestkw = requestkw or {}
-    requestkw['headers'] = {'User-Agent': 'Mozilla/5.0'}
-    req = Request(url, **requestkw)
-    urldata = urlopen(req, timeout=timeout)
+    requestkw['headers'] = {'User-Agent': 'Mozilla/5.0'}  # type: ignore[invalid-assignment]
+    req = Request(url, **requestkw)  # type: ignore[invalid-argument-type]
+    urldata = urlopen(req, timeout=timeout)  # type: ignore[invalid-argument-type]
 
     meta = urldata.info()
     if filesize is None:
@@ -256,7 +252,12 @@ def download(
             else:
                 raise KeyError(hasher)
 
+    if typing.TYPE_CHECKING:
+        hasher = typing.cast(HasherLike, hasher)
+
     if _dst_is_io_object:
+        if typing.TYPE_CHECKING:
+            fpath = typing.cast(typing.BinaryIO, fpath)
         _file_write = fpath.write
     else:
         tmp = tempfile.NamedTemporaryFile(delete=False)
@@ -292,9 +293,9 @@ def download(
             return msg
 
         if progkw is not None:
-            _progkw.update(progkw)
+            _progkw.update(progkw)  # type: ignore[no-matching-overload]
         _progkw['disable'] = not verbose
-        pbar = Progress(**_progkw)
+        pbar = Progress(**_progkw)  # type: ignore[invalid-argument-type]
 
         pbar.set_extra(_build_extra)
         with pbar:
@@ -325,6 +326,8 @@ def download(
             # We keep a potentially corrupted file if the hash doesn't match.
             # It could be the case that the user simply specified the wrong
             # hash_prefix.
+            if typing.TYPE_CHECKING:
+                fpath = typing.cast(str | os.PathLike, fpath)
             shutil.move(tmp.name, fpath)
 
         if hash_prefix:
@@ -359,7 +362,7 @@ def grabdata(
     verbose: int = 1,
     appname: typing.Optional[str] = None,
     hash_prefix: typing.Optional[str] = None,
-    hasher: typing.Union[str, '_Hasher'] = 'sha512',
+    hasher: typing.Union[str, HasherLike] = 'sha512',
     expires: typing.Optional[typing.Union[str, int, 'datetime.datetime']] = None,
     **download_kw: typing.Any,
 ) -> str | os.PathLike:
@@ -498,7 +501,9 @@ def grabdata(
         dpath, fname = split(fpath)
 
     if hasher is not None:
-        if not isinstance(hasher, str):   # nocover
+        if isinstance(hasher, str):
+            hasher_name = hasher
+        else:  # nocover
             from ubelt import schedule_deprecation
             schedule_deprecation(
                 modname='ubelt',
@@ -506,8 +511,6 @@ def grabdata(
                 name='hasher', type='grabdata arg',
                 deprecate='1.1.0', error='1.3.0', remove='1.5.0')
             hasher_name = hasher.name
-        else:
-            hasher_name = hasher
     else:
         hasher_name = None
 
@@ -519,11 +522,14 @@ def grabdata(
         # to the same file?
         # depends = url
 
+    if hasher_name is None:
+        hasher_name = 'sha1'  # cache stamp doesnt handle none values
+
     # TODO: it would be nice to have better control over the name of the stamp.
     # Specifically we have no control over the separator between fname,
     # depends, and the extension.
     stamp = CacheStamp(
-        fname + '.stamp', dpath, depends=depends, hasher=hasher,
+        fname + '.stamp', dpath, depends=depends, hasher=hasher_name,
         ext='.json', product=fpath,
         hash_prefix=hash_prefix, verbose=verbose,
         expires=expires,
