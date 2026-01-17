@@ -68,6 +68,8 @@ exclude_lines = [
     ".*if six.PY2:",
     ".*if typing.TYPE_CHECKING:",
     ".*if TYPE_CHECKING:",
+    "@typing.overload",
+    "@overload",
 ]
 omit = [
     "ubelt/__main__.py",
@@ -85,6 +87,6 @@ ignore-words-list = ['wont', 'cant', 'ANS', 'doesnt', 'arent', 'ans', 'thats', '
 [tool.ty.src]
 # tmp
 exclude = [
-    'ubelt/util_path.py',
-    'ubelt/util_stream.py'
+    #'ubelt/util_path.py',
+    #'ubelt/util_stream.py'
 ]

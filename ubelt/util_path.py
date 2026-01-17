@@ -1031,7 +1031,7 @@ class Path(_PathBase):
         mode: int = 511,
         parents: bool = False,
         exist_ok: bool = False,
-    ) -> 'Path':
+    ) -> 'Path': # type: ignore[invalid-method-override]
         """
         Create a new directory at this given path.
 
@@ -1273,7 +1273,7 @@ class Path(_PathBase):
     #     super().hardlink_to(target)
     #     return self
 
-    def touch(self, mode: int = 0o0666, exist_ok: bool = True) -> 'Path':
+    def touch(self, mode: int = 0o0666, exist_ok: bool = True) -> 'Path':  # type: ignore[invalid-method-override]
         """
         Create this file with the given access mode, if it doesn't exist.
 
@@ -1347,7 +1347,7 @@ class Path(_PathBase):
         onerror: Callable[[OSError], None] | None = None,
         followlinks: bool = False,
         **kwargs,
-    ) -> Generator[tuple['Path', list[str], list[str]], None, None]:
+    ) -> Generator[tuple['Path', list[str], list[str]], None, None]:   # type: ignore[invalid-method-override]
         """
         A variant of :func:`os.walk` for pathlib
 
