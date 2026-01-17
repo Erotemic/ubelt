@@ -54,6 +54,7 @@ References:
 from __future__ import annotations
 
 import typing
+from typing import Self, Any, Callable, Dict, List, Optional, Set, Tuple, Type, Union, Iterable, Mapping
 
 # NOTE: this project prefers near-zero runtime typing overhead.
 # However, ty does not reliably resolve names defined only under TYPE_CHECKING
@@ -142,27 +143,23 @@ def dzip(items1: Iterable[KT], items2: Iterable[VT], cls: Type[dict] = dict) -> 
         >>> assert ub.dzip([1, 2, 3], [4, 4, 4]) == {1: 4, 2: 4, 3: 4}
         >>> assert ub.dzip([], [4]) == {}
     """
-    try:
-        len(items1)
-    except TypeError:
-        items1 = list(items1)
-    try:
-        len(items2)
-    except TypeError:
-        items2 = list(items2)
-    if len(items1) == 0 and len(items2) == 1:
+
+    items1_list = list(items1)
+    items2_list = list(items2)
+
+    if len(items1_list) == 0 and len(items2_list) == 1:
         # Corner case:
         # allow the first list to be empty and the second list to broadcast a
         # value. This means that the equality check won't work for the case
         # where items1 and items2 are supposed to correspond, but the length of
         # items2 is 1.
-        items2 = []
-    if len(items2) == 1 and len(items1) > 1:
-        items2 = items2 * len(items1)
-    if len(items1) != len(items2):
+        items2_list = []
+    if len(items2_list) == 1 and len(items1_list) > 1:
+        items2_list = items2_list * len(items1_list)
+    if len(items1_list) != len(items2_list):
         raise ValueError('out of alignment len(items1)=%r, len(items2)=%r' % (
-            len(items1), len(items2)))
-    return cls(zip(items1, items2))
+            len(items1_list), len(items2_list)))
+    return cls(zip(items1_list, items2_list))
 
 
 def group_items(items: Iterable[VT], key: Union[Iterable[KT], Callable[[VT], KT]]) -> dict[KT, List[VT]]:
@@ -229,8 +226,8 @@ def group_items(items: Iterable[VT], key: Union[Iterable[KT], Callable[[VT], KT]
     # Initialize a dict of lists
     id_to_items = defaultdict(list)
     # Insert each item into the correct group
-    for key, item in pair_list:
-        id_to_items[key].append(item)
+    for group_id, item in pair_list:
+        id_to_items[group_id].append(item)
     return id_to_items
 
 
@@ -415,10 +412,11 @@ def dict_subset(dict_: Dict[KT, VT], keys: Iterable[KT], default: Union[object, 
         >>> print(ub.repr2(subdict_, nl=0))
         {'K': 3, 'dcvs_clip_max': 0.2}
     """
-    from ubelt import util_list
     keys = list(keys)
-    items = util_list.take(dict_, keys, default)
-    subdict_ = cls(list(zip(keys, items)))
+    if default is NoParam:
+        subdict_ = cls((k, dict_[k]) for k in keys)
+    else:
+        subdict_ = cls((k, dict_.get(k, default)) for k in keys)
     return subdict_
 
 
@@ -816,7 +814,7 @@ def invert_dict(dict_: Dict[KT, VT], unique_vals: bool = True, cls: Optional[typ
     return inverted
 
 
-def named_product(_: Optional[Dict[str, List[VT]]] = None, **basis: Dict[str, List[VT]]) -> Generator[Dict[str, VT], None, None]:
+def named_product(_: Optional[Dict[str, List[VT]]] = None, **basis: List[VT]) -> Generator[Dict[str, VT], None, None]:
     """
     Generates the Cartesian product of the ``basis.values()``, where each
     generated item labeled by ``basis.keys()``.
@@ -1305,7 +1303,7 @@ class SetDict(dict):
         return self.__class__(self)
 
     # We could just use the builtin variant for this specific operation
-    def __or__(self, other: Union[Mapping[Any, Any], Iterable[Tuple[Any, Any]]]) -> SetDict:
+    def __or__(self: Self, other: Mapping[Any, Any]) -> Self:
         """
         The ``|`` union operator
 
@@ -1315,9 +1313,9 @@ class SetDict(dict):
         Returns:
             SetDict
         """
-        return self.union(other)
+        return self.union(other, cls=type(self))
 
-    def __and__(self, other: Union[Mapping, Iterable]) -> SetDict:
+    def __and__(self: Self, other: Mapping[Any, Any]) -> Self:
         """
         The ``&`` intersection operator
 
@@ -1327,9 +1325,9 @@ class SetDict(dict):
         Returns:
             SetDict
         """
-        return self.intersection(other)
+        return self.intersection(other, cls=type(self))
 
-    def __sub__(self, other: Union[Mapping, Iterable]) -> SetDict:
+    def __sub__(self: Self, other: Mapping[Any, Any]) -> Self:
         """
         The ``-`` difference operator
 
@@ -1339,9 +1337,9 @@ class SetDict(dict):
         Returns:
             SetDict
         """
-        return self.difference(other)
+        return self.difference(other, cls=type(self))
 
-    def __xor__(self, other: Mapping) -> SetDict:
+    def __xor__(self: Self, other: Mapping[Any, Any]) -> Self:
         """
         The ``^`` symmetric_difference operator
 
@@ -1351,11 +1349,11 @@ class SetDict(dict):
         Returns:
             SetDict
         """
-        return self.symmetric_difference(other)
+        return self.symmetric_difference(other, cls=type(self))
 
     # - reverse versions
 
-    def __ror__(self, other: Mapping) -> dict:
+    def __ror__(self: Self, other: Mapping[Any, Any]) -> Self:
         """
         Args:
             other (Mapping):
@@ -1376,9 +1374,9 @@ class SetDict(dict):
             d1={1: 10, 2: 20, 3: 3, 4: 40}
             d2={1: 1, 2: 2, 4: 40, 3: 3}
         """
-        return SetDict.union(other, self, cls=self.__class__)
+        return type(self)(other).union(self, cls=type(self))
 
-    def __rand__(self, other: Mapping) -> dict:
+    def __rand__(self: Self, other: Mapping[Any, Any]) -> Self:
         """
         Args:
             other (Mapping):
@@ -1399,9 +1397,9 @@ class SetDict(dict):
             d1={1: 1, 2: 2}
             d2={1: 10, 2: 20}
         """
-        return SetDict.intersection(other, self, cls=self.__class__)
+        return type(self)(other).intersection(self, cls=type(self))
 
-    def __rsub__(self, other: Mapping) -> dict:
+    def __rsub__(self: Self, other: Mapping[Any, Any]) -> Self:
         """
         Args:
             other (Mapping):
@@ -1422,9 +1420,9 @@ class SetDict(dict):
             d1={3: 3}
             d2={4: 40}
         """
-        return SetDict.difference(other, self, cls=self.__class__)
+        return type(self)(other).difference(self, cls=type(self))
 
-    def __rxor__(self, other: Mapping) -> dict:
+    def __rxor__(self: Self, other: Mapping[Any, Any]) -> Self:
         """
         Args:
             other (Mapping):
@@ -1445,11 +1443,12 @@ class SetDict(dict):
             d1={3: 3, 4: 40}
             d2={4: 40, 3: 3}
         """
-        return SetDict.symmetric_difference(other, self, cls=self.__class__)
+        return type(self)(other).symmetric_difference(self, cls=type(self))
 
     # - inplace versions
 
-    def __ior__(self, other: Union[Mapping[Any, Any], Iterable[Tuple[Any, Any]]]) -> SetDict:
+    # Not sure why its hard to type annotate this.
+    def __ior__(self, other) -> Self:
         """
         The inplace union operator ``|=``.
 
@@ -1566,7 +1565,7 @@ class SetDict(dict):
 
     ### Main set operations
 
-    def union(self, *others: object, cls: Optional[type] = None, merge: Optional[Callable] = None) -> dict:
+    def union(self: Self, *others: Mapping[Any, Any], cls: type[Self] | None = None, merge: Callable | None = None) -> Self:
         """
         Return the key-wise union of two or more dictionaries.
 
@@ -1623,7 +1622,7 @@ class SetDict(dict):
             raise NotImplementedError('merge function is not yet implemented')
         return new
 
-    def intersection(self, *others: object, cls: Optional[type] = None, merge: Optional[Callable] = None) -> dict:
+    def intersection(self: Self, *others: Iterable[Any], cls: type[Self] | None = None, merge: Callable | None = None) -> Self:
         """
         Return the key-wise intersection of two or more dictionaries.
 
@@ -1675,7 +1674,8 @@ class SetDict(dict):
             >>> print(ub.repr2(res, sort=1, nl=0, si=1))
             {}
         """
-        cls = cls or self.__class__
+        if cls is None:
+            cls = type(self)
         isect_keys = set(self.keys())
         for v in others:
             isect_keys.intersection_update(v)
@@ -1685,7 +1685,7 @@ class SetDict(dict):
             raise NotImplementedError('merge function is not yet implemented')
         return new
 
-    def difference(self, *others: object, cls: Optional[type] = None, merge: Optional[Callable] = None) -> dict:
+    def difference(self: Self, *others: Iterable[Any], cls: type[Self] | None = None, merge: Callable | None = None) -> Self:
         """
         Return the key-wise difference between this dictionary and one or
         more other dictionary / keys.
@@ -1729,7 +1729,8 @@ class SetDict(dict):
             >>> print(ub.repr2(res, sort=1, nl=0, si=1))
             {5: A_f}
         """
-        cls = cls or self.__class__
+        if cls is None:
+            cls = type(self)
         other_keys = set()
         for v in others:
             other_keys.update(v)
@@ -1740,7 +1741,7 @@ class SetDict(dict):
             raise NotImplementedError('merge function is not yet implemented')
         return new
 
-    def symmetric_difference(self, *others: object, cls: Optional[type] = None, merge: Optional[Callable] = None) -> dict:
+    def symmetric_difference(self: Self, *others: Mapping[Any, Any], cls: type[Self] | None = None, merge: Callable | None = None) -> Self:
         """
         Return the key-wise symmetric difference between this dictionary and
         one or more other dictionaries.
@@ -1789,7 +1790,8 @@ class SetDict(dict):
             >>> print(ub.repr2(res, sort=1, nl=0, si=1))
             {0: B_a, 2: C_c, 4: B_e, 5: A_f, 8: C_i, 9: D_j, 10: D_k, 11: D_l}
         """
-        cls = cls or self.__class__
+        if cls is None:
+            cls = type(self)
         new = cls(self)  # shallow copy
         if merge is None:
             for d in others:
@@ -2094,7 +2096,7 @@ class UDict(SetDict):
             >>> assert ub.udict({1: 2}).peek_key() == 1
         """
         from ubelt.util_list import peek
-        return peek(self.keys(), default=default)
+        return typing.cast(KT, peek(self.keys(), default=default))
 
     def peek_value(self, default: Union[VT, NoParamType] = NoParam) -> VT:
         """
@@ -2113,7 +2115,7 @@ class UDict(SetDict):
             >>> assert ub.udict({1: 2}).peek_value() == 2
         """
         from ubelt.util_list import peek
-        return peek(self.values(), default=default)
+        return typing.cast(VT, peek(self.values(), default=default))
 
 
 class AutoDict(UDict):

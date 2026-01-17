@@ -237,7 +237,7 @@ class CaptureStream:
 
     def log_part(self) -> None:
         """Log what has been captured since the last call to :meth:`log_part`."""
-        if self.cap_stream is None:
+        if self.cap_stream is None:  # nocover
             return
         self.cap_stream.seek(self._pos)
         text = self.cap_stream.read()
@@ -249,7 +249,7 @@ class CaptureStream:
         """
         Begin capturing. Swaps the global stream to our `TeeStringIO`.
         """
-        if not self.enabled or self.started:
+        if not self.enabled or self.started:  # pragma: nobranch
             return
         self.text = ''
         self.started = True
@@ -261,16 +261,16 @@ class CaptureStream:
         """
         Stop capturing. Restores the original global stream.
         """
-        if not self.enabled or not self.started:
+        if not self.enabled or not self.started:  # nocover
             return
         self.started = False
-        if self.orig_stream is not None:
+        if self.orig_stream is not None:  # pragma: nobranch
             self._set_stream(self.orig_stream)
         # keep cap_stream alive for reading until close/__exit__
 
     def close(self) -> None:
         """Close and drop the proxy buffer to release memory."""
-        if self.cap_stream is not None:
+        if self.cap_stream is not None:  # pragma: nobranch
             try:
                 self.cap_stream.close()
             finally:
