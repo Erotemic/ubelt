@@ -930,7 +930,7 @@ def _dict_itemstrs(dict_: dict[Any, Any], **kwargs: Any) -> tuple[list[str], dic
         prefix = key_str + kvsep
         kwargs['_return_info'] = True
         _ret = urepr(val, **kwargs)
-        val_str, _leaf_info = typing.cast(tuple[str, dict[str, int]], _ret)
+        val_str, _leaf_info = _ret
 
         # If the first line does not end with an open nest char
         # (e.g. for ndarrays), otherwise we need to worry about
@@ -951,7 +951,7 @@ def _dict_itemstrs(dict_: dict[Any, Any], **kwargs: Any) -> tuple[list[str], dic
                 item_str = ub.hzcat([prefix, val_str])
         else:
             item_str = prefix + val_str
-        return item_str, _leaf_info
+        return item_str, _leaf_info  # type: ignore[invalid-return-type]
 
     items = list(dict_.items())
     _tups = [make_item_str(key, val) for (key, val) in items]

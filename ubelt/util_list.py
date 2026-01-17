@@ -26,13 +26,14 @@ import operator
 from collections import abc as collections_abc
 from itertools import zip_longest
 import typing
+from ubelt import util_const
+from ubelt import util_dict
+
 if typing.TYPE_CHECKING:
     from typing import Any, Callable, Iterator, TypeVar
     VT = TypeVar('VT')
     T = TypeVar('T')
     KT = TypeVar('KT')
-from ubelt import util_const
-from ubelt import util_dict
 
 __all__ = [
     'allsame', 'argmax', 'argmin', 'argsort', 'argunique', 'boolmask',
@@ -41,7 +42,7 @@ __all__ = [
 ]
 
 
-class chunks:
+class chunks(collections_abc.Iterator[list[VT]]):
     """
     Generates successive n-sized chunks from ``items``.
 
@@ -181,10 +182,12 @@ class chunks:
             raise ValueError('Must specify either chunksize or nchunks')
 
         if total is None:
-            try:
+            if isinstance(items, collections_abc.Sized):
                 total = len(items)
-            except TypeError:
-                pass  # iterators dont know len
+            # try:
+            #     total = len(items)
+            # except TypeError:
+            #     pass  # iterators dont know len
 
         if bordermode is None:  # nocover
             bordermode = 'none'
@@ -272,11 +275,13 @@ class chunks:
             # handle replicate and cycle border modes
             # TODO:
             # benchmark different methods
+            assert nchunks is not None
             chunksize_iter = it.chain(
                 it.repeat(chunksize + 1, remainder),
                 it.repeat(chunksize, nchunks - remainder)
             )
         else:
+            assert nchunks is not None
             chunksize_iter = it.repeat(chunksize, nchunks)
         for _chunksize in chunksize_iter:
             chunk = list(it.islice(iterator, _chunksize))
@@ -347,18 +352,16 @@ def iterable(obj: object, strok: bool = False) -> bool:
         >>> assert result == [False, True, True, True, True, True]
     """
     try:
-        iter(obj)
+        iter(obj)  # type: ignore
     except Exception:
         return False
     else:
         return strok or not isinstance(obj, str)
 
 
-
-
-def take(items: collections_abc.Sequence[VT] | collections_abc.Mapping[KT, VT],
+def take(items: collections_abc.Sequence[VT] | collections_abc.Mapping[KT | int, VT],
          indices: collections_abc.Iterable[int | KT],
-         default: object = util_const.NoParam) -> collections_abc.Generator[VT, None, None]:
+         default: object | util_const.NoParamType = util_const.NoParam) -> collections_abc.Generator[VT, None, None]:
     """
     Lookup a subset of an indexable object using a sequence of indices.
 
@@ -402,7 +405,7 @@ def take(items: collections_abc.Sequence[VT] | collections_abc.Mapping[KT, VT],
         >>> items = [0, 1, 2, 3]
         >>> indices = [2, 0]
         >>> list(ub.take(items, indices))
-        [2, 0]
+        [2, 0/
 
     Example:
         >>> import ubelt as ub
@@ -422,12 +425,18 @@ def take(items: collections_abc.Sequence[VT] | collections_abc.Mapping[KT, VT],
         >>>     print('correctly got key error')
     """
     if default is util_const.NoParam:
+        if typing.TYPE_CHECKING:
+            if isinstance(items, collections_abc.Mapping):
+                indices = typing.cast(collections_abc.Iterable[KT], indices)
+            else:
+                indices = typing.cast(collections_abc.Iterable[int], indices)
         for index in indices:
-            yield items[index]  # type: ignore[index]
+            yield items[index]  # type: ignore[invalid-argument-type]
     else:
-        mapping = typing.cast(collections_abc.Mapping, items)
+        if typing.TYPE_CHECKING:
+            items = typing.cast(collections_abc.Mapping, items)
         for index in indices:
-            yield mapping.get(index, default)  # type: ignore[arg-type]
+            yield items.get(index, default)
 
 
 def compress(items: collections_abc.Iterable[Any],
@@ -764,9 +773,9 @@ def allsame(iterable: collections_abc.Iterable[T],
     return all(eq(first, item) for item in iter_)
 
 
-def argsort(indexable: 'collections_abc.Iterable[VT] | collections_abc.Mapping[KT, VT]',
+def argsort(indexable: collections_abc.Iterable[VT] | collections_abc.Mapping[KT, VT],
             key: Callable[[VT], Any] | None = None,
-            reverse: bool = False) -> 'list[int] | list[KT]':
+            reverse: bool = False) -> list[int] | list[KT]:
     """
     Returns the indices that would sort a indexable object.
 
@@ -810,6 +819,8 @@ def argsort(indexable: 'collections_abc.Iterable[VT] | collections_abc.Mapping[K
     """
     # Create an iterator of value/key pairs
     if isinstance(indexable, collections_abc.Mapping):
+        if typing.TYPE_CHECKING:
+            indexable = typing.cast(collections_abc.Mapping[KT, VT], indexable)
         vk_iter = ((v, k) for k, v in indexable.items())
     else:
         vk_iter = ((v, k) for k, v in enumerate(indexable))
@@ -823,7 +834,7 @@ def argsort(indexable: 'collections_abc.Iterable[VT] | collections_abc.Mapping[K
     return indices
 
 
-def argmax(indexable: 'collections_abc.Iterable[VT] | collections_abc.Mapping[KT, VT]',
+def argmax(indexable: collections_abc.Iterable[VT] | collections_abc.Mapping[KT, VT],
            key: Callable[[VT], Any] | None = None) -> int | KT:
     """
     Returns index / key of the item with the largest value.
@@ -849,22 +860,24 @@ def argmax(indexable: 'collections_abc.Iterable[VT] | collections_abc.Mapping[KT
         >>> assert ub.argmax(iter(['a', 'c', 'b', 'z', 'f'])) == 3
     """
     if key is None and isinstance(indexable, collections_abc.Mapping):
+        if typing.TYPE_CHECKING:
+            indexable = typing.cast(collections_abc.Mapping[KT, VT], indexable)
         return max(indexable.items(), key=operator.itemgetter(1))[0]
-    elif hasattr(indexable, 'index'):
+    # elif hasattr(indexable, 'index'):  # cause type annot issues
+    elif isinstance(indexable, collections_abc.Sequence):
         if key is None:
             return indexable.index(max(indexable))
         else:
             key_func = key
-            return indexable.index(max(
-                indexable,
-                key=key_func,
-            ))
+            if typing.TYPE_CHECKING:
+                indexable = typing.cast(collections_abc.Sequence[VT], indexable)
+            return indexable.index(max(indexable, key=key_func))
     else:
         # less efficient, but catch all solution
         return argsort(indexable, key=key)[-1]
 
 
-def argmin(indexable: 'collections_abc.Iterable[VT] | collections_abc.Mapping[KT, VT]',
+def argmin(indexable: collections_abc.Iterable[VT] | collections_abc.Mapping[KT, VT],
            key: Callable[[VT], Any] | None = None) -> int | KT:
     """
     Returns index / key of the item with the smallest value.
@@ -890,16 +903,18 @@ def argmin(indexable: 'collections_abc.Iterable[VT] | collections_abc.Mapping[KT
         >>> assert ub.argmin(iter(['a', 'c', 'A', 'z', 'f'])) == 2
     """
     if key is None and isinstance(indexable, collections_abc.Mapping):
+        if typing.TYPE_CHECKING:
+            indexable = typing.cast(collections_abc.Mapping[KT, VT], indexable)
         return min(indexable.items(), key=operator.itemgetter(1))[0]
-    elif hasattr(indexable, 'index'):
+    # elif hasattr(indexable, 'index'): #
+    elif isinstance(indexable, collections_abc.Sequence):
         if key is None:
             return indexable.index(min(indexable))
         else:
             key_func = key
-            return indexable.index(min(
-                indexable,
-                key=key_func,
-            ))
+            if typing.TYPE_CHECKING:
+                indexable = typing.cast(collections_abc.Sequence[VT], indexable)
+            return indexable.index(min(indexable, key=key_func))
     else:
         # less efficient, but catch all solution
         return argsort(indexable, key=key)[0]
@@ -947,7 +962,7 @@ def peek(iterable: collections_abc.Iterable[T],
 
 
 # Stubs for potential future object oriented wrappers
-class IterableMixin:
+class IterableMixin(collections_abc.Iterable):
     """
 
     """
@@ -961,12 +976,11 @@ class IterableMixin:
     def chunks(self,
                size: int | None = None,
                num: int | None = None,
-               bordermode: str = 'none') -> chunks:
+               bordermode: str = 'none') -> collections_abc.Iterator[list[VT]]:
         return chunks(
             self,
             chunksize=size,
             nchunks=num,
-            total=len(self),
             bordermode=bordermode,
         )
 

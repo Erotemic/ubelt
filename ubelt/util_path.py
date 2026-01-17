@@ -45,7 +45,7 @@ from ubelt import util_io
 
 if typing.TYPE_CHECKING:
     from types import TracebackType
-    from typing import Callable, Type
+    from typing import Callable, Type, cast
     from collections.abc import Generator
 
 
@@ -65,7 +65,7 @@ def augpath(
     suffix: str = '',
     prefix: str = '',
     ext: str | None = None,
-    tail: str | None = '',
+    tail: str = '',
     base: str | None = None,
     dpath: str | os.PathLike | None = None,
     relative: str | os.PathLike | None = None,
@@ -94,7 +94,7 @@ def augpath(
         ext (str | None):
             if specified, replaces the extension
 
-        tail (str | None):
+        tail (str):
             If specified, appends this text to the extension
 
         base (str | None):
@@ -317,11 +317,11 @@ def expandpath(path: str | os.PathLike) -> str:
 
 
 def ensuredir(
-    dpath: str | os.PathLike | tuple[str | os.PathLike],
+    dpath: str | os.PathLike | tuple[str | os.PathLike, ...],
     mode: int = 0o1777,
     verbose: int = 0,
     recreate: bool = False,
-) -> str:
+) -> str | os.PathLike:
     r"""
     Ensures that directory will exist. Creates new dir with sticky bits by
     default
@@ -356,7 +356,7 @@ def ensuredir(
         >>> dpath.delete()
     """
     if isinstance(dpath, (list, tuple)):
-        dpath = join(*dpath)
+        dpath = join(*dpath)  # type: ignore
 
     if recreate:
         from ubelt import schedule_deprecation
@@ -428,7 +428,7 @@ class ChDir:
                 If None, then the context manager is disabled.
         """
         self._context_dpath = dpath
-        self._orig_dpath = None
+        self._orig_dpath = '.'
 
     def __enter__(self) -> ChDir:
         """
@@ -813,7 +813,7 @@ class Path(_PathBase):
         ext: str | None = None,
         stem: str | None = None,
         dpath: str | os.PathLike | None = None,
-        tail: str | None = '',
+        tail: str = '',
         relative: str | os.PathLike | None = None,
         multidot: bool = False,
         suffix: str = '',
@@ -847,7 +847,7 @@ class Path(_PathBase):
                 If specified, replaces the specified "relative" directory,
                 which by default is the parent directory.
 
-            tail (str | None):
+            tail (str):
                 If specified, appends this text the very end of the path -
                 after the extension.
 
@@ -2040,9 +2040,9 @@ def _patch_win32_stats_on_pypy():
     """
     if not hasattr(stat, 'IO_REPARSE_TAG_MOUNT_POINT'):  # nocover
         os.supports_follow_symlinks.add(os.stat)
-        stat.IO_REPARSE_TAG_APPEXECLINK = 0x8000001b  # windows
-        stat.IO_REPARSE_TAG_MOUNT_POINT = 0xa0000003  # windows
-        stat.IO_REPARSE_TAG_SYMLINK = 0xa000000c      # windows
+        stat.IO_REPARSE_TAG_APPEXECLINK = 0x8000001b  # type: ignore[unresolved-attribute]
+        stat.IO_REPARSE_TAG_MOUNT_POINT = 0xa0000003  # type: ignore[unresolved-attribute]
+        stat.IO_REPARSE_TAG_SYMLINK = 0xa000000c      # type: ignore[unresolved-attribute]
 
 
 def _is_relative_to_backport(self, other):
@@ -2137,4 +2137,4 @@ def _relative_path_backport(self, other, walk_up=False):  # nocover
     return type(self)('', *reversed(parts0))
 
 if PYTHON_LE_3_8:  # nocover
-    Path.is_relative_to = _is_relative_to_backport  # type: ignore[assignment,method-assign]
+    Path.is_relative_to = _is_relative_to_backport
