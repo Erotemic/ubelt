@@ -17,6 +17,7 @@ This project (loosely) adheres to [Semantic Versioning](https://semver.org/spec/
 * Changed the default warning in `schedule_deprecation` from
   `DeprecationWarning` to `FutureWarning`, which makes deprecations loud by
   default.
+* All .pyi files have been removed. Type annotations are now inline and validated with mypy and ty.
 
 
 ## Version 1.4.0 - Released 2025-08-16

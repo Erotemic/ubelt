@@ -12,8 +12,8 @@
 ## Python, Typing & Docs
 
 * Support Python >=3.8.
-* Keep `.py` and `.pyi` in sync; docstring types (Google style) and stubs must agree.
-* Inline typing allowed if readability is preserved and no new imports are introduced.
+* Avoid typing code that adds runtime overhead (e.g. cast).
+* Prefer putting typing code in if typing.TYPE_CHECKING blocks.
 
 ## Tests & Coverage
 
