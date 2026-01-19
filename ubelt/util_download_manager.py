@@ -90,6 +90,20 @@ class DownloadManager:
                   "connection state" objects.
         """
         import ubelt as ub
+        # The download manager is overscoped and doesn't provide enough value
+        # over the simple download function. This is better suited for a
+        # separate package rather than a utility library. A proper download
+        # manager would be multiplexing connections and have many more
+        # efficiency tricks that would bloat a ubelt implementation.
+        ub.schedule_deprecation(
+            modname='ubelt',
+            name='DownloadManager',
+            type='class',
+            migration='Vendor the code if you need it.',
+            deprecate='1.4.1',
+            error='2.0.0',
+            remove='2.1.0',
+        )
         if download_root is None:
             download_root = ub.ensure_app_config_dir('ubelt', 'dlman')
         self._pool = ub.JobPool(mode=mode, max_workers=max_workers)
