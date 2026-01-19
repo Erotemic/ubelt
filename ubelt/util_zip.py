@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 """
 Abstractions for working with zipfiles and archives
 
@@ -13,7 +15,6 @@ without the user needing to worry about extracting it first. When possible it
 will read it directly from the archive, but in some cases it may extract it to
 a temporary directory first.
 """
-from __future__ import annotations
 
 import typing
 import io

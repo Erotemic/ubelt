@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 """
 Defines the function :func:`urepr`, which allows for a bit more customization
 than :func:`repr` or :func:`pprint.pformat`. See the docstring for more details.
@@ -50,8 +52,6 @@ As of ubelt 1.1.0 you can now access and update the default extensions via the
 >>>     return "monkey2({})".format(data)
 >>> print(ub.urepr({1: float('nan'), 2: float('inf'), 3: 3.0}, nl=0))
 """
-
-from __future__ import annotations
 
 import typing
 

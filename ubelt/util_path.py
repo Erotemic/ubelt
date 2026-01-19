@@ -45,7 +45,7 @@ from ubelt import util_io
 
 if typing.TYPE_CHECKING:
     from types import TracebackType
-    from typing import Callable, Type, cast
+    from typing import Callable, Type
     from collections.abc import Generator
 
 
@@ -1031,7 +1031,7 @@ class Path(_PathBase):
         mode: int = 511,
         parents: bool = False,
         exist_ok: bool = False,
-    ) -> 'Path': # type: ignore[invalid-method-override]
+    ) -> 'Path':  # type: ignore[invalid-method-override]
         """
         Create a new directory at this given path.
 

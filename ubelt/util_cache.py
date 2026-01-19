@@ -197,7 +197,7 @@ class Cacher:
         appname: str = 'ubelt',
         ext: str = '.pkl',
         meta: typing.Optional[object] = None,
-        verbose: int | bool| None = None,
+        verbose: int | bool | None = None,
         enabled: bool = True,
         log: typing.Optional[typing.Callable[[str], typing.Any]] = None,
         hasher: str = 'sha1',
@@ -1203,7 +1203,6 @@ class CacheStamp:
         # Rectify into a datetime
         from ubelt.util_time import timeparse
         import datetime as datetime_mod
-        import numbers
         if now is None:
             now = datetime_mod.datetime.now()
         expires = self.expires

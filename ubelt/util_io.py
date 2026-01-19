@@ -10,14 +10,9 @@ throw an error if the file or directory does not exist. It also contains
 workarounds for win32 issues with :mod:`shutil`.
 """
 from __future__ import annotations
-
-import typing
 import sys
 import os
 from os.path import exists
-
-if typing.TYPE_CHECKING:
-    import io
 
 
 __all__ = [
@@ -179,7 +174,7 @@ def touch(
     Args:
         fpath (str | PathLike): name of the file
         mode (int): file permissions (python3 and unix only)
-        dir_fd (io.IOBase | None): optional directory file descriptor. If
+        dir_fd (int | None): optional directory file descriptor. If
             specified, fpath is interpreted as relative to this descriptor
             (python 3 only).
         verbose (int): verbosity

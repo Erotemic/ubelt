@@ -90,3 +90,12 @@ exclude = [
     #'ubelt/util_path.py',
     #'ubelt/util_stream.py'
 ]
+
+[tool.ruff.lint]
+# Select all rules (optional, if you want to explicitly select all)
+# select = ["ALL"]
+
+# Ignore specific rules project-wide
+ignore = [
+    "E402",  # Module level import not at top of file
+]

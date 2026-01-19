@@ -85,8 +85,10 @@ if typing.TYPE_CHECKING:
     from _typeshed import SupportsWrite
     from types import TracebackType
     from typing import Type
+    from collections.abc import Iterator
+
 from itertools import islice
-from collections.abc import Iterable, Iterator
+from typing import Iterable
 
 T = typing.TypeVar('T')
 
@@ -327,7 +329,6 @@ class _BackwardsCompat:
 
     def stop(self) -> None:  # nocover
         return self.end()
-
 
 
 class ProgIter(_TQDMCompat, _BackwardsCompat, Iterable[T]):

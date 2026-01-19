@@ -18,7 +18,7 @@ from collections.abc import Generator
 
 if typing.TYPE_CHECKING:
     from types import TracebackType
-    from typing import Any, Mapping, Sequence, MutableMapping, MutableSequence
+    from typing import Any, Mapping, MutableMapping, MutableSequence
 
 
 try:

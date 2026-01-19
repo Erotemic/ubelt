@@ -54,28 +54,21 @@ References:
 from __future__ import annotations
 
 import typing
-from typing import Self, Any, Callable, Dict, List, Optional, Set, Tuple, Type, Union, Iterable, Mapping
-
-# NOTE: this project prefers near-zero runtime typing overhead.
-# However, ty does not reliably resolve names defined only under TYPE_CHECKING
-# across all contexts. We keep imports type-only, but define TypeVars at module
-# scope so ty can resolve them without relying on TYPE_CHECKING execution.
-
-KT = typing.TypeVar("KT")
-VT = typing.TypeVar("VT")
-T = typing.TypeVar("T")
-
-if typing.TYPE_CHECKING:
-    from collections.abc import Generator, Iterable, Mapping
-    from typing import Any, Callable, Dict, List, Optional, Set, Tuple, Type, Union
-    from ubelt.util_const import NoParamType
-
 import sys
 import operator as op
 import itertools as it
 from collections import OrderedDict
 from collections import defaultdict
 from ubelt.util_const import NoParam
+from collections.abc import Generator, Iterable, Mapping
+
+KT = typing.TypeVar("KT")
+VT = typing.TypeVar("VT")
+T = typing.TypeVar("T")
+
+if typing.TYPE_CHECKING:
+    from typing import Self, Any, Callable, Dict, List, Optional, Set, Type, Union
+    from ubelt.util_const import NoParamType
 
 __all__ = [
     'AutoDict',
@@ -2186,4 +2179,3 @@ class AutoDict(UDict):
 # DEPRECATED. This is no longer needed. AutoDict is always ordered
 AutoOrderedDict = AutoDict
 udict = UDict
-

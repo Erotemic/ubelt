@@ -34,7 +34,7 @@ from __future__ import annotations
 import typing
 import itertools as it
 from collections import deque
-from collections.abc import MutableSet, Sequence, MutableSequence
+from typing import MutableSet, Sequence
 
 if typing.TYPE_CHECKING:
     from collections.abc import Iterable, Iterator

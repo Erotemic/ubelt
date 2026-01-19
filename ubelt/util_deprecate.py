@@ -1,9 +1,10 @@
+from __future__ import annotations
+
 """
 Currently this module provides one utility
 :func:`ubelt.util_deprecate.schedule_deprecation` which allows a developer to
 easily mark features in their libraries as deprecated.
 """
-from __future__ import annotations
 
 
 # DEFAULT_WARN_CLASS = DeprecationWarning
