@@ -23,16 +23,17 @@ from __future__ import annotations
 import itertools as it
 import math
 import operator
-from itertools import zip_longest
 import typing
-from ubelt import util_const
-from ubelt import util_dict
-from typing import TypeVar
 
+from ubelt import util_dict
+
+from ubelt.util_const import NoParam
+from itertools import zip_longest
 from collections.abc import Sized
-from typing import List, Iterable, Mapping, Sequence
+from typing import List, Iterable, Mapping, Sequence, TypeVar
 
 if typing.TYPE_CHECKING:
+    from ubelt.util_const import NoParamType
     from collections.abc import Generator, Iterator
     from typing import Any, Callable, cast
     T = TypeVar('T')
@@ -367,7 +368,7 @@ def iterable(obj: object, strok: bool = False) -> bool:
 
 def take(items: Sequence[VT] | Mapping[KT | int, VT],
          indices: Iterable[int | KT],
-         default: Any | util_const.NoParamType = util_const.NoParam) -> Generator[VT, None, None]:
+         default: Any | NoParamType = NoParam) -> Generator[VT, None, None]:
     """
     Lookup a subset of an indexable object using a sequence of indices.
 
@@ -430,7 +431,7 @@ def take(items: Sequence[VT] | Mapping[KT | int, VT],
         >>> except KeyError:
         >>>     print('correctly got key error')
     """
-    if default is util_const.NoParam:
+    if default is NoParam:
         if typing.TYPE_CHECKING:
             if isinstance(items, Mapping):
                 indices = cast(Iterable[KT], indices)
@@ -778,10 +779,21 @@ def allsame(iterable: Iterable[T],
         return True
     return all(eq(first, item) for item in iter_)
 
+@typing.overload
+def argsort(indexable: Iterable[VT],
+            key: Callable[[VT], Any] | None = None,
+            reverse: bool = False) -> Sequence[int]:
+    ...
+
+@typing.overload
+def argsort(indexable: Mapping[KT, VT],
+            key: Callable[[VT], Any] | None = None,
+            reverse: bool = False) -> Sequence[KT]:
+    ...
 
 def argsort(indexable: Iterable[VT] | Mapping[KT, VT],
             key: Callable[[VT], Any] | None = None,
-            reverse: bool = False) -> list[int] | list[KT]:
+            reverse: bool = False) -> Sequence[int] | Sequence[KT]:
     """
     Returns the indices that would sort a indexable object.
 
@@ -841,6 +853,16 @@ def argsort(indexable: Iterable[VT] | Mapping[KT, VT],
     return indices
 
 
+@typing.overload
+def argmax(indexable: Iterable[VT],
+           key: Callable[[VT], Any] | None = None) -> int:
+    ...
+
+@typing.overload
+def argmax(indexable: Mapping[KT, VT],
+           key: Callable[[VT], Any] | None = None) -> KT:
+    ...
+
 def argmax(indexable: Iterable[VT] | Mapping[KT, VT],
            key: Callable[[VT], Any] | None = None) -> int | KT:
     """
@@ -883,6 +905,16 @@ def argmax(indexable: Iterable[VT] | Mapping[KT, VT],
         # less efficient, but catch all solution
         return argsort(indexable, key=key)[-1]
 
+
+@typing.overload
+def argmin(indexable: Iterable[VT],
+           key: Callable[[VT], Any] | None = None) -> int:
+    ...
+
+@typing.overload
+def argmin(indexable: Mapping[KT, VT],
+           key: Callable[[VT], Any] | None = None) -> KT:
+    ...
 
 def argmin(indexable: Iterable[VT] | Mapping[KT, VT],
            key: Callable[[VT], Any] | None = None) -> int | KT:
@@ -928,7 +960,7 @@ def argmin(indexable: Iterable[VT] | Mapping[KT, VT],
 
 
 def peek(iterable: Iterable[T],
-         default: T | util_const.NoParamType = util_const.NoParam) -> T | util_const.NoParamType:
+         default: T | NoParamType = NoParam) -> T | NoParamType:
     """
     Look at the first item of an iterable. If the input is an iterator, then
     the next element is exhausted (i.e. a pop operation).
@@ -962,7 +994,7 @@ def peek(iterable: Iterable[T],
         >>> ub.peek([], 3)
         3
     """
-    if default is util_const.NoParam:
+    if default is NoParam:
         return next(iter(iterable))
     else:
         return next(iter(iterable), default)

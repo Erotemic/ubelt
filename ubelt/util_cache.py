@@ -176,13 +176,13 @@ class Cacher:
     VERBOSE: int = 1  # default verbosity
     FORCE_DISABLE: bool = False  # global scope override
 
-    dpath: typing.Union[str, os.PathLike]
+    dpath: str | os.PathLike
     fname: str
-    depends: typing.Optional[typing.Union[str, list[str]]]
-    cfgstr: typing.Optional[str]
+    depends: str | list[str] | None
+    cfgstr: str | None
     verbose: int
     ext: str
-    meta: typing.Optional[object]
+    meta: object | None
     enabled: bool
     protocol: int
     hasher: str
@@ -192,17 +192,17 @@ class Cacher:
     def __init__(
         self,
         fname: str,
-        depends: typing.Optional[typing.Union[str, list[str]]] = None,
-        dpath: typing.Optional[typing.Union[str, os.PathLike]] = None,
+        depends: str | list[str] | None = None,
+        dpath: str | os.PathLike | None = None,
         appname: str = 'ubelt',
         ext: str = '.pkl',
-        meta: typing.Optional[object] = None,
+        meta: object | None = None,
         verbose: int | bool | None = None,
         enabled: bool = True,
-        log: typing.Optional[typing.Callable[[str], typing.Any]] = None,
+        log: typing.Callable[[str], typing.Any] | None = None,
         hasher: str = 'sha1',
         protocol: int = -1,
-        cfgstr: typing.Optional[str] = None,
+        cfgstr: str | None = None,
         backend: str = 'auto',
     ) -> None:
         """
@@ -309,7 +309,7 @@ class Cacher:
         if len(self.ext) > 0 and self.ext[0] != '.':
             raise ValueError('Please be explicit and use a dot in ext')
 
-    def _rectify_cfgstr(self, cfgstr: typing.Optional[str] = None) -> str:
+    def _rectify_cfgstr(self, cfgstr: str | None = None) -> str:
         if cfgstr is not None:  # nocover
             from ubelt import schedule_deprecation
             schedule_deprecation(
@@ -344,7 +344,7 @@ class Cacher:
         assert cfgstr is not None
         return cfgstr
 
-    def _condense_cfgstr(self, cfgstr: typing.Optional[str] = None) -> str:
+    def _condense_cfgstr(self, cfgstr: str | None = None) -> str:
         cfgstr = self._rectify_cfgstr(cfgstr)
         # The 49 char maxlen is just long enough for an 8 char name, an 1 char
         # underscore, and a 40 char sha1 hash.
@@ -362,7 +362,7 @@ class Cacher:
         from ubelt.util_path import Path
         return Path(self.get_fpath())
 
-    def get_fpath(self, cfgstr: typing.Optional[str] = None) -> str:
+    def get_fpath(self, cfgstr: str | None = None) -> str:
         """
         Reports the filepath that the cacher will use.
 
@@ -394,7 +394,7 @@ class Cacher:
         fpath = normpath(fpath)
         return fpath
 
-    def exists(self, cfgstr: typing.Optional[str] = None) -> bool:
+    def exists(self, cfgstr: str | None = None) -> bool:
         """
         Check to see if the cache exists
 
@@ -443,7 +443,7 @@ class Cacher:
             data_fpath = join(self.dpath, fname)
             yield data_fpath
 
-    def clear(self, cfgstr: typing.Optional[str] = None) -> None:
+    def clear(self, cfgstr: str | None = None) -> None:
         """
         Removes the saved cache and metadata from disk
 
@@ -466,7 +466,7 @@ class Cacher:
             if self.verbose > 0:
                 self.log('[cacher] ... nothing to clear')
 
-    def tryload(self, cfgstr: typing.Optional[str] = None, on_error: str = 'raise') -> typing.Optional[typing.Any]:
+    def tryload(self, cfgstr: str | None = None, on_error: str = 'raise') -> typing.Any | None:
         """
         Like load, but returns None if the load fails due to a cache miss.
 
@@ -507,7 +507,7 @@ class Cacher:
                     self.fname))
         return None
 
-    def load(self, cfgstr: typing.Optional[str] = None) -> typing.Any:
+    def load(self, cfgstr: str | None = None) -> typing.Any:
         """
         Load the data cached and raise an error if something goes wrong.
 
@@ -578,7 +578,7 @@ class Cacher:
                 self.log('[cacher] ... cache hit')
         return data
 
-    def save(self, data: typing.Any, cfgstr: typing.Optional[str] = None) -> None:
+    def save(self, data: typing.Any, cfgstr: str | None = None) -> None:
         """
         Writes data to path specified by ``self.fpath``.
 
@@ -638,7 +638,7 @@ class Cacher:
             sizestr = _byte_str(os.stat(data_fpath).st_size)
             self.log('[cacher] ... finish save, size={}'.format(sizestr))
 
-    def _backend_load(self, data_fpath: typing.Union[str, os.PathLike]) -> typing.Any:
+    def _backend_load(self, data_fpath: str | os.PathLike) -> typing.Any:
         """
         Example:
             >>> import ubelt as ub
@@ -669,7 +669,7 @@ class Cacher:
             raise NotImplementedError('self.backend = {}'.format(self.backend))
         return data
 
-    def _backend_dump(self, data_fpath: typing.Union[str, os.PathLike], data: typing.Any) -> typing.Any:
+    def _backend_dump(self, data_fpath: str | os.PathLike, data: typing.Any) -> typing.Any:
         # TODO: allow the user to customize the save backend.
         if self.backend == 'pickle':
             import pickle
@@ -812,22 +812,22 @@ class CacheStamp:
     cacher: Cacher
     product: str | os.PathLike | typing.Sequence[str | os.PathLike] | None
     hasher: str | None
-    expires: typing.Union[str, int, datetime_mod.datetime, datetime_mod.timedelta] | None
-    hash_prefix: typing.Union[str, list[str]] | None
+    expires: str | int | datetime_mod.datetime | datetime_mod.timedelta | None
+    hash_prefix: str | list[str] | None
 
     def __init__(
         self,
         fname: str,
-        dpath: typing.Optional[typing.Union[str, os.PathLike]],
-        cfgstr: typing.Optional[str] = None,
+        dpath: str | os.PathLike | None,
+        cfgstr: str | None = None,
         product: str | os.PathLike | typing.Sequence[str | os.PathLike] | None = None,
         hasher: str = 'sha1',
         verbose: int | bool | None = None,
         enabled: bool = True,
-        depends: typing.Optional[typing.Union[str, list[str]]] = None,
-        meta: typing.Optional[object] = None,
-        hash_prefix: typing.Optional[typing.Union[str, list[str]]] = None,
-        expires: typing.Optional[typing.Union[str, int, datetime_mod.datetime, datetime_mod.timedelta]] = None,
+        depends: str | list[str] | None = None,
+        meta: object | None = None,
+        hash_prefix: str | list[str] | None = None,
+        expires: str | int | datetime_mod.datetime | datetime_mod.timedelta | None = None,
         ext: str = '.pkl',
     ) -> None:
         """
@@ -906,7 +906,7 @@ class CacheStamp:
         """
         return self.cacher.clear()
 
-    def _get_certificate(self, cfgstr: typing.Optional[typing.Any] = None) -> typing.Optional[dict[str, typing.Any]]:
+    def _get_certificate(self, cfgstr: typing.Any | None = None) -> dict[str, typing.Any] | None:
         """
         Returns the stamp certificate if it exists
         """
@@ -964,6 +964,7 @@ class CacheStamp:
 
     def _product_file_stats(self, product=None):
         products = self._rectify_products(product)
+        assert products is not None
         product_stats = [p.stat() for p in products]
         product_file_stats = {
             'mtime': [stat.st_mtime for stat in product_stats],
@@ -977,13 +978,14 @@ class CacheStamp:
         else:
             from ubelt.util_hash import hash_file
             products = self._rectify_products(product)
+            assert products is not None
             product_file_hash = [
                 hash_file(p, hasher=self.hasher, base='hex')
                 for p in products
             ]
         return product_file_hash
 
-    def expired(self, cfgstr: typing.Optional[typing.Any] = None, product: typing.Optional[typing.Any] = None) -> typing.Union[bool, str]:
+    def expired(self, cfgstr: typing.Any | None = None, product: typing.Any | None = None) -> bool | str:
         """
         Check to see if a previously existing stamp is still valid, if the
         expected result of that computation still exists, and if all other
@@ -1156,7 +1158,7 @@ class CacheStamp:
         # All tests passed, we are not expired
         return False
 
-    def _check_certificate_hashes(self, certificate: dict[str, typing.Any]) -> typing.Optional[str]:
+    def _check_certificate_hashes(self, certificate: dict[str, typing.Any]) -> str | None:
         certificate_hash = certificate.get('hash', None)
         hash_prefixes = self._rectify_hash_prefixes()
         if hash_prefixes is not None:
@@ -1169,7 +1171,7 @@ class CacheStamp:
                     err = 'hash_prefix_mismatch'
                     return err
 
-    def _expires(self, now: typing.Optional[datetime_mod.datetime] = None) -> typing.Optional[datetime_mod.datetime]:
+    def _expires(self, now: datetime_mod.datetime | None = None) -> datetime_mod.datetime | None:
         """
         Returns:
             datetime.datetime: the absolute local time when the stamp expires
@@ -1221,7 +1223,7 @@ class CacheStamp:
                 'expires must be a coercible to datetime or timedelta')
         return expires_abs
 
-    def _new_certificate(self, cfgstr: typing.Optional[str] = None, product: typing.Optional[typing.Any] = None) -> dict[str, typing.Any]:
+    def _new_certificate(self, cfgstr: str | None = None, product: typing.Any | None = None) -> dict[str, typing.Any]:
         """
         Returns:
             dict: certificate information
@@ -1258,7 +1260,7 @@ class CacheStamp:
             certificate.update(product_info)
         return certificate
 
-    def renew(self, cfgstr: typing.Optional[str] = None, product: typing.Optional[typing.Union[str, list]] = None) -> typing.Optional[dict[str, typing.Any]]:
+    def renew(self, cfgstr: str | None = None, product: str | list | None = None) -> dict[str, typing.Any] | None:
         """
         Recertify that the product has been recomputed by writing a new
         certificate to disk.
@@ -1312,7 +1314,7 @@ def _localnow() -> datetime_mod.datetime:
     return now
 
 
-def _byte_str(num: typing.Union[int, float], unit: str = 'auto', precision: int = 2) -> str:
+def _byte_str(num: int | float, unit: str = 'auto', precision: int = 2) -> str:
     """
     Automatically chooses relevant unit (KB, MB, or GB) for displaying some
     number of bytes.

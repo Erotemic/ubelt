@@ -789,7 +789,7 @@ def _proc_iteroutput_thread(proc: subprocess.Popen, timeout: float | None = None
                 # stderr_thread.join()
                 yield subprocess.TimeoutExpired, subprocess.TimeoutExpired
 
-        if stdout_live:  # pragma: nobranch  
+        if stdout_live:  # pragma: nobranch
             try:
                 oline = stdout_queue.get_nowait()
                 stdout_live = oline is not None
@@ -931,13 +931,13 @@ def _tee_output(
                 raise subprocess.TimeoutExpired(command_text, timeout, out, err)
         if oline:
             # logger.debug("Write oline to stdout.write and logged_out")
-            if stdout:  # pragma: nobranch  
+            if stdout:  # pragma: nobranch
                 stdout.write(oline)
                 stdout.flush()
             logged_out.append(oline)
         if eline:
             # logger.debug("Write eline to stderr.write and logged_err")
-            if stderr:  # pragma: nobranch  
+            if stderr:  # pragma: nobranch
                 stderr.write(eline)
                 stderr.flush()
             logged_err.append(eline)

@@ -295,6 +295,7 @@ class zopen(NiceRepr):
         if self._zfile_read is None:
             import zipfile
             archivefile, internal = self._split_archive()
+            assert archivefile is not None
             myzip = zipfile.ZipFile(archivefile, 'r')
             self._zfile_read = myzip
         return self._zfile_read
@@ -377,6 +378,7 @@ class zopen(NiceRepr):
             _handle = open(fpath, self.mode)
         elif self.ext + '/' in fpath or self.ext + os.path.sep in fpath:
             archivefile, internal = self._split_archive()
+            assert internal is not None
             myzip = self.zfile
             if self._seekable:
                 import tempfile

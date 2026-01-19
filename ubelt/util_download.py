@@ -25,34 +25,41 @@ import os
 
 if typing.TYPE_CHECKING:
     import datetime
+    from typing import Mapping, Any, BinaryIO, cast
     from ubelt.util_const import NoParamType
 
     BytesLike = bytes | bytearray | memoryview
 
     class HasherLike(typing.Protocol):
-        name: str
-        def update(self, data: BytesLike, /) -> None: ...
-        def hexdigest(self) -> str: ...
+
+        #name: str
+
+        def update(self, data: BytesLike, /) -> None:
+            ...
+
+        def hexdigest(self) -> str:
+            ...
 
 
 __all__ = ['download', 'grabdata']
 
+# todo: add overloads to indicate that when fpath is a str then str is returned
 
 def download(
     url: str,
-    fpath: typing.Optional[typing.Union[str, os.PathLike, typing.BinaryIO]] = None,
-    dpath: typing.Optional[typing.Union[str, os.PathLike]] = None,
-    fname: typing.Optional[str] = None,
-    appname: typing.Optional[str] = None,
-    hash_prefix: typing.Optional[str] = None,
-    hasher: typing.Union[str, HasherLike] = 'sha512',
+    fpath: str | os.PathLike | BinaryIO | None = None,
+    dpath: str | os.PathLike | None = None,
+    fname: str | None = None,
+    appname: str | None = None,
+    hash_prefix: str | None = None,
+    hasher: str | HasherLike = 'sha512',
     chunksize: int = 8192,
-    filesize: typing.Optional[int] = None,
-    verbose: typing.Union[int, bool] = 1,
-    timeout: typing.Union[float, 'NoParamType'] = NoParam,
-    progkw: typing.Union[typing.Mapping[str, typing.Any], 'NoParamType', None] = None,
-    requestkw: typing.Union[typing.Mapping[str, typing.Any], 'NoParamType', None] = None,
-) -> typing.Union[str, os.PathLike, typing.BinaryIO]:
+    filesize: int | None = None,
+    verbose: int | bool = 1,
+    timeout: float | NoParamType = NoParam,
+    progkw: Mapping[str, Any] | NoParamType | None = None,
+    requestkw: Mapping[str, Any] | NoParamType | None = None,
+) -> str | os.PathLike | BinaryIO:
     """
     Downloads a url to a file on disk and returns the path.
 
@@ -65,7 +72,7 @@ def download(
         url (str):
             The url to download.
 
-        fpath (str | os.PathLike[str] | typing.BinaryIO | None):
+        fpath (str | os.PathLike[str] | BinaryIO | None):
             The path to download to. Defaults to basename of url and ubelt's
             application cache. If this is a :class:`io.BytesIO` object then
             information is directly written to this object (note this prevents
@@ -120,7 +127,7 @@ def download(
             ``headers={'User-Agent': 'Mozilla/5.0'}``. (new in ubelt 1.3.7).
 
     Returns:
-        str | os.PathLike[str] | typing.BinaryIO: fpath - path to the downloaded file.
+        str | os.PathLike[str] | BinaryIO: fpath - path to the downloaded file.
 
     Raises:
 
@@ -136,7 +143,7 @@ def download(
     References:
         .. [Shichao_2012] https://blog.shichao.io/2012/10/04/progress_speed_indicator_for_urlretrieve_in_python.html
         .. [SO_15644964] http://stackoverflow.com/questions/15644964/python-progress-bar-and-downloads
-        .. [SO_16694907] http://stackoverflow.com/questions/16694907/how-to-download-large-file-in-python-with-requests-py
+        .. [SO_M16694907] http://stackoverflow.com/questions/16694907/how-to-download-large-file-in-python-with-requests-py
         .. [TorchDL] https://github.com/pytorch/pytorch/blob/2787f1d8edbd4aadd4a8680d204341a1d7112e2d/torch/hub.py#L347
 
     Example:
@@ -253,12 +260,13 @@ def download(
                 raise KeyError(hasher)
 
     if typing.TYPE_CHECKING:
-        hasher = typing.cast(HasherLike, hasher)
+        hasher = cast(HasherLike, hasher)
 
     if _dst_is_io_object:
         if typing.TYPE_CHECKING:
-            fpath = typing.cast(typing.BinaryIO, fpath)
+            fpath = cast(BinaryIO, fpath)
         _file_write = fpath.write
+        tmp = None
     else:
         tmp = tempfile.NamedTemporaryFile(delete=False)
         _file_write = tmp.write
@@ -321,13 +329,15 @@ def download(
             _critical_loop()
 
         if not _dst_is_io_object:
+            if typing.TYPE_CHECKING:
+                tmp = cast(tempfile._TemporaryFileWrapper, tmp)
             tmp.close()
 
             # We keep a potentially corrupted file if the hash doesn't match.
             # It could be the case that the user simply specified the wrong
             # hash_prefix.
             if typing.TYPE_CHECKING:
-                fpath = typing.cast(str | os.PathLike, fpath)
+                fpath = cast(str | os.PathLike, fpath)
             shutil.move(tmp.name, fpath)
 
         if hash_prefix:
@@ -346,6 +356,8 @@ def download(
                             fpath, hash_prefix, got))
     finally:
         if not _dst_is_io_object:  # nocover
+            if typing.TYPE_CHECKING:
+                tmp = cast(tempfile._TemporaryFileWrapper, tmp)
             tmp.close()
             # If for some reason the move failed, delete the temporary file
             if exists(tmp.name):
@@ -355,16 +367,16 @@ def download(
 
 def grabdata(
     url: str,
-    fpath: typing.Optional[typing.Union[str, os.PathLike]] = None,
-    dpath: typing.Optional[typing.Union[str, os.PathLike]] = None,
-    fname: typing.Optional[str] = None,
+    fpath: str | os.PathLike | None = None,
+    dpath: str | os.PathLike | None = None,
+    fname: str | None = None,
     redo: bool = False,
     verbose: int = 1,
-    appname: typing.Optional[str] = None,
-    hash_prefix: typing.Optional[str] = None,
-    hasher: typing.Union[str, HasherLike] = 'sha512',
-    expires: typing.Optional[typing.Union[str, int, 'datetime.datetime']] = None,
-    **download_kw: typing.Any,
+    appname: str | None = None,
+    hash_prefix: str | None = None,
+    hasher: str | HasherLike = 'sha512',
+    expires: str | int | 'datetime.datetime' | None = None,
+    **download_kw: Any,
 ) -> str | os.PathLike:
     """
     Downloads a file, caches it, and returns its local path.
@@ -510,7 +522,7 @@ def grabdata(
                 migration='Pass hasher as a string, otherwise unexpected behavior can occur',
                 name='hasher', type='grabdata arg',
                 deprecate='1.1.0', error='1.3.0', remove='1.5.0')
-            hasher_name = hasher.name
+            hasher_name = getattr(hasher, 'name', None)
     else:
         hasher_name = None
 
