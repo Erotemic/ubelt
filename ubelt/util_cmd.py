@@ -88,7 +88,6 @@ import typing
 
 if typing.TYPE_CHECKING:
     from collections.abc import Iterator, Sequence
-
     import io
     import queue
     import subprocess
@@ -129,7 +128,7 @@ class CmdOutput(dict):
     code that uses :func:`subprocess.run` to switch to :func:`ubelt.cmd`.
     """
 
-    args: tuple
+    args: str | list[str]
 
     @property
     def stdout(self) -> str | bytes | None:
@@ -766,8 +765,10 @@ def _proc_iteroutput_thread(proc: subprocess.Popen, timeout: float | None = None
 
     stdout_live = True
     stderr_live = True
+     
+    _has_timeout = timeout is not None
 
-    if timeout is not None:
+    if _has_timeout:
         from time import monotonic as _time
         import subprocess
         start_time = _time()
@@ -777,7 +778,7 @@ def _proc_iteroutput_thread(proc: subprocess.Popen, timeout: float | None = None
         # Note: This function loop happens very quickly.
         # # logger.debug("Fast loop: check stdout / stderr threads")
 
-        if timeout is not None:
+        if _has_timeout:
             # Check for timeouts
             elapsed = _time() - start_time
             if elapsed >= timeout:
@@ -826,14 +827,16 @@ def _proc_iteroutput_select(proc: subprocess.Popen, timeout: float | None = None
     from itertools import zip_longest
     import select
 
-    if timeout is not None:
+    _has_timeout = timeout is not None
+
+    if _has_timeout:
         from time import monotonic as _time
         import subprocess
         start_time = _time()
 
     # Read output while the external program is running
     while proc.poll() is None:
-        if timeout is not None:
+        if _has_timeout:
             elapsed = _time() - start_time
             if elapsed >= timeout:
                 yield subprocess.TimeoutExpired, subprocess.TimeoutExpired
@@ -862,7 +865,7 @@ def _tee_output(
     stderr: io.TextIOBase | None = None,
     backend: str = "thread",
     timeout: float | None = None,
-    command_text: str | None = None,
+    command_text: str = '',
 ) -> tuple[str, str]:
     """
     Simultaneously reports and captures stdout and stderr from a process
