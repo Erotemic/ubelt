@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 """
 Currently this module provides one utility
 :func:`ubelt.util_deprecate.schedule_deprecation` which allows a developer to
@@ -9,12 +11,19 @@ easily mark features in their libraries as deprecated.
 DEFAULT_WARN_CLASS = FutureWarning
 
 
-def schedule_deprecation(modname=None, name='?', type='?', migration='',
-                         deprecate=None, error=None, remove=None,
-                         # TODO: let the user have more control over the
-                         # message.
-                         # message=None,
-                         warncls='default', stacklevel=1):
+def schedule_deprecation(
+    modname: str | None = None,
+    name: str = '?',
+    type: str = '?',
+    migration: str = '',
+    deprecate: str | None = None,
+    error: str | None = None,
+    remove: str | None = None,
+    # TODO: let the user have more control over the message.
+    # message=None,
+    warncls: type | str = 'default',
+    stacklevel: int = 1,
+) -> str:
     """
     Raise a deprecation warning or error based on the version of a package.
 

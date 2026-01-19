@@ -44,10 +44,18 @@ Example:
     >>> self.my_property2
     >>> self.my_property2
 """
+from __future__ import annotations
+
+import typing
 import functools
 import sys
 from ubelt import util_hash
 
+if typing.TYPE_CHECKING:
+    from typing import Callable, Any
+
+
+# TODO: Need to think if we can fix any of the typing ignores in this file.
 
 __all__ = ['memoize', 'memoize_method', 'memoize_property']
 
@@ -106,7 +114,7 @@ def _make_signature_key(args, kwargs):
     return key
 
 
-def memoize(func):
+def memoize(func: Callable) -> Callable:
     """
     memoization decorator that respects args and kwargs
 
@@ -154,7 +162,8 @@ def memoize(func):
         if key not in cache:
             cache[key] = func(*args, **kwargs)
         return cache[key]
-    memoizer.cache = cache
+    # memoizer.cache = cache
+    setattr(memoizer, 'cache', cache)
     return memoizer
 
 
@@ -232,18 +241,20 @@ class memoize_method:
         >>> assert method1('z') == ('z2', 'F1')
         >>> assert method2('z') == ('z2', 'F2')
     """
-    def __init__(self, func):
+    __func__: Callable[..., Any]
+
+    def __init__(self, func: Callable[..., Any]) -> None:
         """
         Args:
             func (Callable): method to wrap
         """
         self._func = func
-        self._cache_name = '_cache__' + func.__name__
+        self._cache_name = '_cache__' + func.__name__  # type: ignore[invalid-assignment]
         # Mimic attributes of a bound method
-        self.__func__ = func
-        functools.update_wrapper(self, func)
+        self.__func__ = func  # type: ignore[invalid-assignment]
+        functools.update_wrapper(self, func)  # type: ignore[invalid-argument-type]
 
-    def __get__(self, instance, cls=None):
+    def __get__(self, instance: object, cls: type | None = None):
         """
         Descriptor get method. Called when the decorated method is accessed
         from an object instance.
@@ -269,11 +280,11 @@ class memoize_method:
 
         # Set the attribute to prevent calling __get__ again
         # Is there a better way to do this?
-        setattr(instance, self._func.__name__, bound_memoizer)
+        setattr(instance, self._func.__name__, bound_memoizer)  # type: ignore[possibly-missing-attribute]
         return bound_memoizer
 
 
-def memoize_property(fget):
+def memoize_property(fget: property | typing.Callable):
     """
     Return a property attribute for new-style classes that only calls its
     getter on the first access. The result is stored and on subsequent accesses
@@ -321,9 +332,9 @@ def memoize_property(fget):
     """
     # Unwrap any existing property decorator
     while hasattr(fget, 'fget'):
-        fget = fget.fget
+        fget = fget.fget  # type: ignore[invalid-assignment]
 
-    attr_name = '_' + fget.__name__
+    attr_name = '_' + fget.__name__  # type: ignore[unresolved-attribute]
 
     @functools.wraps(fget)
     def fget_memoized(self):

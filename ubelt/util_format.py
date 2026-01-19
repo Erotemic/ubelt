@@ -3,10 +3,18 @@ Warning:
 
     This module is deprecated. Use :mod:`ubelt.util_repr` instead.
 """
+
+from __future__ import annotations
+
+import typing
+
+if typing.TYPE_CHECKING:
+    from typing import Any
+
 from .util_repr import urepr, ReprExtensions, _REPR_EXTENSIONS
 
 
-def repr2(data, **kwargs):
+def repr2(data: object, **kwargs: Any) -> str:
     """
     Alias of :func:`ubelt.util_repr.urepr`.
 
@@ -51,11 +59,14 @@ def repr2(data, **kwargs):
         deprecate='1.2.5', error='2.0.0', remove='2.1.0',
     )
     kwargs['_dict_sort_behavior'] = kwargs.get('_dict_sort_behavior', 'old')
-    return urepr(data, **kwargs)
+    kwargs.pop('_return_info',  None)
+    text = urepr(data, **kwargs)
+    assert isinstance(text, str)
+    return text
 
 
-repr2.extensions = urepr.extensions
-repr2.register = urepr.register
+repr2.extensions = urepr.extensions  # type: ignore[attr-defined]
+repr2.register = urepr.register  # type: ignore[attr-defined]
 
 
 # Deprecated aliases

@@ -49,10 +49,19 @@ Example:
     >>>             run_process(inputs, mode=mode, max_workers=max_workers)
     >>> print(ub.repr2(ti))
 """
+from __future__ import annotations
+
+import typing
 import concurrent.futures
 from concurrent.futures import as_completed
 
 __all__ = ['Executor', 'JobPool']
+
+if typing.TYPE_CHECKING:
+    from concurrent.futures import Future, ProcessPoolExecutor, ThreadPoolExecutor
+    from types import TracebackType
+    from typing import Any, Callable, Generator, Type, Iterator, Iterable, TypeVar
+    T = TypeVar("T")
 
 
 class SerialFuture(concurrent.futures.Future):
@@ -69,7 +78,11 @@ class SerialFuture(concurrent.futures.Future):
         args (Tuple): positional arguments to call the function with
         kw (Dict): keyword arguments to call the function with
     """
-    def __init__(self, func, *args, **kw):
+    func: Callable
+    args: tuple
+    kw: dict
+
+    def __init__(self, func, *args, **kw) -> None:
         super(SerialFuture, self).__init__()
         self.func = func
         self.args = args
@@ -84,7 +97,7 @@ class SerialFuture(concurrent.futures.Future):
         self.set_result(result)
         self._run_count += 1
 
-    def set_result(self, result):
+    def set_result(self, result) -> None:
         """
         Overrides the implementation to revert to pre python3.8 behavior
 
@@ -117,7 +130,7 @@ class SerialFuture(concurrent.futures.Future):
             for waiter in self._waiters:  # nocover
                 waiter.add_result(self)
             self._condition.notify_all()
-        self._invoke_callbacks()
+        self._invoke_callbacks()  # type: ignore[unresolved-attribute]
 
     def _Future__get_result(self):
         # overrides private __getresult method
@@ -148,11 +161,18 @@ class SerialExecutor:
         >>>     for i, f in enumerate(futures):
         >>>         assert i + 1 == f.result()
     """
-    def __enter__(self):
+    max_workers: int
+
+    def __enter__(self) -> SerialExecutor:
         self.max_workers = 0
         return self
 
-    def __exit__(self, ex_type, ex_value, ex_traceback):
+    def __exit__(
+        self,
+        ex_type: Type[BaseException] | None,
+        ex_value: BaseException | None,
+        ex_traceback: TracebackType | None,
+    ) -> bool | None:
         """
         Args:
             ex_type (Type[BaseException] | None):
@@ -164,7 +184,12 @@ class SerialExecutor:
         """
         return False
 
-    def submit(self, func, *args, **kw):
+    def submit(
+        self,
+        func: Callable[..., T],
+        *args: Any,
+        **kw: Any,
+    ) -> SerialFuture:
         """
         Submit a job to be executed later
 
@@ -174,19 +199,25 @@ class SerialExecutor:
         """
         return SerialFuture(func, *args, **kw)
 
-    def shutdown(self):
+    def shutdown(self) -> None:
         """
         Ignored for the serial executor
         """
         pass
 
-    def map(self, fn, *iterables, **kwargs):
+    def map(
+        self,
+        fn: Callable[..., T],
+        *iterables: Iterable[Any],
+        **kwargs: Any,
+    ) -> Generator[T, None, None]:
         """Returns an iterator equivalent to map(fn, iter).
 
         Args:
-            fn (Callable[..., Any]):
-                A callable that will take as many arguments as there are passed
-                iterables.
+            fn (Callable[..., T]): Function to apply to items from `iterables`.
+
+            *iterables (Iterable[Any]):
+                One or more iterables supplying arguments to `fn`.
 
             timeout:
                 This argument is ignored for SerialExecutor
@@ -305,7 +336,9 @@ class Executor:
         >>>     assert results == [1, 3, 5, 7, 9, 11, 13, 15, 17, 19]
     """
 
-    def __init__(self, mode='thread', max_workers=0):
+    backend: SerialExecutor | ThreadPoolExecutor | ProcessPoolExecutor
+
+    def __init__(self, mode: str = 'thread', max_workers: int = 0) -> None:
         """
         Args:
             mode (str):
@@ -322,9 +355,12 @@ class Executor:
             backend = futures.ThreadPoolExecutor(max_workers=max_workers)
         elif mode == 'process':
             backend = futures.ProcessPoolExecutor(max_workers=max_workers)
-        elif mode == 'interpreter':
+        elif mode == 'interpreter':  # nocover
             # Requires 3.14+
-            backend = futures.InterpreterPoolExecutor(max_workers=max_workers)
+            InterpreterPoolExecutor = getattr(futures, "InterpreterPoolExecutor", None)
+            if InterpreterPoolExecutor is None:
+                raise RuntimeError("Executor(mode='interpreter') requires Python 3.14+")
+            backend = InterpreterPoolExecutor(max_workers=max_workers)
         # elif mode == 'asyncio':
         #     # Experimental
         #     backend = AsyncIOExecutor()
@@ -332,11 +368,16 @@ class Executor:
             raise KeyError(mode)
         self.backend = backend
 
-    def __enter__(self):
+    def __enter__(self) -> Executor:
         self.backend.__enter__()
         return self
 
-    def __exit__(self, ex_type, ex_value, ex_traceback):
+    def __exit__(
+        self,
+        ex_type: Type[BaseException] | None,
+        ex_value: BaseException | None,
+        ex_traceback: TracebackType | None,
+    ) -> bool | None:
         """
         Args:
             ex_type (Type[BaseException] | None):
@@ -349,7 +390,12 @@ class Executor:
         # Note: the following call will block
         return self.backend.__exit__(ex_type, ex_value, ex_traceback)
 
-    def submit(self, func, *args, **kw):
+    def submit(
+        self,
+        func: Callable[..., T],
+        *args: Any,
+        **kw: Any,
+    ) -> concurrent.futures.Future:
         """
         Calls the submit function of the underlying backend.
 
@@ -359,15 +405,30 @@ class Executor:
         """
         return self.backend.submit(func, *args, **kw)
 
-    def shutdown(self):
+    def shutdown(self) -> None:
         """
         Calls the shutdown function of the underlying backend.
         """
         return self.backend.shutdown()
 
-    def map(self, fn, *iterables, **kwargs):
+    def map(
+        self,
+        fn: Callable[..., T],
+        *iterables: Iterable[Any],
+        **kwargs: Any,
+    ) -> Iterator[T]:
         """
         Calls the map function of the underlying backend.
+
+        Args:
+            fn (Callable[..., T]): Function to apply to items from `iterables`.
+            *iterables (Iterable[Any]): One or more iterables supplying arguments to `fn`.
+            **kwargs (Any): Supports:
+                - chunksize (int): Chunk size hint for process-based backends.
+                - timeout (float | None): Optional timeout in seconds.
+
+        Returns:
+            Iterator[T]: Iterator yielding results from applying `fn`.
 
         CommandLine:
             xdoctest -m ubelt.util_futures Executor.map
@@ -424,7 +485,16 @@ class JobPool:
         >>>     final.append(info)
         >>> print('final = {!r}'.format(final))
     """
-    def __init__(self, mode='thread', max_workers=0, transient=False):
+    executor: Executor
+    jobs: list[Future]
+    transient: bool
+
+    def __init__(
+        self,
+        mode: str = 'thread',
+        max_workers: int = 0,
+        transient: bool = False,
+    ) -> None:
         """
         Args:
             mode (str):
@@ -443,10 +513,10 @@ class JobPool:
         self.transient = transient
         self.jobs = []
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.jobs)
 
-    def submit(self, func, *args, **kwargs):
+    def submit(self, func: Callable[..., Any], *args, **kwargs) -> concurrent.futures.Future:
         """
         Submit a job managed by the pool
 
@@ -467,15 +537,20 @@ class JobPool:
         self.jobs.append(job)
         return job
 
-    def shutdown(self):
-        self.jobs = None
+    def shutdown(self) -> None:
+        self.jobs = []
         return self.executor.shutdown()
 
-    def __enter__(self):
+    def __enter__(self) -> JobPool:
         self.executor.__enter__()
         return self
 
-    def __exit__(self, ex_type, ex_value, ex_traceback):
+    def __exit__(
+        self,
+        ex_type: Type[BaseException] | None,
+        ex_value: BaseException | None,
+        ex_traceback: TracebackType | None,
+    ) -> bool | None:
         """
         Args:
             ex_type (Type[BaseException] | None):
@@ -487,11 +562,16 @@ class JobPool:
         """
         return self.executor.__exit__(ex_type, ex_value, ex_traceback)
 
-    def _clear_completed(self):
+    def _clear_completed(self) -> None:
         active_jobs = [job for job in self.jobs if job.running()]
         self.jobs = active_jobs
 
-    def as_completed(self, timeout=None, desc=None, progkw=None):
+    def as_completed(
+        self,
+        timeout: float | None = None,
+        desc: str | None = None,
+        progkw: dict | None = None,
+    ) -> Generator[concurrent.futures.Future, None, None]:
         """
         Generates completed jobs in an arbitrary order
 
@@ -540,6 +620,7 @@ class JobPool:
                 progkw = {}
             job_iter = ProgIter(
                 job_iter, desc=desc, total=len(self.jobs), **progkw)
+            # adding types to ProgIter should make this not a problem
             self._prog = job_iter
         for job in job_iter:
             if self.transient:
@@ -549,7 +630,7 @@ class JobPool:
                 self.jobs.remove(job)
             yield job
 
-    def join(self, **kwargs):
+    def join(self, **kwargs: Any) -> list[Any]:
         """
         Like :func:`JobPool.as_completed`, but executes the `result` method
         of each future and returns only after all processes are complete.
@@ -559,7 +640,7 @@ class JobPool:
             **kwargs: passed to :func:`JobPool.as_completed`
 
         Returns:
-            List[Any]: list of results
+            list[Any]: list of results
 
         Example:
             >>> import ubelt as ub
@@ -584,7 +665,7 @@ class JobPool:
             results.append(result)
         return results
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[concurrent.futures.Future]:
         """
         An alternative to as completed.
 

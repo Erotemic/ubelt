@@ -45,6 +45,8 @@ Example:
     g = <Group(3)>
 
 """
+from __future__ import annotations
+
 import warnings
 
 
@@ -143,7 +145,7 @@ class NiceRepr:
                 return '<{0}({1})>'.format(classname, nice)
     """
 
-    def __nice__(self):
+    def __nice__(self) -> str:
         """
         Returns:
             str
@@ -151,13 +153,15 @@ class NiceRepr:
         if hasattr(self, '__len__'):
             # It is a common pattern for objects to use __len__ in __nice__
             # As a convenience we define a default __nice__ for these objects
-            return str(len(self))
+            # return str(len(self))
+            # hasattr doesn't narrow to Sized for ty, so call __len__ directly
+            return str(self.__len__())  # type: ignore[call-non-callable]
         else:
             # In all other cases force the subclass to overload __nice__
             raise NotImplementedError(
                 'Define the __nice__ method for {!r}'.format(self.__class__))
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """
         Returns:
             str
@@ -170,7 +174,7 @@ class NiceRepr:
             warnings.warn(str(ex), category=RuntimeWarning)
             return object.__repr__(self)
 
-    def __str__(self):
+    def __str__(self) -> str:
         """
         Returns:
             str

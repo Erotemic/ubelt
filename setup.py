@@ -259,7 +259,7 @@ if __name__ == "__main__":
     ]
     setupkw["package_data"] = {
         "": ["requirements/*.txt"],
-        "ubelt": ["py.typed", "*.pyi"],
+        "ubelt": ["py.typed"],
     }
     setupkw["keywords"] = [
         "utility",

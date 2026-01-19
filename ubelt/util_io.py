@@ -9,6 +9,7 @@ written and read is unicode text.
 throw an error if the file or directory does not exist. It also contains
 workarounds for win32 issues with :mod:`shutil`.
 """
+from __future__ import annotations
 import sys
 import os
 from os.path import exists
@@ -19,7 +20,12 @@ __all__ = [
 ]
 
 
-def writeto(fpath, to_write, aslines=False, verbose=None):
+def writeto(
+    fpath: str | os.PathLike,
+    to_write: str,
+    aslines: bool = False,
+    verbose: int | None = None,
+) -> None:
     r"""
     Writes (utf8) text to a file.
 
@@ -93,8 +99,8 @@ def writeto(fpath, to_write, aslines=False, verbose=None):
 
     with open(fpath, 'wb') as file:
         if aslines:
-            to_write = map(_ensure_bytes , to_write)
-            file.writelines(to_write)
+            to_write_lines = map(_ensure_bytes , to_write)
+            file.writelines(to_write_lines)
         else:
             # convert to bytes for writing
             bytes = _ensure_bytes(to_write)
@@ -106,7 +112,12 @@ def _ensure_bytes(text):
     return text.encode('utf8')
 
 
-def readfrom(fpath, aslines=False, errors='replace', verbose=None):
+def readfrom(
+    fpath: str | os.PathLike,
+    aslines: bool = False,
+    errors: str = 'replace',
+    verbose: int | None = None,
+) -> str | bytes | list[str] | list[bytes]:
     """
     Reads (utf8) text from a file.
 
@@ -148,7 +159,13 @@ def readfrom(fpath, aslines=False, errors='replace', verbose=None):
     return text
 
 
-def touch(fpath, mode=0o666, dir_fd=None, verbose=0, **kwargs):
+def touch(
+    fpath: str | os.PathLike,
+    mode: int = 0o666,
+    dir_fd: int | None = None,
+    verbose: int = 0,
+    **kwargs,
+) -> str | os.PathLike:
     """
     change file timestamps
 
@@ -157,14 +174,14 @@ def touch(fpath, mode=0o666, dir_fd=None, verbose=0, **kwargs):
     Args:
         fpath (str | PathLike): name of the file
         mode (int): file permissions (python3 and unix only)
-        dir_fd (io.IOBase | None): optional directory file descriptor. If
+        dir_fd (int | None): optional directory file descriptor. If
             specified, fpath is interpreted as relative to this descriptor
             (python 3 only).
         verbose (int): verbosity
         **kwargs : extra args passed to :func:`os.utime` (python 3 only).
 
     Returns:
-        str: path to the file
+        str | PathLike: path to the file
 
     References:
         .. [SO_1158076] https://stackoverflow.com/questions/1158076/implement-touch-using-python
@@ -188,13 +205,14 @@ def touch(fpath, mode=0o666, dir_fd=None, verbose=0, **kwargs):
     return fpath
 
 
-def delete(path, verbose=False):
+def delete(path: str | os.PathLike, verbose: bool | int = False) -> None:
     """
     Removes a file or recursively removes a directory.
     If a path does not exist, then this is does nothing.
 
     Args:
         path (str | PathLike): file or directory to remove
+
         verbose (bool): if True prints what is being done
 
     SeeAlso:

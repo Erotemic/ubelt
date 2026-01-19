@@ -105,6 +105,17 @@ def test_dict_subset_iterable():
     assert dict(got) == dict_
 
 
+def test_dict_subset_default():
+    """
+    Test dict_subset with default value for missing keys.
+    """
+    dict_ = {'a': 1, 'b': 2}
+    keys = ['a', 'c', 'b']
+    got = ub.dict_subset(dict_, keys, default=0)
+    expected = {'a': 1, 'c': 0, 'b': 2}
+    assert dict(got) == expected
+    
+    
 # def _benchmark_groupid_sorted():
 #     import random
 #     import ubelt as ub

@@ -142,7 +142,7 @@ def test_disable():
     with pytest.raises(IOError):
         cacher.load()
 
-    assert cacher.tryload(func) is None
+    assert cacher.tryload() is None
 
 
 def test_disabled_cache_stamp():
@@ -209,11 +209,3 @@ def test_cache_stamp_with_hash():
         # Disabling the hash check makes us rely on size / mtime, but is faster
         stamp._expire_checks['hash'] = False
         assert not stamp.expired()
-
-if __name__ == '__main__':
-    r"""
-    CommandLine:
-        pytest ubelt/tests/test_cache.py
-    """
-    import xdoctest
-    xdoctest.doctest_module(__file__)

@@ -12,11 +12,18 @@ statically and convert between module names and file paths on disk.
 The :func:`ubelt.split_modpath` function separates modules into a root and base
 path depending on where the first ``__init__.py`` file is.
 """
+from __future__ import annotations
+
+import typing
 from os.path import (abspath, basename, dirname, exists, expanduser, isdir,
                      isfile, join, realpath, relpath, split, splitext)
 import os
 import sys
 import warnings
+
+if typing.TYPE_CHECKING:
+    from types import ModuleType, TracebackType
+    from typing import Type
 
 __all__ = [
     'split_modpath',
@@ -26,8 +33,8 @@ __all__ = [
     'import_module_from_path',
 ]
 
-IS_PY_GE_308 = sys.version_info[0:2] >= (3, 8)  # type: bool
-IS_PY_LT_314 = sys.version_info[0:2] < (3, 14)  # type: bool
+IS_PY_GE_308: bool = sys.version_info[0:2] >= (3, 8)
+IS_PY_LT_314: bool = sys.version_info[0:2] < (3, 14)
 
 
 class PythonPathContext:
@@ -80,7 +87,10 @@ class PythonPathContext:
         >>> with pytest.raises(RuntimeError):
         >>>     self.__exit__(None, None, None)
     """
-    def __init__(self, dpath, index=0):
+    dpath: str
+    index: int
+
+    def __init__(self, dpath: str | os.PathLike, index: int = 0) -> None:
         """
         Args:
             dpath (str | PathLike): directory to insert into the PYTHONPATH
@@ -89,12 +99,17 @@ class PythonPathContext:
         self.dpath = os.fspath(dpath)
         self.index = index
 
-    def __enter__(self):
+    def __enter__(self) -> None:
         if self.index < 0:
             self.index = len(sys.path) + self.index + 1
         sys.path.insert(self.index, self.dpath)
 
-    def __exit__(self, ex_type, ex_value, ex_traceback):
+    def __exit__(
+        self,
+        ex_type: Type[BaseException] | None,
+        ex_value: BaseException | None,
+        ex_traceback: TracebackType | None,
+    ) -> bool | None:
         """
         Args:
             ex_type (Type[BaseException] | None):
@@ -144,7 +159,10 @@ class PythonPathContext:
             sys.path.pop(self.index)
 
 
-def import_module_from_path(modpath, index=-1):
+def import_module_from_path(
+    modpath: str | os.PathLike,
+    index: int = -1,
+) -> ModuleType:
     """
     Imports a module via a filesystem path.
 
@@ -274,9 +292,33 @@ def import_module_from_path(modpath, index=-1):
                 zimp_file = zipimport.zipimporter(archivepath)
                 try:
                     try:
-                        module = zimp_file.load_module(modname)
+                        # module = zimp_file.load_module(modname)
+                        if hasattr(zimp_file, "exec_module"):
+                            import importlib
+                            # Modern path (3.4+; preferred, no deprecation)
+                            spec = importlib.util.spec_from_loader(modname, zimp_file)
+                            if spec is None:
+                                raise ImportError(f"Cannot create spec for {modname!r}")
+                            module = importlib.util.module_from_spec(spec)
+                            sys.modules[modname] = module  # important for recursive imports
+                            zimp_file.exec_module(module)
+                        else:   # nocover
+                            # Legacy fallback (deprecated; only used on very old Pythons)
+                            module = zimp_file.load_module(modname)
                     except Exception:  # nocover
-                        module = zimp_file.load_module(modname.replace('\\', '/'))  # hack
+                        _modname = modname.replace('\\', '/')  # hack
+                        if hasattr(zimp_file, "exec_module"):
+                            import importlib
+                            # Modern path (3.4+; preferred, no deprecation)
+                            spec = importlib.util.spec_from_loader(_modname, zimp_file)
+                            if spec is None:
+                                raise ImportError(f"Cannot create spec for {modname!r}")
+                            module = importlib.util.module_from_spec(spec)
+                            sys.modules[_modname] = module  # important for recursive imports
+                            zimp_file.exec_module(module)
+                        else:
+                            # Legacy fallback (deprecated; only used on very old Pythons)
+                            module = zimp_file.load_module(_modname)
                 except Exception as ex:  # nocover
                     text = (
                         'Encountered error in import_module_from_path '
@@ -304,7 +346,7 @@ def import_module_from_path(modpath, index=-1):
         return module
 
 
-def import_module_from_name(modname):
+def import_module_from_name(modname: str) -> ModuleType:
     """
     Imports a module from its string name (i.e. ``__name__``)
 
@@ -379,7 +421,7 @@ def _platform_pylib_exts():  # nocover
     return tuple(valid_exts)
 
 
-def _syspath_modname_to_modpath(modname, sys_path=None, exclude=None):
+def _syspath_modname_to_modpath(modname, sys_path=None, exclude=None) -> str | None:
     """
     syspath version of modname_to_modpath
 
@@ -395,7 +437,7 @@ def _syspath_modname_to_modpath(modname, sys_path=None, exclude=None):
             Defaults to None.
 
     Returns:
-        str: path to the module.
+        str | None: path to the module or None if it does not exist.
 
     Note:
         This is much slower than the pkgutil mechanisms.
@@ -518,7 +560,7 @@ def _syspath_modname_to_modpath(modname, sys_path=None, exclude=None):
     found_modpath = None
     for dpath in candidate_dpaths:
         modpath = check_dpath(dpath)
-        if modpath:
+        if modpath:  # pragma: nobranch
             found_modpath = modpath
             break
 
@@ -548,9 +590,9 @@ def _syspath_modname_to_modpath(modname, sys_path=None, exclude=None):
                     except KeyError:
                         ...
                     else:
-                        if not exclude or normalize(target) not in real_exclude:  # pragma: nobranch
+                        if not exclude or normalize(target) not in real_exclude:  # pragma: nobranch  
                             modpath = check_dpath(target)
-                            if modpath:  # pragma: nobranch
+                            if modpath:  # pragma: nobranch  
                                 found_modpath = modpath
                                 break
             if found_modpath is not None:
@@ -566,9 +608,9 @@ def _syspath_modname_to_modpath(modname, sys_path=None, exclude=None):
             for editable_pth in new_editable_pth_paths:
                 editable_pth = pathlib.Path(editable_pth)
                 target = editable_pth.read_text().strip().split('\n')[-1]
-                if not exclude or normalize(target) not in real_exclude:
+                if not exclude or normalize(target) not in real_exclude:  # pragma: nobranch
                     modpath = check_dpath(target)
-                    if modpath:  # pragma: nobranch
+                    if modpath:  # pragma: nobranch  
                         found_modpath = modpath
                         break
             if found_modpath is not None:
@@ -596,12 +638,14 @@ def _syspath_modname_to_modpath(modname, sys_path=None, exclude=None):
             # The docs state there should only be one line, but I see two.
             with open(linkpath, 'r') as file:
                 target = file.readline().strip()
-            if not exclude or normalize(target) not in real_exclude:
+            if not exclude or normalize(target) not in real_exclude:  # pragma: nobranch
                 modpath = check_dpath(target)
-                if modpath:
+                if modpath:  # pragma: nobranch
                     found_modpath = modpath
                     break
 
+    if typing.TYPE_CHECKING:
+        found_modpath = typing.cast(str | None, found_modpath)
     return found_modpath
 
 
@@ -633,7 +677,9 @@ def _importlib_import_modpath(modpath):  # nocover
     modname = modpath_to_modname(modpath)
     import importlib.util
     spec = importlib.util.spec_from_file_location(modname, modpath)
+    assert spec is not None
     module = importlib.util.module_from_spec(spec)
+    assert spec.loader is not None
     spec.loader.exec_module(module)
     return module
 
@@ -676,11 +722,18 @@ def _importlib_modname_to_modpath(modname):  # nocover
     """
     import importlib.util
     spec = importlib.util.find_spec(modname)
+    assert spec is not None
+    assert spec.origin is not None
     modpath = spec.origin.replace('.pyc', '.py')  # is pyc replace needed anymore?
     return modpath
 
 
-def modname_to_modpath(modname, hide_init=True, hide_main=False, sys_path=None):
+def modname_to_modpath(
+    modname: str,
+    hide_init: bool = True,
+    hide_main: bool = False,
+    sys_path: list[str | os.PathLike] | None = None,
+) -> str | None:
     """
     Finds the path to a python module from its name.
 
@@ -738,10 +791,17 @@ def modname_to_modpath(modname, hide_init=True, hide_main=False, sys_path=None):
 
     modpath = normalize_modpath(modpath, hide_init=hide_init,
                                 hide_main=hide_main)
+
+    if typing.TYPE_CHECKING:
+        modpath = typing.cast(str, modpath)
     return modpath
 
 
-def normalize_modpath(modpath, hide_init=True, hide_main=False):
+def normalize_modpath(
+    modpath: str | os.PathLike,
+    hide_init: bool = True,
+    hide_main: bool = False,
+) -> str | os.PathLike:
     """
     Normalizes __init__ and __main__ paths.
 
@@ -797,8 +857,13 @@ def normalize_modpath(modpath, hide_init=True, hide_main=False):
     return modpath
 
 
-def modpath_to_modname(modpath, hide_init=True, hide_main=False, check=True,
-                       relativeto=None):
+def modpath_to_modname(
+    modpath: str,
+    hide_init: bool = True,
+    hide_main: bool = False,
+    check: bool = True,
+    relativeto: str | None = None,
+) -> str:
     """
     Determines importable name from file path
 
@@ -886,7 +951,7 @@ def modpath_to_modname(modpath, hide_init=True, hide_main=False, check=True,
     return modname
 
 
-def split_modpath(modpath, check=True):
+def split_modpath(modpath: str | os.PathLike, check: bool = True) -> tuple[str, str]:
     """
     Splits the modpath into the dir that must be in PYTHONPATH for the module
     to be imported and the modulepath relative to this directory.
@@ -933,7 +998,11 @@ def split_modpath(modpath, check=True):
     return dpath, rel_modpath
 
 
-def is_modname_importable(modname, sys_path=None, exclude=None):
+def is_modname_importable(
+    modname: str,
+    sys_path: list | None = None,
+    exclude: list | None = None,
+) -> bool:
     """
     Determines if a modname is importable based on your current sys.path
 
@@ -1039,9 +1108,9 @@ def _parse_static_node_value(node):
     import ast
     from collections import OrderedDict
     import numbers
-    if (isinstance(node, ast.Constant) and isinstance(node.value, numbers.Number) if IS_PY_GE_308 else isinstance(node, ast.Num)):
+    if (isinstance(node, ast.Constant) and isinstance(node.value, numbers.Number) if IS_PY_GE_308 else isinstance(node, ast.Num)):  # type: ignore[deprecated]
         value = node.value if IS_PY_GE_308 else node.n
-    elif (isinstance(node, ast.Constant) and isinstance(node.value, str) if IS_PY_GE_308 else isinstance(node, ast.Str)):
+    elif (isinstance(node, ast.Constant) and isinstance(node.value, str) if IS_PY_GE_308 else isinstance(node, ast.Str)):  # type: ignore[deprecated]
         value = node.value if IS_PY_GE_308 else node.s
     elif isinstance(node, ast.List):
         value = list(map(_parse_static_node_value, node.elts))
@@ -1052,7 +1121,7 @@ def _parse_static_node_value(node):
         values = map(_parse_static_node_value, node.values)
         value = OrderedDict(zip(keys, values))
         # value = dict(zip(keys, values))
-    elif IS_PY_LT_314 and isinstance(node, (ast.NameConstant)):  # nocover
+    elif IS_PY_LT_314 and isinstance(node, (ast.NameConstant)):  # nocover  # type: ignore[deprecated]
         value = node.value
     elif isinstance(node, ast.Constant):  # nocover
         value = node.value

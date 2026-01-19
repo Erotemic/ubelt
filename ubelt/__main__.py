@@ -9,5 +9,5 @@ CommandLine:
 """
 
 if __name__ == '__main__':
-    import xdoctest  # type: ignore
+    import xdoctest
     xdoctest.doctest_module('ubelt')

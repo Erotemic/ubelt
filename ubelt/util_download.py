@@ -13,17 +13,53 @@ checks if the data already exists in the download location, and only downloads
 if it needs to.
 
 """
+
+from __future__ import annotations
+
+import typing
+
 from ubelt.util_const import NoParam
 from os.path import basename, join, exists, dirname, split
 import os
 
 
+if typing.TYPE_CHECKING:
+    import datetime
+    from typing import Mapping, Any, BinaryIO, cast
+    from ubelt.util_const import NoParamType
+
+    BytesLike = bytes | bytearray | memoryview
+
+    class HasherLike(typing.Protocol):
+
+        #name: str
+
+        def update(self, data: BytesLike, /) -> None:
+            ...
+
+        def hexdigest(self) -> str:
+            ...
+
+
 __all__ = ['download', 'grabdata']
 
+# todo: add overloads to indicate that when fpath is a str then str is returned
 
-def download(url, fpath=None, dpath=None, fname=None, appname=None,
-             hash_prefix=None, hasher='sha512', chunksize=8192, filesize=None,
-             verbose=1, timeout=NoParam, progkw=None, requestkw=None):
+def download(
+    url: str,
+    fpath: str | os.PathLike | BinaryIO | None = None,
+    dpath: str | os.PathLike | None = None,
+    fname: str | None = None,
+    appname: str | None = None,
+    hash_prefix: str | None = None,
+    hasher: str | HasherLike = 'sha512',
+    chunksize: int = 8192,
+    filesize: int | None = None,
+    verbose: int | bool = 1,
+    timeout: float | NoParamType = NoParam,
+    progkw: Mapping[str, Any] | NoParamType | None = None,
+    requestkw: Mapping[str, Any] | NoParamType | None = None,
+) -> str | os.PathLike | BinaryIO:
     """
     Downloads a url to a file on disk and returns the path.
 
@@ -36,13 +72,13 @@ def download(url, fpath=None, dpath=None, fname=None, appname=None,
         url (str):
             The url to download.
 
-        fpath (str | PathLike | io.BytesIO | None):
+        fpath (str | os.PathLike[str] | BinaryIO | None):
             The path to download to. Defaults to basename of url and ubelt's
             application cache. If this is a :class:`io.BytesIO` object then
             information is directly written to this object (note this prevents
             the use of temporary files).
 
-        dpath (str | PathLike | None):
+        dpath (str | os.PathLike[str] | None):
             where to download the file. If unspecified `appname` is used to
             determine this. Mutually exclusive with fpath.
 
@@ -54,11 +90,11 @@ def download(url, fpath=None, dpath=None, fname=None, appname=None,
             ``ub.Path.appdir(appname or 'ubelt', type='cache')``
             if dpath and fpath are not given.
 
-        hash_prefix (None | str):
+        hash_prefix (str | None):
             If specified, download will retry / error if the file hash
             does not match this value. Defaults to None.
 
-        hasher (str | Hasher):
+        hasher (str | HasherLike):
             If hash_prefix is specified, this indicates the hashing
             algorithm to apply to the file. Defaults to sha512.
 
@@ -78,20 +114,20 @@ def download(url, fpath=None, dpath=None, fname=None, appname=None,
             This only works for HTTP, HTTPS and FTP connections for blocking
             operations like the connection attempt.
 
-        progkw (Dict | NoParamType | None):
+        progkw (dict[str, object] | NoParamType | None):
             if specified provides extra arguments to the progress iterator.
             See :class:`ubelt.progiter.ProgIter` for available options.
 
-        requestkw (Dict | NoParamType | None):
+        requestkw (dict[str, object] | NoParamType | None):
             if specified provides extra arguments to
             :class:`urllib.request.Request`, which can be used to customize
             headers and other low level information sent to the target server.
-            The common use-case would be to specify ``headers: Dict[str, str]``
+            The common use-case would be to specify ``headers: dict[str, str]``
             in order to "spoof" the user agent. E.g.
             ``headers={'User-Agent': 'Mozilla/5.0'}``. (new in ubelt 1.3.7).
 
     Returns:
-        str | PathLike: fpath - path to the downloaded file.
+        str | os.PathLike[str] | BinaryIO: fpath - path to the downloaded file.
 
     Raises:
 
@@ -107,7 +143,7 @@ def download(url, fpath=None, dpath=None, fname=None, appname=None,
     References:
         .. [Shichao_2012] https://blog.shichao.io/2012/10/04/progress_speed_indicator_for_urlretrieve_in_python.html
         .. [SO_15644964] http://stackoverflow.com/questions/15644964/python-progress-bar-and-downloads
-        .. [SO_16694907] http://stackoverflow.com/questions/16694907/how-to-download-large-file-in-python-with-requests-py
+        .. [SO_M16694907] http://stackoverflow.com/questions/16694907/how-to-download-large-file-in-python-with-requests-py
         .. [TorchDL] https://github.com/pytorch/pytorch/blob/2787f1d8edbd4aadd4a8680d204341a1d7112e2d/torch/hub.py#L347
 
     Example:
@@ -164,7 +200,7 @@ def download(url, fpath=None, dpath=None, fname=None, appname=None,
 
     if timeout is NoParam:
         import socket
-        timeout = socket._GLOBAL_DEFAULT_TIMEOUT
+        timeout = socket._GLOBAL_DEFAULT_TIMEOUT  # type: ignore[unresolved-attribute]
 
     from urllib.request import urlopen, Request
 
@@ -182,7 +218,7 @@ def download(url, fpath=None, dpath=None, fname=None, appname=None,
     # Check if fpath was given as an BytesIO object
     _dst_is_io_object = hasattr(fpath, 'write')
 
-    if not _dst_is_io_object and not exists(dirname(fpath)):
+    if not _dst_is_io_object and not exists(dirname(fpath)):  # type: ignore[no-matching-overload]
         raise Exception('parent of {} does not exist'.format(fpath))
 
     if verbose:
@@ -193,9 +229,9 @@ def download(url, fpath=None, dpath=None, fname=None, appname=None,
                 url, fpath))
 
     requestkw = requestkw or {}
-    requestkw['headers'] = {'User-Agent': 'Mozilla/5.0'}
-    req = Request(url, **requestkw)
-    urldata = urlopen(req, timeout=timeout)
+    requestkw['headers'] = {'User-Agent': 'Mozilla/5.0'}  # type: ignore[invalid-assignment]
+    req = Request(url, **requestkw)  # type: ignore[invalid-argument-type]
+    urldata = urlopen(req, timeout=timeout)  # type: ignore[invalid-argument-type]
 
     meta = urldata.info()
     if filesize is None:
@@ -223,8 +259,14 @@ def download(url, fpath=None, dpath=None, fname=None, appname=None,
             else:
                 raise KeyError(hasher)
 
+    if typing.TYPE_CHECKING:
+        hasher = cast(HasherLike, hasher)
+
     if _dst_is_io_object:
+        if typing.TYPE_CHECKING:
+            fpath = cast(BinaryIO, fpath)
         _file_write = fpath.write
+        tmp = None
     else:
         tmp = tempfile.NamedTemporaryFile(delete=False)
         _file_write = tmp.write
@@ -259,9 +301,9 @@ def download(url, fpath=None, dpath=None, fname=None, appname=None,
             return msg
 
         if progkw is not None:
-            _progkw.update(progkw)
+            _progkw.update(progkw)  # type: ignore[no-matching-overload]
         _progkw['disable'] = not verbose
-        pbar = Progress(**_progkw)
+        pbar = Progress(**_progkw)  # type: ignore[invalid-argument-type]
 
         pbar.set_extra(_build_extra)
         with pbar:
@@ -287,11 +329,15 @@ def download(url, fpath=None, dpath=None, fname=None, appname=None,
             _critical_loop()
 
         if not _dst_is_io_object:
+            if typing.TYPE_CHECKING:
+                tmp = cast(tempfile._TemporaryFileWrapper, tmp)
             tmp.close()
 
             # We keep a potentially corrupted file if the hash doesn't match.
             # It could be the case that the user simply specified the wrong
             # hash_prefix.
+            if typing.TYPE_CHECKING:
+                fpath = cast(str | os.PathLike, fpath)
             shutil.move(tmp.name, fpath)
 
         if hash_prefix:
@@ -310,6 +356,8 @@ def download(url, fpath=None, dpath=None, fname=None, appname=None,
                             fpath, hash_prefix, got))
     finally:
         if not _dst_is_io_object:  # nocover
+            if typing.TYPE_CHECKING:
+                tmp = cast(tempfile._TemporaryFileWrapper, tmp)
             tmp.close()
             # If for some reason the move failed, delete the temporary file
             if exists(tmp.name):
@@ -317,9 +365,19 @@ def download(url, fpath=None, dpath=None, fname=None, appname=None,
     return fpath
 
 
-def grabdata(url, fpath=None, dpath=None, fname=None, redo=False,
-             verbose=1, appname=None, hash_prefix=None, hasher='sha512',
-             expires=None, **download_kw):
+def grabdata(
+    url: str,
+    fpath: str | os.PathLike | None = None,
+    dpath: str | os.PathLike | None = None,
+    fname: str | None = None,
+    redo: bool = False,
+    verbose: int = 1,
+    appname: str | None = None,
+    hash_prefix: str | None = None,
+    hasher: str | HasherLike = 'sha512',
+    expires: str | int | 'datetime.datetime' | None = None,
+    **download_kw: Any,
+) -> str | os.PathLike:
     """
     Downloads a file, caches it, and returns its local path.
 
@@ -330,15 +388,15 @@ def grabdata(url, fpath=None, dpath=None, fname=None, redo=False,
     Args:
         url (str): url of the file to download
 
-        fpath (Optional[str | PathLike]):
+        fpath (str | os.PathLike[str] | None):
             The full path to download the file to. If unspecified, the
             arguments `dpath` and `fname` are used to determine this.
 
-        dpath (Optional[str | PathLike]):
+        dpath (str | os.PathLike[str] | None):
             where to download the file. If unspecified `appname` is used to
             determine this. Mutually exclusive with fpath.
 
-        fname (Optional[str]):
+        fname (str | None):
             What to name the downloaded file. Defaults to the url basename.
             Mutually exclusive with fpath.
 
@@ -351,12 +409,12 @@ def grabdata(url, fpath=None, dpath=None, fname=None, redo=False,
             ``ub.get_app_cache_dir(appname or 'ubelt')`` if dpath and fpath are
             not given.
 
-        hash_prefix (None | str):
+        hash_prefix (str | None):
             If specified, grabdata verifies that this matches the hash of the
             file, and then saves the hash in a adjacent file to certify that
             the download was successful. Defaults to None.
 
-        hasher (str | Hasher):
+        hasher (str | _Hasher):
             If hash_prefix is specified, this indicates the hashing
             algorithm to apply to the file. Defaults to sha512.
             NOTE: Only pass hasher as a string. Passing as an instance is
@@ -380,7 +438,7 @@ def grabdata(url, fpath=None, dpath=None, fname=None, redo=False,
         print(', '.join([f'``{k}``' for k in extra.keys()]))
 
     Returns:
-        str | PathLike: fpath - path to downloaded or cached file.
+        str | os.PathLike[str]: fpath - path to downloaded or cached file.
 
     CommandLine:
         xdoctest -m ubelt.util_download grabdata --network
@@ -455,16 +513,16 @@ def grabdata(url, fpath=None, dpath=None, fname=None, redo=False,
         dpath, fname = split(fpath)
 
     if hasher is not None:
-        if not isinstance(hasher, str):   # nocover
+        if isinstance(hasher, str):
+            hasher_name = hasher
+        else:  # nocover
             from ubelt import schedule_deprecation
             schedule_deprecation(
                 modname='ubelt',
                 migration='Pass hasher as a string, otherwise unexpected behavior can occur',
                 name='hasher', type='grabdata arg',
                 deprecate='1.1.0', error='1.3.0', remove='1.5.0')
-            hasher_name = hasher.name
-        else:
-            hasher_name = hasher
+            hasher_name = getattr(hasher, 'name', None)
     else:
         hasher_name = None
 
@@ -476,11 +534,14 @@ def grabdata(url, fpath=None, dpath=None, fname=None, redo=False,
         # to the same file?
         # depends = url
 
+    if hasher_name is None:
+        hasher_name = 'sha1'  # cache stamp doesnt handle none values
+
     # TODO: it would be nice to have better control over the name of the stamp.
     # Specifically we have no control over the separator between fname,
     # depends, and the extension.
     stamp = CacheStamp(
-        fname + '.stamp', dpath, depends=depends, hasher=hasher,
+        fname + '.stamp', dpath, depends=depends, hasher=hasher_name,
         ext='.json', product=fpath,
         hash_prefix=hash_prefix, verbose=verbose,
         expires=expires,
@@ -500,6 +561,7 @@ def grabdata(url, fpath=None, dpath=None, fname=None, redo=False,
         if needs_download:
             fpath = download(
                 url, fpath, verbose=verbose, hash_prefix=hash_prefix,
-                hasher=hasher, **download_kw)
+                hasher=hasher, **download_kw)  # type: ignore[invalid-assignment]
             stamp.renew()
+    assert fpath is not None
     return fpath

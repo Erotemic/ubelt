@@ -1,6 +1,14 @@
 """
 A simple download manager
 """
+from __future__ import annotations
+
+import typing
+
+if typing.TYPE_CHECKING:
+    import concurrent.futures
+    import os
+    from collections.abc import Iterable
 
 __all__ = ['DownloadManager']
 
@@ -60,8 +68,16 @@ class DownloadManager:
         >>>     print('fpath = {!r}'.format(fpath))
 
     """
-    def __init__(self, download_root=None, mode='thread', max_workers=None,
-                 cache=True):
+    download_root: str | os.PathLike
+    cache: bool
+
+    def __init__(
+        self,
+        download_root: str | os.PathLike | None = None,
+        mode: str = 'thread',
+        max_workers: int = 0,
+        cache: bool = True,
+    ) -> None:
         """
         Args:
             download_root (str | PathLike): default download location
@@ -84,7 +100,13 @@ class DownloadManager:
         else:
             self._dl_func = ub.download
 
-    def submit(self, url, dst=None, hash_prefix=None, hasher='sha256'):
+    def submit(
+        self,
+        url: str | os.PathLike,
+        dst: str | None = None,
+        hash_prefix: str | None = None,
+        hasher: str = 'sha256',
+    ) -> concurrent.futures.Future:
         """
         Add a job to the download Queue
 
@@ -108,7 +130,12 @@ class DownloadManager:
         )
         return job
 
-    def as_completed(self, prog=None, desc=None, verbose=1):
+    def as_completed(
+        self,
+        prog: None | bool | type = None,
+        desc: str | None = None,
+        verbose: int = 1,
+    ):
         """
         Generate completed jobs as they become available
 
@@ -140,26 +167,26 @@ class DownloadManager:
         if prog is True:
             import ubelt as ub
             prog = ub.ProgIter
-        if prog is not None:
-            return prog(self._pool.as_completed(), total=len(self), desc=desc,
-                        verbose=verbose)
+        if prog:
+            _iter = self._pool.as_completed()
+            return prog(_iter, total=len(self), desc=desc, verbose=verbose)
         else:
             return self._pool.as_completed()
 
-    def shutdown(self):
+    def shutdown(self) -> None:
         """
         Cancel all jobs and close all connections.
         """
         self._pool.executor.shutdown()
 
-    def __iter__(self):
+    def __iter__(self) -> Iterable:
         """
         Returns:
             Iterable
         """
         return self.as_completed()
 
-    def __len__(self):
+    def __len__(self) -> int:
         """
         Returns:
             int
