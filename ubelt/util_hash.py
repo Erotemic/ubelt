@@ -304,7 +304,7 @@ class _Hashers:
 
             if isinstance(hasher, str):
                 hasher_ = self.aliases.get(hasher, hasher)
-                if hasher_ in self.algos:  # pragma: no cover
+                if hasher_ in self.algos:
                     return self.algos[hasher_]
                 else:
                     # TODO: provide pip install messages for known hashers.

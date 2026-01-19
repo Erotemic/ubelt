@@ -424,6 +424,19 @@ def test_align_with_nobrace():
         ''')
 
 
+def test_align_bool():
+    data = {'a': 1, 'bb': 2}
+    text = ub.urepr(data, align=True, explicit=True)
+    print(text)
+    assert text == ub.codeblock(
+        '''
+        dict(
+            a =1,
+            bb=2,
+        )
+        ''')
+    
+    
 if __name__ == '__main__':
     """
     CommandLine:

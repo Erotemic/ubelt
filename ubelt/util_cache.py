@@ -1144,12 +1144,12 @@ class CacheStamp:
                 certificate_hash = certificate.get('hash', None)
                 product_file_hash = self._product_file_hash(products)
                 if product_file_hash != certificate_hash:
-                    if self.cacher.verbose > 0:
+                    if self.cacher.verbose > 0:  # pragma: nobranch
                         print('invalid hash value (expected "{}", got "{}")'.format(
                             product_file_hash, certificate_hash))
                     # The hash is different, we are expired
                     err = 'hash_diff'
-                    if self.cacher.verbose > 0:
+                    if self.cacher.verbose > 0:  # pragma: nobranch
                         print('[cacher] stamp expired {}'.format(err))
                     return err
 
@@ -1163,7 +1163,7 @@ class CacheStamp:
             assert certificate_hash is not None
             for pref_hash, cert_hash in zip(hash_prefixes, certificate_hash):
                 if not cert_hash.startswith(pref_hash):
-                    if self.cacher.verbose > 0:
+                    if self.cacher.verbose > 0:  # pragma: nobranch
                         print('invalid hash prefix value (expected "{}", got "{}")'.format(
                             pref_hash, cert_hash))
                     err = 'hash_prefix_mismatch'

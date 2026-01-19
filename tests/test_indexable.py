@@ -129,7 +129,7 @@ def _map_vals3(self, func):
 #             print('_data = {!r}'.format(_data))
 #             print('---')
 #     """
-#     if data is None:  # pragma: nobranch
+#     if data is None:  
 #         data = self.data
 #     key = None
 #     if mapped is None:

@@ -249,7 +249,7 @@ class CaptureStream:
         """
         Begin capturing. Swaps the global stream to our `TeeStringIO`.
         """
-        if not self.enabled or self.started:  # pragma: nobranch
+        if not self.enabled or self.started:  # pragma: nobranch  
             return
         self.text = ''
         self.started = True
@@ -264,13 +264,13 @@ class CaptureStream:
         if not self.enabled or not self.started:  # nocover
             return
         self.started = False
-        if self.orig_stream is not None:  # pragma: nobranch
+        if self.orig_stream is not None:  # pragma: nobranch  
             self._set_stream(self.orig_stream)
         # keep cap_stream alive for reading until close/__exit__
 
     def close(self) -> None:
         """Close and drop the proxy buffer to release memory."""
-        if self.cap_stream is not None:  # pragma: nobranch
+        if self.cap_stream is not None:  # pragma: nobranch  
             try:
                 self.cap_stream.close()
             finally:

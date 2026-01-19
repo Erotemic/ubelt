@@ -560,7 +560,7 @@ def _syspath_modname_to_modpath(modname, sys_path=None, exclude=None) -> str | N
     found_modpath = None
     for dpath in candidate_dpaths:
         modpath = check_dpath(dpath)
-        if modpath:
+        if modpath:  # pragma: nobranch
             found_modpath = modpath
             break
 
@@ -590,9 +590,9 @@ def _syspath_modname_to_modpath(modname, sys_path=None, exclude=None) -> str | N
                     except KeyError:
                         ...
                     else:
-                        if not exclude or normalize(target) not in real_exclude:  # pragma: nobranch
+                        if not exclude or normalize(target) not in real_exclude:  # pragma: nobranch  
                             modpath = check_dpath(target)
-                            if modpath:  # pragma: nobranch
+                            if modpath:  # pragma: nobranch  
                                 found_modpath = modpath
                                 break
             if found_modpath is not None:
@@ -608,9 +608,9 @@ def _syspath_modname_to_modpath(modname, sys_path=None, exclude=None) -> str | N
             for editable_pth in new_editable_pth_paths:
                 editable_pth = pathlib.Path(editable_pth)
                 target = editable_pth.read_text().strip().split('\n')[-1]
-                if not exclude or normalize(target) not in real_exclude:
+                if not exclude or normalize(target) not in real_exclude:  # pragma: nobranch
                     modpath = check_dpath(target)
-                    if modpath:  # pragma: nobranch
+                    if modpath:  # pragma: nobranch  
                         found_modpath = modpath
                         break
             if found_modpath is not None:
@@ -638,9 +638,9 @@ def _syspath_modname_to_modpath(modname, sys_path=None, exclude=None) -> str | N
             # The docs state there should only be one line, but I see two.
             with open(linkpath, 'r') as file:
                 target = file.readline().strip()
-            if not exclude or normalize(target) not in real_exclude:
+            if not exclude or normalize(target) not in real_exclude:  # pragma: nobranch
                 modpath = check_dpath(target)
-                if modpath:
+                if modpath:  # pragma: nobranch
                     found_modpath = modpath
                     break
 

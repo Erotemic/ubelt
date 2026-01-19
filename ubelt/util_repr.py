@@ -795,12 +795,17 @@ def _format_dict(dict_: dict[Any, Any], **kwargs: Any) -> tuple[str, dict[str, i
     itemsep = kwargs.get('itemsep', ' ')
 
     align = kwargs.get('align', False)
+    align_char: str | None
     if align and not isinstance(align, str):
         default_kvsep = ': '
         if explicit:
             default_kvsep = '='
         kvsep = kwargs.get('kvsep', default_kvsep)
-        align = kvsep
+        align_char = kvsep
+    elif align:
+        align_char = align
+    else:
+        align_char = None
 
     if len(dict_) == 0:
         retstr = 'dict()' if explicit else '{}'
@@ -813,15 +818,6 @@ def _format_dict(dict_: dict[Any, Any], **kwargs: Any) -> tuple[str, dict[str, i
             lbr, rbr = 'dict(', ')'
         else:
             lbr, rbr = '{', '}'
-        align_char: str | None
-        if isinstance(align, str):
-            align_char = align
-        elif align is True:
-            # Boolean "align" means use the default alignment character.
-            align_char = '='
-        else:
-            align_char = None
-
         retstr = _join_itemstrs(itemstrs, itemsep, newlines, _leaf_info, nobraces,
                                 trailing_sep, compact_brace, lbr, rbr, align_char)
     return retstr, _leaf_info
