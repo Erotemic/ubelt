@@ -12,12 +12,15 @@ This project (loosely) adheres to [Semantic Versioning](https://semver.org/spec/
 ### Fixes
 * Cleanup in `util_import`
 * Fixes and refactor in `util_stream`. Implemented `CaptureStream`.
+* Fixed busy loop in ub.cmd
+* Fixed failure to return after timeout in ub.cmd
 
 ### Changed
 * Changed the default warning in `schedule_deprecation` from
   `DeprecationWarning` to `FutureWarning`, which makes deprecations loud by
   default.
 * All .pyi files have been removed. Type annotations are now inline and validated with mypy and ty.
+* if ub.cmd has detach=True, CompletedProcess will now raise a RuntimeError for ret and return None for stdout and stderr.
 
 ### Deprecated
 * Deprecated `DownloadManager`, due to being over scoped.

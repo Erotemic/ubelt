@@ -117,6 +117,10 @@ __all__ = ['cmd']
 POSIX: bool = 'posix' in sys.builtin_module_names
 WIN32: bool = sys.platform == 'win32'
 
+# Prevent hammering a CPU when nothing is happening
+# In ubelt < 1.5 this was effectively zero, we now
+# use a small poll time to avoid busy loops
+POLL_TIME = 0.01
 
 class CmdOutput(dict):
     """
@@ -136,7 +140,7 @@ class CmdOutput(dict):
         Returns:
             str | bytes | None
         """
-        return self['out']
+        return self.get('out')
 
     @property
     def stderr(self) -> str | bytes | None:
@@ -144,7 +148,7 @@ class CmdOutput(dict):
         Returns:
             str | bytes | None
         """
-        return self['err']
+        return self.get('err')
 
     @property
     def returncode(self) -> int:
@@ -152,7 +156,11 @@ class CmdOutput(dict):
         Returns:
             int
         """
-        return self['ret']
+        try:
+            return self["ret"]
+        except KeyError:
+            # Avoid surprising KeyError; make the mode restriction explicit
+            raise RuntimeError("returncode is unavailable when detach=True") from None
 
     def check_returncode(self) -> None:
         """Raise CalledProcessError if the exit code is non-zero."""
@@ -423,7 +431,8 @@ def cmd(
     if system:
         from ubelt.util_path import ChDir
         with ChDir(cwd):
-            ret = os.system(command_text)
+            raw = os.system(command_text)
+            ret = _normalize_system_returncode(raw)
         info = CmdOutput(**{
             'out': None,
             'err': None,
@@ -502,7 +511,7 @@ def cmd(
         })
 
     # For subprocess compatibility
-    info.args = args  # type: ignore[unresolved-attribute]
+    info.args = args
 
     if not detach:
         if verbose > 2:
@@ -572,6 +581,31 @@ def _resolve_command(
             args = command_tup
     return args, command_text
 
+def _normalize_system_returncode(status: int) -> int:
+    """
+    Normalize os.system() return value to match subprocess-like semantics:
+    - POSIX: exit code (0..255) or negative signal number (-SIG)
+    - Windows/non-POSIX: return status as-is (already an exit/termination code)
+    """
+    # Py3.9+ has the official decoder for POSIX wait statuses
+    fn = getattr(os, "waitstatus_to_exitcode", None)
+    if fn is not None:
+        return fn(status)
+
+    # Py3.8 fallback
+    if os.name != "posix":
+        # Windows: os.system() is not a POSIX wait-status; don't decode it.
+        return status
+
+    # POSIX: decode wait status
+    if os.WIFEXITED(status):
+        return os.WEXITSTATUS(status)
+    if os.WIFSIGNALED(status):
+        return -os.WTERMSIG(status)
+
+    # Rare/unexpected for os.system, but be explicit:
+    raise ValueError(f"Unknown POSIX wait status from os.system(): {status!r}")
+
 
 def _textio_iterlines(stream: io.TextIOBase) -> Iterator[str]:
     """
@@ -596,10 +630,8 @@ def _textio_iterlines(stream: io.TextIOBase) -> Iterator[str]:
                 return
             line = stream.readline()
     except ValueError:  # nocover
-        # Ignore I/O operation on closed files, the process was likely
-        # killed.
+        # I/O operation on closed files, the process was likely killed.
         raise
-        ...
 
 
 def _proc_async_iter_stream(
@@ -675,7 +707,7 @@ def _enqueue_output_thread_worker(
     def _check_if_stopped():  # nocover
         try:
             # Check if we were told to stop
-            control_queue.get_nowait()
+            control_queue.get(timeout=POLL_TIME)
         except queue.Empty:
             ...
         else:
@@ -699,7 +731,7 @@ def _enqueue_output_thread_worker(
             if _check_if_stopped():
                 return False
             try:
-                out_queue.put(item, block=False)
+                out_queue.put(item, timeout=POLL_TIME)
                 # logger.debug('Thread put in item')
             except queue.Full:
                 pass
@@ -735,7 +767,7 @@ def _enqueue_output_thread_worker(
         return
 
 
-def _proc_iteroutput_thread(proc: subprocess.Popen, timeout: float | None = None) -> Iterator[tuple[str | None, str | None]]:
+def _proc_iteroutput_thread(proc: subprocess.Popen, timeout: float | None = None) -> Iterator[tuple[str | None, str | None] | tuple[type[subprocess.TimeoutExpired], type[subprocess.TimeoutExpired]]]:
     """
     Iterates over output from a process line by line.
 
@@ -765,22 +797,23 @@ def _proc_iteroutput_thread(proc: subprocess.Popen, timeout: float | None = None
 
     stdout_live = True
     stderr_live = True
-     
-    _has_timeout = timeout is not None
 
-    if _has_timeout:
+    if timeout is not None:
         from time import monotonic as _time
         import subprocess
         start_time = _time()
+
+    oline = None
+    eline = None
 
     # read from the output asynchronously until
     while stdout_live or stderr_live:
         # Note: This function loop happens very quickly.
         # # logger.debug("Fast loop: check stdout / stderr threads")
 
-        if _has_timeout:
+        if timeout is not None:
             # Check for timeouts
-            elapsed = _time() - start_time
+            elapsed = _time() - start_time # pyright: ignore[reportPossiblyUnboundVariable]
             if elapsed >= timeout:
                 stdout_ctrl.put('STOP')
                 stderr_ctrl.put('STOP')
@@ -788,17 +821,18 @@ def _proc_iteroutput_thread(proc: subprocess.Popen, timeout: float | None = None
                 # because they might get stuck in a readline
                 # stdout_thread.join()
                 # stderr_thread.join()
-                yield subprocess.TimeoutExpired, subprocess.TimeoutExpired
+                yield subprocess.TimeoutExpired, subprocess.TimeoutExpired  # pyright: ignore[reportPossiblyUnboundVariable]
+                return
 
         if stdout_live:  # pragma: nobranch
             try:
-                oline = stdout_queue.get_nowait()
+                oline = stdout_queue.get(timeout=POLL_TIME)
                 stdout_live = oline is not None
             except queue.Empty:
                 oline = None
         if stderr_live:
             try:
-                eline = stderr_queue.get_nowait()
+                eline = stderr_queue.get(timeout=POLL_TIME)
                 stderr_live = eline is not None
             except queue.Empty:
                 eline = None
@@ -806,7 +840,7 @@ def _proc_iteroutput_thread(proc: subprocess.Popen, timeout: float | None = None
             yield oline, eline
 
 
-def _proc_iteroutput_select(proc: subprocess.Popen, timeout: float | None = None) -> Iterator[tuple[str | None, str | None]]:
+def _proc_iteroutput_select(proc: subprocess.Popen, timeout: float | None = None) -> Iterator[tuple[str | None, str | None] | tuple[type[subprocess.TimeoutExpired], type[subprocess.TimeoutExpired]]]:
     """
     Iterates over output from a process line by line
 
@@ -827,19 +861,17 @@ def _proc_iteroutput_select(proc: subprocess.Popen, timeout: float | None = None
     from itertools import zip_longest
     import select
 
-    _has_timeout = timeout is not None
-
-    if _has_timeout:
+    if timeout is not None:
         from time import monotonic as _time
         import subprocess
         start_time = _time()
 
     # Read output while the external program is running
     while proc.poll() is None:
-        if _has_timeout:
-            elapsed = _time() - start_time
+        if timeout is not None:
+            elapsed = _time() - start_time # pyright: ignore[reportPossiblyUnboundVariable]
             if elapsed >= timeout:
-                yield subprocess.TimeoutExpired, subprocess.TimeoutExpired
+                yield subprocess.TimeoutExpired, subprocess.TimeoutExpired  # pyright: ignore[reportPossiblyUnboundVariable]
                 return  # nocover
 
         reads = [proc.stdout.fileno(), proc.stderr.fileno()]  # type: ignore[possibly-missing-attribute]
@@ -935,12 +967,16 @@ def _tee_output(
         if oline:
             # logger.debug("Write oline to stdout.write and logged_out")
             if stdout:  # pragma: nobranch
+                if typing.TYPE_CHECKING:
+                    oline = typing.cast(str, oline)
                 stdout.write(oline)
                 stdout.flush()
             logged_out.append(oline)
         if eline:
             # logger.debug("Write eline to stderr.write and logged_err")
             if stderr:  # pragma: nobranch
+                if typing.TYPE_CHECKING:
+                    eline = typing.cast(str, eline)
                 stderr.write(eline)
                 stderr.flush()
             logged_err.append(eline)
