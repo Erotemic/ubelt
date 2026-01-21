@@ -6,10 +6,12 @@
 
 name: PurePyCI
 
+
 on:
   push:
   pull_request:
     branches: [ main ]
+      
 
 jobs:
   lint_job:
