@@ -12,6 +12,7 @@ This project (loosely) adheres to [Semantic Versioning](https://semver.org/spec/
 ### Fixes
 * Cleanup in `util_import`
 * Fixes and refactor in `util_stream`. Implemented `CaptureStream`.
+* Improved download inference of content length and progress reporting.
 
 ### Changed
 * Changed the default warning in `schedule_deprecation` from
