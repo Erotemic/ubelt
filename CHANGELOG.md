@@ -14,6 +14,7 @@ This project (loosely) adheres to [Semantic Versioning](https://semver.org/spec/
 * Fixes and refactor in `util_stream`. Implemented `CaptureStream`.
 * Fixed busy loop in ub.cmd
 * Fixed failure to return after timeout in ub.cmd
+* Fix incorrect behavior in `util_links`
 
 ### Changed
 * Changed the default warning in `schedule_deprecation` from
@@ -24,7 +25,6 @@ This project (loosely) adheres to [Semantic Versioning](https://semver.org/spec/
 
 ### Deprecated
 * Deprecated `DownloadManager`, due to being over scoped.
-
 
 ## Version 1.4.0 - Released 2025-08-16
 
