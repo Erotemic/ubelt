@@ -15,11 +15,13 @@ CommandLine:
 
 
 def benchmark_template():
-    import ubelt as ub
-    import pandas as pd
-    import timerit
     from collections import defaultdict
     from itertools import groupby
+
+    import pandas as pd
+    import timerit
+
+    import ubelt as ub
 
     def get_0(arr):
         return arr[0]

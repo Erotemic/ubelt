@@ -112,10 +112,9 @@ Notes:
 
 
 # -- Project information -----------------------------------------------------
+from os.path import dirname, exists, join
+
 import sphinx_rtd_theme
-from os.path import exists
-from os.path import dirname
-from os.path import join
 
 
 def parse_version(fpath):
@@ -802,9 +801,10 @@ def create_doctest_figure(app, obj, name, lines):
     The idea is that each doctest that produces a figure should generate that
     and then that figure should be part of the docs.
     """
-    import xdoctest
     import sys
     import types
+
+    import xdoctest
     if isinstance(obj, types.ModuleType):
         module = obj
     else:
@@ -979,8 +979,9 @@ def postprocess_hyperlinks(app, doctree, docname):
     "autodoc-process-docstring" event.
     """
     # Your hyperlink postprocessing logic here
-    from docutils import nodes
     import pathlib
+
+    from docutils import nodes
     for node in doctree.traverse(nodes.reference):
         if 'refuri' in node.attributes:
             refuri = node.attributes['refuri']

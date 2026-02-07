@@ -1,13 +1,12 @@
 """
 pytest tests/test_progiter.py
 """
+import itertools as it
 import sys
 from io import StringIO
 
-from xdoctest.utils import CaptureStdout
-from xdoctest.utils import strip_ansi
+from xdoctest.utils import CaptureStdout, strip_ansi
 
-import itertools as it
 from ubelt import ProgIter
 
 
@@ -505,9 +504,10 @@ def check_issue_32_non_homogeneous_time_threshold_prints():
     record_state()
 
     try:
-        import ubelt as ub
         import pandas as pd
         import rich
+
+        import ubelt as ub
         print('fake_stream.messages = {}'.format(ub.urepr(fake_stream.messages, nl=1)))
         print(f'prog._likely_homogeneous={prog._likely_homogeneous}')
         rich.print(pd.Series(static_state))

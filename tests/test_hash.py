@@ -1,11 +1,15 @@
-import ubelt as ub
 import itertools as it
 import uuid
-import pytest
-from ubelt.util_hash import _convert_hexstr_base, _ALPHABET_16
-from ubelt.util_hash import _hashable_sequence
-from ubelt.util_hash import _rectify_hasher
 
+import pytest
+
+import ubelt as ub
+from ubelt.util_hash import (
+    _ALPHABET_16,
+    _convert_hexstr_base,
+    _hashable_sequence,
+    _rectify_hasher,
+)
 
 try:
     import numpy as np
@@ -505,6 +509,7 @@ def test_base32():
 
 def test_hash_dataclasses():
     from dataclasses import dataclass
+
     import ubelt as ub
     #
     @dataclass
@@ -774,7 +779,7 @@ def test_hash_data_simple_equivalence_and_sensitivity():
 
 def test_hash_data_nested_dataclass_structure():
     from dataclasses import dataclass, field
-    from typing import Tuple, List
+    from typing import List, Tuple
 
     @dataclass
     class Point:
@@ -809,7 +814,7 @@ def test_hash_data_nested_dataclass_structure():
 
 def test_hash_data_mutable_field_stability():
     from dataclasses import dataclass, field
-    from typing import Tuple, List
+    from typing import List, Tuple
     @dataclass
     class Point:
         x: int

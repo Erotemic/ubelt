@@ -3,9 +3,10 @@ def remove_old_python2_headers():
     Helper to modernize the code
     """
     import re
+
+    from xdev import patterns, search_replace
+
     import ubelt as ub
-    from xdev import search_replace
-    from xdev import patterns
 
     repo_dpath = ub.Path('.')
     # fpaths = set(ub.Path('~/code/watch/').expand().glob('**/*.py'))

@@ -12,8 +12,9 @@ References:
 from __future__ import annotations
 
 import typing
-from math import isclose
 from collections.abc import Generator
+from math import isclose
+
 # from collections.abc import Iterable
 
 if typing.TYPE_CHECKING:

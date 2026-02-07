@@ -1,10 +1,11 @@
-import ubelt as ub
 import os
-import pytest
-import sys
-from os.path import basename, join, exists
 import platform
+import sys
+from os.path import basename, exists, join
 
+import pytest
+
+import ubelt as ub
 
 IS_PYPY = platform.python_implementation() == 'PyPy'
 IS_WIN32 = sys.platform.startswith('win32')
@@ -454,12 +455,14 @@ class SingletonTestServer(ub.NiceRepr):
         return '{} - {}'.format(self.root_url, self.proc.returncode)
 
     def __init__(self):
-        import requests
-        import time
-        import sys
-        import ubelt as ub
         import socket
+        import sys
+        import time
         from contextlib import closing
+
+        import requests
+
+        import ubelt as ub
         def find_free_port():
             """
             References:
@@ -599,9 +602,10 @@ def make_stat_dict(stat_obj):
 
 
 def test_grabdata():
-    import ubelt as ub
     import json
     import time
+
+    import ubelt as ub
     # fname = 'foo.bar'
     # url = 'http://i.imgur.com/rqwaDag.png'
     # prefix1 = '944389a39dfb8fa9'
@@ -691,8 +695,9 @@ def test_grabdata_delete_hash_stamp():
 
 
 def test_download_with_io():
-    import ubelt as ub
     import io
+
+    import ubelt as ub
     url = _demo_url(128 * 3)
     file = io.BytesIO()
     fpath = ub.download(url, file)

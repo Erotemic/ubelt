@@ -68,9 +68,11 @@ def benchmark_hash_extensions():
     """"
     xdoctest ~/code/ubelt/dev/bench/bench_hash.py benchmark_hash_extensions
     """
-    import ubelt as ub
     import uuid
+
     import numpy as np
+
+    import ubelt as ub
     datas = [
         ub.Path('/'),
         uuid.uuid4(),

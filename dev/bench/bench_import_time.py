@@ -57,9 +57,10 @@ def benchmark_multi_or_combined_import():
 
 
 def benchmark_ubelt_import_time_robust():
-    import pandas as pd
-    import ubelt as ub
     import kwplot
+    import pandas as pd
+
+    import ubelt as ub
     sns = kwplot.autosns(force='Qt5Agg')
     # plt = kwplot.autoplt()  # NOQA
 

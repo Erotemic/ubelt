@@ -1,13 +1,16 @@
 """
 Check iterative versus recursive implementation of hash_data
 """
-from ubelt import NoParam
-from ubelt.util_hash import (
-    _HASHABLE_EXTENSIONS,  _rectify_hasher, _rectify_base,
-    _digest_hasher, _int_to_bytes
-)
 from xdev import profile
 
+from ubelt import NoParam
+from ubelt.util_hash import (
+    _HASHABLE_EXTENSIONS,
+    _digest_hasher,
+    _int_to_bytes,
+    _rectify_base,
+    _rectify_hasher,
+)
 
 _SEP = b'_,_'
 _ITER_PREFIX = b'_[_'
@@ -252,9 +255,10 @@ def hash_data_recursive(data, hasher=NoParam, base=NoParam, types=False,
 
 
 def main():
-    import numpy as np
-    import string
     import random
+    import string
+
+    import numpy as np
     np_data = np.empty((1, 1))
     data = [1, 2, ['a', 2, 'c'], [1] * 100, [[[], np_data]], {'a': [1, 2, [3, 4, [5, 6]]]}]
 

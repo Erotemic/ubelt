@@ -183,6 +183,7 @@ class Deprecation:
 
     def _resolve_module_version(self):
         import sys
+
         from packaging.version import parse as Version
 
         if self.module_name is not None:

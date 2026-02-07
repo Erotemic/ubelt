@@ -31,22 +31,30 @@ Note:
 """
 from __future__ import annotations
 
-import typing
-from os.path import (
-    dirname, exists, expanduser, expandvars, join, normpath, split, splitext,
-)
 import os
-import sys
 import pathlib
 import platform
 import stat
+import sys
+import typing
 import warnings
+from os.path import (
+    dirname,
+    exists,
+    expanduser,
+    expandvars,
+    join,
+    normpath,
+    split,
+    splitext,
+)
+
 from ubelt import util_io
 
 if typing.TYPE_CHECKING:
+    from collections.abc import Generator
     from types import TracebackType
     from typing import Callable, Type
-    from collections.abc import Generator
 
 
 __all__ = [
@@ -1552,6 +1560,7 @@ class Path(_PathBase):
         Get a copy_function based on specified capabilities
         """
         import shutil
+
         # Note: Avoiding the use of the partial enables shutil optimizations
         from functools import partial
         if meta is None:
@@ -1984,7 +1993,7 @@ def _encode_chmod_int(int_code):
         >>> print(_encode_chmod_int(int_code))
         u=rwxs,g=rwxs,o=rwxt
     """
-    from collections import defaultdict, OrderedDict
+    from collections import OrderedDict, defaultdict
     action_lut = OrderedDict([
         ('ur' , stat.S_IRUSR),
         ('uw' , stat.S_IWUSR),

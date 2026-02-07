@@ -19,9 +19,11 @@ def test_compatible_keywords():
 
 
 def test_positional_only_args():
-    import ubelt as ub
     import sys
+
     import pytest
+
+    import ubelt as ub
     if sys.version_info[0:2] <= (3, 7):
         pytest.skip('position only arguments syntax requires Python >= 3.8')
 

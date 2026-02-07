@@ -179,6 +179,7 @@ def schedule_deprecation(
     """
     import sys
     import warnings
+
     from packaging.version import parse as Version
 
     if modname is not None:

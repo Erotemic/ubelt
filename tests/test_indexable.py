@@ -215,6 +215,7 @@ def test_indexable_walker_map_patterns():
 
 def test_walk_iter_gen_behavior():
     from itertools import count
+
     import ubelt as ub
     # from functools import cache
     counter = count()

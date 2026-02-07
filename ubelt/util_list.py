@@ -20,22 +20,23 @@ There are also other numpy inspired functions: :func:`unique`,
 :func:`argunique`, :func:`unique_flags`, and :func:`boolmask`.
 """
 from __future__ import annotations
+
 import itertools as it
 import math
 import operator
 import typing
+from collections.abc import Sized
+from itertools import zip_longest
+from typing import Iterable, List, Mapping, Sequence, TypeVar
 
 from ubelt import util_dict
-
 from ubelt.util_const import NoParam
-from itertools import zip_longest
-from collections.abc import Sized
-from typing import List, Iterable, Mapping, Sequence, TypeVar
 
 if typing.TYPE_CHECKING:
-    from ubelt.util_const import NoParamType
     from collections.abc import Generator, Iterator
     from typing import Any, Callable, cast
+
+    from ubelt.util_const import NoParamType
     T = TypeVar('T')
     KT = TypeVar('KT')
 

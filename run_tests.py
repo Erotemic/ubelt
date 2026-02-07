@@ -18,8 +18,9 @@ def get_this_script_fpath():
 
 
 def main():
-    import pytest
     import os
+
+    import pytest
 
     repo_dpath = get_this_script_fpath().parent
 

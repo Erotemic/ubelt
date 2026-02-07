@@ -1,6 +1,7 @@
 def test_unable_to_find_color():
-    import ubelt as ub
     import pytest
+
+    import ubelt as ub
     if ub.util_colors.NO_COLOR:
         pytest.skip()
 
@@ -14,8 +15,9 @@ def test_global_color_disable():
     CommandLine:
         xdoctest -m /home/joncrall/code/ubelt/tests/test_color.py test_global_color_disable
     """
-    import ubelt as ub
     import pytest
+
+    import ubelt as ub
 
     if ub.util_colors.NO_COLOR:
         pytest.skip()

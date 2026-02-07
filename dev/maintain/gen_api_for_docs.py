@@ -13,10 +13,11 @@ class UsageConfig(scfg.Config):
 
 
 def count_package_usage(modname):
-    import ubelt as ub
     import glob
-    from os.path import join
     import re
+    from os.path import join
+
+    import ubelt as ub
     config = UsageConfig(cmdline=True)
 
     names = [
@@ -183,8 +184,8 @@ def gen_api_for_docs(modname):
         cannon_urepr2_info = cannon_urepr2_infos[0]
         attr_to_infos['urepr'] = [cannon_urepr2_info]
 
-    import numpy as np
     import kwarray
+    import numpy as np
 
     if ub.argflag('--url-mode'):
         ref_key = 'url_ref'

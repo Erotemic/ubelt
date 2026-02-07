@@ -1,5 +1,7 @@
 from os.path import exists, join
+
 import ubelt as ub
+
 # DEBUG_PATH = ub.Path.home().name == 'joncrall'
 
 
@@ -113,6 +115,7 @@ def test_copy_directory_cases():
 
     """
     import pytest
+
     import ubelt as ub
     base = ub.Path.appdir('ubelt/tests/path/copy_move').delete().ensuredir()
 
@@ -274,6 +277,7 @@ def test_move_directory_cases():
 
     """
     import pytest
+
     import ubelt as ub
     base = ub.Path.appdir('ubelt/tests/path/move').delete().ensuredir()
 

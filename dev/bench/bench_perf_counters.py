@@ -1,12 +1,14 @@
 
 
 def benchmark_template():
-    import ubelt as ub
-    import pandas as pd
     import inspect
-    import timerit
     import time
     from fractions import Fraction
+
+    import pandas as pd
+    import timerit
+
+    import ubelt as ub
 
     _perf_counter_ns = time.perf_counter_ns
 

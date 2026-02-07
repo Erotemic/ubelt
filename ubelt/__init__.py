@@ -27,17 +27,23 @@ Testing:
 __version__ = '1.4.1'
 
 # Deprecated functions
-from ubelt.util_platform import (
-    ensure_app_cache_dir, ensure_app_config_dir,
-    ensure_app_data_dir, get_app_cache_dir, get_app_config_dir,
-    get_app_data_dir,
-)
-
-from ubelt.util_io import (readfrom, writeto,)
-from ubelt.util_str import (ensure_unicode,)
 from ubelt import util_format
 from ubelt.util_format import FormatterExtensions, repr2
-
+from ubelt.util_io import (
+    readfrom,
+    writeto,
+)
+from ubelt.util_platform import (
+    ensure_app_cache_dir,
+    ensure_app_config_dir,
+    ensure_app_data_dir,
+    get_app_cache_dir,
+    get_app_config_dir,
+    get_app_data_dir,
+)
+from ubelt.util_str import (
+    ensure_unicode,
+)
 
 __ignore__ = [
     'ensure_app_cache_dir',
@@ -98,35 +104,36 @@ __submodules__ = {
     'progiter': None,
 }
 
-from ubelt import orderedset
-from ubelt import progiter
-from ubelt import util_arg
-from ubelt import util_cache
-from ubelt import util_cmd
-from ubelt import util_colors
-from ubelt import util_const
-from ubelt import util_deprecate
-from ubelt import util_dict
-from ubelt import util_download
-from ubelt import util_download_manager
-from ubelt import util_func
-from ubelt import util_futures
-from ubelt import util_hash
-from ubelt import util_import
-from ubelt import util_indexable
-from ubelt import util_io
-from ubelt import util_links
-from ubelt import util_list
-from ubelt import util_memoize
-from ubelt import util_mixins
-from ubelt import util_path
-from ubelt import util_platform
-from ubelt import util_repr
-from ubelt import util_str
-from ubelt import util_stream
-from ubelt import util_time
-from ubelt import util_zip
-
+from ubelt import (
+    orderedset,
+    progiter,
+    util_arg,
+    util_cache,
+    util_cmd,
+    util_colors,
+    util_const,
+    util_deprecate,
+    util_dict,
+    util_download,
+    util_download_manager,
+    util_func,
+    util_futures,
+    util_hash,
+    util_import,
+    util_indexable,
+    util_io,
+    util_links,
+    util_list,
+    util_memoize,
+    util_mixins,
+    util_path,
+    util_platform,
+    util_repr,
+    util_str,
+    util_stream,
+    util_time,
+    util_zip,
+)
 
 # Deprecated parts of the top-level API
 # These functions are mostly moved into internal classes
@@ -151,46 +158,170 @@ __deprecated__ = [
 ]
 
 
-from ubelt.util_arg import (argflag, argval,)
-from ubelt.util_cache import (CacheStamp, Cacher,)
-from ubelt.util_colors import (NO_COLOR, color_text, highlight_code,)
-from ubelt.util_const import (NoParam,)
-from ubelt.util_cmd import (cmd,)
-from ubelt.util_dict import (AutoDict, AutoOrderedDict, SetDict, UDict, ddict,
-                             dict_diff, dict_hist, dict_isect, dict_subset,
-                             dict_union, dzip, find_duplicates, group_items,
-                             invert_dict, map_keys, map_vals, map_values,
-                             named_product, odict, sdict, sorted_keys,
-                             sorted_vals, sorted_values, udict, varied_values,)
-from ubelt.util_deprecate import (schedule_deprecation,)
-from ubelt.util_download import (download, grabdata,)
-from ubelt.util_download_manager import (DownloadManager,)
-from ubelt.util_func import (compatible, identity, inject_method,)
-from ubelt.util_repr import (ReprExtensions, urepr,)
-from ubelt.util_futures import (Executor, JobPool,)
-from ubelt.util_io import (delete, touch,)
-from ubelt.util_links import (symlink,)
-from ubelt.util_list import (allsame, argmax, argmin, argsort, argunique,
-                             boolmask, chunks, compress, flatten, iter_window,
-                             iterable, peek, take, unique, unique_flags,)
-from ubelt.util_hash import (hash_data, hash_file,)
-from ubelt.util_import import (import_module_from_name,
-                               import_module_from_path, modname_to_modpath,
-                               modpath_to_modname, split_modpath,)
-from ubelt.util_indexable import (IndexableWalker, indexable_allclose,)
-from ubelt.util_memoize import (memoize, memoize_method, memoize_property,)
-from ubelt.util_mixins import (NiceRepr,)
-from ubelt.util_path import (ChDir, Path, TempDir, augpath, ensuredir,
-                             expandpath, shrinkuser, userhome,)
-from ubelt.util_platform import (DARWIN, LINUX, POSIX, WIN32, find_exe,
-                                 find_path, platform_cache_dir,
-                                 platform_config_dir, platform_data_dir,)
-from ubelt.util_str import (codeblock, hzcat, indent, paragraph,)
-from ubelt.util_stream import (CaptureStdout, CaptureStream, TeeStringIO,)
-from ubelt.util_time import (Timer, timeparse, timestamp,)
-from ubelt.util_zip import (split_archive, zopen,)
-from ubelt.orderedset import (OrderedSet, oset,)
-from ubelt.progiter import (ProgIter,)
+from ubelt.orderedset import (
+    OrderedSet,
+    oset,
+)
+from ubelt.progiter import (
+    ProgIter,
+)
+from ubelt.util_arg import (
+    argflag,
+    argval,
+)
+from ubelt.util_cache import (
+    Cacher,
+    CacheStamp,
+)
+from ubelt.util_cmd import (
+    cmd,
+)
+from ubelt.util_colors import (
+    NO_COLOR,
+    color_text,
+    highlight_code,
+)
+from ubelt.util_const import (
+    NoParam,
+)
+from ubelt.util_deprecate import (
+    schedule_deprecation,
+)
+from ubelt.util_dict import (
+    AutoDict,
+    AutoOrderedDict,
+    SetDict,
+    UDict,
+    ddict,
+    dict_diff,
+    dict_hist,
+    dict_isect,
+    dict_subset,
+    dict_union,
+    dzip,
+    find_duplicates,
+    group_items,
+    invert_dict,
+    map_keys,
+    map_vals,
+    map_values,
+    named_product,
+    odict,
+    sdict,
+    sorted_keys,
+    sorted_vals,
+    sorted_values,
+    udict,
+    varied_values,
+)
+from ubelt.util_download import (
+    download,
+    grabdata,
+)
+from ubelt.util_download_manager import (
+    DownloadManager,
+)
+from ubelt.util_func import (
+    compatible,
+    identity,
+    inject_method,
+)
+from ubelt.util_futures import (
+    Executor,
+    JobPool,
+)
+from ubelt.util_hash import (
+    hash_data,
+    hash_file,
+)
+from ubelt.util_import import (
+    import_module_from_name,
+    import_module_from_path,
+    modname_to_modpath,
+    modpath_to_modname,
+    split_modpath,
+)
+from ubelt.util_indexable import (
+    IndexableWalker,
+    indexable_allclose,
+)
+from ubelt.util_io import (
+    delete,
+    touch,
+)
+from ubelt.util_links import (
+    symlink,
+)
+from ubelt.util_list import (
+    allsame,
+    argmax,
+    argmin,
+    argsort,
+    argunique,
+    boolmask,
+    chunks,
+    compress,
+    flatten,
+    iter_window,
+    iterable,
+    peek,
+    take,
+    unique,
+    unique_flags,
+)
+from ubelt.util_memoize import (
+    memoize,
+    memoize_method,
+    memoize_property,
+)
+from ubelt.util_mixins import (
+    NiceRepr,
+)
+from ubelt.util_path import (
+    ChDir,
+    Path,
+    TempDir,
+    augpath,
+    ensuredir,
+    expandpath,
+    shrinkuser,
+    userhome,
+)
+from ubelt.util_platform import (
+    DARWIN,
+    LINUX,
+    POSIX,
+    WIN32,
+    find_exe,
+    find_path,
+    platform_cache_dir,
+    platform_config_dir,
+    platform_data_dir,
+)
+from ubelt.util_repr import (
+    ReprExtensions,
+    urepr,
+)
+from ubelt.util_str import (
+    codeblock,
+    hzcat,
+    indent,
+    paragraph,
+)
+from ubelt.util_stream import (
+    CaptureStdout,
+    CaptureStream,
+    TeeStringIO,
+)
+from ubelt.util_time import (
+    Timer,
+    timeparse,
+    timestamp,
+)
+from ubelt.util_zip import (
+    split_archive,
+    zopen,
+)
 
 __all__ = ['AutoDict', 'AutoOrderedDict', 'CacheStamp', 'Cacher',
            'CaptureStdout', 'CaptureStream', 'ChDir', 'DARWIN',

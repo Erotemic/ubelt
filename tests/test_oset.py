@@ -1,6 +1,7 @@
-import random
-import ubelt as ub
 import itertools as it
+import random
+
+import ubelt as ub
 
 
 def test_operators():

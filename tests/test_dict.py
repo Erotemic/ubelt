@@ -1,5 +1,6 @@
-import ubelt as ub
 import pytest
+
+import ubelt as ub
 
 
 def test_auto_dict():
@@ -33,7 +34,7 @@ def test_auto_dict_to_dict():
 
 def test_auto_dict_ordered():
     # To Dict should respect ordering
-    from ubelt.util_dict import AutoOrderedDict, AutoDict
+    from ubelt.util_dict import AutoDict, AutoOrderedDict
     auto = AutoOrderedDict()
     auto[0][3] = 3
     auto[0][2] = 2
@@ -84,6 +85,7 @@ def test_group_items_callable():
 def test_dict_hist_ordered():
     import random
     import string
+
     import ubelt as ub
     rng = random.Random(0)
     items = [rng.choice(string.ascii_letters) for _ in range(100)]

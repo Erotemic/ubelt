@@ -16,10 +16,11 @@ will read it directly from the archive, but in some cases it may extract it to
 a temporary directory first.
 """
 
-import typing
 import io
 import os
+import typing
 from os.path import exists, join
+
 from ubelt.util_mixins import NiceRepr
 
 if typing.TYPE_CHECKING:

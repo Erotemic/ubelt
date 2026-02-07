@@ -87,11 +87,11 @@ import sys
 import typing
 
 if typing.TYPE_CHECKING:
-    from collections.abc import Iterator, Sequence
     import io
     import queue
     import subprocess
     import threading
+    from collections.abc import Iterator, Sequence
 
 
 __pitch__ = """
@@ -396,8 +396,9 @@ def cmd(
         tee = False
 
     if verbose > 1:
-        import platform
         import getpass
+        import platform
+
         from ubelt import shrinkuser
         if verbose > 2:
             try:
@@ -799,8 +800,8 @@ def _proc_iteroutput_thread(proc: subprocess.Popen, timeout: float | None = None
     stderr_live = True
 
     if timeout is not None:
-        from time import monotonic as _time
         import subprocess
+        from time import monotonic as _time
         start_time = _time()
 
     oline = None
@@ -858,12 +859,12 @@ def _proc_iteroutput_select(proc: subprocess.Popen, timeout: float | None = None
     Note:
         If a timeout is specified and exceeded, this yields ``(subprocess.TimeoutExpired, subprocess.TimeoutExpired)`` as a sentinel.
     """
-    from itertools import zip_longest
     import select
+    from itertools import zip_longest
 
     if timeout is not None:
-        from time import monotonic as _time
         import subprocess
+        from time import monotonic as _time
         start_time = _time()
 
     # Read output while the external program is running

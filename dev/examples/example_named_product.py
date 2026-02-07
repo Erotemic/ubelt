@@ -1,9 +1,10 @@
 
 
 def demo_named_product():
-    import ubelt as ub
-    import pandas as pd
     import numpy as np
+    import pandas as pd
+
+    import ubelt as ub
 
     def some_function(thresh1, thresh2):
         x, y = thresh1, thresh2

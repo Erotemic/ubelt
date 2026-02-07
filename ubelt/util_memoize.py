@@ -46,13 +46,14 @@ Example:
 """
 from __future__ import annotations
 
-import typing
 import functools
 import sys
+import typing
+
 from ubelt import util_hash
 
 if typing.TYPE_CHECKING:
-    from typing import Callable, Any
+    from typing import Any, Callable
 
 
 # TODO: Need to think if we can fix any of the typing ignores in this file.

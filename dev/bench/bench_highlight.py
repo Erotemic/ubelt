@@ -5,8 +5,9 @@ Results:
     pygments is a lot faster
 """
 import sys
-import ubelt as ub
 import warnings
+
+import ubelt as ub
 
 
 def _pygments_highlight(text, lexer_name, **kwargs):
@@ -25,9 +26,9 @@ def _pygments_highlight(text, lexer_name, **kwargs):
                 'colorama is not installed, ansi colors may not work')
 
     import pygments  # type: ignore
-    import pygments.lexers  # type: ignore
     import pygments.formatters  # type: ignore
     import pygments.formatters.terminal  # type: ignore
+    import pygments.lexers  # type: ignore
 
     formatter = pygments.formatters.terminal.TerminalFormatter(bg='dark')
     lexer = pygments.lexers.get_lexer_by_name(lexer_name, **kwargs)
@@ -42,9 +43,10 @@ def _rich_highlight(text, lexer_name):
     References:
         https://github.com/Textualize/rich/discussions/3076
     """
-    from rich.syntax import Syntax
-    from rich.console import Console
     import io
+
+    from rich.console import Console
+    from rich.syntax import Syntax
     syntax = Syntax(text, lexer_name, background_color='default')
     stream = io.StringIO()
     write_console = Console(file=stream, soft_wrap=True, color_system='standard')

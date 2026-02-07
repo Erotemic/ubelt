@@ -1,5 +1,7 @@
-import pytest
 import sys
+
+import pytest
+
 import ubelt as ub
 
 # import shlex
@@ -242,8 +244,9 @@ def test_cwd():
     CommandLine:
         python ~/code/ubelt/ubelt/tests/test_cmd.py test_cwd
     """
-    import sys
     import os
+    import sys
+
     import ubelt as ub
     if not sys.platform.startswith('win32'):
         dpath = ub.Path.appdir('ubelt/tests').ensuredir()
@@ -255,9 +258,10 @@ def test_cwd():
 
 
 def test_env():
-    import sys
-    import ubelt as ub
     import os
+    import sys
+
+    import ubelt as ub
     if not sys.platform.startswith('win32'):
         env = os.environ.copy()
         env.update({'UBELT_TEST_ENV': '42'})
@@ -272,6 +276,7 @@ def test_timeout():
     xdoctest ~/code/ubelt/tests/test_cmd.py test_timeout
     """
     import subprocess
+
     import pytest
     # Infinite script
     py_script = ub.codeblock(
@@ -316,6 +321,7 @@ def test_timeout():
 
 def test_subprocess_compatability():
     import subprocess
+
     import ubelt as ub
 
     def check_compatability(command, common_kwargs):
@@ -364,7 +370,9 @@ def test_subprocess_compatability():
 
 def test_failing_subprocess_compatability():
     import subprocess
+
     import pytest
+
     import ubelt as ub
 
     def check_failing_compatability(command, common_kwargs):
@@ -413,8 +421,9 @@ def test_failing_subprocess_compatability():
 
 
 def test_cmdoutput_object_with_non_subprocess_backends():
-    import ubelt as ub
     import pytest
+
+    import ubelt as ub
 
     info = ub.cmd('echo hello world', verbose=1)
     assert info.stdout.strip() == 'hello world'

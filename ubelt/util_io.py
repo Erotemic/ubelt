@@ -10,10 +10,10 @@ throw an error if the file or directory does not exist. It also contains
 workarounds for win32 issues with :mod:`shutil`.
 """
 from __future__ import annotations
-import sys
-import os
-from os.path import exists
 
+import os
+import sys
+from os.path import exists
 
 __all__ = [
     'readfrom', 'writeto', 'touch', 'delete',

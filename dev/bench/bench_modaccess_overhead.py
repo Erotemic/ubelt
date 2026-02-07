@@ -1,11 +1,12 @@
 
 
 def main():
+    import random
+    from math import e
+
     import ubelt as ub
     from ubelt import util_list
     from ubelt.util_list import take
-    import random
-    from math import e
 
     # # Data
     N = 100

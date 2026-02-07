@@ -1,6 +1,7 @@
 import random
 import string
 from os.path import join
+
 import ubelt as ub
 
 
@@ -190,6 +191,7 @@ def bench_find_optimal_blocksize():
         Even that shows 2 ** 20 working well.
     """
     import os
+
     import numpy as np
     import timerit
 
@@ -247,8 +249,9 @@ def benchmark_hash_file():
         python ~/code/ubelt/dev/bench_hash.py --show
         python ~/code/ubelt/dev/bench_hash.py --show
     """
-    import ubelt as ub
     import random
+
+    import ubelt as ub
 
     # dpath = ub.ensuredir(ub.expandpath('$HOME/raid/data/tmp'))
     dpath = ub.ensuredir(ub.expandpath('$HOME/tmp'))

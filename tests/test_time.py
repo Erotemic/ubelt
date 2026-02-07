@@ -1,7 +1,9 @@
-import pytest
-import ubelt as ub
 import re
+
+import pytest
 from xdoctest.utils import CaptureStdout
+
+import ubelt as ub
 
 
 def test_timer_nonewline():
@@ -37,8 +39,8 @@ def test_timer_error():
 
 
 def test_timestamp_corner_cases():
-    from datetime import datetime as datetime_cls
     import datetime as datetime_mod
+    from datetime import datetime as datetime_cls
     datetime = datetime_cls(1, 1, 1, 1, 1, 1, tzinfo=datetime_mod.timezone.utc)
     stamp = ub.timestamp(datetime)
     assert stamp == '0001-01-01T010101+0'

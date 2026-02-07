@@ -1,10 +1,9 @@
 """
 POC google docstring plugin for mypy
 """
-from mypy.plugin import Plugin
-
 from typing import Callable, Optional
-from mypy.plugin import FunctionSigContext
+
+from mypy.plugin import FunctionSigContext, Plugin
 from mypy.types import CallableType
 
 

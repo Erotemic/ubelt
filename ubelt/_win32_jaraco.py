@@ -54,11 +54,12 @@ Ignore:
 """
 
 
-import ctypes.wintypes
 import ctypes
+import ctypes.wintypes
 
 # Makes mypy happy
 import sys
+
 assert sys.platform == "win32"
 
 

@@ -22,13 +22,12 @@ Weird Behavior:
 from __future__ import annotations
 
 import os
-import warnings
 import platform
-from os.path import exists
-from os.path import join
-from ubelt import util_io
-from ubelt import util_path
 import sys
+import warnings
+from os.path import exists, join
+
+from ubelt import util_io, util_path
 
 if sys.platform.startswith('win32'):
     try:
@@ -493,7 +492,7 @@ def _win32_rmtree(path, verbose=0):
     path = os.fspath(path)
 
     def _rmjunctions(root):
-        from os.path import join, isdir, islink
+        from os.path import isdir, islink, join
 
         for r, ds, fs in os.walk(root):
             subdirs = []
@@ -597,8 +596,9 @@ def _win32_dir(path, star=''):
     """
     Using the windows cmd shell to get information about a directory
     """
-    from ubelt import util_cmd
     import re
+
+    from ubelt import util_cmd
     wrapper = 'cmd /S /C "{}"'  # the /S will preserve all inner quotes
     command = 'dir /-C "{}"{}'.format(path, star)
     wrapped = wrapper.format(command)

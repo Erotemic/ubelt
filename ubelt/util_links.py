@@ -24,12 +24,12 @@ link_file.txt
 """
 from __future__ import annotations
 
-from os.path import exists, islink, join, normpath
 import os
 import sys
 import warnings
-from ubelt import util_io
-from ubelt import util_platform
+from os.path import exists, islink, join, normpath
+
+from ubelt import util_io, util_platform
 
 __all__ = ['symlink']
 

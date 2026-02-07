@@ -60,17 +60,20 @@ Note:
     into a hashable encoding.
 """
 from __future__ import annotations
+
 import dataclasses
 import hashlib
 import math
 import typing
 from collections import OrderedDict
+
 from ubelt.util_const import NoParam
 
 if typing.TYPE_CHECKING:
     from os import PathLike
+    from typing import Any, Callable, Optional, Union, cast
+
     from ubelt.util_const import NoParamType
-    from typing import Any, Callable, cast, Union, Optional
     # A constructor / factory that returns a hashlib-style hash object.
     # Kept behind TYPE_CHECKING to ensure near-zero runtime/import-time cost.
 
@@ -808,11 +811,11 @@ class HashableExtensions:
         # TODO: can we only register a stdlib class if we need it?
         # Some of the stdlib modules dont need to be imported and
         # cause extra import time overhead.
-        import uuid
-        import pathlib
-        import numbers
-        import decimal
         import datetime as datetime_mod
+        import decimal
+        import numbers
+        import pathlib
+        import uuid
 
         @self.register(numbers.Integral)
         def _convert_numpy_int(data):

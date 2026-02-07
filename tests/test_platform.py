@@ -1,5 +1,6 @@
+from os.path import basename, expanduser
+
 import ubelt as ub
-from os.path import expanduser, basename
 
 
 def test_compressuser_without_home():

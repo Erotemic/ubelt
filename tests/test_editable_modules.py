@@ -56,6 +56,7 @@ class ProjectStructure():
 
     def install(self):
         import sys
+
         import ubelt as ub
         ub.cmd([sys.executable, '-m', 'pip', 'install', '-e', self.root],
                verbose=3, check=True)
@@ -65,6 +66,7 @@ class ProjectStructure():
 
     def uninstall(self):
         import sys
+
         import ubelt as ub
         ub.cmd([sys.executable, '-m', 'pip', 'uninstall', self.mod_name, '-y'],
                verbose=3, check=True)
@@ -301,13 +303,15 @@ class ProjectStructure():
         Requires:
             rich, xdev
         """
+        import distutils.sysconfig
+
+        import xdev
         from rich.console import Console
         from rich.panel import Panel
         from rich.syntax import Syntax
         from rich.table import Table
-        import distutils.sysconfig
+
         import ubelt as ub
-        import xdev
 
         console = Console()
 
@@ -396,6 +400,7 @@ class ProjectStructure():
     def serialize_install(self):
         # TODO: serialize this step to make it fast
         import distutils.sysconfig
+
         import ubelt as ub
         site_dpath = ub.Path(distutils.sysconfig.get_python_lib())
         egg_link_fpaths = list(site_dpath.glob(self.mod_name.replace('_', '*') + '*.egg-link'))
@@ -426,6 +431,7 @@ def _check_skip_editable_module_tests():
 def setup_module(module):
     """ setup any state specific to the execution of the given module."""
     import uuid
+
     import ubelt as ub
 
     _check_skip_editable_module_tests()

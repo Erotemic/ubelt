@@ -53,21 +53,32 @@ References:
 """
 from __future__ import annotations
 
-import typing
-import sys
-import operator as op
 import itertools as it
-from collections import OrderedDict
-from collections import defaultdict
-from ubelt.util_const import NoParam
+import operator as op
+import sys
+import typing
+from collections import OrderedDict, defaultdict
 from collections.abc import Generator, Iterable, Mapping
+
+from ubelt.util_const import NoParam
 
 KT = typing.TypeVar("KT")
 VT = typing.TypeVar("VT")
 T = typing.TypeVar("T")
 
 if typing.TYPE_CHECKING:
-    from typing import Self, Any, Callable, Dict, List, Optional, Set, Type, Union
+    from typing import (
+        Any,
+        Callable,
+        Dict,
+        List,
+        Optional,
+        Self,
+        Set,
+        Type,
+        Union,
+    )
+
     from ubelt.util_const import NoParamType
 
 __all__ = [

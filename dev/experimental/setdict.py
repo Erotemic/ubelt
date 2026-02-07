@@ -6,6 +6,7 @@ References:
     .. [SetDictRecipe2] https://code.activestate.com/recipes/577471-setdict/
 """
 import itertools as it
+
 from ubelt import NoParam
 
 

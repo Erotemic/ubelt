@@ -39,11 +39,11 @@ References:
 """
 from __future__ import annotations
 
-import typing
+import itertools as it
 import os
 import sys
-import itertools as it
-from os.path import exists, join, isdir, expanduser, normpath
+import typing
+from os.path import exists, expanduser, isdir, join, normpath
 
 if typing.TYPE_CHECKING:
     from collections.abc import Generator, Iterable

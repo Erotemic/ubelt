@@ -36,6 +36,7 @@ def benchmark_urepr_vs_alternatives2():
     items = make_nested_data()
 
     import timerit
+
     import ubelt as ub
     ti = timerit.Timerit(1, bestof=1, verbose=2)
 
@@ -49,10 +50,12 @@ def benchmark_urepr_vs_alternatives2():
 
 
 def benchmark_urepr_vs_alternatives():
-    import ubelt as ub
+    import pprint
+
     import pandas as pd
     import timerit
-    import pprint
+
+    import ubelt as ub
     # import inspect
 
     plot_labels = {

@@ -53,14 +53,13 @@ As of ubelt 1.1.0 you can now access and update the default extensions via the
 >>> print(ub.urepr({1: float('nan'), 2: float('inf'), 3: 3.0}, nl=0))
 """
 
+import collections
 import typing
 
-import collections
-from ubelt import util_str
-from ubelt import util_list
+from ubelt import util_list, util_str
 
 if typing.TYPE_CHECKING:
-    from typing import Callable, Any
+    from typing import Any, Callable
 
 __all__ = ['urepr', 'ReprExtensions']
 

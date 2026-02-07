@@ -51,16 +51,28 @@ Example:
 """
 from __future__ import annotations
 
-import typing
 import concurrent.futures
+import typing
 from concurrent.futures import as_completed
 
 __all__ = ['Executor', 'JobPool']
 
 if typing.TYPE_CHECKING:
-    from concurrent.futures import Future, ProcessPoolExecutor, ThreadPoolExecutor
+    from concurrent.futures import (
+        Future,
+        ProcessPoolExecutor,
+        ThreadPoolExecutor,
+    )
     from types import TracebackType
-    from typing import Any, Callable, Generator, Type, Iterator, Iterable, TypeVar
+    from typing import (
+        Any,
+        Callable,
+        Generator,
+        Iterable,
+        Iterator,
+        Type,
+        TypeVar,
+    )
     T = TypeVar("T")
 
 

@@ -4,8 +4,9 @@ Alternative to ub.DownloadManager
 
 
 def check_fsspec():
-    import ubelt as ub
     from os.path import join
+
+    import ubelt as ub
     dpath = ub.ensure_app_cache_dir('ubelt/simple_server')
     info = ub.cmd(['python', '-m', 'http.server', '--directory', dpath], detach=True)
 

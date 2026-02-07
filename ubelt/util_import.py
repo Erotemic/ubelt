@@ -14,12 +14,24 @@ path depending on where the first ``__init__.py`` file is.
 """
 from __future__ import annotations
 
-import typing
-from os.path import (abspath, basename, dirname, exists, expanduser, isdir,
-                     isfile, join, realpath, relpath, split, splitext)
 import os
 import sys
+import typing
 import warnings
+from os.path import (
+    abspath,
+    basename,
+    dirname,
+    exists,
+    expanduser,
+    isdir,
+    isfile,
+    join,
+    realpath,
+    relpath,
+    split,
+    splitext,
+)
 
 if typing.TYPE_CHECKING:
     from types import ModuleType, TracebackType
@@ -1106,8 +1118,8 @@ def _parse_static_node_value(node):
     Extract a constant value from a node if possible
     """
     import ast
-    from collections import OrderedDict
     import numbers
+    from collections import OrderedDict
     if (isinstance(node, ast.Constant) and isinstance(node.value, numbers.Number) if IS_PY_GE_308 else isinstance(node, ast.Num)):  # type: ignore[deprecated]
         value = node.value if IS_PY_GE_308 else node.n
     elif (isinstance(node, ast.Constant) and isinstance(node.value, str) if IS_PY_GE_308 else isinstance(node, ast.Str)):  # type: ignore[deprecated]

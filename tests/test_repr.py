@@ -371,8 +371,9 @@ def test_format_inf():
 
 
 def test_autosort():
-    import ubelt as ub
     import sys
+
+    import ubelt as ub
     dict_ = {
         'k2': [[9, 2, 3], [4, 5, 2]],
         'k1': [[1, 7, 3], [8, 5, 6]],

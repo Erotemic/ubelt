@@ -24,6 +24,7 @@ def test_capture_stream_stream_assign():
 
 def test_tee_string_io_flush():
     import io
+
     from ubelt.util_stream import TeeStringIO
     # Test flush with redirect
     tee = TeeStringIO(redirect=io.StringIO())

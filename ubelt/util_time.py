@@ -24,9 +24,9 @@ See Also:
 """
 from __future__ import annotations
 
-import typing
-import time
 import sys
+import time
+import typing
 from functools import lru_cache
 
 if typing.TYPE_CHECKING:

@@ -11,7 +11,7 @@ import typing
 if typing.TYPE_CHECKING:
     from typing import Any
 
-from .util_repr import urepr, ReprExtensions, _REPR_EXTENSIONS
+from .util_repr import _REPR_EXTENSIONS, ReprExtensions, urepr
 
 
 def repr2(data: object, **kwargs: Any) -> str:

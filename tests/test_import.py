@@ -1,9 +1,11 @@
+import itertools as it
 import os
 import sys
-import pytest
-import ubelt as ub
-import itertools as it
 from os.path import join
+
+import pytest
+
+import ubelt as ub
 from ubelt.util_import import PythonPathContext
 
 

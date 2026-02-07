@@ -33,8 +33,9 @@ def multiple_items_from_a_dictionary():
     using dictionaries makes it easy to add new information later (and it works
     very will with pandas).
     """
-    import ubelt as ub
     import kwimage
+
+    import ubelt as ub
     kwimage_test_image_names = ['airport', 'amazon', 'astro', 'carl',
                                 'lowcontrast']
     rows = []

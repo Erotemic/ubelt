@@ -5,8 +5,9 @@ DEBUG_PATH = 0
 
 
 def _demo_directory_structure():
-    import ubelt as ub
     import uuid
+
+    import ubelt as ub
 
     level = 0
 
@@ -551,8 +552,9 @@ def test_walk_compat_312():
         import pytest
         pytest.skip('only test on 3.12')
 
-    import ubelt as ub
     import pathlib
+
+    import ubelt as ub
 
     ours = ub.Path.appdir('ubelt/tests/ls')
     theirs = pathlib.Path(ours)
@@ -572,8 +574,9 @@ def test_walk_compat_312():
 
 
 def test_walk_bad_kwargs():
-    import ubelt as ub
     import pytest
+
+    import ubelt as ub
     self = ub.Path('foo')
     with pytest.raises(TypeError):
         list(self.walk(does_not_exist=True))

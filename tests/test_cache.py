@@ -1,6 +1,8 @@
 from os.path import exists
-import ubelt as ub
+
 import pytest
+
+import ubelt as ub
 
 
 def test_noexist_meta_clear():

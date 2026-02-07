@@ -44,9 +44,10 @@ def test_executor_timeout():
     pytest.skip(
         'long test, demos that timeout does not work with SerialExecutor')
 
-    import ubelt as ub
     import time
     from concurrent.futures import TimeoutError
+
+    import ubelt as ub
 
     def long_job(n, t):
         for i in range(n):
@@ -68,8 +69,9 @@ def test_executor_timeout():
 
 
 def test_job_pool_clear_completed():
-    import weakref
     import gc
+    import weakref
+
     import ubelt as ub
     is_deleted = {}
     weak_futures = {}
@@ -128,6 +130,7 @@ def simple_worker(jobid):
 
 def test_job_pool_transient():
     import weakref
+
     import ubelt as ub
     is_deleted = {}
     weak_futures = {}
@@ -243,10 +246,10 @@ def test_as_completed_timeout():
     """
     xdoctest ~/code/ubelt/tests/test_futures.py test_as_completed_timeout
     """
+    import uuid
     from concurrent.futures import TimeoutError
 
     import ubelt as ub
-    import uuid
     kill_fname = str(uuid.uuid4()) + '.signal'
 
     # modes = ['thread', 'process', 'serial']

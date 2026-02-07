@@ -15,10 +15,12 @@ CommandLine:
 
 
 def benchmark_template():
-    import ubelt as ub
+    from collections import defaultdict
+
     import pandas as pd
     import timerit
-    from collections import defaultdict
+
+    import ubelt as ub
 
     plot_labels = {
         'x': 'Input Size',

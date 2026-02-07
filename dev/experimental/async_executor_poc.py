@@ -6,10 +6,9 @@ Goal:
     be able to put ub.Executor in asyncio mode, which lets it coorporative
     scheduling.
 """
-import concurrent.futures
 import asyncio
+import concurrent.futures
 import types
-
 
 # async def _async_worker(executor_reference, work_queue, initializer=None, initargs=None):
 #     if initializer is not None:
@@ -216,8 +215,8 @@ class _AsyncFuture(concurrent.futures.Future):
 
 
 async def expensive_async_call():
-    import random
     import asyncio
+    import random
     time = random.randint(0, 10)
     sleep_coroutine = asyncio.sleep(time)
     return await sleep_coroutine
@@ -227,10 +226,11 @@ GLOBAL_COUNTER = 0
 
 
 def my_function(arg):
-    import kwutil
+    import asyncio
     import random
     import time
-    import asyncio
+
+    import kwutil
     global GLOBAL_COUNTER
     GLOBAL_COUNTER += 1
 

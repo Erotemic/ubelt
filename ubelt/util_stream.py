@@ -10,8 +10,9 @@ how the former is implemented.
 
 """
 from __future__ import annotations
-import sys
+
 import io
+import sys
 import typing
 
 if typing.TYPE_CHECKING:

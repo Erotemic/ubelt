@@ -2,6 +2,7 @@
 
 def variant():
     import random
+
     import ubelt as ub
     num_items = 100
     num_other = 1
@@ -47,10 +48,12 @@ def variant():
 
 
 def benchmark_dict_diff_impl():
-    import ubelt as ub
+    import random
+
     import pandas as pd
     import timerit
-    import random
+
+    import ubelt as ub
 
     def method_diffkeys(*args):
         first_dict = args[0]

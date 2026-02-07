@@ -16,11 +16,12 @@ def bench_dict_hist_finalize():
     """
 
     import operator as op
-    import ubelt as ub
-
-    import timerit
     import random
     import string
+
+    import timerit
+
+    import ubelt as ub
     rng = random.Random(0)
     items = [rng.choice(string.printable) for _ in range(5000)]
     hist_ = ub.ddict(lambda: 0)
@@ -65,11 +66,13 @@ def bench_dict_hist():
         Timed best=59.392 µs, mean=63.395 ± 11.9 µs for dict_subset_list
         Timed best=47.203 µs, mean=47.632 ± 0.2 µs for direct_itemgetter
     """
-    import ubelt as ub
-    import timerit
+    import collections
     import random
     import string
-    import collections
+
+    import timerit
+
+    import ubelt as ub
     rng = random.Random(0)
     items = [rng.choice(string.printable) for _ in range(5000)]
 
@@ -108,10 +111,10 @@ def bench_sort_dictionary():
         Timed best=28.810 µs, mean=29.138 ± 0.3 µs for lambda
     """
     import operator as op
-    import ubelt as ub
-
     import random
     import string
+
+    import ubelt as ub
     rng = random.Random(0)
     items = [rng.choice(string.printable) for _ in range(5000)]
     hist_ = ub.ddict(lambda: 0)

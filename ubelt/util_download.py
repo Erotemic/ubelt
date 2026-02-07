@@ -16,16 +16,16 @@ if it needs to.
 
 from __future__ import annotations
 
+import os
 import typing
+from os.path import basename, dirname, exists, join, split
 
 from ubelt.util_const import NoParam
-from os.path import basename, join, exists, dirname, split
-import os
-
 
 if typing.TYPE_CHECKING:
     import datetime
-    from typing import Mapping, Any, BinaryIO, cast
+    from typing import Any, BinaryIO, Mapping, cast
+
     from ubelt.util_const import NoParamType
 
     BytesLike = bytes | bytearray | memoryview
@@ -191,18 +191,19 @@ def download(
         >>> with pytest.raises(RuntimeError):
         >>>     ub.download(url, hasher='sha512', hash_prefix='BAD_HASH')
     """
-    from ubelt import ProgIter as Progress
-    from ubelt.util_platform import platform_cache_dir
+    import hashlib
     import pathlib
     import shutil
     import tempfile
-    import hashlib
+
+    from ubelt import ProgIter as Progress
+    from ubelt.util_platform import platform_cache_dir
 
     if timeout is NoParam:
         import socket
         timeout = socket._GLOBAL_DEFAULT_TIMEOUT  # type: ignore[unresolved-attribute]
 
-    from urllib.request import urlopen, Request
+    from urllib.request import Request, urlopen
 
     if fpath and (dpath or fname):
         raise ValueError('Cannot specify fpath with dpath or fname')
@@ -493,8 +494,9 @@ def grabdata(
         >>> assert json.loads(stamp_fpath.read_text())['hash'][0].startswith(prefix2)
     """
     import pathlib
-    from ubelt.util_platform import platform_cache_dir
+
     from ubelt.util_cache import CacheStamp
+    from ubelt.util_platform import platform_cache_dir
     if appname and dpath:
         raise ValueError('Cannot specify appname with dpath')
     if fpath and (dpath or fname or appname):

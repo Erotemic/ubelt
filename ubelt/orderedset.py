@@ -31,8 +31,8 @@ and released under the MIT license.
 """
 from __future__ import annotations
 
-import typing
 import itertools as it
+import typing
 from collections import deque
 from typing import MutableSet, Sequence
 

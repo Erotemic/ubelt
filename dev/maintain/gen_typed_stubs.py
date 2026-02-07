@@ -18,21 +18,34 @@ CommandLine:
     # Run mypy to check that type annotations are correct
     mypy ubelt
 """
-from mypy.stubgen import (StubGenerator, find_self_initializers, FUNC, EMPTY, METHODS_WITH_RETURN_VALUE,)
 import sys
+from typing import Dict, List, Optional
 
-from typing import (List, Dict, Optional)
 from mypy.nodes import (
+    # FuncBase, Block,
+    # Statement, OverloadedFuncDef, ARG_POS,
+    ARG_STAR,
+    ARG_STAR2,
+    # ARG_NAMED,
     # Expression, IntExpr, UnaryExpr, StrExpr, BytesExpr, NameExpr, FloatExpr, MemberExpr,
     # TupleExpr, ListExpr, ComparisonExpr, CallExpr, IndexExpr, EllipsisExpr,
     # ClassDef, MypyFile, Decorator, AssignmentStmt, TypeInfo,
     # IfStmt, ImportAll, ImportFrom, Import,
     FuncDef,
-    # FuncBase, Block,
-    # Statement, OverloadedFuncDef, ARG_POS,
-    ARG_STAR, ARG_STAR2,
-    # ARG_NAMED,
 )
+from mypy.stubgen import (
+    EMPTY,
+    FUNC,
+    METHODS_WITH_RETURN_VALUE,
+    StubGenerator,
+    find_self_initializers,
+)
+from mypy.traverser import (
+    all_yield_expressions,
+    has_return_statement,
+    has_yield_expression,
+)
+
 # from mypy.stubgenc import generate_stub_for_c_module
 # from mypy.stubutil import (
 #     default_py2_interpreter, CantImport, generate_guarded,
@@ -40,16 +53,11 @@ from mypy.nodes import (
 #     report_missing, fail_missing, remove_misplaced_type_comments, common_dir_prefix
 # )
 from mypy.types import (
-    # Type, TypeStrVisitor,
-    CallableType,
     # UnboundType, NoneType, TupleType, TypeList, Instance,
     AnyType,
-    get_proper_type
-)
-from mypy.traverser import (
-    all_yield_expressions,
-    has_return_statement,
-    has_yield_expression
+    # Type, TypeStrVisitor,
+    CallableType,
+    get_proper_type,
 )
 
 
@@ -109,15 +117,16 @@ def generate_typed_stubs():
     get_proper_type(z)
 
     """
-    import pathlib
-    import ubelt
     import os
+    import pathlib
+    from os.path import dirname, join
+
     import autoflake
     import yapf
-    from mypy import stubgen
-    from mypy import defaults
+    from mypy import defaults, stubgen
     from xdoctest import static_analysis
-    from os.path import dirname, join
+
+    import ubelt
     ubelt_dpath = dirname(ubelt.__file__)
 
     for p in pathlib.Path(ubelt_dpath).glob('*.pyi'):

@@ -1,16 +1,14 @@
 """
 TODO: test _can_symlink=False variants on systems that can symlink.
 """
-from os.path import isdir
-from os.path import isfile
-from os.path import islink
-from os.path import join, exists, relpath, dirname
-import ubelt as ub
-import pytest
 import os
-from ubelt import util_links
 import sys
+from os.path import dirname, exists, isdir, isfile, islink, join, relpath
 
+import pytest
+
+import ubelt as ub
+from ubelt import util_links
 
 if sys.platform.startswith('win32'):
     try:
@@ -24,6 +22,7 @@ def test_rel_dir_link():
     xdoctest ~/code/ubelt/tests/test_links.py test_rel_dir_link
     """
     import pytest
+
     import ubelt as ub
     if ub.WIN32 and jwfs is None:
         pytest.skip()  # hack for windows for now.
@@ -78,6 +77,7 @@ def test_rel_dir_link():
 
 def test_rel_file_link():
     import pytest
+
     import ubelt as ub
     if ub.WIN32 and jwfs is None:
         pytest.skip()  # hack for windows for now.
@@ -137,6 +137,7 @@ def test_delete_symlinks():
         python -m ubelt.tests.test_links test_delete_symlinks
     """
     import pytest
+
     import ubelt as ub
     if ub.WIN32 and jwfs is None:
         pytest.skip()  # hack for windows for now.
@@ -246,6 +247,7 @@ def test_delete_symlinks():
 
 def test_modify_directory_symlinks():
     import pytest
+
     import ubelt as ub
     if ub.WIN32 and jwfs is None:
         pytest.skip()  # hack for windows for now.
@@ -309,6 +311,7 @@ def test_modify_file_symlinks():
         python -m ubelt.tests.test_links test_modify_symlinks
     """
     import pytest
+
     import ubelt as ub
     if ub.WIN32 and jwfs is None:
         pytest.skip()  # hack for windows for now.
@@ -336,6 +339,7 @@ def test_broken_link():
         python -m ubelt.tests.test_links test_broken_link
     """
     import pytest
+
     import ubelt as ub
     if ub.WIN32 and jwfs is None:
         pytest.skip()  # hack for windows for now.
@@ -404,6 +408,7 @@ def test_overwrite_symlink():
         python ~/code/ubelt/tests/test_links.py test_overwrite_symlink
     """
     import pytest
+
     import ubelt as ub
     if ub.WIN32 and jwfs is None:
         pytest.skip()  # hack for windows for now.

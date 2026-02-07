@@ -119,7 +119,7 @@ from __future__ import annotations
 
 import os
 import typing
-from os.path import join, normpath, basename, exists
+from os.path import basename, exists, join, normpath
 
 if typing.TYPE_CHECKING:
     import datetime as datetime_mod
@@ -275,8 +275,9 @@ class Cacher:
         if verbose is None:
             verbose = self.VERBOSE
         if dpath is None:  # pragma: no branch
-            from ubelt.util_platform import platform_cache_dir
             import pathlib
+
+            from ubelt.util_platform import platform_cache_dir
             cache_dpath = pathlib.Path(platform_cache_dir())
             dpath = cache_dpath / (appname or 'ubelt')
             dpath.mkdir(parents=True, exist_ok=True)
@@ -1203,8 +1204,9 @@ class CacheStamp:
             >>> assert self._expires(dt) == dt + self.expires
         """
         # Rectify into a datetime
-        from ubelt.util_time import timeparse
         import datetime as datetime_mod
+
+        from ubelt.util_time import timeparse
         if now is None:
             now = datetime_mod.datetime.now()
         expires = self.expires

@@ -76,16 +76,17 @@ Example:
 """
 from __future__ import annotations
 
-import typing
+import collections
 import sys
 import time
-import collections
+import typing
 
 if typing.TYPE_CHECKING:
-    from _typeshed import SupportsWrite
+    from collections.abc import Iterator
     from types import TracebackType
     from typing import Type
-    from collections.abc import Iterator
+
+    from _typeshed import SupportsWrite
 
 from itertools import islice
 from typing import Iterable
@@ -964,7 +965,7 @@ class ProgIter(_TQDMCompat, _BackwardsCompat, Iterable[T]):
             >>> print(self._build_message_template()[1].strip())
             {desc} {percent:03.2f}% {iter_idx:1d}/0...{extra} rate={rate:{rate_format}} Hz, total={total}
         """
-        from math import log10, floor
+        from math import floor, log10
         tot = self.total
         length_unknown = tot is None or tot < 0
         if length_unknown:

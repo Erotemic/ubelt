@@ -1,10 +1,12 @@
-import pickle
-import pytest
 import collections
-import sys
-import operator
 import itertools as it
+import operator
+import pickle
 import random
+import sys
+
+import pytest
+
 from ubelt import OrderedSet
 
 
