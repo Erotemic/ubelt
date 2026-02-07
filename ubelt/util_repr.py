@@ -53,14 +53,13 @@ As of ubelt 1.1.0 you can now access and update the default extensions via the
 >>> print(ub.urepr({1: float('nan'), 2: float('inf'), 3: 3.0}, nl=0))
 """
 
+import collections
 import typing
 
-import collections
-from ubelt import util_str
-from ubelt import util_list
+from ubelt import util_list, util_str
 
 if typing.TYPE_CHECKING:
-    from typing import Callable, Any
+    from typing import Any, Callable
 
 __all__ = ['urepr', 'ReprExtensions']
 
@@ -368,6 +367,7 @@ class ReprExtensions:
             'b': I can do anything here
         }
     """
+
     # set_types = [set, frozenset]
     # list_types = [list, tuple]
     # dict_types = [dict]
@@ -401,6 +401,7 @@ class ReprExtensions:
         Returns:
             collections.abc.Callable: decorator function
         """
+
         def _decorator(func: Callable[..., Any]) -> Callable[..., Any]:
             if isinstance(key, tuple):
                 for t in key:
@@ -410,6 +411,7 @@ class ReprExtensions:
             else:
                 self._type_registry[key] = func
             return func
+
         return _decorator
 
     def lookup(self, data: Any) -> Callable[..., Any] | None:
@@ -453,11 +455,13 @@ class ReprExtensions:
             >>> print(ub.urepr(data, precision=2))
             >>> print(ub.urepr({'akeyfdfj': data}, precision=2))
         """
+
         @self.register('DataFrame')
         def format_pandas(data: Any, **kwargs: Any) -> str:  # nocover
             precision = kwargs.get('precision', None)
-            float_format = (None if precision is None
-                            else '%.{}f'.format(precision))
+            float_format = (
+                None if precision is None else '%.{}f'.format(precision)
+            )
             formatted = data.to_string(float_format=float_format)
             return formatted
 
@@ -522,15 +526,19 @@ class ReprExtensions:
 
         # TODO: should we register numpy using the new string method?
         import numpy as np
+
         @self.register(np.ndarray)
         def format_ndarray(data: Any, **kwargs: Any) -> str:
             import re
+
             strvals = kwargs.get('sv', kwargs.get('strvals', False))
             itemsep = kwargs.get('itemsep', ' ')
             precision = kwargs.get('precision', None)
             suppress_small = kwargs.get('supress_small', None)
             max_line_width = kwargs.get('max_line_width', None)
-            with_dtype = kwargs.get('with_dtype', kwargs.get('dtype', not strvals))
+            with_dtype = kwargs.get(
+                'with_dtype', kwargs.get('dtype', not strvals)
+            )
             newlines = kwargs.pop('nl', kwargs.pop('newlines', 1))
 
             # if with_dtype and strvals:
@@ -557,7 +565,9 @@ class ReprExtensions:
                 if with_dtype:
                     dtype_repr = data.dtype.name
                     # dtype_repr = np.core.arrayprint.dtype_short_repr(data.dtype)
-                    suffix = ',{}dtype={}.{})'.format(itemsep, np_nice, dtype_repr)
+                    suffix = ',{}dtype={}.{})'.format(
+                        itemsep, np_nice, dtype_repr
+                    )
                 else:
                     suffix = ')'
 
@@ -566,11 +576,14 @@ class ReprExtensions:
                 prefix = modname + '.empty('
                 body = repr(tuple(map(int, data.shape)))
             else:
-                body = np.array2string(data, precision=precision,
-                                       separator=separator,
-                                       suppress_small=suppress_small,
-                                       prefix=prefix,
-                                       max_line_width=max_line_width)
+                body = np.array2string(
+                    data,
+                    precision=precision,
+                    separator=separator,
+                    suppress_small=suppress_small,
+                    prefix=prefix,
+                    max_line_width=max_line_width,
+                )
 
             if not strvals:
                 # Handle special float values inf / nan
@@ -608,6 +621,7 @@ class ReprExtensions:
                 # json.loads("[Infinity, NaN]")
                 # json.dumps([float('inf'), float('nan')])
                 import math
+
                 if math.isinf(data) or math.isnan(data):
                     text = "float('{}')".format(text)
 
@@ -619,6 +633,7 @@ class ReprExtensions:
                 return 'slice(%r,%r,%r)' % (data.start, data.stop, data.step)
             else:
                 return _format_object(data, **kwargs)
+
 
 _REPR_EXTENSIONS = ReprExtensions()
 _REPR_EXTENSIONS._register_builtin_extensions()
@@ -638,6 +653,7 @@ def _lazy_init() -> None:
         # _REPR_EXTENSIONS._register_torch_extensions()
     except ImportError:  # nocover
         pass
+
 
 _REPR_EXTENSIONS._lazy_queue.append(_lazy_init)
 
@@ -693,18 +709,26 @@ def _format_list(list_: Any, **kwargs: Any) -> tuple[str, dict[str, int]]:
         nobraces = False  # force braces to prevent empty output
 
     is_tuple = isinstance(list_, tuple)
-    is_set = isinstance(list_, (set, frozenset,))
+    is_set = isinstance(
+        list_,
+        (
+            set,
+            frozenset,
+        ),
+    )
     if nobraces:
         lbr, rbr = '', ''
     elif is_tuple:
-        lbr, rbr  = '(', ')'
+        lbr, rbr = '(', ')'
     elif is_set:
-        lbr, rbr  = '{', '}'
+        lbr, rbr = '{', '}'
     else:
-        lbr, rbr  = '[', ']'
+        lbr, rbr = '[', ']'
 
     # Doesn't actually put in trailing comma if on same line
-    trailing_sep = kwargs.get('trailsep', kwargs.get('trailing_sep', newlines > 0 and len(itemstrs)))
+    trailing_sep = kwargs.get(
+        'trailsep', kwargs.get('trailing_sep', newlines > 0 and len(itemstrs))
+    )
 
     # The trailing separator is always needed for single item tuples
     if is_tuple and len(list_) <= 1:
@@ -713,12 +737,23 @@ def _format_list(list_: Any, **kwargs: Any) -> tuple[str, dict[str, int]]:
     if len(itemstrs) == 0:
         newlines = False
 
-    retstr = _join_itemstrs(itemstrs, itemsep, newlines, _leaf_info, nobraces,
-                            trailing_sep, compact_brace, lbr, rbr)
+    retstr = _join_itemstrs(
+        itemstrs,
+        itemsep,
+        newlines,
+        _leaf_info,
+        nobraces,
+        trailing_sep,
+        compact_brace,
+        lbr,
+        rbr,
+    )
     return retstr, _leaf_info
 
 
-def _format_dict(dict_: dict[Any, Any], **kwargs: Any) -> tuple[str, dict[str, int] | None]:
+def _format_dict(
+    dict_: dict[Any, Any], **kwargs: Any
+) -> tuple[str, dict[str, int] | None]:
     """
     Makes a pretty printable / human-readable string representation of a
     dictionary. In most cases this string could be evaled.
@@ -790,7 +825,9 @@ def _format_dict(dict_: dict[Any, Any], **kwargs: Any) -> tuple[str, dict[str, i
     # kwargs['cbr'] = _rectify_countdown_or_bool(compact_brace)
 
     # Doesn't actually put in trailing comma if on same line
-    trailing_sep = kwargs.get('trailsep', kwargs.get('trailing_sep', newlines > 0))
+    trailing_sep = kwargs.get(
+        'trailsep', kwargs.get('trailing_sep', newlines > 0)
+    )
     explicit = kwargs.get('explicit', False)
     itemsep = kwargs.get('itemsep', ' ')
 
@@ -818,8 +855,18 @@ def _format_dict(dict_: dict[Any, Any], **kwargs: Any) -> tuple[str, dict[str, i
             lbr, rbr = 'dict(', ')'
         else:
             lbr, rbr = '{', '}'
-        retstr = _join_itemstrs(itemstrs, itemsep, newlines, _leaf_info, nobraces,
-                                trailing_sep, compact_brace, lbr, rbr, align_char)
+        retstr = _join_itemstrs(
+            itemstrs,
+            itemsep,
+            newlines,
+            _leaf_info,
+            nobraces,
+            trailing_sep,
+            compact_brace,
+            lbr,
+            rbr,
+            align_char,
+        )
     return retstr, _leaf_info
 
 
@@ -875,20 +922,22 @@ def _join_itemstrs(
                 body_str += ','
             if compact_brace:
                 # Why can we modify the indentation here but not above?
-                braced_body_str = (lbr + body_str.replace('\n', '\n ') + rbr)
+                braced_body_str = lbr + body_str.replace('\n', '\n ') + rbr
             else:
-                braced_body_str = (lbr + '\n' + body_str + '\n' + rbr)
+                braced_body_str = lbr + '\n' + body_str + '\n' + rbr
             retstr = braced_body_str
     else:
         sep = ',' + itemsep
         body_str = sep.join(itemstrs)
         if trailing_sep and len(itemstrs) > 0:
             body_str += ','
-        retstr  = (lbr + body_str +  rbr)
+        retstr = lbr + body_str + rbr
     return retstr
 
 
-def _dict_itemstrs(dict_: dict[Any, Any], **kwargs: Any) -> tuple[list[str], dict[str, int]]:
+def _dict_itemstrs(
+    dict_: dict[Any, Any], **kwargs: Any
+) -> tuple[list[str], dict[str, int]]:
     """
     Create a string representation for each item in a dict.
 
@@ -906,6 +955,7 @@ def _dict_itemstrs(dict_: dict[Any, Any], **kwargs: Any) -> tuple[list[str], dic
         >>> assert char_order == ['b', 'g', 'l', 'm', 's', 'w']
     """
     import ubelt as ub
+
     explicit = kwargs.get('explicit', False)
     kwargs['explicit'] = _rectify_countdown_or_bool(explicit)
     precision = kwargs.get('precision', None)
@@ -986,7 +1036,9 @@ def _dict_itemstrs(dict_: dict[Any, Any], **kwargs: Any) -> tuple[list[str], dic
     return itemstrs, _leaf_info
 
 
-def _list_itemstrs(list_: Any, **kwargs: Any) -> tuple[list[str], dict[str, int]]:
+def _list_itemstrs(
+    list_: Any, **kwargs: Any
+) -> tuple[list[str], dict[str, int]]:
     """
     Create a string representation for each item in a list.
 
@@ -1018,7 +1070,11 @@ def _list_itemstrs(list_: Any, **kwargs: Any) -> tuple[list[str], dict[str, int]
     return itemstrs, _leaf_info
 
 
-def _sort_itemstrs(items: list[Any], itemstrs: list[str], key: Callable[[Any], Any] | None = None) -> list[str]:
+def _sort_itemstrs(
+    items: list[Any],
+    itemstrs: list[str],
+    key: Callable[[Any], Any] | None = None,
+) -> list[str]:
     """
     Equivalent to ``sorted(items)`` except if ``items`` are unorderable, then
     string values are used to define an ordering.
@@ -1079,7 +1135,9 @@ def _rectify_countdown_or_bool(count_or_bool: Any) -> bool | int:
     return count_or_bool_
 
 
-def _align_text(text: str, character: str = '=', replchar: str | None = None, pos: int = 0) -> str:
+def _align_text(
+    text: str, character: str = '=', replchar: str | None = None, pos: int = 0
+) -> str:
     r"""
     Left justifies text on the left side of character
 
@@ -1107,7 +1165,12 @@ def _align_text(text: str, character: str = '=', replchar: str | None = None, po
     return new_text
 
 
-def _align_lines(line_list: list[str], character: str = '=', replchar: str | None = None, pos: int | list[int] | None = 0) -> list[str]:
+def _align_lines(
+    line_list: list[str],
+    character: str = '=',
+    replchar: str | None = None,
+    pos: int | list[int] | None = 0,
+) -> list[str]:
     r"""
     Left justifies text on the left side of character
 
@@ -1186,8 +1249,9 @@ def _align_lines(line_list: list[str], character: str = '=', replchar: str | Non
         # recursive calls
         new_lines = line_list
         for pos in pos_list:
-            new_lines = _align_lines(new_lines, character=character,
-                                     replchar=replchar, pos=pos)
+            new_lines = _align_lines(
+                new_lines, character=character, replchar=replchar, pos=pos
+            )
         return new_lines
 
     # base case

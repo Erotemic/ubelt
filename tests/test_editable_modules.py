@@ -10,11 +10,12 @@ We should look into if there is a cheaper way to emulate it.
 What we could do is run the expensive test once, and serialize the outputs it
 produces so we can simply reconstruct the environment.
 """
+
 import os
 import sys
 
 
-class ProjectStructure():
+class ProjectStructure:
     """
     Method to help setup and teardown a demo package installed in editable
     mode.
@@ -32,8 +33,10 @@ class ProjectStructure():
         self.install()
 
     """
+
     def __init__(self, repo_dpath='.', mod_name='demopkg_mwe', use_src=True):
         import ubelt as ub
+
         self.root = ub.Path(repo_dpath)
         self.mod_name = mod_name
         self.use_src = use_src
@@ -42,9 +45,9 @@ class ProjectStructure():
         else:
             self.python_relpath = ub.Path('.')
         self.cxx_relpath = ub.Path('src', 'cxx')
-        self.cxx_path    = (self.root / self.cxx_relpath)
-        self.python_path = (self.root / self.python_relpath)
-        self.mod_dpath = (self.python_path / self.mod_name)
+        self.cxx_path = self.root / self.cxx_relpath
+        self.python_path = self.root / self.python_relpath
+        self.mod_dpath = self.python_path / self.mod_name
 
     def setup(self):
         self.generate()
@@ -56,21 +59,32 @@ class ProjectStructure():
 
     def install(self):
         import sys
+
         import ubelt as ub
-        ub.cmd([sys.executable, '-m', 'pip', 'install', '-e', self.root],
-               verbose=3, check=True)
+
+        ub.cmd(
+            [sys.executable, '-m', 'pip', 'install', '-e', self.root],
+            verbose=3,
+            check=True,
+        )
 
     def delete(self):
         self.root.delete()
 
     def uninstall(self):
         import sys
+
         import ubelt as ub
-        ub.cmd([sys.executable, '-m', 'pip', 'uninstall', self.mod_name, '-y'],
-               verbose=3, check=True)
+
+        ub.cmd(
+            [sys.executable, '-m', 'pip', 'uninstall', self.mod_name, '-y'],
+            verbose=3,
+            check=True,
+        )
 
     def generate(self, with_cxx=0):
         import ubelt as ub
+
         self.mod_dpath.delete().ensuredir()
         self.cxx_path.delete()
         (self.root / 'CMakeLists.txt').delete()
@@ -78,22 +92,27 @@ class ProjectStructure():
 
         if self.use_src:
             package_dir_line = ub.codeblock(
-                f'''
+                f"""
                 package_dir={{'': '{self.python_relpath}'}},
-                ''')
+                """
+            )
         else:
             package_dir_line = ''
 
         # Give the MWE a CXX extension
         WITH_CXX = with_cxx
         if WITH_CXX:
-            (self.root / 'pyproject.toml').write_text(ub.codeblock(
-                '''
+            (self.root / 'pyproject.toml').write_text(
+                ub.codeblock(
+                    """
                 [build-system]
                 requires = ["setuptools>=41.0.1", "scikit-build>=0.11.1", "numpy", "ninja>=1.10.2", "cmake>=3.21.2", "cython>=0.29.24",]
-                '''))
-            (self.root / 'setup.py').write_text(ub.codeblock(
-                f'''
+                """
+                )
+            )
+            (self.root / 'setup.py').write_text(
+                ub.codeblock(
+                    f"""
                 if __name__ == '__main__':
                     from skbuild import setup
                     from setuptools import find_packages
@@ -107,10 +126,13 @@ class ProjectStructure():
                         packages=packages,
                         include_package_data=True,
                     )
-                '''))
+                """
+                )
+            )
             self.cxx_path.ensuredir()
-            (self.root / 'CMakeLists.txt').write_text(ub.codeblock(
-                rf'''
+            (self.root / 'CMakeLists.txt').write_text(
+                ub.codeblock(
+                    rf"""
                 cmake_minimum_required(VERSION 3.13.0)
                 project({self.mod_name} LANGUAGES C Fortran)
 
@@ -157,17 +179,23 @@ class ProjectStructure():
 
                 # Cython library
                 add_subdirectory("src/python/{self.mod_name}")
-                '''))
+                """
+                )
+            )
 
-            (self.cxx_path / 'myalgo.h').write_text(ub.codeblock(
-                '''
+            (self.cxx_path / 'myalgo.h').write_text(
+                ub.codeblock(
+                    """
                 #ifndef MYALGO_H
                 #define MYALGO_H
                 int myalgo(long *arr1, long *arr2, size_t num);
                 #endif MYALGO_H
-                '''))
-            (self.cxx_path / 'myalgo.c').write_text(ub.codeblock(
-                r'''
+                """
+                )
+            )
+            (self.cxx_path / 'myalgo.c').write_text(
+                ub.codeblock(
+                    r"""
                 #include <string.h>
                 long myalgo(long *arr1, long *arr2, size_t num)
                 {
@@ -177,17 +205,23 @@ class ProjectStructure():
                     }
                     return 1;
                 }
-                '''))
+                """
+                )
+            )
             cmake_list_cxx = self.cxx_path / 'CMakeLists.txt'
-            cmake_list_cxx.write_text(ub.codeblock(
-                '''
+            cmake_list_cxx.write_text(
+                ub.codeblock(
+                    """
                 set(MYALGO_MODULE_NAME "myalgo")
                 list(APPEND MYALGO_SOURCES "myalgo.h" "myalgo.c")
                 add_library(${MYALGO_MODULE_NAME} STATIC ${MYALGO_SOURCES})
-                '''))
+                """
+                )
+            )
 
-            (self.mod_dpath / 'myalgo_cython.pyx').write_text(ub.codeblock(
-                '''
+            (self.mod_dpath / 'myalgo_cython.pyx').write_text(
+                ub.codeblock(
+                    '''
                 import numpy as np
                 cimport numpy as np
                 cdef extern from "../../cxx/myalgo.h":
@@ -212,10 +246,13 @@ class ProjectStructure():
                     print(f'arr1={arr1}')
                     print(f'arr2={arr2}')
                     return result
-                '''))
-
-            (self.mod_dpath / 'CMakeLists.txt').write_text(ub.codeblock(
                 '''
+                )
+            )
+
+            (self.mod_dpath / 'CMakeLists.txt').write_text(
+                ub.codeblock(
+                    """
                 set(cython_source "myalgo_cython.pyx")
                 set(PYMYALGO_MODULE_NAME "myalgo_cython")
 
@@ -260,19 +297,24 @@ class ProjectStructure():
                 set(pymyalgo_install_dest "src/python/{self.mod_name}")
                 #install(TARGETS ${MYALGO_MODULE_NAME} LIBRARY DESTINATION "${pymyalgo_install_dest}")
                 install(TARGETS ${PYMYALGO_MODULE_NAME} LIBRARY DESTINATION "${pymyalgo_install_dest}")
-                '''
-            ))
+                """
+                )
+            )
         else:
             # Pure Python
             # TODO: Might want to test with different build backends.
-            (self.root / 'pyproject.toml').write_text(ub.codeblock(
-                '''
+            (self.root / 'pyproject.toml').write_text(
+                ub.codeblock(
+                    """
                 [build-system]
                 requires = ["setuptools>=41.0.1", "wheel"]
                 build-backend = "setuptools.build_meta"
-                '''))
-            (self.root / 'setup.py').write_text(ub.codeblock(
-                f'''
+                """
+                )
+            )
+            (self.root / 'setup.py').write_text(
+                ub.codeblock(
+                    f"""
                 if __name__ == '__main__':
                     from setuptools import setup
                     from setuptools import find_packages
@@ -289,7 +331,9 @@ class ProjectStructure():
                         packages=packages,
                         include_package_data=True,
                     )
-                '''))
+                """
+                )
+            )
             (self.mod_dpath / 'py.typed').write_text('')
             (self.mod_dpath / 'submod.py').write_text('A = 1')
             (self.mod_dpath / 'submod.pyi').write_text('A: int')
@@ -301,18 +345,21 @@ class ProjectStructure():
         Requires:
             rich, xdev
         """
+        import distutils.sysconfig
+
+        import xdev
         from rich.console import Console
         from rich.panel import Panel
         from rich.syntax import Syntax
         from rich.table import Table
-        import distutils.sysconfig
+
         import ubelt as ub
-        import xdev
 
         console = Console()
 
         def rich_file_content(fpath, lexer='bash'):
             import os
+
             text = fpath.read_text()
             return Panel(Syntax(text, lexer), title=os.fspath(fpath))
 
@@ -329,14 +376,18 @@ class ProjectStructure():
         print('\n')
         print('Repo Structure:')
         directory_blocklist = ['.*', '.git', 'dist', '_skbuild', 'dev']
-        xdev.tree_repr(self.root, max_files=None, dirblocklist=directory_blocklist)
+        xdev.tree_repr(
+            self.root, max_files=None, dirblocklist=directory_blocklist
+        )
 
         seems_installed = 0
 
         print('\n')
         print('Content of the EGG Link:')
         site_dpath = ub.Path(distutils.sysconfig.get_python_lib())
-        egg_link_fpaths = list(site_dpath.glob(self.mod_name.replace('_', '*') + '*.egg-link'))
+        egg_link_fpaths = list(
+            site_dpath.glob(self.mod_name.replace('_', '*') + '*.egg-link')
+        )
         if len(egg_link_fpaths) == 0:
             console.print('[red] No egg link')
             seems_installed = 0
@@ -349,7 +400,11 @@ class ProjectStructure():
         # Note: (recently 2022-08-ish) python switched to a new type of
         # This is not present in setuptools==63.2.0 but is in 65.3.0
         # editable install. TODO: incomporate this.
-        editable_fpaths = list(site_dpath.glob('__editable__*' + self.mod_name.replace('_', '*') + '*'))
+        editable_fpaths = list(
+            site_dpath.glob(
+                '__editable__*' + self.mod_name.replace('_', '*') + '*'
+            )
+        )
         print(f'editable_fpaths={editable_fpaths}')
 
         print('\n')
@@ -359,16 +414,27 @@ class ProjectStructure():
         easy_install_text = easy_install_fpath.read_text()
         abs_path = self.mod_dpath.absolute().parent
         print(f'abs_path={abs_path}')
-        if str(abs_path)  in easy_install_text:
+        if str(abs_path) in easy_install_text:
             console.print('[green] Easy install dpath is good')
         else:
             console.print('[red] Easy install does not contain this package')
             # console.print(rich_file_content(easy_install_fpath))
 
         expected_egg_info_dpath = self.python_path / f'{self.mod_name}.egg-info'
-        all_egg_infos = [ub.Path(e).resolve() for e in xdev.find('*.egg-info', dpath=self.root, dirblocklist=directory_blocklist)]
-        other_egg_infos = set(all_egg_infos) - {expected_egg_info_dpath.resolve()}
-        print('expected_egg_info_dpath = {}'.format(ub.repr2(expected_egg_info_dpath, nl=1)))
+        all_egg_infos = [
+            ub.Path(e).resolve()
+            for e in xdev.find(
+                '*.egg-info', dpath=self.root, dirblocklist=directory_blocklist
+            )
+        ]
+        other_egg_infos = set(all_egg_infos) - {
+            expected_egg_info_dpath.resolve()
+        }
+        print(
+            'expected_egg_info_dpath = {}'.format(
+                ub.repr2(expected_egg_info_dpath, nl=1)
+            )
+        )
         if expected_egg_info_dpath.exists():
             console.print('[green] Egg info exists in expected location')
             egg_info_dpath = expected_egg_info_dpath
@@ -385,21 +451,33 @@ class ProjectStructure():
         if seems_installed:
             print('\n')
             print('Test to ensure we can import the module')
-            command = f'python -c "import {self.mod_name}; print({self.mod_name})"'
+            command = (
+                f'python -c "import {self.mod_name}; print({self.mod_name})"'
+            )
             info = ub.cmd(command, verbose=3)
             if info['ret'] != 0:
                 raise Exception('failed to import')
             assert str(self.mod_dpath) in info['out']
         else:
-            console.print('[yellow] Package does not seem installed, so skipping import test')
+            console.print(
+                '[yellow] Package does not seem installed, so skipping import test'
+            )
 
     def serialize_install(self):
         # TODO: serialize this step to make it fast
         import distutils.sysconfig
+
         import ubelt as ub
+
         site_dpath = ub.Path(distutils.sysconfig.get_python_lib())
-        egg_link_fpaths = list(site_dpath.glob(self.mod_name.replace('_', '*') + '*.egg-link'))
-        editable_fpaths = list(site_dpath.glob('__editable__*' + self.mod_name.replace('_', '*') + '*'))
+        egg_link_fpaths = list(
+            site_dpath.glob(self.mod_name.replace('_', '*') + '*.egg-link')
+        )
+        editable_fpaths = list(
+            site_dpath.glob(
+                '__editable__*' + self.mod_name.replace('_', '*') + '*'
+            )
+        )
         easy_install_fpath = site_dpath / 'easy-install.pth'  # NOQA
         print(f'egg_link_fpaths={egg_link_fpaths}')
         print(f'editable_fpaths={editable_fpaths}')
@@ -412,20 +490,24 @@ def _check_skip_editable_module_tests():
     UBELT_DO_EDITABLE_TESTS = os.environ.get('UBELT_DO_EDITABLE_TESTS', '')
     if not UBELT_DO_EDITABLE_TESTS:
         import pytest
+
         pytest.skip('UBELT_DO_EDITABLE_TESTS is not enabled')
 
     if sys.platform.startswith('win32'):
         import pytest
+
         pytest.skip('skip editable module tests on Win32')
 
     if sys.platform.startswith('freebsd'):
         import pytest
+
         pytest.skip('skip editable module tests on FreeBSD')
 
 
 def setup_module(module):
-    """ setup any state specific to the execution of the given module."""
+    """setup any state specific to the execution of the given module."""
     import uuid
+
     import ubelt as ub
 
     _check_skip_editable_module_tests()
@@ -435,8 +517,9 @@ def setup_module(module):
 
     # Define pure python module with ./src/python structure
     mod_name = 'purepy_src_demo_pkg_' + suffix
-    PUREPY_SRC_PROJECT = ProjectStructure(repo_dpath=dpath / mod_name,
-                                          mod_name=mod_name, use_src=True)
+    PUREPY_SRC_PROJECT = ProjectStructure(
+        repo_dpath=dpath / mod_name, mod_name=mod_name, use_src=True
+    )
     PUREPY_SRC_PROJECT.setup()
     GLOBAL_PROJECTS.append(PUREPY_SRC_PROJECT)
 
@@ -446,8 +529,9 @@ def setup_module(module):
 
     # Define pure python module with the package at root level
     mod_name = 'purepy_root_demo_pkg_' + suffix
-    PUREPY_SRC_PROJECT = ProjectStructure(repo_dpath=dpath / mod_name,
-                                          mod_name=mod_name, use_src=False)
+    PUREPY_SRC_PROJECT = ProjectStructure(
+        repo_dpath=dpath / mod_name, mod_name=mod_name, use_src=False
+    )
     PUREPY_SRC_PROJECT.setup()
     GLOBAL_PROJECTS.append(PUREPY_SRC_PROJECT)
 
@@ -457,7 +541,7 @@ def setup_module(module):
 
 
 def teardown_module(module):
-    """ teardown any state that was previously setup with a setup_module
+    """teardown any state that was previously setup with a setup_module
     method.
     """
     _check_skip_editable_module_tests()
@@ -469,6 +553,7 @@ def test_import_of_editable_install():
     _check_skip_editable_module_tests()
     print('Testing editable installs')
     import ubelt as ub
+
     for PROJ in GLOBAL_PROJECTS:
         result = ub.modname_to_modpath(PROJ.mod_name)
         print(f'result={result}')

@@ -12,6 +12,7 @@ The :func:`compatible` introspects a functions signature for accepted keyword
 arguments and returns the subset of a configuration dictionary that agrees with
 that signature.
 """
+
 from __future__ import annotations
 
 import typing
@@ -107,7 +108,9 @@ def inject_method(
     if name is None:
         name = getattr(func, '__name__', None)
         if name is None:
-            raise ValueError('func must have a __name__ attribute if name is not specified')
+            raise ValueError(
+                'func must have a __name__ attribute if name is not specified'
+            )
     if typing.TYPE_CHECKING:
         assert isinstance(name, str)
     setattr(self, name, new_method)
@@ -216,6 +219,7 @@ def compatible(
         ub.udict(report_config) & (sig.parameters)
     """
     import inspect
+
     sig = inspect.signature(func)
     argnames = []
     has_kwargs = False
@@ -226,8 +230,10 @@ def compatible(
             pass  # Ignore variadic positional args
         elif arg.kind == inspect.Parameter.POSITIONAL_ONLY:
             pass  # Ignore positional only arguments
-        elif arg.kind in {inspect.Parameter.POSITIONAL_OR_KEYWORD,
-                          inspect.Parameter.KEYWORD_ONLY}:
+        elif arg.kind in {
+            inspect.Parameter.POSITIONAL_OR_KEYWORD,
+            inspect.Parameter.KEYWORD_ONLY,
+        }:
             argnames.append(arg.name)
         else:  # nocover
             raise TypeError(arg.kind)
@@ -246,8 +252,9 @@ def compatible(
         # kwargs could be anything, so keep everything
         common = config
     else:
-        common = {k: config[k] for k in argnames[start:]
-                  if k in config}  # dict-intersection
+        common = {
+            k: config[k] for k in argnames[start:] if k in config
+        }  # dict-intersection
     return common
 
 

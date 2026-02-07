@@ -33,12 +33,12 @@ References:
 Requirements:
     pip install pygments
 """
+
 from __future__ import annotations
 
+import os
 import sys
 import warnings
-import os
-
 
 # Global state that determines if ANSI-coloring text is allowed
 # (which is mainly to address non-ANSI compliant windows consoles)
@@ -110,7 +110,9 @@ def highlight_code(
         else:
             raise KeyError(backend)
     except ImportError:  # nocover
-        warnings.warn(f'{backend} is not installed, code will not be highlighted')
+        warnings.warn(
+            f'{backend} is not installed, code will not be highlighted'
+        )
         new_text = text
     return new_text
 
@@ -123,17 +125,17 @@ def _pygments_highlight(text, lexer_name, **kwargs):
         # Hack on win32 to support colored output
         try:
             import colorama
+
             if not colorama.initialise.atexit_done:
                 # Only init if it hasn't been done
                 colorama.init()
         except ImportError:
-            warnings.warn(
-                'colorama is not installed, ansi colors may not work')
+            warnings.warn('colorama is not installed, ansi colors may not work')
 
     import pygments
-    import pygments.lexers
     import pygments.formatters
     import pygments.formatters.terminal
+    import pygments.lexers
 
     formatter = pygments.formatters.terminal.TerminalFormatter(bg='dark')
     lexer = pygments.lexers.get_lexer_by_name(lexer_name, **kwargs)
@@ -148,12 +150,16 @@ def _rich_highlight(text, lexer_name):  # nocover
     References:
         .. [RichDiscuss3076] https://github.com/Textualize/rich/discussions/3076
     """
-    from rich.syntax import Syntax
-    from rich.console import Console
     import io
+
+    from rich.console import Console
+    from rich.syntax import Syntax
+
     syntax = Syntax(text, lexer_name, background_color='default')
     stream = io.StringIO()
-    write_console = Console(file=stream, soft_wrap=True, color_system='standard')
+    write_console = Console(
+        file=stream, soft_wrap=True, color_system='standard'
+    )
     write_console.print(syntax)
     new_text = write_console.file.getvalue()  # type: ignore[unresolved-attribute]
     return new_text
@@ -207,20 +213,22 @@ def color_text(text: str, color: str | None) -> str:
     if (NO_COLOR and not FORCE_COLOR) or color is None:
         return text
     try:
-
         if sys.platform.startswith('win32'):  # nocover
             # Hack on win32 to support colored output
             try:
                 import colorama
+
                 if not colorama.initialise.atexit_done:
                     # Only init if it hasn't been done
                     colorama.init()
             except ImportError:
                 warnings.warn(
-                    'colorama is not installed, ansi colors may not work')
+                    'colorama is not installed, ansi colors may not work'
+                )
 
         import pygments
         import pygments.console
+
         try:
             ansi_text = pygments.console.colorize(color, text)
         except KeyError:

@@ -9,11 +9,13 @@ References:
     .. [PypiDictDigger] https://pypi.org/project/dict_digger/
     .. [PypiDeepDiff] https://pypi.org/project/deepdiff/
 """
+
 from __future__ import annotations
 
 import typing
-from math import isclose
 from collections.abc import Generator
+from math import isclose
+
 # from collections.abc import Iterable
 
 if typing.TYPE_CHECKING:
@@ -41,6 +43,7 @@ class Difference(typing.NamedTuple):
     A result class of indexable_diff that organizes what the difference between
     the indexables is.
     """
+
     path: tuple
     value1: Any
     value2: Any
@@ -203,7 +206,9 @@ class IndexableWalker(Generator):
         self.indexable_cls = self.dict_cls + self.list_cls
         self._walk_gen = None
 
-    def __iter__(self) -> Generator[tuple[list, typing.Any], typing.Any, typing.Any]:
+    def __iter__(
+        self,
+    ) -> Generator[tuple[list, typing.Any], typing.Any, typing.Any]:
         """
         Iterates through the indexable ``self.data``
 
@@ -238,7 +243,9 @@ class IndexableWalker(Generator):
         """
         # Note: this will error if called before __next__
         if self._walk_gen is None:
-            raise TypeError("cannot send to walker before iteration has started")
+            raise TypeError(
+                'cannot send to walker before iteration has started'
+            )
         self._walk_gen.send(arg)
 
     def throw(
@@ -280,6 +287,7 @@ class IndexableWalker(Generator):
             value (Any): new value
         """
         import itertools as it
+
         d = self.data
         # note: slice unpack seems faster in 3.9 at least, dont change
         # ~/misc/tests/python/bench_unpack.py
@@ -306,6 +314,7 @@ class IndexableWalker(Generator):
             Any: value
         """
         import itertools as it
+
         d = self.data
         # Using islice allows path to be a list or deque
         key_index = len(path) - 1
@@ -572,25 +581,28 @@ class IndexableWalker(Generator):
         if isinstance(other, IndexableWalker):
             walker2 = other
         else:
-            walker2 = IndexableWalker(other, dict_cls=self.dict_cls,
-                                      list_cls=self.list_cls)
+            walker2 = IndexableWalker(
+                other, dict_cls=self.dict_cls, list_cls=self.list_cls
+            )
 
         _isclose_fn, _iskw = _make_isclose_fn(rel_tol, abs_tol, equal_nan)
 
         flat_items1 = [
-            (path, value) for path, value in walker1
-            if not isinstance(value, walker1.indexable_cls) or len(value) == 0]
+            (path, value)
+            for path, value in walker1
+            if not isinstance(value, walker1.indexable_cls) or len(value) == 0
+        ]
         flat_items2 = [
-            (path, value) for path, value in walker2
-            if not isinstance(value, walker1.indexable_cls) or len(value) == 0]
+            (path, value)
+            for path, value in walker2
+            if not isinstance(value, walker1.indexable_cls) or len(value) == 0
+        ]
 
         flat_items1 = sorted(flat_items1)
         flat_items2 = sorted(flat_items2)
 
         if len(flat_items1) != len(flat_items2):
-            info = {
-                'faillist': ['length mismatch']
-            }
+            info = {'faillist': ['length mismatch']}
             final_flag = False
         else:
             passlist = []
@@ -604,8 +616,9 @@ class IndexableWalker(Generator):
                 # TODO: Could add a numpy optimization here.
 
                 flag = (v1 == v2) or (
-                    isinstance(v1, float) and isinstance(v2, float) and
-                    _isclose_fn(v1, v2, **_iskw)
+                    isinstance(v1, float)
+                    and isinstance(v2, float)
+                    and _isclose_fn(v1, v2, **_iskw)
                 )
                 if flag:
                     passlist.append(p1)
@@ -619,10 +632,12 @@ class IndexableWalker(Generator):
             }
 
         if return_info:
-            info.update({
-                'walker1': walker1,
-                'walker2': walker2,
-            })
+            info.update(
+                {
+                    'walker1': walker1,
+                    'walker2': walker2,
+                }
+            )
             return final_flag, info
         else:
             return final_flag
@@ -705,15 +720,20 @@ class IndexableWalker(Generator):
         if isinstance(other, IndexableWalker):
             walker2 = other
         else:
-            walker2 = IndexableWalker(other, dict_cls=self.dict_cls,
-                                      list_cls=self.list_cls)
+            walker2 = IndexableWalker(
+                other, dict_cls=self.dict_cls, list_cls=self.list_cls
+            )
         # TODO: numpy optimizations
         flat_items1 = {
-            tuple(path): value for path, value in walker1
-            if not isinstance(value, walker1.indexable_cls) or len(value) == 0}
+            tuple(path): value
+            for path, value in walker1
+            if not isinstance(value, walker1.indexable_cls) or len(value) == 0
+        }
         flat_items2 = {
-            tuple(path): value for path, value in walker2
-            if not isinstance(value, walker1.indexable_cls) or len(value) == 0}
+            tuple(path): value
+            for path, value in walker2
+            if not isinstance(value, walker1.indexable_cls) or len(value) == 0
+        }
 
         common = flat_items1.keys() & flat_items2.keys()
         unique1 = flat_items1.keys() - flat_items2.keys()
@@ -728,11 +748,12 @@ class IndexableWalker(Generator):
         for key in common:
             v1 = flat_items1[key]
             v2 = flat_items2[key]
-            flag = (v1 == v2)
+            flag = v1 == v2
             if not flag:
                 flag = (
-                    isinstance(v1, float) and isinstance(v2, float) and
-                    _isclose_fn(v1, v2, **_iskw)
+                    isinstance(v1, float)
+                    and isinstance(v2, float)
+                    and _isclose_fn(v1, v2, **_iskw)
                 )
                 num_approximations += flag
             if flag:
@@ -828,15 +849,18 @@ def indexable_allclose(
         >>> print('flag = {!r}'.format(flag))
     """
     from ubelt.util_deprecate import schedule_deprecation
+
     schedule_deprecation(
-        'ubelt', 'indexable_allclose', 'function',
-        migration=(
-            'Use `ub.IndexableWalker(items1).allclose(items2)` instead'
-        ))
+        'ubelt',
+        'indexable_allclose',
+        'function',
+        migration=('Use `ub.IndexableWalker(items1).allclose(items2)` instead'),
+    )
     walker1 = IndexableWalker(items1)
     walker2 = IndexableWalker(items2)
-    return walker1.allclose(walker2, rel_tol=rel_tol, abs_tol=abs_tol,
-                            return_info=return_info)
+    return walker1.allclose(
+        walker2, rel_tol=rel_tol, abs_tol=abs_tol, return_info=return_info
+    )
 
 
 # Nested = IndexableWalker

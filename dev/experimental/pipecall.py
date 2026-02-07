@@ -26,4 +26,5 @@ class RorList(RorListType.cls, metaclass=RorListType):
         >>> range(3) | L
         [0, 1, 2]
     """
+
     ...

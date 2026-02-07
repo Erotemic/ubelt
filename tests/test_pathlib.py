@@ -5,8 +5,9 @@ DEBUG_PATH = 0
 
 
 def _demo_directory_structure():
-    import ubelt as ub
     import uuid
+
+    import ubelt as ub
 
     level = 0
 
@@ -39,23 +40,62 @@ def _demo_directory_structure():
 
     # Create links inside and outside the root
     to_abs_symlink = []
-    to_abs_symlink.append((base / 'root/inside_dir/inside_file.txt' , base / 'root/links/inside_flink.txt'))
-    to_abs_symlink.append((base / 'outside_dir/outside_file.txt'    , base / 'root/links/outside_flink.txt'))
-    to_abs_symlink.append((base / 'outside_dir'                     , base / 'root/links/outside_dlink'))
-    to_abs_symlink.append((base / 'root/inside_dir'                 , base / 'root/links/inside_dlink'))
-    to_abs_symlink.append((base / 'root/links/cyclic'                , (base / 'root/links/cyclic/n1/n2').ensuredir() / 'loop'))
+    to_abs_symlink.append(
+        (
+            base / 'root/inside_dir/inside_file.txt',
+            base / 'root/links/inside_flink.txt',
+        )
+    )
+    to_abs_symlink.append(
+        (
+            base / 'outside_dir/outside_file.txt',
+            base / 'root/links/outside_flink.txt',
+        )
+    )
+    to_abs_symlink.append(
+        (base / 'outside_dir', base / 'root/links/outside_dlink')
+    )
+    to_abs_symlink.append(
+        (base / 'root/inside_dir', base / 'root/links/inside_dlink')
+    )
+    to_abs_symlink.append(
+        (
+            base / 'root/links/cyclic',
+            (base / 'root/links/cyclic/n1/n2').ensuredir() / 'loop',
+        )
+    )
 
     to_rel_symlink = []
-    to_rel_symlink.append((base / 'root/inside_dir/inside_file.txt' , base / 'root/links/rel_inside_flink.txt'))
-    to_rel_symlink.append((base / 'outside_dir/outside_file.txt'    , base / 'root/links/rel_outside_flink.txt'))
-    to_rel_symlink.append((base / 'outside_dir'                     , base / 'root/links/rel_outside_dlink'))
-    to_rel_symlink.append((base / 'root/inside_dir'                 , base / 'root/links/rel_inside_dlink'))
-    to_rel_symlink.append((base / 'root/links/rel_cyclic'           , (base / 'root/links/rel_cyclic/n1/n2/').ensuredir() / 'rel_loop'))
+    to_rel_symlink.append(
+        (
+            base / 'root/inside_dir/inside_file.txt',
+            base / 'root/links/rel_inside_flink.txt',
+        )
+    )
+    to_rel_symlink.append(
+        (
+            base / 'outside_dir/outside_file.txt',
+            base / 'root/links/rel_outside_flink.txt',
+        )
+    )
+    to_rel_symlink.append(
+        (base / 'outside_dir', base / 'root/links/rel_outside_dlink')
+    )
+    to_rel_symlink.append(
+        (base / 'root/inside_dir', base / 'root/links/rel_inside_dlink')
+    )
+    to_rel_symlink.append(
+        (
+            base / 'root/links/rel_cyclic',
+            (base / 'root/links/rel_cyclic/n1/n2/').ensuredir() / 'rel_loop',
+        )
+    )
 
     try:
         # TODO: the implementation of ubelt.symlink might be wrong when the
         # link target is relative.
         import os
+
         for real, link in to_abs_symlink:
             link.symlink_to(real)
             # ub.symlink(real, link, verbose=1)
@@ -66,10 +106,12 @@ def _demo_directory_structure():
             # ub.symlink(rel_real, link, verbose=1)
     except Exception:
         import pytest
+
         pytest.skip('unable to symlink')
 
     if 0:
         import xdev
+
         xdev.tree_repr(base)
     return base
 
@@ -87,6 +129,7 @@ def test_move_dir_to_non_existing():
 
     if DEBUG_PATH:
         import xdev
+
         xdev.tree_repr(base)
 
     root.move(base / 'our_move')
@@ -97,6 +140,7 @@ def test_move_dir_to_non_existing():
 
     if DEBUG_PATH:
         import xdev
+
         xdev.tree_repr(base)
 
     if ub.LINUX:
@@ -114,6 +158,7 @@ def test_move_to_nested_non_existing():
     root = base / 'root'
 
     import platform
+
     if ub.WIN32 and platform.python_implementation() == 'PyPy':
         ub.util_path._patch_win32_stats_on_pypy()
 
@@ -123,6 +168,7 @@ def test_move_to_nested_non_existing():
 
     if DEBUG_PATH:
         import xdev
+
         xdev.tree_repr(base)
 
     # shutil move will make the parent directory if it doesn't exist.
@@ -135,6 +181,7 @@ def test_move_to_nested_non_existing():
         ub.cmd(f'mv -Tv {root3} {base}/linux/moveT', verbose=2, check=1)
     if DEBUG_PATH:
         import xdev
+
         xdev.tree_repr(base)
 
     if ub.LINUX:
@@ -162,9 +209,11 @@ def test_move_dir_to_existing_dir_noconflict():
 
     if DEBUG_PATH:
         import xdev
+
         xdev.tree_repr(base)
 
     import pytest
+
     with pytest.raises(IOError):
         # shutil.move behaves similar to linux with -T
         # We are just going to disallow this case
@@ -176,6 +225,7 @@ def test_move_dir_to_existing_dir_noconflict():
 
     if DEBUG_PATH:
         import xdev
+
         xdev.tree_repr(base)
 
     base.delete()
@@ -185,7 +235,7 @@ def test_move_dir_to_existing_dir_withconflict():
     base = _demo_directory_structure()
 
     root = base / 'root'
-    bluntobject = (root / 'will_they_wont_they.txt')
+    bluntobject = root / 'will_they_wont_they.txt'
     bluntobject.write_text('smash!')
 
     if ub.LINUX:
@@ -196,29 +246,31 @@ def test_move_dir_to_existing_dir_withconflict():
     dst2 = (base / 'linux_move').ensuredir()
     dst3 = (base / 'linux_move_T').ensuredir()
 
-    toclobber1 = (dst1 / 'will_they_wont_they.txt')
+    toclobber1 = dst1 / 'will_they_wont_they.txt'
     toclobber1.write_text('I hope nobody clobbers me!')
-    disjoint1 = (dst1 / 'disjoint.txt')
+    disjoint1 = dst1 / 'disjoint.txt'
     disjoint1.write_text('I should be disjoint!')
 
-    toclobber2 = (dst2 / 'will_they_wont_they.txt')
+    toclobber2 = dst2 / 'will_they_wont_they.txt'
     toclobber2.write_text('I hope nobody clobbers me!')
-    disjoint2 = (dst2 / 'disjoint.txt')
+    disjoint2 = dst2 / 'disjoint.txt'
     disjoint2.write_text('I should be disjoint!')
 
-    toclobber3 = (dst3 / 'will_they_wont_they.txt')
+    toclobber3 = dst3 / 'will_they_wont_they.txt'
     toclobber3.write_text('I hope nobody clobbers me!')
-    disjoint3 = (dst3 / 'disjoint.txt')
+    disjoint3 = dst3 / 'disjoint.txt'
     disjoint3.write_text('I should be disjoint!')
 
     if DEBUG_PATH:
         import xdev
+
         print('BEFORE MOVE')
         xdev.tree_repr(base)
 
     # This case is weird, dont let the user do it.
     # they can use shutil if they want
     import pytest
+
     with pytest.raises(IOError):
         root.move(dst1)
 
@@ -231,6 +283,7 @@ def test_move_dir_to_existing_dir_withconflict():
 
         if DEBUG_PATH:
             import xdev
+
             print('AFTER MOVE')
             xdev.tree_repr(base)
 
@@ -257,13 +310,14 @@ def test_move_dir_to_existing_dir_withconflict():
 
     base.delete()
 
+
 ### Simple Copy Tests
 
 
 def test_copy_basic():
     dpath = ub.Path.appdir('ubelt', 'tests', 'test_path', 'test_copy_basic')
     dpath.delete().ensuredir()
-    fpath = (dpath / 'file.txt')
+    fpath = dpath / 'file.txt'
     fpath.write_text('foobar')
     empty_dpath = (dpath / 'empty_dir').ensuredir()
     full_dpath = (dpath / 'full_dir').ensuredir()
@@ -272,6 +326,7 @@ def test_copy_basic():
     if DEBUG_PATH:
         print('AFTER COPY')
         import xdev
+
         xdev.tree_repr(dpath)
 
     fpath.copy(fpath.augment(prefix='copied_'))
@@ -280,6 +335,7 @@ def test_copy_basic():
 
     # Doing it again will fail
     import pytest
+
     with pytest.raises(IOError):
         fpath.copy(fpath.augment(prefix='copied_'))
     with pytest.raises(IOError):
@@ -295,13 +351,14 @@ def test_copy_basic():
     if DEBUG_PATH:
         print('AFTER COPY')
         import xdev
+
         xdev.tree_repr(dpath)
 
 
 def test_copy_meta():
     dpath = ub.Path.appdir('ubelt', 'tests', 'test_path', 'test_copy_basic')
     dpath.delete().ensuredir()
-    fpath = (dpath / 'file.txt')
+    fpath = dpath / 'file.txt'
     fpath.write_text('foobar')
     empty_dpath = (dpath / 'empty_dir').ensuredir()
     full_dpath = (dpath / 'full_dir').ensuredir()
@@ -310,6 +367,7 @@ def test_copy_meta():
     if DEBUG_PATH:
         print('AFTER COPY')
         import xdev
+
         xdev.tree_repr(dpath)
 
     for meta in ['stats', 'mode', None]:
@@ -322,7 +380,9 @@ def test_copy_meta():
     if DEBUG_PATH:
         print('AFTER COPY')
         import xdev
+
         xdev.tree_repr(dpath)
+
 
 ### Simple Move Tests
 
@@ -330,7 +390,7 @@ def test_copy_meta():
 def test_move_basic():
     dpath = ub.Path.appdir('ubelt', 'tests', 'test_path', 'test_move_basic')
     dpath.delete().ensuredir()
-    fpath = (dpath / 'file.txt')
+    fpath = dpath / 'file.txt'
     fpath.write_text('foobar')
     empty_dpath = (dpath / 'empty_dir').ensuredir()
     full_dpath = (dpath / 'full_dir').ensuredir()
@@ -339,6 +399,7 @@ def test_move_basic():
     if DEBUG_PATH:
         print('AFTER COPY')
         import xdev
+
         xdev.tree_repr(dpath)
 
     fpath.move(fpath.augment(prefix='moved_'))
@@ -348,17 +409,20 @@ def test_move_basic():
     if DEBUG_PATH:
         print('AFTER COPY')
         import xdev
+
         xdev.tree_repr(dpath)
 
 
 def test_move_meta():
-    base_dpath = ub.Path.appdir('ubelt', 'tests', 'test_path', 'test_move_basic')
+    base_dpath = ub.Path.appdir(
+        'ubelt', 'tests', 'test_path', 'test_move_basic'
+    )
     base_dpath.delete().ensuredir()
 
     for meta in ['stats', 'mode', None]:
         prefix = 'copied_' + str(meta) + '_'
         dpath = (base_dpath / prefix).ensuredir()
-        fpath = (dpath / 'file.txt')
+        fpath = dpath / 'file.txt'
         fpath.write_text('foobar')
         empty_dpath = (dpath / 'empty_dir').ensuredir()
         full_dpath = (dpath / 'full_dir').ensuredir()
@@ -373,6 +437,7 @@ def test_move_meta():
     if DEBUG_PATH:
         print('AFTER MOVE')
         import xdev
+
         xdev.tree_repr(base_dpath)
 
 
@@ -385,6 +450,7 @@ def test_copy_dir_to_non_existing():
     if DEBUG_PATH:
         print('BEFORE COPY')
         import xdev
+
         xdev.tree_repr(base)
 
     dst = root.copy(base / 'our_copy')
@@ -396,6 +462,7 @@ def test_copy_dir_to_non_existing():
     if DEBUG_PATH:
         print('AFTER COPY')
         import xdev
+
         xdev.tree_repr(base)
 
     if ub.LINUX:
@@ -414,15 +481,33 @@ def test_copy_to_nested_non_existing_with_different_symlink_flags():
     root = base / 'root'
     if DEBUG_PATH:
         import xdev
+
         xdev.tree_repr(base)
-    root.copy(base / 'new_subdir' / 'new_root_FD0_FF1', follow_dir_symlinks=False, follow_file_symlinks=True)
-    root.copy(base / 'new_subdir' / 'new_root_FD0_FF0', follow_dir_symlinks=False, follow_file_symlinks=False)
+    root.copy(
+        base / 'new_subdir' / 'new_root_FD0_FF1',
+        follow_dir_symlinks=False,
+        follow_file_symlinks=True,
+    )
+    root.copy(
+        base / 'new_subdir' / 'new_root_FD0_FF0',
+        follow_dir_symlinks=False,
+        follow_file_symlinks=False,
+    )
     (root / 'links' / 'cyclic').delete()
     (root / 'links' / 'rel_cyclic').delete()
-    root.copy(base / 'new_subdir' / 'new_root_FD1_FF1', follow_dir_symlinks=True, follow_file_symlinks=True)
-    root.copy(base / 'new_subdir' / 'new_root_FD1_FF0', follow_dir_symlinks=True, follow_file_symlinks=False)
+    root.copy(
+        base / 'new_subdir' / 'new_root_FD1_FF1',
+        follow_dir_symlinks=True,
+        follow_file_symlinks=True,
+    )
+    root.copy(
+        base / 'new_subdir' / 'new_root_FD1_FF0',
+        follow_dir_symlinks=True,
+        follow_file_symlinks=False,
+    )
     if DEBUG_PATH:
         import xdev
+
         xdev.tree_repr(base)
     base.delete()
 
@@ -439,6 +524,7 @@ def test_copy_dir_to_existing_dir_noconflict():
 
     if DEBUG_PATH:
         import xdev
+
         print('BEFORE MOVE')
         xdev.tree_repr(base)
 
@@ -451,6 +537,7 @@ def test_copy_dir_to_existing_dir_noconflict():
 
     if DEBUG_PATH:
         import xdev
+
         print('AFTER MOVE')
         xdev.tree_repr(base)
 
@@ -468,30 +555,31 @@ def test_copy_dir_to_existing_dir_withconflict():
     base = _demo_directory_structure()
 
     root = base / 'root'
-    bluntobject = (root / 'will_they_wont_they.txt')
+    bluntobject = root / 'will_they_wont_they.txt'
     bluntobject.write_text('smash!')
 
     dst1 = (base / 'our_copy').ensuredir()
     dst2 = (base / 'linux_copy').ensuredir()
     dst3 = (base / 'linux_copyT').ensuredir()
 
-    toclobber1 = (dst1 / 'will_they_wont_they.txt')
+    toclobber1 = dst1 / 'will_they_wont_they.txt'
     toclobber1.write_text('I hope nobody clobbers me!')
-    disjoint1 = (dst1 / 'disjoint.txt')
+    disjoint1 = dst1 / 'disjoint.txt'
     disjoint1.write_text('I should be disjoint!')
 
-    toclobber2 = (dst2 / 'will_they_wont_they.txt')
+    toclobber2 = dst2 / 'will_they_wont_they.txt'
     toclobber2.write_text('I hope nobody clobbers me!')
-    disjoint2 = (dst2 / 'disjoint.txt')
+    disjoint2 = dst2 / 'disjoint.txt'
     disjoint2.write_text('I should be disjoint!')
 
-    toclobber3 = (dst3 / 'will_they_wont_they.txt')
+    toclobber3 = dst3 / 'will_they_wont_they.txt'
     toclobber3.write_text('I hope nobody clobbers me!')
-    disjoint3 = (dst3 / 'disjoint.txt')
+    disjoint3 = dst3 / 'disjoint.txt'
     disjoint3.write_text('I should be disjoint!')
 
     if DEBUG_PATH:
         import xdev
+
         print('BEFORE MOVE')
         xdev.tree_repr(base)
 
@@ -503,6 +591,7 @@ def test_copy_dir_to_existing_dir_withconflict():
 
     if DEBUG_PATH:
         import xdev
+
         print('AFTER MOVE')
         xdev.tree_repr(base)
 
@@ -539,7 +628,9 @@ def test_copy_dir_to_existing_dir_withconflict():
 
 
 def _comparable_walk(p):
-    return sorted([(tuple(sorted(f)), tuple(sorted(d))) for (r, f, d) in (p).walk()])
+    return sorted(
+        [(tuple(sorted(f)), tuple(sorted(d))) for (r, f, d) in (p).walk()]
+    )
 
 
 def test_walk_compat_312():
@@ -547,12 +638,15 @@ def test_walk_compat_312():
     Test that our version works the same as the 3.12 version
     """
     import sys
+
     if sys.version_info[0:2] < (3, 12):
         import pytest
+
         pytest.skip('only test on 3.12')
 
-    import ubelt as ub
     import pathlib
+
+    import ubelt as ub
 
     ours = ub.Path.appdir('ubelt/tests/ls')
     theirs = pathlib.Path(ours)
@@ -572,8 +666,10 @@ def test_walk_compat_312():
 
 
 def test_walk_bad_kwargs():
-    import ubelt as ub
     import pytest
+
+    import ubelt as ub
+
     self = ub.Path('foo')
     with pytest.raises(TypeError):
         list(self.walk(does_not_exist=True))

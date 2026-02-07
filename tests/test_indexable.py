@@ -129,7 +129,7 @@ def _map_vals3(self, func):
 #             print('_data = {!r}'.format(_data))
 #             print('---')
 #     """
-#     if data is None:  
+#     if data is None:
 #         data = self.data
 #     key = None
 #     if mapped is None:
@@ -171,7 +171,7 @@ def test_indexable_walker_map_patterns():
         '3': {
             'foo': 'bar',
             'baz': [1, 2, ['biz']],
-        }
+        },
     }
     self = ub.IndexableWalker(data)
     func = type
@@ -182,6 +182,7 @@ def test_indexable_walker_map_patterns():
     print('mapped_v2 = {}'.format(ub.urepr(mapped_v2, nl=1)))
 
     import pytest
+
     with pytest.warns(Warning):
         assert ub.indexable_allclose(mapped_v1, mapped_v2)
 
@@ -205,6 +206,7 @@ def test_indexable_walker_map_patterns():
             fixup[path] = [v for k, v in sorted(value.items())]
 
     import pytest
+
     with pytest.warns(Warning):
         assert ub.indexable_allclose(self.data, self_v2)
     with pytest.warns(Warning):
@@ -215,7 +217,9 @@ def test_indexable_walker_map_patterns():
 
 def test_walk_iter_gen_behavior():
     from itertools import count
+
     import ubelt as ub
+
     # from functools import cache
     counter = count()
 
@@ -242,6 +246,7 @@ def test_walk_iter_gen_behavior():
     assert list(walker) == list(walker)
 
     import pytest
+
     # Exhausting the current iterator will cause StopIteration
     list(walker)
     with pytest.raises(StopIteration):

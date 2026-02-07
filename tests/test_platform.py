@@ -1,5 +1,6 @@
+from os.path import basename, expanduser
+
 import ubelt as ub
-from os.path import expanduser, basename
 
 
 def test_compressuser_without_home():
@@ -16,6 +17,7 @@ def test_find_path_no_path():
 def _available_prog():
     # Try and find a program that exists on the machine
     import pytest
+
     common_progs = ['ls', 'ping', 'which']
     prog_name = None
     for cand_prog_name in common_progs:
@@ -23,9 +25,11 @@ def _available_prog():
             prog_name = cand_prog_name
             break
     else:
-        pytest.skip((
-            'Common progs {} are not installed. '
-            'Are we on a weird machine?').format(common_progs))
+        pytest.skip(
+            (
+                'Common progs {} are not installed. Are we on a weird machine?'
+            ).format(common_progs)
+        )
     return prog_name
 
 
@@ -33,14 +37,17 @@ def test_find_exe_idempotence():
     prog_name = _available_prog()
     prog_fpath = ub.find_exe(prog_name)
     assert prog_fpath == ub.find_exe(prog_fpath), (
-        'find_exe with an existing path should work')
+        'find_exe with an existing path should work'
+    )
 
 
 def test_find_exe_no_exist():
     assert ub.find_exe('!noexist', multi=False) is None, (
-        'multi=False not found should return None')
+        'multi=False not found should return None'
+    )
     assert ub.find_exe('!noexist', multi=True) == [], (
-        'multi=True not found should return an empty list')
+        'multi=True not found should return an empty list'
+    )
 
 
 if __name__ == '__main__':
@@ -49,4 +56,5 @@ if __name__ == '__main__':
     """
 
     import xdoctest
+
     xdoctest.doctest_module(__file__)

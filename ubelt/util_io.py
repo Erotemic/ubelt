@@ -9,14 +9,18 @@ written and read is unicode text.
 throw an error if the file or directory does not exist. It also contains
 workarounds for win32 issues with :mod:`shutil`.
 """
+
 from __future__ import annotations
-import sys
+
 import os
+import sys
 from os.path import exists
 
-
 __all__ = [
-    'readfrom', 'writeto', 'touch', 'delete',
+    'readfrom',
+    'writeto',
+    'touch',
+    'delete',
 ]
 
 
@@ -92,14 +96,20 @@ def writeto(
         print('Writing to text file: %r ' % (fpath,))
 
     from ubelt import schedule_deprecation
+
     schedule_deprecation(
-        modname='ubelt', name='writeto', type='function',
+        modname='ubelt',
+        name='writeto',
+        type='function',
         migration='use ubelt.Path(...).write_text() instead',
-        deprecate='1.2.0', error='2.0.0', remove='2.1.0')
+        deprecate='1.2.0',
+        error='2.0.0',
+        remove='2.1.0',
+    )
 
     with open(fpath, 'wb') as file:
         if aslines:
-            to_write_lines = map(_ensure_bytes , to_write)
+            to_write_lines = map(_ensure_bytes, to_write)
             file.writelines(to_write_lines)
         else:
             # convert to bytes for writing
@@ -108,7 +118,7 @@ def writeto(
 
 
 def _ensure_bytes(text):
-    """ ensures text is in a suitable format for writing """
+    """ensures text is in a suitable format for writing"""
     return text.encode('utf8')
 
 
@@ -140,14 +150,21 @@ def readfrom(
     if not exists(fpath):
         raise IOError('File %r does not exist' % (fpath,))
     from ubelt import schedule_deprecation
+
     schedule_deprecation(
-        modname='ubelt', name='readfrom', type='function',
+        modname='ubelt',
+        name='readfrom',
+        type='function',
         migration='use ubelt.Path(...).read_text() instead',
-        deprecate='1.2.0', error='2.0.0', remove='2.1.0')
+        deprecate='1.2.0',
+        error='2.0.0',
+        remove='2.1.0',
+    )
     with open(fpath, 'rb') as file:
         if aslines:
-            text = [line.decode('utf8', errors=errors)
-                    for line in file.readlines()]
+            text = [
+                line.decode('utf8', errors=errors) for line in file.readlines()
+            ]
             if sys.platform.startswith('win32'):  # nocover
                 # fix line endings on windows
                 text = [
@@ -200,8 +217,11 @@ def touch(
         print('Touching file {}'.format(fpath))
     flags = os.O_CREAT | os.O_APPEND
     with os.fdopen(os.open(fpath, flags=flags, mode=mode, dir_fd=dir_fd)) as f:
-        os.utime(f.fileno() if os.utime in os.supports_fd else fpath,
-                 dir_fd=None if os.supports_fd else dir_fd, **kwargs)
+        os.utime(
+            f.fileno() if os.utime in os.supports_fd else fpath,
+            dir_fd=None if os.supports_fd else dir_fd,
+            **kwargs,
+        )
     return fpath
 
 
@@ -287,12 +307,17 @@ def delete(path: str | os.PathLike, verbose: bool | int = False) -> None:
         elif os.path.isdir(path):
             if verbose:  # nocover
                 print('Deleting directory="{}"'.format(path))
-            if sys.platform.startswith('win32') and sys.version_info[0:2] < (3, 8):  # nocover
+            if sys.platform.startswith('win32') and sys.version_info[0:2] < (
+                3,
+                8,
+            ):  # nocover
                 # Workaround bug that prevents shutil from working if
                 # the directory contains junctions
                 # https://bugs.python.org/issue36621
                 from ubelt import _win32_links
+
                 _win32_links._win32_rmtree(path, verbose=verbose)
             else:
                 import shutil
+
                 shutil.rmtree(path)

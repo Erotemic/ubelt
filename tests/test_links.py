@@ -1,16 +1,15 @@
 """
 TODO: test _can_symlink=False variants on systems that can symlink.
 """
-from os.path import isdir
-from os.path import isfile
-from os.path import islink
-from os.path import join, exists, relpath, dirname
-import ubelt as ub
-import pytest
-import os
-from ubelt import util_links
-import sys
 
+import os
+import sys
+from os.path import dirname, exists, isdir, isfile, islink, join, relpath
+
+import pytest
+
+import ubelt as ub
+from ubelt import util_links
 
 if sys.platform.startswith('win32'):
     try:
@@ -24,11 +23,15 @@ def test_rel_dir_link():
     xdoctest ~/code/ubelt/tests/test_links.py test_rel_dir_link
     """
     import pytest
+
     import ubelt as ub
+
     if ub.WIN32 and jwfs is None:
         pytest.skip()  # hack for windows for now.
 
-    dpath = ub.Path.appdir('ubelt/tests/test_links', 'test_rel_dir_link').ensuredir()
+    dpath = ub.Path.appdir(
+        'ubelt/tests/test_links', 'test_rel_dir_link'
+    ).ensuredir()
     ub.delete(dpath, verbose=2)
     ub.ensuredir(dpath, verbose=2)
 
@@ -78,10 +81,14 @@ def test_rel_dir_link():
 
 def test_rel_file_link():
     import pytest
+
     import ubelt as ub
+
     if ub.WIN32 and jwfs is None:
         pytest.skip()  # hack for windows for now.
-    dpath = ub.Path.appdir('ubelt/tests/test_links', 'test_rel_file_link').ensuredir()
+    dpath = ub.Path.appdir(
+        'ubelt/tests/test_links', 'test_rel_file_link'
+    ).ensuredir()
     ub.delete(dpath, verbose=2)
     ub.ensuredir(dpath, verbose=2)
 
@@ -96,14 +103,18 @@ def test_rel_file_link():
         link_path = relpath(link_fpath, dpath)
         link = ub.symlink(real_path, link_path)
         import sys
+
         if sys.platform.startswith('win32') and isfile(link):
             # Note: if windows hard links the file there is no way we can
             # tell that it was a symlink. Just verify it exists.
             from ubelt import _win32_links
+
             assert _win32_links._win32_is_hardlinked(real_fpath, link_fpath)
         else:
             pointed = ub.util_links._readlink(link)
-            resolved = os.path.realpath(ub.expandpath(join(dirname(link), pointed)))
+            resolved = os.path.realpath(
+                ub.expandpath(join(dirname(link), pointed))
+            )
             assert os.path.realpath(ub.expandpath(real_fpath)) == resolved
     except Exception:
         util_links._dirstats(dpath)
@@ -137,11 +148,15 @@ def test_delete_symlinks():
         python -m ubelt.tests.test_links test_delete_symlinks
     """
     import pytest
+
     import ubelt as ub
+
     if ub.WIN32 and jwfs is None:
         pytest.skip()  # hack for windows for now.
     # TODO: test that we handle broken links
-    dpath = ub.Path.appdir('ubelt/tests/test_links', 'test_delete_links').ensuredir()
+    dpath = ub.Path.appdir(
+        'ubelt/tests/test_links', 'test_delete_links'
+    ).ensuredir()
 
     happy_dpath = join(dpath, 'happy_dpath')
     happy_dlink = join(dpath, 'happy_dlink')
@@ -174,15 +189,21 @@ def test_delete_symlinks():
 
     def assert_broken_link(path, want=True):
         if util_links._can_symlink():
-            print('path={} should{} be a broken link'.format(
-                path, ' ' if want else ' not'))
+            print(
+                'path={} should{} be a broken link'.format(
+                    path, ' ' if want else ' not'
+                )
+            )
             positive = not exists(path) and islink(path)
             check_path_condition(path, positive, want, 'broken link')
         else:
             # TODO: we can test this
             # positive = util_links._win32_is_junction(path)
-            print('path={} should{} be a broken link (junction)'.format(
-                path, ' ' if want else ' not'))
+            print(
+                'path={} should{} be a broken link (junction)'.format(
+                    path, ' ' if want else ' not'
+                )
+            )
             print('cannot check this yet')
             # We wont be able to differentiate links and nonlinks for junctions
             # positive = exists(path)
@@ -246,10 +267,14 @@ def test_delete_symlinks():
 
 def test_modify_directory_symlinks():
     import pytest
+
     import ubelt as ub
+
     if ub.WIN32 and jwfs is None:
         pytest.skip()  # hack for windows for now.
-    dpath = ub.Path.appdir('ubelt/tests/test_links', 'test_modify_symlinks').ensuredir()
+    dpath = ub.Path.appdir(
+        'ubelt/tests/test_links', 'test_modify_symlinks'
+    ).ensuredir()
     ub.delete(dpath, verbose=2)
     ub.ensuredir(dpath, verbose=2)
 
@@ -309,11 +334,15 @@ def test_modify_file_symlinks():
         python -m ubelt.tests.test_links test_modify_symlinks
     """
     import pytest
+
     import ubelt as ub
+
     if ub.WIN32 and jwfs is None:
         pytest.skip()  # hack for windows for now.
     # TODO: test that we handle broken links
-    dpath = ub.Path.appdir('ubelt/tests/test_links', 'test_modify_symlinks').ensuredir()
+    dpath = ub.Path.appdir(
+        'ubelt/tests/test_links', 'test_modify_symlinks'
+    ).ensuredir()
     happy_fpath = dpath / 'happy_fpath.txt'
     happy_flink = dpath / 'happy_flink.txt'
     ub.touch(happy_fpath, verbose=2)
@@ -336,10 +365,14 @@ def test_broken_link():
         python -m ubelt.tests.test_links test_broken_link
     """
     import pytest
+
     import ubelt as ub
+
     if ub.WIN32 and jwfs is None:
         pytest.skip()  # hack for windows for now.
-    dpath = ub.Path.appdir('ubelt/tests/test_links', 'test_broken_link').ensuredir()
+    dpath = ub.Path.appdir(
+        'ubelt/tests/test_links', 'test_broken_link'
+    ).ensuredir()
 
     ub.delete(dpath, verbose=2)
     ub.ensuredir(dpath, verbose=2)
@@ -375,7 +408,9 @@ def test_cant_overwrite_file_with_symlink():
         # Can't distinguish this case on windows
         pytest.skip()
 
-    dpath = ub.Path.appdir('ubelt/tests/test_links', 'test_cant_overwrite_file_with_symlink').ensuredir()
+    dpath = ub.Path.appdir(
+        'ubelt/tests/test_links', 'test_cant_overwrite_file_with_symlink'
+    ).ensuredir()
     ub.delete(dpath, verbose=2)
     ub.ensuredir(dpath, verbose=2)
 
@@ -392,10 +427,14 @@ def test_cant_overwrite_file_with_symlink():
 
         util_links._dirstats(dpath)
         with pytest.raises(FileExistsError):  # file exists error
-            ub.symlink(happy_fpath, happy_flink, overwrite=False, verbose=verbose)
+            ub.symlink(
+                happy_fpath, happy_flink, overwrite=False, verbose=verbose
+            )
 
         with pytest.raises(FileExistsError):  # file exists error
-            ub.symlink(happy_fpath, happy_flink, overwrite=True, verbose=verbose)
+            ub.symlink(
+                happy_fpath, happy_flink, overwrite=True, verbose=verbose
+            )
 
 
 def test_overwrite_symlink():
@@ -404,12 +443,16 @@ def test_overwrite_symlink():
         python ~/code/ubelt/tests/test_links.py test_overwrite_symlink
     """
     import pytest
+
     import ubelt as ub
+
     if ub.WIN32 and jwfs is None:
         pytest.skip()  # hack for windows for now.
 
     # TODO: test that we handle broken links
-    dpath = ub.Path.appdir('ubelt/tests/test_links', 'test_overwrite_symlink').ensuredir()
+    dpath = ub.Path.appdir(
+        'ubelt/tests/test_links', 'test_overwrite_symlink'
+    ).ensuredir()
     ub.delete(dpath, verbose=2)
     ub.ensuredir(dpath, verbose=2)
 
@@ -465,14 +508,17 @@ def test_overwrite_symlink():
 
 def _force_junction(func):
     from functools import wraps
+
     @wraps(func)
     def _wrap(*args):
         if not ub.WIN32:
             pytest.skip()
         from ubelt import _win32_links
+
         _win32_links.__win32_can_symlink__ = False
         func(*args)
         _win32_links.__win32_can_symlink__ = None
+
     return _wrap
 
 
@@ -481,8 +527,10 @@ def test_symlink_to_rel_symlink():
     Test a case with a absolute link to a relative link to a real path.
     """
     import ubelt as ub
+
     if ub.WIN32:
         import pytest
+
         pytest.skip('dont try on windows')
 
     dpath = ub.Path.appdir('ubelt/tests/links/sym-to-relsym')
@@ -516,6 +564,7 @@ def test_symlink_to_rel_symlink():
     # _ = ub.cmd(f'tree {dpath}', verbose=3)
 
     import pytest
+
     with pytest.raises(FileExistsError):
         ub.symlink(real_path=real, link_path=link1, verbose=3)
 
@@ -524,7 +573,9 @@ def test_symlink_to_rel_symlink():
 
 # class TestSymlinksForceJunction:
 fj_test_delete_symlinks = _force_junction(test_delete_symlinks)
-fj_test_modify_directory_symlinks = _force_junction(test_modify_directory_symlinks)
+fj_test_modify_directory_symlinks = _force_junction(
+    test_modify_directory_symlinks
+)
 fj_test_modify_file_symlinks = _force_junction(test_modify_file_symlinks)
 fj_test_broken_link = _force_junction(test_broken_link)
 fj_test_overwrite_symlink = _force_junction(test_overwrite_symlink)
@@ -538,4 +589,5 @@ if __name__ == '__main__':
         pytest ubelt/tests/test_links.py -s
     """
     import xdoctest
+
     xdoctest.doctest_module(__file__)

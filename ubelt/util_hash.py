@@ -59,18 +59,22 @@ Note:
     getting into the weeds of how we coerce technically non-hashable sequences
     into a hashable encoding.
 """
+
 from __future__ import annotations
+
 import dataclasses
 import hashlib
 import math
 import typing
 from collections import OrderedDict
+
 from ubelt.util_const import NoParam
 
 if typing.TYPE_CHECKING:
     from os import PathLike
+    from typing import Any, Callable, Optional, Union, cast
+
     from ubelt.util_const import NoParamType
-    from typing import Any, Callable, cast, Union, Optional
     # A constructor / factory that returns a hashlib-style hash object.
     # Kept behind TYPE_CHECKING to ensure near-zero runtime/import-time cost.
 
@@ -80,7 +84,9 @@ if typing.TYPE_CHECKING:
         def update(self, data: BytesLike, /) -> None: ...
         def digest(self) -> bytes: ...
         def hexdigest(self) -> str: ...
-        def copy(self) -> "HasherLike": ...  # or Self if you want (typing.Self on 3.11+)
+        def copy(
+            self,
+        ) -> 'HasherLike': ...  # or Self if you want (typing.Self on 3.11+)
 
     HasherType = Callable[..., HasherLike]
 
@@ -92,22 +98,128 @@ HASH_VERSION: int = 2
 
 _ALPHABET_10: list[str] = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
 
-_ALPHABET_16: list[str] = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
-                           'a', 'b', 'c', 'd', 'e', 'f']
+_ALPHABET_16: list[str] = [
+    '0',
+    '1',
+    '2',
+    '3',
+    '4',
+    '5',
+    '6',
+    '7',
+    '8',
+    '9',
+    'a',
+    'b',
+    'c',
+    'd',
+    'e',
+    'f',
+]
 
-_ALPHABET_26: list[str] = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j',
-                           'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't',
-                           'u', 'v', 'w', 'x', 'y', 'z']
+_ALPHABET_26: list[str] = [
+    'a',
+    'b',
+    'c',
+    'd',
+    'e',
+    'f',
+    'g',
+    'h',
+    'i',
+    'j',
+    'k',
+    'l',
+    'm',
+    'n',
+    'o',
+    'p',
+    'q',
+    'r',
+    's',
+    't',
+    'u',
+    'v',
+    'w',
+    'x',
+    'y',
+    'z',
+]
 
-_ALPHABET_36: list[str] = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
-                           'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j',
-                           'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't',
-                           'u', 'v', 'w', 'x', 'y', 'z']
+_ALPHABET_36: list[str] = [
+    '0',
+    '1',
+    '2',
+    '3',
+    '4',
+    '5',
+    '6',
+    '7',
+    '8',
+    '9',
+    'a',
+    'b',
+    'c',
+    'd',
+    'e',
+    'f',
+    'g',
+    'h',
+    'i',
+    'j',
+    'k',
+    'l',
+    'm',
+    'n',
+    'o',
+    'p',
+    'q',
+    'r',
+    's',
+    't',
+    'u',
+    'v',
+    'w',
+    'x',
+    'y',
+    'z',
+]
 
 # RFC 4648 Base32 alphabet
-_ALPHABET_32: list[str] = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L',
-                           'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X',
-                           'Y', 'Z', '2', '3', '4', '5', '6', '7']
+_ALPHABET_32: list[str] = [
+    'A',
+    'B',
+    'C',
+    'D',
+    'E',
+    'F',
+    'G',
+    'H',
+    'I',
+    'J',
+    'K',
+    'L',
+    'M',
+    'N',
+    'O',
+    'P',
+    'Q',
+    'R',
+    'S',
+    'T',
+    'U',
+    'V',
+    'W',
+    'X',
+    'Y',
+    'Z',
+    '2',
+    '3',
+    '4',
+    '5',
+    '6',
+    '7',
+]
 
 
 DEFAULT_ALPHABET: list[str] = _ALPHABET_16
@@ -121,7 +233,8 @@ def b(s: str) -> bytes:
     Returns:
         bytes
     """
-    return s.encode("latin-1")
+    return s.encode('latin-1')
+
 
 # Sensible choices for default hashers are sha1, sha512, and xxh64.
 
@@ -157,6 +270,7 @@ _COMPATIBLE_HASHABLE_SEQUENCE_TYPES_DEFAULT = True
 # except AttributeError:  # nocover
 #     # Python seems to have been compiled without OpenSSL
 #     HASH = None
+
 
 def _int_to_bytes(int_: int) -> bytes:
     r"""
@@ -213,6 +327,7 @@ class _Hashers:
         algos (dict[str, object]):
         aliases (dict[str, str]):
     """
+
     def __init__(self) -> None:
         self.algos: dict[str, Callable] = {}
         self.aliases: dict[str, str] = {}
@@ -255,16 +370,20 @@ class _Hashers:
 
     def _register_xxhash(self):  # nocover
         import xxhash
+
         self.algos['xxh32'] = xxhash.xxh32
         self.algos['xxh64'] = xxhash.xxh64
-        self.aliases.update({
-            'xxhash': 'xxh32',
-            'xx32': 'xxh32',
-            'xx64': 'xxh64',
-        })
+        self.aliases.update(
+            {
+                'xxhash': 'xxh32',
+                'xx32': 'xxh32',
+                'xx64': 'xxh64',
+            }
+        )
 
     def _register_blake3(self):  # nocover
         import blake3
+
         self.algos['blake3'] = blake3.blake3
         self.aliases['b3'] = 'blake3'
 
@@ -313,6 +432,7 @@ class _Hashers:
         if typing.TYPE_CHECKING:
             hasher = cast(HasherType, hasher)
         return hasher
+
 
 _HASHERS = _Hashers()
 
@@ -397,7 +517,9 @@ def _rectify_base(base):
         if not isinstance(base, (list, tuple)):
             raise TypeError(
                 'Argument `base` must be a key, list, or tuple; not {}'.format(
-                    type(base)))
+                    type(base)
+                )
+            )
         return base
 
 
@@ -412,14 +534,17 @@ class HashableExtensions:
     Attributes:
         iterable_checks (list[Callable[..., bool]]):
     """
+
     def __init__(self) -> None:
         self.iterable_checks: list[Callable[..., bool]] = []
         self._lazy_queue: list[Callable[[], None]] = []
 
         # New singledispatch registry implementation
         from functools import singledispatch
+
         def _hash_dispatch(data):
             raise NotImplementedError
+
         _hash_dispatch.__is_base__ = True  # type: ignore[unresolved-attribute]
         self._hash_dispatch = singledispatch(_hash_dispatch)
 
@@ -428,7 +553,9 @@ class HashableExtensions:
             func()
         self._lazy_queue.clear()
 
-    def register(self, hash_types: Union[type, tuple[type, ...], list[type]]) -> Callable[..., Any]:
+    def register(
+        self, hash_types: Union[type, tuple[type, ...], list[type]]
+    ) -> Callable[..., Any]:
         """
         Registers a function to generate a hash for data of the appropriate
         types. This can be used to register custom classes. Internally this is
@@ -518,10 +645,12 @@ class HashableExtensions:
         # ensure iterable
         if not isinstance(hash_types, (list, tuple)):
             hash_types = [hash_types]
+
         def _decor_closure(hash_func):
             for hash_type in hash_types:
                 self._hash_dispatch.register(hash_type)(hash_func)
             return hash_func
+
         return _decor_closure
 
     def lookup(self, data: object) -> Callable[..., tuple[bytes, bytes]]:
@@ -599,7 +728,9 @@ class HashableExtensions:
         # of strictly using this registry.
         hash_func = self._hash_dispatch.dispatch(query_hash_type)
         if getattr(hash_func, '__is_base__', False):
-            base_msg = f'No registered hash func for hashable type={query_hash_type!r}'
+            base_msg = (
+                f'No registered hash func for hashable type={query_hash_type!r}'
+            )
             try:
                 msg = f'{base_msg} with mro: {query_hash_type.__mro__}'
             except AttributeError:  # nocover
@@ -628,21 +759,26 @@ class HashableExtensions:
             >>> assert ub.hash_data(a) != ub.hash_data(c)
         """
         import dataclasses
+
         cls = data.__class__
         header = (cls.__module__, cls.__qualname__)
         # fields() order is the definition order, which is guaranteed
-        items = [(f.name, getattr(data, f.name)) for f in dataclasses.fields(data)]
+        items = [
+            (f.name, getattr(data, f.name)) for f in dataclasses.fields(data)
+        ]
         # Use the existing machinery to serialize recursively
         seq = _hashable_sequence(
             (header, items),
             extensions=self,
-            types=_COMPATIBLE_HASHABLE_SEQUENCE_TYPES_DEFAULT
+            types=_COMPATIBLE_HASHABLE_SEQUENCE_TYPES_DEFAULT,
         )
         prefix = b'DCLASS'
         hashable = b''.join(seq)
         return prefix, hashable
 
-    def add_iterable_check(self, func: Callable[..., bool]) -> Callable[..., bool]:
+    def add_iterable_check(
+        self, func: Callable[..., bool]
+    ) -> Callable[..., bool]:
         """
         Registers a function that detects when a type is iterable
 
@@ -693,12 +829,20 @@ class HashableExtensions:
                 # tobytes() views the array in 1D (via ravel())
                 # encode the shape as well
                 # See: [util_hash.Note.1]
-                header = b''.join(_hashable_sequence(
-                    (len(data.shape), data.shape), extensions=self,
-                    types=_COMPATIBLE_HASHABLE_SEQUENCE_TYPES_DEFAULT))
-                dtype = b''.join(_hashable_sequence(
-                    data.dtype.descr, extensions=self,
-                    types=_COMPATIBLE_HASHABLE_SEQUENCE_TYPES_DEFAULT))
+                header = b''.join(
+                    _hashable_sequence(
+                        (len(data.shape), data.shape),
+                        extensions=self,
+                        types=_COMPATIBLE_HASHABLE_SEQUENCE_TYPES_DEFAULT,
+                    )
+                )
+                dtype = b''.join(
+                    _hashable_sequence(
+                        data.dtype.descr,
+                        extensions=self,
+                        types=_COMPATIBLE_HASHABLE_SEQUENCE_TYPES_DEFAULT,
+                    )
+                )
                 hashable = header + dtype + data.tobytes()
             prefix = b'NDARR'
             return prefix, hashable
@@ -715,9 +859,13 @@ class HashableExtensions:
                 >>> _hashable_sequence(rng, types=True)
             """
             # See: [util_hash.Note.1]
-            hashable = b''.join(_hashable_sequence(
-                data.get_state(), extensions=self,
-                types=_COMPATIBLE_HASHABLE_SEQUENCE_TYPES_DEFAULT))
+            hashable = b''.join(
+                _hashable_sequence(
+                    data.get_state(),
+                    extensions=self,
+                    types=_COMPATIBLE_HASHABLE_SEQUENCE_TYPES_DEFAULT,
+                )
+            )
             prefix = b'RNG'
             return prefix, hashable
 
@@ -808,11 +956,11 @@ class HashableExtensions:
         # TODO: can we only register a stdlib class if we need it?
         # Some of the stdlib modules dont need to be imported and
         # cause extra import time overhead.
-        import uuid
-        import pathlib
-        import numbers
-        import decimal
         import datetime as datetime_mod
+        import decimal
+        import numbers
+        import pathlib
+        import uuid
 
         @self.register(numbers.Integral)
         def _convert_numpy_int(data):
@@ -828,7 +976,8 @@ class HashableExtensions:
             seq = _hashable_sequence(
                 data.as_tuple(),
                 extensions=self,
-                types=_COMPATIBLE_HASHABLE_SEQUENCE_TYPES_DEFAULT)
+                types=_COMPATIBLE_HASHABLE_SEQUENCE_TYPES_DEFAULT,
+            )
             hashable = b''.join(seq)
             prefix = b'DECIMAL'
             return prefix, hashable
@@ -839,7 +988,8 @@ class HashableExtensions:
             seq = _hashable_sequence(
                 data.timetuple(),
                 extensions=self,
-                types=_COMPATIBLE_HASHABLE_SEQUENCE_TYPES_DEFAULT)
+                types=_COMPATIBLE_HASHABLE_SEQUENCE_TYPES_DEFAULT,
+            )
             hashable = b''.join(seq)
             prefix = b'DATE'
             return prefix, hashable
@@ -850,7 +1000,8 @@ class HashableExtensions:
             seq = _hashable_sequence(
                 data.timetuple(),
                 extensions=self,
-                types=_COMPATIBLE_HASHABLE_SEQUENCE_TYPES_DEFAULT)
+                types=_COMPATIBLE_HASHABLE_SEQUENCE_TYPES_DEFAULT,
+            )
             hashable = b''.join(seq)
             prefix = b'DATETIME'
             return prefix, hashable
@@ -868,13 +1019,18 @@ class HashableExtensions:
                 ordered_ = sorted(data)
             except TypeError:
                 from ubelt.util_list import argsort
+
                 data_ = list(data)
                 sortx = argsort(data_, key=str)
                 ordered_ = [data_[k] for k in sortx]
             # See: [util_hash.Note.1]
-            hashable = b''.join(_hashable_sequence(
-                ordered_, extensions=self,
-                types=_COMPATIBLE_HASHABLE_SEQUENCE_TYPES_DEFAULT))
+            hashable = b''.join(
+                _hashable_sequence(
+                    ordered_,
+                    extensions=self,
+                    types=_COMPATIBLE_HASHABLE_SEQUENCE_TYPES_DEFAULT,
+                )
+            )
             prefix = b'SET'
             return prefix, hashable
 
@@ -885,12 +1041,17 @@ class HashableExtensions:
                 # what raises a TypeError differs between Python 2 and 3
             except TypeError:
                 from ubelt.util_list import argsort
+
                 sortx = argsort(data, key=str)
                 ordered_ = [(k, data[k]) for k in sortx]
             # See: [util_hash.Note.1]
-            hashable = b''.join(_hashable_sequence(
-                ordered_, extensions=self,
-                types=_COMPATIBLE_HASHABLE_SEQUENCE_TYPES_DEFAULT))
+            hashable = b''.join(
+                _hashable_sequence(
+                    ordered_,
+                    extensions=self,
+                    types=_COMPATIBLE_HASHABLE_SEQUENCE_TYPES_DEFAULT,
+                )
+            )
             prefix = b'DICT'
             return prefix, hashable
 
@@ -901,9 +1062,13 @@ class HashableExtensions:
             regular dictionaries. I'm not sure what the right thing to do is.
             """
             # See: [util_hash.Note.1]
-            hashable = b''.join(_hashable_sequence(
-                list(data.items()), extensions=self,
-                types=_COMPATIBLE_HASHABLE_SEQUENCE_TYPES_DEFAULT))
+            hashable = b''.join(
+                _hashable_sequence(
+                    list(data.items()),
+                    extensions=self,
+                    types=_COMPATIBLE_HASHABLE_SEQUENCE_TYPES_DEFAULT,
+                )
+            )
             prefix = b'ODICT'
             return prefix, hashable
 
@@ -914,9 +1079,13 @@ class HashableExtensions:
             regular dictionaries. I'm not sure what the right thing to do is.
             """
             # See: [util_hash.Note.1]
-            hashable = b''.join(_hashable_sequence(
-                [data.start, data.stop, data.step], extensions=self,
-                types=_COMPATIBLE_HASHABLE_SEQUENCE_TYPES_DEFAULT))
+            hashable = b''.join(
+                _hashable_sequence(
+                    [data.start, data.stop, data.step],
+                    extensions=self,
+                    types=_COMPATIBLE_HASHABLE_SEQUENCE_TYPES_DEFAULT,
+                )
+            )
             prefix = b'SLICE'
             return prefix, hashable
 
@@ -938,11 +1107,13 @@ class HashableExtensions:
         not use it by default. Currently, the user must call this explicitly.
         """
         import torch
+
         @self.register(torch.Tensor)
         def _convert_torch_tensor(data):
             data_ = data.data.cpu().numpy()
             prefix = b'TORCH_TENSOR'
             return prefix, _convert_to_hashable(data_, extensions=self)[1]
+
 
 _HASHABLE_EXTENSIONS = HashableExtensions()
 
@@ -1061,7 +1232,7 @@ def _convert_to_hashable(data, types=True, extensions=None):
         except (ValueError, OverflowError):
             hashable = str(data_).encode('utf-8')  # handle and nan, inf
         else:
-            hashable = _int_to_bytes(a) + b'/' +  _int_to_bytes(b)
+            hashable = _int_to_bytes(a) + b'/' + _int_to_bytes(b)
         prefix = b'FLT'
     else:
         if extensions is None:
@@ -1113,8 +1284,9 @@ def _update_hasher(hasher, data, types=True, extensions=None):
     if isinstance(data, (tuple, list, zip)):
         needs_iteration = True
     else:
-        needs_iteration = any(check(data) for check in
-                              extensions.iterable_checks)
+        needs_iteration = any(
+            check(data) for check in extensions.iterable_checks
+        )
 
     if needs_iteration:
         # Denote that we are hashing over an iterable
@@ -1130,8 +1302,9 @@ def _update_hasher(hasher, data, types=True, extensions=None):
         # (this works if all data in the sequence is a non-iterable)
         try:
             for item in iter_:
-                prefix, hashable = _convert_to_hashable(item, types,
-                                                        extensions=extensions)
+                prefix, hashable = _convert_to_hashable(
+                    item, types, extensions=extensions
+                )
                 binary_data = prefix + hashable + _SEP
                 hasher.update(binary_data)
             hasher.update(_ITER_SUFFIX)
@@ -1151,8 +1324,9 @@ def _update_hasher(hasher, data, types=True, extensions=None):
                 hasher.update(_SEP)
             hasher.update(_ITER_SUFFIX)
     else:
-        prefix, hashable = _convert_to_hashable(data, types,
-                                                extensions=extensions)
+        prefix, hashable = _convert_to_hashable(
+            data, types, extensions=extensions
+        )
         binary_data = prefix + hashable
         hasher.update(binary_data)
 
@@ -1226,7 +1400,7 @@ def _convert_hexstr_base(hexstr, base):
 
 
 def _digest_hasher(hasher, base):
-    """ counterpart to _update_hasher """
+    """counterpart to _update_hasher"""
     # Get a 128 character hex string
     hex_text = hasher.hexdigest()
     # Shorten length of string (by increasing base)
@@ -1302,6 +1476,7 @@ def hash_data(
     """
     if convert and not isinstance(data, str):  # nocover
         import json
+
         try:
             data = json.dumps(data)
         except TypeError:

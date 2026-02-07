@@ -1,6 +1,7 @@
 """
 A simple download manager
 """
+
 from __future__ import annotations
 
 import typing
@@ -68,6 +69,7 @@ class DownloadManager:
         >>>     print('fpath = {!r}'.format(fpath))
 
     """
+
     download_root: str | os.PathLike
     cache: bool
 
@@ -90,6 +92,7 @@ class DownloadManager:
                   "connection state" objects.
         """
         import ubelt as ub
+
         # The download manager is overscoped and doesn't provide enough value
         # over the simple download function. This is better suited for a
         # separate package rather than a utility library. A proper download
@@ -139,8 +142,13 @@ class DownloadManager:
                 a Future object that will point to the downloaded location.
         """
         job = self._pool.submit(
-            self._dl_func, url, fname=dst, dpath=self.download_root,
-            hash_prefix=hash_prefix, hasher=hasher, verbose=0,
+            self._dl_func,
+            url,
+            fname=dst,
+            dpath=self.download_root,
+            hash_prefix=hash_prefix,
+            hasher=hasher,
+            verbose=0,
         )
         return job
 
@@ -180,6 +188,7 @@ class DownloadManager:
         """
         if prog is True:
             import ubelt as ub
+
             prog = ub.ProgIter
         if prog:
             _iter = self._pool.as_completed()

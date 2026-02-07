@@ -16,10 +16,11 @@ will read it directly from the archive, but in some cases it may extract it to
 a temporary directory first.
 """
 
-import typing
 import io
 import os
+import typing
 from os.path import exists, join
+
 from ubelt.util_mixins import NiceRepr
 
 if typing.TYPE_CHECKING:
@@ -64,6 +65,7 @@ def split_archive(
         ('/a/b/foo.zip/baz.pt', 'bar.zip/bar.zip')
     """
     import re
+
     fpath = os.fspath(fpath)
     # fpath = os.fspath(fpath)
     pat = '({}[{}/:])'.format(re.escape(ext), re.escape(os.path.sep))
@@ -241,6 +243,7 @@ class zopen(NiceRepr):
         >>> self._handle = None
         >>> dir(self)
     """
+
     name: str | os.PathLike
     fpath: str | os.PathLike
     ext: str
@@ -294,6 +297,7 @@ class zopen(NiceRepr):
         """
         if self._zfile_read is None:
             import zipfile
+
             archivefile, internal = self._split_archive()
             assert archivefile is not None
             myzip = zipfile.ZipFile(archivefile, 'r')
@@ -312,7 +316,9 @@ class zopen(NiceRepr):
         if self._zfpath is None:
             return 'handle={}, mode={}'.format(str(self._handle), self.mode)
         else:
-            return 'handle={} in zipfpath={}, mode={}'.format(self._handle, self._zfpath, self.mode)
+            return 'handle={} in zipfpath={}, mode={}'.format(
+                self._handle, self._zfpath, self.mode
+            )
 
     def __getattr__(self, key):
         # Expose attributes of wrapped handle
@@ -345,6 +351,7 @@ class zopen(NiceRepr):
         if self._temp_dpath and exists(self._temp_dpath):
             # os.unlink(self._temp_dpath)
             from ubelt.util_io import delete
+
             delete(self._temp_dpath)
 
     def __del__(self) -> None:
@@ -382,6 +389,7 @@ class zopen(NiceRepr):
             myzip = self.zfile
             if self._seekable:
                 import tempfile
+
                 # If we need data to be seekable, then we must extract it to a
                 # temporary file first.
                 self._temp_dpath = tempfile.mkdtemp(prefix='zopen_')

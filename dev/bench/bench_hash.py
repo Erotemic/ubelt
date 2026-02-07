@@ -1,4 +1,3 @@
-
 def benchmark_hash_data():
     """
     CommandLine:
@@ -6,7 +5,8 @@ def benchmark_hash_data():
         python ~/code/ubelt/dev/bench_hash.py --convert=False --show
     """
     import ubelt as ub
-    #ITEM = 'JUST A STRING' * 100
+
+    # ITEM = 'JUST A STRING' * 100
     ITEM = [0, 1, 'a', 'b', ['JUST A STRING'] * 4]
     HASHERS = ['sha1', 'sha512', 'xxh32', 'xxh64', 'blake3']
     scales = list(range(5, 13))
@@ -17,7 +17,7 @@ def benchmark_hash_data():
     print('convert = {!r}'.format(convert))
     ti = ub.Timerit(9, bestof=3, verbose=1, unit='ms')
     for s in ub.ProgIter(scales, desc='benchmark', verbose=3):
-        N = 2 ** s
+        N = 2**s
         print(' --- s={s}, N={N} --- '.format(s=s, N=N))
         data = [ITEM] * N
         for hasher in HASHERS:
@@ -29,7 +29,7 @@ def benchmark_hash_data():
         ranking = ub.dict_subset(col, sortx)
         print('walltime: ' + ub.repr2(ranking, precision=9, nl=0))
         best = next(iter(ranking))
-        #pairs = list(ub.iter_window( 2))
+        # pairs = list(ub.iter_window( 2))
         pairs = [(k, best) for k in ranking]
         ratios = [ranking[k1] / ranking[k2] for k1, k2 in pairs]
         nicekeys = ['{}/{}'.format(k1, k2) for k1, k2 in pairs]
@@ -39,6 +39,7 @@ def benchmark_hash_data():
     # import pytest
     # pytest.skip()
     import pandas as pd
+
     df = pd.DataFrame.from_dict(results)
     df.columns.name = 'hasher'
     df.index.name = 'N'
@@ -57,31 +58,39 @@ def benchmark_hash_data():
     print(ratios.mean().sort_values())
     if ub.argflag('--show'):
         import kwplot
+
         kwplot.autompl()
         xdata = sorted(ub.peek(results.values()).keys())
         ydata = ub.map_values(lambda d: [d[x] for x in xdata], results)
-        kwplot.multi_plot(xdata, ydata, xlabel='N', ylabel='seconds', title='convert = {}'.format(convert))
+        kwplot.multi_plot(
+            xdata,
+            ydata,
+            xlabel='N',
+            ylabel='seconds',
+            title='convert = {}'.format(convert),
+        )
         kwplot.show_if_requested()
 
 
 def benchmark_hash_extensions():
-    """"
+    """ "
     xdoctest ~/code/ubelt/dev/bench/bench_hash.py benchmark_hash_extensions
     """
-    import ubelt as ub
     import uuid
+
     import numpy as np
-    datas = [
-        ub.Path('/'),
-        uuid.uuid4(),
-        np.array([1, 2, 3])
-    ]
+
+    import ubelt as ub
+
+    datas = [ub.Path('/'), uuid.uuid4(), np.array([1, 2, 3])]
     import timerit
+
     ti = timerit.Timerit(10000, bestof=10, verbose=2)
     for timer in ti.reset('time'):
         with timer:
             for data in datas:
                 ub.hash_data(data)
+
 
 if __name__ == '__main__':
     """

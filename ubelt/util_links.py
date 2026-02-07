@@ -22,14 +22,15 @@ Example:
     >>> print(parts[-1])
 link_file.txt
 """
+
 from __future__ import annotations
 
-from os.path import exists, islink, join, normpath
 import os
 import sys
 import warnings
-from ubelt import util_io
-from ubelt import util_platform
+from os.path import exists, islink, join, normpath
+
+from ubelt import util_io, util_platform
 
 __all__ = ['symlink']
 
@@ -192,7 +193,11 @@ def symlink(
             return link
         if verbose > 1:
             if not exists(link):
-                print('... but it is broken and points somewhere else: {}'.format(pointed))
+                print(
+                    '... but it is broken and points somewhere else: {}'.format(
+                        pointed
+                    )
+                )
             else:
                 # TODO: if we fix the relative symlink bug, this text might be better
                 # import pathlib
@@ -211,12 +216,15 @@ def symlink(
             if verbose:
                 print('... already exists, but its a file. This will error.')
             raise FileExistsError(
-                'cannot overwrite a physical path: "{}"'.format(path))
+                'cannot overwrite a physical path: "{}"'.format(path)
+            )
         else:  # nocover
             if verbose:
-                print('... already exists, and is either a file or hard link. '
-                      'Assuming it is a hard link. '
-                      'On non-win32 systems this would error.')
+                print(
+                    '... already exists, and is either a file or hard link. '
+                    'Assuming it is a hard link. '
+                    'On non-win32 systems this would error.'
+                )
 
     if _win32_links is None:
         os.symlink(path, link)
@@ -237,13 +245,14 @@ def _readlink(link):
     if _win32_links:  # nocover
         if _win32_links._win32_is_junction(link):
             import platform
+
             if platform.python_implementation() == 'PyPy':
                 # On PyPy this test can have a false positive
                 # for what should be a regular link.
                 path = os.readlink(link)
                 junction_prefix = '\\\\?\\'
                 if path.startswith(junction_prefix):
-                    path = path[len(junction_prefix):]
+                    path = path[len(junction_prefix) :]
                     return path
             return _win32_links._win32_read_junction(link)
     try:
@@ -251,7 +260,7 @@ def _readlink(link):
         if util_platform.WIN32:  # nocover
             junction_prefix = '\\\\?\\'
             if path.startswith(junction_prefix):
-                path = path[len(junction_prefix):]
+                path = path[len(junction_prefix) :]
         return path
     except Exception:  # nocover
         # On modern operating systems, we should never get here. (I think)
@@ -285,6 +294,7 @@ def _dirstats(dpath=None):  # nocover
         >>> _dirstats('.')
     """
     from ubelt import util_colors
+
     if dpath is None:
         dpath = os.getcwd()
     print('+--------------')
@@ -302,9 +312,11 @@ def _dirstats(dpath=None):  # nocover
             L = os.path.islink(full_path)
             F = os.path.isfile(full_path)
             D = os.path.isdir(full_path)
-            J = util_platform.WIN32 and _win32_links._win32_is_junction(full_path)
+            J = util_platform.WIN32 and _win32_links._win32_is_junction(
+                full_path
+            )
             ELFDJ = [E, L, F, D, J]
-            if   ELFDJ == [1, 0, 0, 1, 0]:
+            if ELFDJ == [1, 0, 0, 1, 0]:
                 # A directory
                 path = util_colors.color_text(path, 'green')
             elif ELFDJ == [1, 0, 1, 0, 0]:
@@ -351,7 +363,11 @@ def _dirstats(dpath=None):  # nocover
                 path = util_colors.color_text(path, 'red')
             else:
                 print('dpath = {!r}'.format(dpath))
-                print('pathhttps://github.com/pypy/pypy/issues/4976 = {!r}'.format(path))
+                print(
+                    'pathhttps://github.com/pypy/pypy/issues/4976 = {!r}'.format(
+                        path
+                    )
+                )
                 raise AssertionError(str(ELFDJ) + str(path))
             line = '{E:d} {L:d} {F:d} {D:d} {J:d} - {path}'.format(**locals())
             if os.path.islink(full_path):

@@ -1,13 +1,13 @@
 """
 pytest tests/test_progiter.py
 """
+
+import itertools as it
 import sys
 from io import StringIO
 
-from xdoctest.utils import CaptureStdout
-from xdoctest.utils import strip_ansi
+from xdoctest.utils import CaptureStdout, strip_ansi
 
-import itertools as it
 from ubelt import ProgIter
 
 
@@ -15,6 +15,7 @@ class FakeStream:
     """
     Helper to hook into and introspect when progiter writes to the display
     """
+
     def __init__(self, verbose=0, callback=None):
         self.verbose = verbose
         self.callback = callback
@@ -29,8 +30,7 @@ class FakeStream:
         if self.callback is not None:
             self.callback()
 
-    def flush(self, *args, **kw):
-        ...
+    def flush(self, *args, **kw): ...
 
 
 class FakeTimer:
@@ -38,6 +38,7 @@ class FakeTimer:
     Helper to hook into and introspect when progiter measures times.
     You must tic this timer yourself.
     """
+
     def __init__(self, times=[1]):
         self._time = 0
         self._callcount = 0
@@ -55,34 +56,36 @@ class FakeTimer:
 
 def test_rate_format_string():
     # Less of a test than a demo
-    rates = [1 * 10 ** i for i in range(-10, 10)]
+    rates = [1 * 10**i for i in range(-10, 10)]
 
     texts = []
     for rate in rates:
-        rate_format = '4.2f' if rate > .001 else 'g'
+        rate_format = '4.2f' if rate > 0.001 else 'g'
         # Really cool: you can embed format strings inside format strings
         msg = '{rate:{rate_format}}'.format(rate=rate, rate_format=rate_format)
         texts.append(msg)
-    assert texts == ['1e-10',
-                     '1e-09',
-                     '1e-08',
-                     '1e-07',
-                     '1e-06',
-                     '1e-05',
-                     '0.0001',
-                     '0.001',
-                     '0.01',
-                     '0.10',
-                     '1.00',
-                     '10.00',
-                     '100.00',
-                     '1000.00',
-                     '10000.00',
-                     '100000.00',
-                     '1000000.00',
-                     '10000000.00',
-                     '100000000.00',
-                     '1000000000.00']
+    assert texts == [
+        '1e-10',
+        '1e-09',
+        '1e-08',
+        '1e-07',
+        '1e-06',
+        '1e-05',
+        '0.0001',
+        '0.001',
+        '0.01',
+        '0.10',
+        '1.00',
+        '10.00',
+        '100.00',
+        '1000.00',
+        '10000.00',
+        '100000.00',
+        '1000000.00',
+        '10000000.00',
+        '100000000.00',
+        '1000000000.00',
+    ]
 
 
 def test_rate_format():
@@ -91,12 +94,12 @@ def test_rate_format():
     prog = ProgIter(file=file)
     prog.begin()
 
-    prog._iters_per_second = .000001
+    prog._iters_per_second = 0.000001
     msg = prog.format_message()
     rate_part = msg.split('rate=')[1].split(' Hz')[0]
     assert rate_part == '1e-06'
 
-    prog._iters_per_second = .1
+    prog._iters_per_second = 0.1
     msg = prog.format_message()
     rate_part = msg.split('rate=')[1].split(' Hz')[0]
     assert rate_part == '0.10'
@@ -111,21 +114,35 @@ def test_progiter():
     # Define a function that takes some time
     def is_prime(n):
         return n >= 2 and not any(n % i == 0 for i in range(2, n))
+
     N = 500
 
     if False:
         file = StringIO()
-        prog = ProgIter(range(N), clearline=False, file=file, freq=N // 10,
-                        adjust=False)
+        prog = ProgIter(
+            range(N), clearline=False, file=file, freq=N // 10, adjust=False
+        )
         file.seek(0)
         print(file.read())
 
         prog = ProgIter(range(N), clearline=False)
         for n in prog:
             was_prime = is_prime(n)
-            prog.set_extra('n=%r, was_prime=%r' % (n, was_prime,))
+            prog.set_extra(
+                'n=%r, was_prime=%r'
+                % (
+                    n,
+                    was_prime,
+                )
+            )
             if (n + 1) % 128 == 0 and was_prime:
-                prog.set_extra('n=%r, was_prime=%r EXTRA' % (n, was_prime,))
+                prog.set_extra(
+                    'n=%r, was_prime=%r EXTRA'
+                    % (
+                        n,
+                        was_prime,
+                    )
+                )
         file.seek(0)
         print(file.read())
 
@@ -137,13 +154,14 @@ def test_progiter():
 
     print('\n-----')
     print('Demo #0: progress can be disabled and incur essentially 0 overhead')
-    print('However, the overhead of enabled progress is minimal and typically '
-          'insignificant')
+    print(
+        'However, the overhead of enabled progress is minimal and typically '
+        'insignificant'
+    )
     print('this is verbosity mode verbose=0')
     sequence = (is_prime(n) for n in range(N0, N))
     if True:
-        psequence = ProgIter(sequence, total=total, desc='demo0',
-                             enabled=False)
+        psequence = ProgIter(sequence, total=total, desc='demo0', enabled=False)
         list(psequence)
 
     print('\n-----')
@@ -163,8 +181,9 @@ def test_progiter():
     print('this is verbosity mode verbose=2')
     if True:
         sequence = (is_prime(n) for n in range(N0, N))
-        psequence = ProgIter(sequence, total=total, clearline=False,
-                             desc='demo2')
+        psequence = ProgIter(
+            sequence, total=total, clearline=False, desc='demo2'
+        )
         list(psequence)
         # import utool as ut
         # print(ut.repr4(psequence.__dict__))
@@ -174,8 +193,14 @@ def test_progiter():
     print('this is verbosity mode verbose=3')
     sequence = (is_prime(n) for n in range(N0, N))
     if True:
-        psequence = ProgIter(sequence, total=total, adjust=False,
-                             clearline=False, freq=100, desc='demo3')
+        psequence = ProgIter(
+            sequence,
+            total=total,
+            adjust=False,
+            clearline=False,
+            freq=100,
+            desc='demo3',
+        )
         list(psequence)
 
 
@@ -185,15 +210,27 @@ def test_progiter_offset_10():
     """
     # Define a function that takes some time
     file = StringIO()
-    list(ProgIter(range(10), total=20, verbose=3, start=10, file=file,
-                  freq=5, show_rate=False, show_eta=False, show_total=False,
-                  time_thresh=0))
+    list(
+        ProgIter(
+            range(10),
+            total=20,
+            verbose=3,
+            start=10,
+            file=file,
+            freq=5,
+            show_rate=False,
+            show_eta=False,
+            show_total=False,
+            time_thresh=0,
+        )
+    )
     file.seek(0)
     want = ['50.00% 10/20...', '75.00% 15/20...', '100.00% 20/20...']
     got = [line.strip() for line in file.readlines()]
     if sys.platform.startswith('win32'):  # nocover
         # on windows \r seems to be mixed up with ansi sequences
         from xdoctest.utils import strip_ansi
+
         got = [strip_ansi(line).strip() for line in got]
     assert got == want
 
@@ -204,9 +241,18 @@ def test_progiter_offset_0():
     """
     # Define a function that takes some time
     file = StringIO()
-    for _ in ProgIter(range(10), total=20, verbose=3, start=0, file=file,
-                      freq=5, show_rate=False, show_eta=False,
-                      show_total=False, time_thresh=0):
+    for _ in ProgIter(
+        range(10),
+        total=20,
+        verbose=3,
+        start=0,
+        file=file,
+        freq=5,
+        show_rate=False,
+        show_eta=False,
+        show_total=False,
+        time_thresh=0,
+    ):
         pass
     file.seek(0)
     want = ['0.00%  0/20...', '25.00%  5/20...', '50.00% 10/20...']
@@ -214,6 +260,7 @@ def test_progiter_offset_0():
     if sys.platform.startswith('win32'):  # nocover
         # on windows \r seems to be mixed up with ansi sequences
         from xdoctest.utils import strip_ansi
+
         got = [strip_ansi(line).strip() for line in got]
     assert got == want
 
@@ -224,8 +271,9 @@ def test_unknown_total():
     """
     iterable = (_ for _ in range(0, 10))
     file = StringIO()
-    prog = ProgIter(iterable, desc='unknown seq', file=file,
-                    show_times=False, verbose=1)
+    prog = ProgIter(
+        iterable, desc='unknown seq', file=file, show_times=False, verbose=1
+    )
     for n in prog:
         pass
     file.seek(0)
@@ -285,7 +333,9 @@ def test_eta_window_None():
 
 def test_adjust_freq():
     # nothing to check (that I can think of) run test for coverage
-    prog = ProgIter(range(20), enabled=True, eta_window=None, rel_adjust_limit=4.0)
+    prog = ProgIter(
+        range(20), enabled=True, eta_window=None, rel_adjust_limit=4.0
+    )
 
     # Adjust frequency up to have each update happen every 1sec or so
     prog.freq = 1
@@ -388,9 +438,16 @@ def test_adjust_fast_early_slow_late_doesnt_get_stuck():
     fake_stream = FakeStream(verbose=0, callback=cnt.inc)
     fake_timer = FakeTimer()
 
-    prog = ProgIter(range(1000), enabled=True, adjust=True, time_thresh=1.0,
-                    rel_adjust_limit=1000000.0, homogeneous=False,
-                    timer=fake_timer, stream=fake_stream)
+    prog = ProgIter(
+        range(1000),
+        enabled=True,
+        adjust=True,
+        time_thresh=1.0,
+        rel_adjust_limit=1000000.0,
+        homogeneous=False,
+        timer=fake_timer,
+        stream=fake_stream,
+    )
     it = iter(prog)
     # Few fast updates at the beginning
     for i in range(10):
@@ -409,9 +466,16 @@ def test_adjust_slow_early_fast_late_doesnt_spam():
     fake_stream = FakeStream(verbose=0, callback=cnt.inc)
     fake_timer = FakeTimer()
 
-    prog = ProgIter(range(1000), enabled=True, adjust=True, time_thresh=1.0,
-                    rel_adjust_limit=1000000.0, homogeneous=False,
-                    timer=fake_timer, stream=fake_stream)
+    prog = ProgIter(
+        range(1000),
+        enabled=True,
+        adjust=True,
+        time_thresh=1.0,
+        rel_adjust_limit=1000000.0,
+        homogeneous=False,
+        timer=fake_timer,
+        stream=fake_stream,
+    )
     it = iter(prog)
     # Few slow updates at the beginning
     for i in range(10):
@@ -436,8 +500,9 @@ def test_mixed_iteration_and_step():
         for homogeneous in [0, 1] if adjust else [0]:
             for size in range(0, 10):
                 for n_inner_steps in range(size):
-                    prog = ProgIter(range(size), adjust=adjust,
-                                    homogeneous=homogeneous)
+                    prog = ProgIter(
+                        range(size), adjust=adjust, homogeneous=homogeneous
+                    )
                     iprog = iter(prog)
                     try:
                         while True:
@@ -461,8 +526,14 @@ def check_issue_32_non_homogeneous_time_threshold_prints():
     # time_thresh = 2.9 * factor
 
     N = 20
-    prog = ProgIter(range(N), timer=fake_timer, time_thresh=time_thresh,
-                    homogeneous='auto', stream=fake_stream, clearline=False)
+    prog = ProgIter(
+        range(N),
+        timer=fake_timer,
+        time_thresh=time_thresh,
+        homogeneous='auto',
+        stream=fake_stream,
+        clearline=False,
+    )
 
     static_state = {
         'time_thresh': prog.time_thresh,
@@ -473,7 +544,9 @@ def check_issue_32_non_homogeneous_time_threshold_prints():
     states = []
 
     def record_state():
-        real_display_timedelta = fake_timer._time - prog._display_measurement.time
+        real_display_timedelta = (
+            fake_timer._time - prog._display_measurement.time
+        )
         state = {
             'iter_idx': prog._iter_idx,
             'next_idx': prog._next_measure_idx,
@@ -505,10 +578,16 @@ def check_issue_32_non_homogeneous_time_threshold_prints():
     record_state()
 
     try:
-        import ubelt as ub
         import pandas as pd
         import rich
-        print('fake_stream.messages = {}'.format(ub.urepr(fake_stream.messages, nl=1)))
+
+        import ubelt as ub
+
+        print(
+            'fake_stream.messages = {}'.format(
+                ub.urepr(fake_stream.messages, nl=1)
+            )
+        )
         print(f'prog._likely_homogeneous={prog._likely_homogeneous}')
         rich.print(pd.Series(static_state))
         df = pd.DataFrame(states)
@@ -528,6 +607,7 @@ def test_end_message_is_displayed():
     if calculations were updated without a display
     """
     import io
+
     stream = io.StringIO()
     prog = ProgIter(range(1000), stream=stream)
     for i in prog:
@@ -539,13 +619,20 @@ def test_end_message_is_displayed():
 
 def test_standalone_display():
     from ubelt import ProgIter
+
     fake_stream = FakeStream(verbose=1)
     fake_timer = FakeTimer()
     time_thresh = 50
 
     N = 20
-    prog = ProgIter(range(N), timer=fake_timer, time_thresh=time_thresh,
-                    homogeneous=True, stream=fake_stream, clearline=True)
+    prog = ProgIter(
+        range(N),
+        timer=fake_timer,
+        time_thresh=time_thresh,
+        homogeneous=True,
+        stream=fake_stream,
+        clearline=True,
+    )
 
     prog.begin()
 
@@ -577,19 +664,27 @@ def test_standalone_display():
         '\r 0.00%  0/20... rate=0 Hz, eta=?, total=0:00:00',
         '\r 5.00%  1/20... rate=1.00 Hz, eta=0:00:19, total=0:00:01',
         '\r 5.00%  1/20... rate=1.00 Hz, eta=0:00:19, total=0:00:01',
-        '\r 20.00%  4/20... rate=1.00 Hz, eta=0:00:16, total=0:00:04']
+        '\r 20.00%  4/20... rate=1.00 Hz, eta=0:00:16, total=0:00:04',
+    ]
 
 
 def test_no_percent():
     from ubelt import ProgIter
+
     fake_stream = FakeStream(verbose=1)
     fake_timer = FakeTimer()
     time_thresh = 50
 
     N = 20
-    prog = ProgIter(range(N), timer=fake_timer, time_thresh=time_thresh,
-                    show_percent=False, homogeneous=True, stream=fake_stream,
-                    clearline=True)
+    prog = ProgIter(
+        range(N),
+        timer=fake_timer,
+        time_thresh=time_thresh,
+        show_percent=False,
+        homogeneous=True,
+        stream=fake_stream,
+        clearline=True,
+    )
 
     prog.begin()
 
@@ -620,7 +715,8 @@ def test_no_percent():
         '\r  0/20... rate=0 Hz, eta=?, total=0:00:00',
         '\r  1/20... rate=1.00 Hz, eta=0:00:19, total=0:00:01',
         '\r  1/20... rate=1.00 Hz, eta=0:00:19, total=0:00:01',
-        '\r  4/20... rate=1.00 Hz, eta=0:00:16, total=0:00:04']
+        '\r  4/20... rate=1.00 Hz, eta=0:00:16, total=0:00:04',
+    ]
 
 
 def test_clearline_padding():
@@ -628,10 +724,16 @@ def test_clearline_padding():
     Ensure we overwrite the entire previous message
     """
     from ubelt import ProgIter
+
     fake_stream = FakeStream(verbose=1)
-    prog = ProgIter(range(20), time_thresh=99999999,
-                    show_percent=False, homogeneous=True, stream=fake_stream,
-                    clearline=True)
+    prog = ProgIter(
+        range(20),
+        time_thresh=99999999,
+        show_percent=False,
+        homogeneous=True,
+        stream=fake_stream,
+        clearline=True,
+    )
     prog.start()
     prog.display_message()
     msg1_len = prog._prev_msg_len
@@ -642,7 +744,8 @@ def test_clearline_padding():
     prog.step()
     assert prog._prev_msg_len == msg1_len, (
         'We are under the time threshold. '
-        'We should not have updated the display message yet')
+        'We should not have updated the display message yet'
+    )
     prog.display_message()
     msg2_len = prog._prev_msg_len
     assert msg2_len > msg1_len, 'should have a longer message'
@@ -659,12 +762,17 @@ def test_clearline_padding():
     msg3 = fake_stream.messages[-1]
     assert len(msg1) == msg1_len + 1
     assert len(msg2) == msg2_len + 1
-    assert len(msg3) >= msg3_len + 1, 'the real third message should include padding'
-    assert len(msg3) == msg2_len + 1, 'the real third message should include padding to clear msg2'
+    assert len(msg3) >= msg3_len + 1, (
+        'the real third message should include padding'
+    )
+    assert len(msg3) == msg2_len + 1, (
+        'the real third message should include padding to clear msg2'
+    )
 
 
 def test_extra_callback():
     from ubelt import ProgIter
+
     fake_stream = FakeStream(verbose=1)
     fake_timer = FakeTimer()
     time_thresh = 50
@@ -673,8 +781,14 @@ def test_extra_callback():
         return chr(prog._iter_idx % 26 + 97) * 3
 
     N = 20
-    prog = ProgIter(range(N), timer=fake_timer, time_thresh=time_thresh,
-                    homogeneous=True, stream=fake_stream, clearline=True)
+    prog = ProgIter(
+        range(N),
+        timer=fake_timer,
+        time_thresh=time_thresh,
+        homogeneous=True,
+        stream=fake_stream,
+        clearline=True,
+    )
     prog.set_extra(build_extra)
 
     prog.begin()
@@ -710,6 +824,8 @@ def test_extra_callback():
         '\r 20.00%  4/20...eee rate=1.00 Hz, eta=0:00:16, total=0:00:04',
     ]
 
+
 if __name__ == '__main__':
     import pytest
+
     pytest.main([__file__])

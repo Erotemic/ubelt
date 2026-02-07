@@ -1,10 +1,13 @@
 from os.path import exists, join
+
 import ubelt as ub
+
 # DEBUG_PATH = ub.Path.home().name == 'joncrall'
 
 
 def test_pathlib_compatability():
     import pathlib
+
     base = pathlib.Path(ub.Path.appdir('ubelt').ensuredir())
     dpath = base.joinpath('test_pathlib_mkdir')
 
@@ -23,6 +26,7 @@ def test_pathlib_compatability():
 
 def test_tempdir():
     import pytest
+
     with pytest.warns(Warning):
         temp = ub.TempDir()
     assert temp.dpath is None
@@ -52,6 +56,7 @@ def test_augpath_dpath():
 
 def test_ensuredir_recreate():
     import pytest
+
     base = ub.Path.appdir('ubelt/tests').ensuredir()
     folder = join(base, 'foo')
     member = join(folder, 'bar')
@@ -86,7 +91,9 @@ def test_ensuredir_verbosity():
 
 def demo_nested_paths(dpath, nfiles=2, ndirs=1, depth=0):
     for idx in range(nfiles):
-        (dpath / f'file_{idx}.txt').write_text(f'hello world idx={idx} depth={depth}')
+        (dpath / f'file_{idx}.txt').write_text(
+            f'hello world idx={idx} depth={depth}'
+        )
 
     subdirs = []
     for idx in range(ndirs):
@@ -95,8 +102,9 @@ def demo_nested_paths(dpath, nfiles=2, ndirs=1, depth=0):
 
     if depth > 0:
         for subdir in subdirs:
-            demo_nested_paths(subdir, nfiles=nfiles, ndirs=ndirs,
-                                    depth=depth - 1)
+            demo_nested_paths(
+                subdir, nfiles=nfiles, ndirs=ndirs, depth=depth - 1
+            )
 
 
 def relative_contents(dpath):
@@ -113,7 +121,9 @@ def test_copy_directory_cases():
 
     """
     import pytest
+
     import ubelt as ub
+
     base = ub.Path.appdir('ubelt/tests/path/copy_move').delete().ensuredir()
 
     root1 = (base / 'root1').ensuredir()
@@ -132,9 +142,7 @@ def test_copy_directory_cases():
     # <src>/<contents>.
     for key, src in paths.items():
         for meta in ['stats', 'mode', None]:
-            kwargs = {
-                'meta': meta
-            }
+            kwargs = {'meta': meta}
             root2.delete().ensuredir()
             # Because root2 exists we error if overwrite if False
             with pytest.raises(FileExistsError):
@@ -204,12 +212,12 @@ def test_copy_directory_cases():
             """
             root2.delete().ensuredir()
             dst = root2
-            ub.cmd(f"cp -rv {src} {dst}", verbose=verbose)
+            ub.cmd(f'cp -rv {src} {dst}', verbose=verbose)
             contents1 = relative_contents(src)
             contents2 = relative_contents(root2)
             assert len(contents1) == (len(contents2) - 1)
 
-            ub.cmd(f"cp -rv {src} {dst}", verbose=verbose)
+            ub.cmd(f'cp -rv {src} {dst}', verbose=verbose)
             contents1 = relative_contents(src)
             contents2 = relative_contents(root2)
             assert len(contents1) == (len(contents2) - 1)
@@ -238,13 +246,13 @@ def test_copy_directory_cases():
             root2.delete().ensuredir()
             name2 = f'{src.name}2'
             dst = root2 / name2
-            ub.cmd(f"cp -rv {src} {dst}", verbose=verbose)
+            ub.cmd(f'cp -rv {src} {dst}', verbose=verbose)
             contents1 = relative_contents(src)
             contents2 = relative_contents(root2)
             assert len(contents1) == (len(contents2) - 1)
 
             dst = root2 / name2
-            ub.cmd(f"cp -rv {src} {dst}", verbose=verbose)
+            ub.cmd(f'cp -rv {src} {dst}', verbose=verbose)
             contents1 = relative_contents(src)
             contents2 = relative_contents(root2)
             assert len(contents1) * 2 == (len(contents2) - 1)
@@ -258,7 +266,7 @@ def test_copy_directory_cases():
             """
             root2.delete().ensuredir()
             dst = root2 / 'sub1/sub2'
-            info = ub.cmd(f"cp -rv {src} {dst}", verbose=verbose)
+            info = ub.cmd(f'cp -rv {src} {dst}', verbose=verbose)
             assert info['ret'] == 1
             contents2 = relative_contents(root2)
             assert len(contents2) == 1
@@ -274,7 +282,9 @@ def test_move_directory_cases():
 
     """
     import pytest
+
     import ubelt as ub
+
     base = ub.Path.appdir('ubelt/tests/path/move').delete().ensuredir()
 
     root1 = (base / 'root1').ensuredir()
@@ -291,16 +301,13 @@ def test_move_directory_cases():
     # <src>/<contents>.
     for key, src in paths.items():
         for meta in ['stats', 'mode', None]:
-
             # Reset original dires
             for d in paths.values():
                 d.ensuredir()
             demo_nested_paths(paths['shallow'])
             demo_nested_paths(paths['deep'], depth=3)
 
-            kwargs = {
-                'meta': meta
-            }
+            kwargs = {'meta': meta}
             root2.delete().ensuredir()
             # We cannot move to a file that exists
             with pytest.raises(FileExistsError):
@@ -334,21 +341,34 @@ def test_move_directory_cases():
 
 def test_follow_file_symlinks():
     import ubelt as ub
-    root = ub.Path.appdir('ubelt', 'tests', 'path', 'copy-file-symlink').delete().ensuredir()
+
+    root = (
+        ub.Path.appdir('ubelt', 'tests', 'path', 'copy-file-symlink')
+        .delete()
+        .ensuredir()
+    )
     fpath1 = (root / 'file').touch()
-    flink1 = (root / 'flink1')
+    flink1 = root / 'flink1'
     flink1.symlink_to(fpath1)
     fcopy1 = flink1.copy(root / 'fcopy1', follow_file_symlinks=True, meta=None)
     fcopy2 = flink1.copy(root / 'fcopy2', follow_file_symlinks=False, meta=None)
     assert not fcopy1.is_symlink(), 'should have followed symlink'
     assert fcopy2.is_symlink(), 'should not have followed symlink'
 
-    fcopy3 = flink1.copy(root / 'fcopy3', follow_file_symlinks=True, meta='mode')
-    fcopy4 = flink1.copy(root / 'fcopy4', follow_file_symlinks=False, meta='mode')
+    fcopy3 = flink1.copy(
+        root / 'fcopy3', follow_file_symlinks=True, meta='mode'
+    )
+    fcopy4 = flink1.copy(
+        root / 'fcopy4', follow_file_symlinks=False, meta='mode'
+    )
     assert not fcopy3.is_symlink(), 'should have followed symlink'
     assert fcopy4.is_symlink(), 'should not have followed symlink'
 
-    fcopy5 = flink1.copy(root / 'fcopy5', follow_file_symlinks=True, meta='stats')
-    fcopy6 = flink1.copy(root / 'fcopy6', follow_file_symlinks=False, meta='stats')
+    fcopy5 = flink1.copy(
+        root / 'fcopy5', follow_file_symlinks=True, meta='stats'
+    )
+    fcopy6 = flink1.copy(
+        root / 'fcopy6', follow_file_symlinks=False, meta='stats'
+    )
     assert not fcopy5.is_symlink(), 'should have followed symlink'
     assert fcopy6.is_symlink(), 'should not have followed symlink'

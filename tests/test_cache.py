@@ -1,14 +1,18 @@
 from os.path import exists
-import ubelt as ub
+
 import pytest
+
+import ubelt as ub
 
 
 def test_noexist_meta_clear():
     """
     What no errors happen when an external processes removes meta
     """
+
     def func():
         return 'expensive result'
+
     cacher = ub.Cacher('name', 'params', verbose=10)
     cacher.clear()
 
@@ -31,8 +35,10 @@ def test_clear_quiet():
     """
     What no errors happen when an external processes removes meta
     """
+
     def func():
         return 'expensive result'
+
     cacher = ub.Cacher('name', 'params', verbose=0)
     cacher.clear()
     cacher.clear()
@@ -46,8 +52,10 @@ def test_corrupt():
 
     python ubelt/tests/test_cache.py test_corrupt
     """
+
     def func():
         return ['expensive result']
+
     cacher = ub.Cacher('name', 'params', verbose=10)
     cacher.clear()
 
@@ -75,6 +83,7 @@ def test_corrupt():
 def _setup_corrupt_cacher(verbose=0):
     def func():
         return ['expensive result']
+
     cacher = ub.Cacher('name', 'params', verbose=verbose)
     cacher.clear()
     cacher.ensure(func)
@@ -130,6 +139,7 @@ def test_disable():
     def func():
         nonlocal_var[0] += 1
         return ['expensive result']
+
     cacher = ub.Cacher('name', 'params', verbose=10, enabled=False)
 
     assert nonlocal_var[0] == 0
@@ -147,15 +157,18 @@ def test_disable():
 
 def test_disabled_cache_stamp():
     stamp = ub.CacheStamp('foo', 'bar', enabled=False)
-    assert stamp.expired() == 'disabled', 'disabled cache stamps are always expired'
+    assert stamp.expired() == 'disabled', (
+        'disabled cache stamps are always expired'
+    )
 
 
 def test_cache_depends():
     """
     What no errors happen when an external processes removes meta
     """
-    cacher = ub.Cacher('name', depends=['a', 'b', 'c'],
-                        verbose=10, enabled=False)
+    cacher = ub.Cacher(
+        'name', depends=['a', 'b', 'c'], verbose=10, enabled=False
+    )
     cfgstr = cacher._rectify_cfgstr()
     assert cfgstr.startswith('8a82eef87cb905220841f95')
 
@@ -180,8 +193,15 @@ def test_cache_stamp_with_hash():
         expected_hash = ub.hash_file(fpath, hasher='sha256')
         unexpected_hash = 'fdsfdsafds'
         stamp = ub.CacheStamp(
-            'foo.stamp', dpath=dpath, product=[fpath], depends='nodep',
-            hash_prefix=unexpected_hash, verbose=verbose, hasher='sha256', ext='.json')
+            'foo.stamp',
+            dpath=dpath,
+            product=[fpath],
+            depends='nodep',
+            hash_prefix=unexpected_hash,
+            verbose=verbose,
+            hasher='sha256',
+            ext='.json',
+        )
         assert not exists(stamp.cacher.get_fpath())
         with pytest.raises(RuntimeError):
             stamp.renew()

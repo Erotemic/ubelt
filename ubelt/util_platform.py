@@ -37,24 +37,35 @@ References:
     .. [AS_appdirs] https://github.com/ActiveState/appdirs
     .. [PlatDirs] https://pypi.org/project/platformdirs/
 """
+
 from __future__ import annotations
 
-import typing
+import itertools as it
 import os
 import sys
-import itertools as it
-from os.path import exists, join, isdir, expanduser, normpath
+import typing
+from os.path import exists, expanduser, isdir, join, normpath
 
 if typing.TYPE_CHECKING:
     from collections.abc import Generator, Iterable
 
 
 __all__ = [
-    'WIN32', 'LINUX', 'DARWIN', 'POSIX',
-    'find_exe', 'find_path',
-    'ensure_app_cache_dir', 'ensure_app_config_dir', 'ensure_app_data_dir',
-    'get_app_cache_dir', 'get_app_config_dir', 'get_app_data_dir',
-    'platform_cache_dir', 'platform_config_dir', 'platform_data_dir'
+    'WIN32',
+    'LINUX',
+    'DARWIN',
+    'POSIX',
+    'find_exe',
+    'find_path',
+    'ensure_app_cache_dir',
+    'ensure_app_config_dir',
+    'ensure_app_data_dir',
+    'get_app_cache_dir',
+    'get_app_config_dir',
+    'get_app_data_dir',
+    'platform_cache_dir',
+    'platform_config_dir',
+    'platform_data_dir',
 ]
 
 # References:
@@ -76,7 +87,7 @@ def platform_data_dir() -> str:
     if POSIX:  # nocover
         dpath_ = os.environ.get('XDG_DATA_HOME', '~/.local/share')
     elif DARWIN:  # nocover
-        dpath_  = '~/Library/Application Support'
+        dpath_ = '~/Library/Application Support'
     elif WIN32:  # nocover
         dpath_ = os.environ.get('APPDATA', '~/AppData/Roaming')
     else:  # nocover
@@ -96,7 +107,7 @@ def platform_config_dir() -> str:
     if POSIX:  # nocover
         dpath_ = os.environ.get('XDG_CONFIG_HOME', '~/.config')
     elif DARWIN:  # nocover
-        dpath_  = '~/Library/Application Support'
+        dpath_ = '~/Library/Application Support'
     elif WIN32:  # nocover
         dpath_ = os.environ.get('APPDATA', '~/AppData/Roaming')
     else:  # nocover
@@ -116,13 +127,14 @@ def platform_cache_dir() -> str:
     if POSIX:  # nocover
         dpath_ = os.environ.get('XDG_CACHE_HOME', '~/.cache')
     elif DARWIN:  # nocover
-        dpath_  = '~/Library/Caches'
+        dpath_ = '~/Library/Caches'
     elif WIN32:  # nocover
         dpath_ = os.environ.get('LOCALAPPDATA', '~/AppData/Local')
     else:  # nocover
         raise NotImplementedError('Unknown Platform  %r' % (sys.platform,))
     dpath = normpath(expanduser(dpath_))
     return dpath
+
 
 # ---
 
@@ -147,10 +159,16 @@ def get_app_data_dir(appname: str, *args) -> str:
         :func:`ensure_app_data_dir`
     """
     from ubelt.util_deprecate import schedule_deprecation
+
     schedule_deprecation(
-        modname='ubelt', name='get_app_data_dir and ensure_app_data_dir', type='function',
+        modname='ubelt',
+        name='get_app_data_dir and ensure_app_data_dir',
+        type='function',
         migration='use ubelt.Path.appdir(type="data") instead',
-        deprecate='1.2.0', error='2.0.0', remove='2.1.0')
+        deprecate='1.2.0',
+        error='2.0.0',
+        remove='2.1.0',
+    )
     dpath = join(platform_data_dir(), appname, *args)
     return dpath
 
@@ -179,6 +197,7 @@ def ensure_app_data_dir(appname: str, *args) -> str:
         >>> assert exists(dpath)
     """
     from ubelt import util_path
+
     dpath = get_app_data_dir(appname, *args)
     util_path.ensuredir(dpath)
     return dpath
@@ -204,10 +223,16 @@ def get_app_config_dir(appname: str, *args) -> str:
         :func:`ensure_app_config_dir`
     """
     from ubelt.util_deprecate import schedule_deprecation
+
     schedule_deprecation(
-        modname='ubelt', name='get_app_config_dir and ensure_app_config_dir', type='function',
+        modname='ubelt',
+        name='get_app_config_dir and ensure_app_config_dir',
+        type='function',
         migration='use ubelt.Path.appdir(type="config") instead',
-        deprecate='1.2.0', error='2.0.0', remove='2.1.0')
+        deprecate='1.2.0',
+        error='2.0.0',
+        remove='2.1.0',
+    )
     dpath = join(platform_config_dir(), appname, *args)
     return dpath
 
@@ -236,6 +261,7 @@ def ensure_app_config_dir(appname: str, *args) -> str:
         >>> assert exists(dpath)
     """
     from ubelt import util_path
+
     dpath = get_app_config_dir(appname, *args)
     util_path.ensuredir(dpath)
     return dpath
@@ -264,10 +290,16 @@ def get_app_cache_dir(appname: str, *args) -> str:
         :func:`ensure_app_cache_dir`
     """
     from ubelt.util_deprecate import schedule_deprecation
+
     schedule_deprecation(
-        modname='ubelt', name='get_app_cache_dir and ensure_app_cache_dir', type='function',
+        modname='ubelt',
+        name='get_app_cache_dir and ensure_app_cache_dir',
+        type='function',
         migration='use ubelt.Path.appdir(type="cache") instead',
-        deprecate='1.2.0', error='2.0.0', remove='2.1.0')
+        deprecate='1.2.0',
+        error='2.0.0',
+        remove='2.1.0',
+    )
     dpath = join(platform_cache_dir(), appname, *args)
     return dpath
 
@@ -296,6 +328,7 @@ def ensure_app_cache_dir(appname: str, *args) -> str:
         >>> assert exists(dpath)
     """
     from ubelt import util_path
+
     dpath = get_app_cache_dir(appname, *args)
     util_path.ensuredir(dpath)
     return dpath
@@ -374,8 +407,11 @@ def find_exe(
     """
     candidates = find_path(name, path=path, exact=True)
     mode = os.X_OK | os.F_OK
-    results = (fpath for fpath in candidates
-               if os.access(fpath, mode) and not isdir(fpath))
+    results = (
+        fpath
+        for fpath in candidates
+        if os.access(fpath, mode) and not isdir(fpath)
+    )
     if not multi:
         for fpath in results:
             return fpath
@@ -452,8 +488,10 @@ def find_path(
         candidates = filter(exists, candidates)
     else:
         import glob
+
         candidates = it.chain.from_iterable(
-            glob.glob(pattern) for pattern in candidates)
+            glob.glob(pattern) for pattern in candidates
+        )
 
     for candidate in candidates:
         yield candidate

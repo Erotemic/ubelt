@@ -4,6 +4,7 @@ import sys
 
 def get_this_script_fpath():
     import pathlib
+
     try:
         fpath = pathlib.Path(__file__)
     except NameError:
@@ -13,13 +14,15 @@ def get_this_script_fpath():
         if not fpath.exists():
             raise Exception(
                 'Unable to determine the file path that this script '
-                'should correspond to')
+                'should correspond to'
+            )
     return fpath
 
 
 def main():
-    import pytest
     import os
+
+    import pytest
 
     repo_dpath = get_this_script_fpath().parent
 
@@ -29,14 +32,18 @@ def main():
     config_fpath = repo_dpath / 'pyproject.toml'
 
     pytest_args = [
-        '--cov-config', os.fspath(config_fpath),
-        '--cov-report', 'html',
-        '--cov-report', 'term',
-        '--durations', '100',
+        '--cov-config',
+        os.fspath(config_fpath),
+        '--cov-report',
+        'html',
+        '--cov-report',
+        'term',
+        '--durations',
+        '100',
         '--xdoctest',
         '--cov=' + package_name,
         os.fspath(mod_dpath),
-        os.fspath(test_dpath)
+        os.fspath(test_dpath),
     ]
     pytest_args = pytest_args + sys.argv[1:]
     ret = pytest.main(pytest_args)

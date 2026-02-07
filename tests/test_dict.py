@@ -1,5 +1,6 @@
-import ubelt as ub
 import pytest
+
+import ubelt as ub
 
 
 def test_auto_dict():
@@ -12,6 +13,7 @@ def test_auto_dict():
 
 def test_auto_dict_to_dict():
     from ubelt.util_dict import AutoDict
+
     auto = AutoDict()
     auto[1] = 1
     auto['n1'] = AutoDict()
@@ -25,7 +27,9 @@ def test_auto_dict_to_dict():
     static = auto.to_dict()
     print('static = {!r}'.format(static))
     assert not isinstance(static, AutoDict), '{}'.format(type(static))
-    assert not isinstance(static['n1'], AutoDict), '{}'.format(type(static['n1']))
+    assert not isinstance(static['n1'], AutoDict), '{}'.format(
+        type(static['n1'])
+    )
     assert not isinstance(static['n1']['n2'], AutoDict)
     assert isinstance(static['dict']['n3'], AutoDict)
     assert isinstance(static['dict']['n3']['n4'], AutoDict)
@@ -33,7 +37,8 @@ def test_auto_dict_to_dict():
 
 def test_auto_dict_ordered():
     # To Dict should respect ordering
-    from ubelt.util_dict import AutoOrderedDict, AutoDict
+    from ubelt.util_dict import AutoDict, AutoOrderedDict
+
     auto = AutoOrderedDict()
     auto[0][3] = 3
     auto[0][2] = 2
@@ -44,7 +49,9 @@ def test_auto_dict_ordered():
     static = auto.to_dict()
     print('static = {!r}'.format(static))
     assert not isinstance(static, AutoDict), 'bad cast {}'.format(type(static))
-    assert not isinstance(static[0][4], AutoDict), 'bad cast {}'.format(type(static[0][4]))
+    assert not isinstance(static[0][4], AutoDict), 'bad cast {}'.format(
+        type(static[0][4])
+    )
     assert list(auto[0].values())[0:3] == [3, 2, 1], 'maintain order'
 
 
@@ -84,7 +91,9 @@ def test_group_items_callable():
 def test_dict_hist_ordered():
     import random
     import string
+
     import ubelt as ub
+
     rng = random.Random(0)
     items = [rng.choice(string.ascii_letters) for _ in range(100)]
     # Ensure that the ordered=True bug is fixed
@@ -114,8 +123,8 @@ def test_dict_subset_default():
     got = ub.dict_subset(dict_, keys, default=0)
     expected = {'a': 1, 'c': 0, 'b': 2}
     assert dict(got) == expected
-    
-    
+
+
 # def _benchmark_groupid_sorted():
 #     import random
 #     import ubelt as ub

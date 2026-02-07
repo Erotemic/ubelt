@@ -1,13 +1,17 @@
 """
 Check iterative versus recursive implementation of hash_data
 """
-from ubelt import NoParam
-from ubelt.util_hash import (
-    _HASHABLE_EXTENSIONS,  _rectify_hasher, _rectify_base,
-    _digest_hasher, _int_to_bytes
-)
+
 from xdev import profile
 
+from ubelt import NoParam
+from ubelt.util_hash import (
+    _HASHABLE_EXTENSIONS,
+    _digest_hasher,
+    _int_to_bytes,
+    _rectify_base,
+    _rectify_hasher,
+)
 
 _SEP = b'_,_'
 _ITER_PREFIX = b'_[_'
@@ -43,7 +47,7 @@ def _convert_to_hashable(data, types=True, extensions=None):
         except (ValueError, OverflowError):
             hashable = str(data_).encode('utf-8')  # handle and nan, inf
         else:
-            hashable = _int_to_bytes(a) + b'/' +  _int_to_bytes(b)
+            hashable = _int_to_bytes(a) + b'/' + _int_to_bytes(b)
         prefix = b'FLT'
     else:
         if extensions is None:
@@ -83,8 +87,9 @@ def _update_hasher_recursive(hasher, data, types=True, extensions=None):
     if isinstance(data, (tuple, list, zip)):
         needs_iteration = True
     else:
-        needs_iteration = any(check(data) for check in
-                              extensions.iterable_checks)
+        needs_iteration = any(
+            check(data) for check in extensions.iterable_checks
+        )
 
     if needs_iteration:
         # Denote that we are hashing over an iterable
@@ -100,8 +105,9 @@ def _update_hasher_recursive(hasher, data, types=True, extensions=None):
         # (this works if all data in the sequence is a non-iterable)
         try:
             for item in iter_:
-                prefix, hashable = _convert_to_hashable(item, types,
-                                                        extensions=extensions)
+                prefix, hashable = _convert_to_hashable(
+                    item, types, extensions=extensions
+                )
                 binary_data = prefix + hashable + _SEP
                 hasher.update(binary_data)
             hasher.update(_ITER_SUFFIX)
@@ -117,12 +123,15 @@ def _update_hasher_recursive(hasher, data, types=True, extensions=None):
             # configured, and ideally new versions will have speed improvements.
             for item in iter_:
                 # Ensure the items have a spacer between them
-                _update_hasher_recursive(hasher, item, types, extensions=extensions)
+                _update_hasher_recursive(
+                    hasher, item, types, extensions=extensions
+                )
                 hasher.update(_SEP)
             hasher.update(_ITER_SUFFIX)
     else:
-        prefix, hashable = _convert_to_hashable(data, types,
-                                                extensions=extensions)
+        prefix, hashable = _convert_to_hashable(
+            data, types, extensions=extensions
+        )
         binary_data = prefix + hashable
         hasher.update(binary_data)
 
@@ -156,7 +165,6 @@ def _update_hasher_iterative(hasher, data, types=True, extensions=None):
     stack = [(DAT_TYPE, data)]
 
     while stack:
-
         _type, data = stack.pop()
         if _type is SEP_TYPE:
             hasher.update(data)
@@ -166,8 +174,9 @@ def _update_hasher_iterative(hasher, data, types=True, extensions=None):
         if isinstance(data, (tuple, list, zip)):
             needs_iteration = True
         else:
-            needs_iteration = any(check(data) for check in
-                                  extensions.iterable_checks)
+            needs_iteration = any(
+                check(data) for check in extensions.iterable_checks
+            )
 
         if needs_iteration:
             # Denote that we are hashing over an iterable
@@ -180,8 +189,9 @@ def _update_hasher_iterative(hasher, data, types=True, extensions=None):
             # (this works if all data in the sequence is a non-iterable)
             try:
                 for item in iter_:
-                    prefix, hashable = _convert_to_hashable(item, types,
-                                                            extensions=extensions)
+                    prefix, hashable = _convert_to_hashable(
+                        item, types, extensions=extensions
+                    )
                     binary_data = prefix + hashable + _SEP
                     hasher.update(binary_data)
                 hasher.update(_ITER_SUFFIX)
@@ -199,19 +209,26 @@ def _update_hasher_iterative(hasher, data, types=True, extensions=None):
                 # !>> We will need to expose versions of the hasher that can be
                 stack.append((DAT_TYPE, item))
         else:
-            prefix, hashable = _convert_to_hashable(data, types,
-                                                    extensions=extensions)
+            prefix, hashable = _convert_to_hashable(
+                data, types, extensions=extensions
+            )
             binary_data = prefix + hashable
             hasher.update(binary_data)
 
 
 @profile
-def hash_data_iterative(data, hasher=NoParam, base=NoParam, types=False,
-                        convert=False, extensions=None):
-    """
-    """
+def hash_data_iterative(
+    data,
+    hasher=NoParam,
+    base=NoParam,
+    types=False,
+    convert=False,
+    extensions=None,
+):
+    """ """
     if convert and not isinstance(data, str):  # nocover
         import json
+
         try:
             data = json.dumps(data)
         except TypeError:
@@ -229,12 +246,18 @@ def hash_data_iterative(data, hasher=NoParam, base=NoParam, types=False,
 
 
 @profile
-def hash_data_recursive(data, hasher=NoParam, base=NoParam, types=False,
-                        convert=False, extensions=None):
-    """
-    """
+def hash_data_recursive(
+    data,
+    hasher=NoParam,
+    base=NoParam,
+    types=False,
+    convert=False,
+    extensions=None,
+):
+    """ """
     if convert and not isinstance(data, str):  # nocover
         import json
+
         try:
             data = json.dumps(data)
         except TypeError:
@@ -252,11 +275,20 @@ def hash_data_recursive(data, hasher=NoParam, base=NoParam, types=False,
 
 
 def main():
-    import numpy as np
-    import string
     import random
+    import string
+
+    import numpy as np
+
     np_data = np.empty((1, 1))
-    data = [1, 2, ['a', 2, 'c'], [1] * 100, [[[], np_data]], {'a': [1, 2, [3, 4, [5, 6]]]}]
+    data = [
+        1,
+        2,
+        ['a', 2, 'c'],
+        [1] * 100,
+        [[[], np_data]],
+        {'a': [1, 2, [3, 4, [5, 6]]]},
+    ]
 
     def make_nested_data(leaf_width=10, branch_width=10, depth=0):
         data = {}
@@ -269,13 +301,17 @@ def main():
             for i in range(branch_width):
                 key = ''.join(random.choices(string.printable, k=16))
                 value = make_nested_data(
-                    leaf_width=leaf_width, branch_width=branch_width, depth=depth - 1)
+                    leaf_width=leaf_width,
+                    branch_width=branch_width,
+                    depth=depth - 1,
+                )
                 data[key] = value
         return data
 
     data = make_nested_data(leaf_width=10, branch_width=2, depth=8)
 
     import timerit
+
     ti = timerit.Timerit(100, bestof=10, verbose=2)
     for timer in ti.reset('recursive'):
         with timer:

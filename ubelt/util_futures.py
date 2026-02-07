@@ -49,19 +49,33 @@ Example:
     >>>             run_process(inputs, mode=mode, max_workers=max_workers)
     >>> print(ub.repr2(ti))
 """
+
 from __future__ import annotations
 
-import typing
 import concurrent.futures
+import typing
 from concurrent.futures import as_completed
 
 __all__ = ['Executor', 'JobPool']
 
 if typing.TYPE_CHECKING:
-    from concurrent.futures import Future, ProcessPoolExecutor, ThreadPoolExecutor
+    from concurrent.futures import (
+        Future,
+        ProcessPoolExecutor,
+        ThreadPoolExecutor,
+    )
     from types import TracebackType
-    from typing import Any, Callable, Generator, Type, Iterator, Iterable, TypeVar
-    T = TypeVar("T")
+    from typing import (
+        Any,
+        Callable,
+        Generator,
+        Iterable,
+        Iterator,
+        Type,
+        TypeVar,
+    )
+
+    T = TypeVar('T')
 
 
 class SerialFuture(concurrent.futures.Future):
@@ -78,6 +92,7 @@ class SerialFuture(concurrent.futures.Future):
         args (Tuple): positional arguments to call the function with
         kw (Dict): keyword arguments to call the function with
     """
+
     func: Callable
     args: tuple
     kw: dict
@@ -161,6 +176,7 @@ class SerialExecutor:
         >>>     for i, f in enumerate(futures):
         >>>         assert i + 1 == f.result()
     """
+
     max_workers: int
 
     def __enter__(self) -> SerialExecutor:
@@ -349,6 +365,7 @@ class Executor:
                 number of workers. If 0, serial is forced. Defaults to 0.
         """
         from concurrent import futures
+
         if mode == 'serial' or max_workers == 0:
             backend = SerialExecutor()
         elif mode == 'thread':
@@ -357,9 +374,13 @@ class Executor:
             backend = futures.ProcessPoolExecutor(max_workers=max_workers)
         elif mode == 'interpreter':  # nocover
             # Requires 3.14+
-            InterpreterPoolExecutor = getattr(futures, "InterpreterPoolExecutor", None)
+            InterpreterPoolExecutor = getattr(
+                futures, 'InterpreterPoolExecutor', None
+            )
             if InterpreterPoolExecutor is None:
-                raise RuntimeError("Executor(mode='interpreter') requires Python 3.14+")
+                raise RuntimeError(
+                    "Executor(mode='interpreter') requires Python 3.14+"
+                )
             backend = InterpreterPoolExecutor(max_workers=max_workers)
         # elif mode == 'asyncio':
         #     # Experimental
@@ -454,8 +475,9 @@ class Executor:
         timeout = kwargs.pop('timeout', None)
         if len(kwargs) != 0:  # nocover
             raise ValueError('Unknown arguments {}'.format(kwargs))
-        return self.backend.map(fn, *iterables, timeout=timeout,
-                                chunksize=chunksize)
+        return self.backend.map(
+            fn, *iterables, timeout=timeout, chunksize=chunksize
+        )
 
 
 class JobPool:
@@ -485,6 +507,7 @@ class JobPool:
         >>>     final.append(info)
         >>> print('final = {!r}'.format(final))
     """
+
     executor: Executor
     jobs: list[Future]
     transient: bool
@@ -516,7 +539,9 @@ class JobPool:
     def __len__(self) -> int:
         return len(self.jobs)
 
-    def submit(self, func: Callable[..., Any], *args, **kwargs) -> concurrent.futures.Future:
+    def submit(
+        self, func: Callable[..., Any], *args, **kwargs
+    ) -> concurrent.futures.Future:
         """
         Submit a job managed by the pool
 
@@ -614,12 +639,14 @@ class JobPool:
             >>> pool.shutdown()
         """
         from ubelt.progiter import ProgIter
+
         job_iter = as_completed(self.jobs, timeout=timeout)
         if desc is not None:
             if progkw is None:
                 progkw = {}
             job_iter = ProgIter(
-                job_iter, desc=desc, total=len(self.jobs), **progkw)
+                job_iter, desc=desc, total=len(self.jobs), **progkw
+            )
             # adding types to ProgIter should make this not a problem
             self._prog = job_iter
         for job in job_iter:

@@ -9,9 +9,11 @@ The :class:`TeeStringIO` does the same thing but for arbitrary streams. It is
 how the former is implemented.
 
 """
+
 from __future__ import annotations
-import sys
+
 import io
+import sys
 import typing
 
 if typing.TYPE_CHECKING:
@@ -42,6 +44,7 @@ class TeeStringIO(io.StringIO):
         >>> assert self.getvalue() == 'spam'
         >>> assert redirect.getvalue() == 'spam'
     """
+
     def __init__(self, redirect: io.IOBase | None = None) -> None:
         """
         Args:
@@ -77,8 +80,11 @@ class TeeStringIO(io.StringIO):
         Returns:
             bool
         """
-        return (self.redirect is not None and
-                hasattr(self.redirect, 'isatty') and self.redirect.isatty())
+        return (
+            self.redirect is not None
+            and hasattr(self.redirect, 'isatty')
+            and self.redirect.isatty()
+        )
 
     def fileno(self) -> int:
         """
@@ -209,6 +215,7 @@ class CaptureStream:
         enabled (bool): if False, acts as a no-op context manager.
         started (bool): True while the capture is active.
     """
+
     # ----- hooks required by subclasses -----
     def _get_stream(self) -> TextIO:  # pragma: no cover - abstract-ish
         raise NotImplementedError
@@ -249,7 +256,7 @@ class CaptureStream:
         """
         Begin capturing. Swaps the global stream to our `TeeStringIO`.
         """
-        if not self.enabled or self.started:  # pragma: nobranch  
+        if not self.enabled or self.started:  # pragma: nobranch
             return
         self.text = ''
         self.started = True
@@ -264,13 +271,13 @@ class CaptureStream:
         if not self.enabled or not self.started:  # nocover
             return
         self.started = False
-        if self.orig_stream is not None:  # pragma: nobranch  
+        if self.orig_stream is not None:  # pragma: nobranch
             self._set_stream(self.orig_stream)
         # keep cap_stream alive for reading until close/__exit__
 
     def close(self) -> None:
         """Close and drop the proxy buffer to release memory."""
-        if self.cap_stream is not None:  # pragma: nobranch  
+        if self.cap_stream is not None:  # pragma: nobranch
             try:
                 self.cap_stream.close()
             finally:
@@ -363,6 +370,7 @@ class CaptureStdout(CaptureStream):
         ...     print('dont capture')
         >>> assert self.text is None
     """
+
     # ---- required hooks for CaptureStream ----
     def _get_stream(self) -> TextIO:
         return sys.stdout
@@ -397,6 +405,7 @@ class CaptureStderr(CaptureStream):
         ...     print('to stderr (captured)', file=sys.stderr)
         >>> assert 'to stderr (captured)' in (self.text or '')
     """
+
     def _get_stream(self) -> TextIO:
         return sys.stderr
 

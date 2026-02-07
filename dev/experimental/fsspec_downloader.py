@@ -4,10 +4,14 @@ Alternative to ub.DownloadManager
 
 
 def check_fsspec():
-    import ubelt as ub
     from os.path import join
+
+    import ubelt as ub
+
     dpath = ub.ensure_app_cache_dir('ubelt/simple_server')
-    info = ub.cmd(['python', '-m', 'http.server', '--directory', dpath], detach=True)
+    info = ub.cmd(
+        ['python', '-m', 'http.server', '--directory', dpath], detach=True
+    )
 
     fnames = ['file_{}.txt'.format(i) for i in range(100)]
     for fname in fnames:
@@ -22,10 +26,11 @@ def check_fsspec():
     urls = ['http://localhost:8000/{}'.format(fname) for fname in fnames]
 
     import fsspec
+
     file = fsspec.open(urls[0]).open().read()
 
     with ub.Timer(label='fsspec.cat', verbose=1):
-        fs = fsspec.filesystem("http")
+        fs = fsspec.filesystem('http')
         out = fs.cat(urls)  # fetches data concurrently
 
     with ub.Timer(label='ub.DownloadManager', verbose=1):

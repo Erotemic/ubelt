@@ -5,7 +5,9 @@ References:
     .. [SetDictRecipe1] https://gist.github.com/rossmacarthur/38fa948b175abb512e12c516cc3b936d
     .. [SetDictRecipe2] https://code.activestate.com/recipes/577471-setdict/
 """
+
 import itertools as it
+
 from ubelt import NoParam
 
 
@@ -141,19 +143,19 @@ class SetDict(dict):
 
     # We could just use the builtin variant for this specific operation
     def __or__(self, other):
-        """ The | union operator """
+        """The | union operator"""
         return self.union(other)
 
     def __and__(self, other):
-        """ The & intersection operator """
+        """The & intersection operator"""
         return self.intersection(other)
 
     def __sub__(self, other):
-        """ The - difference operator """
+        """The - difference operator"""
         return self.difference(other)
 
     def __xor__(self, other):
-        """ The ^ symmetric_difference operator """
+        """The ^ symmetric_difference operator"""
         return self.symmetric_difference(other)
 
     ### Main set operations
@@ -316,6 +318,7 @@ class SetDict(dict):
             {0: B_a, 2: C_c, 4: B_e, 5: A_f, 8: C_i, 9: D_j, 10: D_k, 11: D_l}
         """
         from collections import defaultdict
+
         cls = self.__class__
         accum_count = defaultdict(lambda: 0)
         accum_refs = {}
@@ -323,8 +326,11 @@ class SetDict(dict):
             for k in d.keys():
                 accum_count[k] += 1
                 accum_refs[k] = d
-        new = cls((k, accum_refs[k][k]) for k, count in accum_count.items()
-                  if count % 2 == 1)
+        new = cls(
+            (k, accum_refs[k][k])
+            for k, count in accum_count.items()
+            if count % 2 == 1
+        )
         return new
 
     ### Extra set operations
@@ -368,93 +374,95 @@ sdict = SetDict
 
 
 class UbeltDict(SetDict):
-
     def map_keys(self, func):
         import ubelt as ub
+
         return ub.map_keys(func, self)
 
     def map_values(self, func):
         import ubelt as ub
+
         return ub.map_values(func, self)
 
     def invert(self, unique_vals=True):
         import ubelt as ub
+
         return ub.invert_dict(self, unique_vals=unique_vals)
 
 
 def intersection_method_bench():
     """
-        Ignore:
-            import random
-            num_sets = 100
-            num_others = 100
-            num_core = 5
-            import ubelt
-            import sys
-            sys.path.append(ubelt.expandpath('~/code/ultrajson/json_benchmarks'))
-            sys.path.append(ubelt.expandpath('~/code/ultrajson'))
-            from json_benchmarks.benchmarker.benchmarker import *  # NOQA
-            import benchmarker
+    Ignore:
+        import random
+        num_sets = 100
+        num_others = 100
+        num_core = 5
+        import ubelt
+        import sys
+        sys.path.append(ubelt.expandpath('~/code/ultrajson/json_benchmarks'))
+        sys.path.append(ubelt.expandpath('~/code/ultrajson'))
+        from json_benchmarks.benchmarker.benchmarker import *  # NOQA
+        import benchmarker
 
-            def data_lut(num_sets=100, num_others=100, num_core=5):
-                rng = random.Random(0)
-                core = set(range(0, num_core))
-                datas = []
-                for _ in range(num_sets):
-                    nextset = core.copy()
-                    nextset.update({rng.randint(0, 1000) for _ in range(num_others)})
-                    datas.append(nextset)
-                return datas
+        def data_lut(num_sets=100, num_others=100, num_core=5):
+            rng = random.Random(0)
+            core = set(range(0, num_core))
+            datas = []
+            for _ in range(num_sets):
+                nextset = core.copy()
+                nextset.update({rng.randint(0, 1000) for _ in range(num_others)})
+                datas.append(nextset)
+            return datas
 
-            def method_loop_isect_update(datas):
-                isect_keys = set(datas[0])
-                for v in datas[1:]:
-                    isect_keys.intersection_update(v)
+        def method_loop_isect_update(datas):
+            isect_keys = set(datas[0])
+            for v in datas[1:]:
+                isect_keys.intersection_update(v)
 
-            def method_isect_map_set(datas):
-                set.intersection(*map(set, datas))
+        def method_isect_map_set(datas):
+            set.intersection(*map(set, datas))
 
-            basis = {
-                'impl': ['method_loop_isect_update', 'method_isect_map_set'],
-                'num_sets': [1, 3, 10, 50, 100,]
-            }
+        basis = {
+            'impl': ['method_loop_isect_update', 'method_isect_map_set'],
+            'num_sets': [1, 3, 10, 50, 100,]
+        }
 
-            impl_lut = vars()
+        impl_lut = vars()
 
-            self = Benchmarker(name='set-isect', num=10000, bestof=30, basis=basis)
-            for params in self.iter_params():
-                impl = impl_lut[params['impl']]
-                datas = data_lut(**ub.compatible(params, data_lut))
-                for timer in self.measure():
-                    with timer:
-                        impl(datas)
-            print('self.result = {}'.format(ub.repr2(self.result.__json__(), sort=0, nl=2, precision=8)))
-            dpath = ub.Path.appdir('benchmarker/demo').ensuredir()
-            self.dump_in_dpath(dpath)
+        self = Benchmarker(name='set-isect', num=10000, bestof=30, basis=basis)
+        for params in self.iter_params():
+            impl = impl_lut[params['impl']]
+            datas = data_lut(**ub.compatible(params, data_lut))
+            for timer in self.measure():
+                with timer:
+                    impl(datas)
+        print('self.result = {}'.format(ub.repr2(self.result.__json__(), sort=0, nl=2, precision=8)))
+        dpath = ub.Path.appdir('benchmarker/demo').ensuredir()
+        self.dump_in_dpath(dpath)
 
-            results = self.result.to_result_list()
-            metric_key = "mean_time"
-            analysis = benchmarker.result_analysis.ResultAnalysis(
-                results,
-                metrics=[metric_key],
-                params=["impl"],
-                metric_objectives={
-                    "min_time": "min",
-                    "mean_time": "min",
-                    "time": "min",
-                },
-            )
-            import kwplot
-            kwplot.autompl()
-            analysis.analysis()
-            xlabel = 'num_sets'
-            metric_key = 'mean_time'
-            group_labels = {
-                 # 'fig': ['u'],
-                 # 'col': ['y', 'v'],
-                 'hue': ['impl'],
-            }
-            analysis.plot(xlabel, metric_key, group_labels)
+        results = self.result.to_result_list()
+        metric_key = "mean_time"
+        analysis = benchmarker.result_analysis.ResultAnalysis(
+            results,
+            metrics=[metric_key],
+            params=["impl"],
+            metric_objectives={
+                "min_time": "min",
+                "mean_time": "min",
+                "time": "min",
+            },
+        )
+        import kwplot
+        kwplot.autompl()
+        analysis.analysis()
+        xlabel = 'num_sets'
+        metric_key = 'mean_time'
+        group_labels = {
+             # 'fig': ['u'],
+             # 'col': ['y', 'v'],
+             'hue': ['impl'],
+        }
+        analysis.plot(xlabel, metric_key, group_labels)
     """
 
 
@@ -578,7 +586,8 @@ def bench():
         odds.difference(primes)
         odds.intersection(primes)
         odds.union(primes)
-        """
+    """
+
 
 import ubelt as ub  # NOQA
 
@@ -598,6 +607,7 @@ class RorUDictType(type):
 class RorUDict(RorUDictType.cls, metaclass=RorUDictType):
     pass
 
+
 try:
     type({'10': 10} | RorUDict)
 except Exception as ex:
@@ -611,8 +621,8 @@ except Exception as ex:
 
 a = {1: 10, 2: 20, 3: 30, 5: 50, 7: 70, 11: 110}
 b = {1: 11, 2: 21, 3: 31, 5: 51, 8: 81, 13: 131}
-t1 = (RorUDict | a)
-t2 = (a | RorUDict)
+t1 = RorUDict | a
+t2 = a | RorUDict
 assert t1 == t2
 assert t1 is not t2
 assert isinstance(t1, RorUDictType.cls)

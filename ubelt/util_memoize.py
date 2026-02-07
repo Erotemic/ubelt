@@ -44,15 +44,17 @@ Example:
     >>> self.my_property2
     >>> self.my_property2
 """
+
 from __future__ import annotations
 
-import typing
 import functools
 import sys
+import typing
+
 from ubelt import util_hash
 
 if typing.TYPE_CHECKING:
-    from typing import Callable, Any
+    from typing import Any, Callable
 
 
 # TODO: Need to think if we can fix any of the typing ignores in this file.
@@ -108,8 +110,7 @@ def _make_signature_key(args, kwargs):
     try:
         key = _hashable(args), _hashable(kwitems)
     except TypeError:
-        msg = ('Signature is not hashable: '
-               'args={} kwargs{}'.format(args, kwargs))
+        msg = 'Signature is not hashable: args={} kwargs{}'.format(args, kwargs)
         raise TypeError(msg)
     return key
 
@@ -156,12 +157,14 @@ def memoize(func: Callable) -> Callable:
         >>> assert foo_memo('a') == 'b' and foo_memo('c') == 'd'
     """
     cache = {}
+
     @functools.wraps(func)
     def memoizer(*args, **kwargs):
         key = _make_signature_key(args, kwargs)
         if key not in cache:
             cache[key] = func(*args, **kwargs)
         return cache[key]
+
     # memoizer.cache = cache
     setattr(memoizer, 'cache', cache)
     return memoizer
@@ -241,6 +244,7 @@ class memoize_method:
         >>> assert method1('z') == ('z2', 'F1')
         >>> assert method2('z') == ('z2', 'F2')
     """
+
     __func__: Callable[..., Any]
 
     def __init__(self, func: Callable[..., Any]) -> None:
@@ -264,6 +268,7 @@ class memoize_method:
             cls (type | None): the type of the instance
         """
         import types
+
         unbound = self._func
         cache = instance.__dict__.setdefault(self._cache_name, {})
 

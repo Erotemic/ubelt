@@ -1,10 +1,12 @@
-import pickle
-import pytest
 import collections
-import sys
-import operator
 import itertools as it
+import operator
+import pickle
 import random
+import sys
+
+import pytest
+
 from ubelt import OrderedSet
 
 
@@ -33,7 +35,9 @@ def test_binary_operations():
     assert set1 != set2
 
     assert set1 & set2 == OrderedSet(['a', 'b'])
-    assert set1 | set2 == OrderedSet(['a', 'b', 'r', 'c', 'd', 's', 'i', 'm', 'l'])
+    assert set1 | set2 == OrderedSet(
+        ['a', 'b', 'r', 'c', 'd', 's', 'i', 'm', 'l']
+    )
     assert set1 - set2 == OrderedSet(['r', 'c', 'd'])
 
 
@@ -58,6 +62,7 @@ class FancyIndexTester:
     Make sure we can index by a NumPy ndarray, without having to import
     NumPy.
     """
+
     def __init__(self, indices):
         self.indices = indices
 
@@ -65,7 +70,7 @@ class FancyIndexTester:
         return iter(self.indices)
 
     def __index__(self):
-        raise TypeError("NumPy arrays have weird __index__ methods")
+        raise TypeError('NumPy arrays have weird __index__ methods')
 
     def __eq__(self, other):
         # Emulate NumPy being fussy about the == operator
@@ -249,7 +254,7 @@ def test_unordered_inequality():
 
 
 def allsame_(iterable, eq=operator.eq):
-    """ returns True of all items in iterable equal each other """
+    """returns True of all items in iterable equal each other"""
     iter_ = iter(iterable)
     try:
         first = next(iter_)
@@ -314,7 +319,9 @@ def test_operator_consistency_isect():
         result1.intersection_update(data2)
         result2 = data1 & data2
         result3 = data1.intersection(data2)
-        check_results_([result1, result2, result3], datas=(data1, data2), name='isect')
+        check_results_(
+            [result1, result2, result3], datas=(data1, data2), name='isect'
+        )
 
 
 def test_operator_consistency_difference():
@@ -334,7 +341,9 @@ def test_operator_consistency_xor():
         result1.symmetric_difference_update(data2)
         result2 = data1 ^ data2
         result3 = data1.symmetric_difference(data2)
-        check_results_([result1, result2, result3], datas=(data1, data2), name='xor')
+        check_results_(
+            [result1, result2, result3], datas=(data1, data2), name='xor'
+        )
 
 
 def test_operator_consistency_union():
@@ -343,7 +352,9 @@ def test_operator_consistency_union():
         result1.update(data2)
         result2 = data1 | data2
         result3 = data1.union(data2)
-        check_results_([result1, result2, result3], datas=(data1, data2), name='union')
+        check_results_(
+            [result1, result2, result3], datas=(data1, data2), name='union'
+        )
 
 
 def test_operator_consistency_subset():
@@ -351,7 +362,9 @@ def test_operator_consistency_subset():
         result1 = data1 <= data2
         result2 = data1.issubset(data2)
         result3 = set(data1).issubset(set(data2))
-        check_results_([result1, result2, result3], datas=(data1, data2), name='subset')
+        check_results_(
+            [result1, result2, result3], datas=(data1, data2), name='subset'
+        )
 
 
 def test_operator_consistency_superset():
@@ -368,7 +381,9 @@ def test_operator_consistency_disjoint():
     for data1, data2 in _operator_consistency_testdata():
         result1 = data1.isdisjoint(data2)
         result2 = len(data1.intersection(data2)) == 0
-        check_results_([result1, result2], datas=(data1, data2), name='disjoint')
+        check_results_(
+            [result1, result2], datas=(data1, data2), name='disjoint'
+        )
 
 
 def test_bitwise_and_consistency():
@@ -380,4 +395,6 @@ def test_bitwise_and_consistency():
     # This requires a custom & operation apparently
     result2 = data1 & data2
     result3 = data1.intersection(data2)
-    check_results_([result1, result2, result3], datas=(data1, data2), name='isect')
+    check_results_(
+        [result1, result2, result3], datas=(data1, data2), name='isect'
+    )

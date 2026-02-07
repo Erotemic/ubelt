@@ -3,17 +3,23 @@ def remove_old_python2_headers():
     Helper to modernize the code
     """
     import re
+
+    from xdev import patterns, search_replace
+
     import ubelt as ub
-    from xdev import search_replace
-    from xdev import patterns
 
     repo_dpath = ub.Path('.')
     # fpaths = set(ub.Path('~/code/watch/').expand().glob('**/*.py'))
     fpaths = set(repo_dpath.glob('**/*.py'))
 
     lines_to_remove = [
-        patterns.Pattern.from_regex(re.escape('from __future__ import absolute_import, ') + '.*', dotall=True),
-        patterns.Pattern.from_regex(re.escape('# -*- coding: utf-8 -*-') + '.*', dotall=True),
+        patterns.Pattern.from_regex(
+            re.escape('from __future__ import absolute_import, ') + '.*',
+            dotall=True,
+        ),
+        patterns.Pattern.from_regex(
+            re.escape('# -*- coding: utf-8 -*-') + '.*', dotall=True
+        ),
     ]
 
     fpaths = {f for f in fpaths if 'remove_ancient_constructs' not in str(f)}
@@ -23,4 +29,6 @@ def remove_old_python2_headers():
     for fpath in fpaths:
         # x = fpath.read_text().split('\n')[0:1][0]
         for pat in lines_to_remove:
-            search_replace.sedfile(fpath, regexpr=pat, repl='', dry=dry, verbose=3)
+            search_replace.sedfile(
+                fpath, regexpr=pat, repl='', dry=dry, verbose=3
+            )

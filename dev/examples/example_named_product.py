@@ -1,13 +1,12 @@
-
-
 def demo_named_product():
-    import ubelt as ub
-    import pandas as pd
     import numpy as np
+    import pandas as pd
+
+    import ubelt as ub
 
     def some_function(thresh1, thresh2):
         x, y = thresh1, thresh2
-        z = ((x ** 2 + y ** 2 - 1) ** 3 - x ** 2 * y ** 3)
+        z = (x**2 + y**2 - 1) ** 3 - x**2 * y**3
         return np.log(z)
 
     s = 2.5
@@ -32,5 +31,6 @@ def demo_named_product():
 
     # import seaborn as sns
     import kwplot
+
     sns = kwplot.autosns()
     sns.scatterplot(data=data, x='thresh1', y='thresh2', hue='score')

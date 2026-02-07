@@ -1,9 +1,11 @@
+import itertools as it
 import os
 import sys
-import pytest
-import ubelt as ub
-import itertools as it
 from os.path import join
+
+import pytest
+
+import ubelt as ub
 from ubelt.util_import import PythonPathContext
 
 
@@ -14,9 +16,10 @@ def test_import_modpath_basic():
     with temp:
         modpath = ub.Path(temp.dpath) / 'testmod.py'
         text = ub.codeblock(
-            '''
+            """
             a = 'value'
-            ''')
+            """
+        )
         modpath.write_text(text)
         assert temp.dpath not in sys.path
         module = ub.import_module_from_path(modpath)
@@ -46,9 +49,10 @@ def test_import_modpath_package():
 
         modpath = sub2 / 'testmod.py'
         text = ub.codeblock(
-            '''
+            """
             a = 'value'
-            ''')
+            """
+        )
         modpath.write_text(text)
         assert temp.dpath not in sys.path
         module = ub.import_module_from_path(modpath)
@@ -64,6 +68,7 @@ def test_import_modpath_package():
 def test_import_modname_builtin():
     module = ub.import_module_from_name('ast')
     import ast
+
     assert module is ast
 
 
@@ -75,8 +80,9 @@ def _static_modname_to_modpath(modname, **kwargs):
     except ValueError:
         modpath = None
     if not had:
-        assert modname not in sys.modules, (
-            '{} should not be imported'.format(modname))
+        assert modname not in sys.modules, '{} should not be imported'.format(
+            modname
+        )
     return modpath
 
 
@@ -92,15 +98,36 @@ def test_modname_to_modpath_single():
 
         with PythonPathContext(dpath):
             assert single == _static_modname_to_modpath('_tmpsingle')
-            assert single == _static_modname_to_modpath('_tmpsingle', hide_init=True, hide_main=False)
-            assert single == _static_modname_to_modpath('_tmpsingle', hide_init=False, hide_main=False)
-            assert single == _static_modname_to_modpath('_tmpsingle', hide_init=False, hide_main=True)
+            assert single == _static_modname_to_modpath(
+                '_tmpsingle', hide_init=True, hide_main=False
+            )
+            assert single == _static_modname_to_modpath(
+                '_tmpsingle', hide_init=False, hide_main=False
+            )
+            assert single == _static_modname_to_modpath(
+                '_tmpsingle', hide_init=False, hide_main=True
+            )
 
             # Weird module named main not in a package
             assert _static_modname_to_modpath('__main__') == single_main
-            assert _static_modname_to_modpath('__main__', hide_init=True, hide_main=False) == single_main
-            assert _static_modname_to_modpath('__main__', hide_init=False, hide_main=False) == single_main
-            assert _static_modname_to_modpath('__main__', hide_init=False, hide_main=True) == single_main
+            assert (
+                _static_modname_to_modpath(
+                    '__main__', hide_init=True, hide_main=False
+                )
+                == single_main
+            )
+            assert (
+                _static_modname_to_modpath(
+                    '__main__', hide_init=False, hide_main=False
+                )
+                == single_main
+            )
+            assert (
+                _static_modname_to_modpath(
+                    '__main__', hide_init=False, hide_main=True
+                )
+                == single_main
+            )
 
 
 def test_modname_to_modpath_package():
@@ -139,7 +166,9 @@ def test_modname_to_modpath_package():
             assert _static_modname_to_modpath('_tmproot927.bad1') is None
             assert _static_modname_to_modpath('_tmproot927.sub1.bad1') is None
             assert _static_modname_to_modpath('_tmproot927.bad1.b0') is None
-            assert _static_modname_to_modpath('_tmproot927.sub1.bad1.b1') is None
+            assert (
+                _static_modname_to_modpath('_tmproot927.sub1.bad1.b1') is None
+            )
             assert _static_modname_to_modpath('_tmproot927.bad1') is None
 
             # package modules are accessible by the full path
@@ -148,7 +177,9 @@ def test_modname_to_modpath_package():
             assert sub2 == _static_modname_to_modpath('_tmproot927.sub1.sub2')
             assert mod0 == _static_modname_to_modpath('_tmproot927.mod0')
             assert mod1 == _static_modname_to_modpath('_tmproot927.sub1.mod1')
-            assert mod2 == _static_modname_to_modpath('_tmproot927.sub1.sub2.mod2')
+            assert mod2 == _static_modname_to_modpath(
+                '_tmproot927.sub1.sub2.mod2'
+            )
 
             # specifying a suffix will not work
             assert _static_modname_to_modpath('sub1') is None
@@ -158,69 +189,237 @@ def test_modname_to_modpath_package():
             assert _static_modname_to_modpath('sub1.sub2.mod2') is None
 
             # Specify init if available
-            assert root_init == _static_modname_to_modpath('_tmproot927', hide_init=False)
+            assert root_init == _static_modname_to_modpath(
+                '_tmproot927', hide_init=False
+            )
 
             if 1:
                 # Test init
-                assert _static_modname_to_modpath('_tmproot927', hide_init=False) == root_init
-                assert _static_modname_to_modpath('_tmproot927.__init__', hide_init=False) == root_init
-                assert _static_modname_to_modpath('_tmproot927.__main__', hide_init=False, hide_main=True) == root
+                assert (
+                    _static_modname_to_modpath('_tmproot927', hide_init=False)
+                    == root_init
+                )
+                assert (
+                    _static_modname_to_modpath(
+                        '_tmproot927.__init__', hide_init=False
+                    )
+                    == root_init
+                )
+                assert (
+                    _static_modname_to_modpath(
+                        '_tmproot927.__main__', hide_init=False, hide_main=True
+                    )
+                    == root
+                )
 
                 # Test main
-                assert _static_modname_to_modpath('_tmproot927', hide_main=False) == root
-                assert _static_modname_to_modpath('_tmproot927.__init__', hide_main=False) == root
-                assert _static_modname_to_modpath('_tmproot927.__main__', hide_main=False) == root_main
+                assert (
+                    _static_modname_to_modpath('_tmproot927', hide_main=False)
+                    == root
+                )
+                assert (
+                    _static_modname_to_modpath(
+                        '_tmproot927.__init__', hide_main=False
+                    )
+                    == root
+                )
+                assert (
+                    _static_modname_to_modpath(
+                        '_tmproot927.__main__', hide_main=False
+                    )
+                    == root_main
+                )
 
                 # Test init and main both false
-                assert _static_modname_to_modpath('_tmproot927.__init__') == root
-                assert _static_modname_to_modpath('_tmproot927.__main__', hide_main=True) == root
+                assert (
+                    _static_modname_to_modpath('_tmproot927.__init__') == root
+                )
+                assert (
+                    _static_modname_to_modpath(
+                        '_tmproot927.__main__', hide_main=True
+                    )
+                    == root
+                )
 
                 # Test init and main both true
-                assert _static_modname_to_modpath('_tmproot927', hide_init=False, hide_main=False) == root_init
-                assert _static_modname_to_modpath('_tmproot927.__init__', hide_init=False, hide_main=False) == root_init
-                assert _static_modname_to_modpath('_tmproot927.__main__', hide_init=False, hide_main=False) == root_main
+                assert (
+                    _static_modname_to_modpath(
+                        '_tmproot927', hide_init=False, hide_main=False
+                    )
+                    == root_init
+                )
+                assert (
+                    _static_modname_to_modpath(
+                        '_tmproot927.__init__', hide_init=False, hide_main=False
+                    )
+                    == root_init
+                )
+                assert (
+                    _static_modname_to_modpath(
+                        '_tmproot927.__main__', hide_init=False, hide_main=False
+                    )
+                    == root_main
+                )
 
             if 2:
                 # Test in a nested directory
                 # Test init
-                assert _static_modname_to_modpath('_tmproot927.sub1.sub2', hide_init=False) == sub2_init
-                assert _static_modname_to_modpath('_tmproot927.sub1.sub2.__init__', hide_init=False) == sub2_init
-                assert _static_modname_to_modpath('_tmproot927.sub1.sub2.__main__', hide_init=False, hide_main=True) == sub2
+                assert (
+                    _static_modname_to_modpath(
+                        '_tmproot927.sub1.sub2', hide_init=False
+                    )
+                    == sub2_init
+                )
+                assert (
+                    _static_modname_to_modpath(
+                        '_tmproot927.sub1.sub2.__init__', hide_init=False
+                    )
+                    == sub2_init
+                )
+                assert (
+                    _static_modname_to_modpath(
+                        '_tmproot927.sub1.sub2.__main__',
+                        hide_init=False,
+                        hide_main=True,
+                    )
+                    == sub2
+                )
 
                 # Test main
-                assert _static_modname_to_modpath('_tmproot927.sub1.sub2', hide_main=False) == sub2
-                assert _static_modname_to_modpath('_tmproot927.sub1.sub2.__main__', hide_main=False) == sub2_main
-                assert _static_modname_to_modpath('_tmproot927.sub1.sub2.__init__', hide_main=False) == sub2
+                assert (
+                    _static_modname_to_modpath(
+                        '_tmproot927.sub1.sub2', hide_main=False
+                    )
+                    == sub2
+                )
+                assert (
+                    _static_modname_to_modpath(
+                        '_tmproot927.sub1.sub2.__main__', hide_main=False
+                    )
+                    == sub2_main
+                )
+                assert (
+                    _static_modname_to_modpath(
+                        '_tmproot927.sub1.sub2.__init__', hide_main=False
+                    )
+                    == sub2
+                )
 
                 # Test init and main both false
-                assert _static_modname_to_modpath('_tmproot927.sub1.sub2.__init__', hide_main=True) == sub2
-                assert _static_modname_to_modpath('_tmproot927.sub1.sub2.__main__', hide_main=True) == sub2
+                assert (
+                    _static_modname_to_modpath(
+                        '_tmproot927.sub1.sub2.__init__', hide_main=True
+                    )
+                    == sub2
+                )
+                assert (
+                    _static_modname_to_modpath(
+                        '_tmproot927.sub1.sub2.__main__', hide_main=True
+                    )
+                    == sub2
+                )
 
                 # Test init and main both true
-                assert _static_modname_to_modpath('_tmproot927.sub1.sub2', hide_init=False, hide_main=False) == sub2_init
-                assert _static_modname_to_modpath('_tmproot927.sub1.sub2.__init__', hide_init=False, hide_main=False) == sub2_init
-                assert _static_modname_to_modpath('_tmproot927.sub1.sub2.__main__', hide_init=False, hide_main=False) == sub2_main
+                assert (
+                    _static_modname_to_modpath(
+                        '_tmproot927.sub1.sub2',
+                        hide_init=False,
+                        hide_main=False,
+                    )
+                    == sub2_init
+                )
+                assert (
+                    _static_modname_to_modpath(
+                        '_tmproot927.sub1.sub2.__init__',
+                        hide_init=False,
+                        hide_main=False,
+                    )
+                    == sub2_init
+                )
+                assert (
+                    _static_modname_to_modpath(
+                        '_tmproot927.sub1.sub2.__main__',
+                        hide_init=False,
+                        hide_main=False,
+                    )
+                    == sub2_main
+                )
 
             if 3:
                 # Test in a nested directory with __init__ but no __main__
                 # Test init
-                assert _static_modname_to_modpath('_tmproot927.sub1', hide_init=False) == sub1_init
-                assert _static_modname_to_modpath('_tmproot927.sub1.__init__', hide_init=False) == sub1_init
-                assert _static_modname_to_modpath('_tmproot927.sub1.__main__', hide_init=False) is None
+                assert (
+                    _static_modname_to_modpath(
+                        '_tmproot927.sub1', hide_init=False
+                    )
+                    == sub1_init
+                )
+                assert (
+                    _static_modname_to_modpath(
+                        '_tmproot927.sub1.__init__', hide_init=False
+                    )
+                    == sub1_init
+                )
+                assert (
+                    _static_modname_to_modpath(
+                        '_tmproot927.sub1.__main__', hide_init=False
+                    )
+                    is None
+                )
 
                 # Test main
-                assert _static_modname_to_modpath('_tmproot927.sub1', hide_main=False) == sub1
-                assert _static_modname_to_modpath('_tmproot927.sub1.__main__', hide_main=False) is None
-                assert _static_modname_to_modpath('_tmproot927.sub1.__init__', hide_main=False) == sub1
+                assert (
+                    _static_modname_to_modpath(
+                        '_tmproot927.sub1', hide_main=False
+                    )
+                    == sub1
+                )
+                assert (
+                    _static_modname_to_modpath(
+                        '_tmproot927.sub1.__main__', hide_main=False
+                    )
+                    is None
+                )
+                assert (
+                    _static_modname_to_modpath(
+                        '_tmproot927.sub1.__init__', hide_main=False
+                    )
+                    == sub1
+                )
 
                 # Test init and main both false
-                assert _static_modname_to_modpath('_tmproot927.sub1.__init__') == sub1
-                assert _static_modname_to_modpath('_tmproot927.sub1.__main__') is None
+                assert (
+                    _static_modname_to_modpath('_tmproot927.sub1.__init__')
+                    == sub1
+                )
+                assert (
+                    _static_modname_to_modpath('_tmproot927.sub1.__main__')
+                    is None
+                )
 
                 # Test init and main both true
-                assert _static_modname_to_modpath('_tmproot927.sub1', hide_init=False, hide_main=False) == sub1_init
-                assert _static_modname_to_modpath('_tmproot927.sub1.__init__', hide_init=False, hide_main=False) == sub1_init
-                assert _static_modname_to_modpath('_tmproot927.sub1.__main__', hide_init=False, hide_main=False) is None
+                assert (
+                    _static_modname_to_modpath(
+                        '_tmproot927.sub1', hide_init=False, hide_main=False
+                    )
+                    == sub1_init
+                )
+                assert (
+                    _static_modname_to_modpath(
+                        '_tmproot927.sub1.__init__',
+                        hide_init=False,
+                        hide_main=False,
+                    )
+                    == sub1_init
+                )
+                assert (
+                    _static_modname_to_modpath(
+                        '_tmproot927.sub1.__main__',
+                        hide_init=False,
+                        hide_main=False,
+                    )
+                    is None
+                )
 
             assert '_tmproot927' not in sys.modules
             assert '_tmproot927.mod0' not in sys.modules
@@ -265,6 +464,7 @@ def test_modname_to_modpath_namespace():
 
             # this should all be static
             import sys
+
             assert '_tmpsingle' not in sys.modules
             assert '_tmpbad' not in sys.modules
 
@@ -276,6 +476,7 @@ def test_package_submodules():
         xdoctest -m ~/code/ubelt/tests/test_import.py test_package_submodules
     """
     from xdoctest import static_analysis as static
+
     with pytest.warns(Warning):
         temp = ub.TempDir()
     with temp:
@@ -365,10 +566,12 @@ def test_modpath_to_modname():
         b1 = ub.touch(join(bad2, 'b1.py'))
 
         import os
-        ub.modpath_to_modname(root, relativeto=os.path.dirname(dpath))  # TODO: assert correct output
+
+        ub.modpath_to_modname(
+            root, relativeto=os.path.dirname(dpath)
+        )  # TODO: assert correct output
 
         with PythonPathContext(dpath):
-
             assert ub.modpath_to_modname(root) == '_tmproot927'
             assert ub.modpath_to_modname(sub1) == '_tmproot927.sub1'
             assert ub.modpath_to_modname(sub2) == '_tmproot927.sub1.sub2'
@@ -381,40 +584,118 @@ def test_modpath_to_modname():
             assert ub.modpath_to_modname(sub1_init) == '_tmproot927.sub1'
             assert ub.modpath_to_modname(sub2_init) == '_tmproot927.sub1.sub2'
 
-            assert ub.modpath_to_modname(root_init, hide_init=False) == '_tmproot927.__init__'
-            assert ub.modpath_to_modname(sub1_init, hide_init=False) == '_tmproot927.sub1.__init__'
-            assert ub.modpath_to_modname(sub2_init, hide_init=False) == '_tmproot927.sub1.sub2.__init__'
+            assert (
+                ub.modpath_to_modname(root_init, hide_init=False)
+                == '_tmproot927.__init__'
+            )
+            assert (
+                ub.modpath_to_modname(sub1_init, hide_init=False)
+                == '_tmproot927.sub1.__init__'
+            )
+            assert (
+                ub.modpath_to_modname(sub2_init, hide_init=False)
+                == '_tmproot927.sub1.sub2.__init__'
+            )
 
-            assert ub.modpath_to_modname(root, hide_main=True, hide_init=False) == '_tmproot927.__init__'
-            assert ub.modpath_to_modname(sub1, hide_main=True, hide_init=False) == '_tmproot927.sub1.__init__'
-            assert ub.modpath_to_modname(sub2, hide_main=True, hide_init=False) == '_tmproot927.sub1.sub2.__init__'
+            assert (
+                ub.modpath_to_modname(root, hide_main=True, hide_init=False)
+                == '_tmproot927.__init__'
+            )
+            assert (
+                ub.modpath_to_modname(sub1, hide_main=True, hide_init=False)
+                == '_tmproot927.sub1.__init__'
+            )
+            assert (
+                ub.modpath_to_modname(sub2, hide_main=True, hide_init=False)
+                == '_tmproot927.sub1.sub2.__init__'
+            )
 
-            assert ub.modpath_to_modname(root, hide_main=False, hide_init=False) == '_tmproot927.__init__'
-            assert ub.modpath_to_modname(sub1, hide_main=False, hide_init=False) == '_tmproot927.sub1.__init__'
-            assert ub.modpath_to_modname(sub2, hide_main=False, hide_init=False) == '_tmproot927.sub1.sub2.__init__'
+            assert (
+                ub.modpath_to_modname(root, hide_main=False, hide_init=False)
+                == '_tmproot927.__init__'
+            )
+            assert (
+                ub.modpath_to_modname(sub1, hide_main=False, hide_init=False)
+                == '_tmproot927.sub1.__init__'
+            )
+            assert (
+                ub.modpath_to_modname(sub2, hide_main=False, hide_init=False)
+                == '_tmproot927.sub1.sub2.__init__'
+            )
 
-            assert ub.modpath_to_modname(root, hide_main=False, hide_init=True) == '_tmproot927'
-            assert ub.modpath_to_modname(sub1, hide_main=False, hide_init=True) == '_tmproot927.sub1'
-            assert ub.modpath_to_modname(sub2, hide_main=False, hide_init=True) == '_tmproot927.sub1.sub2'
+            assert (
+                ub.modpath_to_modname(root, hide_main=False, hide_init=True)
+                == '_tmproot927'
+            )
+            assert (
+                ub.modpath_to_modname(sub1, hide_main=False, hide_init=True)
+                == '_tmproot927.sub1'
+            )
+            assert (
+                ub.modpath_to_modname(sub2, hide_main=False, hide_init=True)
+                == '_tmproot927.sub1.sub2'
+            )
 
-            assert ub.modpath_to_modname(root_main, hide_main=False, hide_init=True) == '_tmproot927.__main__'
-            assert ub.modpath_to_modname(sub2_main, hide_main=False, hide_init=True) == '_tmproot927.sub1.sub2.__main__'
+            assert (
+                ub.modpath_to_modname(
+                    root_main, hide_main=False, hide_init=True
+                )
+                == '_tmproot927.__main__'
+            )
+            assert (
+                ub.modpath_to_modname(
+                    sub2_main, hide_main=False, hide_init=True
+                )
+                == '_tmproot927.sub1.sub2.__main__'
+            )
 
-            assert ub.modpath_to_modname(root_main, hide_main=False, hide_init=True) == '_tmproot927.__main__'
-            assert ub.modpath_to_modname(sub2_main, hide_main=False, hide_init=True) == '_tmproot927.sub1.sub2.__main__'
+            assert (
+                ub.modpath_to_modname(
+                    root_main, hide_main=False, hide_init=True
+                )
+                == '_tmproot927.__main__'
+            )
+            assert (
+                ub.modpath_to_modname(
+                    sub2_main, hide_main=False, hide_init=True
+                )
+                == '_tmproot927.sub1.sub2.__main__'
+            )
 
-            assert ub.modpath_to_modname(root_main, hide_main=True, hide_init=True) == '_tmproot927'
-            assert ub.modpath_to_modname(sub2_main, hide_main=True, hide_init=True) == '_tmproot927.sub1.sub2'
+            assert (
+                ub.modpath_to_modname(root_main, hide_main=True, hide_init=True)
+                == '_tmproot927'
+            )
+            assert (
+                ub.modpath_to_modname(sub2_main, hide_main=True, hide_init=True)
+                == '_tmproot927.sub1.sub2'
+            )
 
-            assert ub.modpath_to_modname(root_main, hide_main=True, hide_init=False) == '_tmproot927'
-            assert ub.modpath_to_modname(sub2_main, hide_main=True, hide_init=False) == '_tmproot927.sub1.sub2'
+            assert (
+                ub.modpath_to_modname(
+                    root_main, hide_main=True, hide_init=False
+                )
+                == '_tmproot927'
+            )
+            assert (
+                ub.modpath_to_modname(
+                    sub2_main, hide_main=True, hide_init=False
+                )
+                == '_tmproot927.sub1.sub2'
+            )
 
             # Non-existent / invalid modules should always be None
             for a, b in it.product([True, False], [True, False]):
                 with pytest.raises(ValueError):
-                    ub.modpath_to_modname(join(sub1, '__main__.py'), hide_main=a, hide_init=b)
-                assert ub.modpath_to_modname(b0, hide_main=a, hide_init=b) == 'b0'
-                assert ub.modpath_to_modname(b1, hide_main=a, hide_init=b) == 'b1'
+                    ub.modpath_to_modname(
+                        join(sub1, '__main__.py'), hide_main=a, hide_init=b
+                    )
+                assert (
+                    ub.modpath_to_modname(b0, hide_main=a, hide_init=b) == 'b0'
+                )
+                assert (
+                    ub.modpath_to_modname(b1, hide_main=a, hide_init=b) == 'b1'
+                )
                 with pytest.raises(ValueError):
                     ub.modpath_to_modname(bad1, hide_main=a, hide_init=b)
                 with pytest.raises(ValueError):
@@ -440,4 +721,5 @@ if __name__ == '__main__':
         pytest tests/test_import.py
     """
     import xdoctest
+
     xdoctest.doctest_module(__file__)

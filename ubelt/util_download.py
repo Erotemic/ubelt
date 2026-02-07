@@ -16,34 +16,32 @@ if it needs to.
 
 from __future__ import annotations
 
+import os
 import typing
+from os.path import basename, dirname, exists, join, split
 
 from ubelt.util_const import NoParam
-from os.path import basename, join, exists, dirname, split
-import os
-
 
 if typing.TYPE_CHECKING:
     import datetime
-    from typing import Mapping, Any, BinaryIO, cast
+    from typing import Any, BinaryIO, Mapping, cast
+
     from ubelt.util_const import NoParamType
 
     BytesLike = bytes | bytearray | memoryview
 
     class HasherLike(typing.Protocol):
+        # name: str
 
-        #name: str
+        def update(self, data: BytesLike, /) -> None: ...
 
-        def update(self, data: BytesLike, /) -> None:
-            ...
-
-        def hexdigest(self) -> str:
-            ...
+        def hexdigest(self) -> str: ...
 
 
 __all__ = ['download', 'grabdata']
 
 # todo: add overloads to indicate that when fpath is a str then str is returned
+
 
 def download(
     url: str,
@@ -191,18 +189,20 @@ def download(
         >>> with pytest.raises(RuntimeError):
         >>>     ub.download(url, hasher='sha512', hash_prefix='BAD_HASH')
     """
-    from ubelt import ProgIter as Progress
-    from ubelt.util_platform import platform_cache_dir
+    import hashlib
     import pathlib
     import shutil
     import tempfile
-    import hashlib
+
+    from ubelt import ProgIter as Progress
+    from ubelt.util_platform import platform_cache_dir
 
     if timeout is NoParam:
         import socket
+
         timeout = socket._GLOBAL_DEFAULT_TIMEOUT  # type: ignore[unresolved-attribute]
 
-    from urllib.request import urlopen, Request
+    from urllib.request import Request, urlopen
 
     if fpath and (dpath or fname):
         raise ValueError('Cannot specify fpath with dpath or fname')
@@ -225,8 +225,7 @@ def download(
         if _dst_is_io_object:
             print('Downloading url={!r} to IO object'.format(url))
         else:
-            print('Downloading url={!r} to fpath={!r}'.format(
-                url, fpath))
+            print('Downloading url={!r} to fpath={!r}'.format(url, fpath))
 
     requestkw = requestkw or {}
     requestkw['headers'] = {'User-Agent': 'Mozilla/5.0'}  # type: ignore[invalid-assignment]
@@ -237,9 +236,9 @@ def download(
     if filesize is None:
         try:
             if hasattr(meta, 'getheaders'):  # nocover
-                filesize = int(meta.getheaders("Content-Length")[0])
+                filesize = int(meta.getheaders('Content-Length')[0])
             else:
-                filesize = int(meta.get_all("Content-Length")[0])
+                filesize = int(meta.get_all('Content-Length')[0])
         except Exception:  # nocover
             # sometimes the url does not contain content length metadata
             # TODO: find a public URL that exemplifies this or figure out how to
@@ -291,9 +290,9 @@ def download(
         def _build_extra():
             pbar._curr_measurement.time
             bytes_down = pbar._iter_idx
-            total_seconds = pbar._total_seconds + 1E-9
-            num_kb_down   = int(bytes_down) / 1024
-            num_mb_down   = int(num_kb_down / 1024)
+            total_seconds = pbar._total_seconds + 1e-9
+            num_kb_down = int(bytes_down) / 1024
+            num_mb_down = int(num_kb_down / 1024)
             kb_per_second = int(num_kb_down / (total_seconds))
             # fmt_msg = ' {:d} MB, {:d} KB/s'
             fmt_msg = ' {:d} KB/s'
@@ -326,6 +325,7 @@ def download(
                         buffer = _urldata_read(chunksize)
                         _file_write(buffer)
                         _pbar_update(len(buffer))
+
             _critical_loop()
 
         if not _dst_is_io_object:
@@ -342,18 +342,22 @@ def download(
 
         if hash_prefix:
             got = hasher.hexdigest()
-            if got[:len(hash_prefix)] != hash_prefix:
+            if got[: len(hash_prefix)] != hash_prefix:
                 print('hash_prefix = {!r}'.format(hash_prefix))
                 print('got = {!r}'.format(got))
                 if _dst_is_io_object:
                     raise RuntimeError(
-                        'invalid hash value '
-                        '(expected "{}", got "{}")'.format(hash_prefix, got))
+                        'invalid hash value (expected "{}", got "{}")'.format(
+                            hash_prefix, got
+                        )
+                    )
                 else:
                     raise RuntimeError(
                         'invalid hash value for fpath={!r} '
                         '(expected "{}", got "{}")'.format(
-                            fpath, hash_prefix, got))
+                            fpath, hash_prefix, got
+                        )
+                    )
     finally:
         if not _dst_is_io_object:  # nocover
             if typing.TYPE_CHECKING:
@@ -493,8 +497,10 @@ def grabdata(
         >>> assert json.loads(stamp_fpath.read_text())['hash'][0].startswith(prefix2)
     """
     import pathlib
-    from ubelt.util_platform import platform_cache_dir
+
     from ubelt.util_cache import CacheStamp
+    from ubelt.util_platform import platform_cache_dir
+
     if appname and dpath:
         raise ValueError('Cannot specify appname with dpath')
     if fpath and (dpath or fname or appname):
@@ -517,11 +523,16 @@ def grabdata(
             hasher_name = hasher
         else:  # nocover
             from ubelt import schedule_deprecation
+
             schedule_deprecation(
                 modname='ubelt',
                 migration='Pass hasher as a string, otherwise unexpected behavior can occur',
-                name='hasher', type='grabdata arg',
-                deprecate='1.1.0', error='1.3.0', remove='1.5.0')
+                name='hasher',
+                type='grabdata arg',
+                deprecate='1.1.0',
+                error='1.3.0',
+                remove='1.5.0',
+            )
             hasher_name = getattr(hasher, 'name', None)
     else:
         hasher_name = None
@@ -541,9 +552,14 @@ def grabdata(
     # Specifically we have no control over the separator between fname,
     # depends, and the extension.
     stamp = CacheStamp(
-        fname + '.stamp', dpath, depends=depends, hasher=hasher_name,
-        ext='.json', product=fpath,
-        hash_prefix=hash_prefix, verbose=verbose,
+        fname + '.stamp',
+        dpath,
+        depends=depends,
+        hasher=hasher_name,
+        ext='.json',
+        product=fpath,
+        hash_prefix=hash_prefix,
+        verbose=verbose,
         expires=expires,
     )
     if redo or stamp.expired():
@@ -560,8 +576,13 @@ def grabdata(
             needs_download = 0
         if needs_download:
             fpath = download(
-                url, fpath, verbose=verbose, hash_prefix=hash_prefix,
-                hasher=hasher, **download_kw)  # type: ignore[invalid-assignment]
+                url,
+                fpath,
+                verbose=verbose,
+                hash_prefix=hash_prefix,
+                hasher=hasher,
+                **download_kw,
+            )  # type: ignore[invalid-assignment]
             stamp.renew()
     assert fpath is not None
     return fpath

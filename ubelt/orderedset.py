@@ -29,10 +29,11 @@ entry has an index that can be looked up.
 Based on a recipe originally posted to ActiveState Recipes by Raymond Hettiger,
 and released under the MIT license.
 """
+
 from __future__ import annotations
 
-import typing
 import itertools as it
+import typing
 from collections import deque
 from typing import MutableSet, Sequence
 
@@ -46,7 +47,7 @@ __all__ = ['OrderedSet', 'oset']
 
 
 SLICE_ALL: slice = slice(None)
-__version__ = "3.2"
+__version__ = '3.2'
 
 
 def is_iterable(obj) -> bool:
@@ -66,7 +67,7 @@ def is_iterable(obj) -> bool:
         bool
     """
     return (
-        hasattr(obj, "__iter__")
+        hasattr(obj, '__iter__')
         and not isinstance(obj, str)
         and not isinstance(obj, tuple)
     )
@@ -116,18 +117,17 @@ class OrderedSet(MutableSet[T], Sequence[T]):
         return len(self.items)
 
     @typing.overload
-    def __getitem__(self, index: int) -> T:
-        ...
+    def __getitem__(self, index: int) -> T: ...
 
     @typing.overload
-    def __getitem__(self, index: slice) -> Sequence[T]:
-        ...
+    def __getitem__(self, index: slice) -> Sequence[T]: ...
 
     @typing.overload
-    def __getitem__(self, index: Sequence[int]) -> OrderedSet[T]:
-        ...
+    def __getitem__(self, index: Sequence[int]) -> OrderedSet[T]: ...
 
-    def __getitem__(self, index: int | slice | Sequence[int]) -> Sequence[T] | OrderedSet[T] | T:
+    def __getitem__(
+        self, index: int | slice | Sequence[int]
+    ) -> Sequence[T] | OrderedSet[T] | T:
         """
         Get the item at a given index.
 
@@ -156,14 +156,16 @@ class OrderedSet(MutableSet[T], Sequence[T]):
             return self.copy()
         elif is_iterable(index):
             return [self.items[i] for i in index]  # type: ignore
-        elif hasattr(index, "__index__") or isinstance(index, slice):
-            result = self.items[index]   # type: ignore
+        elif hasattr(index, '__index__') or isinstance(index, slice):
+            result = self.items[index]  # type: ignore
             if isinstance(result, list):
                 return self.__class__(result)
             else:
                 return result
         else:
-            raise TypeError("Don't know how to index an OrderedSet by %r" % index)
+            raise TypeError(
+                "Don't know how to index an OrderedSet by %r" % index
+            )
 
     def copy(self) -> OrderedSet:
         """
@@ -267,17 +269,23 @@ class OrderedSet(MutableSet[T], Sequence[T]):
                 item_index = self.add(item)
         except TypeError:
             raise ValueError(
-                "Argument needs to be an iterable, got %s" % type(sequence)
+                'Argument needs to be an iterable, got %s' % type(sequence)
             )
         return item_index
 
     @typing.overload
-    def index(self, value: T, start: int = 0, stop: int | None = None) -> int: ...
+    def index(
+        self, value: T, start: int = 0, stop: int | None = None
+    ) -> int: ...
 
     @typing.overload
-    def index(self, value: list[T], start: int = 0, stop: int | None = None) -> list[int]: ...
+    def index(
+        self, value: list[T], start: int = 0, stop: int | None = None
+    ) -> list[int]: ...
 
-    def index(self, value: T | list[T], start: int = 0, stop: int | None = None) -> int | list[int]:
+    def index(
+        self, value: T | list[T], start: int = 0, stop: int | None = None
+    ) -> int | list[int]:
         """
         Get the index of a given entry, raising an IndexError if it's not
         present.
@@ -325,7 +333,7 @@ class OrderedSet(MutableSet[T], Sequence[T]):
             3
         """
         if not self.items:
-            raise KeyError("Set is empty")
+            raise KeyError('Set is empty')
 
         elem = self.items[-1]
         del self.items[-1]
@@ -408,8 +416,8 @@ class OrderedSet(MutableSet[T], Sequence[T]):
             str
         """
         if not self:
-            return "%s()" % (self.__class__.__name__,)
-        return "%s(%r)" % (self.__class__.__name__, list(self))
+            return '%s()' % (self.__class__.__name__,)
+        return '%s(%r)' % (self.__class__.__name__, list(self))
 
     def __eq__(self, other: typing.Any) -> bool:
         """
@@ -631,7 +639,9 @@ class OrderedSet(MutableSet[T], Sequence[T]):
         items_to_remove = set()
         for other in sets:
             items_to_remove |= set(other)
-        self._update_items([item for item in self.items if item not in items_to_remove])
+        self._update_items(
+            [item for item in self.items if item not in items_to_remove]
+        )
 
     def intersection_update(self, other: Iterable) -> None:
         """
@@ -669,7 +679,9 @@ class OrderedSet(MutableSet[T], Sequence[T]):
         items_to_add = [item for item in other if item not in self]
         items_to_remove = set(other)
         self._update_items(
-            [item for item in self.items if item not in items_to_remove] + items_to_add
+            [item for item in self.items if item not in items_to_remove]
+            + items_to_add
         )
+
 
 oset = OrderedSet

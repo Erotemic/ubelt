@@ -1,7 +1,9 @@
-import pytest
-import ubelt as ub
 import re
+
+import pytest
 from xdoctest.utils import CaptureStdout
+
+import ubelt as ub
 
 
 def test_timer_nonewline():
@@ -37,8 +39,9 @@ def test_timer_error():
 
 
 def test_timestamp_corner_cases():
-    from datetime import datetime as datetime_cls
     import datetime as datetime_mod
+    from datetime import datetime as datetime_cls
+
     datetime = datetime_cls(1, 1, 1, 1, 1, 1, tzinfo=datetime_mod.timezone.utc)
     stamp = ub.timestamp(datetime)
     assert stamp == '0001-01-01T010101+0'
@@ -71,6 +74,7 @@ def test_timeparse_minimal():
 
 def test_timeparse_with_dateutil():
     import ubelt as ub
+
     # See Also: https://github.com/dateutil/dateutil/blob/master/tests/test_isoparser.py
     conditional_stamps = [
         'Thu Sep 25 10:36:28 2003',
@@ -151,11 +155,7 @@ def test_timeparse_with_dateutil():
 
 def test_timeparse_bad_stamps():
     # We can never parse these types of stamps
-    bad_stamps = [
-        '',
-        'foobar',
-        '0000-00-00T00:00:00.0000+05'
-    ]
+    bad_stamps = ['', 'foobar', '0000-00-00T00:00:00.0000+05']
     for stamp in bad_stamps:
         with pytest.raises(ValueError):
             ub.timeparse(stamp)
@@ -167,4 +167,5 @@ if __name__ == '__main__':
         python ubelt/tests/test_time.py test_timer_nonewline
     """
     import xdoctest
+
     xdoctest.doctest_module(__file__)

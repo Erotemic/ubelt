@@ -98,8 +98,7 @@ What should the class be called?
 
 
 class Deprecation:
-    """
-    """
+    """ """
 
     def __init__(
         self,
@@ -133,6 +132,7 @@ class Deprecation:
 
         if print is True:
             import builtins
+
             print = builtins.print
 
         self.print = print
@@ -183,6 +183,7 @@ class Deprecation:
 
     def _resolve_module_version(self):
         import sys
+
         from packaging.version import parse as Version
 
         if self.module_name is not None:
@@ -227,7 +228,9 @@ class Deprecation:
         self._remove_now, self._remove_str = self._handle_when(
             self.remove, default=False
         )
-        self._error_now, self._error_str = self._handle_when(self.error, default=False)
+        self._error_now, self._error_str = self._handle_when(
+            self.error, default=False
+        )
 
     def _build_full_message(self):
         self._resolve_module_version()
@@ -238,8 +241,8 @@ class Deprecation:
             parts.append(self.message)
 
         if self.name is not None:
-            _name = self.name or ""
-            _type = self.type or ""
+            _name = self.name or ''
+            _type = self.type or ''
             what_str = f'The "{_name}" {_type}'
         else:
             what_str = 'This'
@@ -289,7 +292,9 @@ class Deprecation:
                 self.logger.warn(self._full_message, stacklevel=1 + stacklevel)
             if self.print:
                 self.print(self._full_message)
-            warnings.warn(self._full_message, self.warncls, stacklevel=1 + stacklevel)
+            warnings.warn(
+                self._full_message, self.warncls, stacklevel=1 + stacklevel
+            )
         return self
 
     def decorator(self, func):

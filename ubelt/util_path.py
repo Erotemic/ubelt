@@ -29,29 +29,44 @@ Note:
     In the future the part of this module that defines Path may be renamed to
     util_pathlib.
 """
+
 from __future__ import annotations
 
-import typing
-from os.path import (
-    dirname, exists, expanduser, expandvars, join, normpath, split, splitext,
-)
 import os
-import sys
 import pathlib
 import platform
 import stat
+import sys
+import typing
 import warnings
+from os.path import (
+    dirname,
+    exists,
+    expanduser,
+    expandvars,
+    join,
+    normpath,
+    split,
+    splitext,
+)
+
 from ubelt import util_io
 
 if typing.TYPE_CHECKING:
+    from collections.abc import Generator
     from types import TracebackType
     from typing import Callable, Type
-    from collections.abc import Generator
 
 
 __all__ = [
-    'Path', 'TempDir', 'augpath', 'shrinkuser', 'userhome', 'ensuredir',
-    'expandpath', 'ChDir',
+    'Path',
+    'TempDir',
+    'augpath',
+    'shrinkuser',
+    'userhome',
+    'ensuredir',
+    'expandpath',
+    'ChDir',
 ]
 
 WIN32 = sys.platform.startswith('win32')
@@ -237,6 +252,7 @@ def userhome(username: str | None = None) -> str:
             else:
                 # posix fallback when HOME is not defined
                 import pwd
+
                 userhome_dpath = pwd.getpwuid(os.getuid()).pw_dir
     else:
         # A specific user directory was requested
@@ -248,6 +264,7 @@ def userhome(username: str | None = None) -> str:
                 raise KeyError('Unknown user: {}'.format(username))
         else:
             import pwd
+
             try:
                 pwent = pwd.getpwnam(username)
             except KeyError:  # nocover
@@ -288,7 +305,7 @@ def shrinkuser(path: str | os.PathLike, home: str = '~') -> str:
         if len(path) == len(userhome_dpath):
             path = home
         elif path[len(userhome_dpath)] == os.path.sep:
-            path = home + path[len(userhome_dpath):]
+            path = home + path[len(userhome_dpath) :]
     return path
 
 
@@ -360,10 +377,14 @@ def ensuredir(
 
     if recreate:
         from ubelt import schedule_deprecation
+
         schedule_deprecation(
             modname='ubelt',
-            migration='Use ``ub.Path(dpath).delete().ensuredir()`` instead', name='recreate',
-            type='argument of ensuredir', deprecate='1.3.0', error='2.0.0',
+            migration='Use ``ub.Path(dpath).delete().ensuredir()`` instead',
+            name='recreate',
+            type='argument of ensuredir',
+            deprecate='1.3.0',
+            error='2.0.0',
             remove='2.1.0',
         )
         util_io.delete(dpath, verbose=verbose)
@@ -420,6 +441,7 @@ class ChDir:
         >>>         assert ub.Path.cwd() == dir1
         >>>     assert ub.Path.cwd() == dpath
     """
+
     def __init__(self, dpath: str | os.PathLike | None) -> None:
         """
         Args:
@@ -493,14 +515,19 @@ class TempDir:
         >>> self.cleanup()
         >>> assert not exists(dpath)
     """
+
     dpath: str | None
 
     def __init__(self) -> None:
         from ubelt import schedule_deprecation
+
         schedule_deprecation(
             modname='ubelt',
-            migration='Use tempfile instead', name='TempDir',
-            type='class', deprecate='1.2.0', error='1.5.0',
+            migration='Use tempfile instead',
+            name='TempDir',
+            type='class',
+            deprecate='1.2.0',
+            error='1.5.0',
             remove='1.5.0',
         )
         self.dpath = None
@@ -514,6 +541,7 @@ class TempDir:
             str: the path
         """
         import tempfile
+
         if not self.dpath:
             self.dpath = tempfile.mkdtemp()
         return self.dpath
@@ -521,6 +549,7 @@ class TempDir:
     def cleanup(self) -> None:
         if self.dpath:
             import shutil
+
             shutil.rmtree(self.dpath)
             self.dpath = None
 
@@ -719,6 +748,7 @@ class Path(_PathBase):
 
         * :py:meth:`pathlib.PurePath.match`
     """
+
     __slots__ = ()
 
     @classmethod
@@ -792,6 +822,7 @@ class Path(_PathBase):
             ~/.cache
         """
         from ubelt import util_platform
+
         if type == 'cache':
             base = util_platform.platform_cache_dir()
         elif type == 'config':
@@ -944,9 +975,13 @@ class Path(_PathBase):
         """
         if suffix:  # nocover
             from ubelt.util_deprecate import schedule_deprecation
+
             schedule_deprecation(
-                'ubelt', 'suffix', 'arg',
-                deprecate='1.1.3', remove='1.5.0',
+                'ubelt',
+                'suffix',
+                'arg',
+                deprecate='1.1.3',
+                remove='1.5.0',
                 migration='Use stemsuffix instead',
             )
             if not stemsuffix:
@@ -965,9 +1000,17 @@ class Path(_PathBase):
                 'is.'
             )
 
-        aug = augpath(self, suffix=stemsuffix, prefix=prefix, ext=ext, base=stem,
-                      dpath=dpath, relative=relative, multidot=multidot,
-                      tail=tail)
+        aug = augpath(
+            self,
+            suffix=stemsuffix,
+            prefix=prefix,
+            ext=ext,
+            base=stem,
+            dpath=dpath,
+            relative=relative,
+            multidot=multidot,
+            tail=tail,
+        )
         new = self.__class__(aug)
         return new
 
@@ -1334,7 +1377,9 @@ class Path(_PathBase):
             walk_up = kwargs.pop('walk_up', False)
             if len(kwargs):
                 bad_key = list(kwargs)[0]
-                raise TypeError(f'{self.__class__.__name__}.relative_to() got an unexpected keyword argument {bad_key!r}')
+                raise TypeError(
+                    f'{self.__class__.__name__}.relative_to() got an unexpected keyword argument {bad_key!r}'
+                )
             if not walk_up:
                 return super().relative_to(*other, **kwargs)
             else:
@@ -1347,7 +1392,7 @@ class Path(_PathBase):
         onerror: Callable[[OSError], None] | None = None,
         followlinks: bool = False,
         **kwargs,
-    ) -> Generator[tuple['Path', list[str], list[str]], None, None]:   # type: ignore[invalid-method-override]
+    ) -> Generator[tuple['Path', list[str], list[str]], None, None]:  # type: ignore[invalid-method-override]
         """
         A variant of :func:`os.walk` for pathlib
 
@@ -1405,19 +1450,27 @@ class Path(_PathBase):
 
         if len(kwargs):
             bad_key = list(kwargs)[0]
-            raise TypeError(f'{self.__class__.__name__}.relative_to() got an unexpected keyword argument {bad_key!r}')
+            raise TypeError(
+                f'{self.__class__.__name__}.relative_to() got an unexpected keyword argument {bad_key!r}'
+            )
 
         if PYTHON_GE_3_12:  # nocover
             # Use the parent implementation if available
             yield from super().walk(
-                top_down=top_down, on_error=on_error,
-                follow_symlinks=follow_symlinks)
-        else:   # nocover
+                top_down=top_down,
+                on_error=on_error,
+                follow_symlinks=follow_symlinks,
+            )
+        else:  # nocover
             # TODO: backport the 3.12 implementation, which is more efficient
             # Our original implementation
             cls = self.__class__
-            walker = os.walk(self, topdown=top_down, onerror=on_error,
-                             followlinks=follow_symlinks)
+            walker = os.walk(
+                self,
+                topdown=top_down,
+                onerror=on_error,
+                followlinks=follow_symlinks,
+            )
             for root, dnames, fnames in walker:
                 yield (cls(root), dnames, fnames)
 
@@ -1546,29 +1599,38 @@ class Path(_PathBase):
     # More shutil functionality
     # This is discussed in https://peps.python.org/pep-0428/#filesystem-modification
 
-    def _request_copy_function(self, follow_file_symlinks=True,
-                               follow_dir_symlinks=True, meta='stats'):
+    def _request_copy_function(
+        self, follow_file_symlinks=True, follow_dir_symlinks=True, meta='stats'
+    ):
         """
         Get a copy_function based on specified capabilities
         """
         import shutil
+
         # Note: Avoiding the use of the partial enables shutil optimizations
         from functools import partial
+
         if meta is None:
             if follow_file_symlinks:
                 copy_function = shutil.copyfile
             else:
-                copy_function = partial(shutil.copyfile, follow_symlinks=follow_file_symlinks)
+                copy_function = partial(
+                    shutil.copyfile, follow_symlinks=follow_file_symlinks
+                )
         elif meta == 'stats':
             if follow_file_symlinks:
                 copy_function = shutil.copy2
             else:
-                copy_function = partial(shutil.copy2, follow_symlinks=follow_file_symlinks)
+                copy_function = partial(
+                    shutil.copy2, follow_symlinks=follow_file_symlinks
+                )
         elif meta == 'mode':
             if follow_file_symlinks:
                 copy_function = shutil.copy
             else:
-                copy_function = partial(shutil.copy, follow_symlinks=follow_file_symlinks)
+                copy_function = partial(
+                    shutil.copy, follow_symlinks=follow_file_symlinks
+                )
         else:
             raise KeyError(meta)
         return copy_function
@@ -1704,9 +1766,12 @@ class Path(_PathBase):
             See: ~/code/ubelt/tests/test_path.py for test cases
         """
         import shutil
+
         copy_function = self._request_copy_function(
             follow_file_symlinks=follow_file_symlinks,
-            follow_dir_symlinks=follow_dir_symlinks, meta=meta)
+            follow_dir_symlinks=follow_dir_symlinks,
+            meta=meta,
+        )
 
         if WIN32 and platform.python_implementation() == 'PyPy':  # nocover
             _patch_win32_stats_on_pypy()
@@ -1715,8 +1780,12 @@ class Path(_PathBase):
             copytree = shutil.copytree
 
             dst = copytree(
-                os.fspath(self), os.fspath(dst), copy_function=copy_function,
-                symlinks=not follow_dir_symlinks, dirs_exist_ok=overwrite)
+                os.fspath(self),
+                os.fspath(dst),
+                copy_function=copy_function,
+                symlinks=not follow_dir_symlinks,
+                dirs_exist_ok=overwrite,
+            )
         elif self.is_file():
             if not overwrite:
                 dst = Path(dst)
@@ -1725,7 +1794,9 @@ class Path(_PathBase):
                 else:
                     real_dst = dst
                 if real_dst.exists():
-                    raise FileExistsError('Cannot overwrite existing file unless overwrite=True')
+                    raise FileExistsError(
+                        'Cannot overwrite existing file unless overwrite=True'
+                    )
             dst = copy_function(os.fspath(self), os.fspath(dst))
         else:
             raise FileExistsError('The source path does not exist')
@@ -1798,7 +1869,8 @@ class Path(_PathBase):
         # Behave more like POSIX move to avoid potential confusing behavior
         if exists(dst):
             raise FileExistsError(
-                'Moves are only allowed to locations that dont exist')
+                'Moves are only allowed to locations that dont exist'
+            )
         import shutil
 
         if WIN32 and platform.python_implementation() == 'PyPy':  # nocover
@@ -1806,8 +1878,12 @@ class Path(_PathBase):
 
         copy_function = self._request_copy_function(
             follow_file_symlinks=follow_file_symlinks,
-            follow_dir_symlinks=follow_dir_symlinks, meta=meta)
-        real_dst = shutil.move(os.fspath(self), os.fspath(dst), copy_function=copy_function)
+            follow_dir_symlinks=follow_dir_symlinks,
+            meta=meta,
+        )
+        real_dst = shutil.move(
+            os.fspath(self), os.fspath(dst), copy_function=copy_function
+        )
         return Path(real_dst)
 
 
@@ -1856,6 +1932,7 @@ def _parse_chmod_code(code):
         >>>     list(_parse_chmod_code('a+b+c'))
     """
     import re
+
     pat = re.compile(r'([\+\-\=])')
     parts = code.split(',')
     for part in parts:
@@ -1918,19 +1995,17 @@ def _resolve_chmod_code(old_mode, code):
         0o3777
     """
     import itertools as it
+
     action_lut = {
-        'ur' : stat.S_IRUSR,
-        'uw' : stat.S_IWUSR,
-        'ux' : stat.S_IXUSR,
-
-        'gr' : stat.S_IRGRP,
-        'gw' : stat.S_IWGRP,
-        'gx' : stat.S_IXGRP,
-
-        'or' : stat.S_IROTH,
-        'ow' : stat.S_IWOTH,
-        'ox' : stat.S_IXOTH,
-
+        'ur': stat.S_IRUSR,
+        'uw': stat.S_IWUSR,
+        'ux': stat.S_IXUSR,
+        'gr': stat.S_IRGRP,
+        'gw': stat.S_IWGRP,
+        'gx': stat.S_IXGRP,
+        'or': stat.S_IROTH,
+        'ow': stat.S_IWOTH,
+        'ox': stat.S_IXOTH,
         # Special UNIX permissions
         'us': stat.S_ISUID,  # SUID (executables run as the file's owner)
         'gs': stat.S_ISGID,  # SGID (executables run as the file's group) and other uses, see: https://docs.python.org/3/library/stat.html#stat.S_ISGID
@@ -1941,7 +2016,9 @@ def _resolve_chmod_code(old_mode, code):
     for action in actions:
         targets, op, perms = action
         try:
-            action_keys = (target + perm for target, perm in it.product(targets, perms))
+            action_keys = (
+                target + perm for target, perm in it.product(targets, perms)
+            )
             action_values = (action_lut[key] for key in action_keys)
             action_values = list(action_values)
             if op == '+':
@@ -1949,12 +2026,13 @@ def _resolve_chmod_code(old_mode, code):
                     new_mode |= val
             elif op == '-':
                 for val in action_values:
-                    new_mode &= (~val)
+                    new_mode &= ~val
             elif op == '=':
                 raise NotImplementedError(f'new chmod code for op={op}')
             else:
                 raise AssertionError(
-                    f'should not be able to get here. unknown op code: op={op}')
+                    f'should not be able to get here. unknown op code: op={op}'
+                )
         except KeyError:
             # Give a better error message if something goes wrong
             raise ValueError(f'Unknown action: {action}')
@@ -1984,25 +2062,25 @@ def _encode_chmod_int(int_code):
         >>> print(_encode_chmod_int(int_code))
         u=rwxs,g=rwxs,o=rwxt
     """
-    from collections import defaultdict, OrderedDict
-    action_lut = OrderedDict([
-        ('ur' , stat.S_IRUSR),
-        ('uw' , stat.S_IWUSR),
-        ('ux' , stat.S_IXUSR),
+    from collections import OrderedDict, defaultdict
 
-        ('gr' , stat.S_IRGRP),
-        ('gw' , stat.S_IWGRP),
-        ('gx' , stat.S_IXGRP),
-
-        ('or' , stat.S_IROTH),
-        ('ow' , stat.S_IWOTH),
-        ('ox' , stat.S_IXOTH),
-
-        # Special UNIX permissions
-        ('us', stat.S_ISUID),  # SUID (executes run as the file's owner)
-        ('gs', stat.S_ISGID),  # SGID (executes run as the file's group)
-        ('ot', stat.S_ISVTX),  # sticky (only owner can delete)
-    ])
+    action_lut = OrderedDict(
+        [
+            ('ur', stat.S_IRUSR),
+            ('uw', stat.S_IWUSR),
+            ('ux', stat.S_IXUSR),
+            ('gr', stat.S_IRGRP),
+            ('gw', stat.S_IWGRP),
+            ('gx', stat.S_IXGRP),
+            ('or', stat.S_IROTH),
+            ('ow', stat.S_IWOTH),
+            ('ox', stat.S_IXOTH),
+            # Special UNIX permissions
+            ('us', stat.S_ISUID),  # SUID (executes run as the file's owner)
+            ('gs', stat.S_ISGID),  # SGID (executes run as the file's group)
+            ('ot', stat.S_ISVTX),  # sticky (only owner can delete)
+        ]
+    )
     target_to_perms = defaultdict(list)
     for key, val in action_lut.items():
         target, perm = key
@@ -2040,9 +2118,9 @@ def _patch_win32_stats_on_pypy():
     """
     if not hasattr(stat, 'IO_REPARSE_TAG_MOUNT_POINT'):  # nocover
         os.supports_follow_symlinks.add(os.stat)
-        stat.IO_REPARSE_TAG_APPEXECLINK = 0x8000001b  # type: ignore[unresolved-attribute]
-        stat.IO_REPARSE_TAG_MOUNT_POINT = 0xa0000003  # type: ignore[unresolved-attribute]
-        stat.IO_REPARSE_TAG_SYMLINK = 0xa000000c      # type: ignore[unresolved-attribute]
+        stat.IO_REPARSE_TAG_APPEXECLINK = 0x8000001B  # type: ignore[unresolved-attribute]
+        stat.IO_REPARSE_TAG_MOUNT_POINT = 0xA0000003  # type: ignore[unresolved-attribute]
+        stat.IO_REPARSE_TAG_SYMLINK = 0xA000000C  # type: ignore[unresolved-attribute]
 
 
 def _is_relative_to_backport(self, other):
@@ -2120,7 +2198,9 @@ def _relative_path_backport(self, other, walk_up=False):  # nocover
     anchor0, parts0 = self_parts[0], list(reversed(self_parts[1:]))
     anchor1, parts1 = other_parts[0], list(reversed(other_parts[1:]))
     if anchor0 != anchor1:
-        raise ValueError(f"{self._raw_path!r} and {other._raw_path!r} have different anchors")
+        raise ValueError(
+            f'{self._raw_path!r} and {other._raw_path!r} have different anchors'
+        )
     while parts0 and parts1 and parts0[-1] == parts1[-1]:
         parts0.pop()
         parts1.pop()
@@ -2128,13 +2208,18 @@ def _relative_path_backport(self, other, walk_up=False):  # nocover
         if not part or part == '.':
             pass
         elif not walk_up:
-            raise ValueError(f"{self._raw_path!r} is not in the subpath of {other._raw_path!r}")
+            raise ValueError(
+                f'{self._raw_path!r} is not in the subpath of {other._raw_path!r}'
+            )
         elif part == '..':
-            raise ValueError(f"'..' segment in {other._raw_path!r} cannot be walked")
+            raise ValueError(
+                f"'..' segment in {other._raw_path!r} cannot be walked"
+            )
         else:
             parts0.append('..')
     # return self.with_segments('', *reversed(parts0))
     return type(self)('', *reversed(parts0))
+
 
 if PYTHON_LE_3_8:  # nocover
     Path.is_relative_to = _is_relative_to_backport

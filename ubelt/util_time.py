@@ -22,11 +22,12 @@ See Also:
 
     :mod:`kwutil.util_time` - https://kwutil.readthedocs.io/en/latest/auto/kwutil.util_time.html
 """
+
 from __future__ import annotations
 
-import typing
-import time
 import sys
+import time
+import typing
 from functools import lru_cache
 
 if typing.TYPE_CHECKING:
@@ -51,6 +52,7 @@ def _needs_workaround39103():
         https://github.com/jaraco/tempora/blob/main/tempora/__init__.py#L59
     """
     from datetime import datetime as datetime_cls
+
     return len(datetime_cls(1, 1, 1).strftime('%Y')) != 4
 
 
@@ -186,14 +188,19 @@ def timestamp(
 
     # datetime inherits from date. Strange, so we cant use this. See:
     # https://github.com/python/typeshed/issues/4802
-    if isinstance(datetime_obj, datetime_mod.date) and not isinstance(datetime_obj, datetime_cls):
+    if isinstance(datetime_obj, datetime_mod.date) and not isinstance(
+        datetime_obj, datetime_cls
+    ):
         # Coerce a date to datetime.datetime
-        datetime_obj = datetime_cls.combine(datetime_obj, datetime_cls.min.time())
+        datetime_obj = datetime_cls.combine(
+            datetime_obj, datetime_cls.min.time()
+        )
 
     if datetime_obj is None or datetime_obj.tzinfo is None:
         # In either case, we need to construct a timezone object
-        tzinfo = _timezone_coerce(default_timezone,
-                                  allow_dateutil=allow_dateutil)
+        tzinfo = _timezone_coerce(
+            default_timezone, allow_dateutil=allow_dateutil
+        )
         # If datetime_obj is unspecified, create a timezone aware now object
         if datetime_obj is None:
             datetime_obj = datetime_cls.now(tzinfo)
@@ -205,7 +212,9 @@ def timestamp(
     # the arg to utcoffset is confusing
     offset = tzinfo.utcoffset(datetime_obj)
     if offset is None:
-        raise ValueError(f'{tzinfo!r}.utcoffset({datetime_obj!r}) returned None')
+        raise ValueError(
+            f'{tzinfo!r}.utcoffset({datetime_obj!r}) returned None'
+        )
     offset_seconds = offset.total_seconds()
     # offset_seconds = tzinfo.utcoffset(None).total_seconds()
 
@@ -332,11 +341,10 @@ def timeparse(
         ti.reset('standard datetime_cls.strptime').call(lambda: datetime_cls.strptime('2000-01-02T112358.12345+0500', '%Y-%m-%dT%H%M%S.%f%z'))
     """
     from datetime import datetime as datetime_cls
+
     datetime_obj = None
     # Check if we might have a minimal format
-    maybe_minimal = (
-        len(stamp) >= 17 and 'T' in stamp[10:]
-    )
+    maybe_minimal = len(stamp) >= 17 and 'T' in stamp[10:]
     fixed_stamp = stamp
     if maybe_minimal:
         # Note by default %z only handles the format `[+-]HHMM(SS(.ffffff))`
@@ -367,7 +375,7 @@ def timeparse(
 
     if len(stamp) == 10:
         try:
-            fmt =  '%Y-%m-%d'
+            fmt = '%Y-%m-%d'
             datetime_obj = datetime_cls.strptime(fixed_stamp, fmt)
         except ValueError:
             pass
@@ -390,25 +398,32 @@ def timeparse(
     if datetime_obj is None:
         # Our minimal logic did not work, can we use dateutil?
         if not allow_dateutil:
-            raise ValueError((
-                'Cannot parse timestamp. '
-                'Unknown string format: {!r}, and '
-                'dateutil is not allowed').format(stamp))
+            raise ValueError(
+                (
+                    'Cannot parse timestamp. '
+                    'Unknown string format: {!r}, and '
+                    'dateutil is not allowed'
+                ).format(stamp)
+            )
         else:
             try:
                 from dateutil.parser import parse as du_parse
             except (ModuleNotFoundError, ImportError):  # nocover
-                raise ValueError((
-                    'Cannot parse timestamp. '
-                    'Unknown string format: {!r}, and '
-                    'dateutil is not installed').format(stamp)) from None
+                raise ValueError(
+                    (
+                        'Cannot parse timestamp. '
+                        'Unknown string format: {!r}, and '
+                        'dateutil is not installed'
+                    ).format(stamp)
+                ) from None
             else:  # nocover
                 datetime_obj = du_parse(stamp)
 
     if datetime_obj.tzinfo is None:
         # Timezone is unspecified, need to construct the default one.
-        tzinfo = _timezone_coerce(default_timezone,
-                                  allow_dateutil=allow_dateutil)
+        tzinfo = _timezone_coerce(
+            default_timezone, allow_dateutil=allow_dateutil
+        )
         datetime_obj = datetime_obj.replace(tzinfo=tzinfo)
 
     return datetime_obj
@@ -470,6 +485,7 @@ def _timezone_coerce(tzinfo, allow_dateutil=True):
         >>> assert sec1 == sec2 == -time.timezone
     """
     import datetime as datetime_mod
+
     if isinstance(tzinfo, str):
         if tzinfo == 'local':
             # Note: the local timezone time.timezone is negated
@@ -480,20 +496,21 @@ def _timezone_coerce(tzinfo, allow_dateutil=True):
         else:
             if allow_dateutil:
                 from dateutil import tz as tz_mod
+
                 out_tzinfo = tz_mod.gettz(tzinfo)
                 if out_tzinfo is None:
                     raise KeyError(tzinfo)
             else:
-                raise ValueError((
-                    'Unrecognized timezone: {!r}, and '
-                    'dateutil is not allowed').format(tzinfo))
+                raise ValueError(
+                    (
+                        'Unrecognized timezone: {!r}, and '
+                        'dateutil is not allowed'
+                    ).format(tzinfo)
+                )
     elif isinstance(tzinfo, datetime_mod.timezone):
         out_tzinfo = tzinfo
     else:
-        raise TypeError(
-            'Unknown type: {!r} for tzinfo'.format(
-                type(tzinfo))
-        )
+        raise TypeError('Unknown type: {!r} for tzinfo'.format(type(tzinfo)))
     return out_tzinfo
 
 
@@ -543,6 +560,7 @@ class Timer:
         >>> assert elapsed1 <= elapsed2
         >>> assert isinstance(elapsed1, int)
     """
+
     _default_time = time.perf_counter
 
     elapsed: float

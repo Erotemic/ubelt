@@ -12,14 +12,27 @@ statically and convert between module names and file paths on disk.
 The :func:`ubelt.split_modpath` function separates modules into a root and base
 path depending on where the first ``__init__.py`` file is.
 """
+
 from __future__ import annotations
 
-import typing
-from os.path import (abspath, basename, dirname, exists, expanduser, isdir,
-                     isfile, join, realpath, relpath, split, splitext)
 import os
 import sys
+import typing
 import warnings
+from os.path import (
+    abspath,
+    basename,
+    dirname,
+    exists,
+    expanduser,
+    isdir,
+    isfile,
+    join,
+    realpath,
+    relpath,
+    split,
+    splitext,
+)
 
 if typing.TYPE_CHECKING:
     from types import ModuleType, TracebackType
@@ -87,6 +100,7 @@ class PythonPathContext:
         >>> with pytest.raises(RuntimeError):
         >>>     self.__exit__(None, None, None)
     """
+
     dpath: str
     index: int
 
@@ -124,7 +138,8 @@ class PythonPathContext:
             msg_parts = [
                 'sys.path changed while in PythonPathContext.',
                 'len(sys.path) = {!r} but index is {!r}'.format(
-                    len(sys.path), self.index),
+                    len(sys.path), self.index
+                ),
             ]
             need_recover = True
 
@@ -135,7 +150,7 @@ class PythonPathContext:
                 'Expected dpath={!r} at index={!r} in sys.path, but got '
                 'dpath={!r}'.format(
                     self.dpath, self.index, sys.path[self.index]
-                )
+                ),
             ]
             need_recover = True
 
@@ -149,10 +164,12 @@ class PythonPathContext:
             else:
                 # We were able to recover, but warn the user. This method of
                 # recovery is a heuristic and does not work in some cases.
-                msg_parts.append((
-                    'Expected dpath was at index {}. '
-                    'This could indicate conflicting module namespaces.'
-                ).format(real_index))
+                msg_parts.append(
+                    (
+                        'Expected dpath was at index {}. '
+                        'This could indicate conflicting module namespaces.'
+                    ).format(real_index)
+                )
                 warnings.warn('\n'.join(msg_parts))
                 sys.path.pop(real_index)
         else:
@@ -293,28 +310,42 @@ def import_module_from_path(
                 try:
                     try:
                         # module = zimp_file.load_module(modname)
-                        if hasattr(zimp_file, "exec_module"):
+                        if hasattr(zimp_file, 'exec_module'):
                             import importlib
+
                             # Modern path (3.4+; preferred, no deprecation)
-                            spec = importlib.util.spec_from_loader(modname, zimp_file)
+                            spec = importlib.util.spec_from_loader(
+                                modname, zimp_file
+                            )
                             if spec is None:
-                                raise ImportError(f"Cannot create spec for {modname!r}")
+                                raise ImportError(
+                                    f'Cannot create spec for {modname!r}'
+                                )
                             module = importlib.util.module_from_spec(spec)
-                            sys.modules[modname] = module  # important for recursive imports
+                            sys.modules[modname] = (
+                                module  # important for recursive imports
+                            )
                             zimp_file.exec_module(module)
-                        else:   # nocover
+                        else:  # nocover
                             # Legacy fallback (deprecated; only used on very old Pythons)
                             module = zimp_file.load_module(modname)
                     except Exception:  # nocover
                         _modname = modname.replace('\\', '/')  # hack
-                        if hasattr(zimp_file, "exec_module"):
+                        if hasattr(zimp_file, 'exec_module'):
                             import importlib
+
                             # Modern path (3.4+; preferred, no deprecation)
-                            spec = importlib.util.spec_from_loader(_modname, zimp_file)
+                            spec = importlib.util.spec_from_loader(
+                                _modname, zimp_file
+                            )
                             if spec is None:
-                                raise ImportError(f"Cannot create spec for {modname!r}")
+                                raise ImportError(
+                                    f'Cannot create spec for {modname!r}'
+                                )
                             module = importlib.util.module_from_spec(spec)
-                            sys.modules[_modname] = module  # important for recursive imports
+                            sys.modules[_modname] = (
+                                module  # important for recursive imports
+                            )
                             zimp_file.exec_module(module)
                         else:
                             # Legacy fallback (deprecated; only used on very old Pythons)
@@ -333,7 +364,8 @@ def import_module_from_path(
                         internal=internal,
                         modname=modname,
                         archivepath=archivepath,
-                        ex=ex)
+                        ex=ex,
+                    )
                     raise Exception(text)
 
                 return module
@@ -379,6 +411,7 @@ def import_module_from_name(modname: str) -> ModuleType:
     """
     # Modern python has a stdlib solution for this.
     import importlib
+
     module = importlib.import_module(modname)
     return module
 
@@ -391,6 +424,7 @@ def _extension_module_tags():
         List[str]
     """
     import sysconfig
+
     tags = []
     # handle PEP 3149 -- ABI version tagged .so files
     # ABI = application binary interface
@@ -411,6 +445,7 @@ def _platform_pylib_exts():  # nocover
         tuple
     """
     import sysconfig
+
     valid_exts = []
     # return with and without API flags
     # handle PEP 3149 -- ABI version tagged .so files
@@ -421,7 +456,9 @@ def _platform_pylib_exts():  # nocover
     return tuple(valid_exts)
 
 
-def _syspath_modname_to_modpath(modname, sys_path=None, exclude=None) -> str | None:
+def _syspath_modname_to_modpath(
+    modname, sys_path=None, exclude=None
+) -> str | None:
     """
     syspath version of modname_to_modpath
 
@@ -514,15 +551,18 @@ def _syspath_modname_to_modpath(modname, sys_path=None, exclude=None) -> str | N
     candidate_dpaths = ['.' if p == '' else p for p in sys_path]
 
     if exclude:
+
         def normalize(p):
             if sys.platform.startswith('win32'):  # nocover
                 return realpath(p).lower()
             else:
                 return realpath(p)
+
         # Keep only the paths not in exclude
         real_exclude = {normalize(p) for p in exclude}
-        candidate_dpaths = [p for p in candidate_dpaths
-                            if normalize(p) not in real_exclude]
+        candidate_dpaths = [
+            p for p in candidate_dpaths if normalize(p) not in real_exclude
+        ]
 
     def check_dpath(dpath):
         # Check for directory-based modules (has precedence over files)
@@ -572,7 +612,9 @@ def _syspath_modname_to_modpath(modname, sys_path=None, exclude=None) -> str | N
         # Basically a finder will be used for "complex" structures and
         # basic pth will be used for "simple" structures (which means has a
         # src/modname folder).
-        new_editable_finder_paths = sorted(glob.glob(join(dpath, _editable_fname_finder_py_pat)))
+        new_editable_finder_paths = sorted(
+            glob.glob(join(dpath, _editable_fname_finder_py_pat))
+        )
         if new_editable_finder_paths:  # nocover
             # This makes some assumptions, which may not hold in general
             # We may need to fallback entirely on pkgutil, which would
@@ -590,9 +632,11 @@ def _syspath_modname_to_modpath(modname, sys_path=None, exclude=None) -> str | N
                     except KeyError:
                         ...
                     else:
-                        if not exclude or normalize(target) not in real_exclude:  # pragma: nobranch  
+                        if (
+                            not exclude or normalize(target) not in real_exclude
+                        ):  # pragma: nobranch
                             modpath = check_dpath(target)
-                            if modpath:  # pragma: nobranch  
+                            if modpath:  # pragma: nobranch
                                 found_modpath = modpath
                                 break
             if found_modpath is not None:
@@ -600,17 +644,22 @@ def _syspath_modname_to_modpath(modname, sys_path=None, exclude=None) -> str | N
 
         # If a finder does not exist, then the __editable__ pth file might hold
         # the path itself. Check for that.
-        new_editable_pth_paths = sorted(glob.glob(join(dpath, _editable_fname_pth_pat)))
+        new_editable_pth_paths = sorted(
+            glob.glob(join(dpath, _editable_fname_pth_pat))
+        )
         if new_editable_pth_paths:  # nocover
             # Disable coverage because the test that covers this is too slow.
             # It can be made faster, re-enable when that lands.
             import pathlib
+
             for editable_pth in new_editable_pth_paths:
                 editable_pth = pathlib.Path(editable_pth)
                 target = editable_pth.read_text().strip().split('\n')[-1]
-                if not exclude or normalize(target) not in real_exclude:  # pragma: nobranch
+                if (
+                    not exclude or normalize(target) not in real_exclude
+                ):  # pragma: nobranch
                     modpath = check_dpath(target)
-                    if modpath:  # pragma: nobranch  
+                    if modpath:  # pragma: nobranch
                         found_modpath = modpath
                         break
             if found_modpath is not None:
@@ -638,7 +687,9 @@ def _syspath_modname_to_modpath(modname, sys_path=None, exclude=None) -> str | N
             # The docs state there should only be one line, but I see two.
             with open(linkpath, 'r') as file:
                 target = file.readline().strip()
-            if not exclude or normalize(target) not in real_exclude:  # pragma: nobranch
+            if (
+                not exclude or normalize(target) not in real_exclude
+            ):  # pragma: nobranch
                 modpath = check_dpath(target)
                 if modpath:  # pragma: nobranch
                     found_modpath = modpath
@@ -656,10 +707,11 @@ def _custom_import_modpath(modpath, index=-1):
         with PythonPathContext(dpath, index=index):
             module = import_module_from_name(modname)
     except Exception as ex:  # nocover
-        msg_parts = [(
-            'ERROR: Failed to import modname={} with modpath={} and '
-            'sys.path modified with {} at index={}').format(
-                modname, modpath, repr(dpath), index)
+        msg_parts = [
+            (
+                'ERROR: Failed to import modname={} with modpath={} and '
+                'sys.path modified with {} at index={}'
+            ).format(modname, modpath, repr(dpath), index)
         ]
         msg_parts.append('Caused by: {}'.format(repr(ex)))
         raise RuntimeError('\n'.join(msg_parts))
@@ -676,6 +728,7 @@ def _importlib_import_modpath(modpath):  # nocover
     dpath, rel_modpath = split_modpath(modpath)
     modname = modpath_to_modname(modpath)
     import importlib.util
+
     spec = importlib.util.spec_from_file_location(modname, modpath)
     assert spec is not None
     module = importlib.util.module_from_spec(spec)
@@ -721,10 +774,13 @@ def _importlib_modname_to_modpath(modname):  # nocover
             time per loop: best=387.000 ns, mean=424.680 ± 19.7 ns
     """
     import importlib.util
+
     spec = importlib.util.find_spec(modname)
     assert spec is not None
     assert spec.origin is not None
-    modpath = spec.origin.replace('.pyc', '.py')  # is pyc replace needed anymore?
+    modpath = spec.origin.replace(
+        '.pyc', '.py'
+    )  # is pyc replace needed anymore?
     return modpath
 
 
@@ -789,8 +845,9 @@ def modname_to_modpath(
     if modpath is None:
         return None
 
-    modpath = normalize_modpath(modpath, hide_init=hide_init,
-                                hide_main=hide_main)
+    modpath = normalize_modpath(
+        modpath, hide_init=hide_init, hide_main=hide_main
+    )
 
     if typing.TYPE_CHECKING:
         modpath = typing.cast(str, modpath)
@@ -935,8 +992,9 @@ def modpath_to_modname(
             raise ValueError('modpath={} does not exist'.format(modpath))
     modpath_ = abspath(expanduser(modpath))
 
-    modpath_ = normalize_modpath(modpath_, hide_init=hide_init,
-                                 hide_main=hide_main)
+    modpath_ = normalize_modpath(
+        modpath_, hide_init=hide_init, hide_main=hide_main
+    )
     if relativeto:
         dpath = dirname(abspath(expanduser(relativeto)))
         rel_modpath = relpath(modpath_, dpath)
@@ -951,7 +1009,9 @@ def modpath_to_modname(
     return modname
 
 
-def split_modpath(modpath: str | os.PathLike, check: bool = True) -> tuple[str, str]:
+def split_modpath(
+    modpath: str | os.PathLike, check: bool = True
+) -> tuple[str, str]:
     """
     Splits the modpath into the dir that must be in PYTHONPATH for the module
     to be imported and the modulepath relative to this directory.
@@ -1024,8 +1084,9 @@ def is_modname_importable(
         >>> is_modname_importable('xdoctest', sys_path=[])
         False
     """
-    modpath = _syspath_modname_to_modpath(modname, sys_path=sys_path,
-                                          exclude=exclude)
+    modpath = _syspath_modname_to_modpath(
+        modname, sys_path=sys_path, exclude=exclude
+    )
     flag = bool(modpath is not None)
     return flag
 
@@ -1106,11 +1167,21 @@ def _parse_static_node_value(node):
     Extract a constant value from a node if possible
     """
     import ast
-    from collections import OrderedDict
     import numbers
-    if (isinstance(node, ast.Constant) and isinstance(node.value, numbers.Number) if IS_PY_GE_308 else isinstance(node, ast.Num)):  # type: ignore[deprecated]
+    from collections import OrderedDict
+
+    if (
+        isinstance(node, ast.Constant)
+        and isinstance(node.value, numbers.Number)
+        if IS_PY_GE_308
+        else isinstance(node, ast.Num)
+    ):  # type: ignore[deprecated]
         value = node.value if IS_PY_GE_308 else node.n
-    elif (isinstance(node, ast.Constant) and isinstance(node.value, str) if IS_PY_GE_308 else isinstance(node, ast.Str)):  # type: ignore[deprecated]
+    elif (
+        isinstance(node, ast.Constant) and isinstance(node.value, str)
+        if IS_PY_GE_308
+        else isinstance(node, ast.Str)
+    ):  # type: ignore[deprecated]
         value = node.value if IS_PY_GE_308 else node.s
     elif isinstance(node, ast.List):
         value = list(map(_parse_static_node_value, node.elts))
@@ -1121,11 +1192,15 @@ def _parse_static_node_value(node):
         values = map(_parse_static_node_value, node.values)
         value = OrderedDict(zip(keys, values))
         # value = dict(zip(keys, values))
-    elif IS_PY_LT_314 and isinstance(node, (ast.NameConstant)):  # nocover  # type: ignore[deprecated]
+    elif IS_PY_LT_314 and isinstance(
+        node, (ast.NameConstant)
+    ):  # nocover  # type: ignore[deprecated]
         value = node.value
     elif isinstance(node, ast.Constant):  # nocover
         value = node.value
     else:
-        raise TypeError('Cannot parse a static value from non-static node '
-                        'of type: {!r}'.format(type(node)))
+        raise TypeError(
+            'Cannot parse a static value from non-static node '
+            'of type: {!r}'.format(type(node))
+        )
     return value
