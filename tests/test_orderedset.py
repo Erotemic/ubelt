@@ -252,7 +252,7 @@ def test_unordered_inequality():
 
 
 def allsame_(iterable, eq=operator.eq):
-    """ returns True of all items in iterable equal each other """
+    """returns True of all items in iterable equal each other"""
     iter_ = iter(iterable)
     try:
         first = next(iter_)

@@ -11,7 +11,7 @@ def main():
     array = [random.random() for _ in range(N)]
     indices = [random.randint(0, N - 1) for _ in range(int(N // e))]
 
-    ti = ub.Timerit(2 ** 11, bestof=2 ** 8, verbose=1)
+    ti = ub.Timerit(2**11, bestof=2**8, verbose=1)
 
     for timer in ti.reset('take'):
         with timer:

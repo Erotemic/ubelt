@@ -637,8 +637,8 @@ def _win32_dir(path, star=''):
             # the name ends
             pos = name.find(':')
             bpos = name[:pos].rfind('[')
-            name = name[:bpos - 1]
-            pointed = name[bpos + 1:-1]
+            name = name[: bpos - 1]
+            pointed = name[bpos + 1 : -1]
             yield type_or_size, name, pointed
         else:
             yield type_or_size, name, None

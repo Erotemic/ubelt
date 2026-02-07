@@ -242,20 +242,20 @@ def _reparse_DeviceIoControl(device, io_control_code, in_buffer, out_buffer, ove
 
 # Fake the jaraco api
 class api:
-    CreateFile                   = CreateFile
-    CloseHandle                  = CloseHandle
-    GetFileInformationByHandle   = GetFileInformationByHandle
+    CreateFile = CreateFile
+    CloseHandle = CloseHandle
+    GetFileInformationByHandle = GetFileInformationByHandle
 
-    BY_HANDLE_FILE_INFORMATION   = BY_HANDLE_FILE_INFORMATION
-    FILE_FLAG_BACKUP_SEMANTICS   = FILE_FLAG_BACKUP_SEMANTICS
+    BY_HANDLE_FILE_INFORMATION = BY_HANDLE_FILE_INFORMATION
+    FILE_FLAG_BACKUP_SEMANTICS = FILE_FLAG_BACKUP_SEMANTICS
     FILE_FLAG_OPEN_REPARSE_POINT = FILE_FLAG_OPEN_REPARSE_POINT
-    FILE_SHARE_READ              = FILE_SHARE_READ
-    FSCTL_GET_REPARSE_POINT      = FSCTL_GET_REPARSE_POINT
-    GENERIC_READ                 = GENERIC_READ
-    INVALID_HANDLE_VALUE         = INVALID_HANDLE_VALUE
-    IO_REPARSE_TAG_SYMLINK       = IO_REPARSE_TAG_SYMLINK
-    OPEN_EXISTING                = OPEN_EXISTING
-    REPARSE_DATA_BUFFER          = REPARSE_DATA_BUFFER
+    FILE_SHARE_READ = FILE_SHARE_READ
+    FSCTL_GET_REPARSE_POINT = FSCTL_GET_REPARSE_POINT
+    GENERIC_READ = GENERIC_READ
+    INVALID_HANDLE_VALUE = INVALID_HANDLE_VALUE
+    IO_REPARSE_TAG_SYMLINK = IO_REPARSE_TAG_SYMLINK
+    OPEN_EXISTING = OPEN_EXISTING
+    REPARSE_DATA_BUFFER = REPARSE_DATA_BUFFER
 
 
 class reparse:

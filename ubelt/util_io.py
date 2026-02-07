@@ -109,7 +109,7 @@ def writeto(
 
 
 def _ensure_bytes(text):
-    """ ensures text is in a suitable format for writing """
+    """ensures text is in a suitable format for writing"""
     return text.encode('utf8')
 
 

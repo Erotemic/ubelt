@@ -207,23 +207,23 @@ class _TQDMCompat:
         raise NotImplementedError
 
     def update(self, n: int = 1) -> None:
-        """ alias of `step` for tqdm compatibility """
+        """alias of `step` for tqdm compatibility"""
         self.step(n)
 
     def close(self) -> None:
-        """ alias of `end` for tqdm compatibility """
+        """alias of `end` for tqdm compatibility"""
         self.end()
 
     def unpause(self) -> None:
-        """ tqdm api compatibility. does nothing """
+        """tqdm api compatibility. does nothing"""
         pass
 
     def moveto(self, n) -> None:
-        """ tqdm api compatibility. does nothing """
+        """tqdm api compatibility. does nothing"""
         pass
 
     def clear(self, nolock: bool = False) -> None:
-        """ tqdm api compatibility. does nothing """
+        """tqdm api compatibility. does nothing"""
         pass
 
     def refresh(self, nolock: bool = False) -> None:
@@ -245,12 +245,12 @@ class _TQDMCompat:
 
     @classmethod
     def set_lock(cls, lock) -> None:
-        """ tqdm api compatibility. does nothing """
+        """tqdm api compatibility. does nothing"""
         pass
 
     @classmethod
     def get_lock(cls) -> None:
-        """ tqdm api compatibility. does nothing """
+        """tqdm api compatibility. does nothing"""
         pass
 
     def set_postfix_dict(
@@ -294,7 +294,7 @@ class _TQDMCompat:
             self.set_postfix_dict(ordered_dict=postfix, **kwargs)
 
     def set_postfix_str(self, s: str = '', refresh: bool = True) -> None:
-        """ tqdm api compatibility. calls set_extra """
+        """tqdm api compatibility. calls set_extra"""
         self.set_extra(str(s))
         if refresh:
             self.refresh()
@@ -1172,7 +1172,7 @@ class ProgIter(_TQDMCompat, _BackwardsCompat, Iterable[T]):
         self._force_next_display = False
 
     def _tryflush(self):
-        """ flush to the internal stream """
+        """flush to the internal stream"""
         try:
             # flush sometimes causes issues in IPython notebooks
             self.stream.flush()

@@ -47,7 +47,7 @@ def _convert_to_hashable(data, types=True, extensions=None):
         except (ValueError, OverflowError):
             hashable = str(data_).encode('utf-8')  # handle and nan, inf
         else:
-            hashable = _int_to_bytes(a) + b'/' +  _int_to_bytes(b)
+            hashable = _int_to_bytes(a) + b'/' + _int_to_bytes(b)
         prefix = b'FLT'
     else:
         if extensions is None:

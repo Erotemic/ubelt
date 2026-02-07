@@ -299,7 +299,7 @@ def shrinkuser(path: str | os.PathLike, home: str = '~') -> str:
         if len(path) == len(userhome_dpath):
             path = home
         elif path[len(userhome_dpath)] == os.path.sep:
-            path = home + path[len(userhome_dpath):]
+            path = home + path[len(userhome_dpath) :]
     return path
 
 
@@ -1363,7 +1363,7 @@ class Path(_PathBase):
         onerror: Callable[[OSError], None] | None = None,
         followlinks: bool = False,
         **kwargs,
-    ) -> Generator[tuple['Path', list[str], list[str]], None, None]:   # type: ignore[invalid-method-override]
+    ) -> Generator[tuple['Path', list[str], list[str]], None, None]:  # type: ignore[invalid-method-override]
         """
         A variant of :func:`os.walk` for pathlib
 

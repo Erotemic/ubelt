@@ -252,7 +252,7 @@ def _readlink(link):
         if util_platform.WIN32:  # nocover
             junction_prefix = '\\\\?\\'
             if path.startswith(junction_prefix):
-                path = path[len(junction_prefix):]
+                path = path[len(junction_prefix) :]
         return path
     except Exception:  # nocover
         # On modern operating systems, we should never get here. (I think)

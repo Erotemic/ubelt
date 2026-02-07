@@ -184,8 +184,8 @@ napoleon_google_docstring = True
 napoleon_use_param = False
 napoleon_use_ivar = True
 
-#autoapi_type = 'python'
-#autoapi_dirs = [mod_dpath]
+# autoapi_type = 'python'
+# autoapi_dirs = [mod_dpath]
 
 autodoc_inherit_docstrings = False
 
@@ -559,7 +559,7 @@ class GoogleStyleDocstringProcessor:
         accum = []
 
         def accept():
-            """ called when we finish reading a section """
+            """called when we finish reading a section"""
             if curr_mode == '__doc__':
                 # Keep the lines as-is
                 new_lines.extend(accum)
@@ -708,7 +708,7 @@ class GoogleStyleDocstringProcessor:
                     text = found['text']
                     new_lines = []
                     for para in text.split('\n\n'):
-                        indent = para[:len(para) - len(para.lstrip())]
+                        indent = para[: len(para) - len(para.lstrip())]
                         new_paragraph = indent + paragraph(para)
                         new_lines.append(new_paragraph)
                         new_lines.append('')

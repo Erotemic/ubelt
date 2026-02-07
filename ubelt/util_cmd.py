@@ -820,7 +820,7 @@ def _proc_iteroutput_thread(proc: subprocess.Popen, timeout: float | None = None
 
         if timeout is not None:
             # Check for timeouts
-            elapsed = _time() - start_time # pyright: ignore[reportPossiblyUnboundVariable]
+            elapsed = _time() - start_time  # pyright: ignore[reportPossiblyUnboundVariable]
             if elapsed >= timeout:
                 stdout_ctrl.put('STOP')
                 stderr_ctrl.put('STOP')

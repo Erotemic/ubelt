@@ -78,7 +78,7 @@ def bench_hashfile_blocksize():
 
     rng = random.Random(0)
     # Create a pool of random chunks of data
-    chunksize = int(2 ** 20)
+    chunksize = int(2**20)
     pool_size = 8
     part_pool = [_random_data(rng, chunksize) for _ in range(pool_size)]
 
@@ -110,7 +110,7 @@ def bench_hashfile_blocksize():
 
     # Constant blocksize is the winner as long as its chosen right.
     for timer in ti.reset('constant blocksize'):
-        blocksize = int(2 ** 20)
+        blocksize = int(2**20)
         hasher = _rectify_hasher(hasher_algo)()
         with timer:
             with open(fpath, 'rb') as file:
@@ -122,7 +122,7 @@ def bench_hashfile_blocksize():
         results.append(result)
 
     for timer in ti.reset('double blocksize'):
-        blocksize = int(2 ** 20)
+        blocksize = int(2**20)
         hasher = _rectify_hasher(hasher_algo)()
         with timer:
             with open(fpath, 'rb') as file:
@@ -135,8 +135,8 @@ def bench_hashfile_blocksize():
         results.append(result)
 
     for timer in ti.reset('double blocksize + limit'):
-        max_blocksize = int(2 ** 20) * 16
-        blocksize = int(2 ** 20)
+        max_blocksize = int(2**20) * 16
+        blocksize = int(2**20)
         hasher = _rectify_hasher(hasher_algo)()
         with timer:
             with open(fpath, 'rb') as file:
@@ -215,7 +215,7 @@ def bench_find_optimal_blocksize():
     print('target_size = {!r}'.format(target_size))
 
     # Write a big file (~600 MB)
-    MB = int(2 ** 20)
+    MB = int(2**20)
     size_pool = [target_size]
     rng = random.Random(0)
     # pool_size = max(target_size // 2, 1)
@@ -261,11 +261,11 @@ def benchmark_hash_file():
 
     rng = random.Random(0)
     # Create a pool of random chunks of data
-    chunksize = int(2 ** 20)
+    chunksize = int(2**20)
     pool_size = 8
     part_pool = [_random_data(rng, chunksize) for _ in range(pool_size)]
 
-    #ITEM = 'JUST A STRING' * 100
+    # ITEM = 'JUST A STRING' * 100
     HASHERS = ['sha1', 'sha512', 'xxh32', 'xxh64', 'blake3']
 
     scales = list(range(5, 10))
@@ -276,13 +276,13 @@ def benchmark_hash_file():
     # xxhash is also significantly faster than sha512
     ti = ub.Timerit(9, bestof=3, verbose=1, unit='ms')
     for s in ub.ProgIter(scales, desc='benchmark', verbose=3):
-        N = 2 ** s
+        N = 2**s
         print(' --- s={s}, N={N} --- '.format(s=s, N=N))
         # Write a big file
         size_pool = [N]
         fpath = _write_random_file(dpath, part_pool, size_pool, rng)
 
-        megabytes = os.stat(fpath).st_size / (2 ** 20)
+        megabytes = os.stat(fpath).st_size / (2**20)
         print('megabytes = {!r}'.format(megabytes))
 
         for hasher in HASHERS:
@@ -294,7 +294,7 @@ def benchmark_hash_file():
         ranking = ub.dict_subset(col, sortx)
         print('walltime: ' + ub.repr2(ranking, precision=9, nl=0))
         best = next(iter(ranking))
-        #pairs = list(ub.iter_window( 2))
+        # pairs = list(ub.iter_window( 2))
         pairs = [(k, best) for k in ranking]
         ratios = [ranking[k1] / ranking[k2] for k1, k2 in pairs]
         nicekeys = ['{}/{}'.format(k1, k2) for k1, k2 in pairs]

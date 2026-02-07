@@ -943,7 +943,7 @@ class CacheStamp:
         return products
 
     def _rectify_hash_prefixes(self):
-        """ puts products in a normalized format """
+        """puts products in a normalized format"""
         hash_prefixes = self.hash_prefix
         if hash_prefixes is None:
             return None
@@ -1136,7 +1136,7 @@ class CacheStamp:
             if sizes is not None and self._expire_checks['size']:
                 if sizes != product_file_stats['size']:
                     # The sizes are different, we are expired
-                    err =  'size_diff'
+                    err = 'size_diff'
                     if self.cacher.verbose > 0:  # pragma: nobranch
                         print('[cacher] stamp expired {}'.format(err))
                     return err

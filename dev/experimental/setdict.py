@@ -143,19 +143,19 @@ class SetDict(dict):
 
     # We could just use the builtin variant for this specific operation
     def __or__(self, other):
-        """ The | union operator """
+        """The | union operator"""
         return self.union(other)
 
     def __and__(self, other):
-        """ The & intersection operator """
+        """The & intersection operator"""
         return self.intersection(other)
 
     def __sub__(self, other):
-        """ The - difference operator """
+        """The - difference operator"""
         return self.difference(other)
 
     def __xor__(self, other):
-        """ The ^ symmetric_difference operator """
+        """The ^ symmetric_difference operator"""
         return self.symmetric_difference(other)
 
     ### Main set operations

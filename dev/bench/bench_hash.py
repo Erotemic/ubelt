@@ -16,7 +16,7 @@ def benchmark_hash_data():
     print('convert = {!r}'.format(convert))
     ti = ub.Timerit(9, bestof=3, verbose=1, unit='ms')
     for s in ub.ProgIter(scales, desc='benchmark', verbose=3):
-        N = 2 ** s
+        N = 2**s
         print(' --- s={s}, N={N} --- '.format(s=s, N=N))
         data = [ITEM] * N
         for hasher in HASHERS:
@@ -28,7 +28,7 @@ def benchmark_hash_data():
         ranking = ub.dict_subset(col, sortx)
         print('walltime: ' + ub.repr2(ranking, precision=9, nl=0))
         best = next(iter(ranking))
-        #pairs = list(ub.iter_window( 2))
+        # pairs = list(ub.iter_window( 2))
         pairs = [(k, best) for k in ranking]
         ratios = [ranking[k1] / ranking[k2] for k1, k2 in pairs]
         nicekeys = ['{}/{}'.format(k1, k2) for k1, k2 in pairs]

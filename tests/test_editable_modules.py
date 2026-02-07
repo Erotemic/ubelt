@@ -466,7 +466,7 @@ def setup_module(module):
 
 
 def teardown_module(module):
-    """ teardown any state that was previously setup with a setup_module
+    """teardown any state that was previously setup with a setup_module
     method.
     """
     _check_skip_editable_module_tests()

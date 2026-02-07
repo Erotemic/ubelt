@@ -77,7 +77,7 @@ def platform_data_dir() -> str:
     if POSIX:  # nocover
         dpath_ = os.environ.get('XDG_DATA_HOME', '~/.local/share')
     elif DARWIN:  # nocover
-        dpath_  = '~/Library/Application Support'
+        dpath_ = '~/Library/Application Support'
     elif WIN32:  # nocover
         dpath_ = os.environ.get('APPDATA', '~/AppData/Roaming')
     else:  # nocover
@@ -97,7 +97,7 @@ def platform_config_dir() -> str:
     if POSIX:  # nocover
         dpath_ = os.environ.get('XDG_CONFIG_HOME', '~/.config')
     elif DARWIN:  # nocover
-        dpath_  = '~/Library/Application Support'
+        dpath_ = '~/Library/Application Support'
     elif WIN32:  # nocover
         dpath_ = os.environ.get('APPDATA', '~/AppData/Roaming')
     else:  # nocover
@@ -117,7 +117,7 @@ def platform_cache_dir() -> str:
     if POSIX:  # nocover
         dpath_ = os.environ.get('XDG_CACHE_HOME', '~/.cache')
     elif DARWIN:  # nocover
-        dpath_  = '~/Library/Caches'
+        dpath_ = '~/Library/Caches'
     elif WIN32:  # nocover
         dpath_ = os.environ.get('LOCALAPPDATA', '~/AppData/Local')
     else:  # nocover

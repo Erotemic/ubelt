@@ -546,7 +546,7 @@ class SingletonTestServer(ub.NiceRepr):
 
 def test_local_download():
     server = SingletonTestServer.instance()
-    url = server.write_file(filebytes=int(10 * 2 ** 20))[0]
+    url = server.write_file(filebytes=int(10 * 2**20))[0]
     # also test with a timeout for lazy coverage
     ub.download(url, timeout=3000)
 

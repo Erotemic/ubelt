@@ -369,7 +369,7 @@ def timeparse(
 
     if len(stamp) == 10:
         try:
-            fmt =  '%Y-%m-%d'
+            fmt = '%Y-%m-%d'
             datetime_obj = datetime_cls.strptime(fixed_stamp, fmt)
         except ValueError:
             pass
