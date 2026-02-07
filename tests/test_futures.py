@@ -27,7 +27,11 @@ def test_job_pool_as_completed_prog_args():
         pool.submit(worker, data)
 
     with ub.CaptureStdout() as cap:
-        final = list(pool.as_completed(desc='collect jobs', progkw={'verbose': 3, 'time_thresh': 0}))
+        final = list(
+            pool.as_completed(
+                desc='collect jobs', progkw={'verbose': 3, 'time_thresh': 0}
+            )
+        )
 
     print(f'cap.text={cap.text}')
     num_lines = len(cap.text.split('\n'))
@@ -40,8 +44,10 @@ def test_job_pool_as_completed_prog_args():
 
 def test_executor_timeout():
     import pytest
+
     pytest.skip(
-        'long test, demos that timeout does not work with SerialExecutor')
+        'long test, demos that timeout does not work with SerialExecutor'
+    )
 
     import time
     from concurrent.futures import TimeoutError
@@ -213,13 +219,16 @@ def test_backends():
 
 def test_done_callback():
     import ubelt as ub
+
     self1 = ub.Executor(mode='serial', max_workers=0)
     with self1:
         jobs = []
         for i in range(10):
             jobs.append(self1.submit(sum, [i + 1, i]))
         for job in jobs:
-            job.add_done_callback(lambda x: print('done callback got x = {}'.format(x)))
+            job.add_done_callback(
+                lambda x: print('done callback got x = {}'.format(x))
+            )
             result = job.result()
             print('result = {!r}'.format(result))
 

@@ -27,7 +27,9 @@ def test_auto_dict_to_dict():
     static = auto.to_dict()
     print('static = {!r}'.format(static))
     assert not isinstance(static, AutoDict), '{}'.format(type(static))
-    assert not isinstance(static['n1'], AutoDict), '{}'.format(type(static['n1']))
+    assert not isinstance(static['n1'], AutoDict), '{}'.format(
+        type(static['n1'])
+    )
     assert not isinstance(static['n1']['n2'], AutoDict)
     assert isinstance(static['dict']['n3'], AutoDict)
     assert isinstance(static['dict']['n3']['n4'], AutoDict)
@@ -47,7 +49,9 @@ def test_auto_dict_ordered():
     static = auto.to_dict()
     print('static = {!r}'.format(static))
     assert not isinstance(static, AutoDict), 'bad cast {}'.format(type(static))
-    assert not isinstance(static[0][4], AutoDict), 'bad cast {}'.format(type(static[0][4]))
+    assert not isinstance(static[0][4], AutoDict), 'bad cast {}'.format(
+        type(static[0][4])
+    )
     assert list(auto[0].values())[0:3] == [3, 2, 1], 'maintain order'
 
 

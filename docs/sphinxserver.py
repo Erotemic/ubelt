@@ -23,9 +23,7 @@ watch_dirs = [
     'source/auto',
 ]
 
-watch_globs = [
-    '*.rst', '*.ipynb'
-]
+watch_globs = ['*.rst', '*.ipynb']
 
 server = Server()
 server.watch('conf.py', rebuild_cmd)

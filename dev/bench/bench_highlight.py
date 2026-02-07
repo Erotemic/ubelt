@@ -19,12 +19,12 @@ def _pygments_highlight(text, lexer_name, **kwargs):
         # Hack on win32 to support colored output
         try:
             import colorama
+
             if not colorama.initialise.atexit_done:
                 # Only init if it hasn't been done
                 colorama.init()
         except ImportError:
-            warnings.warn(
-                'colorama is not installed, ansi colors may not work')
+            warnings.warn('colorama is not installed, ansi colors may not work')
 
     import pygments  # type: ignore
     import pygments.formatters  # type: ignore
@@ -48,9 +48,12 @@ def _rich_highlight(text, lexer_name):
 
     from rich.console import Console
     from rich.syntax import Syntax
+
     syntax = Syntax(text, lexer_name, background_color='default')
     stream = io.StringIO()
-    write_console = Console(file=stream, soft_wrap=True, color_system='standard')
+    write_console = Console(
+        file=stream, soft_wrap=True, color_system='standard'
+    )
     write_console.print(syntax)
     new_text = write_console.file.getvalue()
     return new_text

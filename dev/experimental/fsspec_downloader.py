@@ -7,8 +7,11 @@ def check_fsspec():
     from os.path import join
 
     import ubelt as ub
+
     dpath = ub.ensure_app_cache_dir('ubelt/simple_server')
-    info = ub.cmd(['python', '-m', 'http.server', '--directory', dpath], detach=True)
+    info = ub.cmd(
+        ['python', '-m', 'http.server', '--directory', dpath], detach=True
+    )
 
     fnames = ['file_{}.txt'.format(i) for i in range(100)]
     for fname in fnames:

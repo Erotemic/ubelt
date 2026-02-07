@@ -128,11 +128,16 @@ def generate_typed_stubs():
     from xdoctest import static_analysis
 
     import ubelt
+
     ubelt_dpath = dirname(ubelt.__file__)
 
     for p in pathlib.Path(ubelt_dpath).glob('*.pyi'):
         p.unlink()
-    files = list(static_analysis.package_modpaths(ubelt_dpath, recursive=True, with_libs=1, with_pkg=0))
+    files = list(
+        static_analysis.package_modpaths(
+            ubelt_dpath, recursive=True, with_libs=1, with_pkg=0
+        )
+    )
     files = [f for f in files if 'deprecated' not in f]
     # files = [join(ubelt_dpath, 'util_dict.py')]
 
@@ -324,11 +329,15 @@ class ExtendedStubGenerator(StubGenerator):
                 self.add_import_line('from typing import {}\n'.format('Union'))
 
             if 'ModuleType' in info['type']:
-                self.add_import_line('from types import {}\n'.format('ModuleType'))
+                self.add_import_line(
+                    'from types import {}\n'.format('ModuleType')
+                )
                 # types.ModuleType
 
             if 'NoParamType' in info['type']:
-                self.add_import_line('from ubelt.util_const import {}\n'.format('NoParamType'))
+                self.add_import_line(
+                    'from ubelt.util_const import {}\n'.format('NoParamType')
+                )
 
             if 'hashlib._hashlib' in info['type']:
                 self.add_import_line('import hashlib._hashlib\n')
@@ -344,7 +353,9 @@ class ExtendedStubGenerator(StubGenerator):
                 # into the type if given in the docstring
                 self.add_typing_import('Callable')
                 info['type'] = info['type'].replace('callable', 'Callable')
-                self.add_import_line('from typing import {}\n'.format(typing_arg))
+                self.add_import_line(
+                    'from typing import {}\n'.format(typing_arg)
+                )
 
         name_to_parsed_docstr_info = {}
         return_parsed_docstr_info = None
@@ -380,24 +391,34 @@ class ExtendedStubGenerator(StubGenerator):
             for key, block in blocks:
                 lines = block[0]
                 if key == 'Returns':
-                    for retdict in docscrape_google.parse_google_retblock(lines):
+                    for retdict in docscrape_google.parse_google_retblock(
+                        lines
+                    ):
                         _hack_for_info(retdict)
                         return_parsed_docstr_info = (key, retdict['type'])
                 if key == 'Yields':
-                    for retdict in docscrape_google.parse_google_retblock(lines):
+                    for retdict in docscrape_google.parse_google_retblock(
+                        lines
+                    ):
                         _hack_for_info(retdict)
                         return_parsed_docstr_info = (key, retdict['type'])
                 if key == 'Args':
                     # hack for *args
-                    lines = '\n'.join([line.lstrip('*') for line in lines.split('\n')])
+                    lines = '\n'.join(
+                        [line.lstrip('*') for line in lines.split('\n')]
+                    )
                     # print('lines = {!r}'.format(lines))
-                    parsed_args = list(docscrape_google.parse_google_argblock(lines))
+                    parsed_args = list(
+                        docscrape_google.parse_google_argblock(lines)
+                    )
                     for info in parsed_args:
                         _hack_for_info(info)
                         name = info['name'].replace('*', '')
                         name_to_parsed_docstr_info[name] = info
 
-            parsed_rets = list(docscrape_google.parse_google_returns(real_func.__doc__))
+            parsed_rets = list(
+                docscrape_google.parse_google_returns(real_func.__doc__)
+            )
             ret_infos = []
             for info in parsed_rets:
                 try:
@@ -414,28 +435,40 @@ class ExtendedStubGenerator(StubGenerator):
             var = arg_.variable
             kind = arg_.kind
             name = var.name
-            annotated_type = (o.unanalyzed_type.arg_types[i]
-                              if isinstance(o.unanalyzed_type, CallableType) else None)
+            annotated_type = (
+                o.unanalyzed_type.arg_types[i]
+                if isinstance(o.unanalyzed_type, CallableType)
+                else None
+            )
 
             if annotated_type is None:
                 if name in name_to_parsed_docstr_info:
                     name = name.replace('*', '')
-                    doc_type_str = name_to_parsed_docstr_info[name].get('type', None)
+                    doc_type_str = name_to_parsed_docstr_info[name].get(
+                        'type', None
+                    )
                     if doc_type_str is not None:
                         doc_type_str = doc_type_str.split(', default')[0]
                         # annotated_type = doc_type_str
                         # import mypy.types as mypy_types
                         from mypy import fastparse
+
                         # globals_ = {**mypy_types.__dict__}
                         try:
                             # # got = mypy_types.deserialize_type(doc_type_str)
                             # got = eval(doc_type_str, globals_)
                             # got = mypy_types.get_proper_type(got)
                             # got = mypy_types.Iterable
-                            got = fastparse.parse_type_string(doc_type_str, 'Any', 0, 0)
+                            got = fastparse.parse_type_string(
+                                doc_type_str, 'Any', 0, 0
+                            )
                         except Exception as ex:
                             print('ex = {!r}'.format(ex))
-                            print('Failed to parse doc_type_str = {!r}'.format(doc_type_str))
+                            print(
+                                'Failed to parse doc_type_str = {!r}'.format(
+                                    doc_type_str
+                                )
+                            )
                         else:
                             annotated_type = got
                             # print('PARSED: annotated_type = {!r}'.format(annotated_type))
@@ -478,7 +511,9 @@ class ExtendedStubGenerator(StubGenerator):
                 retname = None  # implicit Any
             else:
                 retname = self.print_annotation(o.unanalyzed_type.ret_type)
-        elif isinstance(o, FuncDef) and (o.is_abstract or o.name in METHODS_WITH_RETURN_VALUE):
+        elif isinstance(o, FuncDef) and (
+            o.is_abstract or o.name in METHODS_WITH_RETURN_VALUE
+        ):
             # Always assume abstract methods return Any unless explicitly annotated. Also
             # some dunder methods should not have a None return type.
             retname = None  # implicit Any

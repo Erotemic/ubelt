@@ -26,9 +26,11 @@ def main():
             wheel_info['url'] + '.asc',
         )
 
-        info = ub.cmd('gpg --verify {} {}'.format(sig_fpath, whl_fpath),
-                      verbose=3)
+        info = ub.cmd(
+            'gpg --verify {} {}'.format(sig_fpath, whl_fpath), verbose=3
+        )
         assert info['ret'] == 0
+
 
 if __name__ == '__main__':
     pass

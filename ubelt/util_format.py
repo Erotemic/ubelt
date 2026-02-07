@@ -53,13 +53,18 @@ def repr2(data: object, **kwargs: Any) -> str:
         }
     """
     from ubelt.util_deprecate import schedule_deprecation
+
     schedule_deprecation(
-        modname='ubelt', name='repr2', type='function',
+        modname='ubelt',
+        name='repr2',
+        type='function',
         migration='use urepr instead',
-        deprecate='1.2.5', error='2.0.0', remove='2.1.0',
+        deprecate='1.2.5',
+        error='2.0.0',
+        remove='2.1.0',
     )
     kwargs['_dict_sort_behavior'] = kwargs.get('_dict_sort_behavior', 'old')
-    kwargs.pop('_return_info',  None)
+    kwargs.pop('_return_info', None)
     text = urepr(data, **kwargs)
     assert isinstance(text, str)
     return text

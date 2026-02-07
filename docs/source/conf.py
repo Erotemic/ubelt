@@ -200,7 +200,8 @@ autosummary_mock_imports = [
 ]
 
 autodoc_default_options = {  # Document callable classes
-    'special-members': '__call__'}
+    'special-members': '__call__'
+}
 
 autodoc_member_order = 'bysource'
 autoclass_content = 'both'
@@ -372,8 +373,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'ubelt.tex', 'ubelt Documentation',
-     'Jon Crall', 'manual'),
+    (master_doc, 'ubelt.tex', 'ubelt Documentation', 'Jon Crall', 'manual'),
 ]
 
 
@@ -381,10 +381,7 @@ latex_documents = [
 
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
-man_pages = [
-    (master_doc, 'ubelt', 'ubelt Documentation',
-     [author], 1)
-]
+man_pages = [(master_doc, 'ubelt', 'ubelt Documentation', [author], 1)]
 
 
 # -- Options for Texinfo output ----------------------------------------------
@@ -420,7 +417,10 @@ class PatchedPythonDomain(PythonDomain):
     References:
         https://github.com/sphinx-doc/sphinx/issues/3866
     """
-    def resolve_xref(self, env, fromdocname, builder, typ, target, node, contnode):
+
+    def resolve_xref(
+        self, env, fromdocname, builder, typ, target, node, contnode
+    ):
         """
         Helps to resolves cross-references
         """
@@ -429,7 +429,8 @@ class PatchedPythonDomain(PythonDomain):
         if target.startswith('xdoc.'):
             target = 'xdoctest.' + target[3]
         return_value = super(PatchedPythonDomain, self).resolve_xref(
-            env, fromdocname, builder, typ, target, node, contnode)
+            env, fromdocname, builder, typ, target, node, contnode
+        )
         return return_value
 
 
@@ -484,9 +485,12 @@ class GoogleStyleDocstringProcessor:
             new_lines.extend(lines[1:])
             return new_lines
 
-        @self.register_section(tag='SpecialExample', alias=['Benchmark', 'Sympy', 'Doctest'])
+        @self.register_section(
+            tag='SpecialExample', alias=['Benchmark', 'Sympy', 'Doctest']
+        )
         def benchmark(lines):
             import textwrap
+
             new_lines = []
             tag = lines[0].replace(':', '').strip()
             # new_lines.append(lines[0])  # TODO: it would be nice to change the tagline.
@@ -632,7 +636,9 @@ class GoogleStyleDocstringProcessor:
             https://www.sphinx-doc.org/en/master/usage/extensions/autodoc.html
         """
         if self.debug:
-            print(f'ProcessDocstring: name={name}, what_={what_}, num_lines={len(lines)}')
+            print(
+                f'ProcessDocstring: name={name}, what_={what_}, num_lines={len(lines)}'
+            )
 
         # print('BEFORE:')
         # import ubelt as ub
@@ -744,16 +750,22 @@ class SphinxDocstring:
             directive_match = directive_pat.search(line)
             if tag_match:
                 tag = tag_match.groups()[0]
-                sphinx_parts.append({
-                    'tag': tag, 'start_offset': idx,
-                    'type': 'tag',
-                })
+                sphinx_parts.append(
+                    {
+                        'tag': tag,
+                        'start_offset': idx,
+                        'type': 'tag',
+                    }
+                )
             elif directive_match:
                 tag = directive_match.groups()[0]
-                sphinx_parts.append({
-                    'tag': tag, 'start_offset': idx,
-                    'type': 'directive',
-                })
+                sphinx_parts.append(
+                    {
+                        'tag': tag,
+                        'start_offset': idx,
+                        'type': 'directive',
+                    }
+                )
 
         prev_offset = len(lines)
         for part in sphinx_parts[::-1]:
@@ -847,7 +859,10 @@ def create_doctest_figure(app, obj, name, lines):
     # so we can get different figures. But we can hack it for now.
 
     import re
-    split_parts = re.split('({}\\s*\n)'.format(re.escape('.. rubric:: Example')), docstr)
+
+    split_parts = re.split(
+        '({}\\s*\n)'.format(re.escape('.. rubric:: Example')), docstr
+    )
     # split_parts = docstr.split('.. rubric:: Example')
 
     # import xdev
@@ -874,10 +889,14 @@ def create_doctest_figure(app, obj, name, lines):
     for part in split_parts:
         num_lines = part.count('\n')
 
-        doctests = list(xdoctest.core.parse_docstr_examples(
-            part, modpath=modpath, callname=name,
-            # style='google'
-        ))
+        doctests = list(
+            xdoctest.core.parse_docstr_examples(
+                part,
+                modpath=modpath,
+                callname=name,
+                # style='google'
+            )
+        )
         # print(doctests)
 
         # doctests = list(xdoctest.core.parse_docstr_examples(
@@ -972,7 +991,9 @@ def create_doctest_figure(app, obj, name, lines):
             insert_index = end_index
         else:
             raise KeyError(INSERT_AT)
-        lines.insert(insert_index, '.. image:: {}'.format('..' / rel_to_root_fpath))
+        lines.insert(
+            insert_index, '.. image:: {}'.format('..' / rel_to_root_fpath)
+        )
         # lines.insert(insert_index, '.. image:: {}'.format(rel_to_root_fpath))
         # lines.insert(insert_index, '.. image:: {}'.format(rel_to_static_fpath))
         lines.insert(insert_index, '')
@@ -997,7 +1018,9 @@ def postprocess_hyperlinks(app, doctree, docname):
                     fpath = pathlib.Path(node.document['source'])
                     parent_dpath = fpath.parent
                     if (parent_dpath / refuri).exists():
-                        node.attributes['refuri'] = refuri.replace('.rst', '.html')
+                        node.attributes['refuri'] = refuri.replace(
+                            '.rst', '.html'
+                        )
                 else:
                     raise AssertionError
 

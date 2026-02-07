@@ -31,19 +31,17 @@ if typing.TYPE_CHECKING:
     BytesLike = bytes | bytearray | memoryview
 
     class HasherLike(typing.Protocol):
+        # name: str
 
-        #name: str
+        def update(self, data: BytesLike, /) -> None: ...
 
-        def update(self, data: BytesLike, /) -> None:
-            ...
-
-        def hexdigest(self) -> str:
-            ...
+        def hexdigest(self) -> str: ...
 
 
 __all__ = ['download', 'grabdata']
 
 # todo: add overloads to indicate that when fpath is a str then str is returned
+
 
 def download(
     url: str,
@@ -227,8 +225,7 @@ def download(
         if _dst_is_io_object:
             print('Downloading url={!r} to IO object'.format(url))
         else:
-            print('Downloading url={!r} to fpath={!r}'.format(
-                url, fpath))
+            print('Downloading url={!r} to fpath={!r}'.format(url, fpath))
 
     requestkw = requestkw or {}
     requestkw['headers'] = {'User-Agent': 'Mozilla/5.0'}  # type: ignore[invalid-assignment]
@@ -546,9 +543,14 @@ def grabdata(
     # Specifically we have no control over the separator between fname,
     # depends, and the extension.
     stamp = CacheStamp(
-        fname + '.stamp', dpath, depends=depends, hasher=hasher_name,
-        ext='.json', product=fpath,
-        hash_prefix=hash_prefix, verbose=verbose,
+        fname + '.stamp',
+        dpath,
+        depends=depends,
+        hasher=hasher_name,
+        ext='.json',
+        product=fpath,
+        hash_prefix=hash_prefix,
+        verbose=verbose,
         expires=expires,
     )
     if redo or stamp.expired():

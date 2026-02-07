@@ -138,7 +138,8 @@ class PythonPathContext:
             msg_parts = [
                 'sys.path changed while in PythonPathContext.',
                 'len(sys.path) = {!r} but index is {!r}'.format(
-                    len(sys.path), self.index),
+                    len(sys.path), self.index
+                ),
             ]
             need_recover = True
 
@@ -163,10 +164,12 @@ class PythonPathContext:
             else:
                 # We were able to recover, but warn the user. This method of
                 # recovery is a heuristic and does not work in some cases.
-                msg_parts.append((
-                    'Expected dpath was at index {}. '
-                    'This could indicate conflicting module namespaces.'
-                ).format(real_index))
+                msg_parts.append(
+                    (
+                        'Expected dpath was at index {}. '
+                        'This could indicate conflicting module namespaces.'
+                    ).format(real_index)
+                )
                 warnings.warn('\n'.join(msg_parts))
                 sys.path.pop(real_index)
         else:
@@ -438,7 +441,9 @@ def _platform_pylib_exts():  # nocover
     return tuple(valid_exts)
 
 
-def _syspath_modname_to_modpath(modname, sys_path=None, exclude=None) -> str | None:
+def _syspath_modname_to_modpath(
+    modname, sys_path=None, exclude=None
+) -> str | None:
     """
     syspath version of modname_to_modpath
 
@@ -531,15 +536,18 @@ def _syspath_modname_to_modpath(modname, sys_path=None, exclude=None) -> str | N
     candidate_dpaths = ['.' if p == '' else p for p in sys_path]
 
     if exclude:
+
         def normalize(p):
             if sys.platform.startswith('win32'):  # nocover
                 return realpath(p).lower()
             else:
                 return realpath(p)
+
         # Keep only the paths not in exclude
         real_exclude = {normalize(p) for p in exclude}
-        candidate_dpaths = [p for p in candidate_dpaths
-                            if normalize(p) not in real_exclude]
+        candidate_dpaths = [
+            p for p in candidate_dpaths if normalize(p) not in real_exclude
+        ]
 
     def check_dpath(dpath):
         # Check for directory-based modules (has precedence over files)
@@ -589,7 +597,9 @@ def _syspath_modname_to_modpath(modname, sys_path=None, exclude=None) -> str | N
         # Basically a finder will be used for "complex" structures and
         # basic pth will be used for "simple" structures (which means has a
         # src/modname folder).
-        new_editable_finder_paths = sorted(glob.glob(join(dpath, _editable_fname_finder_py_pat)))
+        new_editable_finder_paths = sorted(
+            glob.glob(join(dpath, _editable_fname_finder_py_pat))
+        )
         if new_editable_finder_paths:  # nocover
             # This makes some assumptions, which may not hold in general
             # We may need to fallback entirely on pkgutil, which would
@@ -673,10 +683,11 @@ def _custom_import_modpath(modpath, index=-1):
         with PythonPathContext(dpath, index=index):
             module = import_module_from_name(modname)
     except Exception as ex:  # nocover
-        msg_parts = [(
-            'ERROR: Failed to import modname={} with modpath={} and '
-            'sys.path modified with {} at index={}').format(
-                modname, modpath, repr(dpath), index)
+        msg_parts = [
+            (
+                'ERROR: Failed to import modname={} with modpath={} and '
+                'sys.path modified with {} at index={}'
+            ).format(modname, modpath, repr(dpath), index)
         ]
         msg_parts.append('Caused by: {}'.format(repr(ex)))
         raise RuntimeError('\n'.join(msg_parts))
@@ -739,10 +750,13 @@ def _importlib_modname_to_modpath(modname):  # nocover
             time per loop: best=387.000 ns, mean=424.680 ± 19.7 ns
     """
     import importlib.util
+
     spec = importlib.util.find_spec(modname)
     assert spec is not None
     assert spec.origin is not None
-    modpath = spec.origin.replace('.pyc', '.py')  # is pyc replace needed anymore?
+    modpath = spec.origin.replace(
+        '.pyc', '.py'
+    )  # is pyc replace needed anymore?
     return modpath
 
 
@@ -807,8 +821,9 @@ def modname_to_modpath(
     if modpath is None:
         return None
 
-    modpath = normalize_modpath(modpath, hide_init=hide_init,
-                                hide_main=hide_main)
+    modpath = normalize_modpath(
+        modpath, hide_init=hide_init, hide_main=hide_main
+    )
 
     if typing.TYPE_CHECKING:
         modpath = typing.cast(str, modpath)
@@ -953,8 +968,9 @@ def modpath_to_modname(
             raise ValueError('modpath={} does not exist'.format(modpath))
     modpath_ = abspath(expanduser(modpath))
 
-    modpath_ = normalize_modpath(modpath_, hide_init=hide_init,
-                                 hide_main=hide_main)
+    modpath_ = normalize_modpath(
+        modpath_, hide_init=hide_init, hide_main=hide_main
+    )
     if relativeto:
         dpath = dirname(abspath(expanduser(relativeto)))
         rel_modpath = relpath(modpath_, dpath)
@@ -969,7 +985,9 @@ def modpath_to_modname(
     return modname
 
 
-def split_modpath(modpath: str | os.PathLike, check: bool = True) -> tuple[str, str]:
+def split_modpath(
+    modpath: str | os.PathLike, check: bool = True
+) -> tuple[str, str]:
     """
     Splits the modpath into the dir that must be in PYTHONPATH for the module
     to be imported and the modulepath relative to this directory.
@@ -1042,8 +1060,9 @@ def is_modname_importable(
         >>> is_modname_importable('xdoctest', sys_path=[])
         False
     """
-    modpath = _syspath_modname_to_modpath(modname, sys_path=sys_path,
-                                          exclude=exclude)
+    modpath = _syspath_modname_to_modpath(
+        modname, sys_path=sys_path, exclude=exclude
+    )
     flag = bool(modpath is not None)
     return flag
 
@@ -1126,9 +1145,19 @@ def _parse_static_node_value(node):
     import ast
     import numbers
     from collections import OrderedDict
-    if (isinstance(node, ast.Constant) and isinstance(node.value, numbers.Number) if IS_PY_GE_308 else isinstance(node, ast.Num)):  # type: ignore[deprecated]
+
+    if (
+        isinstance(node, ast.Constant)
+        and isinstance(node.value, numbers.Number)
+        if IS_PY_GE_308
+        else isinstance(node, ast.Num)
+    ):  # type: ignore[deprecated]
         value = node.value if IS_PY_GE_308 else node.n
-    elif (isinstance(node, ast.Constant) and isinstance(node.value, str) if IS_PY_GE_308 else isinstance(node, ast.Str)):  # type: ignore[deprecated]
+    elif (
+        isinstance(node, ast.Constant) and isinstance(node.value, str)
+        if IS_PY_GE_308
+        else isinstance(node, ast.Str)
+    ):  # type: ignore[deprecated]
         value = node.value if IS_PY_GE_308 else node.s
     elif isinstance(node, ast.List):
         value = list(map(_parse_static_node_value, node.elts))
@@ -1139,11 +1168,15 @@ def _parse_static_node_value(node):
         values = map(_parse_static_node_value, node.values)
         value = OrderedDict(zip(keys, values))
         # value = dict(zip(keys, values))
-    elif IS_PY_LT_314 and isinstance(node, (ast.NameConstant)):  # nocover  # type: ignore[deprecated]
+    elif IS_PY_LT_314 and isinstance(
+        node, (ast.NameConstant)
+    ):  # nocover  # type: ignore[deprecated]
         value = node.value
     elif isinstance(node, ast.Constant):  # nocover
         value = node.value
     else:
-        raise TypeError('Cannot parse a static value from non-static node '
-                        'of type: {!r}'.format(type(node)))
+        raise TypeError(
+            'Cannot parse a static value from non-static node '
+            'of type: {!r}'.format(type(node))
+        )
     return value

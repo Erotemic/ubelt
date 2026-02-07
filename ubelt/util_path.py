@@ -59,8 +59,14 @@ if typing.TYPE_CHECKING:
 
 
 __all__ = [
-    'Path', 'TempDir', 'augpath', 'shrinkuser', 'userhome', 'ensuredir',
-    'expandpath', 'ChDir',
+    'Path',
+    'TempDir',
+    'augpath',
+    'shrinkuser',
+    'userhome',
+    'ensuredir',
+    'expandpath',
+    'ChDir',
 ]
 
 WIN32 = sys.platform.startswith('win32')
@@ -371,10 +377,14 @@ def ensuredir(
 
     if recreate:
         from ubelt import schedule_deprecation
+
         schedule_deprecation(
             modname='ubelt',
-            migration='Use ``ub.Path(dpath).delete().ensuredir()`` instead', name='recreate',
-            type='argument of ensuredir', deprecate='1.3.0', error='2.0.0',
+            migration='Use ``ub.Path(dpath).delete().ensuredir()`` instead',
+            name='recreate',
+            type='argument of ensuredir',
+            deprecate='1.3.0',
+            error='2.0.0',
             remove='2.1.0',
         )
         util_io.delete(dpath, verbose=verbose)
@@ -505,14 +515,19 @@ class TempDir:
         >>> self.cleanup()
         >>> assert not exists(dpath)
     """
+
     dpath: str | None
 
     def __init__(self) -> None:
         from ubelt import schedule_deprecation
+
         schedule_deprecation(
             modname='ubelt',
-            migration='Use tempfile instead', name='TempDir',
-            type='class', deprecate='1.2.0', error='1.5.0',
+            migration='Use tempfile instead',
+            name='TempDir',
+            type='class',
+            deprecate='1.2.0',
+            error='1.5.0',
             remove='1.5.0',
         )
         self.dpath = None
@@ -960,9 +975,13 @@ class Path(_PathBase):
         """
         if suffix:  # nocover
             from ubelt.util_deprecate import schedule_deprecation
+
             schedule_deprecation(
-                'ubelt', 'suffix', 'arg',
-                deprecate='1.1.3', remove='1.5.0',
+                'ubelt',
+                'suffix',
+                'arg',
+                deprecate='1.1.3',
+                remove='1.5.0',
                 migration='Use stemsuffix instead',
             )
             if not stemsuffix:
@@ -1350,7 +1369,9 @@ class Path(_PathBase):
             walk_up = kwargs.pop('walk_up', False)
             if len(kwargs):
                 bad_key = list(kwargs)[0]
-                raise TypeError(f'{self.__class__.__name__}.relative_to() got an unexpected keyword argument {bad_key!r}')
+                raise TypeError(
+                    f'{self.__class__.__name__}.relative_to() got an unexpected keyword argument {bad_key!r}'
+                )
             if not walk_up:
                 return super().relative_to(*other, **kwargs)
             else:
@@ -1562,8 +1583,9 @@ class Path(_PathBase):
     # More shutil functionality
     # This is discussed in https://peps.python.org/pep-0428/#filesystem-modification
 
-    def _request_copy_function(self, follow_file_symlinks=True,
-                               follow_dir_symlinks=True, meta='stats'):
+    def _request_copy_function(
+        self, follow_file_symlinks=True, follow_dir_symlinks=True, meta='stats'
+    ):
         """
         Get a copy_function based on specified capabilities
         """
@@ -1571,21 +1593,28 @@ class Path(_PathBase):
 
         # Note: Avoiding the use of the partial enables shutil optimizations
         from functools import partial
+
         if meta is None:
             if follow_file_symlinks:
                 copy_function = shutil.copyfile
             else:
-                copy_function = partial(shutil.copyfile, follow_symlinks=follow_file_symlinks)
+                copy_function = partial(
+                    shutil.copyfile, follow_symlinks=follow_file_symlinks
+                )
         elif meta == 'stats':
             if follow_file_symlinks:
                 copy_function = shutil.copy2
             else:
-                copy_function = partial(shutil.copy2, follow_symlinks=follow_file_symlinks)
+                copy_function = partial(
+                    shutil.copy2, follow_symlinks=follow_file_symlinks
+                )
         elif meta == 'mode':
             if follow_file_symlinks:
                 copy_function = shutil.copy
             else:
-                copy_function = partial(shutil.copy, follow_symlinks=follow_file_symlinks)
+                copy_function = partial(
+                    shutil.copy, follow_symlinks=follow_file_symlinks
+                )
         else:
             raise KeyError(meta)
         return copy_function
@@ -1742,7 +1771,9 @@ class Path(_PathBase):
                 else:
                     real_dst = dst
                 if real_dst.exists():
-                    raise FileExistsError('Cannot overwrite existing file unless overwrite=True')
+                    raise FileExistsError(
+                        'Cannot overwrite existing file unless overwrite=True'
+                    )
             dst = copy_function(os.fspath(self), os.fspath(dst))
         else:
             raise FileExistsError('The source path does not exist')
@@ -1815,7 +1846,8 @@ class Path(_PathBase):
         # Behave more like POSIX move to avoid potential confusing behavior
         if exists(dst):
             raise FileExistsError(
-                'Moves are only allowed to locations that dont exist')
+                'Moves are only allowed to locations that dont exist'
+            )
         import shutil
 
         if WIN32 and platform.python_implementation() == 'PyPy':  # nocover
@@ -1936,19 +1968,17 @@ def _resolve_chmod_code(old_mode, code):
         0o3777
     """
     import itertools as it
+
     action_lut = {
-        'ur' : stat.S_IRUSR,
-        'uw' : stat.S_IWUSR,
-        'ux' : stat.S_IXUSR,
-
-        'gr' : stat.S_IRGRP,
-        'gw' : stat.S_IWGRP,
-        'gx' : stat.S_IXGRP,
-
-        'or' : stat.S_IROTH,
-        'ow' : stat.S_IWOTH,
-        'ox' : stat.S_IXOTH,
-
+        'ur': stat.S_IRUSR,
+        'uw': stat.S_IWUSR,
+        'ux': stat.S_IXUSR,
+        'gr': stat.S_IRGRP,
+        'gw': stat.S_IWGRP,
+        'gx': stat.S_IXGRP,
+        'or': stat.S_IROTH,
+        'ow': stat.S_IWOTH,
+        'ox': stat.S_IXOTH,
         # Special UNIX permissions
         'us': stat.S_ISUID,  # SUID (executables run as the file's owner)
         'gs': stat.S_ISGID,  # SGID (executables run as the file's group) and other uses, see: https://docs.python.org/3/library/stat.html#stat.S_ISGID
@@ -1959,7 +1989,9 @@ def _resolve_chmod_code(old_mode, code):
     for action in actions:
         targets, op, perms = action
         try:
-            action_keys = (target + perm for target, perm in it.product(targets, perms))
+            action_keys = (
+                target + perm for target, perm in it.product(targets, perms)
+            )
             action_values = (action_lut[key] for key in action_keys)
             action_values = list(action_values)
             if op == '+':
@@ -2003,24 +2035,24 @@ def _encode_chmod_int(int_code):
         u=rwxs,g=rwxs,o=rwxt
     """
     from collections import OrderedDict, defaultdict
-    action_lut = OrderedDict([
-        ('ur' , stat.S_IRUSR),
-        ('uw' , stat.S_IWUSR),
-        ('ux' , stat.S_IXUSR),
 
-        ('gr' , stat.S_IRGRP),
-        ('gw' , stat.S_IWGRP),
-        ('gx' , stat.S_IXGRP),
-
-        ('or' , stat.S_IROTH),
-        ('ow' , stat.S_IWOTH),
-        ('ox' , stat.S_IXOTH),
-
-        # Special UNIX permissions
-        ('us', stat.S_ISUID),  # SUID (executes run as the file's owner)
-        ('gs', stat.S_ISGID),  # SGID (executes run as the file's group)
-        ('ot', stat.S_ISVTX),  # sticky (only owner can delete)
-    ])
+    action_lut = OrderedDict(
+        [
+            ('ur', stat.S_IRUSR),
+            ('uw', stat.S_IWUSR),
+            ('ux', stat.S_IXUSR),
+            ('gr', stat.S_IRGRP),
+            ('gw', stat.S_IWGRP),
+            ('gx', stat.S_IXGRP),
+            ('or', stat.S_IROTH),
+            ('ow', stat.S_IWOTH),
+            ('ox', stat.S_IXOTH),
+            # Special UNIX permissions
+            ('us', stat.S_ISUID),  # SUID (executes run as the file's owner)
+            ('gs', stat.S_ISGID),  # SGID (executes run as the file's group)
+            ('ot', stat.S_ISVTX),  # sticky (only owner can delete)
+        ]
+    )
     target_to_perms = defaultdict(list)
     for key, val in action_lut.items():
         target, perm = key

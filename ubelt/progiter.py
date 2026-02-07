@@ -164,7 +164,9 @@ class _TQDMCompat:
         fp.write(s)
         fp.write(end)
 
-    def set_description(self, desc: str | None = None, refresh: bool = True) -> None:
+    def set_description(
+        self, desc: str | None = None, refresh: bool = True
+    ) -> None:
         """
         tqdm api compatibility. Changes the description of progress
 
@@ -175,7 +177,9 @@ class _TQDMCompat:
         if refresh:
             self.refresh()
 
-    def set_description_str(self, desc: str | None = None, refresh: bool = True) -> None:
+    def set_description_str(
+        self, desc: str | None = None, refresh: bool = True
+    ) -> None:
         """
         tqdm api compatibility. Changes the description of progress
 
@@ -191,7 +195,9 @@ class _TQDMCompat:
     total: int | None
     started: bool
 
-    def step(self, inc: int = 1, force: bool = False) -> None:  # pragma: no cover
+    def step(
+        self, inc: int = 1, force: bool = False
+    ) -> None:  # pragma: no cover
         raise NotImplementedError
 
     def begin(self) -> typing.Self:  # pragma: no cover
@@ -269,12 +275,14 @@ class _TQDMCompat:
         """
         # Sort in alphabetical order to be more deterministic
         postfix = collections.OrderedDict(
-            [] if ordered_dict is None else ordered_dict)
+            [] if ordered_dict is None else ordered_dict
+        )
         for key in sorted(kwargs.keys()):
             postfix[key] = kwargs[key]
         # Preprocess stats according to datatype
         for key in postfix.keys():
             import numbers
+
             # Number: limit the length of the string
             if isinstance(postfix[key], numbers.Number):
                 postfix[key] = '{0:2.3g}'.format(postfix[key])
@@ -283,8 +291,9 @@ class _TQDMCompat:
                 postfix[key] = str(postfix[key])
             # Else if it's a string, don't need to preprocess anything
         # Stitch together to get the final postfix
-        postfix = ', '.join(key + '=' + postfix[key].strip()
-                                 for key in postfix.keys())
+        postfix = ', '.join(
+            key + '=' + postfix[key].strip() for key in postfix.keys()
+        )
         self.set_postfix_str(postfix, refresh=refresh)
 
     def set_postfix(self, postfix, **kwargs) -> None:
@@ -737,13 +746,13 @@ class ProgIter(_TQDMCompat, _BackwardsCompat, Iterable[T]):
 
         # use last few times to compute a more stable average rate
         if self.eta_window is not None:
-            self._measurements = collections.deque([
-                self._curr_measurement
-            ], maxlen=self.eta_window)
+            self._measurements = collections.deque(
+                [self._curr_measurement], maxlen=self.eta_window
+            )
         else:
-            self._measurements = collections.deque([
-                self._curr_measurement
-            ], maxlen=2)
+            self._measurements = collections.deque(
+                [self._curr_measurement], maxlen=2
+            )
 
         # self._cursor_at_newline = True
         self._cursor_at_newline = not self.clearline
@@ -937,8 +946,10 @@ class ProgIter(_TQDMCompat, _BackwardsCompat, Iterable[T]):
             self._est_seconds_left = est_eta
 
         # Adjust frequency to stay within time_thresh
-        if self.adjust and (self._measure_timedelta < self.time_thresh or
-                            self._measure_timedelta > self.time_thresh * 2.0):
+        if self.adjust and (
+            self._measure_timedelta < self.time_thresh
+            or self._measure_timedelta > self.time_thresh * 2.0
+        ):
             self._adjust_frequency()
 
         # Mark when our next measurement should be in "fast mode"

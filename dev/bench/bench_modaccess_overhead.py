@@ -32,7 +32,9 @@ def main():
     # print('df =\n{}'.format(df))
 
     print('rankings = {}'.format(ub.repr2(ti.rankings, precision=9, nl=2)))
-    print('consistency = {}'.format(ub.repr2(ti.consistency, precision=9, nl=2)))
+    print(
+        'consistency = {}'.format(ub.repr2(ti.consistency, precision=9, nl=2))
+    )
 
     positions = ub.ddict(list)
     for m1, v1 in ti.rankings.items():

@@ -80,8 +80,11 @@ class TeeStringIO(io.StringIO):
         Returns:
             bool
         """
-        return (self.redirect is not None and
-                hasattr(self.redirect, 'isatty') and self.redirect.isatty())
+        return (
+            self.redirect is not None
+            and hasattr(self.redirect, 'isatty')
+            and self.redirect.isatty()
+        )
 
     def fileno(self) -> int:
         """

@@ -266,10 +266,14 @@ class Cacher:
 
         if cfgstr is not None:  # nocover
             from ubelt import schedule_deprecation
+
             schedule_deprecation(
                 modname='ubelt',
-                migration='Use depends instead', name='cfgstr',
-                type='Cacher class arg', deprecate='1.1.0', error='1.3.0',
+                migration='Use depends instead',
+                name='cfgstr',
+                type='Cacher class arg',
+                deprecate='1.1.0',
+                error='1.3.0',
                 remove='1.5.0',
             )
             depends = cfgstr
@@ -325,8 +329,12 @@ class Cacher:
                     'If you must, then you can modify the ``depends`` class '
                     'attribute instead, but in general it is recommend to '
                     'avoid this.'
-                ), name='cfgstr', type='Cacher method arg', deprecate='1.1.0',
-                error='1.3.0', remove='1.5.0',
+                ),
+                name='cfgstr',
+                type='Cacher method arg',
+                deprecate='1.1.0',
+                error='1.3.0',
+                remove='1.5.0',
             )
 
         cfgstr = self.cfgstr if cfgstr is None else cfgstr
@@ -475,7 +483,9 @@ class Cacher:
             if self.verbose > 0:
                 self.log('[cacher] ... nothing to clear')
 
-    def tryload(self, cfgstr: str | None = None, on_error: str = 'raise') -> typing.Any | None:
+    def tryload(
+        self, cfgstr: str | None = None, on_error: str = 'raise'
+    ) -> typing.Any | None:
         """
         Like load, but returns None if the load fails due to a cache miss.
 
@@ -508,12 +518,14 @@ class Cacher:
                     self.clear(cfgstr)
                     return None
                 else:
-                    raise KeyError('Unknown method on_error={}'.format(
-                        on_error))
+                    raise KeyError(
+                        'Unknown method on_error={}'.format(on_error)
+                    )
         else:
             if self.verbose > 1:
-                self.log('[cacher] ... cache disabled: fname={}'.format(
-                    self.fname))
+                self.log(
+                    '[cacher] ... cache disabled: fname={}'.format(self.fname)
+                )
         return None
 
     def load(self, cfgstr: str | None = None) -> typing.Any:
@@ -548,32 +560,44 @@ class Cacher:
 
         if not self.enabled:
             if verbose > 1:
-                self.log('[cacher] ... cache disabled: fname={}'.format(
-                    self.fname))
+                self.log(
+                    '[cacher] ... cache disabled: fname={}'.format(self.fname)
+                )
             raise IOError(3, 'Cache Loading Is Disabled')
 
         data_fpath = self.get_fpath(cfgstr=cfgstr)
 
         if not exists(data_fpath):
             if verbose > 2:
-                self.log('[cacher] ... cache does not exist: '
-                         'dpath={} fname={} cfgstr={}'.format(
-                             basename(dpath), fname, cfgstr_))
-            raise IOError(2, 'No such file or directory: {!r}'.format(data_fpath))
+                self.log(
+                    '[cacher] ... cache does not exist: '
+                    'dpath={} fname={} cfgstr={}'.format(
+                        basename(dpath), fname, cfgstr_
+                    )
+                )
+            raise IOError(
+                2, 'No such file or directory: {!r}'.format(data_fpath)
+            )
         else:
             if verbose > 3:
                 sizestr = _byte_str(os.stat(data_fpath).st_size)
-                self.log('[cacher] ... cache exists: '
-                         'dpath={} fname={} cfgstr={}, size={}'.format(
-                             basename(dpath), fname, cfgstr_, sizestr))
+                self.log(
+                    '[cacher] ... cache exists: '
+                    'dpath={} fname={} cfgstr={}, size={}'.format(
+                        basename(dpath), fname, cfgstr_, sizestr
+                    )
+                )
         try:
             data = self._backend_load(data_fpath)
         except Exception as ex:
             if verbose > 0:
                 self.log('CORRUPTED? fpath = {!r}'.format(data_fpath))
             if verbose > 1:
-                self.log('[cacher] ... CORRUPTED? dpath={} cfgstr={}'.format(
-                    basename(dpath), cfgstr_))
+                self.log(
+                    '[cacher] ... CORRUPTED? dpath={} cfgstr={}'.format(
+                        basename(dpath), cfgstr_
+                    )
+                )
             if isinstance(ex, (EOFError, IOError, ImportError)):
                 raise IOError(str(ex))
             else:
@@ -726,7 +750,9 @@ class Cacher:
             self.save(data)
         return data
 
-    def __call__(self, func: 'typing.Callable[[], T]') -> 'typing.Callable[[], T]':
+    def __call__(
+        self, func: 'typing.Callable[[], T]'
+    ) -> 'typing.Callable[[], T]':
         """
         Allows Cacher to be used as a decorator for functions with no
         arguments. This mode of usage has much less control than others, so it
@@ -832,14 +858,21 @@ class CacheStamp:
         fname: str,
         dpath: str | os.PathLike | None,
         cfgstr: str | None = None,
-        product: str | os.PathLike | typing.Sequence[str | os.PathLike] | None = None,
+        product: str
+        | os.PathLike
+        | typing.Sequence[str | os.PathLike]
+        | None = None,
         hasher: str = 'sha1',
         verbose: int | bool | None = None,
         enabled: bool = True,
         depends: str | list[str] | None = None,
         meta: object | None = None,
         hash_prefix: str | list[str] | None = None,
-        expires: str | int | datetime_mod.datetime | datetime_mod.timedelta | None = None,
+        expires: str
+        | int
+        | datetime_mod.datetime
+        | datetime_mod.timedelta
+        | None = None,
         ext: str = '.pkl',
     ) -> None:
         """
@@ -918,7 +951,9 @@ class CacheStamp:
         """
         return self.cacher.clear()
 
-    def _get_certificate(self, cfgstr: typing.Any | None = None) -> dict[str, typing.Any] | None:
+    def _get_certificate(
+        self, cfgstr: typing.Any | None = None
+    ) -> dict[str, typing.Any] | None:
         """
         Returns the stamp certificate if it exists
         """
@@ -1078,19 +1113,27 @@ class CacheStamp:
         """
         if cfgstr is not None:  # nocover
             from ubelt import schedule_deprecation
+
             schedule_deprecation(
                 modname='ubelt',
                 migration='Do not pass cfgstr to expired. Use the class depends arg',
-                name='cfgstr', type='CacheStamp.expires arg',
-                deprecate='1.1.0', error='1.3.0', remove='1.5.0',
+                name='cfgstr',
+                type='CacheStamp.expires arg',
+                deprecate='1.1.0',
+                error='1.3.0',
+                remove='1.5.0',
             )
         if product is not None:  # nocover
             from ubelt import schedule_deprecation
+
             schedule_deprecation(
                 modname='ubelt',
                 migration='Do not pass product to expired. Use the class product arg',
-                name='product', type='CacheStamp.expires arg',
-                deprecate='1.1.0', error='1.3.0', remove='1.5.0',
+                name='product',
+                type='CacheStamp.expires arg',
+                deprecate='1.1.0',
+                error='1.3.0',
+                remove='1.5.0',
             )
 
         if not self.cacher.enabled:
@@ -1107,10 +1150,11 @@ class CacheStamp:
         expires = certificate.get('expires', None)
         if expires is not None:
             from ubelt.util_time import timeparse
+
             # Need to add in the local timezone to compare against the cert.
             now = _localnow()
             expires_abs = timeparse(expires)
-            if  now >= expires_abs:
+            if now >= expires_abs:
                 # We are expired
                 err = 'expired_cert'
                 if self.cacher.verbose > 0:  # pragma: nobranch
@@ -1160,8 +1204,11 @@ class CacheStamp:
                 product_file_hash = self._product_file_hash(products)
                 if product_file_hash != certificate_hash:
                     if self.cacher.verbose > 0:  # pragma: nobranch
-                        print('invalid hash value (expected "{}", got "{}")'.format(
-                            product_file_hash, certificate_hash))
+                        print(
+                            'invalid hash value (expected "{}", got "{}")'.format(
+                                product_file_hash, certificate_hash
+                            )
+                        )
                     # The hash is different, we are expired
                     err = 'hash_diff'
                     if self.cacher.verbose > 0:  # pragma: nobranch
@@ -1171,7 +1218,9 @@ class CacheStamp:
         # All tests passed, we are not expired
         return False
 
-    def _check_certificate_hashes(self, certificate: dict[str, typing.Any]) -> str | None:
+    def _check_certificate_hashes(
+        self, certificate: dict[str, typing.Any]
+    ) -> str | None:
         certificate_hash = certificate.get('hash', None)
         hash_prefixes = self._rectify_hash_prefixes()
         if hash_prefixes is not None:
@@ -1179,12 +1228,17 @@ class CacheStamp:
             for pref_hash, cert_hash in zip(hash_prefixes, certificate_hash):
                 if not cert_hash.startswith(pref_hash):
                     if self.cacher.verbose > 0:  # pragma: nobranch
-                        print('invalid hash prefix value (expected "{}", got "{}")'.format(
-                            pref_hash, cert_hash))
+                        print(
+                            'invalid hash prefix value (expected "{}", got "{}")'.format(
+                                pref_hash, cert_hash
+                            )
+                        )
                     err = 'hash_prefix_mismatch'
                     return err
 
-    def _expires(self, now: datetime_mod.datetime | None = None) -> datetime_mod.datetime | None:
+    def _expires(
+        self, now: datetime_mod.datetime | None = None
+    ) -> datetime_mod.datetime | None:
         """
         Returns:
             datetime.datetime: the absolute local time when the stamp expires
@@ -1235,10 +1289,13 @@ class CacheStamp:
             expires_abs = expires
         else:
             raise TypeError(
-                'expires must be a coercible to datetime or timedelta')
+                'expires must be a coercible to datetime or timedelta'
+            )
         return expires_abs
 
-    def _new_certificate(self, cfgstr: str | None = None, product: typing.Any | None = None) -> dict[str, typing.Any]:
+    def _new_certificate(
+        self, cfgstr: str | None = None, product: typing.Any | None = None
+    ) -> dict[str, typing.Any]:
         """
         Returns:
             dict: certificate information
@@ -1259,23 +1316,31 @@ class CacheStamp:
             >>> assert cert['expires'] is not None
         """
         from ubelt.util_time import timestamp
+
         products = self._rectify_products(product)
         now = _localnow()
         expires = self._expires(now)
         certificate = {
             'timestamp': timestamp(now, precision=4),
-            'expires': None if expires is None else timestamp(expires, precision=4),
-            'product': None if products is None else [os.fspath(p) for p in products],
+            'expires': None
+            if expires is None
+            else timestamp(expires, precision=4),
+            'product': None
+            if products is None
+            else [os.fspath(p) for p in products],
         }
         if products is not None:
             if not all(map(exists, products)):
                 raise IOError(
-                    'The stamped product must exist: {}'.format(products))
+                    'The stamped product must exist: {}'.format(products)
+                )
             product_info = self._product_info(products)
             certificate.update(product_info)
         return certificate
 
-    def renew(self, cfgstr: str | None = None, product: str | list | None = None) -> dict[str, typing.Any] | None:
+    def renew(
+        self, cfgstr: str | None = None, product: str | list | None = None
+    ) -> dict[str, typing.Any] | None:
         """
         Recertify that the product has been recomputed by writing a new
         certificate to disk.
@@ -1298,19 +1363,27 @@ class CacheStamp:
             return None
         if cfgstr is not None:  # nocover
             from ubelt import schedule_deprecation
+
             schedule_deprecation(
                 modname='ubelt',
                 migration='Do not pass cfgstr to renew. Use the class depends arg',
-                name='cfgstr', type='CacheStamp.renew arg',
-                deprecate='1.1.0', error='1.3.0', remove='1.5.0',
+                name='cfgstr',
+                type='CacheStamp.renew arg',
+                deprecate='1.1.0',
+                error='1.3.0',
+                remove='1.5.0',
             )
         if product is not None:  # nocover
             from ubelt import schedule_deprecation
+
             schedule_deprecation(
                 modname='ubelt',
                 migration='Do not pass product to renew. Use the class product arg',
-                name='product', type='CacheStamp.renew arg',
-                deprecate='1.1.0', error='1.3.0', remove='1.5.0',
+                name='product',
+                type='CacheStamp.renew arg',
+                deprecate='1.1.0',
+                error='1.3.0',
+                remove='1.5.0',
             )
         certificate = self._new_certificate(cfgstr, product)
         err = self._check_certificate_hashes(certificate)
@@ -1324,7 +1397,10 @@ def _localnow() -> datetime_mod.datetime:
     # Might be nice to have a util_time function add in tzinfo
     import datetime as datetime_mod
     import time
-    local_tzinfo = datetime_mod.timezone(datetime_mod.timedelta(seconds=-time.timezone))
+
+    local_tzinfo = datetime_mod.timezone(
+        datetime_mod.timedelta(seconds=-time.timezone)
+    )
     now = datetime_mod.datetime.now().replace(tzinfo=local_tzinfo)
     return now
 

@@ -48,8 +48,9 @@ def test_download_with_fpath():
     ub.delete(fpath)
     assert not exists(fpath)
 
-    got_fpath = ub.download(url, fpath=fpath,
-                            appname='ubelt/tests/test_download')
+    got_fpath = ub.download(
+        url, fpath=fpath, appname='ubelt/tests/test_download'
+    )
     assert got_fpath == fpath
     assert exists(fpath)
 
@@ -73,7 +74,9 @@ def test_download_chunksize():
     ub.delete(fpath)
     assert not exists(fpath)
 
-    got_fpath = ub.download(url, chunksize=2, appname='ubelt/tests/test_download')
+    got_fpath = ub.download(
+        url, chunksize=2, appname='ubelt/tests/test_download'
+    )
 
     assert got_fpath == fpath
     assert exists(fpath)
@@ -154,7 +157,9 @@ def test_grabdata_nohash():
     Check where the url is downloaded to when fpath is not specified.
     """
     url = _demo_url()
-    dpath = ub.Path.appdir('ubelt/tests/test_download/test-grabdata-nohash').ensuredir()
+    dpath = ub.Path.appdir(
+        'ubelt/tests/test_download/test-grabdata-nohash'
+    ).ensuredir()
     fname = basename(url)
     fpath = (dpath / fname).delete()
     assert not fpath.exists()
@@ -464,12 +469,15 @@ class SingletonTestServer(ub.NiceRepr):
         import requests
 
         import ubelt as ub
+
         def find_free_port():
             """
             References:
                 .. [SO1365265] https://stackoverflow.com/questions/1365265/on-localhost-how-do-i-pick-a-free-port-number
             """
-            with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as s:
+            with closing(
+                socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            ) as s:
                 s.bind(('', 0))
                 s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
                 return s.getsockname()[1]
@@ -478,16 +486,16 @@ class SingletonTestServer(ub.NiceRepr):
         port = find_free_port()
         print('port = {!r}'.format(port))
 
-        dpath = ub.Path.appdir('ubelt/tests/test_download/simple_server').ensuredir()
+        dpath = ub.Path.appdir(
+            'ubelt/tests/test_download/simple_server'
+        ).ensuredir()
 
         if sys.platform.startswith('win32'):
             pyexe = 'python'
         else:
             pyexe = sys.executable
 
-        server_cmd = [
-            pyexe, '-m', 'http.server', str(port)
-        ]
+        server_cmd = [pyexe, '-m', 'http.server', str(port)]
         info = ub.cmd(server_cmd, detach=True, cwd=dpath)
         proc = info['proc']
         self.proc = proc
@@ -526,13 +534,17 @@ class SingletonTestServer(ub.NiceRepr):
         if poll_ret is not None:
             print('poll_ret = {!r}'.format(poll_ret))
             print(self.proc.communicate())
-            raise AssertionError('Simple server did not start {}'.format(poll_ret))
+            raise AssertionError(
+                'Simple server did not start {}'.format(poll_ret)
+            )
 
         self.urls = []
         self.write_file()
 
     def write_file(self, filebytes=10, num_files=1):
-        fnames = ['file_{}_{}.txt'.format(filebytes, i) for i in range(num_files)]
+        fnames = [
+            'file_{}_{}.txt'.format(filebytes, i) for i in range(num_files)
+        ]
         for fname in fnames:
             # data = ''.join(random.choices(string.ascii_letters, k=filebytes))
             data = 'a' * filebytes
@@ -599,8 +611,10 @@ def make_stat_dict(stat_obj):
     # and ignore access time
     ignore_keys = {'st_atime', 'st_atime_ns'}
     return {
-        k: getattr(stat_obj, k) for k in dir(stat_obj)
-        if k.startswith('st_') and k not in ignore_keys}
+        k: getattr(stat_obj, k)
+        for k in dir(stat_obj)
+        if k.startswith('st_') and k not in ignore_keys
+    }
 
 
 def test_grabdata():
@@ -631,20 +645,25 @@ def test_grabdata():
     sleep_time = 0.1
     num_tries = 60
     for _ in range(num_tries):
-        fpath = ub.grabdata(url, fname=fname, hash_prefix=prefix1, redo=True,
-                            hasher='sha512')
+        fpath = ub.grabdata(
+            url, fname=fname, hash_prefix=prefix1, redo=True, hasher='sha512'
+        )
         stat2 = make_stat_dict(ub.Path(fpath).stat())
         # Note: the precision of mtime is too low for this test work reliably
         # https://apenwarr.ca/log/20181113
         if stat2 != stat1:
             break
-        print('... Sometimes the redownload happens so fast we need to '
-              'wait to notice the file is actually different')
+        print(
+            '... Sometimes the redownload happens so fast we need to '
+            'wait to notice the file is actually different'
+        )
         time.sleep(sleep_time)
     else:
         raise AssertionError(
             'the file stat should be modified, we waited over {}s.'.format(
-                sleep_time * num_tries))
+                sleep_time * num_tries
+            )
+        )
     #
     print('4. Check that a redownload occurs when the stamp is changed')
     stamp_fpath.write_text('corrupt-stamp')
@@ -655,7 +674,9 @@ def test_grabdata():
     ub.delete(stamp_fpath)
     fpath = ub.Path(fpath)
     fpath.write_text('corrupt-stamp')
-    assert not ub.hash_file(fpath, base='hex', hasher='sha512').startswith(prefix1)
+    assert not ub.hash_file(fpath, base='hex', hasher='sha512').startswith(
+        prefix1
+    )
     fpath = ub.grabdata(url, fname=fname, hash_prefix=prefix1, hasher='sha512')
     assert ub.hash_file(fpath, base='hex', hasher='sha512').startswith(prefix1)
 
@@ -714,17 +735,18 @@ def test_download_with_io():
 
 def test_download_with_sha1_hasher():
     import ubelt as ub
+
     url = _demo_url(128 * 4)
     ub.download(url, hasher='sha1', hash_prefix='164557facb7392')
 
 
 def setup_module(module):
-    """ setup any state specific to the execution of the given module."""
+    """setup any state specific to the execution of the given module."""
     SingletonTestServer.instance()
 
 
 def teardown_module(module):
-    """ teardown any state that was previously setup with a setup_module
+    """teardown any state that was previously setup with a setup_module
     method.
     """
     SingletonTestServer.instance().close()

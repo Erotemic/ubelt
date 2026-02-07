@@ -76,15 +76,18 @@ def benchmark_template():
         input_size, num_unique_items = 10, 10
         """
         import random
+
         rng = random.Random()
         pool = range(num_unique_items)
         group_ids = rng.choices(pool, k=input_size)
         items = []
         for index, group_id in enumerate(group_ids):
-            items.append({
-                'index': index,
-                'group_id': group_id,
-            })
+            items.append(
+                {
+                    'index': index,
+                    'group_id': group_id,
+                }
+            )
         return items
 
     # Change params here to modify number of trials
@@ -114,7 +117,9 @@ def benchmark_template():
         # 'size': ['zparam'],
     }
     group_labels['hue'] = list(
-        (ub.oset(basis) - {xlabel}) - set.union(*map(set, group_labels.values())))
+        (ub.oset(basis) - {xlabel})
+        - set.union(*map(set, group_labels.values()))
+    )
     grid_iter = list(ub.named_product(basis))
 
     # For each variation of your experiment, create a row.
@@ -124,7 +129,8 @@ def benchmark_template():
         group_keys = {}
         for gname, labels in group_labels.items():
             group_keys[gname + '_key'] = ub.urepr(
-                params & labels, compact=1, si=1)
+                params & labels, compact=1, si=1
+            )
         key = ub.urepr(params, compact=1, si=1)
         method = method_lut[params['method']]
         # Timerit will run some user-specified number of loops.
@@ -185,9 +191,13 @@ def benchmark_template():
         # Lets try a real ranking method
         # https://github.com/OpenDebates/openskill.py
         import openskill
+
         method_ratings = {m: openskill.Rating() for m in basis['method']}
 
-    other_keys = sorted(set(stats_data.columns) - {'key', 'method', 'min', 'mean', 'hue_key', 'size_key', 'style_key'})
+    other_keys = sorted(
+        set(stats_data.columns)
+        - {'key', 'method', 'min', 'mean', 'hue_key', 'size_key', 'style_key'}
+    )
     for params, variants in stats_data.groupby(other_keys):
         variants = variants.sort_values('mean')
         ranking = variants['method'].reset_index(drop=True)
@@ -214,8 +224,11 @@ def benchmark_template():
 
     if USE_OPENSKILL:
         from openskill import predict_win
+
         win_prob = predict_win([[r] for r in method_ratings.values()])
-        skill_agg = pd.Series(ub.dzip(method_ratings.keys(), win_prob)).sort_values(ascending=False)
+        skill_agg = pd.Series(
+            ub.dzip(method_ratings.keys(), win_prob)
+        ).sort_values(ascending=False)
         print('Aggregated Rankings =\n{}'.format(skill_agg))
 
     plot = True
@@ -235,7 +248,9 @@ def benchmark_template():
 
         # Your variables may change
         ax = kwplot.figure(fnum=1, doclf=True).gca()
-        sns.lineplot(data=data, x=xlabel, y=time_key, marker='o', ax=ax, **plotkw)
+        sns.lineplot(
+            data=data, x=xlabel, y=time_key, marker='o', ax=ax, **plotkw
+        )
         ax.set_title(plot_labels['title'])
         ax.set_xlabel(plot_labels['x'])
         ax.set_ylabel(plot_labels['y'])

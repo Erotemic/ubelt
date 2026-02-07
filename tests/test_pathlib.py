@@ -458,6 +458,7 @@ def test_copy_dir_to_existing_dir_noconflict():
 
     if DEBUG_PATH:
         import xdev
+
         print('BEFORE MOVE')
         xdev.tree_repr(base)
 
@@ -561,7 +562,9 @@ def test_copy_dir_to_existing_dir_withconflict():
 
 
 def _comparable_walk(p):
-    return sorted([(tuple(sorted(f)), tuple(sorted(d))) for (r, f, d) in (p).walk()])
+    return sorted(
+        [(tuple(sorted(f)), tuple(sorted(d))) for (r, f, d) in (p).walk()]
+    )
 
 
 def test_walk_compat_312():

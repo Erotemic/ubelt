@@ -78,11 +78,9 @@ class AsyncIOExecutor:
     def __enter__(self):
         return self
 
-    def __exit__(self, ex_type, ex_value, ex_traceback):
-        ...
+    def __exit__(self, ex_type, ex_value, ex_traceback): ...
 
     def submit(self, fn, /, *args, **kwargs):
-
         coroutine = _async_call(fn, *args, **kwargs)
         task = self.loop.create_task(coroutine)
         return FakeFuture(task, self)
@@ -103,8 +101,7 @@ class AsyncIOExecutor:
         # return f
         # return task
 
-    def shutdown(self):
-        ...
+    def shutdown(self): ...
 
     def map(self, fn, *iterables, **kwargs):
         kwargs.pop('chunksize', None)

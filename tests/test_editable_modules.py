@@ -336,14 +336,18 @@ class ProjectStructure():
         print('\n')
         print('Repo Structure:')
         directory_blocklist = ['.*', '.git', 'dist', '_skbuild', 'dev']
-        xdev.tree_repr(self.root, max_files=None, dirblocklist=directory_blocklist)
+        xdev.tree_repr(
+            self.root, max_files=None, dirblocklist=directory_blocklist
+        )
 
         seems_installed = 0
 
         print('\n')
         print('Content of the EGG Link:')
         site_dpath = ub.Path(distutils.sysconfig.get_python_lib())
-        egg_link_fpaths = list(site_dpath.glob(self.mod_name.replace('_', '*') + '*.egg-link'))
+        egg_link_fpaths = list(
+            site_dpath.glob(self.mod_name.replace('_', '*') + '*.egg-link')
+        )
         if len(egg_link_fpaths) == 0:
             console.print('[red] No egg link')
             seems_installed = 0
@@ -356,7 +360,11 @@ class ProjectStructure():
         # Note: (recently 2022-08-ish) python switched to a new type of
         # This is not present in setuptools==63.2.0 but is in 65.3.0
         # editable install. TODO: incomporate this.
-        editable_fpaths = list(site_dpath.glob('__editable__*' + self.mod_name.replace('_', '*') + '*'))
+        editable_fpaths = list(
+            site_dpath.glob(
+                '__editable__*' + self.mod_name.replace('_', '*') + '*'
+            )
+        )
         print(f'editable_fpaths={editable_fpaths}')
 
         print('\n')
@@ -366,16 +374,27 @@ class ProjectStructure():
         easy_install_text = easy_install_fpath.read_text()
         abs_path = self.mod_dpath.absolute().parent
         print(f'abs_path={abs_path}')
-        if str(abs_path)  in easy_install_text:
+        if str(abs_path) in easy_install_text:
             console.print('[green] Easy install dpath is good')
         else:
             console.print('[red] Easy install does not contain this package')
             # console.print(rich_file_content(easy_install_fpath))
 
         expected_egg_info_dpath = self.python_path / f'{self.mod_name}.egg-info'
-        all_egg_infos = [ub.Path(e).resolve() for e in xdev.find('*.egg-info', dpath=self.root, dirblocklist=directory_blocklist)]
-        other_egg_infos = set(all_egg_infos) - {expected_egg_info_dpath.resolve()}
-        print('expected_egg_info_dpath = {}'.format(ub.repr2(expected_egg_info_dpath, nl=1)))
+        all_egg_infos = [
+            ub.Path(e).resolve()
+            for e in xdev.find(
+                '*.egg-info', dpath=self.root, dirblocklist=directory_blocklist
+            )
+        ]
+        other_egg_infos = set(all_egg_infos) - {
+            expected_egg_info_dpath.resolve()
+        }
+        print(
+            'expected_egg_info_dpath = {}'.format(
+                ub.repr2(expected_egg_info_dpath, nl=1)
+            )
+        )
         if expected_egg_info_dpath.exists():
             console.print('[green] Egg info exists in expected location')
             egg_info_dpath = expected_egg_info_dpath
@@ -420,19 +439,22 @@ def _check_skip_editable_module_tests():
     UBELT_DO_EDITABLE_TESTS = os.environ.get('UBELT_DO_EDITABLE_TESTS', '')
     if not UBELT_DO_EDITABLE_TESTS:
         import pytest
+
         pytest.skip('UBELT_DO_EDITABLE_TESTS is not enabled')
 
     if sys.platform.startswith('win32'):
         import pytest
+
         pytest.skip('skip editable module tests on Win32')
 
     if sys.platform.startswith('freebsd'):
         import pytest
+
         pytest.skip('skip editable module tests on FreeBSD')
 
 
 def setup_module(module):
-    """ setup any state specific to the execution of the given module."""
+    """setup any state specific to the execution of the given module."""
     import uuid
 
     import ubelt as ub
@@ -444,8 +466,9 @@ def setup_module(module):
 
     # Define pure python module with ./src/python structure
     mod_name = 'purepy_src_demo_pkg_' + suffix
-    PUREPY_SRC_PROJECT = ProjectStructure(repo_dpath=dpath / mod_name,
-                                          mod_name=mod_name, use_src=True)
+    PUREPY_SRC_PROJECT = ProjectStructure(
+        repo_dpath=dpath / mod_name, mod_name=mod_name, use_src=True
+    )
     PUREPY_SRC_PROJECT.setup()
     GLOBAL_PROJECTS.append(PUREPY_SRC_PROJECT)
 
@@ -455,8 +478,9 @@ def setup_module(module):
 
     # Define pure python module with the package at root level
     mod_name = 'purepy_root_demo_pkg_' + suffix
-    PUREPY_SRC_PROJECT = ProjectStructure(repo_dpath=dpath / mod_name,
-                                          mod_name=mod_name, use_src=False)
+    PUREPY_SRC_PROJECT = ProjectStructure(
+        repo_dpath=dpath / mod_name, mod_name=mod_name, use_src=False
+    )
     PUREPY_SRC_PROJECT.setup()
     GLOBAL_PROJECTS.append(PUREPY_SRC_PROJECT)
 

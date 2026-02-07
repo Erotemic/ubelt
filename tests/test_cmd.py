@@ -84,7 +84,9 @@ def test_cmd_tee_auto():
     pytest ubelt/tests/test_cmd.py -k tee_backend
     pytest ubelt/tests/test_cmd.py
     """
-    command = '{pyexe} -c "for i in range(100): print(str(i))"'.format(pyexe=PYEXE)
+    command = '{pyexe} -c "for i in range(100): print(str(i))"'.format(
+        pyexe=PYEXE
+    )
     result = ub.cmd(command, verbose=0, tee_backend='auto')
     assert result['out'] == '\n'.join(list(map(str, range(100)))) + '\n'
 
@@ -134,7 +136,9 @@ def test_cmd_tee_badmethod():
     """
     pytest tests/test_cmd.py::test_cmd_tee_badmethod
     """
-    command = '{pyexe} -c "for i in range(100): print(str(i))"'.format(pyexe=PYEXE)
+    command = '{pyexe} -c "for i in range(100): print(str(i))"'.format(
+        pyexe=PYEXE
+    )
     with pytest.raises(ValueError):
         ub.cmd(command, verbose=2, tee_backend='bad tee backend')
 
@@ -299,11 +303,15 @@ def test_timeout():
     #         "
     #         ''').lstrip()]
 
-    initial_grid = list(ub.named_product({
-        'tee': [0, 1],
-        'capture': [0, 1],
-        'timeout': [0, 0.001, 0.01],
-    }))
+    initial_grid = list(
+        ub.named_product(
+            {
+                'tee': [0, 1],
+                'capture': [0, 1],
+                'timeout': [0, 0.001, 0.01],
+            }
+        )
+    )
     expanded_grid = []
     for kw in initial_grid:
         kw = ub.udict(kw)

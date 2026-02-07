@@ -120,7 +120,9 @@ def benchmark_urepr_vs_alternatives():
         # 'size': ['zparam'],
     }
     group_labels['hue'] = list(
-        (ub.oset(basis) - {xlabel}) - set.union(set(), *map(set, group_labels.values())))
+        (ub.oset(basis) - {xlabel})
+        - set.union(set(), *map(set, group_labels.values()))
+    )
     grid_iter = list(ub.named_product(basis))
 
     # For each variation of your experiment, create a row.
@@ -130,7 +132,8 @@ def benchmark_urepr_vs_alternatives():
         group_keys = {}
         for gname, labels in group_labels.items():
             group_keys[gname + '_key'] = ub.urepr(
-                params & labels, compact=1, si=1)
+                params & labels, compact=1, si=1
+            )
         key = ub.urepr(params, compact=1, si=1)
         # Make any modifications you need to compute input kwargs for each
         # method here.
@@ -192,9 +195,13 @@ def benchmark_urepr_vs_alternatives():
         # Lets try a real ranking method
         # https://github.com/OpenDebates/openskill.py
         import openskill
+
         method_ratings = {m: openskill.Rating() for m in basis['method']}
 
-    other_keys = sorted(set(stats_data.columns) - {'key', 'method', 'min', 'mean', 'hue_key', 'size_key', 'style_key'})
+    other_keys = sorted(
+        set(stats_data.columns)
+        - {'key', 'method', 'min', 'mean', 'hue_key', 'size_key', 'style_key'}
+    )
     for params, variants in stats_data.groupby(other_keys):
         variants = variants.sort_values('mean')
         ranking = variants['method'].reset_index(drop=True)
@@ -221,8 +228,11 @@ def benchmark_urepr_vs_alternatives():
 
     if USE_OPENSKILL:
         from openskill import predict_win
+
         win_prob = predict_win([[r] for r in method_ratings.values()])
-        skill_agg = pd.Series(ub.dzip(method_ratings.keys(), win_prob)).sort_values(ascending=False)
+        skill_agg = pd.Series(
+            ub.dzip(method_ratings.keys(), win_prob)
+        ).sort_values(ascending=False)
         print('Aggregated Rankings =\n{}'.format(skill_agg))
 
     plot = True
@@ -242,7 +252,9 @@ def benchmark_urepr_vs_alternatives():
 
         # Your variables may change
         ax = kwplot.figure(fnum=1, doclf=True).gca()
-        sns.lineplot(data=data, x=xlabel, y=time_key, marker='o', ax=ax, **plotkw)
+        sns.lineplot(
+            data=data, x=xlabel, y=time_key, marker='o', ax=ax, **plotkw
+        )
         ax.set_title(plot_labels['title'])
         ax.set_xlabel(plot_labels['x'])
         ax.set_ylabel(plot_labels['y'])

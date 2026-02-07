@@ -98,7 +98,9 @@ def _win32_can_symlink(verbose=0, force=False, testing=False):
     try:
         _win32_symlink(dpath, dlink, verbose=verbose)
         if testing:
-            _win32_symlink(broken_dpath, join(tempdir, 'broken_dlink'), verbose=verbose)
+            _win32_symlink(
+                broken_dpath, join(tempdir, 'broken_dlink'), verbose=verbose
+            )
         can_symlink_directories = os.path.islink(dlink)
     except OSError:
         can_symlink_directories = False
@@ -108,7 +110,9 @@ def _win32_can_symlink(verbose=0, force=False, testing=False):
     try:
         _win32_symlink(fpath, flink, verbose=verbose)
         if testing:
-            _win32_symlink(broken_fpath, join(tempdir, 'broken_flink'), verbose=verbose)
+            _win32_symlink(
+                broken_fpath, join(tempdir, 'broken_flink'), verbose=verbose
+            )
         can_symlink_files = os.path.islink(flink)
         # os.path.islink(flink)
     except OSError:
@@ -119,30 +123,42 @@ def _win32_can_symlink(verbose=0, force=False, testing=False):
     if int(can_symlink_directories) + int(can_symlink_files) == 1:
         raise AssertionError(
             'can do one but not both. Unexpected {} {}'.format(
-                can_symlink_directories, can_symlink_files))
+                can_symlink_directories, can_symlink_files
+            )
+        )
 
     try:
         # test that we can create junctions, even if symlinks are disabled
         if verbose:
-            print('Testing that we can create junctions, '
-                  'even if symlinks are disabled')
+            print(
+                'Testing that we can create junctions, '
+                'even if symlinks are disabled'
+            )
             # from ubelt import util_links
             # util_links._dirstats(tempdir)
             # print('^^ before ^^')
 
         djunc = _win32_junction(dpath, join(tempdir, 'djunc'), verbose=verbose)
-        fjunc = _win32_junction(fpath, join(tempdir, 'fjunc.txt'), verbose=verbose)
+        fjunc = _win32_junction(
+            fpath, join(tempdir, 'fjunc.txt'), verbose=verbose
+        )
         if testing:
-            _win32_junction(broken_dpath, join(tempdir, 'broken_djunc'), verbose=verbose)
-            _win32_junction(broken_fpath, join(tempdir, 'broken_fjunc.txt'), verbose=verbose)
+            _win32_junction(
+                broken_dpath, join(tempdir, 'broken_djunc'), verbose=verbose
+            )
+            _win32_junction(
+                broken_fpath, join(tempdir, 'broken_fjunc.txt'), verbose=verbose
+            )
         if not _win32_is_junction(djunc):
             print(f'Error: djunc={djunc} claims to not be a junction')
             from ubelt import util_links
+
             util_links._dirstats(tempdir)
             raise AssertionError(f'expected djunc={djunc} to be a junction')
         if not _win32_is_hardlinked(fpath, fjunc):
             print(f'Error: fjunc={fjunc} claims to not be a hardlink')
             from ubelt import util_links
+
             util_links._dirstats(tempdir)
             raise AssertionError(f'expected fjunc={fjunc} to be a hardlink')
     except Exception:
@@ -199,14 +215,20 @@ def _symlink(path, link, overwrite=0, verbose=0):
                 pointed = _win32_read_junction(link)
                 if path == pointed:
                     if verbose:
-                        print('...and is a junction that points to the same place')
+                        print(
+                            '...and is a junction that points to the same place'
+                        )
                     return link
                 else:
                     if verbose:
                         if not exists(pointed):
-                            print('...and is a broken junction that points somewhere else')
+                            print(
+                                '...and is a broken junction that points somewhere else'
+                            )
                         else:
-                            print('...and is a junction that points somewhere else')
+                            print(
+                                '...and is a junction that points somewhere else'
+                            )
             else:
                 if verbose:
                     print('...and is an existing real directory!')
@@ -221,7 +243,9 @@ def _symlink(path, link, overwrite=0, verbose=0):
                 if verbose:
                     print('...and is a hard link that points somewhere else')
                 if _win32_can_symlink():
-                    raise IOError('Cannot overwrite potentially real file if we can symlink')
+                    raise IOError(
+                        'Cannot overwrite potentially real file if we can symlink'
+                    )
         if overwrite:
             if verbose:
                 print('...overwriting')
@@ -418,7 +442,9 @@ def _is_reparse_point(path):
     .. [SO54678399] https://stackoverflow.com/a/54678399/887074
     """
     if jwfs is None:
-        raise ImportError('jaraco.windows.filesystem is required to run _is_reparse_point')
+        raise ImportError(
+            'jaraco.windows.filesystem is required to run _is_reparse_point'
+        )
     # if jwfs is not None:
     return jwfs.is_reparse_point(os.fspath(path))
     # else:
@@ -568,7 +594,9 @@ def _win32_is_hardlinked(fpath1, fpath2):
         >>> assert not _win32_is_hardlinked(fjunc1, fpath2)
     """
     if jwfs is None:
-        raise ImportError('jaraco.windows.filesystem is required to run _win32_is_hardlinked')
+        raise ImportError(
+            'jaraco.windows.filesystem is required to run _win32_is_hardlinked'
+        )
 
     # NOTE: jwf.samefile(fpath1, fpath2) seems to behave differently
     def get_read_handle(fpath):

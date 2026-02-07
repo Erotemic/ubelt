@@ -32,20 +32,50 @@ def benchmark_multi_or_combined_import():
     Combining all imports into a single line is slightly faster
     """
     import ubelt as ub
+
     attr_names = [
-        'altsep', 'basename', 'commonpath', 'commonprefix', 'curdir',
-        'defpath', 'devnull', 'dirname', 'exists', 'expanduser', 'expandvars',
-        'extsep', 'genericpath', 'getatime', 'getctime', 'getmtime', 'getsize',
-        'isabs', 'isdir', 'isfile', 'islink', 'ismount', 'join', 'lexists',
-        'normcase', 'normpath', 'os', 'pardir', 'pathsep', 'realpath',
-        'relpath', 'samefile',
+        'altsep',
+        'basename',
+        'commonpath',
+        'commonprefix',
+        'curdir',
+        'defpath',
+        'devnull',
+        'dirname',
+        'exists',
+        'expanduser',
+        'expandvars',
+        'extsep',
+        'genericpath',
+        'getatime',
+        'getctime',
+        'getmtime',
+        'getsize',
+        'isabs',
+        'isdir',
+        'isfile',
+        'islink',
+        'ismount',
+        'join',
+        'lexists',
+        'normcase',
+        'normpath',
+        'os',
+        'pardir',
+        'pathsep',
+        'realpath',
+        'relpath',
+        'samefile',
     ]
 
     combined_lines = 'from os.path import ' + ', '.join(attr_names)
 
-    multi_lines = '; '.join(['from os.path import ' + name for name in attr_names])
+    multi_lines = '; '.join(
+        ['from os.path import ' + name for name in attr_names]
+    )
 
     import timerit
+
     ti = timerit.Timerit(10, bestof=3, verbose=2)
     for timer in ti.reset('combined_lines'):
         with timer:

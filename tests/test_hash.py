@@ -426,7 +426,9 @@ def test_hash_file():
     assert hashid2_a != hashid2_b, 'blocksize matters when stride is > 1'
     assert hashid1_a != hashid2_a
 
-    hashid3_c = ub.hash_file(fpath, hasher='sha512', stride=2, blocksize=10, maxbytes=1000)
+    hashid3_c = ub.hash_file(
+        fpath, hasher='sha512', stride=2, blocksize=10, maxbytes=1000
+    )
     assert hashid3_c == hashid2_b
 
 
@@ -445,7 +447,8 @@ def test_convert_base_hex():
     for i in it.chain(range(-10, 10), range(-1000, 1000, 7)):
         text = hex(i).replace('0x', '')
         assert _convert_hexstr_base(text, _ALPHABET_16) == text, (
-            'should not change hex')
+            'should not change hex'
+        )
 
 
 def test_convert_base_decimal():
@@ -549,11 +552,15 @@ def test_compatible_hash_bases():
         .. [SementeBaseConv] https://github.com/semente/python-baseconv
     """
     import pytest
+
     pytest.skip('FIXME. THE HASH PADDING ISSUE IS NOT RESOLVED YET.')
     if not ub.LINUX:
         pytest.skip('only runs on linux')
     required_programs = [
-        'sha256sum', 'cut', 'xxd', 'base32',
+        'sha256sum',
+        'cut',
+        'xxd',
+        'base32',
     ]
     HAS_PROGS = all(ub.find_exe(p) for p in required_programs)
     if not HAS_PROGS:
@@ -693,8 +700,9 @@ def test_compatible_hash_bases():
 
             if 0:
                 import sympy
+
                 N, M, B = sympy.symbols('N, M, B')
-                eqn = sympy.Eq((B ** N), ((2 ** 8) ** M))
+                eqn = sympy.Eq((B**N), ((2**8) ** M))
                 solutions = sympy.solve(eqn, N)
                 print('solutions = {}'.format(ub.urepr(solutions, nl=1)))
                 b = 64
@@ -713,9 +721,10 @@ def test_compatible_hash_bases():
             # There is no integer solution for base 26
             base_size = 26
             import math
+
             for i in range(0, 100):
                 num_input_bytes = i
-                num_output_symbols = math.log(256 ** num_input_bytes, base_size)
+                num_output_symbols = math.log(256**num_input_bytes, base_size)
                 print(f'{num_input_bytes} > {num_output_symbols}')
 
             # check

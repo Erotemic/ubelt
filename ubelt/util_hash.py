@@ -261,16 +261,20 @@ class _Hashers:
 
     def _register_xxhash(self):  # nocover
         import xxhash
+
         self.algos['xxh32'] = xxhash.xxh32
         self.algos['xxh64'] = xxhash.xxh64
-        self.aliases.update({
-            'xxhash': 'xxh32',
-            'xx32': 'xxh32',
-            'xx64': 'xxh64',
-        })
+        self.aliases.update(
+            {
+                'xxhash': 'xxh32',
+                'xx32': 'xxh32',
+                'xx64': 'xxh64',
+            }
+        )
 
     def _register_blake3(self):  # nocover
         import blake3
+
         self.algos['blake3'] = blake3.blake3
         self.aliases['b3'] = 'blake3'
 
@@ -404,7 +408,9 @@ def _rectify_base(base):
         if not isinstance(base, (list, tuple)):
             raise TypeError(
                 'Argument `base` must be a key, list, or tuple; not {}'.format(
-                    type(base)))
+                    type(base)
+                )
+            )
         return base
 
 
@@ -438,7 +444,9 @@ class HashableExtensions:
             func()
         self._lazy_queue.clear()
 
-    def register(self, hash_types: Union[type, tuple[type, ...], list[type]]) -> Callable[..., Any]:
+    def register(
+        self, hash_types: Union[type, tuple[type, ...], list[type]]
+    ) -> Callable[..., Any]:
         """
         Registers a function to generate a hash for data of the appropriate
         types. This can be used to register custom classes. Internally this is
@@ -1127,8 +1135,9 @@ def _update_hasher(hasher, data, types=True, extensions=None):
     if isinstance(data, (tuple, list, zip)):
         needs_iteration = True
     else:
-        needs_iteration = any(check(data) for check in
-                              extensions.iterable_checks)
+        needs_iteration = any(
+            check(data) for check in extensions.iterable_checks
+        )
 
     if needs_iteration:
         # Denote that we are hashing over an iterable
@@ -1144,8 +1153,9 @@ def _update_hasher(hasher, data, types=True, extensions=None):
         # (this works if all data in the sequence is a non-iterable)
         try:
             for item in iter_:
-                prefix, hashable = _convert_to_hashable(item, types,
-                                                        extensions=extensions)
+                prefix, hashable = _convert_to_hashable(
+                    item, types, extensions=extensions
+                )
                 binary_data = prefix + hashable + _SEP
                 hasher.update(binary_data)
             hasher.update(_ITER_SUFFIX)
@@ -1165,8 +1175,9 @@ def _update_hasher(hasher, data, types=True, extensions=None):
                 hasher.update(_SEP)
             hasher.update(_ITER_SUFFIX)
     else:
-        prefix, hashable = _convert_to_hashable(data, types,
-                                                extensions=extensions)
+        prefix, hashable = _convert_to_hashable(
+            data, types, extensions=extensions
+        )
         binary_data = prefix + hashable
         hasher.update(binary_data)
 

@@ -142,8 +142,13 @@ class DownloadManager:
                 a Future object that will point to the downloaded location.
         """
         job = self._pool.submit(
-            self._dl_func, url, fname=dst, dpath=self.download_root,
-            hash_prefix=hash_prefix, hasher=hasher, verbose=0,
+            self._dl_func,
+            url,
+            fname=dst,
+            dpath=self.download_root,
+            hash_prefix=hash_prefix,
+            hasher=hasher,
+            verbose=0,
         )
         return job
 

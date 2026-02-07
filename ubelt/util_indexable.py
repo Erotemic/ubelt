@@ -577,25 +577,28 @@ class IndexableWalker(Generator):
         if isinstance(other, IndexableWalker):
             walker2 = other
         else:
-            walker2 = IndexableWalker(other, dict_cls=self.dict_cls,
-                                      list_cls=self.list_cls)
+            walker2 = IndexableWalker(
+                other, dict_cls=self.dict_cls, list_cls=self.list_cls
+            )
 
         _isclose_fn, _iskw = _make_isclose_fn(rel_tol, abs_tol, equal_nan)
 
         flat_items1 = [
-            (path, value) for path, value in walker1
-            if not isinstance(value, walker1.indexable_cls) or len(value) == 0]
+            (path, value)
+            for path, value in walker1
+            if not isinstance(value, walker1.indexable_cls) or len(value) == 0
+        ]
         flat_items2 = [
-            (path, value) for path, value in walker2
-            if not isinstance(value, walker1.indexable_cls) or len(value) == 0]
+            (path, value)
+            for path, value in walker2
+            if not isinstance(value, walker1.indexable_cls) or len(value) == 0
+        ]
 
         flat_items1 = sorted(flat_items1)
         flat_items2 = sorted(flat_items2)
 
         if len(flat_items1) != len(flat_items2):
-            info = {
-                'faillist': ['length mismatch']
-            }
+            info = {'faillist': ['length mismatch']}
             final_flag = False
         else:
             passlist = []
@@ -609,8 +612,9 @@ class IndexableWalker(Generator):
                 # TODO: Could add a numpy optimization here.
 
                 flag = (v1 == v2) or (
-                    isinstance(v1, float) and isinstance(v2, float) and
-                    _isclose_fn(v1, v2, **_iskw)
+                    isinstance(v1, float)
+                    and isinstance(v2, float)
+                    and _isclose_fn(v1, v2, **_iskw)
                 )
                 if flag:
                     passlist.append(p1)
@@ -624,10 +628,12 @@ class IndexableWalker(Generator):
             }
 
         if return_info:
-            info.update({
-                'walker1': walker1,
-                'walker2': walker2,
-            })
+            info.update(
+                {
+                    'walker1': walker1,
+                    'walker2': walker2,
+                }
+            )
             return final_flag, info
         else:
             return final_flag
@@ -710,15 +716,20 @@ class IndexableWalker(Generator):
         if isinstance(other, IndexableWalker):
             walker2 = other
         else:
-            walker2 = IndexableWalker(other, dict_cls=self.dict_cls,
-                                      list_cls=self.list_cls)
+            walker2 = IndexableWalker(
+                other, dict_cls=self.dict_cls, list_cls=self.list_cls
+            )
         # TODO: numpy optimizations
         flat_items1 = {
-            tuple(path): value for path, value in walker1
-            if not isinstance(value, walker1.indexable_cls) or len(value) == 0}
+            tuple(path): value
+            for path, value in walker1
+            if not isinstance(value, walker1.indexable_cls) or len(value) == 0
+        }
         flat_items2 = {
-            tuple(path): value for path, value in walker2
-            if not isinstance(value, walker1.indexable_cls) or len(value) == 0}
+            tuple(path): value
+            for path, value in walker2
+            if not isinstance(value, walker1.indexable_cls) or len(value) == 0
+        }
 
         common = flat_items1.keys() & flat_items2.keys()
         unique1 = flat_items1.keys() - flat_items2.keys()

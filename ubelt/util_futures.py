@@ -470,8 +470,9 @@ class Executor:
         timeout = kwargs.pop('timeout', None)
         if len(kwargs) != 0:  # nocover
             raise ValueError('Unknown arguments {}'.format(kwargs))
-        return self.backend.map(fn, *iterables, timeout=timeout,
-                                chunksize=chunksize)
+        return self.backend.map(
+            fn, *iterables, timeout=timeout, chunksize=chunksize
+        )
 
 
 class JobPool:
@@ -533,7 +534,9 @@ class JobPool:
     def __len__(self) -> int:
         return len(self.jobs)
 
-    def submit(self, func: Callable[..., Any], *args, **kwargs) -> concurrent.futures.Future:
+    def submit(
+        self, func: Callable[..., Any], *args, **kwargs
+    ) -> concurrent.futures.Future:
         """
         Submit a job managed by the pool
 
@@ -631,12 +634,14 @@ class JobPool:
             >>> pool.shutdown()
         """
         from ubelt.progiter import ProgIter
+
         job_iter = as_completed(self.jobs, timeout=timeout)
         if desc is not None:
             if progkw is None:
                 progkw = {}
             job_iter = ProgIter(
-                job_iter, desc=desc, total=len(self.jobs), **progkw)
+                job_iter, desc=desc, total=len(self.jobs), **progkw
+            )
             # adding types to ProgIter should make this not a problem
             self._prog = job_iter
         for job in job_iter:

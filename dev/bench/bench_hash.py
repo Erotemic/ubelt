@@ -5,7 +5,8 @@ def benchmark_hash_data():
         python ~/code/ubelt/dev/bench_hash.py --convert=False --show
     """
     import ubelt as ub
-    #ITEM = 'JUST A STRING' * 100
+
+    # ITEM = 'JUST A STRING' * 100
     ITEM = [0, 1, 'a', 'b', ['JUST A STRING'] * 4]
     HASHERS = ['sha1', 'sha512', 'xxh32', 'xxh64', 'blake3']
     scales = list(range(5, 13))
@@ -73,17 +74,16 @@ def benchmark_hash_extensions():
     import numpy as np
 
     import ubelt as ub
-    datas = [
-        ub.Path('/'),
-        uuid.uuid4(),
-        np.array([1, 2, 3])
-    ]
+
+    datas = [ub.Path('/'), uuid.uuid4(), np.array([1, 2, 3])]
     import timerit
+
     ti = timerit.Timerit(10000, bestof=10, verbose=2)
     for timer in ti.reset('time'):
         with timer:
             for data in datas:
                 ub.hash_data(data)
+
 
 if __name__ == '__main__':
     """

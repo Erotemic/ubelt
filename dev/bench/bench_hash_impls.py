@@ -87,8 +87,9 @@ def _update_hasher_recursive(hasher, data, types=True, extensions=None):
     if isinstance(data, (tuple, list, zip)):
         needs_iteration = True
     else:
-        needs_iteration = any(check(data) for check in
-                              extensions.iterable_checks)
+        needs_iteration = any(
+            check(data) for check in extensions.iterable_checks
+        )
 
     if needs_iteration:
         # Denote that we are hashing over an iterable
@@ -104,8 +105,9 @@ def _update_hasher_recursive(hasher, data, types=True, extensions=None):
         # (this works if all data in the sequence is a non-iterable)
         try:
             for item in iter_:
-                prefix, hashable = _convert_to_hashable(item, types,
-                                                        extensions=extensions)
+                prefix, hashable = _convert_to_hashable(
+                    item, types, extensions=extensions
+                )
                 binary_data = prefix + hashable + _SEP
                 hasher.update(binary_data)
             hasher.update(_ITER_SUFFIX)
@@ -121,12 +123,15 @@ def _update_hasher_recursive(hasher, data, types=True, extensions=None):
             # configured, and ideally new versions will have speed improvements.
             for item in iter_:
                 # Ensure the items have a spacer between them
-                _update_hasher_recursive(hasher, item, types, extensions=extensions)
+                _update_hasher_recursive(
+                    hasher, item, types, extensions=extensions
+                )
                 hasher.update(_SEP)
             hasher.update(_ITER_SUFFIX)
     else:
-        prefix, hashable = _convert_to_hashable(data, types,
-                                                extensions=extensions)
+        prefix, hashable = _convert_to_hashable(
+            data, types, extensions=extensions
+        )
         binary_data = prefix + hashable
         hasher.update(binary_data)
 
@@ -169,8 +174,9 @@ def _update_hasher_iterative(hasher, data, types=True, extensions=None):
         if isinstance(data, (tuple, list, zip)):
             needs_iteration = True
         else:
-            needs_iteration = any(check(data) for check in
-                                  extensions.iterable_checks)
+            needs_iteration = any(
+                check(data) for check in extensions.iterable_checks
+            )
 
         if needs_iteration:
             # Denote that we are hashing over an iterable
@@ -183,8 +189,9 @@ def _update_hasher_iterative(hasher, data, types=True, extensions=None):
             # (this works if all data in the sequence is a non-iterable)
             try:
                 for item in iter_:
-                    prefix, hashable = _convert_to_hashable(item, types,
-                                                            extensions=extensions)
+                    prefix, hashable = _convert_to_hashable(
+                        item, types, extensions=extensions
+                    )
                     binary_data = prefix + hashable + _SEP
                     hasher.update(binary_data)
                 hasher.update(_ITER_SUFFIX)

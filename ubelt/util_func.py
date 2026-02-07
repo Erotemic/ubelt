@@ -108,7 +108,9 @@ def inject_method(
     if name is None:
         name = getattr(func, '__name__', None)
         if name is None:
-            raise ValueError('func must have a __name__ attribute if name is not specified')
+            raise ValueError(
+                'func must have a __name__ attribute if name is not specified'
+            )
     if typing.TYPE_CHECKING:
         assert isinstance(name, str)
     setattr(self, name, new_method)
@@ -248,8 +250,9 @@ def compatible(
         # kwargs could be anything, so keep everything
         common = config
     else:
-        common = {k: config[k] for k in argnames[start:]
-                  if k in config}  # dict-intersection
+        common = {
+            k: config[k] for k in argnames[start:] if k in config
+        }  # dict-intersection
     return common
 
 

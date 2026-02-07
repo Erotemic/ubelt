@@ -455,11 +455,13 @@ class ReprExtensions:
             >>> print(ub.urepr(data, precision=2))
             >>> print(ub.urepr({'akeyfdfj': data}, precision=2))
         """
+
         @self.register('DataFrame')
         def format_pandas(data: Any, **kwargs: Any) -> str:  # nocover
             precision = kwargs.get('precision', None)
-            float_format = (None if precision is None
-                            else '%.{}f'.format(precision))
+            float_format = (
+                None if precision is None else '%.{}f'.format(precision)
+            )
             formatted = data.to_string(float_format=float_format)
             return formatted
 
@@ -524,15 +526,19 @@ class ReprExtensions:
 
         # TODO: should we register numpy using the new string method?
         import numpy as np
+
         @self.register(np.ndarray)
         def format_ndarray(data: Any, **kwargs: Any) -> str:
             import re
+
             strvals = kwargs.get('sv', kwargs.get('strvals', False))
             itemsep = kwargs.get('itemsep', ' ')
             precision = kwargs.get('precision', None)
             suppress_small = kwargs.get('supress_small', None)
             max_line_width = kwargs.get('max_line_width', None)
-            with_dtype = kwargs.get('with_dtype', kwargs.get('dtype', not strvals))
+            with_dtype = kwargs.get(
+                'with_dtype', kwargs.get('dtype', not strvals)
+            )
             newlines = kwargs.pop('nl', kwargs.pop('newlines', 1))
 
             # if with_dtype and strvals:
@@ -559,7 +565,9 @@ class ReprExtensions:
                 if with_dtype:
                     dtype_repr = data.dtype.name
                     # dtype_repr = np.core.arrayprint.dtype_short_repr(data.dtype)
-                    suffix = ',{}dtype={}.{})'.format(itemsep, np_nice, dtype_repr)
+                    suffix = ',{}dtype={}.{})'.format(
+                        itemsep, np_nice, dtype_repr
+                    )
                 else:
                     suffix = ')'
 
@@ -795,7 +803,9 @@ def _format_dict(dict_: dict[Any, Any], **kwargs: Any) -> tuple[str, dict[str, i
     # kwargs['cbr'] = _rectify_countdown_or_bool(compact_brace)
 
     # Doesn't actually put in trailing comma if on same line
-    trailing_sep = kwargs.get('trailsep', kwargs.get('trailing_sep', newlines > 0))
+    trailing_sep = kwargs.get(
+        'trailsep', kwargs.get('trailing_sep', newlines > 0)
+    )
     explicit = kwargs.get('explicit', False)
     itemsep = kwargs.get('itemsep', ' ')
 
@@ -992,7 +1002,9 @@ def _dict_itemstrs(dict_: dict[Any, Any], **kwargs: Any) -> tuple[list[str], dic
     return itemstrs, _leaf_info
 
 
-def _list_itemstrs(list_: Any, **kwargs: Any) -> tuple[list[str], dict[str, int]]:
+def _list_itemstrs(
+    list_: Any, **kwargs: Any
+) -> tuple[list[str], dict[str, int]]:
     """
     Create a string representation for each item in a list.
 
@@ -1085,7 +1097,9 @@ def _rectify_countdown_or_bool(count_or_bool: Any) -> bool | int:
     return count_or_bool_
 
 
-def _align_text(text: str, character: str = '=', replchar: str | None = None, pos: int = 0) -> str:
+def _align_text(
+    text: str, character: str = '=', replchar: str | None = None, pos: int = 0
+) -> str:
     r"""
     Left justifies text on the left side of character
 
@@ -1192,8 +1206,9 @@ def _align_lines(line_list: list[str], character: str = '=', replchar: str | Non
         # recursive calls
         new_lines = line_list
         for pos in pos_list:
-            new_lines = _align_lines(new_lines, character=character,
-                                     replchar=replchar, pos=pos)
+            new_lines = _align_lines(
+                new_lines, character=character, replchar=replchar, pos=pos
+            )
         return new_lines
 
     # base case

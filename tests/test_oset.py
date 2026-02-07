@@ -18,8 +18,11 @@ def test_operators():
         name = kw.get('name', 'set test')
         datas = kw.get('datas', [])
         if not ub.allsame(results):
-            raise AssertionError('Not all same {} for {} with datas={}'.format(
-                results, name, datas))
+            raise AssertionError(
+                'Not all same {} for {} with datas={}'.format(
+                    results, name, datas
+                )
+            )
         for a, b in it.combinations(results, 2):
             if not isinstance(a, (bool, int)):
                 assert a is not b, name + ' should all be different items'

@@ -62,7 +62,9 @@ def count_package_usage(modname):
     package_name = module.__name__
     package_allvar = module.__all__
 
-    pat = re.compile(r'\b' + package_name + r'\.(?P<attr>[a-zA-Z_][A-Za-z_0-9]*)\b')
+    pat = re.compile(
+        r'\b' + package_name + r'\.(?P<attr>[a-zA-Z_][A-Za-z_0-9]*)\b'
+    )
     pats = [
         re.compile(r'\bub\.(?P<attr>[A-Za-z_][A-Za-z0-9_]*)\b'),
         re.compile(r'\bubelt\.(?P<attr>[A-Za-z_][A-Za-z0-9_]*)\b'),
@@ -87,7 +89,9 @@ def count_package_usage(modname):
         usage[attr] += 0
 
     for name in pkg_to_hist.keys():
-        pkg_to_hist[name] = ub.odict(sorted(pkg_to_hist[name].items(), key=lambda t: t[1])[::-1])
+        pkg_to_hist[name] = ub.odict(
+            sorted(pkg_to_hist[name].items(), key=lambda t: t[1])[::-1]
+        )
 
     usage = ub.odict(sorted(usage.items(), key=lambda t: t[1])[::-1])
 
@@ -101,7 +105,9 @@ def count_package_usage(modname):
 
     if config['hardcoded_ubelt_hack']:
         blocklist = [
-            'progiter', 'timerit', 'orderedset',
+            'progiter',
+            'timerit',
+            'orderedset',
         ]
         for k in list(usage):
             if k in blocklist:
@@ -157,31 +163,38 @@ def gen_api_for_docs(modname):
         if attrname.startswith('util_'):
             if not submembers:
                 from mkinit.static_mkinit import _extract_attributes
+
                 submembers = _extract_attributes(member.__file__)
         if submembers:
             for subname in submembers:
                 parent_module = f'{modname}.{attrname}'
                 short_name = '{modname}.{subname}'.format(**locals())
                 full_name = '{parent_module}.{subname}'.format(**locals())
-                url = 'https://{modname}.readthedocs.io/en/latest/{parent_module}.html#{full_name}'.format(**locals())
+                url = 'https://{modname}.readthedocs.io/en/latest/{parent_module}.html#{full_name}'.format(
+                    **locals()
+                )
                 rst_ref = ':func:`{short_name}<{full_name}>`'.format(**locals())
                 url_ref = '`{short_name} <{url}>`__'.format(**locals())
-                rows.append({
-                    'attr': subname,
-                    'parent_module': parent_module,
-                    'usage': unseen.pop(subname, 0),
-                    'short_name': short_name,
-                    'full_name': full_name,
-                    'url': url,
-                    'rst_ref': rst_ref,
-                    'url_ref': url_ref,
-                })
+                rows.append(
+                    {
+                        'attr': subname,
+                        'parent_module': parent_module,
+                        'usage': unseen.pop(subname, 0),
+                        'short_name': short_name,
+                        'full_name': full_name,
+                        'url': url,
+                        'rst_ref': rst_ref,
+                        'url_ref': url_ref,
+                    }
+                )
 
     attr_to_infos = ub.group_items(rows, lambda x: x['attr'])
 
     if 'urepr' in attr_to_infos:
         urepr2_infos = attr_to_infos['urepr']
-        cannon_urepr2_infos = [d for d in urepr2_infos if 'repr' in d['parent_module']]
+        cannon_urepr2_infos = [
+            d for d in urepr2_infos if 'repr' in d['parent_module']
+        ]
         cannon_urepr2_info = cannon_urepr2_infos[0]
         attr_to_infos['urepr'] = [cannon_urepr2_info]
 
@@ -216,8 +229,14 @@ def gen_api_for_docs(modname):
     raw_scores = np.array(list(usage.values()))
 
     print('\n.. code:: python\n')
-    print(ub.indent('usage stats = ' + ub.repr2(kwarray.stats_dict(
-        raw_scores, median=True, sum=True), nl=1)))
+    print(
+        ub.indent(
+            'usage stats = '
+            + ub.repr2(
+                kwarray.stats_dict(raw_scores, median=True, sum=True), nl=1
+            )
+        )
+    )
 
     for attrname in attrnames:
         member = getattr(module, attrname)

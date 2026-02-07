@@ -43,8 +43,9 @@ def hash_file2(fpath, blocksize=65536, hasher='xx64'):
             hasher.update(buf)
             buf = file.read(blocksize)
     # Get the hashed representation
-    text = ub.util_hash._digest_hasher(hasher,
-                                       base=ub.util_hash.DEFAULT_ALPHABET)
+    text = ub.util_hash._digest_hasher(
+        hasher, base=ub.util_hash.DEFAULT_ALPHABET
+    )
     return text
 
 
@@ -235,10 +236,14 @@ def bench_find_optimal_blocksize():
     # Find an optimal constant blocksize
     min_power = 16
     max_power = 24
-    blocksize_candiates = [int(2 ** e) for e in range(min_power, max_power)]
+    blocksize_candiates = [int(2**e) for e in range(min_power, max_power)]
 
     for blocksize in blocksize_candiates:
-        for timer in ti.reset('constant blocksize=2 ** {} = {}'.format(np.log2(float(blocksize)), blocksize)):
+        for timer in ti.reset(
+            'constant blocksize=2 ** {} = {}'.format(
+                np.log2(float(blocksize)), blocksize
+            )
+        ):
             result = ub.hash_file(fpath, blocksize=blocksize, hasher=hash_algo)
             results.append(result)
 

@@ -45,7 +45,11 @@ def bench_dict_isect():
         with timer:
             dict_isect_variant3(d1, d2)
 
-    print('ti.rankings = {}'.format(ub.repr2(ti.rankings['min'], precision=8, align=':', nl=1, sort=0)))
+    print(
+        'ti.rankings = {}'.format(
+            ub.repr2(ti.rankings['min'], precision=8, align=':', nl=1, sort=0)
+        )
+    )
 
 
 def dict_isect_variant0(d1, d2):
@@ -59,8 +63,9 @@ def dict_isect_variant1(*args):
         dictclass = args[0].__class__
         common_keys = set.intersection(*map(set, args))
         first_dict = args[0]
-        return dictclass((k, first_dict[k]) for k in first_dict
-                         if k in common_keys)
+        return dictclass(
+            (k, first_dict[k]) for k in first_dict if k in common_keys
+        )
 
 
 def dict_isect_variant2(*args):

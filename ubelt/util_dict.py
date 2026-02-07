@@ -124,7 +124,9 @@ else:  # nocover
     DictBase = dict
 
 
-def dzip(items1: Iterable[KT], items2: Iterable[VT], cls: Type[dict] = dict) -> Dict[KT, VT]:
+def dzip(
+    items1: Iterable[KT], items2: Iterable[VT], cls: Type[dict] = dict
+) -> Dict[KT, VT]:
     """
     Zips elementwise pairs between items1 and items2 into a dictionary.
 
@@ -162,12 +164,16 @@ def dzip(items1: Iterable[KT], items2: Iterable[VT], cls: Type[dict] = dict) -> 
     if len(items2_list) == 1 and len(items1_list) > 1:
         items2_list = items2_list * len(items1_list)
     if len(items1_list) != len(items2_list):
-        raise ValueError('out of alignment len(items1)=%r, len(items2)=%r' % (
-            len(items1_list), len(items2_list)))
+        raise ValueError(
+            'out of alignment len(items1)=%r, len(items2)=%r'
+            % (len(items1_list), len(items2_list))
+        )
     return cls(zip(items1_list, items2_list))
 
 
-def group_items(items: Iterable[VT], key: Union[Iterable[KT], Callable[[VT], KT]]) -> dict[KT, List[VT]]:
+def group_items(
+    items: Iterable[VT], key: Union[Iterable[KT], Callable[[VT], KT]]
+) -> dict[KT, List[VT]]:
     """
     Groups a list of items by group id.
 
@@ -309,17 +315,18 @@ def dict_hist(items: Iterable[T], weights: Optional[Iterable[float]] = None, ord
     if ordered:
         # Order by value
         getval = op.itemgetter(1)
-        hist = OrderedDict([
-            (key, value)
-            for (key, value) in sorted(hist_.items(), key=getval)
-        ])
+        hist = OrderedDict(
+            [(key, value) for (key, value) in sorted(hist_.items(), key=getval)]
+        )
     else:
         # Cast to a normal dictionary
         hist = dict(hist_)
     return hist
 
 
-def find_duplicates(items: Iterable[T], k: int = 2, key: Optional[Callable[[T], Any]] = None) -> dict[T, List[int]]:
+def find_duplicates(
+    items: Iterable[T], k: int = 2, key: Optional[Callable[[T], Any]] = None
+) -> dict[T, List[int]]:
     """
     Find all duplicate items in a list.
 
@@ -748,15 +755,19 @@ def sorted_keys(dict_: Dict[KT, VT], key: Optional[Callable[[KT], Any]] = None, 
         {'jam': 2.92, 'eggs': 1.2, 'spam': 2.62}
     """
     if key is None:
-        newdict = OrderedDict(sorted(dict_.items(), key=lambda kv: kv[0],
-                                     reverse=reverse))
+        newdict = OrderedDict(
+            sorted(dict_.items(), key=lambda kv: kv[0], reverse=reverse)
+        )
     else:
-        newdict = OrderedDict(sorted(dict_.items(), key=lambda kv: key(kv[0]),
-                                     reverse=reverse))
+        newdict = OrderedDict(
+            sorted(dict_.items(), key=lambda kv: key(kv[0]), reverse=reverse)
+        )
     return newdict
 
 
-def invert_dict(dict_: Dict[KT, VT], unique_vals: bool = True, cls: Optional[type] = None) -> Union[Dict[VT, KT], Dict[VT, Set[KT]]]:
+def invert_dict(
+    dict_: Dict[KT, VT], unique_vals: bool = True, cls: Optional[type] = None
+) -> Union[Dict[VT, KT], Dict[VT, Set[KT]]]:
     """
     Swaps the keys and values in a dictionary.
 
@@ -820,7 +831,9 @@ def invert_dict(dict_: Dict[KT, VT], unique_vals: bool = True, cls: Optional[typ
     return inverted
 
 
-def named_product(_: Optional[Dict[str, List[VT]]] = None, **basis: List[VT]) -> Generator[Dict[str, VT], None, None]:
+def named_product(
+    _: Optional[Dict[str, List[VT]]] = None, **basis: List[VT]
+) -> Generator[Dict[str, VT], None, None]:
     """
     Generates the Cartesian product of the ``basis.values()``, where each
     generated item labeled by ``basis.keys()``.
@@ -1877,7 +1890,9 @@ class UDict(SetDict):
         >>> assert a.map_values(lambda x: x * 10) == {1: 200, 2: 200, 3: 300, 4: 400}
     """
 
-    def subdict(self, keys: Iterable[KT], default: Union[object, NoParamType] = NoParam) -> UDict:
+    def subdict(
+        self, keys: Iterable[KT], default: Union[object, NoParamType] = NoParam
+    ) -> UDict:
         """
         Get a subset of a dictionary
 
@@ -1917,7 +1932,9 @@ class UDict(SetDict):
             new = cls([(k, self.get(k, default)) for k in keys])
         return new
 
-    def take(self, keys: Iterable[KT], default: Union[object, NoParamType] = NoParam) -> Generator[VT, None, None]:
+    def take(
+        self, keys: Iterable[KT], default: Union[object, NoParamType] = NoParam
+    ) -> Generator[VT, None, None]:
         """
         Get values of an iterable of keys.
 
@@ -1959,7 +1976,9 @@ class UDict(SetDict):
             for k in keys:
                 yield self.get(k, default)
 
-    def invert(self, unique_vals: bool = True) -> Union[Dict[VT, KT], Dict[VT, Set[KT]]]:
+    def invert(
+        self, unique_vals: bool = True
+    ) -> Union[Dict[VT, KT], Dict[VT, Set[KT]]]:
         """
         Swaps the keys and values in a dictionary.
 
@@ -1992,7 +2011,9 @@ class UDict(SetDict):
         """
         return invert_dict(self, unique_vals=unique_vals, cls=self.__class__)
 
-    def map_keys(self, func: Union[Callable[[KT], T], Mapping[KT, T]]) -> Dict[T, VT]:
+    def map_keys(
+        self, func: Union[Callable[[KT], T], Mapping[KT, T]]
+    ) -> Dict[T, VT]:
         """
         Apply a function to every value in a dictionary.
 
@@ -2012,7 +2033,9 @@ class UDict(SetDict):
         """
         return map_keys(func, self, cls=self.__class__)
 
-    def map_values(self, func: Union[Callable[[VT], T], Mapping[VT, T]]) -> Dict[KT, T]:
+    def map_values(
+        self, func: Union[Callable[[VT], T], Mapping[VT, T]]
+    ) -> Dict[KT, T]:
         """
         Apply a function to every value in a dictionary.
 
@@ -2032,7 +2055,9 @@ class UDict(SetDict):
         """
         return map_values(func, self, cls=self.__class__)
 
-    def sorted_keys(self, key: Optional[Callable[[KT], Any]] = None, reverse: bool = False) -> OrderedDict[KT, VT]:
+    def sorted_keys(
+        self, key: Optional[Callable[[KT], Any]] = None, reverse: bool = False
+    ) -> OrderedDict[KT, VT]:
         """
         Return an ordered dictionary sorted by its keys
 
@@ -2058,7 +2083,9 @@ class UDict(SetDict):
         """
         return sorted_keys(self, key=key, reverse=reverse, cls=self.__class__)
 
-    def sorted_values(self, key: Optional[Callable[[VT], Any]] = None, reverse: bool = False) -> OrderedDict[KT, VT]:
+    def sorted_values(
+        self, key: Optional[Callable[[VT], Any]] = None, reverse: bool = False
+    ) -> OrderedDict[KT, VT]:
         """
         Return an ordered dictionary sorted by its values
 
@@ -2189,7 +2216,8 @@ class AutoDict(UDict):
         """
         return self._base(
             (key, (value.to_dict() if isinstance(value, AutoDict) else value))
-            for key, value in self.items())
+            for key, value in self.items()
+        )
 
 
 # DEPRECATED. This is no longer needed. AutoDict is always ordered

@@ -505,14 +505,16 @@ def cmd(
         # the process has existed, so it is safe to return a reference to the
         # process object.
         ret = proc.poll()
-        info = CmdOutput(**{
-            'out': out,
-            'err': err,
-            'ret': ret,
-            'proc': proc,
-            'cwd': cwd,
-            'command': command_text,
-        })
+        info = CmdOutput(
+            **{
+                'out': out,
+                'err': err,
+                'ret': ret,
+                'proc': proc,
+                'cwd': cwd,
+                'command': command_text,
+            }
+        )
 
     # For subprocess compatibility
     info.args = args
@@ -528,7 +530,8 @@ def cmd(
         if check:
             if info['ret'] != 0:
                 raise subprocess.CalledProcessError(
-                    info['ret'], info['command'], info['out'], info['err'])
+                    info['ret'], info['command'], info['out'], info['err']
+                )
     return info
 
 
@@ -773,7 +776,12 @@ def _enqueue_output_thread_worker(
         return
 
 
-def _proc_iteroutput_thread(proc: subprocess.Popen, timeout: float | None = None) -> Iterator[tuple[str | None, str | None] | tuple[type[subprocess.TimeoutExpired], type[subprocess.TimeoutExpired]]]:
+def _proc_iteroutput_thread(
+    proc: subprocess.Popen, timeout: float | None = None
+) -> Iterator[
+    tuple[str | None, str | None]
+    | tuple[type[subprocess.TimeoutExpired], type[subprocess.TimeoutExpired]]
+]:
     """
     Iterates over output from a process line by line.
 
@@ -798,8 +806,12 @@ def _proc_iteroutput_thread(proc: subprocess.Popen, timeout: float | None = None
 
     # logger.debug("Create stdout/stderr streams")
     # Create threads that read stdout / stderr and queue up the output
-    stdout_thread, stdout_queue, stdout_ctrl = _proc_async_iter_stream(proc, proc.stdout, timeout=timeout)  # type: ignore[invalid-argument-type]
-    stderr_thread, stderr_queue, stderr_ctrl = _proc_async_iter_stream(proc, proc.stderr, timeout=timeout)  # type: ignore[invalid-argument-type]
+    stdout_thread, stdout_queue, stdout_ctrl = _proc_async_iter_stream(
+        proc, proc.stdout, timeout=timeout
+    )  # type: ignore[invalid-argument-type]
+    stderr_thread, stderr_queue, stderr_ctrl = _proc_async_iter_stream(
+        proc, proc.stderr, timeout=timeout
+    )  # type: ignore[invalid-argument-type]
 
     stdout_live = True
     stderr_live = True
@@ -847,7 +859,12 @@ def _proc_iteroutput_thread(proc: subprocess.Popen, timeout: float | None = None
             yield oline, eline
 
 
-def _proc_iteroutput_select(proc: subprocess.Popen, timeout: float | None = None) -> Iterator[tuple[str | None, str | None] | tuple[type[subprocess.TimeoutExpired], type[subprocess.TimeoutExpired]]]:
+def _proc_iteroutput_select(
+    proc: subprocess.Popen, timeout: float | None = None
+) -> Iterator[
+    tuple[str | None, str | None]
+    | tuple[type[subprocess.TimeoutExpired], type[subprocess.TimeoutExpired]]
+]:
     """
     Iterates over output from a process line by line
 
@@ -871,12 +888,13 @@ def _proc_iteroutput_select(proc: subprocess.Popen, timeout: float | None = None
     if timeout is not None:
         import subprocess
         from time import monotonic as _time
+
         start_time = _time()
 
     # Read output while the external program is running
     while proc.poll() is None:
         if timeout is not None:
-            elapsed = _time() - start_time # pyright: ignore[reportPossiblyUnboundVariable]
+            elapsed = _time() - start_time  # pyright: ignore[reportPossiblyUnboundVariable]
             if elapsed >= timeout:
                 yield subprocess.TimeoutExpired, subprocess.TimeoutExpired  # pyright: ignore[reportPossiblyUnboundVariable]
                 return  # nocover

@@ -30,8 +30,7 @@ class FakeStream:
         if self.callback is not None:
             self.callback()
 
-    def flush(self, *args, **kw):
-        ...
+    def flush(self, *args, **kw): ...
 
 
 class FakeTimer:
@@ -113,21 +112,35 @@ def test_progiter():
     # Define a function that takes some time
     def is_prime(n):
         return n >= 2 and not any(n % i == 0 for i in range(2, n))
+
     N = 500
 
     if False:
         file = StringIO()
-        prog = ProgIter(range(N), clearline=False, file=file, freq=N // 10,
-                        adjust=False)
+        prog = ProgIter(
+            range(N), clearline=False, file=file, freq=N // 10, adjust=False
+        )
         file.seek(0)
         print(file.read())
 
         prog = ProgIter(range(N), clearline=False)
         for n in prog:
             was_prime = is_prime(n)
-            prog.set_extra('n=%r, was_prime=%r' % (n, was_prime,))
+            prog.set_extra(
+                'n=%r, was_prime=%r'
+                % (
+                    n,
+                    was_prime,
+                )
+            )
             if (n + 1) % 128 == 0 and was_prime:
-                prog.set_extra('n=%r, was_prime=%r EXTRA' % (n, was_prime,))
+                prog.set_extra(
+                    'n=%r, was_prime=%r EXTRA'
+                    % (
+                        n,
+                        was_prime,
+                    )
+                )
         file.seek(0)
         print(file.read())
 
@@ -139,13 +152,14 @@ def test_progiter():
 
     print('\n-----')
     print('Demo #0: progress can be disabled and incur essentially 0 overhead')
-    print('However, the overhead of enabled progress is minimal and typically '
-          'insignificant')
+    print(
+        'However, the overhead of enabled progress is minimal and typically '
+        'insignificant'
+    )
     print('this is verbosity mode verbose=0')
     sequence = (is_prime(n) for n in range(N0, N))
     if True:
-        psequence = ProgIter(sequence, total=total, desc='demo0',
-                             enabled=False)
+        psequence = ProgIter(sequence, total=total, desc='demo0', enabled=False)
         list(psequence)
 
     print('\n-----')
@@ -165,8 +179,9 @@ def test_progiter():
     print('this is verbosity mode verbose=2')
     if True:
         sequence = (is_prime(n) for n in range(N0, N))
-        psequence = ProgIter(sequence, total=total, clearline=False,
-                             desc='demo2')
+        psequence = ProgIter(
+            sequence, total=total, clearline=False, desc='demo2'
+        )
         list(psequence)
         # import utool as ut
         # print(ut.repr4(psequence.__dict__))
@@ -227,8 +242,9 @@ def test_unknown_total():
     """
     iterable = (_ for _ in range(0, 10))
     file = StringIO()
-    prog = ProgIter(iterable, desc='unknown seq', file=file,
-                    show_times=False, verbose=1)
+    prog = ProgIter(
+        iterable, desc='unknown seq', file=file, show_times=False, verbose=1
+    )
     for n in prog:
         pass
     file.seek(0)
@@ -288,7 +304,9 @@ def test_eta_window_None():
 
 def test_adjust_freq():
     # nothing to check (that I can think of) run test for coverage
-    prog = ProgIter(range(20), enabled=True, eta_window=None, rel_adjust_limit=4.0)
+    prog = ProgIter(
+        range(20), enabled=True, eta_window=None, rel_adjust_limit=4.0
+    )
 
     # Adjust frequency up to have each update happen every 1sec or so
     prog.freq = 1
@@ -439,8 +457,9 @@ def test_mixed_iteration_and_step():
         for homogeneous in [0, 1] if adjust else [0]:
             for size in range(0, 10):
                 for n_inner_steps in range(size):
-                    prog = ProgIter(range(size), adjust=adjust,
-                                    homogeneous=homogeneous)
+                    prog = ProgIter(
+                        range(size), adjust=adjust, homogeneous=homogeneous
+                    )
                     iprog = iter(prog)
                     try:
                         while True:
@@ -512,7 +531,12 @@ def check_issue_32_non_homogeneous_time_threshold_prints():
         import rich
 
         import ubelt as ub
-        print('fake_stream.messages = {}'.format(ub.urepr(fake_stream.messages, nl=1)))
+
+        print(
+            'fake_stream.messages = {}'.format(
+                ub.urepr(fake_stream.messages, nl=1)
+            )
+        )
         print(f'prog._likely_homogeneous={prog._likely_homogeneous}')
         rich.print(pd.Series(static_state))
         df = pd.DataFrame(states)
@@ -647,7 +671,8 @@ def test_clearline_padding():
     prog.step()
     assert prog._prev_msg_len == msg1_len, (
         'We are under the time threshold. '
-        'We should not have updated the display message yet')
+        'We should not have updated the display message yet'
+    )
     prog.display_message()
     msg2_len = prog._prev_msg_len
     assert msg2_len > msg1_len, 'should have a longer message'

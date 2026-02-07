@@ -151,7 +151,9 @@ def test_modname_to_modpath_package():
             assert sub2 == _static_modname_to_modpath('_tmproot927.sub1.sub2')
             assert mod0 == _static_modname_to_modpath('_tmproot927.mod0')
             assert mod1 == _static_modname_to_modpath('_tmproot927.sub1.mod1')
-            assert mod2 == _static_modname_to_modpath('_tmproot927.sub1.sub2.mod2')
+            assert mod2 == _static_modname_to_modpath(
+                '_tmproot927.sub1.sub2.mod2'
+            )
 
             # specifying a suffix will not work
             assert _static_modname_to_modpath('sub1') is None
@@ -370,10 +372,12 @@ def test_modpath_to_modname():
         b1 = ub.touch(join(bad2, 'b1.py'))
 
         import os
-        ub.modpath_to_modname(root, relativeto=os.path.dirname(dpath))  # TODO: assert correct output
+
+        ub.modpath_to_modname(
+            root, relativeto=os.path.dirname(dpath)
+        )  # TODO: assert correct output
 
         with PythonPathContext(dpath):
-
             assert ub.modpath_to_modname(root) == '_tmproot927'
             assert ub.modpath_to_modname(sub1) == '_tmproot927.sub1'
             assert ub.modpath_to_modname(sub2) == '_tmproot927.sub1.sub2'

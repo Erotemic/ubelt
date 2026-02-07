@@ -1,12 +1,16 @@
-
 def test_compatible_keywords():
     import ubelt as ub
+
     def func(a, e, f, *args, **kwargs):
         return a * e * f
 
     config = {
-        'a': 2, 'b': 3, 'c': 7,
-        'd': 11, 'e': 13, 'f': 17,
+        'a': 2,
+        'b': 3,
+        'c': 7,
+        'd': 11,
+        'e': 13,
+        'f': 17,
     }
 
     assert ub.compatible(config, func, keywords=True) is config

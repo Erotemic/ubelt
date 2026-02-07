@@ -14,7 +14,8 @@ def get_this_script_fpath():
         if not fpath.exists():
             raise Exception(
                 'Unable to determine the file path that this script '
-                'should correspond to')
+                'should correspond to'
+            )
     return fpath
 
 

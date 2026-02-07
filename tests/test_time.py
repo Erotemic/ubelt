@@ -155,11 +155,7 @@ def test_timeparse_with_dateutil():
 
 def test_timeparse_bad_stamps():
     # We can never parse these types of stamps
-    bad_stamps = [
-        '',
-        'foobar',
-        '0000-00-00T00:00:00.0000+05'
-    ]
+    bad_stamps = ['', 'foobar', '0000-00-00T00:00:00.0000+05']
     for stamp in bad_stamps:
         with pytest.raises(ValueError):
             ub.timeparse(stamp)

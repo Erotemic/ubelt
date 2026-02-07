@@ -17,7 +17,10 @@ import sys
 from os.path import exists
 
 __all__ = [
-    'readfrom', 'writeto', 'touch', 'delete',
+    'readfrom',
+    'writeto',
+    'touch',
+    'delete',
 ]
 
 

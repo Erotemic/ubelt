@@ -379,8 +379,11 @@ def find_exe(
     """
     candidates = find_path(name, path=path, exact=True)
     mode = os.X_OK | os.F_OK
-    results = (fpath for fpath in candidates
-               if os.access(fpath, mode) and not isdir(fpath))
+    results = (
+        fpath
+        for fpath in candidates
+        if os.access(fpath, mode) and not isdir(fpath)
+    )
     if not multi:
         for fpath in results:
             return fpath
@@ -457,8 +460,10 @@ def find_path(
         candidates = filter(exists, candidates)
     else:
         import glob
+
         candidates = it.chain.from_iterable(
-            glob.glob(pattern) for pattern in candidates)
+            glob.glob(pattern) for pattern in candidates
+        )
 
     for candidate in candidates:
         yield candidate

@@ -316,7 +316,9 @@ class zopen(NiceRepr):
         if self._zfpath is None:
             return 'handle={}, mode={}'.format(str(self._handle), self.mode)
         else:
-            return 'handle={} in zipfpath={}, mode={}'.format(self._handle, self._zfpath, self.mode)
+            return 'handle={} in zipfpath={}, mode={}'.format(
+                self._handle, self._zfpath, self.mode
+            )
 
     def __getattr__(self, key):
         # Expose attributes of wrapped handle

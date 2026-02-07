@@ -1,7 +1,8 @@
 def test_capture_stream_error():
     import ubelt as ub
-    class DummyException(Exception):
-        ...
+
+    class DummyException(Exception): ...
+
     try:
         with ub.CaptureStdout() as cap:
             print('hello there')
@@ -27,6 +28,7 @@ def test_tee_string_io_flush():
     import io
 
     from ubelt.util_stream import TeeStringIO
+
     # Test flush with redirect
     tee = TeeStringIO(redirect=io.StringIO())
     tee.write('test')

@@ -35,14 +35,17 @@ def test_find_exe_idempotence():
     prog_name = _available_prog()
     prog_fpath = ub.find_exe(prog_name)
     assert prog_fpath == ub.find_exe(prog_fpath), (
-        'find_exe with an existing path should work')
+        'find_exe with an existing path should work'
+    )
 
 
 def test_find_exe_no_exist():
     assert ub.find_exe('!noexist', multi=False) is None, (
-        'multi=False not found should return None')
+        'multi=False not found should return None'
+    )
     assert ub.find_exe('!noexist', multi=True) == [], (
-        'multi=True not found should return an empty list')
+        'multi=True not found should return an empty list'
+    )
 
 
 if __name__ == '__main__':

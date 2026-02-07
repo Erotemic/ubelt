@@ -16,11 +16,13 @@ class CustomPlugin(Plugin):
     stubgen -m ubelt.util_dict
 
     """
+
     # def get_type_analyze_hook(self, fullname: str):
     #     print('get_type_analyze_hook: fullname = {!r}'.format(fullname))
 
-    def get_function_signature_hook(self, fullname: str
-                                    ) -> Optional[Callable[[FunctionSigContext], CallableType]]:
+    def get_function_signature_hook(
+        self, fullname: str
+    ) -> Optional[Callable[[FunctionSigContext], CallableType]]:
         """Adjust the signature of a function.
 
         This method is called before type checking a function call. Plugin
@@ -34,7 +36,9 @@ class CustomPlugin(Plugin):
         This method will be called with 'lib.do_stuff' and then with 'lib.Class'.
         """
         if 'ubelt' in fullname or 'util_' in fullname:
-            print('get_function_signature_hook: fullname = {!r}'.format(fullname))
+            print(
+                'get_function_signature_hook: fullname = {!r}'.format(fullname)
+            )
         return None
 
 
