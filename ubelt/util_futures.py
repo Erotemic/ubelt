@@ -74,7 +74,8 @@ if typing.TYPE_CHECKING:
         Type,
         TypeVar,
     )
-    T = TypeVar("T")
+
+    T = TypeVar('T')
 
 
 class SerialFuture(concurrent.futures.Future):
@@ -373,9 +374,13 @@ class Executor:
             backend = futures.ProcessPoolExecutor(max_workers=max_workers)
         elif mode == 'interpreter':  # nocover
             # Requires 3.14+
-            InterpreterPoolExecutor = getattr(futures, "InterpreterPoolExecutor", None)
+            InterpreterPoolExecutor = getattr(
+                futures, 'InterpreterPoolExecutor', None
+            )
             if InterpreterPoolExecutor is None:
-                raise RuntimeError("Executor(mode='interpreter') requires Python 3.14+")
+                raise RuntimeError(
+                    "Executor(mode='interpreter') requires Python 3.14+"
+                )
             backend = InterpreterPoolExecutor(max_workers=max_workers)
         # elif mode == 'asyncio':
         #     # Experimental

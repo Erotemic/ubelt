@@ -84,7 +84,9 @@ if typing.TYPE_CHECKING:
         def update(self, data: BytesLike, /) -> None: ...
         def digest(self) -> bytes: ...
         def hexdigest(self) -> str: ...
-        def copy(self) -> "HasherLike": ...  # or Self if you want (typing.Self on 3.11+)
+        def copy(
+            self,
+        ) -> 'HasherLike': ...  # or Self if you want (typing.Self on 3.11+)
 
     HasherType = Callable[..., HasherLike]
 
@@ -96,22 +98,128 @@ HASH_VERSION: int = 2
 
 _ALPHABET_10: list[str] = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
 
-_ALPHABET_16: list[str] = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
-                           'a', 'b', 'c', 'd', 'e', 'f']
+_ALPHABET_16: list[str] = [
+    '0',
+    '1',
+    '2',
+    '3',
+    '4',
+    '5',
+    '6',
+    '7',
+    '8',
+    '9',
+    'a',
+    'b',
+    'c',
+    'd',
+    'e',
+    'f',
+]
 
-_ALPHABET_26: list[str] = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j',
-                           'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't',
-                           'u', 'v', 'w', 'x', 'y', 'z']
+_ALPHABET_26: list[str] = [
+    'a',
+    'b',
+    'c',
+    'd',
+    'e',
+    'f',
+    'g',
+    'h',
+    'i',
+    'j',
+    'k',
+    'l',
+    'm',
+    'n',
+    'o',
+    'p',
+    'q',
+    'r',
+    's',
+    't',
+    'u',
+    'v',
+    'w',
+    'x',
+    'y',
+    'z',
+]
 
-_ALPHABET_36: list[str] = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
-                           'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j',
-                           'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't',
-                           'u', 'v', 'w', 'x', 'y', 'z']
+_ALPHABET_36: list[str] = [
+    '0',
+    '1',
+    '2',
+    '3',
+    '4',
+    '5',
+    '6',
+    '7',
+    '8',
+    '9',
+    'a',
+    'b',
+    'c',
+    'd',
+    'e',
+    'f',
+    'g',
+    'h',
+    'i',
+    'j',
+    'k',
+    'l',
+    'm',
+    'n',
+    'o',
+    'p',
+    'q',
+    'r',
+    's',
+    't',
+    'u',
+    'v',
+    'w',
+    'x',
+    'y',
+    'z',
+]
 
 # RFC 4648 Base32 alphabet
-_ALPHABET_32: list[str] = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L',
-                           'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X',
-                           'Y', 'Z', '2', '3', '4', '5', '6', '7']
+_ALPHABET_32: list[str] = [
+    'A',
+    'B',
+    'C',
+    'D',
+    'E',
+    'F',
+    'G',
+    'H',
+    'I',
+    'J',
+    'K',
+    'L',
+    'M',
+    'N',
+    'O',
+    'P',
+    'Q',
+    'R',
+    'S',
+    'T',
+    'U',
+    'V',
+    'W',
+    'X',
+    'Y',
+    'Z',
+    '2',
+    '3',
+    '4',
+    '5',
+    '6',
+    '7',
+]
 
 
 DEFAULT_ALPHABET: list[str] = _ALPHABET_16
@@ -125,7 +233,8 @@ def b(s: str) -> bytes:
     Returns:
         bytes
     """
-    return s.encode("latin-1")
+    return s.encode('latin-1')
+
 
 # Sensible choices for default hashers are sha1, sha512, and xxh64.
 
@@ -619,7 +728,9 @@ class HashableExtensions:
         # of strictly using this registry.
         hash_func = self._hash_dispatch.dispatch(query_hash_type)
         if getattr(hash_func, '__is_base__', False):
-            base_msg = f'No registered hash func for hashable type={query_hash_type!r}'
+            base_msg = (
+                f'No registered hash func for hashable type={query_hash_type!r}'
+            )
             try:
                 msg = f'{base_msg} with mro: {query_hash_type.__mro__}'
             except AttributeError:  # nocover
@@ -652,18 +763,22 @@ class HashableExtensions:
         cls = data.__class__
         header = (cls.__module__, cls.__qualname__)
         # fields() order is the definition order, which is guaranteed
-        items = [(f.name, getattr(data, f.name)) for f in dataclasses.fields(data)]
+        items = [
+            (f.name, getattr(data, f.name)) for f in dataclasses.fields(data)
+        ]
         # Use the existing machinery to serialize recursively
         seq = _hashable_sequence(
             (header, items),
             extensions=self,
-            types=_COMPATIBLE_HASHABLE_SEQUENCE_TYPES_DEFAULT
+            types=_COMPATIBLE_HASHABLE_SEQUENCE_TYPES_DEFAULT,
         )
         prefix = b'DCLASS'
         hashable = b''.join(seq)
         return prefix, hashable
 
-    def add_iterable_check(self, func: Callable[..., bool]) -> Callable[..., bool]:
+    def add_iterable_check(
+        self, func: Callable[..., bool]
+    ) -> Callable[..., bool]:
         """
         Registers a function that detects when a type is iterable
 
@@ -714,12 +829,20 @@ class HashableExtensions:
                 # tobytes() views the array in 1D (via ravel())
                 # encode the shape as well
                 # See: [util_hash.Note.1]
-                header = b''.join(_hashable_sequence(
-                    (len(data.shape), data.shape), extensions=self,
-                    types=_COMPATIBLE_HASHABLE_SEQUENCE_TYPES_DEFAULT))
-                dtype = b''.join(_hashable_sequence(
-                    data.dtype.descr, extensions=self,
-                    types=_COMPATIBLE_HASHABLE_SEQUENCE_TYPES_DEFAULT))
+                header = b''.join(
+                    _hashable_sequence(
+                        (len(data.shape), data.shape),
+                        extensions=self,
+                        types=_COMPATIBLE_HASHABLE_SEQUENCE_TYPES_DEFAULT,
+                    )
+                )
+                dtype = b''.join(
+                    _hashable_sequence(
+                        data.dtype.descr,
+                        extensions=self,
+                        types=_COMPATIBLE_HASHABLE_SEQUENCE_TYPES_DEFAULT,
+                    )
+                )
                 hashable = header + dtype + data.tobytes()
             prefix = b'NDARR'
             return prefix, hashable
@@ -736,9 +859,13 @@ class HashableExtensions:
                 >>> _hashable_sequence(rng, types=True)
             """
             # See: [util_hash.Note.1]
-            hashable = b''.join(_hashable_sequence(
-                data.get_state(), extensions=self,
-                types=_COMPATIBLE_HASHABLE_SEQUENCE_TYPES_DEFAULT))
+            hashable = b''.join(
+                _hashable_sequence(
+                    data.get_state(),
+                    extensions=self,
+                    types=_COMPATIBLE_HASHABLE_SEQUENCE_TYPES_DEFAULT,
+                )
+            )
             prefix = b'RNG'
             return prefix, hashable
 
@@ -849,7 +976,8 @@ class HashableExtensions:
             seq = _hashable_sequence(
                 data.as_tuple(),
                 extensions=self,
-                types=_COMPATIBLE_HASHABLE_SEQUENCE_TYPES_DEFAULT)
+                types=_COMPATIBLE_HASHABLE_SEQUENCE_TYPES_DEFAULT,
+            )
             hashable = b''.join(seq)
             prefix = b'DECIMAL'
             return prefix, hashable
@@ -860,7 +988,8 @@ class HashableExtensions:
             seq = _hashable_sequence(
                 data.timetuple(),
                 extensions=self,
-                types=_COMPATIBLE_HASHABLE_SEQUENCE_TYPES_DEFAULT)
+                types=_COMPATIBLE_HASHABLE_SEQUENCE_TYPES_DEFAULT,
+            )
             hashable = b''.join(seq)
             prefix = b'DATE'
             return prefix, hashable
@@ -871,7 +1000,8 @@ class HashableExtensions:
             seq = _hashable_sequence(
                 data.timetuple(),
                 extensions=self,
-                types=_COMPATIBLE_HASHABLE_SEQUENCE_TYPES_DEFAULT)
+                types=_COMPATIBLE_HASHABLE_SEQUENCE_TYPES_DEFAULT,
+            )
             hashable = b''.join(seq)
             prefix = b'DATETIME'
             return prefix, hashable
@@ -894,9 +1024,13 @@ class HashableExtensions:
                 sortx = argsort(data_, key=str)
                 ordered_ = [data_[k] for k in sortx]
             # See: [util_hash.Note.1]
-            hashable = b''.join(_hashable_sequence(
-                ordered_, extensions=self,
-                types=_COMPATIBLE_HASHABLE_SEQUENCE_TYPES_DEFAULT))
+            hashable = b''.join(
+                _hashable_sequence(
+                    ordered_,
+                    extensions=self,
+                    types=_COMPATIBLE_HASHABLE_SEQUENCE_TYPES_DEFAULT,
+                )
+            )
             prefix = b'SET'
             return prefix, hashable
 
@@ -911,9 +1045,13 @@ class HashableExtensions:
                 sortx = argsort(data, key=str)
                 ordered_ = [(k, data[k]) for k in sortx]
             # See: [util_hash.Note.1]
-            hashable = b''.join(_hashable_sequence(
-                ordered_, extensions=self,
-                types=_COMPATIBLE_HASHABLE_SEQUENCE_TYPES_DEFAULT))
+            hashable = b''.join(
+                _hashable_sequence(
+                    ordered_,
+                    extensions=self,
+                    types=_COMPATIBLE_HASHABLE_SEQUENCE_TYPES_DEFAULT,
+                )
+            )
             prefix = b'DICT'
             return prefix, hashable
 
@@ -924,9 +1062,13 @@ class HashableExtensions:
             regular dictionaries. I'm not sure what the right thing to do is.
             """
             # See: [util_hash.Note.1]
-            hashable = b''.join(_hashable_sequence(
-                list(data.items()), extensions=self,
-                types=_COMPATIBLE_HASHABLE_SEQUENCE_TYPES_DEFAULT))
+            hashable = b''.join(
+                _hashable_sequence(
+                    list(data.items()),
+                    extensions=self,
+                    types=_COMPATIBLE_HASHABLE_SEQUENCE_TYPES_DEFAULT,
+                )
+            )
             prefix = b'ODICT'
             return prefix, hashable
 
@@ -937,9 +1079,13 @@ class HashableExtensions:
             regular dictionaries. I'm not sure what the right thing to do is.
             """
             # See: [util_hash.Note.1]
-            hashable = b''.join(_hashable_sequence(
-                [data.start, data.stop, data.step], extensions=self,
-                types=_COMPATIBLE_HASHABLE_SEQUENCE_TYPES_DEFAULT))
+            hashable = b''.join(
+                _hashable_sequence(
+                    [data.start, data.stop, data.step],
+                    extensions=self,
+                    types=_COMPATIBLE_HASHABLE_SEQUENCE_TYPES_DEFAULT,
+                )
+            )
             prefix = b'SLICE'
             return prefix, hashable
 

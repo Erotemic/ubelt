@@ -63,7 +63,7 @@ assert sys.platform == 'win32'
 
 
 def handle_nonzero_success(result):
-    if (result == 0):
+    if result == 0:
         raise ctypes.WinError()
 
 
@@ -78,16 +78,16 @@ class BY_HANDLE_FILE_INFORMATION(ctypes.Structure):
         ('file_size_low', ctypes.wintypes.DWORD),
         ('number_of_links', ctypes.wintypes.DWORD),
         ('file_index_high', ctypes.wintypes.DWORD),
-        ('file_index_low', ctypes.wintypes.DWORD)
+        ('file_index_low', ctypes.wintypes.DWORD),
     ]
 
     @property
     def file_size(self):
-        return ((self.file_size_high << 32) + self.file_size_low)
+        return (self.file_size_high << 32) + self.file_size_low
 
     @property
     def file_index(self):
-        return ((self.file_index_high << 32) + self.file_index_low)
+        return (self.file_index_high << 32) + self.file_index_low
 
 
 class REPARSE_DATA_BUFFER(ctypes.Structure):
@@ -100,18 +100,20 @@ class REPARSE_DATA_BUFFER(ctypes.Structure):
         ('print_name_offset', ctypes.c_ushort),
         ('print_name_length', ctypes.c_ushort),
         ('flags', ctypes.c_ulong),
-        ('path_buffer', (ctypes.c_byte * 1))
+        ('path_buffer', (ctypes.c_byte * 1)),
     ]
 
     def get_print_name(self):
         wchar_size = ctypes.sizeof(ctypes.wintypes.WCHAR)
-        arr_typ = (ctypes.wintypes.WCHAR * (self.print_name_length // wchar_size))
+        arr_typ = ctypes.wintypes.WCHAR * (self.print_name_length // wchar_size)
         data = ctypes.byref(self.path_buffer, self.print_name_offset)
         return ctypes.cast(data, ctypes.POINTER(arr_typ)).contents.value
 
     def get_substitute_name(self):
         wchar_size = ctypes.sizeof(ctypes.wintypes.WCHAR)
-        arr_typ = (ctypes.wintypes.WCHAR * (self.substitute_name_length // wchar_size))
+        arr_typ = ctypes.wintypes.WCHAR * (
+            self.substitute_name_length // wchar_size
+        )
         data = ctypes.byref(self.path_buffer, self.substitute_name_offset)
         return ctypes.cast(data, ctypes.POINTER(arr_typ)).contents.value
 
@@ -199,7 +201,9 @@ def is_reparse_point(path):
     be determined.
     """
     res = GetFileAttributes(path)
-    return ((res != INVALID_FILE_ATTRIBUTES) and bool((res & FILE_ATTRIBUTE_REPARSE_POINT)))
+    return (res != INVALID_FILE_ATTRIBUTES) and bool(
+        (res & FILE_ATTRIBUTE_REPARSE_POINT)
+    )
 
 
 def link(target, link):
@@ -209,7 +213,9 @@ def link(target, link):
     handle_nonzero_success(CreateHardLink(link, target, None))
 
 
-def _reparse_DeviceIoControl(device, io_control_code, in_buffer, out_buffer, overlapped=None):
+def _reparse_DeviceIoControl(
+    device, io_control_code, in_buffer, out_buffer, overlapped=None
+):
     # ubelt note: name is overloaded, so we mangle it here.
     if overlapped is not None:
         raise NotImplementedError('overlapped handles not yet supported')

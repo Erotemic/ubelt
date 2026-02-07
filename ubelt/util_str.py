@@ -213,9 +213,14 @@ def ensure_unicode(text: str | bytes) -> str:
     from ubelt.util_deprecate import schedule_deprecation
 
     schedule_deprecation(
-        modname='ubelt', name='ensure_unicode', type='function',
+        modname='ubelt',
+        name='ensure_unicode',
+        type='function',
         migration='This should not be needed in Python 3',
-        deprecate='1.2.0', error='2.0.0', remove='2.1.0')
+        deprecate='1.2.0',
+        error='2.0.0',
+        remove='2.1.0',
+    )
     if isinstance(text, str):
         return text
     elif isinstance(text, bytes):

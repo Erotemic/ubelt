@@ -205,7 +205,7 @@ def schedule_deprecation(
         elif isinstance(when, str):
             if when in {'soon', 'now'}:
                 when_str = ' {}{}'.format(modname_str, when)
-                is_now = (when == 'now')
+                is_now = when == 'now'
             else:
                 when = Version(when)
                 when_str = ' in {}{}'.format(modname_str, when)
@@ -224,14 +224,20 @@ def schedule_deprecation(
 
     # TODO: make the message more customizable.
     msg = (
-        'The "{name}" {type} was deprecated{deprecate_str}, will cause '
-        'an error{error_str} and will be removed{remove_str}. The current '
-        '{modname_str}version is {current}. {migration}'
-    ).format(**locals()).strip()
+        (
+            'The "{name}" {type} was deprecated{deprecate_str}, will cause '
+            'an error{error_str} and will be removed{remove_str}. The current '
+            '{modname_str}version is {current}. {migration}'
+        )
+        .format(**locals())
+        .strip()
+    )
     if remove_now:
         raise AssertionError(
-            'Forgot to remove deprecated: ' + msg + ' ' +
-            'Remove the function, or extend the scheduled remove version.'
+            'Forgot to remove deprecated: '
+            + msg
+            + ' '
+            + 'Remove the function, or extend the scheduled remove version.'
         )
     if error_now:
         raise RuntimeError(msg)

@@ -131,9 +131,7 @@ def _infer_length(iterable):
             hint = get_hint(iterable)
         except TypeError:
             return None
-        if (hint is NotImplemented or
-             not isinstance(hint, int) or
-             hint < 0):
+        if hint is NotImplemented or not isinstance(hint, int) or hint < 0:
             return None
         return hint
 
@@ -656,7 +654,9 @@ class ProgIter(_TQDMCompat, _BackwardsCompat, Iterable[T]):
             Iterable
         """
         if self.iterable is None:
-            raise TypeError("ProgIter(iterable=None) is manual-mode; it is not iterable")
+            raise TypeError(
+                'ProgIter(iterable=None) is manual-mode; it is not iterable'
+            )
         if not self.enabled:
             return iter(self.iterable)
         return self._iterate()
@@ -791,7 +791,9 @@ class ProgIter(_TQDMCompat, _BackwardsCompat, Iterable[T]):
         if not self.started:
             self.begin()
         if self.iterable is None:
-            raise TypeError("ProgIter(iterable=None) is manual-mode; it is not iterable")
+            raise TypeError(
+                'ProgIter(iterable=None) is manual-mode; it is not iterable'
+            )
         # Wrap input sequence in a generator
         gen = enumerate(self.iterable, start=self.initial + 1)
         # Iterating is performance sensitive, so separate both cases - where
@@ -819,9 +821,14 @@ class ProgIter(_TQDMCompat, _BackwardsCompat, Iterable[T]):
             # In the fast path we only check the time every `freq` iterations.
             for self._iter_idx, item in gen:
                 yield item
-                if self._force_next_display or self._iter_idx >= self._next_measure_idx:
+                if (
+                    self._force_next_display
+                    or self._iter_idx >= self._next_measure_idx
+                ):
                     self._measure_time()
-                    if self._force_next_display or (self._display_timedelta >= self.time_thresh):
+                    if self._force_next_display or (
+                        self._display_timedelta >= self.time_thresh
+                    ):
                         self.display_message()
 
         self.end()
@@ -851,7 +858,7 @@ class ProgIter(_TQDMCompat, _BackwardsCompat, Iterable[T]):
             slowest = max(slowest, self._measure_timedelta)
 
         # We are moving fast, take the faster path
-        self._likely_homogeneous = (slowest < overhead_threshold)
+        self._likely_homogeneous = slowest < overhead_threshold
 
     def _slow_path_step_body(self, force=False):
         # In the slow path, we don't make any assumption about how long
@@ -897,9 +904,12 @@ class ProgIter(_TQDMCompat, _BackwardsCompat, Iterable[T]):
 
         # If progress was uniform and all time estimates were
         # perfect this would be the new freq to achieve self.time_thresh
-        eps = 1E-9
-        new_freq = int(self.time_thresh * self._measure_countdelta /
-                       max(eps, self._measure_timedelta))
+        eps = 1e-9
+        new_freq = int(
+            self.time_thresh
+            * self._measure_countdelta
+            / max(eps, self._measure_timedelta)
+        )
         # But things are not perfect. So, don't make drastic changes
         rel_limit = self.rel_adjust_limit
         max_freq = int(self.freq * rel_limit)
@@ -922,22 +932,28 @@ class ProgIter(_TQDMCompat, _BackwardsCompat, Iterable[T]):
         self._curr_measurement = _curr_measurement
         self._measurements.append(_curr_measurement)
 
-        self._measure_timedelta = _curr_measurement.time - _prev_measurement.time
+        self._measure_timedelta = (
+            _curr_measurement.time - _prev_measurement.time
+        )
         self._measure_countdelta = _curr_measurement.idx - _prev_measurement.idx
         self._total_seconds = _curr_measurement.time - self._start_time
 
-        self._display_timedelta = (self._curr_measurement.time -
-                                   self._display_measurement.time)
+        self._display_timedelta = (
+            self._curr_measurement.time - self._display_measurement.time
+        )
 
         # Estimate rate of progress
         if self.eta_window is None:
-            self._iters_per_second = self._curr_measurement.idx / self._total_seconds
+            self._iters_per_second = (
+                self._curr_measurement.idx / self._total_seconds
+            )
         else:
             # Smooth out rate with a window
             oldest_idx, oldest_time = self._measurements[0]
             latest_idx, latest_time = self._measurements[-1]
-            self._iters_per_second =  ((latest_idx - oldest_idx) /
-                                       (latest_time - oldest_time))
+            self._iters_per_second = (latest_idx - oldest_idx) / (
+                latest_time - oldest_time
+            )
 
         if self.total is not None:
             # Estimate time remaining if total is given
@@ -1102,24 +1118,36 @@ class ProgIter(_TQDMCompat, _BackwardsCompat, Iterable[T]):
             'iter_idx': self._curr_measurement.idx,
             'eta': eta,
             'total': total,
-            'wall': time.strftime('%Y-%m-%d %H:%M ') + time.tzname[0] if self.show_wall else None,
+            'wall': time.strftime('%Y-%m-%d %H:%M ') + time.tzname[0]
+            if self.show_wall
+            else None,
             'extra': extra,
             'percent': '',
         }
 
         # similar to tqdm.format_meter
         if self.chunksize and self.total:
-            fmtkw.update({
-                'percent': self._curr_measurement.idx / self.total * 100,
-                'rate': self._iters_per_second * self.chunksize,
-                'rate_format': '4.2f' if self._iters_per_second * self.chunksize > .001 else 'g',
-            })
+            fmtkw.update(
+                {
+                    'percent': self._curr_measurement.idx / self.total * 100,
+                    'rate': self._iters_per_second * self.chunksize,
+                    'rate_format': '4.2f'
+                    if self._iters_per_second * self.chunksize > 0.001
+                    else 'g',
+                }
+            )
         else:
-            fmtkw.update({
-                'percent': self._curr_measurement.idx / self.total * 100 if self.total is not None and self.total > 0 else 0,
-                'rate': self._iters_per_second,
-                'rate_format': '4.2f' if self._iters_per_second > .001 else 'g',
-            })
+            fmtkw.update(
+                {
+                    'percent': self._curr_measurement.idx / self.total * 100
+                    if self.total is not None and self.total > 0
+                    else 0,
+                    'rate': self._iters_per_second,
+                    'rate_format': '4.2f'
+                    if self._iters_per_second > 0.001
+                    else 'g',
+                }
+            )
         msg = fmtstr.format(**fmtkw)
 
         return before, msg, after

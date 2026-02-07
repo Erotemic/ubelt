@@ -242,7 +242,12 @@ def group_items(
     return id_to_items
 
 
-def dict_hist(items: Iterable[T], weights: Optional[Iterable[float]] = None, ordered: bool = False, labels: Optional[Iterable[T]] = None) -> dict[T, int]:
+def dict_hist(
+    items: Iterable[T],
+    weights: Optional[Iterable[float]] = None,
+    ordered: bool = False,
+    labels: Optional[Iterable[T]] = None,
+) -> dict[T, int]:
     """
     Builds a histogram of items, counting the number of time each item appears
     in the input.
@@ -395,7 +400,12 @@ def find_duplicates(
     return duplicates
 
 
-def dict_subset(dict_: Dict[KT, VT], keys: Iterable[KT], default: Union[object, NoParamType] = NoParam, cls: Type[Dict] = OrderedDict) -> Dict[KT, VT]:
+def dict_subset(
+    dict_: Dict[KT, VT],
+    keys: Iterable[KT],
+    default: Union[object, NoParamType] = NoParam,
+    cls: Type[Dict] = OrderedDict,
+) -> Dict[KT, VT]:
     """
     Get a subset of a dictionary
 
@@ -483,7 +493,9 @@ def dict_union(*args: Dict) -> Union[Dict, OrderedDict]:
         return dictclass(it.chain.from_iterable(d.items() for d in args))
 
 
-def dict_diff(*args: Union[Dict[KT, VT], Iterable[KT]]) -> Union[Dict[KT, VT], OrderedDict[KT, VT]]:
+def dict_diff(
+    *args: Union[Dict[KT, VT], Iterable[KT]],
+) -> Union[Dict[KT, VT], OrderedDict[KT, VT]]:
     """
     Dictionary set extension for :func:`set.difference`
 
@@ -522,11 +534,17 @@ def dict_diff(*args: Union[Dict[KT, VT], Iterable[KT]]) -> Union[Dict[KT, VT], O
         # remove_keys = set.union(*map(set, args[1:]))
         # new = dictclass((k, v) for k, v in first_dict.items() if k not in remove_keys)
         remove_keys = set.union(*map(set, args[1:]))
-        new = dictclass((k, first_dict[k]) for k in first_dict.keys() if k not in remove_keys)
+        new = dictclass(
+            (k, first_dict[k])
+            for k in first_dict.keys()
+            if k not in remove_keys
+        )
         return new
 
 
-def dict_isect(*args: Union[Dict[KT, VT], Iterable[KT]]) -> Union[Dict[KT, VT], OrderedDict[KT, VT]]:
+def dict_isect(
+    *args: Union[Dict[KT, VT], Iterable[KT]],
+) -> Union[Dict[KT, VT], OrderedDict[KT, VT]]:
     """
     Dictionary set extension for :func:`set.intersection`
 
@@ -571,11 +589,16 @@ def dict_isect(*args: Union[Dict[KT, VT], Iterable[KT]]) -> Union[Dict[KT, VT], 
         dictclass = OrderedDict if isinstance(args[0], OrderedDict) else dict
         common_keys = set.intersection(*map(set, args))
         first_dict = args[0]
-        return dictclass((k, first_dict[k]) for k in first_dict
-                         if k in common_keys)
+        return dictclass(
+            (k, first_dict[k]) for k in first_dict if k in common_keys
+        )
 
 
-def map_values(func: Union[Callable[[VT], T], Mapping[VT, T]], dict_: Dict[KT, VT], cls: Optional[type] = None) -> Dict[KT, T]:
+def map_values(
+    func: Union[Callable[[VT], T], Mapping[VT, T]],
+    dict_: Dict[KT, VT],
+    cls: Optional[type] = None,
+) -> Dict[KT, T]:
     """
     Apply a function to every value in a dictionary.
 
@@ -624,7 +647,11 @@ def map_values(func: Union[Callable[[VT], T], Mapping[VT, T]], dict_: Dict[KT, V
 map_vals = map_values  # backwards compatibility
 
 
-def map_keys(func: Union[Callable[[KT], T], Mapping[KT, T]], dict_: Dict[KT, VT], cls: Optional[type] = None) -> Dict[T, VT]:
+def map_keys(
+    func: Union[Callable[[KT], T], Mapping[KT, T]],
+    dict_: Dict[KT, VT],
+    cls: Optional[type] = None,
+) -> Dict[T, VT]:
     """
     Apply a function to every key in a dictionary.
 
@@ -671,7 +698,12 @@ def map_keys(func: Union[Callable[[KT], T], Mapping[KT, T]], dict_: Dict[KT, VT]
     return newdict
 
 
-def sorted_values(dict_: Dict[KT, VT], key: Optional[Callable[[VT], Any]] = None, reverse: bool = False, cls: type = OrderedDict) -> OrderedDict[KT, VT]:
+def sorted_values(
+    dict_: Dict[KT, VT],
+    key: Optional[Callable[[VT], Any]] = None,
+    reverse: bool = False,
+    cls: type = OrderedDict,
+) -> OrderedDict[KT, VT]:
     """
     Return an ordered dictionary sorted by its values
 
@@ -708,18 +740,25 @@ def sorted_values(dict_: Dict[KT, VT], key: Optional[Callable[[VT], Any]] = None
         {'spam': 2.62, 'eggs': 1.2, 'jam': 2.92}
     """
     if key is None:
-        newdict = OrderedDict(sorted(dict_.items(), key=lambda kv: kv[1],
-                                     reverse=reverse))
+        newdict = OrderedDict(
+            sorted(dict_.items(), key=lambda kv: kv[1], reverse=reverse)
+        )
     else:
-        newdict = OrderedDict(sorted(dict_.items(), key=lambda kv: key(kv[1]),
-                                     reverse=reverse))
+        newdict = OrderedDict(
+            sorted(dict_.items(), key=lambda kv: key(kv[1]), reverse=reverse)
+        )
     return newdict
 
 
 sorted_vals = sorted_values  # backwards compatibility
 
 
-def sorted_keys(dict_: Dict[KT, VT], key: Optional[Callable[[KT], Any]] = None, reverse: bool = False, cls: type = OrderedDict) -> OrderedDict[KT, VT]:
+def sorted_keys(
+    dict_: Dict[KT, VT],
+    key: Optional[Callable[[KT], Any]] = None,
+    reverse: bool = False,
+    cls: type = OrderedDict,
+) -> OrderedDict[KT, VT]:
     """
     Return an ordered dictionary sorted by its keys
 
@@ -934,7 +973,11 @@ def named_product(
         yield kw
 
 
-def varied_values(longform: List[Dict[KT, VT]], min_variations: int = 0, default: Union[VT, NoParamType] = NoParam) -> Dict[KT, Set[VT]]:
+def varied_values(
+    longform: List[Dict[KT, VT]],
+    min_variations: int = 0,
+    default: Union[VT, NoParamType] = NoParam,
+) -> Dict[KT, Set[VT]]:
     """
     Given a list of dictionaries, find the values that differ between them.
 
@@ -1054,9 +1097,11 @@ def varied_values(longform: List[Dict[KT, VT]], min_variations: int = 0, default
     for row in longform:
         if default is NoParam and len(row) != len(columns) and len(columns):
             missing = set(columns).symmetric_difference(set(row))
-            raise KeyError((
-                'No default specified and not every '
-                'row contains columns {}').format(missing))
+            raise KeyError(
+                (
+                    'No default specified and not every row contains columns {}'
+                ).format(missing)
+            )
         columns.update(row.keys())
 
     # Build up the set of unique values for each column
@@ -1585,7 +1630,12 @@ class SetDict(dict):
 
     ### Main set operations
 
-    def union(self: Self, *others: Mapping[Any, Any], cls: type[Self] | None = None, merge: Callable | None = None) -> Self:
+    def union(
+        self: Self,
+        *others: Mapping[Any, Any],
+        cls: type[Self] | None = None,
+        merge: Callable | None = None,
+    ) -> Self:
         """
         Return the key-wise union of two or more dictionaries.
 
@@ -1642,7 +1692,12 @@ class SetDict(dict):
             raise NotImplementedError('merge function is not yet implemented')
         return new
 
-    def intersection(self: Self, *others: Iterable[Any], cls: type[Self] | None = None, merge: Callable | None = None) -> Self:
+    def intersection(
+        self: Self,
+        *others: Iterable[Any],
+        cls: type[Self] | None = None,
+        merge: Callable | None = None,
+    ) -> Self:
         """
         Return the key-wise intersection of two or more dictionaries.
 
@@ -1705,7 +1760,12 @@ class SetDict(dict):
             raise NotImplementedError('merge function is not yet implemented')
         return new
 
-    def difference(self: Self, *others: Iterable[Any], cls: type[Self] | None = None, merge: Callable | None = None) -> Self:
+    def difference(
+        self: Self,
+        *others: Iterable[Any],
+        cls: type[Self] | None = None,
+        merge: Callable | None = None,
+    ) -> Self:
         """
         Return the key-wise difference between this dictionary and one or
         more other dictionary / keys.
@@ -1761,7 +1821,12 @@ class SetDict(dict):
             raise NotImplementedError('merge function is not yet implemented')
         return new
 
-    def symmetric_difference(self: Self, *others: Mapping[Any, Any], cls: type[Self] | None = None, merge: Callable | None = None) -> Self:
+    def symmetric_difference(
+        self: Self,
+        *others: Mapping[Any, Any],
+        cls: type[Self] | None = None,
+        merge: Callable | None = None,
+    ) -> Self:
         """
         Return the key-wise symmetric difference between this dictionary and
         one or more other dictionaries.

@@ -150,7 +150,7 @@ class PythonPathContext:
                 'Expected dpath={!r} at index={!r} in sys.path, but got '
                 'dpath={!r}'.format(
                     self.dpath, self.index, sys.path[self.index]
-                )
+                ),
             ]
             need_recover = True
 
@@ -314,11 +314,17 @@ def import_module_from_path(
                             import importlib
 
                             # Modern path (3.4+; preferred, no deprecation)
-                            spec = importlib.util.spec_from_loader(modname, zimp_file)
+                            spec = importlib.util.spec_from_loader(
+                                modname, zimp_file
+                            )
                             if spec is None:
-                                raise ImportError(f"Cannot create spec for {modname!r}")
+                                raise ImportError(
+                                    f'Cannot create spec for {modname!r}'
+                                )
                             module = importlib.util.module_from_spec(spec)
-                            sys.modules[modname] = module  # important for recursive imports
+                            sys.modules[modname] = (
+                                module  # important for recursive imports
+                            )
                             zimp_file.exec_module(module)
                         else:  # nocover
                             # Legacy fallback (deprecated; only used on very old Pythons)
@@ -329,11 +335,17 @@ def import_module_from_path(
                             import importlib
 
                             # Modern path (3.4+; preferred, no deprecation)
-                            spec = importlib.util.spec_from_loader(_modname, zimp_file)
+                            spec = importlib.util.spec_from_loader(
+                                _modname, zimp_file
+                            )
                             if spec is None:
-                                raise ImportError(f"Cannot create spec for {modname!r}")
+                                raise ImportError(
+                                    f'Cannot create spec for {modname!r}'
+                                )
                             module = importlib.util.module_from_spec(spec)
-                            sys.modules[_modname] = module  # important for recursive imports
+                            sys.modules[_modname] = (
+                                module  # important for recursive imports
+                            )
                             zimp_file.exec_module(module)
                         else:
                             # Legacy fallback (deprecated; only used on very old Pythons)
@@ -352,7 +364,8 @@ def import_module_from_path(
                         internal=internal,
                         modname=modname,
                         archivepath=archivepath,
-                        ex=ex)
+                        ex=ex,
+                    )
                     raise Exception(text)
 
                 return module
@@ -619,7 +632,9 @@ def _syspath_modname_to_modpath(
                     except KeyError:
                         ...
                     else:
-                        if not exclude or normalize(target) not in real_exclude:  # pragma: nobranch
+                        if (
+                            not exclude or normalize(target) not in real_exclude
+                        ):  # pragma: nobranch
                             modpath = check_dpath(target)
                             if modpath:  # pragma: nobranch
                                 found_modpath = modpath
@@ -629,7 +644,9 @@ def _syspath_modname_to_modpath(
 
         # If a finder does not exist, then the __editable__ pth file might hold
         # the path itself. Check for that.
-        new_editable_pth_paths = sorted(glob.glob(join(dpath, _editable_fname_pth_pat)))
+        new_editable_pth_paths = sorted(
+            glob.glob(join(dpath, _editable_fname_pth_pat))
+        )
         if new_editable_pth_paths:  # nocover
             # Disable coverage because the test that covers this is too slow.
             # It can be made faster, re-enable when that lands.
@@ -638,7 +655,9 @@ def _syspath_modname_to_modpath(
             for editable_pth in new_editable_pth_paths:
                 editable_pth = pathlib.Path(editable_pth)
                 target = editable_pth.read_text().strip().split('\n')[-1]
-                if not exclude or normalize(target) not in real_exclude:  # pragma: nobranch
+                if (
+                    not exclude or normalize(target) not in real_exclude
+                ):  # pragma: nobranch
                     modpath = check_dpath(target)
                     if modpath:  # pragma: nobranch
                         found_modpath = modpath
@@ -668,7 +687,9 @@ def _syspath_modname_to_modpath(
             # The docs state there should only be one line, but I see two.
             with open(linkpath, 'r') as file:
                 target = file.readline().strip()
-            if not exclude or normalize(target) not in real_exclude:  # pragma: nobranch
+            if (
+                not exclude or normalize(target) not in real_exclude
+            ):  # pragma: nobranch
                 modpath = check_dpath(target)
                 if modpath:  # pragma: nobranch
                     found_modpath = modpath

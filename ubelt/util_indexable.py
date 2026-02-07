@@ -206,7 +206,9 @@ class IndexableWalker(Generator):
         self.indexable_cls = self.dict_cls + self.list_cls
         self._walk_gen = None
 
-    def __iter__(self) -> Generator[tuple[list, typing.Any], typing.Any, typing.Any]:
+    def __iter__(
+        self,
+    ) -> Generator[tuple[list, typing.Any], typing.Any, typing.Any]:
         """
         Iterates through the indexable ``self.data``
 
@@ -241,7 +243,9 @@ class IndexableWalker(Generator):
         """
         # Note: this will error if called before __next__
         if self._walk_gen is None:
-            raise TypeError("cannot send to walker before iteration has started")
+            raise TypeError(
+                'cannot send to walker before iteration has started'
+            )
         self._walk_gen.send(arg)
 
     def throw(
@@ -744,11 +748,12 @@ class IndexableWalker(Generator):
         for key in common:
             v1 = flat_items1[key]
             v2 = flat_items2[key]
-            flag = (v1 == v2)
+            flag = v1 == v2
             if not flag:
                 flag = (
-                    isinstance(v1, float) and isinstance(v2, float) and
-                    _isclose_fn(v1, v2, **_iskw)
+                    isinstance(v1, float)
+                    and isinstance(v2, float)
+                    and _isclose_fn(v1, v2, **_iskw)
                 )
                 num_approximations += flag
             if flag:
@@ -846,14 +851,16 @@ def indexable_allclose(
     from ubelt.util_deprecate import schedule_deprecation
 
     schedule_deprecation(
-        'ubelt', 'indexable_allclose', 'function',
-        migration=(
-            'Use `ub.IndexableWalker(items1).allclose(items2)` instead'
-        ))
+        'ubelt',
+        'indexable_allclose',
+        'function',
+        migration=('Use `ub.IndexableWalker(items1).allclose(items2)` instead'),
+    )
     walker1 = IndexableWalker(items1)
     walker2 = IndexableWalker(items2)
-    return walker1.allclose(walker2, rel_tol=rel_tol, abs_tol=abs_tol,
-                            return_info=return_info)
+    return walker1.allclose(
+        walker2, rel_tol=rel_tol, abs_tol=abs_tol, return_info=return_info
+    )
 
 
 # Nested = IndexableWalker

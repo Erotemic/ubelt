@@ -162,7 +162,9 @@ class CmdOutput(dict):
             return self['ret']
         except KeyError:
             # Avoid surprising KeyError; make the mode restriction explicit
-            raise RuntimeError("returncode is unavailable when detach=True") from None
+            raise RuntimeError(
+                'returncode is unavailable when detach=True'
+            ) from None
 
     def check_returncode(self) -> None:
         """Raise CalledProcessError if the exit code is non-zero."""
@@ -170,7 +172,8 @@ class CmdOutput(dict):
 
         if self.returncode:
             raise subprocess.CalledProcessError(
-                self.returncode, self.args, self.stdout, self.stderr)
+                self.returncode, self.args, self.stdout, self.stderr
+            )
 
 
 def cmd(
@@ -439,21 +442,25 @@ def cmd(
         with ChDir(cwd):
             raw = os.system(command_text)
             ret = _normalize_system_returncode(raw)
-        info = CmdOutput(**{
-            'out': None,
-            'err': None,
-            'ret': ret,
-            'cwd': cwd,
-            'command': command_text,
-        })
+        info = CmdOutput(
+            **{
+                'out': None,
+                'err': None,
+                'ret': ret,
+                'cwd': cwd,
+                'command': command_text,
+            }
+        )
     elif detach:
-        info = CmdOutput(**{
-            # Not including out/err/ret because the user could still compute
-            # them via proc. I'm open to reconsidering this design decision.
-            'proc': make_proc(),
-            'cwd': cwd,
-            'command': command_text
-        })
+        info = CmdOutput(
+            **{
+                # Not including out/err/ret because the user could still compute
+                # them via proc. I'm open to reconsidering this design decision.
+                'proc': make_proc(),
+                'cwd': cwd,
+                'command': command_text,
+            }
+        )
         if verbose > 1:  # nocover
             log('...detaching')
     else:
@@ -466,9 +473,13 @@ def cmd(
             proc = make_proc()
             with proc:
                 out, err = _tee_output(
-                    proc=proc, stdout=stdout, stderr=stderr,    # type: ignore[invalid-argument-type]
-                    backend=tee_backend, timeout=timeout,
-                    command_text=command_text)
+                    proc=proc,
+                    stdout=stdout,
+                    stderr=stderr,  # type: ignore[invalid-argument-type]
+                    backend=tee_backend,
+                    timeout=timeout,
+                    command_text=command_text,
+                )
                 (out_, err_) = proc.communicate(timeout=timeout)
         elif capture:
             proc = make_proc()
@@ -616,7 +627,7 @@ def _normalize_system_returncode(status: int) -> int:
         return -os.WTERMSIG(status)
 
     # Rare/unexpected for os.system, but be explicit:
-    raise ValueError(f"Unknown POSIX wait status from os.system(): {status!r}")
+    raise ValueError(f'Unknown POSIX wait status from os.system(): {status!r}')
 
 
 def _textio_iterlines(stream: io.TextIOBase) -> Iterator[str]:
@@ -681,8 +692,9 @@ def _proc_async_iter_stream(
     out_queue = queue.Queue(maxsize=buffersize)
     control_queue = queue.Queue(maxsize=1)
     io_thread = threading.Thread(
-        target=_enqueue_output_thread_worker, args=(
-            proc, stream, out_queue, control_queue, timeout))
+        target=_enqueue_output_thread_worker,
+        args=(proc, stream, out_queue, control_queue, timeout),
+    )
     io_thread.daemon = True  # thread dies with the program
     io_thread.start()
     return io_thread, out_queue, control_queue
@@ -969,13 +981,17 @@ def _tee_output(
         # The value of "backend" should be checked before we create the
         # processes, otherwise we will have a dangling process
         raise AssertionError(
-            'Invalid backend, but the check should have already a happened')
+            'Invalid backend, but the check should have already a happened'
+        )
 
     output_gen = _proc_iteroutput(proc, timeout=timeout)
     # logger.debug("Start waiting for buffered output")
     for oline, eline in output_gen:
         if timeout is not None:
-            if oline is subprocess.TimeoutExpired or eline is subprocess.TimeoutExpired:
+            if (
+                oline is subprocess.TimeoutExpired
+                or eline is subprocess.TimeoutExpired
+            ):
                 # logger.error("Timeout error triggered!")
                 try:
                     out = ''.join(logged_out)

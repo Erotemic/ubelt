@@ -480,23 +480,31 @@ def _win32_read_junction(path):
 
     path = os.fspath(path)
     if jwfs is None:
-        raise ImportError('jaraco.windows.filesystem is required to run _win32_read_junction')
+        raise ImportError(
+            'jaraco.windows.filesystem is required to run _win32_read_junction'
+        )
 
     if not jwfs.is_reparse_point(path):
         raise ValueError('not a junction')
 
     # new version using the windows api
     handle = jwfs.api.CreateFile(
-            path, 0, 0, None, jwfs.api.OPEN_EXISTING,
-            jwfs.api.FILE_FLAG_OPEN_REPARSE_POINT |
-            jwfs.api.FILE_FLAG_BACKUP_SEMANTICS,
-            None)
+        path,
+        0,
+        0,
+        None,
+        jwfs.api.OPEN_EXISTING,
+        jwfs.api.FILE_FLAG_OPEN_REPARSE_POINT
+        | jwfs.api.FILE_FLAG_BACKUP_SEMANTICS,
+        None,
+    )
 
     if handle == jwfs.api.INVALID_HANDLE_VALUE:
         raise WindowsError()  # type: ignore[unresolved-reference]
 
     res = jwfs.reparse.DeviceIoControl(
-            handle, jwfs.api.FSCTL_GET_REPARSE_POINT, None, 10240)
+        handle, jwfs.api.FSCTL_GET_REPARSE_POINT, None, 10240
+    )
 
     bytes = ctypes.create_string_buffer(res)
     p_rdb = ctypes.cast(bytes, ctypes.POINTER(jwfs.api.REPARSE_DATA_BUFFER))
@@ -504,7 +512,8 @@ def _win32_read_junction(path):
 
     if rdb.tag not in [2684354563, jwfs.api.IO_REPARSE_TAG_SYMLINK]:
         raise RuntimeError(
-                "Expected <2684354563 or 2684354572>, but got %d" % rdb.tag)
+            'Expected <2684354563 or 2684354572>, but got %d' % rdb.tag
+        )
 
     jwfs.handle_nonzero_success(jwfs.api.CloseHandle(handle))
     subname = rdb.get_substitute_name()
@@ -605,24 +614,32 @@ def _win32_is_hardlinked(fpath1, fpath2):
             dwFlagsAndAttributes = jwfs.api.FILE_FLAG_BACKUP_SEMANTICS
         else:
             dwFlagsAndAttributes = 0
-        hFile = jwfs.api.CreateFile(fpath, jwfs.api.GENERIC_READ,
-                                    jwfs.api.FILE_SHARE_READ, None,
-                                    jwfs.api.OPEN_EXISTING,
-                                    dwFlagsAndAttributes, None)
+        hFile = jwfs.api.CreateFile(
+            fpath,
+            jwfs.api.GENERIC_READ,
+            jwfs.api.FILE_SHARE_READ,
+            None,
+            jwfs.api.OPEN_EXISTING,
+            dwFlagsAndAttributes,
+            None,
+        )
         return hFile
 
     def get_unique_id(hFile):
         info = jwfs.api.BY_HANDLE_FILE_INFORMATION()
         res = jwfs.api.GetFileInformationByHandle(hFile, info)
         jwfs.handle_nonzero_success(res)
-        unique_id = (info.volume_serial_number, info.file_index_high,
-                     info.file_index_low)
+        unique_id = (
+            info.volume_serial_number,
+            info.file_index_high,
+            info.file_index_low,
+        )
         return unique_id
 
     hFile1 = get_read_handle(fpath1)
     hFile2 = get_read_handle(fpath2)
     try:
-        are_equal = (get_unique_id(hFile1) == get_unique_id(hFile2))
+        are_equal = get_unique_id(hFile1) == get_unique_id(hFile2)
     except Exception:
         raise
     finally:

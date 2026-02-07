@@ -344,9 +344,7 @@ def timeparse(
 
     datetime_obj = None
     # Check if we might have a minimal format
-    maybe_minimal = (
-        len(stamp) >= 17 and 'T' in stamp[10:]
-    )
+    maybe_minimal = len(stamp) >= 17 and 'T' in stamp[10:]
     fixed_stamp = stamp
     if maybe_minimal:
         # Note by default %z only handles the format `[+-]HHMM(SS(.ffffff))`

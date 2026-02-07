@@ -390,9 +390,15 @@ man_pages = [(master_doc, 'ubelt', 'ubelt Documentation', [author], 1)]
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'ubelt', 'ubelt Documentation',
-     author, 'ubelt', 'One line description of project.',
-     'Miscellaneous'),
+    (
+        master_doc,
+        'ubelt',
+        'ubelt Documentation',
+        author,
+        'ubelt',
+        'One line description of project.',
+        'Miscellaneous',
+    ),
 ]
 
 
@@ -607,8 +613,15 @@ class GoogleStyleDocstringProcessor:
 
         return lines
 
-    def process_docstring_callback(self, app, what_: str, name: str, obj: Any,
-                                   options: Any, lines: List[str]) -> None:
+    def process_docstring_callback(
+        self,
+        app,
+        what_: str,
+        name: str,
+        obj: Any,
+        options: Any,
+        lines: List[str],
+    ) -> None:
         """
         Callback to be registered to autodoc-process-docstring
 
@@ -840,9 +853,9 @@ def create_doctest_figure(app, obj, name, lines):
     doc_srcdir = pathlib.Path(app.srcdir)
     doc_static_outdir = doc_outdir / '_static'
     doc_static_srcdir = doc_srcdir / '_static'
-    src_fig_dpath = (doc_static_srcdir / 'images')
+    src_fig_dpath = doc_static_srcdir / 'images'
     src_fig_dpath.mkdir(exist_ok=True, parents=True)
-    out_fig_dpath = (doc_static_outdir / 'images')
+    out_fig_dpath = doc_static_outdir / 'images'
     out_fig_dpath.mkdir(exist_ok=True, parents=True)
 
     # fig_dpath = (doc_outdir / 'autofigs' / name).mkdir(exist_ok=True)
@@ -874,7 +887,9 @@ def create_doctest_figure(app, obj, name, lines):
         # Where the doctests starts and ends relative to the file
         start_line_offset = doctest.lineno - 1
         last_part = doctest._parts[-1]
-        last_line_offset = start_line_offset + last_part.line_offset + last_part.n_lines - 1
+        last_line_offset = (
+            start_line_offset + last_part.line_offset + last_part.n_lines - 1
+        )
         offsets = {
             'start': start_line_offset,
             'end': last_line_offset,
@@ -939,19 +954,23 @@ def create_doctest_figure(app, obj, name, lines):
                     fig_num += 1
                     # path_name = path_sanatize(name)
                     path_name = (name).replace('.', '_')
-                    fig_fpath = src_fig_dpath / f'fig_{path_name}_{fig_num:03d}.jpeg'
+                    fig_fpath = (
+                        src_fig_dpath / f'fig_{path_name}_{fig_num:03d}.jpeg'
+                    )
                     fig.savefig(fig_fpath)
                     print(f'Wrote figure: {fig_fpath}')
-                    to_insert_fpaths.append({
-                        'insert_line_index': insert_line_index,
-                        'fpath': fig_fpath,
-                    })
+                    to_insert_fpaths.append(
+                        {
+                            'insert_line_index': insert_line_index,
+                            'fpath': fig_fpath,
+                        }
+                    )
 
                 for fig in figures:
                     plt.close(fig)
                 # kwplot.close_figures(figures)
 
-        curr_line_offset += (num_lines)
+        curr_line_offset += num_lines
 
     # if len(doctests) > 1:
     #     doctests
@@ -1036,14 +1055,18 @@ def fix_rst_todo_section(lines):
 
 def setup(app):
     import sphinx
-    app : sphinx.application.Sphinx = app
+
+    app: sphinx.application.Sphinx = app
     app.add_domain(PatchedPythonDomain, override=True)
 
     app.connect('doctree-resolved', postprocess_hyperlinks)
 
     docstring_processor = GoogleStyleDocstringProcessor()
     # https://stackoverflow.com/questions/26534184/can-sphinx-ignore-certain-tags-in-python-docstrings
-    app.connect('autodoc-process-docstring', docstring_processor.process_docstring_callback)
+    app.connect(
+        'autodoc-process-docstring',
+        docstring_processor.process_docstring_callback,
+    )
 
     def copy(src, dst):
         import shutil
@@ -1064,11 +1087,11 @@ def setup(app):
 
         mod_dpath = doc_srcdir / '../../../kwcoco'
 
-        src_fpath = (mod_dpath / 'coco_schema.json')
+        src_fpath = mod_dpath / 'coco_schema.json'
         copy(src_fpath, doc_outdir / src_fpath.name)
         copy(src_fpath, doc_srcdir / src_fpath.name)
 
-        src_fpath = (mod_dpath / 'coco_schema_informal.rst')
+        src_fpath = mod_dpath / 'coco_schema_informal.rst'
         copy(src_fpath, doc_outdir / src_fpath.name)
         copy(src_fpath, doc_srcdir / src_fpath.name)
     return app

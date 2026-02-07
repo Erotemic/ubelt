@@ -576,11 +576,14 @@ class ReprExtensions:
                 prefix = modname + '.empty('
                 body = repr(tuple(map(int, data.shape)))
             else:
-                body = np.array2string(data, precision=precision,
-                                       separator=separator,
-                                       suppress_small=suppress_small,
-                                       prefix=prefix,
-                                       max_line_width=max_line_width)
+                body = np.array2string(
+                    data,
+                    precision=precision,
+                    separator=separator,
+                    suppress_small=suppress_small,
+                    prefix=prefix,
+                    max_line_width=max_line_width,
+                )
 
             if not strvals:
                 # Handle special float values inf / nan
@@ -706,7 +709,13 @@ def _format_list(list_: Any, **kwargs: Any) -> tuple[str, dict[str, int]]:
         nobraces = False  # force braces to prevent empty output
 
     is_tuple = isinstance(list_, tuple)
-    is_set = isinstance(list_, (set, frozenset,))
+    is_set = isinstance(
+        list_,
+        (
+            set,
+            frozenset,
+        ),
+    )
     if nobraces:
         lbr, rbr = '', ''
     elif is_tuple:
@@ -717,7 +726,9 @@ def _format_list(list_: Any, **kwargs: Any) -> tuple[str, dict[str, int]]:
         lbr, rbr = '[', ']'
 
     # Doesn't actually put in trailing comma if on same line
-    trailing_sep = kwargs.get('trailsep', kwargs.get('trailing_sep', newlines > 0 and len(itemstrs)))
+    trailing_sep = kwargs.get(
+        'trailsep', kwargs.get('trailing_sep', newlines > 0 and len(itemstrs))
+    )
 
     # The trailing separator is always needed for single item tuples
     if is_tuple and len(list_) <= 1:
@@ -726,12 +737,23 @@ def _format_list(list_: Any, **kwargs: Any) -> tuple[str, dict[str, int]]:
     if len(itemstrs) == 0:
         newlines = False
 
-    retstr = _join_itemstrs(itemstrs, itemsep, newlines, _leaf_info, nobraces,
-                            trailing_sep, compact_brace, lbr, rbr)
+    retstr = _join_itemstrs(
+        itemstrs,
+        itemsep,
+        newlines,
+        _leaf_info,
+        nobraces,
+        trailing_sep,
+        compact_brace,
+        lbr,
+        rbr,
+    )
     return retstr, _leaf_info
 
 
-def _format_dict(dict_: dict[Any, Any], **kwargs: Any) -> tuple[str, dict[str, int] | None]:
+def _format_dict(
+    dict_: dict[Any, Any], **kwargs: Any
+) -> tuple[str, dict[str, int] | None]:
     """
     Makes a pretty printable / human-readable string representation of a
     dictionary. In most cases this string could be evaled.
@@ -833,8 +855,18 @@ def _format_dict(dict_: dict[Any, Any], **kwargs: Any) -> tuple[str, dict[str, i
             lbr, rbr = 'dict(', ')'
         else:
             lbr, rbr = '{', '}'
-        retstr = _join_itemstrs(itemstrs, itemsep, newlines, _leaf_info, nobraces,
-                                trailing_sep, compact_brace, lbr, rbr, align_char)
+        retstr = _join_itemstrs(
+            itemstrs,
+            itemsep,
+            newlines,
+            _leaf_info,
+            nobraces,
+            trailing_sep,
+            compact_brace,
+            lbr,
+            rbr,
+            align_char,
+        )
     return retstr, _leaf_info
 
 
@@ -890,20 +922,22 @@ def _join_itemstrs(
                 body_str += ','
             if compact_brace:
                 # Why can we modify the indentation here but not above?
-                braced_body_str = (lbr + body_str.replace('\n', '\n ') + rbr)
+                braced_body_str = lbr + body_str.replace('\n', '\n ') + rbr
             else:
-                braced_body_str = (lbr + '\n' + body_str + '\n' + rbr)
+                braced_body_str = lbr + '\n' + body_str + '\n' + rbr
             retstr = braced_body_str
     else:
         sep = ',' + itemsep
         body_str = sep.join(itemstrs)
         if trailing_sep and len(itemstrs) > 0:
             body_str += ','
-        retstr  = (lbr + body_str +  rbr)
+        retstr = lbr + body_str + rbr
     return retstr
 
 
-def _dict_itemstrs(dict_: dict[Any, Any], **kwargs: Any) -> tuple[list[str], dict[str, int]]:
+def _dict_itemstrs(
+    dict_: dict[Any, Any], **kwargs: Any
+) -> tuple[list[str], dict[str, int]]:
     """
     Create a string representation for each item in a dict.
 
@@ -1036,7 +1070,11 @@ def _list_itemstrs(
     return itemstrs, _leaf_info
 
 
-def _sort_itemstrs(items: list[Any], itemstrs: list[str], key: Callable[[Any], Any] | None = None) -> list[str]:
+def _sort_itemstrs(
+    items: list[Any],
+    itemstrs: list[str],
+    key: Callable[[Any], Any] | None = None,
+) -> list[str]:
     """
     Equivalent to ``sorted(items)`` except if ``items`` are unorderable, then
     string values are used to define an ordering.
@@ -1127,7 +1165,12 @@ def _align_text(
     return new_text
 
 
-def _align_lines(line_list: list[str], character: str = '=', replchar: str | None = None, pos: int | list[int] | None = 0) -> list[str]:
+def _align_lines(
+    line_list: list[str],
+    character: str = '=',
+    replchar: str | None = None,
+    pos: int | list[int] | None = 0,
+) -> list[str]:
     r"""
     Left justifies text on the left side of character
 

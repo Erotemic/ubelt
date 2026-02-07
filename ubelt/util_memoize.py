@@ -110,8 +110,7 @@ def _make_signature_key(args, kwargs):
     try:
         key = _hashable(args), _hashable(kwitems)
     except TypeError:
-        msg = ('Signature is not hashable: '
-               'args={} kwargs{}'.format(args, kwargs))
+        msg = 'Signature is not hashable: args={} kwargs{}'.format(args, kwargs)
         raise TypeError(msg)
     return key
 

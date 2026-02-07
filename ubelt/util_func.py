@@ -230,8 +230,10 @@ def compatible(
             pass  # Ignore variadic positional args
         elif arg.kind == inspect.Parameter.POSITIONAL_ONLY:
             pass  # Ignore positional only arguments
-        elif arg.kind in {inspect.Parameter.POSITIONAL_OR_KEYWORD,
-                          inspect.Parameter.KEYWORD_ONLY}:
+        elif arg.kind in {
+            inspect.Parameter.POSITIONAL_OR_KEYWORD,
+            inspect.Parameter.KEYWORD_ONLY,
+        }:
             argnames.append(arg.name)
         else:  # nocover
             raise TypeError(arg.kind)

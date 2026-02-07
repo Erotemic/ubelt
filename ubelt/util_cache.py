@@ -705,7 +705,9 @@ class Cacher:
             raise NotImplementedError('self.backend = {}'.format(self.backend))
         return data
 
-    def _backend_dump(self, data_fpath: str | os.PathLike, data: typing.Any) -> typing.Any:
+    def _backend_dump(
+        self, data_fpath: str | os.PathLike, data: typing.Any
+    ) -> typing.Any:
         # TODO: allow the user to customize the save backend.
         if self.backend == 'pickle':
             import pickle
@@ -721,7 +723,12 @@ class Cacher:
             raise NotImplementedError('self.backend = {}'.format(self.backend))
         return data
 
-    def ensure(self, func: 'typing.Callable[..., T]', *args: typing.Any, **kwargs: typing.Any) -> 'T':
+    def ensure(
+        self,
+        func: 'typing.Callable[..., T]',
+        *args: typing.Any,
+        **kwargs: typing.Any,
+    ) -> 'T':
         """
         Calls a function, caches, and returns the result. If a valid cache
         already exist it loads and returns the cache result instead.
@@ -928,9 +935,16 @@ class CacheStamp:
 
             cfgstr (str | None): DEPRECATED.
         """
-        self.cacher = Cacher(fname, cfgstr=cfgstr, dpath=dpath,
-                             verbose=verbose, enabled=enabled, depends=depends,
-                             meta=meta, ext=ext)
+        self.cacher = Cacher(
+            fname,
+            cfgstr=cfgstr,
+            dpath=dpath,
+            verbose=verbose,
+            enabled=enabled,
+            depends=depends,
+            meta=meta,
+            ext=ext,
+        )
         self.product = product
         self.hasher = hasher
         self.expires = expires
@@ -1006,8 +1020,12 @@ class CacheStamp:
                 schedule_deprecation(
                     modname='ubelt',
                     migration='Pass hasher as a string',
-                    name='hasher', type='CacheStamp arg',
-                    deprecate='1.1.0', error='1.3.0', remove='1.5.0')
+                    name='hasher',
+                    type='CacheStamp arg',
+                    deprecate='1.1.0',
+                    error='1.3.0',
+                    remove='1.5.0',
+                )
                 hasher_name = self.hasher.name
             else:
                 hasher_name = self.hasher
@@ -1021,7 +1039,7 @@ class CacheStamp:
         product_stats = [p.stat() for p in products]
         product_file_stats = {
             'mtime': [stat.st_mtime for stat in product_stats],
-            'size': [stat.st_size for stat in product_stats]
+            'size': [stat.st_size for stat in product_stats],
         }
         return product_file_stats
 
@@ -1034,12 +1052,15 @@ class CacheStamp:
             products = self._rectify_products(product)
             assert products is not None
             product_file_hash = [
-                hash_file(p, hasher=self.hasher, base='hex')
-                for p in products
+                hash_file(p, hasher=self.hasher, base='hex') for p in products
             ]
         return product_file_hash
 
-    def expired(self, cfgstr: typing.Any | None = None, product: typing.Any | None = None) -> bool | str:
+    def expired(
+        self,
+        cfgstr: typing.Any | None = None,
+        product: typing.Any | None = None,
+    ) -> bool | str:
         """
         Check to see if a previously existing stamp is still valid, if the
         expected result of that computation still exists, and if all other
@@ -1460,6 +1481,6 @@ def _byte_str(num: int | float, unit: str = 'auto', precision: int = 2) -> str:
         num_unit = num / (2.0**40)
     else:
         raise ValueError('unknown num={!r} unit={!r}'.format(num, unit))
-    fmtstr = ('{:.' + str(precision) + 'f}{}')
+    fmtstr = '{:.' + str(precision) + 'f}{}'
     res = fmtstr.format(num_unit, unit)
     return res

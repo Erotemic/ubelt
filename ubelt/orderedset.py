@@ -156,14 +156,16 @@ class OrderedSet(MutableSet[T], Sequence[T]):
             return self.copy()
         elif is_iterable(index):
             return [self.items[i] for i in index]  # type: ignore
-        elif hasattr(index, "__index__") or isinstance(index, slice):
-            result = self.items[index]   # type: ignore
+        elif hasattr(index, '__index__') or isinstance(index, slice):
+            result = self.items[index]  # type: ignore
             if isinstance(result, list):
                 return self.__class__(result)
             else:
                 return result
         else:
-            raise TypeError("Don't know how to index an OrderedSet by %r" % index)
+            raise TypeError(
+                "Don't know how to index an OrderedSet by %r" % index
+            )
 
     def copy(self) -> OrderedSet:
         """
@@ -272,12 +274,18 @@ class OrderedSet(MutableSet[T], Sequence[T]):
         return item_index
 
     @typing.overload
-    def index(self, value: T, start: int = 0, stop: int | None = None) -> int: ...
+    def index(
+        self, value: T, start: int = 0, stop: int | None = None
+    ) -> int: ...
 
     @typing.overload
-    def index(self, value: list[T], start: int = 0, stop: int | None = None) -> list[int]: ...
+    def index(
+        self, value: list[T], start: int = 0, stop: int | None = None
+    ) -> list[int]: ...
 
-    def index(self, value: T | list[T], start: int = 0, stop: int | None = None) -> int | list[int]:
+    def index(
+        self, value: T | list[T], start: int = 0, stop: int | None = None
+    ) -> int | list[int]:
         """
         Get the index of a given entry, raising an IndexError if it's not
         present.

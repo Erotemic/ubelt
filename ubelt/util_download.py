@@ -290,9 +290,9 @@ def download(
         def _build_extra():
             pbar._curr_measurement.time
             bytes_down = pbar._iter_idx
-            total_seconds = pbar._total_seconds + 1E-9
-            num_kb_down   = int(bytes_down) / 1024
-            num_mb_down   = int(num_kb_down / 1024)
+            total_seconds = pbar._total_seconds + 1e-9
+            num_kb_down = int(bytes_down) / 1024
+            num_mb_down = int(num_kb_down / 1024)
             kb_per_second = int(num_kb_down / (total_seconds))
             # fmt_msg = ' {:d} MB, {:d} KB/s'
             fmt_msg = ' {:d} KB/s'
@@ -347,13 +347,17 @@ def download(
                 print('got = {!r}'.format(got))
                 if _dst_is_io_object:
                     raise RuntimeError(
-                        'invalid hash value '
-                        '(expected "{}", got "{}")'.format(hash_prefix, got))
+                        'invalid hash value (expected "{}", got "{}")'.format(
+                            hash_prefix, got
+                        )
+                    )
                 else:
                     raise RuntimeError(
                         'invalid hash value for fpath={!r} '
                         '(expected "{}", got "{}")'.format(
-                            fpath, hash_prefix, got))
+                            fpath, hash_prefix, got
+                        )
+                    )
     finally:
         if not _dst_is_io_object:  # nocover
             if typing.TYPE_CHECKING:
@@ -523,8 +527,12 @@ def grabdata(
             schedule_deprecation(
                 modname='ubelt',
                 migration='Pass hasher as a string, otherwise unexpected behavior can occur',
-                name='hasher', type='grabdata arg',
-                deprecate='1.1.0', error='1.3.0', remove='1.5.0')
+                name='hasher',
+                type='grabdata arg',
+                deprecate='1.1.0',
+                error='1.3.0',
+                remove='1.5.0',
+            )
             hasher_name = getattr(hasher, 'name', None)
     else:
         hasher_name = None
@@ -568,8 +576,13 @@ def grabdata(
             needs_download = 0
         if needs_download:
             fpath = download(
-                url, fpath, verbose=verbose, hash_prefix=hash_prefix,
-                hasher=hasher, **download_kw)  # type: ignore[invalid-assignment]
+                url,
+                fpath,
+                verbose=verbose,
+                hash_prefix=hash_prefix,
+                hasher=hasher,
+                **download_kw,
+            )  # type: ignore[invalid-assignment]
             stamp.renew()
     assert fpath is not None
     return fpath

@@ -51,11 +51,21 @@ if typing.TYPE_CHECKING:
 
 
 __all__ = [
-    'WIN32', 'LINUX', 'DARWIN', 'POSIX',
-    'find_exe', 'find_path',
-    'ensure_app_cache_dir', 'ensure_app_config_dir', 'ensure_app_data_dir',
-    'get_app_cache_dir', 'get_app_config_dir', 'get_app_data_dir',
-    'platform_cache_dir', 'platform_config_dir', 'platform_data_dir'
+    'WIN32',
+    'LINUX',
+    'DARWIN',
+    'POSIX',
+    'find_exe',
+    'find_path',
+    'ensure_app_cache_dir',
+    'ensure_app_config_dir',
+    'ensure_app_data_dir',
+    'get_app_cache_dir',
+    'get_app_config_dir',
+    'get_app_data_dir',
+    'platform_cache_dir',
+    'platform_config_dir',
+    'platform_data_dir',
 ]
 
 # References:
@@ -151,9 +161,14 @@ def get_app_data_dir(appname: str, *args) -> str:
     from ubelt.util_deprecate import schedule_deprecation
 
     schedule_deprecation(
-        modname='ubelt', name='get_app_data_dir and ensure_app_data_dir', type='function',
+        modname='ubelt',
+        name='get_app_data_dir and ensure_app_data_dir',
+        type='function',
         migration='use ubelt.Path.appdir(type="data") instead',
-        deprecate='1.2.0', error='2.0.0', remove='2.1.0')
+        deprecate='1.2.0',
+        error='2.0.0',
+        remove='2.1.0',
+    )
     dpath = join(platform_data_dir(), appname, *args)
     return dpath
 
@@ -210,9 +225,14 @@ def get_app_config_dir(appname: str, *args) -> str:
     from ubelt.util_deprecate import schedule_deprecation
 
     schedule_deprecation(
-        modname='ubelt', name='get_app_config_dir and ensure_app_config_dir', type='function',
+        modname='ubelt',
+        name='get_app_config_dir and ensure_app_config_dir',
+        type='function',
         migration='use ubelt.Path.appdir(type="config") instead',
-        deprecate='1.2.0', error='2.0.0', remove='2.1.0')
+        deprecate='1.2.0',
+        error='2.0.0',
+        remove='2.1.0',
+    )
     dpath = join(platform_config_dir(), appname, *args)
     return dpath
 
@@ -272,9 +292,14 @@ def get_app_cache_dir(appname: str, *args) -> str:
     from ubelt.util_deprecate import schedule_deprecation
 
     schedule_deprecation(
-        modname='ubelt', name='get_app_cache_dir and ensure_app_cache_dir', type='function',
+        modname='ubelt',
+        name='get_app_cache_dir and ensure_app_cache_dir',
+        type='function',
         migration='use ubelt.Path.appdir(type="cache") instead',
-        deprecate='1.2.0', error='2.0.0', remove='2.1.0')
+        deprecate='1.2.0',
+        error='2.0.0',
+        remove='2.1.0',
+    )
     dpath = join(platform_cache_dir(), appname, *args)
     return dpath
 

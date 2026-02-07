@@ -171,13 +171,16 @@ class chunks(Iterable[List[VT]]):
         >>>     print(subdf)
 
     """
-    def __init__(self,
-                 items: Iterable[VT],
-                 chunksize: int | None = None,
-                 nchunks: int | None = None,
-                 total: int | None = None,
-                 bordermode: str = 'none',
-                 legacy: bool = False) -> None:
+
+    def __init__(
+        self,
+        items: Iterable[VT],
+        chunksize: int | None = None,
+        nchunks: int | None = None,
+        total: int | None = None,
+        bordermode: str = 'none',
+        legacy: bool = False,
+    ) -> None:
         """
         Args:
             items (Iterable): input to iterate over
@@ -303,7 +306,7 @@ class chunks(Iterable[List[VT]]):
             assert nchunks is not None
             chunksize_iter = it.chain(
                 it.repeat(chunksize + 1, remainder),
-                it.repeat(chunksize, nchunks - remainder)
+                it.repeat(chunksize, nchunks - remainder),
             )
         else:
             assert nchunks is not None
@@ -354,7 +357,7 @@ class chunks(Iterable[List[VT]]):
             if len(filt_chunk) == chunksize:
                 yield filt_chunk
             else:
-                sizediff = (chunksize - len(filt_chunk))
+                sizediff = chunksize - len(filt_chunk)
                 padded_chunk = filt_chunk + [filt_chunk[-1]] * sizediff
                 yield padded_chunk
 
@@ -390,9 +393,11 @@ def iterable(obj: object, strok: bool = False) -> bool:
         return strok or not isinstance(obj, str)
 
 
-def take(items: Sequence[VT] | Mapping[KT | int, VT],
-         indices: Iterable[int | KT],
-         default: Any | NoParamType = NoParam) -> Generator[VT, None, None]:
+def take(
+    items: Sequence[VT] | Mapping[KT | int, VT],
+    indices: Iterable[int | KT],
+    default: Any | NoParamType = NoParam,
+) -> Generator[VT, None, None]:
     """
     Lookup a subset of an indexable object using a sequence of indices.
 
@@ -808,20 +813,26 @@ def allsame(
 
 
 @typing.overload
-def argsort(indexable: Iterable[VT],
-            key: Callable[[VT], Any] | None = None,
-            reverse: bool = False) -> Sequence[int]:
-    ...
+def argsort(
+    indexable: Iterable[VT],
+    key: Callable[[VT], Any] | None = None,
+    reverse: bool = False,
+) -> Sequence[int]: ...
+
 
 @typing.overload
-def argsort(indexable: Mapping[KT, VT],
-            key: Callable[[VT], Any] | None = None,
-            reverse: bool = False) -> Sequence[KT]:
-    ...
+def argsort(
+    indexable: Mapping[KT, VT],
+    key: Callable[[VT], Any] | None = None,
+    reverse: bool = False,
+) -> Sequence[KT]: ...
 
-def argsort(indexable: Iterable[VT] | Mapping[KT, VT],
-            key: Callable[[VT], Any] | None = None,
-            reverse: bool = False) -> Sequence[int] | Sequence[KT]:
+
+def argsort(
+    indexable: Iterable[VT] | Mapping[KT, VT],
+    key: Callable[[VT], Any] | None = None,
+    reverse: bool = False,
+) -> Sequence[int] | Sequence[KT]:
     """
     Returns the indices that would sort a indexable object.
 
@@ -883,17 +894,21 @@ def argsort(indexable: Iterable[VT] | Mapping[KT, VT],
 
 
 @typing.overload
-def argmax(indexable: Iterable[VT],
-           key: Callable[[VT], Any] | None = None) -> int:
-    ...
+def argmax(
+    indexable: Iterable[VT], key: Callable[[VT], Any] | None = None
+) -> int: ...
+
 
 @typing.overload
-def argmax(indexable: Mapping[KT, VT],
-           key: Callable[[VT], Any] | None = None) -> KT:
-    ...
+def argmax(
+    indexable: Mapping[KT, VT], key: Callable[[VT], Any] | None = None
+) -> KT: ...
 
-def argmax(indexable: Iterable[VT] | Mapping[KT, VT],
-           key: Callable[[VT], Any] | None = None) -> int | KT:
+
+def argmax(
+    indexable: Iterable[VT] | Mapping[KT, VT],
+    key: Callable[[VT], Any] | None = None,
+) -> int | KT:
     """
     Returns index / key of the item with the largest value.
 
@@ -936,17 +951,21 @@ def argmax(indexable: Iterable[VT] | Mapping[KT, VT],
 
 
 @typing.overload
-def argmin(indexable: Iterable[VT],
-           key: Callable[[VT], Any] | None = None) -> int:
-    ...
+def argmin(
+    indexable: Iterable[VT], key: Callable[[VT], Any] | None = None
+) -> int: ...
+
 
 @typing.overload
-def argmin(indexable: Mapping[KT, VT],
-           key: Callable[[VT], Any] | None = None) -> KT:
-    ...
+def argmin(
+    indexable: Mapping[KT, VT], key: Callable[[VT], Any] | None = None
+) -> KT: ...
 
-def argmin(indexable: Iterable[VT] | Mapping[KT, VT],
-           key: Callable[[VT], Any] | None = None) -> int | KT:
+
+def argmin(
+    indexable: Iterable[VT] | Mapping[KT, VT],
+    key: Callable[[VT], Any] | None = None,
+) -> int | KT:
     """
     Returns index / key of the item with the smallest value.
 
@@ -1041,10 +1060,12 @@ class IterableMixin(Iterable):
     duplicates = util_dict.find_duplicates
     group = util_dict.group_items
 
-    def chunks(self,
-               size: int | None = None,
-               num: int | None = None,
-               bordermode: str = 'none') -> Iterable[list[VT]]:
+    def chunks(
+        self,
+        size: int | None = None,
+        num: int | None = None,
+        bordermode: str = 'none',
+    ) -> Iterable[list[VT]]:
         return chunks(
             self,
             chunksize=size,

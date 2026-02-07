@@ -1000,9 +1000,17 @@ class Path(_PathBase):
                 'is.'
             )
 
-        aug = augpath(self, suffix=stemsuffix, prefix=prefix, ext=ext, base=stem,
-                      dpath=dpath, relative=relative, multidot=multidot,
-                      tail=tail)
+        aug = augpath(
+            self,
+            suffix=stemsuffix,
+            prefix=prefix,
+            ext=ext,
+            base=stem,
+            dpath=dpath,
+            relative=relative,
+            multidot=multidot,
+            tail=tail,
+        )
         new = self.__class__(aug)
         return new
 
@@ -1442,19 +1450,27 @@ class Path(_PathBase):
 
         if len(kwargs):
             bad_key = list(kwargs)[0]
-            raise TypeError(f'{self.__class__.__name__}.relative_to() got an unexpected keyword argument {bad_key!r}')
+            raise TypeError(
+                f'{self.__class__.__name__}.relative_to() got an unexpected keyword argument {bad_key!r}'
+            )
 
         if PYTHON_GE_3_12:  # nocover
             # Use the parent implementation if available
             yield from super().walk(
-                top_down=top_down, on_error=on_error,
-                follow_symlinks=follow_symlinks)
-        else:   # nocover
+                top_down=top_down,
+                on_error=on_error,
+                follow_symlinks=follow_symlinks,
+            )
+        else:  # nocover
             # TODO: backport the 3.12 implementation, which is more efficient
             # Our original implementation
             cls = self.__class__
-            walker = os.walk(self, topdown=top_down, onerror=on_error,
-                             followlinks=follow_symlinks)
+            walker = os.walk(
+                self,
+                topdown=top_down,
+                onerror=on_error,
+                followlinks=follow_symlinks,
+            )
             for root, dnames, fnames in walker:
                 yield (cls(root), dnames, fnames)
 
@@ -1753,7 +1769,9 @@ class Path(_PathBase):
 
         copy_function = self._request_copy_function(
             follow_file_symlinks=follow_file_symlinks,
-            follow_dir_symlinks=follow_dir_symlinks, meta=meta)
+            follow_dir_symlinks=follow_dir_symlinks,
+            meta=meta,
+        )
 
         if WIN32 and platform.python_implementation() == 'PyPy':  # nocover
             _patch_win32_stats_on_pypy()
@@ -1762,8 +1780,12 @@ class Path(_PathBase):
             copytree = shutil.copytree
 
             dst = copytree(
-                os.fspath(self), os.fspath(dst), copy_function=copy_function,
-                symlinks=not follow_dir_symlinks, dirs_exist_ok=overwrite)
+                os.fspath(self),
+                os.fspath(dst),
+                copy_function=copy_function,
+                symlinks=not follow_dir_symlinks,
+                dirs_exist_ok=overwrite,
+            )
         elif self.is_file():
             if not overwrite:
                 dst = Path(dst)
@@ -1856,8 +1878,12 @@ class Path(_PathBase):
 
         copy_function = self._request_copy_function(
             follow_file_symlinks=follow_file_symlinks,
-            follow_dir_symlinks=follow_dir_symlinks, meta=meta)
-        real_dst = shutil.move(os.fspath(self), os.fspath(dst), copy_function=copy_function)
+            follow_dir_symlinks=follow_dir_symlinks,
+            meta=meta,
+        )
+        real_dst = shutil.move(
+            os.fspath(self), os.fspath(dst), copy_function=copy_function
+        )
         return Path(real_dst)
 
 
@@ -2000,12 +2026,13 @@ def _resolve_chmod_code(old_mode, code):
                     new_mode |= val
             elif op == '-':
                 for val in action_values:
-                    new_mode &= (~val)
+                    new_mode &= ~val
             elif op == '=':
                 raise NotImplementedError(f'new chmod code for op={op}')
             else:
                 raise AssertionError(
-                    f'should not be able to get here. unknown op code: op={op}')
+                    f'should not be able to get here. unknown op code: op={op}'
+                )
         except KeyError:
             # Give a better error message if something goes wrong
             raise ValueError(f'Unknown action: {action}')
@@ -2091,9 +2118,9 @@ def _patch_win32_stats_on_pypy():
     """
     if not hasattr(stat, 'IO_REPARSE_TAG_MOUNT_POINT'):  # nocover
         os.supports_follow_symlinks.add(os.stat)
-        stat.IO_REPARSE_TAG_APPEXECLINK = 0x8000001b  # type: ignore[unresolved-attribute]
-        stat.IO_REPARSE_TAG_MOUNT_POINT = 0xa0000003  # type: ignore[unresolved-attribute]
-        stat.IO_REPARSE_TAG_SYMLINK = 0xa000000c      # type: ignore[unresolved-attribute]
+        stat.IO_REPARSE_TAG_APPEXECLINK = 0x8000001B  # type: ignore[unresolved-attribute]
+        stat.IO_REPARSE_TAG_MOUNT_POINT = 0xA0000003  # type: ignore[unresolved-attribute]
+        stat.IO_REPARSE_TAG_SYMLINK = 0xA000000C  # type: ignore[unresolved-attribute]
 
 
 def _is_relative_to_backport(self, other):
@@ -2171,7 +2198,9 @@ def _relative_path_backport(self, other, walk_up=False):  # nocover
     anchor0, parts0 = self_parts[0], list(reversed(self_parts[1:]))
     anchor1, parts1 = other_parts[0], list(reversed(other_parts[1:]))
     if anchor0 != anchor1:
-        raise ValueError(f"{self._raw_path!r} and {other._raw_path!r} have different anchors")
+        raise ValueError(
+            f'{self._raw_path!r} and {other._raw_path!r} have different anchors'
+        )
     while parts0 and parts1 and parts0[-1] == parts1[-1]:
         parts0.pop()
         parts1.pop()
@@ -2179,9 +2208,13 @@ def _relative_path_backport(self, other, walk_up=False):  # nocover
         if not part or part == '.':
             pass
         elif not walk_up:
-            raise ValueError(f"{self._raw_path!r} is not in the subpath of {other._raw_path!r}")
+            raise ValueError(
+                f'{self._raw_path!r} is not in the subpath of {other._raw_path!r}'
+            )
         elif part == '..':
-            raise ValueError(f"'..' segment in {other._raw_path!r} cannot be walked")
+            raise ValueError(
+                f"'..' segment in {other._raw_path!r} cannot be walked"
+            )
         else:
             parts0.append('..')
     # return self.with_segments('', *reversed(parts0))
