@@ -671,9 +671,9 @@ class GoogleStyleDocstringProcessor:
         FIX_EXAMPLE_FORMATTING = 1
         if FIX_EXAMPLE_FORMATTING:
             for idx, line in enumerate(lines):
-                if line == "Example:":
-                    lines[idx] = "**Example:**"
-                    lines.insert(idx + 1, "")
+                if line == 'Example:':
+                    lines[idx] = '**Example:**'
+                    lines.insert(idx + 1, '')
 
         REFORMAT_SECTIONS = 0
         if REFORMAT_SECTIONS:
@@ -1039,7 +1039,7 @@ def setup(app):
     app : sphinx.application.Sphinx = app
     app.add_domain(PatchedPythonDomain, override=True)
 
-    app.connect("doctree-resolved", postprocess_hyperlinks)
+    app.connect('doctree-resolved', postprocess_hyperlinks)
 
     docstring_processor = GoogleStyleDocstringProcessor()
     # https://stackoverflow.com/questions/26534184/can-sphinx-ignore-certain-tags-in-python-docstrings

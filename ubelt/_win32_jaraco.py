@@ -59,7 +59,7 @@ import ctypes.wintypes
 # Makes mypy happy
 import sys
 
-assert sys.platform == "win32"
+assert sys.platform == 'win32'
 
 
 def handle_nonzero_success(result):
@@ -212,7 +212,7 @@ def link(target, link):
 def _reparse_DeviceIoControl(device, io_control_code, in_buffer, out_buffer, overlapped=None):
     # ubelt note: name is overloaded, so we mangle it here.
     if overlapped is not None:
-        raise NotImplementedError("overlapped handles not yet supported")
+        raise NotImplementedError('overlapped handles not yet supported')
 
     if isinstance(out_buffer, int):
         out_buffer = ctypes.create_string_buffer(out_buffer)

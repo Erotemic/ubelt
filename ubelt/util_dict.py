@@ -63,9 +63,9 @@ from collections.abc import Generator, Iterable, Mapping
 
 from ubelt.util_const import NoParam
 
-KT = typing.TypeVar("KT")
-VT = typing.TypeVar("VT")
-T = typing.TypeVar("T")
+KT = typing.TypeVar('KT')
+VT = typing.TypeVar('VT')
+T = typing.TypeVar('T')
 
 if typing.TYPE_CHECKING:
     from typing import (

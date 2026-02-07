@@ -47,7 +47,7 @@ __all__ = ['OrderedSet', 'oset']
 
 
 SLICE_ALL: slice = slice(None)
-__version__ = "3.2"
+__version__ = '3.2'
 
 
 def is_iterable(obj) -> bool:
@@ -67,7 +67,7 @@ def is_iterable(obj) -> bool:
         bool
     """
     return (
-        hasattr(obj, "__iter__")
+        hasattr(obj, '__iter__')
         and not isinstance(obj, str)
         and not isinstance(obj, tuple)
     )
@@ -267,7 +267,7 @@ class OrderedSet(MutableSet[T], Sequence[T]):
                 item_index = self.add(item)
         except TypeError:
             raise ValueError(
-                "Argument needs to be an iterable, got %s" % type(sequence)
+                'Argument needs to be an iterable, got %s' % type(sequence)
             )
         return item_index
 
@@ -325,7 +325,7 @@ class OrderedSet(MutableSet[T], Sequence[T]):
             3
         """
         if not self.items:
-            raise KeyError("Set is empty")
+            raise KeyError('Set is empty')
 
         elem = self.items[-1]
         del self.items[-1]
@@ -408,8 +408,8 @@ class OrderedSet(MutableSet[T], Sequence[T]):
             str
         """
         if not self:
-            return "%s()" % (self.__class__.__name__,)
-        return "%s(%r)" % (self.__class__.__name__, list(self))
+            return '%s()' % (self.__class__.__name__,)
+        return '%s(%r)' % (self.__class__.__name__, list(self))
 
     def __eq__(self, other: typing.Any) -> bool:
         """

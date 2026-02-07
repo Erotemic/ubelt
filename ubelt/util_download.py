@@ -236,9 +236,9 @@ def download(
     if filesize is None:
         try:
             if hasattr(meta, 'getheaders'):  # nocover
-                filesize = int(meta.getheaders("Content-Length")[0])
+                filesize = int(meta.getheaders('Content-Length')[0])
             else:
-                filesize = int(meta.get_all("Content-Length")[0])
+                filesize = int(meta.get_all('Content-Length')[0])
         except Exception:  # nocover
             # sometimes the url does not contain content length metadata
             # TODO: find a public URL that exemplifies this or figure out how to

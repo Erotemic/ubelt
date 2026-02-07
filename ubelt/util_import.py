@@ -310,7 +310,7 @@ def import_module_from_path(
                 try:
                     try:
                         # module = zimp_file.load_module(modname)
-                        if hasattr(zimp_file, "exec_module"):
+                        if hasattr(zimp_file, 'exec_module'):
                             import importlib
 
                             # Modern path (3.4+; preferred, no deprecation)
@@ -325,7 +325,7 @@ def import_module_from_path(
                             module = zimp_file.load_module(modname)
                     except Exception:  # nocover
                         _modname = modname.replace('\\', '/')  # hack
-                        if hasattr(zimp_file, "exec_module"):
+                        if hasattr(zimp_file, 'exec_module'):
                             import importlib
 
                             # Modern path (3.4+; preferred, no deprecation)

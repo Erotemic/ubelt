@@ -682,7 +682,7 @@ class ProgIter(_TQDMCompat, _BackwardsCompat, Iterable[T]):
         """
         if callable(extra):
             self._extra_fn = typing.cast(typing.Callable[[], str], extra)
-            self.extra = ""
+            self.extra = ''
         else:
             self._extra_fn = None
             self.extra = extra

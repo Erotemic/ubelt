@@ -159,7 +159,7 @@ class CmdOutput(dict):
             int
         """
         try:
-            return self["ret"]
+            return self['ret']
         except KeyError:
             # Avoid surprising KeyError; make the mode restriction explicit
             raise RuntimeError("returncode is unavailable when detach=True") from None
@@ -600,12 +600,12 @@ def _normalize_system_returncode(status: int) -> int:
     - Windows/non-POSIX: return status as-is (already an exit/termination code)
     """
     # Py3.9+ has the official decoder for POSIX wait statuses
-    fn = getattr(os, "waitstatus_to_exitcode", None)
+    fn = getattr(os, 'waitstatus_to_exitcode', None)
     if fn is not None:
         return fn(status)
 
     # Py3.8 fallback
-    if os.name != "posix":
+    if os.name != 'posix':
         # Windows: os.system() is not a POSIX wait-status; don't decode it.
         return status
 
@@ -651,7 +651,7 @@ def _proc_async_iter_stream(
     stream: io.TextIOBase,
     buffersize: int = 1,
     timeout: float | None = None,
-) -> tuple[threading.Thread, "queue.Queue[str | None]", "queue.Queue[object]"]:
+) -> tuple[threading.Thread, 'queue.Queue[str | None]', 'queue.Queue[object]']:
     """
     Reads output from a process in a separate thread.
 
@@ -691,8 +691,8 @@ def _proc_async_iter_stream(
 def _enqueue_output_thread_worker(
     proc: subprocess.Popen,
     stream: io.TextIOBase,
-    out_queue: "queue.Queue[str | None]",
-    control_queue: "queue.Queue[object]",
+    out_queue: 'queue.Queue[str | None]',
+    control_queue: 'queue.Queue[object]',
     timeout: float | None = None,
 ) -> None:
     """
@@ -923,7 +923,7 @@ def _tee_output(
     proc: subprocess.Popen,
     stdout: io.TextIOBase | None = None,
     stderr: io.TextIOBase | None = None,
-    backend: str = "thread",
+    backend: str = 'thread',
     timeout: float | None = None,
     command_text: str = '',
 ) -> tuple[str, str]:
