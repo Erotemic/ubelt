@@ -171,7 +171,7 @@ def test_indexable_walker_map_patterns():
         '3': {
             'foo': 'bar',
             'baz': [1, 2, ['biz']],
-        }
+        },
     }
     self = ub.IndexableWalker(data)
     func = type

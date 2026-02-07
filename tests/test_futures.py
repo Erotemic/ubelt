@@ -95,7 +95,9 @@ def test_job_pool_clear_completed():
             referrers = ub.udict({})
             for jobid, ref in weak_futures.items():
                 fs = ref()
-                referrers[jobid] = 0 if fs is None else len(gc.get_referrers(fs))
+                referrers[jobid] = (
+                    0 if fs is None else len(gc.get_referrers(fs))
+                )
             print('is_deleted = {}'.format(ub.urepr(is_deleted, nl=1)))
             print('referrers = {}'.format(ub.urepr(referrers, nl=1)))
 

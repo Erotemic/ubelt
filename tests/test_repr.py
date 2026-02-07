@@ -12,14 +12,15 @@ def test_newlines():
     assert ub.urepr(dict_, nl=2) != ub.urepr(dict_, nl=3)
     assert ub.urepr(dict_, nl=3) == ub.urepr(dict_, nl=4)
     assert ub.urepr(dict_, nl=1) == ub.codeblock(
-        '''
+        """
         {
             'k1': [[1, 2, 3], [4, 5, 6]],
             'k2': [[1, 2, 3], [4, 5, 6]],
         }
-        ''')
+        """
+    )
     assert ub.urepr(dict_, nl=2) == ub.codeblock(
-        '''
+        """
         {
             'k1': [
                 [1, 2, 3],
@@ -30,11 +31,13 @@ def test_newlines():
                 [4, 5, 6],
             ],
         }
-        ''')
+        """
+    )
 
 
 def test_negative_newlines():
     import ubelt as ub
+
     dict_ = {
         'k1': [[1, 2, 3], [4, 5, 6]],
         'k2': [[[1, 2, [1, 2, 3]], [1, 2, 3], 3], [4, 5, 6]],
@@ -44,7 +47,7 @@ def test_negative_newlines():
     text = ub.urepr(dict_, nl=-1)
     print(text)
     assert text == ub.codeblock(
-        '''
+        """
         {
             'k1': [
                 [1, 2, 3],
@@ -72,23 +75,27 @@ def test_negative_newlines():
                 [4, 5, 6]
             ]
         }
-        ''')
+        """
+    )
 
 
 def test_compact_brace():
     import ubelt as ub
+
     def _nest(d, w):
         if d == 0:
             return {}
         else:
-            return {'n{}'.format(d): _nest(d - 1, w + 1),
-                    'mm{}'.format(d): _nest(d - 1, w + 1)}
+            return {
+                'n{}'.format(d): _nest(d - 1, w + 1),
+                'mm{}'.format(d): _nest(d - 1, w + 1),
+            }
 
     dict_ = _nest(d=3, w=1)
     result = ub.urepr(dict_, nl=4, precision=2, compact_brace=0, sort=1)
     print(result)
     assert result == ub.codeblock(
-        '''
+        """
         {
             'mm3': {
                 'mm2': {
@@ -111,12 +118,13 @@ def test_compact_brace():
                 },
             },
         }
-        ''')
+        """
+    )
 
     result = ub.urepr(dict_, nl=4, precision=2, compact_brace=1, sort=1)
     print(result)
     assert result == ub.codeblock(
-        '''
+        """
         {'mm3': {'mm2': {'mm1': {},
                          'n1': {},},
                  'n2': {'mm1': {},
@@ -125,11 +133,13 @@ def test_compact_brace():
                         'n1': {},},
                 'n2': {'mm1': {},
                        'n1': {},},},}
-        ''')
+        """
+    )
 
 
 def test_empty():
     import ubelt as ub
+
     assert ub.urepr(list()) == '[]'
     assert ub.urepr(dict()) == '{}'
     assert ub.urepr(set()) == '{}'
@@ -163,7 +173,7 @@ def test_list_of_numpy():
     print(text)
     assert repr(data) == repr(eval(text)), 'should produce eval-able code'
     assert text == ub.codeblock(
-        '''
+        """
         [
             np.array([[0, 0, 0],
                       [0, 0, 0],
@@ -181,11 +191,12 @@ def test_list_of_numpy():
                       [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                        0, 0, 0, 0, 0, 0, 0, 0, 0]], dtype=np.int32),
         ]
-        ''')
+        """
+    )
     text = ub.urepr(data, max_line_width=10000, nl=2)
     print(text)
     assert text == ub.codeblock(
-        '''
+        """
         [
             np.array([[0, 0, 0],
                       [0, 0, 0],
@@ -200,25 +211,26 @@ def test_list_of_numpy():
                       [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                       [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]], dtype=np.int32),
         ]
-        ''')
+        """
+    )
     text = ub.urepr(data, nl=1)
     print(text)
     assert text == ub.codeblock(
-        '''
+        """
         [
             np.array([[0, 0, 0],[0, 0, 0],[0, 0, 0]], dtype=np.int32),
             np.array([[0, 0, 0, 0, 0, 0, 0, 0, 0, 0],[0, 0, 0, 0, 0, 0, 0, 0, 0, 0],[0, 0, 0, 0, 0, 0, 0, 0, 0, 0]], dtype=np.int32),
             np.array([[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]], dtype=np.int32),
             np.array([[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,0, 0, 0, 0, 0, 0, 0, 0, 0],[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,0, 0, 0, 0, 0, 0, 0, 0, 0],[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,0, 0, 0, 0, 0, 0, 0, 0, 0]], dtype=np.int32),
         ]
-        '''
+        """
     )
     text = ub.urepr(data, nl=0)
     print(text)
     assert text == ub.codeblock(
-        '''
+        """
         [np.array([[0, 0, 0],[0, 0, 0],[0, 0, 0]], dtype=np.int32), np.array([[0, 0, 0, 0, 0, 0, 0, 0, 0, 0],[0, 0, 0, 0, 0, 0, 0, 0, 0, 0],[0, 0, 0, 0, 0, 0, 0, 0, 0, 0]], dtype=np.int32), np.array([[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]], dtype=np.int32), np.array([[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,0, 0, 0, 0, 0, 0, 0, 0, 0],[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,0, 0, 0, 0, 0, 0, 0, 0, 0],[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,0, 0, 0, 0, 0, 0, 0, 0, 0]], dtype=np.int32)]
-        '''
+        """
     )
 
 
@@ -227,20 +239,24 @@ def test_dict_of_numpy():
         import numpy as np
     except ImportError:
         import pytest
+
         pytest.skip('numpy is optional')
-    data = ub.odict(zip(
-        ['one', 'two', 'three', 'four'],
-        [
-            np.zeros((3, 3), dtype=np.int32),
-            np.zeros((3, 10), dtype=np.int32),
-            np.zeros((3, 20), dtype=np.int32),
-            np.zeros((3, 30), dtype=np.int32),
-        ]))
+    data = ub.odict(
+        zip(
+            ['one', 'two', 'three', 'four'],
+            [
+                np.zeros((3, 3), dtype=np.int32),
+                np.zeros((3, 10), dtype=np.int32),
+                np.zeros((3, 20), dtype=np.int32),
+                np.zeros((3, 30), dtype=np.int32),
+            ],
+        )
+    )
 
     text = ub.urepr(data, nl=2)
     print(text)
     assert text == ub.codeblock(
-        '''
+        """
         {
             'one': np.array([[0, 0, 0],
                              [0, 0, 0],
@@ -258,7 +274,8 @@ def test_dict_of_numpy():
                               [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                                0, 0, 0, 0, 0, 0, 0, 0, 0]], dtype=np.int32),
         }
-        ''')
+        """
+    )
 
 
 def test_numpy_scalar_precision():
@@ -280,12 +297,13 @@ def test_urepr_tuple_keys():
     text = ub.urepr(data)
     print(text)
     assert text == ub.codeblock(
-        '''
+        """
         {
             ('one', 'two'): 100,
             ('three', 'four'): 200,
         }
-        ''')
+        """
+    )
 
     data = {
         ('one', 'two'): 100,
@@ -294,30 +312,34 @@ def test_urepr_tuple_keys():
     text = ub.urepr(data, sk=1)
     print(text)
     assert text == ub.codeblock(
-        '''
+        """
         {
             ('one', 'two'): 100,
             ('three', 'four'): 200,
         }
-        ''')
+        """
+    )
 
 
 def test_newline_keys():
     import ubelt as ub
+
     class NLRepr:
         def __repr__(self):
             return ub.codeblock(
-                '''
+                """
                 <This repr has newlines, and the first line is long:
                    * line1
                    * line2>
-                ''')
+                """
+            )
+
     key = NLRepr()
-    dict_ =  {key: {key: [1, 2, 3, key]}}
+    dict_ = {key: {key: [1, 2, 3, key]}}
     text = ub.urepr(dict_)
     print(text)
     want = ub.codeblock(
-        '''
+        """
         {
             <This repr has newlines, and the first line is long:
                * line1
@@ -334,12 +356,13 @@ def test_newline_keys():
                 ],
             },
         }
-        ''')
+        """
+    )
     assert text == want
 
     text = ub.urepr(dict_, cbr=True)
     want = ub.codeblock(
-        '''
+        """
         {<This repr has newlines, and the first line is long:
             * line1
             * line2>: {<This repr has newlines, and the first line is long:
@@ -350,13 +373,15 @@ def test_newline_keys():
            <This repr has newlines, and the first line is long:
               * line1
               * line2>,],},}
-        ''')
+        """
+    )
     print(text)
     assert text == want
 
 
 def test_format_inf():
     import ubelt as ub
+
     ub.urepr(float('inf'))
     ub.urepr({'a': float('inf')})
 
@@ -377,32 +402,37 @@ def test_autosort():
     import sys
 
     import ubelt as ub
+
     dict_ = {
         'k2': [[9, 2, 3], [4, 5, 2]],
         'k1': [[1, 7, 3], [8, 5, 6]],
     }
     if sys.version_info[0:2] >= (3, 7):
         import pytest
+
         # with pytest.deprecated_call():
         with pytest.warns(Warning):
             assert ub.repr2(dict_, sort='auto', nl=1) == ub.codeblock(
-                '''
+                """
                 {
                     'k1': [[1, 7, 3], [8, 5, 6]],
                     'k2': [[9, 2, 3], [4, 5, 2]],
                 }
-                ''')
+                """
+            )
 
     if sys.version_info[0:2] >= (3, 7):
         from collections import OrderedDict
+
         dict_ = OrderedDict(sorted(dict_.items())[::-1])
         assert ub.urepr(dict_, sort='auto', nl=1) == ub.codeblock(
-            '''
+            """
             {
                 'k2': [[9, 2, 3], [4, 5, 2]],
                 'k1': [[1, 7, 3], [8, 5, 6]],
             }
-            ''')
+            """
+        )
 
 
 def test_align_with_nobrace():
@@ -410,22 +440,24 @@ def test_align_with_nobrace():
     text = ub.urepr(data, align=':')
     print(text)
     assert text == ub.codeblock(
-        '''
+        """
         {
             '123': 123,
             '45' : 45,
             '6'  : 6,
         }
-        ''')
+        """
+    )
 
     text = ub.urepr(data, align=':', nobr=1)
     print(text)
     assert text == ub.codeblock(
-        '''
+        """
         '123': 123,
         '45' : 45,
         '6'  : 6,
-        ''')
+        """
+    )
 
 
 def test_align_bool():
@@ -433,12 +465,13 @@ def test_align_bool():
     text = ub.urepr(data, align=True, explicit=True)
     print(text)
     assert text == ub.codeblock(
-        '''
+        """
         dict(
             a =1,
             bb=2,
         )
-        ''')
+        """
+    )
 
 
 if __name__ == '__main__':

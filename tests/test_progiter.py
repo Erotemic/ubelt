@@ -56,34 +56,36 @@ class FakeTimer:
 
 def test_rate_format_string():
     # Less of a test than a demo
-    rates = [1 * 10 ** i for i in range(-10, 10)]
+    rates = [1 * 10**i for i in range(-10, 10)]
 
     texts = []
     for rate in rates:
-        rate_format = '4.2f' if rate > .001 else 'g'
+        rate_format = '4.2f' if rate > 0.001 else 'g'
         # Really cool: you can embed format strings inside format strings
         msg = '{rate:{rate_format}}'.format(rate=rate, rate_format=rate_format)
         texts.append(msg)
-    assert texts == ['1e-10',
-                     '1e-09',
-                     '1e-08',
-                     '1e-07',
-                     '1e-06',
-                     '1e-05',
-                     '0.0001',
-                     '0.001',
-                     '0.01',
-                     '0.10',
-                     '1.00',
-                     '10.00',
-                     '100.00',
-                     '1000.00',
-                     '10000.00',
-                     '100000.00',
-                     '1000000.00',
-                     '10000000.00',
-                     '100000000.00',
-                     '1000000000.00']
+    assert texts == [
+        '1e-10',
+        '1e-09',
+        '1e-08',
+        '1e-07',
+        '1e-06',
+        '1e-05',
+        '0.0001',
+        '0.001',
+        '0.01',
+        '0.10',
+        '1.00',
+        '10.00',
+        '100.00',
+        '1000.00',
+        '10000.00',
+        '100000.00',
+        '1000000.00',
+        '10000000.00',
+        '100000000.00',
+        '1000000000.00',
+    ]
 
 
 def test_rate_format():
@@ -92,12 +94,12 @@ def test_rate_format():
     prog = ProgIter(file=file)
     prog.begin()
 
-    prog._iters_per_second = .000001
+    prog._iters_per_second = 0.000001
     msg = prog.format_message()
     rate_part = msg.split('rate=')[1].split(' Hz')[0]
     assert rate_part == '1e-06'
 
-    prog._iters_per_second = .1
+    prog._iters_per_second = 0.1
     msg = prog.format_message()
     rate_part = msg.split('rate=')[1].split(' Hz')[0]
     assert rate_part == '0.10'
@@ -191,8 +193,14 @@ def test_progiter():
     print('this is verbosity mode verbose=3')
     sequence = (is_prime(n) for n in range(N0, N))
     if True:
-        psequence = ProgIter(sequence, total=total, adjust=False,
-                             clearline=False, freq=100, desc='demo3')
+        psequence = ProgIter(
+            sequence,
+            total=total,
+            adjust=False,
+            clearline=False,
+            freq=100,
+            desc='demo3',
+        )
         list(psequence)
 
 
@@ -202,15 +210,27 @@ def test_progiter_offset_10():
     """
     # Define a function that takes some time
     file = StringIO()
-    list(ProgIter(range(10), total=20, verbose=3, start=10, file=file,
-                  freq=5, show_rate=False, show_eta=False, show_total=False,
-                  time_thresh=0))
+    list(
+        ProgIter(
+            range(10),
+            total=20,
+            verbose=3,
+            start=10,
+            file=file,
+            freq=5,
+            show_rate=False,
+            show_eta=False,
+            show_total=False,
+            time_thresh=0,
+        )
+    )
     file.seek(0)
     want = ['50.00% 10/20...', '75.00% 15/20...', '100.00% 20/20...']
     got = [line.strip() for line in file.readlines()]
     if sys.platform.startswith('win32'):  # nocover
         # on windows \r seems to be mixed up with ansi sequences
         from xdoctest.utils import strip_ansi
+
         got = [strip_ansi(line).strip() for line in got]
     assert got == want
 
@@ -221,9 +241,18 @@ def test_progiter_offset_0():
     """
     # Define a function that takes some time
     file = StringIO()
-    for _ in ProgIter(range(10), total=20, verbose=3, start=0, file=file,
-                      freq=5, show_rate=False, show_eta=False,
-                      show_total=False, time_thresh=0):
+    for _ in ProgIter(
+        range(10),
+        total=20,
+        verbose=3,
+        start=0,
+        file=file,
+        freq=5,
+        show_rate=False,
+        show_eta=False,
+        show_total=False,
+        time_thresh=0,
+    ):
         pass
     file.seek(0)
     want = ['0.00%  0/20...', '25.00%  5/20...', '50.00% 10/20...']
@@ -409,9 +438,16 @@ def test_adjust_fast_early_slow_late_doesnt_get_stuck():
     fake_stream = FakeStream(verbose=0, callback=cnt.inc)
     fake_timer = FakeTimer()
 
-    prog = ProgIter(range(1000), enabled=True, adjust=True, time_thresh=1.0,
-                    rel_adjust_limit=1000000.0, homogeneous=False,
-                    timer=fake_timer, stream=fake_stream)
+    prog = ProgIter(
+        range(1000),
+        enabled=True,
+        adjust=True,
+        time_thresh=1.0,
+        rel_adjust_limit=1000000.0,
+        homogeneous=False,
+        timer=fake_timer,
+        stream=fake_stream,
+    )
     it = iter(prog)
     # Few fast updates at the beginning
     for i in range(10):
@@ -430,9 +466,16 @@ def test_adjust_slow_early_fast_late_doesnt_spam():
     fake_stream = FakeStream(verbose=0, callback=cnt.inc)
     fake_timer = FakeTimer()
 
-    prog = ProgIter(range(1000), enabled=True, adjust=True, time_thresh=1.0,
-                    rel_adjust_limit=1000000.0, homogeneous=False,
-                    timer=fake_timer, stream=fake_stream)
+    prog = ProgIter(
+        range(1000),
+        enabled=True,
+        adjust=True,
+        time_thresh=1.0,
+        rel_adjust_limit=1000000.0,
+        homogeneous=False,
+        timer=fake_timer,
+        stream=fake_stream,
+    )
     it = iter(prog)
     # Few slow updates at the beginning
     for i in range(10):
@@ -483,8 +526,14 @@ def check_issue_32_non_homogeneous_time_threshold_prints():
     # time_thresh = 2.9 * factor
 
     N = 20
-    prog = ProgIter(range(N), timer=fake_timer, time_thresh=time_thresh,
-                    homogeneous='auto', stream=fake_stream, clearline=False)
+    prog = ProgIter(
+        range(N),
+        timer=fake_timer,
+        time_thresh=time_thresh,
+        homogeneous='auto',
+        stream=fake_stream,
+        clearline=False,
+    )
 
     static_state = {
         'time_thresh': prog.time_thresh,
@@ -495,7 +544,9 @@ def check_issue_32_non_homogeneous_time_threshold_prints():
     states = []
 
     def record_state():
-        real_display_timedelta = fake_timer._time - prog._display_measurement.time
+        real_display_timedelta = (
+            fake_timer._time - prog._display_measurement.time
+        )
         state = {
             'iter_idx': prog._iter_idx,
             'next_idx': prog._next_measure_idx,
@@ -568,13 +619,20 @@ def test_end_message_is_displayed():
 
 def test_standalone_display():
     from ubelt import ProgIter
+
     fake_stream = FakeStream(verbose=1)
     fake_timer = FakeTimer()
     time_thresh = 50
 
     N = 20
-    prog = ProgIter(range(N), timer=fake_timer, time_thresh=time_thresh,
-                    homogeneous=True, stream=fake_stream, clearline=True)
+    prog = ProgIter(
+        range(N),
+        timer=fake_timer,
+        time_thresh=time_thresh,
+        homogeneous=True,
+        stream=fake_stream,
+        clearline=True,
+    )
 
     prog.begin()
 
@@ -606,19 +664,27 @@ def test_standalone_display():
         '\r 0.00%  0/20... rate=0 Hz, eta=?, total=0:00:00',
         '\r 5.00%  1/20... rate=1.00 Hz, eta=0:00:19, total=0:00:01',
         '\r 5.00%  1/20... rate=1.00 Hz, eta=0:00:19, total=0:00:01',
-        '\r 20.00%  4/20... rate=1.00 Hz, eta=0:00:16, total=0:00:04']
+        '\r 20.00%  4/20... rate=1.00 Hz, eta=0:00:16, total=0:00:04',
+    ]
 
 
 def test_no_percent():
     from ubelt import ProgIter
+
     fake_stream = FakeStream(verbose=1)
     fake_timer = FakeTimer()
     time_thresh = 50
 
     N = 20
-    prog = ProgIter(range(N), timer=fake_timer, time_thresh=time_thresh,
-                    show_percent=False, homogeneous=True, stream=fake_stream,
-                    clearline=True)
+    prog = ProgIter(
+        range(N),
+        timer=fake_timer,
+        time_thresh=time_thresh,
+        show_percent=False,
+        homogeneous=True,
+        stream=fake_stream,
+        clearline=True,
+    )
 
     prog.begin()
 
@@ -649,7 +715,8 @@ def test_no_percent():
         '\r  0/20... rate=0 Hz, eta=?, total=0:00:00',
         '\r  1/20... rate=1.00 Hz, eta=0:00:19, total=0:00:01',
         '\r  1/20... rate=1.00 Hz, eta=0:00:19, total=0:00:01',
-        '\r  4/20... rate=1.00 Hz, eta=0:00:16, total=0:00:04']
+        '\r  4/20... rate=1.00 Hz, eta=0:00:16, total=0:00:04',
+    ]
 
 
 def test_clearline_padding():
@@ -657,10 +724,16 @@ def test_clearline_padding():
     Ensure we overwrite the entire previous message
     """
     from ubelt import ProgIter
+
     fake_stream = FakeStream(verbose=1)
-    prog = ProgIter(range(20), time_thresh=99999999,
-                    show_percent=False, homogeneous=True, stream=fake_stream,
-                    clearline=True)
+    prog = ProgIter(
+        range(20),
+        time_thresh=99999999,
+        show_percent=False,
+        homogeneous=True,
+        stream=fake_stream,
+        clearline=True,
+    )
     prog.start()
     prog.display_message()
     msg1_len = prog._prev_msg_len
@@ -689,12 +762,17 @@ def test_clearline_padding():
     msg3 = fake_stream.messages[-1]
     assert len(msg1) == msg1_len + 1
     assert len(msg2) == msg2_len + 1
-    assert len(msg3) >= msg3_len + 1, 'the real third message should include padding'
-    assert len(msg3) == msg2_len + 1, 'the real third message should include padding to clear msg2'
+    assert len(msg3) >= msg3_len + 1, (
+        'the real third message should include padding'
+    )
+    assert len(msg3) == msg2_len + 1, (
+        'the real third message should include padding to clear msg2'
+    )
 
 
 def test_extra_callback():
     from ubelt import ProgIter
+
     fake_stream = FakeStream(verbose=1)
     fake_timer = FakeTimer()
     time_thresh = 50
@@ -703,8 +781,14 @@ def test_extra_callback():
         return chr(prog._iter_idx % 26 + 97) * 3
 
     N = 20
-    prog = ProgIter(range(N), timer=fake_timer, time_thresh=time_thresh,
-                    homogeneous=True, stream=fake_stream, clearline=True)
+    prog = ProgIter(
+        range(N),
+        timer=fake_timer,
+        time_thresh=time_thresh,
+        homogeneous=True,
+        stream=fake_stream,
+        clearline=True,
+    )
     prog.set_extra(build_extra)
 
     prog.begin()

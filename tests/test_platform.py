@@ -25,9 +25,11 @@ def _available_prog():
             prog_name = cand_prog_name
             break
     else:
-        pytest.skip((
-            'Common progs {} are not installed. '
-            'Are we on a weird machine?').format(common_progs))
+        pytest.skip(
+            (
+                'Common progs {} are not installed. Are we on a weird machine?'
+            ).format(common_progs)
+        )
     return prog_name
 
 

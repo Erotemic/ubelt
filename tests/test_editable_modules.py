@@ -10,11 +10,12 @@ We should look into if there is a cheaper way to emulate it.
 What we could do is run the expensive test once, and serialize the outputs it
 produces so we can simply reconstruct the environment.
 """
+
 import os
 import sys
 
 
-class ProjectStructure():
+class ProjectStructure:
     """
     Method to help setup and teardown a demo package installed in editable
     mode.
@@ -44,9 +45,9 @@ class ProjectStructure():
         else:
             self.python_relpath = ub.Path('.')
         self.cxx_relpath = ub.Path('src', 'cxx')
-        self.cxx_path    = (self.root / self.cxx_relpath)
-        self.python_path = (self.root / self.python_relpath)
-        self.mod_dpath = (self.python_path / self.mod_name)
+        self.cxx_path = self.root / self.cxx_relpath
+        self.python_path = self.root / self.python_relpath
+        self.mod_dpath = self.python_path / self.mod_name
 
     def setup(self):
         self.generate()
@@ -60,8 +61,12 @@ class ProjectStructure():
         import sys
 
         import ubelt as ub
-        ub.cmd([sys.executable, '-m', 'pip', 'install', '-e', self.root],
-               verbose=3, check=True)
+
+        ub.cmd(
+            [sys.executable, '-m', 'pip', 'install', '-e', self.root],
+            verbose=3,
+            check=True,
+        )
 
     def delete(self):
         self.root.delete()
@@ -70,11 +75,16 @@ class ProjectStructure():
         import sys
 
         import ubelt as ub
-        ub.cmd([sys.executable, '-m', 'pip', 'uninstall', self.mod_name, '-y'],
-               verbose=3, check=True)
+
+        ub.cmd(
+            [sys.executable, '-m', 'pip', 'uninstall', self.mod_name, '-y'],
+            verbose=3,
+            check=True,
+        )
 
     def generate(self, with_cxx=0):
         import ubelt as ub
+
         self.mod_dpath.delete().ensuredir()
         self.cxx_path.delete()
         (self.root / 'CMakeLists.txt').delete()
@@ -82,22 +92,27 @@ class ProjectStructure():
 
         if self.use_src:
             package_dir_line = ub.codeblock(
-                f'''
+                f"""
                 package_dir={{'': '{self.python_relpath}'}},
-                ''')
+                """
+            )
         else:
             package_dir_line = ''
 
         # Give the MWE a CXX extension
         WITH_CXX = with_cxx
         if WITH_CXX:
-            (self.root / 'pyproject.toml').write_text(ub.codeblock(
-                '''
+            (self.root / 'pyproject.toml').write_text(
+                ub.codeblock(
+                    """
                 [build-system]
                 requires = ["setuptools>=41.0.1", "scikit-build>=0.11.1", "numpy", "ninja>=1.10.2", "cmake>=3.21.2", "cython>=0.29.24",]
-                '''))
-            (self.root / 'setup.py').write_text(ub.codeblock(
-                f'''
+                """
+                )
+            )
+            (self.root / 'setup.py').write_text(
+                ub.codeblock(
+                    f"""
                 if __name__ == '__main__':
                     from skbuild import setup
                     from setuptools import find_packages
@@ -111,10 +126,13 @@ class ProjectStructure():
                         packages=packages,
                         include_package_data=True,
                     )
-                '''))
+                """
+                )
+            )
             self.cxx_path.ensuredir()
-            (self.root / 'CMakeLists.txt').write_text(ub.codeblock(
-                rf'''
+            (self.root / 'CMakeLists.txt').write_text(
+                ub.codeblock(
+                    rf"""
                 cmake_minimum_required(VERSION 3.13.0)
                 project({self.mod_name} LANGUAGES C Fortran)
 
@@ -161,17 +179,23 @@ class ProjectStructure():
 
                 # Cython library
                 add_subdirectory("src/python/{self.mod_name}")
-                '''))
+                """
+                )
+            )
 
-            (self.cxx_path / 'myalgo.h').write_text(ub.codeblock(
-                '''
+            (self.cxx_path / 'myalgo.h').write_text(
+                ub.codeblock(
+                    """
                 #ifndef MYALGO_H
                 #define MYALGO_H
                 int myalgo(long *arr1, long *arr2, size_t num);
                 #endif MYALGO_H
-                '''))
-            (self.cxx_path / 'myalgo.c').write_text(ub.codeblock(
-                r'''
+                """
+                )
+            )
+            (self.cxx_path / 'myalgo.c').write_text(
+                ub.codeblock(
+                    r"""
                 #include <string.h>
                 long myalgo(long *arr1, long *arr2, size_t num)
                 {
@@ -181,17 +205,23 @@ class ProjectStructure():
                     }
                     return 1;
                 }
-                '''))
+                """
+                )
+            )
             cmake_list_cxx = self.cxx_path / 'CMakeLists.txt'
-            cmake_list_cxx.write_text(ub.codeblock(
-                '''
+            cmake_list_cxx.write_text(
+                ub.codeblock(
+                    """
                 set(MYALGO_MODULE_NAME "myalgo")
                 list(APPEND MYALGO_SOURCES "myalgo.h" "myalgo.c")
                 add_library(${MYALGO_MODULE_NAME} STATIC ${MYALGO_SOURCES})
-                '''))
+                """
+                )
+            )
 
-            (self.mod_dpath / 'myalgo_cython.pyx').write_text(ub.codeblock(
-                '''
+            (self.mod_dpath / 'myalgo_cython.pyx').write_text(
+                ub.codeblock(
+                    '''
                 import numpy as np
                 cimport numpy as np
                 cdef extern from "../../cxx/myalgo.h":
@@ -216,10 +246,13 @@ class ProjectStructure():
                     print(f'arr1={arr1}')
                     print(f'arr2={arr2}')
                     return result
-                '''))
-
-            (self.mod_dpath / 'CMakeLists.txt').write_text(ub.codeblock(
                 '''
+                )
+            )
+
+            (self.mod_dpath / 'CMakeLists.txt').write_text(
+                ub.codeblock(
+                    """
                 set(cython_source "myalgo_cython.pyx")
                 set(PYMYALGO_MODULE_NAME "myalgo_cython")
 
@@ -264,19 +297,24 @@ class ProjectStructure():
                 set(pymyalgo_install_dest "src/python/{self.mod_name}")
                 #install(TARGETS ${MYALGO_MODULE_NAME} LIBRARY DESTINATION "${pymyalgo_install_dest}")
                 install(TARGETS ${PYMYALGO_MODULE_NAME} LIBRARY DESTINATION "${pymyalgo_install_dest}")
-                '''
-            ))
+                """
+                )
+            )
         else:
             # Pure Python
             # TODO: Might want to test with different build backends.
-            (self.root / 'pyproject.toml').write_text(ub.codeblock(
-                '''
+            (self.root / 'pyproject.toml').write_text(
+                ub.codeblock(
+                    """
                 [build-system]
                 requires = ["setuptools>=41.0.1", "wheel"]
                 build-backend = "setuptools.build_meta"
-                '''))
-            (self.root / 'setup.py').write_text(ub.codeblock(
-                f'''
+                """
+                )
+            )
+            (self.root / 'setup.py').write_text(
+                ub.codeblock(
+                    f"""
                 if __name__ == '__main__':
                     from setuptools import setup
                     from setuptools import find_packages
@@ -293,7 +331,9 @@ class ProjectStructure():
                         packages=packages,
                         include_package_data=True,
                     )
-                '''))
+                """
+                )
+            )
             (self.mod_dpath / 'py.typed').write_text('')
             (self.mod_dpath / 'submod.py').write_text('A = 1')
             (self.mod_dpath / 'submod.pyi').write_text('A: int')
@@ -411,22 +451,33 @@ class ProjectStructure():
         if seems_installed:
             print('\n')
             print('Test to ensure we can import the module')
-            command = f'python -c "import {self.mod_name}; print({self.mod_name})"'
+            command = (
+                f'python -c "import {self.mod_name}; print({self.mod_name})"'
+            )
             info = ub.cmd(command, verbose=3)
             if info['ret'] != 0:
                 raise Exception('failed to import')
             assert str(self.mod_dpath) in info['out']
         else:
-            console.print('[yellow] Package does not seem installed, so skipping import test')
+            console.print(
+                '[yellow] Package does not seem installed, so skipping import test'
+            )
 
     def serialize_install(self):
         # TODO: serialize this step to make it fast
         import distutils.sysconfig
 
         import ubelt as ub
+
         site_dpath = ub.Path(distutils.sysconfig.get_python_lib())
-        egg_link_fpaths = list(site_dpath.glob(self.mod_name.replace('_', '*') + '*.egg-link'))
-        editable_fpaths = list(site_dpath.glob('__editable__*' + self.mod_name.replace('_', '*') + '*'))
+        egg_link_fpaths = list(
+            site_dpath.glob(self.mod_name.replace('_', '*') + '*.egg-link')
+        )
+        editable_fpaths = list(
+            site_dpath.glob(
+                '__editable__*' + self.mod_name.replace('_', '*') + '*'
+            )
+        )
         easy_install_fpath = site_dpath / 'easy-install.pth'  # NOQA
         print(f'egg_link_fpaths={egg_link_fpaths}')
         print(f'editable_fpaths={editable_fpaths}')

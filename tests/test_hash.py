@@ -106,7 +106,10 @@ def test_hash_data_with_types():
     check_hash('jiwjkgkffldfoysfqblsemzkailyridf', [b'1', b'2'])
     check_hash('foevisahdffoxfasicvyklrmuuwqnfcc', [b'1', b'2', b'3'])
     check_hash('foevisahdffoxfasicvyklrmuuwqnfcc', ['1', '2', '3'])
-    check_hash('rkcnfxkjwkrfejhbpcpopmyubhbvonkt', ['1', np.array([1, 2, 3], dtype=np.int64), '3'])
+    check_hash(
+        'rkcnfxkjwkrfejhbpcpopmyubhbvonkt',
+        ['1', np.array([1, 2, 3], dtype=np.int64), '3'],
+    )
     check_hash('lxssoxdkstvccsyqaybaokehclyctgmn', '123')
     check_hash('fpvptydigvgjimbzadztgpvjpqrevwcq', zip([1, 2, 3], [4, 5, 6]))
 
@@ -136,9 +139,14 @@ def test_hash_data_without_types():
     check_hash('6bcab1cebcb44fc5c69faacc0ed661b19eff9fef', [b'1', b'2'])
     check_hash('d6d265a904bc7df97bd54a8c2ff4546e211c3cd8', [b'1', b'2', b'3'])
     check_hash('d6d265a904bc7df97bd54a8c2ff4546e211c3cd8', ['1', '2', '3'])
-    check_hash('eff59c7c787bd223a680c9d625f54756be4fdf5b', ['1', np.array([1, 2, 3], dtype=np.int64), '3'])
+    check_hash(
+        'eff59c7c787bd223a680c9d625f54756be4fdf5b',
+        ['1', np.array([1, 2, 3], dtype=np.int64), '3'],
+    )
     check_hash('40bd001563085fc35165329ea1ff5c5ecbdbbeef', '123')
-    check_hash('1ba3c4e7f5af2a5f38d624047f422553ead2b5ae', zip([1, 2, 3], [4, 5, 6]))
+    check_hash(
+        '1ba3c4e7f5af2a5f38d624047f422553ead2b5ae', zip([1, 2, 3], [4, 5, 6])
+    )
 
     print(ub.urepr(failed, nl=1))
     assert len(failed) == 0
@@ -161,8 +169,15 @@ def test_special_floats():
     # Tests a fix from version 0.10.3 for inf/nan floats
     # standard_floats = [0.0, 0.1, 0.2]
     data = [
-        float('inf'), float('nan'), float('-inf'),
-        -0., 0., -1., 1., 0.3, 0.1 + 0.2,
+        float('inf'),
+        float('nan'),
+        float('-inf'),
+        -0.0,
+        0.0,
+        -1.0,
+        1.0,
+        0.3,
+        0.1 + 0.2,
     ]
     expected_encoding = [
         b'_[_',
@@ -175,7 +190,8 @@ def test_special_floats():
         b'FLT\x01/\x01_,_',
         b'FLT\x13333333/@\x00\x00\x00\x00\x00\x00_,_',
         b'FLT\x04\xcc\xcc\xcc\xcc\xcc\xcd/\x10\x00\x00\x00\x00\x00\x00_,_',
-        b'_]_']
+        b'_]_',
+    ]
     exepcted_prefix = '3196f80e17de93565f0fc57d98922a44'
 
     hasher = 'sha512'
@@ -283,8 +299,7 @@ def test_ndarray_zeros():
         pytest.skip('requires numpy')
     data = np.zeros((3, 3), dtype=np.int64)
     hashid = ub.hash_data(data)
-    assert hashid != ub.hash_data(data.ravel()), (
-        'shape should influence data')
+    assert hashid != ub.hash_data(data.ravel()), 'shape should influence data'
     assert hashid != ub.hash_data(data.astype(np.float32))
     assert hashid != ub.hash_data(data.astype(np.int32))
     assert hashid != ub.hash_data(data.astype(np.int8))
@@ -326,29 +341,44 @@ def test_numpy_random_state():
     if np is None:
         pytest.skip('requires numpy')
     data = np.random.RandomState(0)
-    assert ub.hash_data(data, hasher='sha512', types=True, base='abc').startswith('snkngbxghabesvowzalqtvdvjtvslmxve')
+    assert ub.hash_data(
+        data, hasher='sha512', types=True, base='abc'
+    ).startswith('snkngbxghabesvowzalqtvdvjtvslmxve')
 
 
 def test_uuid():
     data = uuid.UUID('12345678-1234-1234-1234-123456789abc')
     sequence = b''.join(_hashable_sequence(data, types=True))
     assert sequence == b'UUID\x124Vx\x124\x124\x124\x124Vx\x9a\xbc'
-    assert ub.hash_data(data, types=True, base='abc', hasher='sha512').startswith('nkklelnjzqbi')
-    assert ub.hash_data(data.bytes, types=True) != ub.hash_data(data, types=True), (
-        'the fact that it is a UUID should reflect in the hash')
-    assert ub.hash_data(data.bytes, types=False) == ub.hash_data(data, types=False), (
-        'the hash should be equal when ignoring types')
+    assert ub.hash_data(
+        data, types=True, base='abc', hasher='sha512'
+    ).startswith('nkklelnjzqbi')
+    assert ub.hash_data(data.bytes, types=True) != ub.hash_data(
+        data, types=True
+    ), 'the fact that it is a UUID should reflect in the hash'
+    assert ub.hash_data(data.bytes, types=False) == ub.hash_data(
+        data, types=False
+    ), 'the hash should be equal when ignoring types'
 
 
 def test_decimal():
     import decimal
+
     data = decimal.Decimal('3.1415')
     sequence = b''.join(_hashable_sequence(data, types=True))
-    assert sequence == b'DECIMAL_[_INT\x00_,__[_INT\x03_,_INT\x01_,_INT\x04_,_INT\x01_,_INT\x05_,__]_INT\xfc_,__]_'
-    assert ub.hash_data(data, types=True, base='abc', hasher='sha512').startswith('oquwtvtrsytm')
-    assert ub.hash_data(data.as_tuple(), types=True) != ub.hash_data(data, types=True), (
-        'the fact that it is a Decimal should reflect in the hash')
-    assert ub.hash_data(data.as_tuple(), types=True) == ub.hash_data(data, types=False), (
+    assert (
+        sequence
+        == b'DECIMAL_[_INT\x00_,__[_INT\x03_,_INT\x01_,_INT\x04_,_INT\x01_,_INT\x05_,__]_INT\xfc_,__]_'
+    )
+    assert ub.hash_data(
+        data, types=True, base='abc', hasher='sha512'
+    ).startswith('oquwtvtrsytm')
+    assert ub.hash_data(data.as_tuple(), types=True) != ub.hash_data(
+        data, types=True
+    ), 'the fact that it is a Decimal should reflect in the hash'
+    assert ub.hash_data(data.as_tuple(), types=True) == ub.hash_data(
+        data, types=False
+    ), (
         'it is a quirk of our hashable extensions that an a typed decimal '
         'tuple will be the same as an untyped decimal. '
         'It is ok to break this test if we refactor to fix issues in '
@@ -365,13 +395,22 @@ def test_decimal():
 
 def test_datetime():
     import datetime as datetime_mod
+
     data = datetime_mod.datetime(2101, 1, 1)
     sequence = b''.join(_hashable_sequence(data, types=True))
-    assert sequence == b'DATETIME_[_INT\x085_,_INT\x01_,_INT\x01_,_INT\x00_,_INT\x00_,_INT\x00_,_INT\x05_,_INT\x01_,_INT\xff_,__]_'
-    assert ub.hash_data(data, types=True, base='abc', hasher='sha512').startswith('fwjyfdtgcdasv')
-    assert ub.hash_data(data.timetuple(), types=True) != ub.hash_data(data, types=True), (
-        'the fact that it is a Decimal should reflect in the hash')
-    assert ub.hash_data(data.timetuple(), types=True) == ub.hash_data(data, types=False), (
+    assert (
+        sequence
+        == b'DATETIME_[_INT\x085_,_INT\x01_,_INT\x01_,_INT\x00_,_INT\x00_,_INT\x00_,_INT\x05_,_INT\x01_,_INT\xff_,__]_'
+    )
+    assert ub.hash_data(
+        data, types=True, base='abc', hasher='sha512'
+    ).startswith('fwjyfdtgcdasv')
+    assert ub.hash_data(data.timetuple(), types=True) != ub.hash_data(
+        data, types=True
+    ), 'the fact that it is a Decimal should reflect in the hash'
+    assert ub.hash_data(data.timetuple(), types=True) == ub.hash_data(
+        data, types=False
+    ), (
         'it is a quirk of our hashable extensions that an a typed datetime '
         'tuple will be the same as an untyped decimal. '
         'It is ok to break this test if we refactor to fix issues in '
@@ -381,13 +420,22 @@ def test_datetime():
 
 def test_date():
     import datetime as datetime_mod
+
     data = datetime_mod.date(2101, 1, 1)
     sequence = b''.join(_hashable_sequence(data, types=True))
-    assert sequence == b'DATE_[_INT\x085_,_INT\x01_,_INT\x01_,_INT\x00_,_INT\x00_,_INT\x00_,_INT\x05_,_INT\x01_,_INT\xff_,__]_'
-    assert ub.hash_data(data, types=True, base='abc', hasher='sha512').startswith('dlahlcoqypecc')
-    assert ub.hash_data(data.timetuple(), types=True) != ub.hash_data(data, types=True), (
-        'the fact that it is a Decimal should reflect in the hash')
-    assert ub.hash_data(data.timetuple(), types=True) == ub.hash_data(data, types=False), (
+    assert (
+        sequence
+        == b'DATE_[_INT\x085_,_INT\x01_,_INT\x01_,_INT\x00_,_INT\x00_,_INT\x00_,_INT\x05_,_INT\x01_,_INT\xff_,__]_'
+    )
+    assert ub.hash_data(
+        data, types=True, base='abc', hasher='sha512'
+    ).startswith('dlahlcoqypecc')
+    assert ub.hash_data(data.timetuple(), types=True) != ub.hash_data(
+        data, types=True
+    ), 'the fact that it is a Decimal should reflect in the hash'
+    assert ub.hash_data(data.timetuple(), types=True) == ub.hash_data(
+        data, types=False
+    ), (
         'it is a quirk of our hashable extensions that an a typed date'
         'tuple will be the same as an untyped decimal. '
         'It is ok to break this test if we refactor to fix issues in '
@@ -464,7 +512,10 @@ def test_convert_base_simple():
     # Quick one-of tests
     assert _convert_hexstr_base('aaa0111', _ALPHABET_16) == 'aaa0111'
 
-    assert _convert_hexstr_base('aaa0111', list('01')) == '1010101010100000000100010001'
+    assert (
+        _convert_hexstr_base('aaa0111', list('01'))
+        == '1010101010100000000100010001'
+    )
     assert _convert_hexstr_base('aaa0111', list('012')) == '110110122202020220'
     assert _convert_hexstr_base('aaa0111', list('0123')) == '22222200010101'
 
@@ -489,8 +540,14 @@ def _test_int_bytes():
     assert ub.util_hash._int_to_bytes(-2) == b'\xfe'
     assert ub.util_hash._int_to_bytes(600) == b'\x02X'
     assert ub.util_hash._int_to_bytes(-600) == b'\xfd\xa8'
-    assert ub.util_hash._int_to_bytes(2 ** 256) == b'\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
-    assert ub.util_hash._int_to_bytes(-2 ** 256) == b'\xff\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+    assert (
+        ub.util_hash._int_to_bytes(2**256)
+        == b'\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+    )
+    assert (
+        ub.util_hash._int_to_bytes(-(2**256))
+        == b'\xff\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+    )
 
 
 def test_xxhash():
@@ -502,7 +559,10 @@ def test_xxhash():
 
 def test_blake3():
     if 'blake3' in ub.util_hash._HASHERS.available():
-        assert ub.hash_data('foo', hasher='b3') == '04e0bb39f30b1a3feb89f536c93be15055482df748674b00d26e5a75777702e9'
+        assert (
+            ub.hash_data('foo', hasher='b3')
+            == '04e0bb39f30b1a3feb89f536c93be15055482df748674b00d26e5a75777702e9'
+        )
     else:
         pytest.skip('blake3 is not available')
 
@@ -581,23 +641,46 @@ def test_compatible_hash_bases():
     raw_bytes = hasher_obj.digest()
     print(f'raw_bytes={raw_bytes}')
     import base64
+
     realb32_encode = base64.b32encode(raw_bytes)
 
     # base64.b32decode(realb32_encode)
 
     print(f'realb32_encode=\n{realb32_encode}')
-    _ = ub.cmd(fr'printf "{text}" | {hasher}sum | cut -f1 -d\  | xxd -r -p', shell=True, system=True)
+    _ = ub.cmd(
+        rf'printf "{text}" | {hasher}sum | cut -f1 -d\  | xxd -r -p',
+        shell=True,
+        system=True,
+    )
     # _ = ub.cmd(fr'printf "{text}" | {hasher}sum | cut -f1 -d\  | xxd -r', shell=True, verbose=3)
 
-    std_result = ub.cmd(fr'printf "{text}" | {hasher}sum', shell=True, verbose=3)['out'].split(' ')[0]
+    std_result = ub.cmd(
+        rf'printf "{text}" | {hasher}sum', shell=True, verbose=3
+    )['out'].split(' ')[0]
     our_result = ub.hash_data(text, hasher=hasher, types=False)
     print(f'std_result={std_result}')
     print(f'our_result={our_result}')
     assert our_result == std_result
 
-    std_result = ub.cmd(fr'printf "{text}" | {hasher}sum | cut -f1 -d\  | xxd -r -p | base32', shell=True, verbose=3)['out'].strip().replace('\n', '')
+    std_result = (
+        ub.cmd(
+            rf'printf "{text}" | {hasher}sum | cut -f1 -d\  | xxd -r -p | base32',
+            shell=True,
+            verbose=3,
+        )['out']
+        .strip()
+        .replace('\n', '')
+    )
     our_result = ub.hash_data(text, hasher=hasher, types=False, base=32)
-    std_result_16 = ub.cmd(fr'printf "{text}" | {hasher}sum | cut -f1 -d\ ', shell=True, verbose=3)['out'].strip().replace('\n', '')
+    std_result_16 = (
+        ub.cmd(
+            rf'printf "{text}" | {hasher}sum | cut -f1 -d\ ',
+            shell=True,
+            verbose=3,
+        )['out']
+        .strip()
+        .replace('\n', '')
+    )
     our_result_16 = ub.hash_data(text, hasher=hasher, types=False, base=16)
     print(f'std_result_16={std_result_16}')
     print(f'our_result_16={our_result_16}')
@@ -814,11 +897,11 @@ def test_hash_data_nested_dataclass_structure():
 
     p1a = Point(0, 0)
     p2a = Point(3, 4)
-    box1 = Box(p1a, p2a, tags=("blue", "rect"), notes=["hello"])
+    box1 = Box(p1a, p2a, tags=('blue', 'rect'), notes=['hello'])
 
     p1b = Point(0, 0)
     p2b = Point(3, 4)
-    box2 = Box(p1b, p2b, tags=("blue", "rect"), notes=["hello"])
+    box2 = Box(p1b, p2b, tags=('blue', 'rect'), notes=['hello'])
 
     # identical nested structures hash the same
     h1 = ub.hash_data(box1)
@@ -826,7 +909,7 @@ def test_hash_data_nested_dataclass_structure():
     assert h1 == h2
 
     # small change in a nested field changes the hash
-    box3 = Box(Point(0, 0), Point(3, 5), tags=("blue", "rect"), notes=["hello"])
+    box3 = Box(Point(0, 0), Point(3, 5), tags=('blue', 'rect'), notes=['hello'])
     h3 = ub.hash_data(box3)
     assert h1 != h3
 
@@ -848,12 +931,12 @@ def test_hash_data_mutable_field_stability():
         notes: List[str] = field(default_factory=list)
 
     # Ensure hashing uses values, not object identity of mutable defaults
-    box_a = Box(Point(1, 1), Point(2, 2), notes=["a", "b"])
-    box_b = Box(Point(1, 1), Point(2, 2), notes=["a", "b"])
+    box_a = Box(Point(1, 1), Point(2, 2), notes=['a', 'b'])
+    box_b = Box(Point(1, 1), Point(2, 2), notes=['a', 'b'])
     assert ub.hash_data(box_a) == ub.hash_data(box_b)
 
     # Changing the contents (not just the list object) should change the hash
-    box_b.notes.append("c")
+    box_b.notes.append('c')
     assert ub.hash_data(box_a) != ub.hash_data(box_b)
 
 

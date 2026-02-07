@@ -70,7 +70,7 @@ class FancyIndexTester:
         return iter(self.indices)
 
     def __index__(self):
-        raise TypeError("NumPy arrays have weird __index__ methods")
+        raise TypeError('NumPy arrays have weird __index__ methods')
 
     def __eq__(self, other):
         # Emulate NumPy being fussy about the == operator

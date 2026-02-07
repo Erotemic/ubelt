@@ -94,10 +94,20 @@ def test_download_cover_hashers():
     fname = basename(url)
 
     # add coverage for different hashers
-    ub.download(url, hasher='md5', hash_prefix='e09c80c42fda55f9d992e59ca6b33',
-                dpath=dpath, fname=fname)
-    ub.download(url, hasher='sha256', hash_prefix='bf2cb58a68f684d95a3b78ef8f',
-                dpath=dpath, fname=fname)
+    ub.download(
+        url,
+        hasher='md5',
+        hash_prefix='e09c80c42fda55f9d992e59ca6b33',
+        dpath=dpath,
+        fname=fname,
+    )
+    ub.download(
+        url,
+        hasher='sha256',
+        hash_prefix='bf2cb58a68f684d95a3b78ef8f',
+        dpath=dpath,
+        fname=fname,
+    )
 
 
 @pytest.mark.timeout(TIMEOUT)
@@ -117,10 +127,12 @@ def test_download_hashalgo():
     ub.delete(fpath)
     assert not exists(fpath)
 
-    got_fpath = ub.download(url,
-                            hash_prefix='e09c80c42fda55f9d992e59ca6b3307d',
-                            appname='ubelt/tests/test_download',
-                            hasher=hashlib.md5())
+    got_fpath = ub.download(
+        url,
+        hash_prefix='e09c80c42fda55f9d992e59ca6b3307d',
+        appname='ubelt/tests/test_download',
+        hasher=hashlib.md5(),
+    )
 
     assert got_fpath == fpath
     assert exists(fpath)
@@ -356,27 +368,39 @@ def test_grabdata_hash_typo():
         print('[STEP1] Downloading file, but we have a typo in the hash')
         with pytest.raises(RuntimeError):
             got_fpath = ub.grabdata(
-                url, hash_prefix='e09c80c42fda5-typo-5f9d992e59ca6b3307d',
-                hasher='md5', verbose=verbose,
-                appname='ubelt/tests/test_download')
+                url,
+                hash_prefix='e09c80c42fda5-typo-5f9d992e59ca6b3307d',
+                hasher='md5',
+                verbose=verbose,
+                appname='ubelt/tests/test_download',
+            )
         assert fpath.exists()
         real_hash = ub.hash_file(fpath, hasher='md5')
         real_hash
 
-        print('[STEP2] Fixing the typo recomputes the hash, but does not redownload the file')
-        got_fpath = ub.grabdata(url,
-                                hash_prefix='e09c80c42fda55f9d992e59ca6b3307d',
-                                hasher='md5', verbose=verbose,
-                                appname='ubelt/tests/test_download')
+        print(
+            '[STEP2] Fixing the typo recomputes the hash, but does not redownload the file'
+        )
+        got_fpath = ub.grabdata(
+            url,
+            hash_prefix='e09c80c42fda55f9d992e59ca6b3307d',
+            hasher='md5',
+            verbose=verbose,
+            appname='ubelt/tests/test_download',
+        )
         assert ub.Path(got_fpath).resolve() == fpath.resolve()
         assert fpath.exists()
 
         # If we delete the .hash file we will simply recompute
         stamp_fpath.delete()
         print('[STEP3] Deleting the hash file recomputes the hash')
-        got_fpath = ub.grabdata(url, fpath=fpath,
-                                hash_prefix='e09c80c42fda55f9d992e59ca6b3307d',
-                                hasher='md5', verbose=verbose)
+        got_fpath = ub.grabdata(
+            url,
+            fpath=fpath,
+            hash_prefix='e09c80c42fda55f9d992e59ca6b3307d',
+            hasher='md5',
+            verbose=verbose,
+        )
         assert stamp_fpath.exists()
 
 
@@ -384,13 +408,16 @@ def test_deprecated_grabdata_args():
     # with pytest.warns(DeprecationWarning):
     with pytest.raises(RuntimeError):
         import hashlib
+
         url = _demo_url()
         # dpath = ub.Path.appdir('ubelt/tests/test_download').ensuredir()
         # fname = basename(url)
         # fpath = join(dpath, fname)
         got_fpath = ub.grabdata(
-            url, hash_prefix='e09c80c42fda55f9d992e59ca6b3307d',
-            hasher=hashlib.md5())
+            url,
+            hash_prefix='e09c80c42fda55f9d992e59ca6b3307d',
+            hasher=hashlib.md5(),
+        )
         got_fpath
 
 
@@ -587,7 +614,12 @@ def test_download_with_progkw():
     fname = basename(url)
     fpath = join(dpath, fname)
     with ub.CaptureStdout() as cap:
-        ub.download(url, fpath=fpath, progkw={'verbose': 3, 'freq': 1, 'adjust': False, 'time_thresh': 0}, chunksize=128)
+        ub.download(
+            url,
+            fpath=fpath,
+            progkw={'verbose': 3, 'freq': 1, 'adjust': False, 'time_thresh': 0},
+            chunksize=128,
+        )
     assert len(cap.text.split('\n')) > 10
 
 
@@ -601,8 +633,15 @@ def test_download_with_filesize():
     fname = basename(url)
     fpath = join(dpath, fname)
     with ub.CaptureStdout() as cap:
-        ub.download(url, filesize=11, fpath=fpath, progkw={'verbose': 3, 'freq': 1, 'adjust': False, 'time_thresh': 0}, chunksize=128)
+        ub.download(
+            url,
+            filesize=11,
+            fpath=fpath,
+            progkw={'verbose': 3, 'freq': 1, 'adjust': False, 'time_thresh': 0},
+            chunksize=128,
+        )
     import re
+
     assert re.search(r'\d\d\d\d\.\d\d%', cap.text), 'should report over 100%'
 
 
@@ -687,28 +726,49 @@ def test_grabdata_same_fpath_different_url():
     url3 = _demo_url(128 * 13)
 
     fname = 'foobar'
-    fpath1 = ub.grabdata(url1, fname=fname, hash_prefix='b7fa848cd088ae842a89ef', hasher='sha512', verbose=100)
+    fpath1 = ub.grabdata(
+        url1,
+        fname=fname,
+        hash_prefix='b7fa848cd088ae842a89ef',
+        hasher='sha512',
+        verbose=100,
+    )
     stat1 = make_stat_dict(ub.Path(fpath1).stat())
 
     # Should requesting a new url, even with the same fpath, cause redownload?
-    fpath2 = ub.grabdata(url2, fname=fname, hash_prefix=None, hasher='sha512', verbose=100)
+    fpath2 = ub.grabdata(
+        url2, fname=fname, hash_prefix=None, hasher='sha512', verbose=100
+    )
     stat2 = make_stat_dict(ub.Path(fpath2).stat())
 
-    fpath3 = ub.grabdata(url3, fname=fname, hash_prefix=None, hasher='sha512', verbose=100)
+    fpath3 = ub.grabdata(
+        url3, fname=fname, hash_prefix=None, hasher='sha512', verbose=100
+    )
     stat3 = make_stat_dict(ub.Path(fpath3).stat())
 
-    assert stat1 != stat2, 'the stats will change because we did not specify a hash prefix'
+    assert stat1 != stat2, (
+        'the stats will change because we did not specify a hash prefix'
+    )
     assert stat2 == stat3, 'we may change this behavior in the future'
 
-    fpath3 = ub.grabdata(url2, fname=fname, hash_prefix='43f92597d7eb08b57c88b6', hasher='sha512', verbose=100)
+    fpath3 = ub.grabdata(
+        url2,
+        fname=fname,
+        hash_prefix='43f92597d7eb08b57c88b6',
+        hasher='sha512',
+        verbose=100,
+    )
     stat3 = make_stat_dict(ub.Path(fpath3).stat())
-    assert stat1 != stat3, 'if we do specify a new hash, we should get a new download'
+    assert stat1 != stat3, (
+        'if we do specify a new hash, we should get a new download'
+    )
     assert url1 != url2, 'urls should be different'
     assert ub.allsame([fpath1, fpath2, fpath3]), 'all fpaths should be the same'
 
 
 def test_grabdata_delete_hash_stamp():
     import ubelt as ub
+
     fname = 'foo3.bar'
     url = _demo_url(128 * 12)
     prefix1 = '43f92597d7eb08b57c88b636'
