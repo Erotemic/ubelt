@@ -398,6 +398,7 @@ texinfo_documents = [
 
 # -- Extension configuration -------------------------------------------------
 from sphinx.domains.python import PythonDomain  # NOQA
+
 # from sphinx.application import Sphinx  # NOQA
 from typing import Any, List  # NOQA
 
@@ -833,6 +834,7 @@ def create_doctest_figure(app, obj, name, lines):
 
     # print(doctest.format_src())
     import pathlib
+
     # HACK: write to the srcdir
     doc_outdir = pathlib.Path(app.outdir)
     doc_srcdir = pathlib.Path(app.srcdir)
@@ -1045,6 +1047,7 @@ def setup(app):
 
     def copy(src, dst):
         import shutil
+
         print(f'Copy {src} -> {dst}')
         assert src.exists()
         if not dst.parent.exists():
@@ -1055,6 +1058,7 @@ def setup(app):
     HACK_FOR_KWCOCO = 0
     if HACK_FOR_KWCOCO:
         import pathlib
+
         doc_outdir = pathlib.Path(app.outdir) / 'auto'
         doc_srcdir = pathlib.Path(app.srcdir) / 'auto'
 

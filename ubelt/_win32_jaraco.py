@@ -53,7 +53,6 @@ Ignore:
     print(lib.current_sourcecode())
 """
 
-
 import ctypes
 import ctypes.wintypes
 

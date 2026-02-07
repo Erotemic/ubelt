@@ -1750,6 +1750,7 @@ class Path(_PathBase):
             See: ~/code/ubelt/tests/test_path.py for test cases
         """
         import shutil
+
         copy_function = self._request_copy_function(
             follow_file_symlinks=follow_file_symlinks,
             follow_dir_symlinks=follow_dir_symlinks, meta=meta)
@@ -2185,6 +2186,7 @@ def _relative_path_backport(self, other, walk_up=False):  # nocover
             parts0.append('..')
     # return self.with_segments('', *reversed(parts0))
     return type(self)('', *reversed(parts0))
+
 
 if PYTHON_LE_3_8:  # nocover
     Path.is_relative_to = _is_relative_to_backport

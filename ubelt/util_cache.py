@@ -693,10 +693,12 @@ class Cacher:
         """
         if self.backend == 'pickle':
             import pickle
+
             with open(data_fpath, 'rb') as file_:
                 data = pickle.load(file_)
         elif self.backend == 'json':
             import json
+
             with open(data_fpath, 'r') as file_:
                 data = json.load(file_)
         else:
@@ -707,10 +709,12 @@ class Cacher:
         # TODO: allow the user to customize the save backend.
         if self.backend == 'pickle':
             import pickle
+
             with open(data_fpath, 'wb') as file_:
                 pickle.dump(data, file_, protocol=self.protocol)
         elif self.backend == 'json':
             import json
+
             with open(data_fpath, 'w') as file_:
                 json.dump(data, file_)
         else:
@@ -998,6 +1002,7 @@ class CacheStamp:
         else:
             if not isinstance(self.hasher, str):  # nocover
                 from ubelt import schedule_deprecation
+
                 schedule_deprecation(
                     modname='ubelt',
                     migration='Pass hasher as a string',
@@ -1025,6 +1030,7 @@ class CacheStamp:
             product_file_hash = None
         else:
             from ubelt.util_hash import hash_file
+
             products = self._rectify_products(product)
             assert products is not None
             product_file_hash = [

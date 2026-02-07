@@ -477,6 +477,7 @@ def _win32_read_junction(path):
         >>> print('pointed = {!r}'.format(pointed))
     """
     import ctypes
+
     path = os.fspath(path)
     if jwfs is None:
         raise ImportError('jaraco.windows.filesystem is required to run _win32_read_junction')

@@ -648,6 +648,7 @@ class HashableExtensions:
             >>> assert ub.hash_data(a) != ub.hash_data(c)
         """
         import dataclasses
+
         cls = data.__class__
         header = (cls.__module__, cls.__qualname__)
         # fields() order is the definition order, which is guaranteed
@@ -888,6 +889,7 @@ class HashableExtensions:
                 ordered_ = sorted(data)
             except TypeError:
                 from ubelt.util_list import argsort
+
                 data_ = list(data)
                 sortx = argsort(data_, key=str)
                 ordered_ = [data_[k] for k in sortx]
@@ -905,6 +907,7 @@ class HashableExtensions:
                 # what raises a TypeError differs between Python 2 and 3
             except TypeError:
                 from ubelt.util_list import argsort
+
                 sortx = argsort(data, key=str)
                 ordered_ = [(k, data[k]) for k in sortx]
             # See: [util_hash.Note.1]

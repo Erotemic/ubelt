@@ -620,6 +620,7 @@ def map_values(func: Union[Callable[[VT], T], Mapping[VT, T]], dict_: Dict[KT, V
     newdict = cls(keyval_list)
     return newdict
 
+
 map_vals = map_values  # backwards compatibility
 
 

@@ -149,6 +149,7 @@ def get_app_data_dir(appname: str, *args) -> str:
         :func:`ensure_app_data_dir`
     """
     from ubelt.util_deprecate import schedule_deprecation
+
     schedule_deprecation(
         modname='ubelt', name='get_app_data_dir and ensure_app_data_dir', type='function',
         migration='use ubelt.Path.appdir(type="data") instead',
@@ -207,6 +208,7 @@ def get_app_config_dir(appname: str, *args) -> str:
         :func:`ensure_app_config_dir`
     """
     from ubelt.util_deprecate import schedule_deprecation
+
     schedule_deprecation(
         modname='ubelt', name='get_app_config_dir and ensure_app_config_dir', type='function',
         migration='use ubelt.Path.appdir(type="config") instead',
@@ -268,6 +270,7 @@ def get_app_cache_dir(appname: str, *args) -> str:
         :func:`ensure_app_cache_dir`
     """
     from ubelt.util_deprecate import schedule_deprecation
+
     schedule_deprecation(
         modname='ubelt', name='get_app_cache_dir and ensure_app_cache_dir', type='function',
         migration='use ubelt.Path.appdir(type="cache") instead',

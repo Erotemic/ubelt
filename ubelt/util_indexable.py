@@ -844,6 +844,7 @@ def indexable_allclose(
         >>> print('flag = {!r}'.format(flag))
     """
     from ubelt.util_deprecate import schedule_deprecation
+
     schedule_deprecation(
         'ubelt', 'indexable_allclose', 'function',
         migration=(

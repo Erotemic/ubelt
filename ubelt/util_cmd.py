@@ -167,6 +167,7 @@ class CmdOutput(dict):
     def check_returncode(self) -> None:
         """Raise CalledProcessError if the exit code is non-zero."""
         import subprocess
+
         if self.returncode:
             raise subprocess.CalledProcessError(
                 self.returncode, self.args, self.stdout, self.stderr)
@@ -434,6 +435,7 @@ def cmd(
 
     if system:
         from ubelt.util_path import ChDir
+
         with ChDir(cwd):
             raw = os.system(command_text)
             ret = _normalize_system_returncode(raw)
@@ -674,6 +676,7 @@ def _proc_async_iter_stream(
     """
     import queue
     import threading
+
     # logger.debug(f"Create and start thread for {id(stream)}")
     out_queue = queue.Queue(maxsize=buffersize)
     control_queue = queue.Queue(maxsize=1)

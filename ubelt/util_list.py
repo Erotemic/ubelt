@@ -806,6 +806,7 @@ def allsame(
         return True
     return all(eq(first, item) for item in iter_)
 
+
 @typing.overload
 def argsort(indexable: Iterable[VT],
             key: Callable[[VT], Any] | None = None,
@@ -876,6 +877,7 @@ def argsort(indexable: Iterable[VT] | Mapping[KT, VT],
         # If key is provided, call it using the value as input
         def key_func(vk):
             return key(vk[0])
+
         indices = [k for v, k in sorted(vk_iter, key=key_func, reverse=reverse)]
     return indices
 

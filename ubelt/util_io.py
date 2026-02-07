@@ -96,6 +96,7 @@ def writeto(
         print('Writing to text file: %r ' % (fpath,))
 
     from ubelt import schedule_deprecation
+
     schedule_deprecation(
         modname='ubelt', name='writeto', type='function',
         migration='use ubelt.Path(...).write_text() instead',
@@ -144,6 +145,7 @@ def readfrom(
     if not exists(fpath):
         raise IOError('File %r does not exist' % (fpath,))
     from ubelt import schedule_deprecation
+
     schedule_deprecation(
         modname='ubelt', name='readfrom', type='function',
         migration='use ubelt.Path(...).read_text() instead',
@@ -296,7 +298,9 @@ def delete(path: str | os.PathLike, verbose: bool | int = False) -> None:
                 # the directory contains junctions
                 # https://bugs.python.org/issue36621
                 from ubelt import _win32_links
+
                 _win32_links._win32_rmtree(path, verbose=verbose)
             else:
                 import shutil
+
                 shutil.rmtree(path)

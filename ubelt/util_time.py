@@ -341,6 +341,7 @@ def timeparse(
         ti.reset('standard datetime_cls.strptime').call(lambda: datetime_cls.strptime('2000-01-02T112358.12345+0500', '%Y-%m-%dT%H%M%S.%f%z'))
     """
     from datetime import datetime as datetime_cls
+
     datetime_obj = None
     # Check if we might have a minimal format
     maybe_minimal = (

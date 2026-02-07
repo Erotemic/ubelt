@@ -312,6 +312,7 @@ def import_module_from_path(
                         # module = zimp_file.load_module(modname)
                         if hasattr(zimp_file, "exec_module"):
                             import importlib
+
                             # Modern path (3.4+; preferred, no deprecation)
                             spec = importlib.util.spec_from_loader(modname, zimp_file)
                             if spec is None:
@@ -326,6 +327,7 @@ def import_module_from_path(
                         _modname = modname.replace('\\', '/')  # hack
                         if hasattr(zimp_file, "exec_module"):
                             import importlib
+
                             # Modern path (3.4+; preferred, no deprecation)
                             spec = importlib.util.spec_from_loader(_modname, zimp_file)
                             if spec is None:
@@ -632,6 +634,7 @@ def _syspath_modname_to_modpath(
             # Disable coverage because the test that covers this is too slow.
             # It can be made faster, re-enable when that lands.
             import pathlib
+
             for editable_pth in new_editable_pth_paths:
                 editable_pth = pathlib.Path(editable_pth)
                 target = editable_pth.read_text().strip().split('\n')[-1]

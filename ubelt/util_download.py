@@ -519,6 +519,7 @@ def grabdata(
             hasher_name = hasher
         else:  # nocover
             from ubelt import schedule_deprecation
+
             schedule_deprecation(
                 modname='ubelt',
                 migration='Pass hasher as a string, otherwise unexpected behavior can occur',
