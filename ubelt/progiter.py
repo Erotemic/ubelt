@@ -787,7 +787,7 @@ class ProgIter(_TQDMCompat, _BackwardsCompat, Iterable[T]):
         self.finished = True
 
     def _iterate(self) -> Iterator[T]:
-        """ iterates with progress """
+        """iterates with progress"""
         if not self.started:
             self.begin()
         if self.iterable is None:

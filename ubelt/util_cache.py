@@ -1438,26 +1438,26 @@ def _byte_str(num: int | float, unit: str = 'auto', precision: int = 2) -> str:
     """
     abs_num = abs(num)
     if unit == 'auto':
-        if abs_num < 2.0 ** 10:
+        if abs_num < 2.0**10:
             unit = 'KB'
-        elif abs_num < 2.0 ** 20:
+        elif abs_num < 2.0**20:
             unit = 'KB'
-        elif abs_num < 2.0 ** 30:
+        elif abs_num < 2.0**30:
             unit = 'MB'
-        elif abs_num < 2.0 ** 40:
+        elif abs_num < 2.0**40:
             unit = 'GB'
         else:
             unit = 'TB'
     if unit.lower().startswith('b'):
         num_unit = num
     elif unit.lower().startswith('k'):
-        num_unit =  num / (2.0 ** 10)
+        num_unit = num / (2.0**10)
     elif unit.lower().startswith('m'):
-        num_unit =  num / (2.0 ** 20)
+        num_unit = num / (2.0**20)
     elif unit.lower().startswith('g'):
-        num_unit = num / (2.0 ** 30)
+        num_unit = num / (2.0**30)
     elif unit.lower().startswith('t'):
-        num_unit = num / (2.0 ** 40)
+        num_unit = num / (2.0**40)
     else:
         raise ValueError('unknown num={!r} unit={!r}'.format(num, unit))
     fmtstr = ('{:.' + str(precision) + 'f}{}')

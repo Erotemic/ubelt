@@ -104,7 +104,7 @@ def writeto(
 
     with open(fpath, 'wb') as file:
         if aslines:
-            to_write_lines = map(_ensure_bytes , to_write)
+            to_write_lines = map(_ensure_bytes, to_write)
             file.writelines(to_write_lines)
         else:
             # convert to bytes for writing

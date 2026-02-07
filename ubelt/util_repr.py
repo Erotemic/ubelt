@@ -710,11 +710,11 @@ def _format_list(list_: Any, **kwargs: Any) -> tuple[str, dict[str, int]]:
     if nobraces:
         lbr, rbr = '', ''
     elif is_tuple:
-        lbr, rbr  = '(', ')'
+        lbr, rbr = '(', ')'
     elif is_set:
-        lbr, rbr  = '{', '}'
+        lbr, rbr = '{', '}'
     else:
-        lbr, rbr  = '[', ']'
+        lbr, rbr = '[', ']'
 
     # Doesn't actually put in trailing comma if on same line
     trailing_sep = kwargs.get('trailsep', kwargs.get('trailing_sep', newlines > 0 and len(itemstrs)))

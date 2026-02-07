@@ -342,7 +342,7 @@ def download(
 
         if hash_prefix:
             got = hasher.hexdigest()
-            if got[:len(hash_prefix)] != hash_prefix:
+            if got[: len(hash_prefix)] != hash_prefix:
                 print('hash_prefix = {!r}'.format(hash_prefix))
                 print('got = {!r}'.format(got))
                 if _dst_is_io_object:
