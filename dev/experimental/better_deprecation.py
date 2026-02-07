@@ -241,8 +241,8 @@ class Deprecation:
             parts.append(self.message)
 
         if self.name is not None:
-            _name = self.name or ""
-            _type = self.type or ""
+            _name = self.name or ''
+            _type = self.type or ''
             what_str = f'The "{_name}" {_type}'
         else:
             what_str = 'This'

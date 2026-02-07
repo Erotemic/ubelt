@@ -6,7 +6,7 @@ def demo_named_product():
 
     def some_function(thresh1, thresh2):
         x, y = thresh1, thresh2
-        z = ((x ** 2 + y ** 2 - 1) ** 3 - x ** 2 * y ** 3)
+        z = (x**2 + y**2 - 1) ** 3 - x**2 * y**3
         return np.log(z)
 
     s = 2.5

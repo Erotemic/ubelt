@@ -156,7 +156,8 @@ def generate_typed_stubs():
         files=files,
         verbose=False,
         quiet=False,
-        export_less=True)
+        export_less=True,
+    )
     # generate_stubs(options)
 
     mypy_opts = stubgen.mypy_options(options)
@@ -168,10 +169,12 @@ def generate_typed_stubs():
         sigs, class_sigs = stubgen.collect_docs_signatures(options.doc_dir)
 
     # Use parsed sources to generate stubs for Python modules.
-    stubgen.generate_asts_for_modules(py_modules, options.parse_only, mypy_opts, options.verbose)
+    stubgen.generate_asts_for_modules(
+        py_modules, options.parse_only, mypy_opts, options.verbose
+    )
 
     for mod in py_modules:
-        assert mod.path is not None, "Not found module was not skipped"
+        assert mod.path is not None, 'Not found module was not skipped'
         target = mod.module.replace('.', '/')
         if os.path.basename(mod.path) == '__init__.py':
             target += '/__init__.pyi'
@@ -179,17 +182,28 @@ def generate_typed_stubs():
             target += '.pyi'
         target = join(options.output_dir, target)
         files.append(target)
-        with stubgen.generate_guarded(mod.module, target, options.ignore_errors, options.verbose):
-            stubgen.generate_stub_from_ast(mod, target, options.parse_only,
-                                           options.pyversion,
-                                           options.include_private,
-                                           options.export_less)
+        with stubgen.generate_guarded(
+            mod.module, target, options.ignore_errors, options.verbose
+        ):
+            stubgen.generate_stub_from_ast(
+                mod,
+                target,
+                options.parse_only,
+                options.pyversion,
+                options.include_private,
+                options.export_less,
+            )
 
-            gen = ExtendedStubGenerator(mod.runtime_all, pyversion=options.pyversion,
-                                        include_private=options.include_private,
-                                        analyzed=not options.parse_only,
-                                        export_less=options.export_less)
-            assert mod.ast is not None, "This function must be used only with analyzed modules"
+            gen = ExtendedStubGenerator(
+                mod.runtime_all,
+                pyversion=options.pyversion,
+                include_private=options.include_private,
+                analyzed=not options.parse_only,
+                export_less=options.export_less,
+            )
+            assert mod.ast is not None, (
+                'This function must be used only with analyzed modules'
+            )
             mod.ast.accept(gen)
             # print('gen.import_tracker.required_names = {!r}'.format(gen.import_tracker.required_names))
             # print(gen.import_tracker.import_lines())
@@ -198,18 +212,30 @@ def generate_typed_stubs():
 
             known_one_letter_types = [
                 # 'T', 'K', 'A', 'B', 'C', 'V',
-                'DT', 'KT', 'VT', 'T'
+                'DT',
+                'KT',
+                'VT',
+                'T',
             ]
-            for type_var_name in sorted(set(gen.import_tracker.required_names) & set(known_one_letter_types)):
+            for type_var_name in sorted(
+                set(gen.import_tracker.required_names)
+                & set(known_one_letter_types)
+            ):
                 gen.add_typing_import('TypeVar')
                 # gen.add_import_line('from typing import {}\n'.format('TypeVar'))
-                gen._output = ['{} = TypeVar("{}")\n'.format(type_var_name, type_var_name)] + gen._output
+                gen._output = [
+                    '{} = TypeVar("{}")\n'.format(type_var_name, type_var_name)
+                ] + gen._output
 
             custom_types = {'Hasher'}
-            for type_var_name in sorted(set(gen.import_tracker.required_names) & set(custom_types)):
+            for type_var_name in sorted(
+                set(gen.import_tracker.required_names) & set(custom_types)
+            ):
                 gen.add_typing_import('TypeVar')
                 # gen.add_import_line('from typing import {}\n'.format('TypeVar'))
-                gen._output = ['{} = TypeVar("{}")\n'.format(type_var_name, type_var_name)] + gen._output
+                gen._output = [
+                    '{} = TypeVar("{}")\n'.format(type_var_name, type_var_name)
+                ] + gen._output
 
             # Hack for specific module
             # if mod.path.endswith('util_path.py'):
@@ -235,18 +261,24 @@ def generate_typed_stubs():
             if 'DictBase' in text:
                 # Hack for util_dict
                 text = text.replace('DictBase = OrderedDict\n', '')
-                text = text.replace('DictBase = dict\n', 'DictBase = OrderedDict if sys.version_info[0:2] <= (3, 6) else dict')
+                text = text.replace(
+                    'DictBase = dict\n',
+                    'DictBase = OrderedDict if sys.version_info[0:2] <= (3, 6) else dict',
+                )
             # text = text.replace('odict = OrderedDict', '')
             # text = text.replace('ddict = defaultdict', '')
 
             if mod.path.endswith('util_path.py'):
                 # hack for forward reference
                 text = text.replace(' -> Path:', " -> 'Path':")
-                text = text.replace('class Path(_PathBase)', "class Path")
+                text = text.replace('class Path(_PathBase)', 'class Path')
 
             # Format the PYI file nicely
-            text = autoflake.fix_code(text, remove_unused_variables=True,
-                                      remove_all_unused_imports=True)
+            text = autoflake.fix_code(
+                text,
+                remove_unused_variables=True,
+                remove_all_unused_imports=True,
+            )
 
             # import autopep8
             # text = autopep8.fix_code(text, options={
@@ -260,7 +292,8 @@ def generate_typed_stubs():
                 filename='<stdin>',
                 style_config=style,
                 lines=None,
-                verify=False)
+                verify=False,
+            )
 
             # print(text)
 
@@ -277,15 +310,21 @@ def hack_annotated_type_from_docstring():
 
 
 class ExtendedStubGenerator(StubGenerator):
-
-    def visit_func_def(self, o: FuncDef, is_abstract: bool = False,
-                       is_overload: bool = False) -> None:
-        if (self.is_private_name(o.name, o.fullname)
-                or self.is_not_in_all(o.name)
-                or (self.is_recorded_name(o.name) and not is_overload)):
+    def visit_func_def(
+        self, o: FuncDef, is_abstract: bool = False, is_overload: bool = False
+    ) -> None:
+        if (
+            self.is_private_name(o.name, o.fullname)
+            or self.is_not_in_all(o.name)
+            or (self.is_recorded_name(o.name) and not is_overload)
+        ):
             self.clear_decorators()
             return
-        if not self._indent and self._state not in (EMPTY, FUNC) and not o.is_awaitable_coroutine:
+        if (
+            not self._indent
+            and self._state not in (EMPTY, FUNC)
+            and not o.is_awaitable_coroutine
+        ):
             self.add('\n')
         if not self.is_top_level():
             self_inits = find_self_initializers(o)
@@ -300,7 +339,10 @@ class ExtendedStubGenerator(StubGenerator):
         for s in self._decorators:
             self.add(s)
         self.clear_decorators()
-        self.add("%s%sdef %s(" % (self._indent, 'async ' if o.is_coroutine else '', o.name))
+        self.add(
+            '%s%sdef %s('
+            % (self._indent, 'async ' if o.is_coroutine else '', o.name)
+        )
         self.record_name(o.name)
         # import ubelt as ub
         # if o.name == 'dzip':
@@ -310,13 +352,26 @@ class ExtendedStubGenerator(StubGenerator):
         def _hack_for_info(info):
             if info['type'] is None:
                 return
-            for typing_arg in ['Iterable', 'Callable', 'Dict',
-                               'List', 'Union', 'Type', 'Mapping',
-                               'Tuple', 'Optional', 'Sequence',
-                               'Iterator', 'Set', 'Dict']:
+            for typing_arg in [
+                'Iterable',
+                'Callable',
+                'Dict',
+                'List',
+                'Union',
+                'Type',
+                'Mapping',
+                'Tuple',
+                'Optional',
+                'Sequence',
+                'Iterator',
+                'Set',
+                'Dict',
+            ]:
                 if typing_arg in info['type']:
                     self.add_typing_import(typing_arg)
-                    self.add_import_line('from typing import {}\n'.format(typing_arg))
+                    self.add_import_line(
+                        'from typing import {}\n'.format(typing_arg)
+                    )
 
             if 'io.' in info['type']:
                 self.add_import_line('import io\n')
@@ -478,17 +533,23 @@ class ExtendedStubGenerator(StubGenerator):
             # name their 0th argument other than self/cls
             is_self_arg = i == 0 and name == 'self'
             is_cls_arg = i == 0 and name == 'cls'
-            annotation = ""
+            annotation = ''
             if annotated_type and not is_self_arg and not is_cls_arg:
                 # Luckily, an argument explicitly annotated with "Any" has
                 # type "UnboundType" and will not match.
                 if not isinstance(get_proper_type(annotated_type), AnyType):
-                    annotation = ": {}".format(self.print_annotation(annotated_type))
+                    annotation = ': {}'.format(
+                        self.print_annotation(annotated_type)
+                    )
             if arg_.initializer:
-                if kind.is_named() and not any(arg.startswith('*') for arg in args):
+                if kind.is_named() and not any(
+                    arg.startswith('*') for arg in args
+                ):
                     args.append('*')
                 if not annotation:
-                    typename = self.get_str_type_of_node(arg_.initializer, True, False)
+                    typename = self.get_str_type_of_node(
+                        arg_.initializer, True, False
+                    )
                     if typename == '':
                         annotation = '=...'
                     else:
@@ -535,7 +596,9 @@ class ExtendedStubGenerator(StubGenerator):
             generator_name = self.typing_name('Generator')
             if return_parsed_docstr_info is not None:
                 yield_name = return_parsed_docstr_info[1]
-            retname = f'{generator_name}[{yield_name}, {send_name}, {return_name}]'
+            retname = (
+                f'{generator_name}[{yield_name}, {send_name}, {return_name}]'
+            )
             # print('o.name = {}'.format(ub.repr2(o.name, nl=1)))
             # print('retname = {!r}'.format(retname))
             # print('retfield = {!r}'.format(retfield))
@@ -551,7 +614,7 @@ class ExtendedStubGenerator(StubGenerator):
             retfield = ' -> ' + retname
 
         self.add(', '.join(args))
-        self.add("){}: ...\n".format(retfield))
+        self.add('){}: ...\n'.format(retfield))
         self._state = FUNC
 
     def visit_class_def(self, o) -> None:

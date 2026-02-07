@@ -209,19 +209,26 @@ def _update_hasher_iterative(hasher, data, types=True, extensions=None):
                 # !>> We will need to expose versions of the hasher that can be
                 stack.append((DAT_TYPE, item))
         else:
-            prefix, hashable = _convert_to_hashable(data, types,
-                                                    extensions=extensions)
+            prefix, hashable = _convert_to_hashable(
+                data, types, extensions=extensions
+            )
             binary_data = prefix + hashable
             hasher.update(binary_data)
 
 
 @profile
-def hash_data_iterative(data, hasher=NoParam, base=NoParam, types=False,
-                        convert=False, extensions=None):
-    """
-    """
+def hash_data_iterative(
+    data,
+    hasher=NoParam,
+    base=NoParam,
+    types=False,
+    convert=False,
+    extensions=None,
+):
+    """ """
     if convert and not isinstance(data, str):  # nocover
         import json
+
         try:
             data = json.dumps(data)
         except TypeError:
@@ -239,12 +246,18 @@ def hash_data_iterative(data, hasher=NoParam, base=NoParam, types=False,
 
 
 @profile
-def hash_data_recursive(data, hasher=NoParam, base=NoParam, types=False,
-                        convert=False, extensions=None):
-    """
-    """
+def hash_data_recursive(
+    data,
+    hasher=NoParam,
+    base=NoParam,
+    types=False,
+    convert=False,
+    extensions=None,
+):
+    """ """
     if convert and not isinstance(data, str):  # nocover
         import json
+
         try:
             data = json.dumps(data)
         except TypeError:
@@ -266,8 +279,16 @@ def main():
     import string
 
     import numpy as np
+
     np_data = np.empty((1, 1))
-    data = [1, 2, ['a', 2, 'c'], [1] * 100, [[[], np_data]], {'a': [1, 2, [3, 4, [5, 6]]]}]
+    data = [
+        1,
+        2,
+        ['a', 2, 'c'],
+        [1] * 100,
+        [[[], np_data]],
+        {'a': [1, 2, [3, 4, [5, 6]]]},
+    ]
 
     def make_nested_data(leaf_width=10, branch_width=10, depth=0):
         data = {}
@@ -280,13 +301,17 @@ def main():
             for i in range(branch_width):
                 key = ''.join(random.choices(string.printable, k=16))
                 value = make_nested_data(
-                    leaf_width=leaf_width, branch_width=branch_width, depth=depth - 1)
+                    leaf_width=leaf_width,
+                    branch_width=branch_width,
+                    depth=depth - 1,
+                )
                 data[key] = value
         return data
 
     data = make_nested_data(leaf_width=10, branch_width=2, depth=8)
 
     import timerit
+
     ti = timerit.Timerit(100, bestof=10, verbose=2)
     for timer in ti.reset('recursive'):
         with timer:

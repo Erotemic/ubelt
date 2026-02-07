@@ -13,8 +13,13 @@ def remove_old_python2_headers():
     fpaths = set(repo_dpath.glob('**/*.py'))
 
     lines_to_remove = [
-        patterns.Pattern.from_regex(re.escape('from __future__ import absolute_import, ') + '.*', dotall=True),
-        patterns.Pattern.from_regex(re.escape('# -*- coding: utf-8 -*-') + '.*', dotall=True),
+        patterns.Pattern.from_regex(
+            re.escape('from __future__ import absolute_import, ') + '.*',
+            dotall=True,
+        ),
+        patterns.Pattern.from_regex(
+            re.escape('# -*- coding: utf-8 -*-') + '.*', dotall=True
+        ),
     ]
 
     fpaths = {f for f in fpaths if 'remove_ancient_constructs' not in str(f)}

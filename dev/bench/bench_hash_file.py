@@ -309,11 +309,17 @@ def benchmark_hash_file():
     # import pytest
     # pytest.skip()
     import pandas as pd
+
     df = pd.DataFrame.from_dict(results)
     df.columns.name = 'hasher'
     df.index.name = 'N'
     ratios = df.copy().drop(columns=df.columns)
-    for k1, k2 in [('sha512', 'xxh64'), ('sha1', 'xxh64'), ('xxh32', 'xxh64'), ('blake3', 'xxh64')]:
+    for k1, k2 in [
+        ('sha512', 'xxh64'),
+        ('sha1', 'xxh64'),
+        ('xxh32', 'xxh64'),
+        ('blake3', 'xxh64'),
+    ]:
         ratios['{}/{}'.format(k1, k2)] = df[k1] / df[k2]
     print()
     print('Seconds per iteration')

@@ -80,7 +80,11 @@ def main():
     try:
         text = ub.Path(__file__).read_text()
     except NameError:
-        text = ub.Path('~/code/ubelt/dev/bench/bench_highlight.py').expand().read_text()
+        text = (
+            ub.Path('~/code/ubelt/dev/bench/bench_highlight.py')
+            .expand()
+            .read_text()
+        )
 
     for timer in ti.reset('big-pygments'):
         pygments_text = _pygments_highlight(text, lexer_name)

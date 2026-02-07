@@ -184,7 +184,11 @@ def benchmark_urepr_vs_alternatives():
     if RECORD_ALL:
         # Show the min / mean if we record all
         min_times = data.groupby('key').min().rename({'time': 'min'}, axis=1)
-        mean_times = data.groupby('key')[['time']].mean().rename({'time': 'mean'}, axis=1)
+        mean_times = (
+            data.groupby('key')[['time']]
+            .mean()
+            .rename({'time': 'mean'}, axis=1)
+        )
         stats_data = pd.concat([min_times, mean_times], axis=1)
         stats_data = stats_data.sort_values('min')
     else:

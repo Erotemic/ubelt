@@ -36,8 +36,14 @@ def multiple_items_from_a_dictionary():
     import kwimage
 
     import ubelt as ub
-    kwimage_test_image_names = ['airport', 'amazon', 'astro', 'carl',
-                                'lowcontrast']
+
+    kwimage_test_image_names = [
+        'airport',
+        'amazon',
+        'astro',
+        'carl',
+        'lowcontrast',
+    ]
     rows = []
     for test_image in kwimage_test_image_names:
         fpath = ub.Path(kwimage.grab_test_image_fpath(test_image))
@@ -70,22 +76,34 @@ def multiple_items_from_a_dictionary():
     space
     """
     for row in rows:
-        mean, std, sum, min, max = row['mean'], row['std'], row['sum'], row['min'], row['max']
+        mean, std, sum, min, max = (
+            row['mean'],
+            row['std'],
+            row['sum'],
+            row['min'],
+            row['max'],
+        )
 
     """
     What if we try to be clever? We can use a list comprehension
     """
     for row in rows:
-        mean, std, sum, min, max = [row[k] for k in ['mean', 'std', 'sum', 'min', 'max']]
+        mean, std, sum, min, max = [
+            row[k] for k in ['mean', 'std', 'sum', 'min', 'max']
+        ]
 
     """
     That's not too bad, but we can do better
     """
     for row in rows:
-        mean, std, sum, min, max = ub.take(row, ['mean', 'std', 'sum', 'min', 'max'])
+        mean, std, sum, min, max = ub.take(
+            row, ['mean', 'std', 'sum', 'min', 'max']
+        )
 
     """
     And now even better:
     """
     for row in map(ub.udict, rows):
-        mean, std, sum, min, max = row.take(['mean', 'std', 'sum', 'min', 'max'])
+        mean, std, sum, min, max = row.take(
+            ['mean', 'std', 'sum', 'min', 'max']
+        )

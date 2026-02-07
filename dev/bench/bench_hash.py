@@ -58,15 +58,22 @@ def benchmark_hash_data():
     print(ratios.mean().sort_values())
     if ub.argflag('--show'):
         import kwplot
+
         kwplot.autompl()
         xdata = sorted(ub.peek(results.values()).keys())
         ydata = ub.map_values(lambda d: [d[x] for x in xdata], results)
-        kwplot.multi_plot(xdata, ydata, xlabel='N', ylabel='seconds', title='convert = {}'.format(convert))
+        kwplot.multi_plot(
+            xdata,
+            ydata,
+            xlabel='N',
+            ylabel='seconds',
+            title='convert = {}'.format(convert),
+        )
         kwplot.show_if_requested()
 
 
 def benchmark_hash_extensions():
-    """"
+    """ "
     xdoctest ~/code/ubelt/dev/bench/bench_hash.py benchmark_hash_extensions
     """
     import uuid

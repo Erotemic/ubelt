@@ -91,11 +91,12 @@ def benchmark_ubelt_import_time_robust():
     import pandas as pd
 
     import ubelt as ub
+
     sns = kwplot.autosns(force='Qt5Agg')
     # plt = kwplot.autoplt()  # NOQA
 
     prog = ub.codeblock(
-        r'''
+        r"""
         def _main():
             import subprocess
             import ubelt as ub
@@ -127,7 +128,8 @@ def benchmark_ubelt_import_time_robust():
             info['version'] = ub.__version__
             print(info)
         _main()
-        ''')
+        """
+    )
 
     dpath = ub.Path(ub.ensure_app_cache_dir('ubelt/tests/test_version_import2'))
 
@@ -152,20 +154,29 @@ def benchmark_ubelt_import_time_robust():
     bname_to_info = {}
     rows = []
     try:
-        for bname in ub.ProgIter(branches, desc='looping over versions', verbose=3):
+        for bname in ub.ProgIter(
+            branches, desc='looping over versions', verbose=3
+        ):
             print('bname = {!r}'.format(bname))
-            ub.cmd('git checkout {}'.format(bname), cwd=tmp_copy, verbose=3, check=True)
+            ub.cmd(
+                'git checkout {}'.format(bname),
+                cwd=tmp_copy,
+                verbose=3,
+                check=True,
+            )
             info = ub.cmd('python {}'.format(fpath), verbose=2, cwd=tmp_copy)
             dict_info = eval(info['out'])
             bname_to_info[bname] = dict_info
             for stat in ['mean', 'min', 'max']:
                 for type in ['self_us', 'cummulative']:
-                    rows.append({
-                        'version': dict_info['version'],
-                        'stat': stat,
-                        'type': type,
-                        'time': dict_info[stat][type],
-                    })
+                    rows.append(
+                        {
+                            'version': dict_info['version'],
+                            'stat': stat,
+                            'type': type,
+                            'time': dict_info[stat][type],
+                        }
+                    )
             df = pd.DataFrame(rows[-1:])
             print(df)
             # ax.cla()
@@ -178,18 +189,29 @@ def benchmark_ubelt_import_time_robust():
     df = pd.DataFrame(rows)
     # from packaging.version import Version
     from distutils.version import LooseVersion
-    unique_versions = list(map(str, sorted(map(LooseVersion, df['version'].unique()))))
-    df['release_index'] = df['version'].apply(lambda x: unique_versions.index(x))
 
-    xtick_to_label = ub.sorted_keys(ub.dzip(
-        ub.oset(df['release_index']),
-        ub.oset(df['version'])
-    ))
+    unique_versions = list(
+        map(str, sorted(map(LooseVersion, df['version'].unique())))
+    )
+    df['release_index'] = df['version'].apply(
+        lambda x: unique_versions.index(x)
+    )
+
+    xtick_to_label = ub.sorted_keys(
+        ub.dzip(ub.oset(df['release_index']), ub.oset(df['version']))
+    )
     xticks = list(xtick_to_label.keys())
     xticklabels = list(xtick_to_label.values())
 
     kwplot.figure(fnum=2, pnum=(2, 1, 1), doclf=True)
-    ax = sns.lineplot(data=df[df['type'] == 'cummulative'], x='release_index', y='time', hue='stat', style='type', marker='o')
+    ax = sns.lineplot(
+        data=df[df['type'] == 'cummulative'],
+        x='release_index',
+        y='time',
+        hue='stat',
+        style='type',
+        marker='o',
+    )
     ax.set_title('Ubelt cumulative import time over release history')
     ax.set_xticks(xticks, labels=xticklabels, rotation='vertical')
     ax.set_xlabel('Version')
@@ -197,7 +219,14 @@ def benchmark_ubelt_import_time_robust():
     # ax.set_yscale('log')
 
     kwplot.figure(fnum=2, pnum=(2, 1, 2))
-    ax = sns.lineplot(data=df[df['type'] == 'self_us'], x='release_index', y='time', hue='stat', style='type', marker='o')
+    ax = sns.lineplot(
+        data=df[df['type'] == 'self_us'],
+        x='release_index',
+        y='time',
+        hue='stat',
+        style='type',
+        marker='o',
+    )
     ax.set_xticks(xticks, labels=xticklabels, rotation='vertical')
     ax.set_title('Ubelt self import time over release history')
     ax.set_xlabel('Version')

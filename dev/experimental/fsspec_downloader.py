@@ -26,10 +26,11 @@ def check_fsspec():
     urls = ['http://localhost:8000/{}'.format(fname) for fname in fnames]
 
     import fsspec
+
     file = fsspec.open(urls[0]).open().read()
 
     with ub.Timer(label='fsspec.cat', verbose=1):
-        fs = fsspec.filesystem("http")
+        fs = fsspec.filesystem('http')
         out = fs.cat(urls)  # fetches data concurrently
 
     with ub.Timer(label='ub.DownloadManager', verbose=1):

@@ -18,21 +18,47 @@ def count_package_usage(modname):
     from os.path import join
 
     import ubelt as ub
+
     config = UsageConfig(cmdline=True)
 
     names = [
-        'xdoctest', 'netharn', 'xdev', 'xinspect', 'xcookie', 'ndsampler',
-        'kwarray', 'kwimage', 'kwplot', 'kwcoco',
-        'scriptconfig', 'vimtk',
-        'mkinit', 'futures_actors', 'graphid',
-
-        'kwutil', 'git_well', 'line_profiler', 'delayed_image', 'simple_dvc',
-        'pypogo', 'cmd_queue'
-
-        'ibeis', 'plottool_ibeis', 'guitool_ibeis', 'utool', 'dtool_ibeis',
-        'vtool_ibeis', 'pyhesaff', 'torch_liberator', 'liberator',
-        'pyflann_ibeis', 'networkx_algo_common_subtree', 'shitspotter',
-        'kwgis', 'geowatch', 'sm64-random-assets', 'bioharn',
+        'xdoctest',
+        'netharn',
+        'xdev',
+        'xinspect',
+        'xcookie',
+        'ndsampler',
+        'kwarray',
+        'kwimage',
+        'kwplot',
+        'kwcoco',
+        'scriptconfig',
+        'vimtk',
+        'mkinit',
+        'futures_actors',
+        'graphid',
+        'kwutil',
+        'git_well',
+        'line_profiler',
+        'delayed_image',
+        'simple_dvc',
+        'pypogo',
+        'cmd_queueibeis',
+        'plottool_ibeis',
+        'guitool_ibeis',
+        'utool',
+        'dtool_ibeis',
+        'vtool_ibeis',
+        'pyhesaff',
+        'torch_liberator',
+        'liberator',
+        'pyflann_ibeis',
+        'networkx_algo_common_subtree',
+        'shitspotter',
+        'kwgis',
+        'geowatch',
+        'sm64-random-assets',
+        'bioharn',
     ] + config['extra_modnames']
 
     names = list(ub.unique(names))
@@ -48,9 +74,14 @@ def count_package_usage(modname):
         name = repo_dpath.stem
         fpaths = glob.glob(join(repo_dpath, '**', '*.py'), recursive=True)
         for fpath in fpaths:
-            if ub.Path(fpath).relative_to(repo_dpath).parts[0] in {'build', 'dist'}:
+            if ub.Path(fpath).relative_to(repo_dpath).parts[0] in {
+                'build',
+                'dist',
+            }:
                 continue
-            all_tlds.append(repo_dpath / ub.Path(fpath).relative_to(repo_dpath).parts[0])
+            all_tlds.append(
+                repo_dpath / ub.Path(fpath).relative_to(repo_dpath).parts[0]
+            )
             all_fpaths.append((name, fpath))
     all_tlds = list(ub.unique(all_tlds))
     print(f'all_tlds = {ub.urepr(all_tlds, nl=1)}')
@@ -209,7 +240,7 @@ def gen_api_for_docs(modname):
     name_len = max(len(row[ref_key]) for row in rows) + 1
     num_len = 16
 
-    guard = ('=' * name_len + ' ' + '=' * num_len)
+    guard = '=' * name_len + ' ' + '=' * num_len
     print(guard)
     column_fmt = '{:<' + str(name_len) + '} {:>' + str(num_len) + '}'
     print(column_fmt.format(' Function name ', 'Usefulness'))
@@ -260,9 +291,7 @@ def gen_api_for_docs(modname):
             print('-' * len(title))
             for subname in submembers:
                 if not subname.startswith('_'):
-                    rst_ref = (
-                        f':func:`<{modname}.{subname}><{parent_module}.{subname}>`'
-                    )
+                    rst_ref = f':func:`<{modname}.{subname}><{parent_module}.{subname}>`'
                     print(rst_ref)
             submembers = dir(member)
 
