@@ -602,9 +602,9 @@ def _syspath_modname_to_modpath(modname, sys_path=None, exclude=None) -> str | N
                     except KeyError:
                         ...
                     else:
-                        if not exclude or normalize(target) not in real_exclude:  # pragma: nobranch  
+                        if not exclude or normalize(target) not in real_exclude:  # pragma: nobranch
                             modpath = check_dpath(target)
-                            if modpath:  # pragma: nobranch  
+                            if modpath:  # pragma: nobranch
                                 found_modpath = modpath
                                 break
             if found_modpath is not None:
@@ -622,7 +622,7 @@ def _syspath_modname_to_modpath(modname, sys_path=None, exclude=None) -> str | N
                 target = editable_pth.read_text().strip().split('\n')[-1]
                 if not exclude or normalize(target) not in real_exclude:  # pragma: nobranch
                     modpath = check_dpath(target)
-                    if modpath:  # pragma: nobranch  
+                    if modpath:  # pragma: nobranch
                         found_modpath = modpath
                         break
             if found_modpath is not None:

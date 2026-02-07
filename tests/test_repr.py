@@ -436,8 +436,8 @@ def test_align_bool():
             bb=2,
         )
         ''')
-    
-    
+
+
 if __name__ == '__main__':
     """
     CommandLine:

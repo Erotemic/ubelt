@@ -116,8 +116,8 @@ def test_dict_subset_default():
     got = ub.dict_subset(dict_, keys, default=0)
     expected = {'a': 1, 'c': 0, 'b': 2}
     assert dict(got) == expected
-    
-    
+
+
 # def _benchmark_groupid_sorted():
 #     import random
 #     import ubelt as ub
