@@ -8,12 +8,14 @@ This code is based on a template that lives in:
 
     ~/code/timerit/examples/benchmark_template.py
 """
+
 from functools import cache
 
 
 @cache
 def make_nested_data(num_items=10_000):
     import numpy as np
+
     items = {}
     for index in range(num_items):
         item = {
@@ -38,6 +40,7 @@ def benchmark_urepr_vs_alternatives2():
     import timerit
 
     import ubelt as ub
+
     ti = timerit.Timerit(1, bestof=1, verbose=2)
 
     for timer in ti.reset('ubelt.repr2'):
@@ -67,6 +70,7 @@ def benchmark_urepr_vs_alternatives():
     # Some bookkeeping needs to be done to build a dictionary that maps the
     # method names to the functions themselves.
     method_lut = {}
+
     def register_method(func):
         method_lut[func.__name__] = func
         return func
@@ -227,6 +231,7 @@ def benchmark_urepr_vs_alternatives():
         # kwplot autosns works well for IPython and script execution.
         # not sure about notebooks.
         import kwplot
+
         sns = kwplot.autosns()
         plt = kwplot.autoplt()
 

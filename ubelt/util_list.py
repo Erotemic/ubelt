@@ -19,6 +19,7 @@ lesser known, but very useful numpy equivalents.
 There are also other numpy inspired functions: :func:`unique`,
 :func:`argunique`, :func:`unique_flags`, and :func:`boolmask`.
 """
+
 from __future__ import annotations
 
 import itertools as it
@@ -266,11 +267,13 @@ class chunks(Iterable[List[VT]]):
         if self.bordermode == 'cycle':
             iterator = it.cycle(iter(self.items))
         elif self.bordermode == 'replicate':
+
             def replicator(items: Iterable[VT]) -> Iterator[VT]:
                 for item in items:
                     yield item
                 while True:
                     yield item
+
             iterator = replicator(iter(self.items))
         elif self.bordermode == 'none':
             iterator = iter(self.items)
@@ -1075,6 +1078,7 @@ class UList(list, OrderedIterableMixin):
         >>> print(f'group: {self.group(key=lambda x: x % 2)}')
         >>> print(f'duplicates: {self.duplicates()}')
     """
+
     peek = peek
     take = take
 

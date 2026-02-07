@@ -10,4 +10,5 @@ CommandLine:
 
 if __name__ == '__main__':
     import xdoctest
+
     xdoctest.doctest_module('ubelt')

@@ -66,6 +66,7 @@ def test_import_modpath_package():
 def test_import_modname_builtin():
     module = ub.import_module_from_name('ast')
     import ast
+
     assert module is ast
 
 
@@ -267,6 +268,7 @@ def test_modname_to_modpath_namespace():
 
             # this should all be static
             import sys
+
             assert '_tmpsingle' not in sys.modules
             assert '_tmpbad' not in sys.modules
 
@@ -278,6 +280,7 @@ def test_package_submodules():
         xdoctest -m ~/code/ubelt/tests/test_import.py test_package_submodules
     """
     from xdoctest import static_analysis as static
+
     with pytest.warns(Warning):
         temp = ub.TempDir()
     with temp:
@@ -442,4 +445,5 @@ if __name__ == '__main__':
         pytest tests/test_import.py
     """
     import xdoctest
+
     xdoctest.doctest_module(__file__)

@@ -60,6 +60,7 @@ class FancyIndexTester:
     Make sure we can index by a NumPy ndarray, without having to import
     NumPy.
     """
+
     def __init__(self, indices):
         self.indices = indices
 

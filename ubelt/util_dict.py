@@ -51,6 +51,7 @@ References:
     .. [Pep3106] https://peps.python.org/pep-3106/
     .. [GHDictMap] https://github.com/ulisesojeda/dictionary_map
 """
+
 from __future__ import annotations
 
 import itertools as it
@@ -292,6 +293,7 @@ def dict_hist(items: Iterable[T], weights: Optional[Iterable[float]] = None, ord
         # Accumulate discrete frequency.
         # In this special case we use an optimized stdlib routine
         from collections import Counter
+
         hist_ = Counter()
         hist_.update(items)
     else:
@@ -2100,6 +2102,7 @@ class UDict(SetDict):
             >>> assert ub.udict({1: 2}).peek_key() == 1
         """
         from ubelt.util_list import peek
+
         return typing.cast(KT, peek(self.keys(), default=default))
 
     def peek_value(self, default: Union[VT, NoParamType] = NoParam) -> VT:
@@ -2119,6 +2122,7 @@ class UDict(SetDict):
             >>> assert ub.udict({1: 2}).peek_value() == 2
         """
         from ubelt.util_list import peek
+
         return typing.cast(VT, peek(self.values(), default=default))
 
 
@@ -2138,6 +2142,7 @@ class AutoDict(UDict):
         >>> auto[0][10][100] = None
         >>> assert str(auto) == '{0: {10: {100: None}}}'
     """
+
     _base = UDict
 
     def __getitem__(self, key: KT) -> Union[VT, AutoDict]:

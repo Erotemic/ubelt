@@ -1,5 +1,3 @@
-
-
 def demo_named_product():
     import numpy as np
     import pandas as pd
@@ -33,5 +31,6 @@ def demo_named_product():
 
     # import seaborn as sns
     import kwplot
+
     sns = kwplot.autosns()
     sns.scatterplot(data=data, x='thresh1', y='thresh2', hue='score')

@@ -38,6 +38,7 @@ def benchmark_template():
     # Some bookkeeping needs to be done to build a dictionary that maps the
     # method names to the functions themselves.
     method_lut = {}
+
     def register_method(func):
         method_lut[func.__name__] = func
         return func
@@ -223,6 +224,7 @@ def benchmark_template():
         # kwplot autosns works well for IPython and script execution.
         # not sure about notebooks.
         import kwplot
+
         sns = kwplot.autosns()
         plt = kwplot.autoplt()
 

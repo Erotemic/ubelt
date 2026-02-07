@@ -9,8 +9,10 @@ def test_noexist_meta_clear():
     """
     What no errors happen when an external processes removes meta
     """
+
     def func():
         return 'expensive result'
+
     cacher = ub.Cacher('name', 'params', verbose=10)
     cacher.clear()
 
@@ -33,8 +35,10 @@ def test_clear_quiet():
     """
     What no errors happen when an external processes removes meta
     """
+
     def func():
         return 'expensive result'
+
     cacher = ub.Cacher('name', 'params', verbose=0)
     cacher.clear()
     cacher.clear()
@@ -48,8 +52,10 @@ def test_corrupt():
 
     python ubelt/tests/test_cache.py test_corrupt
     """
+
     def func():
         return ['expensive result']
+
     cacher = ub.Cacher('name', 'params', verbose=10)
     cacher.clear()
 
@@ -77,6 +83,7 @@ def test_corrupt():
 def _setup_corrupt_cacher(verbose=0):
     def func():
         return ['expensive result']
+
     cacher = ub.Cacher('name', 'params', verbose=verbose)
     cacher.clear()
     cacher.ensure(func)
@@ -132,6 +139,7 @@ def test_disable():
     def func():
         nonlocal_var[0] += 1
         return ['expensive result']
+
     cacher = ub.Cacher('name', 'params', verbose=10, enabled=False)
 
     assert nonlocal_var[0] == 0

@@ -9,6 +9,7 @@ The :func:`hzcat` function horizontally concatenates multiline text.
 The :func:`indent` prefixes all lines in a text block with a given prefix. By
 default that prefix is 4 spaces.
 """
+
 from __future__ import annotations
 
 __all__ = [
@@ -78,6 +79,7 @@ def codeblock(text: str) -> str:
         >>> print(codeblock_version)
     """
     import textwrap  # this is a slow import, do it lazy
+
     return textwrap.dedent(text).strip('\n')
 
 
@@ -111,6 +113,7 @@ def paragraph(text: str) -> str:
         out = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.'
     """
     import re
+
     out = re.sub(r'\s\s*', ' ', text).strip()
     return out
 
@@ -147,6 +150,7 @@ def hzcat(args: list[str], sep: str = '') -> str:
          ｜ ｜ [á, á, á]]｜ ｜ [7, θ]]
     """
     import unicodedata
+
     if '\n' in sep or '\r' in sep:
         raise ValueError('`sep` cannot contain newline characters')
 

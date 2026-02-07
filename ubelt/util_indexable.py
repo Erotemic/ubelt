@@ -9,6 +9,7 @@ References:
     .. [PypiDictDigger] https://pypi.org/project/dict_digger/
     .. [PypiDeepDiff] https://pypi.org/project/deepdiff/
 """
+
 from __future__ import annotations
 
 import typing
@@ -42,6 +43,7 @@ class Difference(typing.NamedTuple):
     A result class of indexable_diff that organizes what the difference between
     the indexables is.
     """
+
     path: tuple
     value1: Any
     value2: Any
@@ -281,6 +283,7 @@ class IndexableWalker(Generator):
             value (Any): new value
         """
         import itertools as it
+
         d = self.data
         # note: slice unpack seems faster in 3.9 at least, dont change
         # ~/misc/tests/python/bench_unpack.py
@@ -307,6 +310,7 @@ class IndexableWalker(Generator):
             Any: value
         """
         import itertools as it
+
         d = self.data
         # Using islice allows path to be a list or deque
         key_index = len(path) - 1

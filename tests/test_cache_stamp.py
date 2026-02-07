@@ -90,6 +90,7 @@ def test_cache_stamp_corrupt_product_hasher():
 
 def test_cache_stamp_multiproduct():
     import os
+
     # stamp the computation of expensive-to-compute.txt
     dpath = ub.Path.appdir('ubelt/tests', 'test-cache-stamp').ensuredir()
     ub.delete(dpath)

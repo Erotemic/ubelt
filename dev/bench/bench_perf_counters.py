@@ -1,5 +1,3 @@
-
-
 def benchmark_template():
     import inspect
     import time
@@ -15,6 +13,7 @@ def benchmark_template():
     # Some bookkeeping needs to be done to build a dictionary that maps the
     # method names to the functions themselves.
     method_lut = {}
+
     def register_method(func):
         method_lut[func.__name__] = func
         return func
@@ -22,6 +21,7 @@ def benchmark_template():
     @register_method
     def method_ns_frac1(n):
         from fractions import Fraction
+
         for _ in range(n):
             Fraction(time.perf_counter_ns(), 1_000_000_000)
 
@@ -182,6 +182,7 @@ def benchmark_template():
         # kwplot autosns works well for IPython and script execution.
         # not sure about notebooks.
         import kwplot
+
         sns = kwplot.autosns()
         plt = kwplot.autoplt()
 

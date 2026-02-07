@@ -3,6 +3,7 @@ def bench_dict_isect():
 
     def random_dict(n):
         import random
+
         keys = set(random.randint(0, n) for _ in range(n))
         return {k: k for k in keys}
 
@@ -10,6 +11,7 @@ def bench_dict_isect():
     d2 = random_dict(1000)
 
     import xdev
+
     xdev.profile_now(ub.dict_isect)(d1, d2)
     xdev.profile_now(dict_isect_variant0)(d1, d2)
     xdev.profile_now(dict_isect_variant1)(d1, d2)
@@ -17,6 +19,7 @@ def bench_dict_isect():
     xdev.profile_now(dict_isect_variant3)(d1, d2)
 
     import timerit
+
     ti = timerit.Timerit(100, bestof=10, verbose=2)
     for timer in ti.reset('current'):
         with timer:
@@ -77,6 +80,7 @@ def dict_isect_variant3(*args):
         common_keys = set.intersection(*map(set, args))
         first_dict = args[0]
         return {k: first_dict[k] for k in common_keys}
+
 
 if __name__ == '__main__':
     """

@@ -1,4 +1,3 @@
-
 def benchmark_hash_data():
     """
     CommandLine:
@@ -39,6 +38,7 @@ def benchmark_hash_data():
     # import pytest
     # pytest.skip()
     import pandas as pd
+
     df = pd.DataFrame.from_dict(results)
     df.columns.name = 'hasher'
     df.index.name = 'N'

@@ -45,6 +45,7 @@ Example:
     g = <Group(3)>
 
 """
+
 from __future__ import annotations
 
 import warnings

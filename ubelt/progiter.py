@@ -74,6 +74,7 @@ Example:
     check primes  768/1000...Biggest prime so far: 761 rate=136480.12 Hz, eta=0:00:00, total=0:00:00, wall=2020-10-23 17:27 EST
     check primes 1000/1000...Biggest prime so far: 997 rate=115214.95 Hz, eta=0:00:00, total=0:00:00, wall=2020-10-23 17:27 EST
 """
+
 from __future__ import annotations
 
 import collections
@@ -368,6 +369,7 @@ class ProgIter(_TQDMCompat, _BackwardsCompat, Iterable[T]):
         >>>     is_prime(n)
         100/100... rate=... Hz, total=..., wall=...
     """
+
     stream: typing.IO
     iterable: Iterable[T] | None
     desc: str | None
@@ -966,6 +968,7 @@ class ProgIter(_TQDMCompat, _BackwardsCompat, Iterable[T]):
             {desc} {percent:03.2f}% {iter_idx:1d}/0...{extra} rate={rate:{rate_format}} Hz, total={total}
         """
         from math import floor, log10
+
         tot = self.total
         length_unknown = tot is None or tot < 0
         if length_unknown:
@@ -1061,6 +1064,7 @@ class ProgIter(_TQDMCompat, _BackwardsCompat, Iterable[T]):
             ' 1.00% of 10x100... '
         """
         from datetime import timedelta
+
         if self._est_seconds_left is None:
             eta = '?'
         else:

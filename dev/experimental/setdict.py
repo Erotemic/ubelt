@@ -5,6 +5,7 @@ References:
     .. [SetDictRecipe1] https://gist.github.com/rossmacarthur/38fa948b175abb512e12c516cc3b936d
     .. [SetDictRecipe2] https://code.activestate.com/recipes/577471-setdict/
 """
+
 import itertools as it
 
 from ubelt import NoParam
@@ -317,6 +318,7 @@ class SetDict(dict):
             {0: B_a, 2: C_c, 4: B_e, 5: A_f, 8: C_i, 9: D_j, 10: D_k, 11: D_l}
         """
         from collections import defaultdict
+
         cls = self.__class__
         accum_count = defaultdict(lambda: 0)
         accum_refs = {}
@@ -598,6 +600,7 @@ class RorUDictType(type):
 
 class RorUDict(RorUDictType.cls, metaclass=RorUDictType):
     pass
+
 
 try:
     type({'10': 10} | RorUDict)

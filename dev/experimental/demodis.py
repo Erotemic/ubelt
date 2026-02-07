@@ -11,6 +11,7 @@ def demo():
             return x + 2
 
     import io
+
     file = io.StringIO()
     print('--- DIS1 ---')
     dis.dis(func1, file=file)

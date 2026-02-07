@@ -115,6 +115,7 @@ Example:
 RelatedWork:
     https://github.com/shaypal5/cachier
 """
+
 from __future__ import annotations
 
 import os
@@ -173,6 +174,7 @@ class Cacher:
         >>>     cacher.save(myvar)
         >>> assert cacher.exists(), 'should now exist'
     """
+
     VERBOSE: int = 1  # default verbosity
     FORCE_DISABLE: bool = False  # global scope override
 
@@ -278,6 +280,7 @@ class Cacher:
             import pathlib
 
             from ubelt.util_platform import platform_cache_dir
+
             cache_dpath = pathlib.Path(platform_cache_dir())
             dpath = cache_dpath / (appname or 'ubelt')
             dpath.mkdir(parents=True, exist_ok=True)
@@ -313,6 +316,7 @@ class Cacher:
     def _rectify_cfgstr(self, cfgstr: str | None = None) -> str:
         if cfgstr is not None:  # nocover
             from ubelt import schedule_deprecation
+
             schedule_deprecation(
                 modname='ubelt',
                 migration=(
@@ -333,6 +337,7 @@ class Cacher:
                 self.cfgstr = self.depends
             else:
                 from ubelt.util_hash import hash_data
+
                 self.cfgstr = hash_data(self.depends)
             cfgstr = self.cfgstr
 
@@ -352,6 +357,7 @@ class Cacher:
         max_len = 49
         if len(cfgstr) > max_len:
             from ubelt.util_hash import hash_data
+
             condensed = hash_data(cfgstr, hasher=self.hasher, base='hex')
             condensed = condensed[0:max_len]
         else:
@@ -361,6 +367,7 @@ class Cacher:
     @property
     def fpath(self) -> os.PathLike:
         from ubelt.util_path import Path
+
         return Path(self.get_fpath())
 
     def get_fpath(self, cfgstr: str | None = None) -> str:
@@ -439,6 +446,7 @@ class Cacher:
             >>> assert exist_fpaths.issubset(known_fpaths)
         """
         import glob
+
         pattern = join(self.dpath, self.fname + '_*' + self.ext)
         for fname in glob.iglob(pattern):
             data_fpath = join(self.dpath, fname)
@@ -607,6 +615,7 @@ class Cacher:
         """
         from ubelt.util_path import ensuredir
         from ubelt.util_time import timestamp
+
         if not self.enabled:
             return
         if self.verbose > 0:
@@ -740,6 +749,7 @@ class Cacher:
             >>> assert func.cacher.exists()
             >>> func.cacher.clear()
         """
+
         # Can't return arguments because cfgstr won't take them into account
         # TODO: can we expand this to hash the arguments, or at least specific
         # arguments? This would let the user modify the depeneds / cfgstr
@@ -749,6 +759,7 @@ class Cacher:
         def _wrapper():
             data = self.ensure(func)
             return data
+
         setattr(_wrapper, 'cacher', self)
         return _wrapper
 
@@ -922,6 +933,7 @@ class CacheStamp:
             list[Path]
         """
         from ubelt.util_path import Path
+
         products = self.product if product is None else product
         if products is None:
             return None
@@ -1207,6 +1219,7 @@ class CacheStamp:
         import datetime as datetime_mod
 
         from ubelt.util_time import timeparse
+
         if now is None:
             now = datetime_mod.datetime.now()
         expires = self.expires

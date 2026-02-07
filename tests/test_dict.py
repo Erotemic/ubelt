@@ -13,6 +13,7 @@ def test_auto_dict():
 
 def test_auto_dict_to_dict():
     from ubelt.util_dict import AutoDict
+
     auto = AutoDict()
     auto[1] = 1
     auto['n1'] = AutoDict()
@@ -35,6 +36,7 @@ def test_auto_dict_to_dict():
 def test_auto_dict_ordered():
     # To Dict should respect ordering
     from ubelt.util_dict import AutoDict, AutoOrderedDict
+
     auto = AutoOrderedDict()
     auto[0][3] = 3
     auto[0][2] = 2
@@ -87,6 +89,7 @@ def test_dict_hist_ordered():
     import string
 
     import ubelt as ub
+
     rng = random.Random(0)
     items = [rng.choice(string.ascii_letters) for _ in range(100)]
     # Ensure that the ordered=True bug is fixed

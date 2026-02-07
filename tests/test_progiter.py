@@ -1,6 +1,7 @@
 """
 pytest tests/test_progiter.py
 """
+
 import itertools as it
 import sys
 from io import StringIO
@@ -14,6 +15,7 @@ class FakeStream:
     """
     Helper to hook into and introspect when progiter writes to the display
     """
+
     def __init__(self, verbose=0, callback=None):
         self.verbose = verbose
         self.callback = callback
@@ -37,6 +39,7 @@ class FakeTimer:
     Helper to hook into and introspect when progiter measures times.
     You must tic this timer yourself.
     """
+
     def __init__(self, times=[1]):
         self._time = 0
         self._callcount = 0
@@ -213,6 +216,7 @@ def test_progiter_offset_0():
     if sys.platform.startswith('win32'):  # nocover
         # on windows \r seems to be mixed up with ansi sequences
         from xdoctest.utils import strip_ansi
+
         got = [strip_ansi(line).strip() for line in got]
     assert got == want
 
@@ -528,6 +532,7 @@ def test_end_message_is_displayed():
     if calculations were updated without a display
     """
     import io
+
     stream = io.StringIO()
     prog = ProgIter(range(1000), stream=stream)
     for i in prog:
@@ -710,6 +715,8 @@ def test_extra_callback():
         '\r 20.00%  4/20...eee rate=1.00 Hz, eta=0:00:16, total=0:00:04',
     ]
 
+
 if __name__ == '__main__':
     import pytest
+
     pytest.main([__file__])

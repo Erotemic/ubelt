@@ -128,15 +128,12 @@ def benchmark_dict_diff_impl():
         'method': [
             # Cant use because unordered
             # 'method_diffkeys',
-
             # Cant use because python 3.6
             'method_ifkeys_dictcomp',
             'method_ifkeys_dictcomp_getitem',
-
             'method_ifkeys_setunion',
             'method_ifkeys_getitem',
             'method_diffkeys_list',
-
             # Probably not good
             # 'method_ifkeys_setcomp',
             # 'method_diffkeys_oset',
@@ -258,6 +255,7 @@ def benchmark_dict_diff_impl():
         # kwplot autosns works well for IPython and script execution.
         # not sure about notebooks.
         import kwplot
+
         sns = kwplot.autosns()
 
         plotkw = {}

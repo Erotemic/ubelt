@@ -6,6 +6,7 @@ Goal:
     be able to put ub.Executor in asyncio mode, which lets it coorporative
     scheduling.
 """
+
 import asyncio
 import concurrent.futures
 import types
@@ -62,6 +63,7 @@ class AsyncIOExecutor:
     Mimic concurrent.futures with asyncio
     This might not be possible. Defer...
     """
+
     def __init__(self):
         self.max_workers = 0
         self.loop = None
@@ -115,7 +117,6 @@ class AsyncIOExecutor:
 
 
 class FakeFuture:
-
     def __init__(self, task, executor):
         self.task = task
         self.executor = executor
@@ -157,6 +158,7 @@ class _AsyncFuture(concurrent.futures.Future):
         args (Tuple): positional arguments to call the function with
         kw (Dict): keyword arguments to call the function with
     """
+
     def __init__(self, func, *args, **kw):
         super(_AsyncFuture, self).__init__()
         # self.func = func
@@ -217,6 +219,7 @@ class _AsyncFuture(concurrent.futures.Future):
 async def expensive_async_call():
     import asyncio
     import random
+
     time = random.randint(0, 10)
     sleep_coroutine = asyncio.sleep(time)
     return await sleep_coroutine
@@ -231,6 +234,7 @@ def my_function(arg):
     import time
 
     import kwutil
+
     global GLOBAL_COUNTER
     GLOBAL_COUNTER += 1
 
@@ -245,6 +249,7 @@ def my_function(arg):
 
 def devcheck():
     import ubelt as ub
+
     self = ub.Executor(mode='thread', max_workers=10)
     self = AsyncIOExecutor()
 

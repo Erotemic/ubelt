@@ -37,6 +37,7 @@ References:
     .. [AS_appdirs] https://github.com/ActiveState/appdirs
     .. [PlatDirs] https://pypi.org/project/platformdirs/
 """
+
 from __future__ import annotations
 
 import itertools as it
@@ -124,6 +125,7 @@ def platform_cache_dir() -> str:
     dpath = normpath(expanduser(dpath_))
     return dpath
 
+
 # ---
 
 
@@ -179,6 +181,7 @@ def ensure_app_data_dir(appname: str, *args) -> str:
         >>> assert exists(dpath)
     """
     from ubelt import util_path
+
     dpath = get_app_data_dir(appname, *args)
     util_path.ensuredir(dpath)
     return dpath
@@ -236,6 +239,7 @@ def ensure_app_config_dir(appname: str, *args) -> str:
         >>> assert exists(dpath)
     """
     from ubelt import util_path
+
     dpath = get_app_config_dir(appname, *args)
     util_path.ensuredir(dpath)
     return dpath
@@ -296,6 +300,7 @@ def ensure_app_cache_dir(appname: str, *args) -> str:
         >>> assert exists(dpath)
     """
     from ubelt import util_path
+
     dpath = get_app_cache_dir(appname, *args)
     util_path.ensuredir(dpath)
     return dpath

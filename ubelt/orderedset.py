@@ -29,6 +29,7 @@ entry has an index that can be looked up.
 Based on a recipe originally posted to ActiveState Recipes by Raymond Hettiger,
 and released under the MIT license.
 """
+
 from __future__ import annotations
 
 import itertools as it

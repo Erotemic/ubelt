@@ -18,6 +18,7 @@ CommandLine:
     # Run mypy to check that type annotations are correct
     mypy ubelt
 """
+
 import sys
 from typing import Dict, List, Optional
 
@@ -352,6 +353,7 @@ class ExtendedStubGenerator(StubGenerator):
             fullname = self._IN_CLASS + '.' + o.name
 
         from ubelt import util_import
+
         curr = util_import.import_module_from_name(self.module)
         # curr = sys.modules.get(self.module)
         # print('o.name = {!r}'.format(o.name))
@@ -370,6 +372,7 @@ class ExtendedStubGenerator(StubGenerator):
         if real_func is not None and real_func.__doc__ is not None:
             from mypy import fastparse
             from xdoctest.docstr import docscrape_google
+
             parsed_args = None
             # parsed_ret = None
 
@@ -522,6 +525,7 @@ class ExtendedStubGenerator(StubGenerator):
         ret = super().visit_class_def(o)
         self._IN_CLASS = None
         return ret
+
 
 if __name__ == '__main__':
     """

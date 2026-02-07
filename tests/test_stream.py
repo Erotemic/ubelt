@@ -13,6 +13,7 @@ def test_capture_stream_error():
 
 def test_capture_stream_stream_assign():
     import ubelt as ub
+
     with ub.CaptureStdout() as cap:
         print('hello there')
         cap.cap_stream.flush()  # Test flush

@@ -6,7 +6,6 @@ def test_job_pool_context_manager():
 
     pool = ub.JobPool('thread', max_workers=16)
     with pool:
-
         for data in ub.ProgIter(range(10), desc='submit jobs'):
             pool.submit(worker, data)
 
@@ -73,6 +72,7 @@ def test_job_pool_clear_completed():
     import weakref
 
     import ubelt as ub
+
     is_deleted = {}
     weak_futures = {}
 
@@ -81,6 +81,7 @@ def test_job_pool_clear_completed():
     def make_finalizer(jobid):
         def _finalizer():
             is_deleted[jobid] = True
+
         return _finalizer
 
     def debug_referrers():
@@ -113,6 +114,7 @@ def test_job_pool_clear_completed():
     debug_referrers()
 
     import platform
+
     if 'pypy' not in platform.python_implementation().lower():
         if not any(is_deleted.values()):
             raise AssertionError
@@ -132,6 +134,7 @@ def test_job_pool_transient():
     import weakref
 
     import ubelt as ub
+
     is_deleted = {}
     weak_futures = {}
 
@@ -140,6 +143,7 @@ def test_job_pool_transient():
     def make_finalizer(jobid):
         def _finalizer():
             is_deleted[jobid] = True
+
         return _finalizer
 
     for jobid in range(10):
@@ -157,6 +161,7 @@ def test_job_pool_transient():
     # For 3.6, pytest has an AST issue if and assert statements are used.
     # raising regular AssertionErrors to handle that.
     import platform
+
     if 'pypy' not in platform.python_implementation().lower():
         if not any(is_deleted.values()):
             raise AssertionError
@@ -171,14 +176,18 @@ def test_job_pool_transient():
 def test_backends():
     import platform
     import sys
+
     # The process backend breaks pyp3 when using coverage
     if 'pypy' in platform.python_implementation().lower():
         import pytest
+
         pytest.skip('not testing process on pypy')
     if sys.platform.startswith('win32'):
         import pytest
+
         pytest.skip('not running this test on win32 for now')
     import ubelt as ub
+
     # Fork before threading!
     # https://pybay.com/site_media/slides/raymond2017-keynote/combo.html
     self1 = ub.Executor(mode='serial', max_workers=0)
@@ -220,6 +229,7 @@ def _killable_worker(kill_fpath):
     An infinite loop that we can kill by writing a sentinel value to disk
     """
     import ubelt as ub
+
     timer = ub.Timer().tic()
     while True:
         # Don't want for too long
@@ -234,6 +244,7 @@ def _sleepy_worker(seconds, loops=100):
     An infinite loop that we can kill by writing a sentinel value to disk
     """
     import time
+
     start_time = time.monotonic()
     while True:
         time.sleep(seconds / loops)
@@ -250,6 +261,7 @@ def test_as_completed_timeout():
     from concurrent.futures import TimeoutError
 
     import ubelt as ub
+
     kill_fname = str(uuid.uuid4()) + '.signal'
 
     # modes = ['thread', 'process', 'serial']

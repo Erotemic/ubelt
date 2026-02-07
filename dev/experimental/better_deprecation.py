@@ -133,6 +133,7 @@ class Deprecation:
 
         if print is True:
             import builtins
+
             print = builtins.print
 
         self.print = print

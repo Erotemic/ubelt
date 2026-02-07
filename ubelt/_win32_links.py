@@ -19,6 +19,7 @@ Weird Behavior:
     - [ ] In many cases using the win32 API seems to result in privilege errors
           but using shell commands does not have this problem.
 """
+
 from __future__ import annotations
 
 import os
@@ -60,6 +61,7 @@ def _win32_can_symlink(verbose=0, force=False, testing=False):
     # We have to use a unique directory otherwise we encounter multiprocess
     # race conditions.
     import tempfile
+
     tempdir = tempfile.mkdtemp(suffix='_win32_can_symlink')
     # from ubelt import util_platform
     # tempdir = util_platform.Path.appdir('ubelt', '_win32_can_symlink').ensuredir()
@@ -69,6 +71,7 @@ def _win32_can_symlink(verbose=0, force=False, testing=False):
     except Exception:
         print('ERROR IN DELETE: sys.platform={}'.format(sys.platform))
         from ubelt import util_links
+
         util_links._dirstats(tempdir)
         raise
 
@@ -153,6 +156,7 @@ def _win32_can_symlink(verbose=0, force=False, testing=False):
 
         if verbose:
             from ubelt import util_links
+
             util_links._dirstats(tempdir)
 
     try:
@@ -161,6 +165,7 @@ def _win32_can_symlink(verbose=0, force=False, testing=False):
     except Exception:
         print('ERROR IN DELETE')
         from ubelt import util_links
+
         util_links._dirstats(tempdir)
         raise
 
@@ -258,6 +263,7 @@ def _win32_symlink(path, link, verbose=0):
         print(f'_win32_symlink {link} -> {path}')
 
     from ubelt import util_cmd
+
     if os.path.isdir(path):
         # directory symbolic link
         if verbose:
@@ -278,6 +284,7 @@ def _win32_symlink(path, link, verbose=0):
         info = util_cmd.cmd(command, shell=True, verbose=cmd_verbose)
         if info['ret'] != 0:
             from ubelt import util_repr
+
             permission_msg = 'You do not have sufficient privledge'
             if permission_msg not in info['err']:
                 print('Failed command:')
@@ -327,6 +334,7 @@ def _win32_junction(path, link, verbose=0):
         print(f'_win32_junction {link} -> {path}')
 
     from ubelt import util_cmd
+
     if os.path.isdir(path):
         # try using a junction (soft link)
         if verbose:
@@ -351,6 +359,7 @@ def _win32_junction(path, link, verbose=0):
         info = util_cmd.cmd(command, shell=True, verbose=cmd_verbose)
         if info['ret'] != 0:
             from ubelt import util_repr
+
             print('Failed command:')
             print(info['command'])
             print(util_repr.urepr(info, nl=1))
@@ -527,6 +536,7 @@ def _win32_rmtree(path, verbose=0):
         _rmjunctions(path)
         # now we can rmtree as normal
         import shutil
+
         def onerror(func, path, exc_info):
             print('Error')
             print('func = {!r}'.format(func))
@@ -599,12 +609,14 @@ def _win32_dir(path, star=''):
     import re
 
     from ubelt import util_cmd
+
     wrapper = 'cmd /S /C "{}"'  # the /S will preserve all inner quotes
     command = 'dir /-C "{}"{}'.format(path, star)
     wrapped = wrapper.format(command)
     info = util_cmd.cmd(wrapped, shell=True)
     if info['ret'] != 0:
         from ubelt import util_repr
+
         print('Failed command:')
         print(info['command'])
         print(util_repr.urepr(info, nl=1))

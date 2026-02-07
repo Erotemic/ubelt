@@ -22,6 +22,7 @@ Example:
     >>> print(parts[-1])
 link_file.txt
 """
+
 from __future__ import annotations
 
 import os
@@ -285,6 +286,7 @@ def _dirstats(dpath=None):  # nocover
         >>> _dirstats('.')
     """
     from ubelt import util_colors
+
     if dpath is None:
         dpath = os.getcwd()
     print('+--------------')

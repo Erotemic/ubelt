@@ -101,7 +101,6 @@ def test_operators():
 
 
 def test_equality():
-
     def check(a, b):
         # Self checks
         assert a == a
@@ -142,4 +141,5 @@ if __name__ == '__main__':
         pytest ~/code/ubelt/ubelt/tests/test_oset.py
     """
     import xdoctest
+
     xdoctest.doctest_module(__file__)

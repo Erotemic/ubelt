@@ -367,6 +367,7 @@ class ReprExtensions:
             'b': I can do anything here
         }
     """
+
     # set_types = [set, frozenset]
     # list_types = [list, tuple]
     # dict_types = [dict]
@@ -400,6 +401,7 @@ class ReprExtensions:
         Returns:
             collections.abc.Callable: decorator function
         """
+
         def _decorator(func: Callable[..., Any]) -> Callable[..., Any]:
             if isinstance(key, tuple):
                 for t in key:
@@ -409,6 +411,7 @@ class ReprExtensions:
             else:
                 self._type_registry[key] = func
             return func
+
         return _decorator
 
     def lookup(self, data: Any) -> Callable[..., Any] | None:
@@ -607,6 +610,7 @@ class ReprExtensions:
                 # json.loads("[Infinity, NaN]")
                 # json.dumps([float('inf'), float('nan')])
                 import math
+
                 if math.isinf(data) or math.isnan(data):
                     text = "float('{}')".format(text)
 
@@ -618,6 +622,7 @@ class ReprExtensions:
                 return 'slice(%r,%r,%r)' % (data.start, data.stop, data.step)
             else:
                 return _format_object(data, **kwargs)
+
 
 _REPR_EXTENSIONS = ReprExtensions()
 _REPR_EXTENSIONS._register_builtin_extensions()
@@ -637,6 +642,7 @@ def _lazy_init() -> None:
         # _REPR_EXTENSIONS._register_torch_extensions()
     except ImportError:  # nocover
         pass
+
 
 _REPR_EXTENSIONS._lazy_queue.append(_lazy_init)
 
@@ -905,6 +911,7 @@ def _dict_itemstrs(dict_: dict[Any, Any], **kwargs: Any) -> tuple[list[str], dic
         >>> assert char_order == ['b', 'g', 'l', 'm', 's', 'w']
     """
     import ubelt as ub
+
     explicit = kwargs.get('explicit', False)
     kwargs['explicit'] = _rectify_countdown_or_bool(explicit)
     precision = kwargs.get('precision', None)

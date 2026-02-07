@@ -35,4 +35,5 @@ if __name__ == '__main__':
         pytest tests/test_list.py
     """
     import xdoctest
+
     xdoctest.doctest_module(__file__)

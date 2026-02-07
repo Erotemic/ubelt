@@ -2,6 +2,7 @@ def test_unable_to_find_color():
     import pytest
 
     import ubelt as ub
+
     if ub.util_colors.NO_COLOR:
         pytest.skip()
 

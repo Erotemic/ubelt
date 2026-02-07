@@ -130,42 +130,49 @@ class NoParamType:
         >>> assert all(not v for v in versions.values())
         >>> assert all(not bool(v) for v in versions.values())
     """
+
     def __new__(cls) -> NoParamType:
         """
         Returns:
             NoParamType
         """
         return NoParam
+
     def __reduce__(self) -> tuple[type, tuple]:
         """
         Returns:
             tuple[type, tuple]
         """
         return (NoParamType, ())
+
     def __copy__(self) -> NoParamType:
         """
         Returns:
             NoParamType
         """
         return NoParam
+
     def __deepcopy__(self, memo: object) -> NoParamType:
         """
         Returns:
             NoParamType
         """
         return NoParam
+
     def __str__(self) -> str:
         """
         Returns:
             str
         """
         return 'NoParam'
+
     def __repr__(self) -> str:
         """
         Returns:
             str
         """
         return 'NoParam'
+
     def __bool__(self) -> bool:
         """
         Returns:
@@ -173,6 +180,7 @@ class NoParamType:
         """
         # Ensure NoParam is Falsey
         return False
+
 
 # Backwards compat
 _NoParamType = NoParamType

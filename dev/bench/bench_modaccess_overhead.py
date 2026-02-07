@@ -1,5 +1,3 @@
-
-
 def main():
     import random
     from math import e

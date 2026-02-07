@@ -17,6 +17,7 @@ def test_find_path_no_path():
 def _available_prog():
     # Try and find a program that exists on the machine
     import pytest
+
     common_progs = ['ls', 'ping', 'which']
     prog_name = None
     for cand_prog_name in common_progs:
@@ -50,4 +51,5 @@ if __name__ == '__main__':
     """
 
     import xdoctest
+
     xdoctest.doctest_module(__file__)

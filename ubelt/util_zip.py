@@ -65,6 +65,7 @@ def split_archive(
         ('/a/b/foo.zip/baz.pt', 'bar.zip/bar.zip')
     """
     import re
+
     fpath = os.fspath(fpath)
     # fpath = os.fspath(fpath)
     pat = '({}[{}/:])'.format(re.escape(ext), re.escape(os.path.sep))
@@ -242,6 +243,7 @@ class zopen(NiceRepr):
         >>> self._handle = None
         >>> dir(self)
     """
+
     name: str | os.PathLike
     fpath: str | os.PathLike
     ext: str
@@ -295,6 +297,7 @@ class zopen(NiceRepr):
         """
         if self._zfile_read is None:
             import zipfile
+
             archivefile, internal = self._split_archive()
             assert archivefile is not None
             myzip = zipfile.ZipFile(archivefile, 'r')
@@ -346,6 +349,7 @@ class zopen(NiceRepr):
         if self._temp_dpath and exists(self._temp_dpath):
             # os.unlink(self._temp_dpath)
             from ubelt.util_io import delete
+
             delete(self._temp_dpath)
 
     def __del__(self) -> None:
@@ -383,6 +387,7 @@ class zopen(NiceRepr):
             myzip = self.zfile
             if self._seekable:
                 import tempfile
+
                 # If we need data to be seekable, then we must extract it to a
                 # temporary file first.
                 self._temp_dpath = tempfile.mkdtemp(prefix='zopen_')

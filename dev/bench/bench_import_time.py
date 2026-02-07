@@ -1,6 +1,6 @@
-
 def benchmark_import_time():
     import ubelt as ub
+
     info = ub.cmd('python -X importtime -c "import ubelt"')
     print(info['err'])
     print(info['err'].rstrip().split('\n')[-1])

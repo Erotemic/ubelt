@@ -59,6 +59,7 @@ Note:
     getting into the weeds of how we coerce technically non-hashable sequences
     into a hashable encoding.
 """
+
 from __future__ import annotations
 
 import dataclasses
@@ -161,6 +162,7 @@ _COMPATIBLE_HASHABLE_SEQUENCE_TYPES_DEFAULT = True
 #     # Python seems to have been compiled without OpenSSL
 #     HASH = None
 
+
 def _int_to_bytes(int_: int) -> bytes:
     r"""
     Converts an integer into its byte representation
@@ -216,6 +218,7 @@ class _Hashers:
         algos (dict[str, object]):
         aliases (dict[str, str]):
     """
+
     def __init__(self) -> None:
         self.algos: dict[str, Callable] = {}
         self.aliases: dict[str, str] = {}
@@ -317,6 +320,7 @@ class _Hashers:
             hasher = cast(HasherType, hasher)
         return hasher
 
+
 _HASHERS = _Hashers()
 
 
@@ -415,14 +419,17 @@ class HashableExtensions:
     Attributes:
         iterable_checks (list[Callable[..., bool]]):
     """
+
     def __init__(self) -> None:
         self.iterable_checks: list[Callable[..., bool]] = []
         self._lazy_queue: list[Callable[[], None]] = []
 
         # New singledispatch registry implementation
         from functools import singledispatch
+
         def _hash_dispatch(data):
             raise NotImplementedError
+
         _hash_dispatch.__is_base__ = True  # type: ignore[unresolved-attribute]
         self._hash_dispatch = singledispatch(_hash_dispatch)
 
@@ -521,10 +528,12 @@ class HashableExtensions:
         # ensure iterable
         if not isinstance(hash_types, (list, tuple)):
             hash_types = [hash_types]
+
         def _decor_closure(hash_func):
             for hash_type in hash_types:
                 self._hash_dispatch.register(hash_type)(hash_func)
             return hash_func
+
         return _decor_closure
 
     def lookup(self, data: object) -> Callable[..., tuple[bytes, bytes]]:
@@ -941,11 +950,13 @@ class HashableExtensions:
         not use it by default. Currently, the user must call this explicitly.
         """
         import torch
+
         @self.register(torch.Tensor)
         def _convert_torch_tensor(data):
             data_ = data.data.cpu().numpy()
             prefix = b'TORCH_TENSOR'
             return prefix, _convert_to_hashable(data_, extensions=self)[1]
+
 
 _HASHABLE_EXTENSIONS = HashableExtensions()
 
@@ -1305,6 +1316,7 @@ def hash_data(
     """
     if convert and not isinstance(data, str):  # nocover
         import json
+
         try:
             data = json.dumps(data)
         except TypeError:

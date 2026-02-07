@@ -38,6 +38,7 @@ def _benchmark():
                     hasher.update(data)
             result[key][n] = t1.min()
     import pandas as pd
+
     print(pd.DataFrame(result))
 
     result = ub.AutoOrderedDict()
@@ -54,6 +55,7 @@ def _benchmark():
                     hasher.hexdigest()
             result[key][n] = t1.min()
     import pandas as pd
+
     print(pd.DataFrame(result))
     """
     CommandLine:
@@ -86,6 +88,7 @@ def test_hash_data_with_types():
         pytest.skip('requires numpy')
     counter = [0]
     failed = []
+
     def check_hash(want, input_):
         count = counter[0] = counter[0] + 1
         got = ub.hash_data(input_, hasher='sha512', base='abc', types=True)
@@ -116,6 +119,7 @@ def test_hash_data_without_types():
         pytest.skip('requires numpy')
     counter = [0]
     failed = []
+
     def check_hash(want, input_):
         count = counter[0] = counter[0] + 1
         got = ub.hash_data(input_, hasher='sha1', base='hex', types=False)
@@ -193,7 +197,6 @@ def test_hashable_sequence_sanity():
 
 
 def _sanity_check(data):
-
     hasher_code = 'sha512'
     hasher_type = ub.util_hash._rectify_hasher(hasher_code)
 
@@ -511,11 +514,13 @@ def test_hash_dataclasses():
     from dataclasses import dataclass
 
     import ubelt as ub
+
     #
     @dataclass
     class P:
         x: int
         y: int
+
     #
     a = P(1, 2)
     b = P(1, 2)
@@ -598,7 +603,6 @@ def test_compatible_hash_bases():
     assert our_result == std_result
 
     if 1:
-
         hexstr = our_result_16
         base = ub.util_hash._ALPHABET_32
         baselen = len(base)
@@ -608,6 +612,7 @@ def test_compatible_hash_bases():
         # it. Work towards correct logic is here, which we will eventually
         # introduce as an opt-in change.
         import base64
+
         raw_bytes = base64.b16decode(hexstr.upper())
         # leftover = len(raw_bytes) % 5
         # # Pad the last quantum with zero bits if necessary
@@ -625,8 +630,10 @@ def test_compatible_hash_bases():
         print(newbase_str)
 
         import baseconv
+
         base32_digits = ''.join(ub.util_hash._ALPHABET_32)
         base16_digits = ''.join(ub.util_hash._ALPHABET_16)
+
         class MyHexConvertor(baseconv.BaseConverter):
             decimal_digits = base16_digits
 
@@ -738,6 +745,7 @@ def test_compatible_hash_bases():
 
 def test_hash_data_simple_equivalence_and_sensitivity():
     from dataclasses import dataclass
+
     @dataclass
     class Point:
         x: int
@@ -751,10 +759,12 @@ def test_hash_data_simple_equivalence_and_sensitivity():
     # slots=True requires Python 3.10+
     SlottedPoint = None
     try:
+
         @dataclass(slots=True)
         class _SlottedPoint:
             x: int
             y: int
+
         SlottedPoint = _SlottedPoint
     except TypeError:
         pass
@@ -815,6 +825,7 @@ def test_hash_data_nested_dataclass_structure():
 def test_hash_data_mutable_field_stability():
     from dataclasses import dataclass, field
     from typing import List, Tuple
+
     @dataclass
     class Point:
         x: int
@@ -844,4 +855,5 @@ if __name__ == '__main__':
         pytest ~/code/ubelt/ubelt/tests/test_hash.py
     """
     import xdoctest
+
     xdoctest.doctest_module(__file__)

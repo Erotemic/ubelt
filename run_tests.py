@@ -4,6 +4,7 @@ import sys
 
 def get_this_script_fpath():
     import pathlib
+
     try:
         fpath = pathlib.Path(__file__)
     except NameError:

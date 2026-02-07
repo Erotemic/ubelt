@@ -49,6 +49,7 @@ Example:
     >>>             run_process(inputs, mode=mode, max_workers=max_workers)
     >>> print(ub.repr2(ti))
 """
+
 from __future__ import annotations
 
 import concurrent.futures
@@ -90,6 +91,7 @@ class SerialFuture(concurrent.futures.Future):
         args (Tuple): positional arguments to call the function with
         kw (Dict): keyword arguments to call the function with
     """
+
     func: Callable
     args: tuple
     kw: dict
@@ -173,6 +175,7 @@ class SerialExecutor:
         >>>     for i, f in enumerate(futures):
         >>>         assert i + 1 == f.result()
     """
+
     max_workers: int
 
     def __enter__(self) -> SerialExecutor:
@@ -361,6 +364,7 @@ class Executor:
                 number of workers. If 0, serial is forced. Defaults to 0.
         """
         from concurrent import futures
+
         if mode == 'serial' or max_workers == 0:
             backend = SerialExecutor()
         elif mode == 'thread':
@@ -497,6 +501,7 @@ class JobPool:
         >>>     final.append(info)
         >>> print('final = {!r}'.format(final))
     """
+
     executor: Executor
     jobs: list[Future]
     transient: bool

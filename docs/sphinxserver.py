@@ -9,6 +9,7 @@ and browse to http://localhost:5500
 
 livereload_: https://pypi.python.org/pypi/livereload
 """
+
 import os
 
 from livereload import Server, shell

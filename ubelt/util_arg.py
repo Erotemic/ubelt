@@ -11,6 +11,7 @@ exists on the command line.
 The :func:`argval` function returns the value of a ``--key=value`` style CLI
 argument.
 """
+
 from __future__ import annotations
 
 import sys
@@ -22,6 +23,7 @@ __all__ = ['argval', 'argflag']
 
 if typing.TYPE_CHECKING:
     from typing import Optional, Sequence, Tuple, TypeVar, Union
+
     T = TypeVar('T')
 
 

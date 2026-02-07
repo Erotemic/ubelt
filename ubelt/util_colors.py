@@ -33,6 +33,7 @@ References:
 Requirements:
     pip install pygments
 """
+
 from __future__ import annotations
 
 import os

@@ -254,6 +254,7 @@ def test_download_bad_url():
         python tests/test_download.py test_download_bad_url --verbose
     """
     import pytest
+
     pytest.skip('This takes a long time to timeout and I dont understand why')
 
     url = 'http://www.a-very-incorrect-url.gov/does_not_exist.txt'
@@ -496,6 +497,7 @@ class SingletonTestServer(ub.NiceRepr):
         if IS_PYPY and IS_WIN32:
             # not sure why
             import pytest
+
             pytest.skip('not sure why download tests are failing on pypy win32')
             init_sleeptime = 0.5
             fail_sleeptime = 0.3
@@ -606,6 +608,7 @@ def test_grabdata():
     import time
 
     import ubelt as ub
+
     # fname = 'foo.bar'
     # url = 'http://i.imgur.com/rqwaDag.png'
     # prefix1 = '944389a39dfb8fa9'
@@ -698,6 +701,7 @@ def test_download_with_io():
     import io
 
     import ubelt as ub
+
     url = _demo_url(128 * 3)
     file = io.BytesIO()
     fpath = ub.download(url, file)
@@ -732,4 +736,5 @@ if __name__ == '__main__':
         pytest ubelt/tests/test_download.py
     """
     import xdoctest
+
     xdoctest.doctest_module(__file__)

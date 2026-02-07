@@ -1,6 +1,7 @@
 """
 Check iterative versus recursive implementation of hash_data
 """
+
 from xdev import profile
 
 from ubelt import NoParam
@@ -159,7 +160,6 @@ def _update_hasher_iterative(hasher, data, types=True, extensions=None):
     stack = [(DAT_TYPE, data)]
 
     while stack:
-
         _type, data = stack.pop()
         if _type is SEP_TYPE:
             hasher.update(data)

@@ -4,6 +4,7 @@ Test if pygments or rich is faster when it comes to highlighting.
 Results:
     pygments is a lot faster
 """
+
 import sys
 import warnings
 

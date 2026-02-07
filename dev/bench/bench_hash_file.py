@@ -30,6 +30,7 @@ def hash_file2(fpath, blocksize=65536, hasher='xx64'):
     nh.util.multi_plot(xdata, ydatas)
     """
     import xxhash
+
     if hasher == 'xx32':
         hasher = xxhash.xxh32()
     elif hasher == 'xx64':
@@ -85,6 +86,7 @@ def bench_hashfile_blocksize():
     fpath = _write_random_file(dpath, part_pool, size_pool, rng)
 
     import os
+
     size_mb = os.stat(fpath).st_size / 1e6
     print('file size = {!r} MB'.format(size_mb))
 
@@ -93,6 +95,7 @@ def bench_hashfile_blocksize():
     hasher_algo = 'xx64'
 
     import timerit
+
     ti = timerit.Timerit(4, bestof=2, verbose=2)
     # hasher = _rectify_hasher(hash_algo)()
     # with timer:
@@ -318,6 +321,7 @@ def benchmark_hash_file():
     print(ratios.mean().sort_values())
     if ub.argflag('--show'):
         import kwplot
+
         kwplot.autompl()
         xdata = sorted(ub.peek(results.values()).keys())
         ydata = ub.map_values(lambda d: [d[x] for x in xdata], results)

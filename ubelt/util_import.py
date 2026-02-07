@@ -12,6 +12,7 @@ statically and convert between module names and file paths on disk.
 The :func:`ubelt.split_modpath` function separates modules into a root and base
 path depending on where the first ``__init__.py`` file is.
 """
+
 from __future__ import annotations
 
 import os
@@ -99,6 +100,7 @@ class PythonPathContext:
         >>> with pytest.raises(RuntimeError):
         >>>     self.__exit__(None, None, None)
     """
+
     dpath: str
     index: int
 
@@ -391,6 +393,7 @@ def import_module_from_name(modname: str) -> ModuleType:
     """
     # Modern python has a stdlib solution for this.
     import importlib
+
     module = importlib.import_module(modname)
     return module
 
@@ -403,6 +406,7 @@ def _extension_module_tags():
         List[str]
     """
     import sysconfig
+
     tags = []
     # handle PEP 3149 -- ABI version tagged .so files
     # ABI = application binary interface
@@ -423,6 +427,7 @@ def _platform_pylib_exts():  # nocover
         tuple
     """
     import sysconfig
+
     valid_exts = []
     # return with and without API flags
     # handle PEP 3149 -- ABI version tagged .so files
@@ -688,6 +693,7 @@ def _importlib_import_modpath(modpath):  # nocover
     dpath, rel_modpath = split_modpath(modpath)
     modname = modpath_to_modname(modpath)
     import importlib.util
+
     spec = importlib.util.spec_from_file_location(modname, modpath)
     assert spec is not None
     module = importlib.util.module_from_spec(spec)

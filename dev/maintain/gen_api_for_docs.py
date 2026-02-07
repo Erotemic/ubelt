@@ -136,6 +136,7 @@ def gen_api_for_docs(modname):
     from gen_api_for_docs import *  # NOQA
     """
     import ubelt as ub
+
     usage = count_package_usage(modname)
 
     module = ub.import_module_from_name(modname)
@@ -226,6 +227,7 @@ def gen_api_for_docs(modname):
         # if attrname.startswith('util_'):
         if not submembers:
             from mkinit.static_mkinit import _extract_attributes
+
             try:
                 submembers = _extract_attributes(member.__file__)
             except AttributeError:

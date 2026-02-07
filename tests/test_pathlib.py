@@ -67,10 +67,12 @@ def _demo_directory_structure():
             # ub.symlink(rel_real, link, verbose=1)
     except Exception:
         import pytest
+
         pytest.skip('unable to symlink')
 
     if 0:
         import xdev
+
         xdev.tree_repr(base)
     return base
 
@@ -88,6 +90,7 @@ def test_move_dir_to_non_existing():
 
     if DEBUG_PATH:
         import xdev
+
         xdev.tree_repr(base)
 
     root.move(base / 'our_move')
@@ -98,6 +101,7 @@ def test_move_dir_to_non_existing():
 
     if DEBUG_PATH:
         import xdev
+
         xdev.tree_repr(base)
 
     if ub.LINUX:
@@ -115,6 +119,7 @@ def test_move_to_nested_non_existing():
     root = base / 'root'
 
     import platform
+
     if ub.WIN32 and platform.python_implementation() == 'PyPy':
         ub.util_path._patch_win32_stats_on_pypy()
 
@@ -124,6 +129,7 @@ def test_move_to_nested_non_existing():
 
     if DEBUG_PATH:
         import xdev
+
         xdev.tree_repr(base)
 
     # shutil move will make the parent directory if it doesn't exist.
@@ -136,6 +142,7 @@ def test_move_to_nested_non_existing():
         ub.cmd(f'mv -Tv {root3} {base}/linux/moveT', verbose=2, check=1)
     if DEBUG_PATH:
         import xdev
+
         xdev.tree_repr(base)
 
     if ub.LINUX:
@@ -163,9 +170,11 @@ def test_move_dir_to_existing_dir_noconflict():
 
     if DEBUG_PATH:
         import xdev
+
         xdev.tree_repr(base)
 
     import pytest
+
     with pytest.raises(IOError):
         # shutil.move behaves similar to linux with -T
         # We are just going to disallow this case
@@ -177,6 +186,7 @@ def test_move_dir_to_existing_dir_noconflict():
 
     if DEBUG_PATH:
         import xdev
+
         xdev.tree_repr(base)
 
     base.delete()
@@ -232,6 +242,7 @@ def test_move_dir_to_existing_dir_withconflict():
 
         if DEBUG_PATH:
             import xdev
+
             print('AFTER MOVE')
             xdev.tree_repr(base)
 
@@ -273,6 +284,7 @@ def test_copy_basic():
     if DEBUG_PATH:
         print('AFTER COPY')
         import xdev
+
         xdev.tree_repr(dpath)
 
     fpath.copy(fpath.augment(prefix='copied_'))
@@ -281,6 +293,7 @@ def test_copy_basic():
 
     # Doing it again will fail
     import pytest
+
     with pytest.raises(IOError):
         fpath.copy(fpath.augment(prefix='copied_'))
     with pytest.raises(IOError):
@@ -311,6 +324,7 @@ def test_copy_meta():
     if DEBUG_PATH:
         print('AFTER COPY')
         import xdev
+
         xdev.tree_repr(dpath)
 
     for meta in ['stats', 'mode', None]:
@@ -340,6 +354,7 @@ def test_move_basic():
     if DEBUG_PATH:
         print('AFTER COPY')
         import xdev
+
         xdev.tree_repr(dpath)
 
     fpath.move(fpath.augment(prefix='moved_'))
@@ -374,6 +389,7 @@ def test_move_meta():
     if DEBUG_PATH:
         print('AFTER MOVE')
         import xdev
+
         xdev.tree_repr(base_dpath)
 
 
@@ -386,6 +402,7 @@ def test_copy_dir_to_non_existing():
     if DEBUG_PATH:
         print('BEFORE COPY')
         import xdev
+
         xdev.tree_repr(base)
 
     dst = root.copy(base / 'our_copy')
@@ -397,6 +414,7 @@ def test_copy_dir_to_non_existing():
     if DEBUG_PATH:
         print('AFTER COPY')
         import xdev
+
         xdev.tree_repr(base)
 
     if ub.LINUX:
@@ -452,6 +470,7 @@ def test_copy_dir_to_existing_dir_noconflict():
 
     if DEBUG_PATH:
         import xdev
+
         print('AFTER MOVE')
         xdev.tree_repr(base)
 
@@ -493,6 +512,7 @@ def test_copy_dir_to_existing_dir_withconflict():
 
     if DEBUG_PATH:
         import xdev
+
         print('BEFORE MOVE')
         xdev.tree_repr(base)
 
@@ -504,6 +524,7 @@ def test_copy_dir_to_existing_dir_withconflict():
 
     if DEBUG_PATH:
         import xdev
+
         print('AFTER MOVE')
         xdev.tree_repr(base)
 
@@ -548,8 +569,10 @@ def test_walk_compat_312():
     Test that our version works the same as the 3.12 version
     """
     import sys
+
     if sys.version_info[0:2] < (3, 12):
         import pytest
+
         pytest.skip('only test on 3.12')
 
     import pathlib
@@ -577,6 +600,7 @@ def test_walk_bad_kwargs():
     import pytest
 
     import ubelt as ub
+
     self = ub.Path('foo')
     with pytest.raises(TypeError):
         list(self.walk(does_not_exist=True))

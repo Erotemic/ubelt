@@ -1,6 +1,7 @@
 """
 POC google docstring plugin for mypy
 """
+
 from typing import Callable, Optional
 
 from mypy.plugin import FunctionSigContext, Plugin

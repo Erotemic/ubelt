@@ -1,6 +1,7 @@
 """
 TODO: test _can_symlink=False variants on systems that can symlink.
 """
+
 import os
 import sys
 from os.path import dirname, exists, isdir, isfile, islink, join, relpath
@@ -470,14 +471,17 @@ def test_overwrite_symlink():
 
 def _force_junction(func):
     from functools import wraps
+
     @wraps(func)
     def _wrap(*args):
         if not ub.WIN32:
             pytest.skip()
         from ubelt import _win32_links
+
         _win32_links.__win32_can_symlink__ = False
         func(*args)
         _win32_links.__win32_can_symlink__ = None
+
     return _wrap
 
 
@@ -486,8 +490,10 @@ def test_symlink_to_rel_symlink():
     Test a case with a absolute link to a relative link to a real path.
     """
     import ubelt as ub
+
     if ub.WIN32:
         import pytest
+
         pytest.skip('dont try on windows')
 
     dpath = ub.Path.appdir('ubelt/tests/links/sym-to-relsym')
@@ -521,6 +527,7 @@ def test_symlink_to_rel_symlink():
     # _ = ub.cmd(f'tree {dpath}', verbose=3)
 
     import pytest
+
     with pytest.raises(FileExistsError):
         ub.symlink(real_path=real, link_path=link1, verbose=3)
 
@@ -543,4 +550,5 @@ if __name__ == '__main__':
         pytest ubelt/tests/test_links.py -s
     """
     import xdoctest
+
     xdoctest.doctest_module(__file__)

@@ -80,6 +80,7 @@ Get programmatic access AND show it on screen
     # ubelt has "tee" functionality
     ub.cmd(['ls', '-l'], verbose=1)
 """
+
 from __future__ import annotations
 
 import os
@@ -121,6 +122,7 @@ WIN32: bool = sys.platform == 'win32'
 # In ubelt < 1.5 this was effectively zero, we now
 # use a small poll time to avoid busy loops
 POLL_TIME = 0.01
+
 
 class CmdOutput(dict):
     """
@@ -400,6 +402,7 @@ def cmd(
         import platform
 
         from ubelt import shrinkuser
+
         if verbose > 2:
             try:
                 log('┌─── START CMD ───')
@@ -551,6 +554,7 @@ def _resolve_command(
         command_tup = None
     else:
         import shlex
+
         command_parts = []
         # Allow the user to specify paths as part of the command
         for part in command:
@@ -577,10 +581,12 @@ def _resolve_command(
             else:
                 # On linux when shell=False, args must be a list[str]
                 import shlex
+
                 args = shlex.split(command_text)
         else:
             args = command_tup
     return args, command_text
+
 
 def _normalize_system_returncode(status: int) -> int:
     """
@@ -740,7 +746,6 @@ def _enqueue_output_thread_worker(
                 return True
 
     while proc.poll() is None:
-
         # Note: if the underlying process has buffered output, we may get this
         # line well after it is initially emitted and thus be stuck waiting
         # here for some time.
@@ -802,6 +807,7 @@ def _proc_iteroutput_thread(proc: subprocess.Popen, timeout: float | None = None
     if timeout is not None:
         import subprocess
         from time import monotonic as _time
+
         start_time = _time()
 
     oline = None
@@ -923,6 +929,7 @@ def _tee_output(
         tuple[str, str]: recorded stdout and stderr (text)
     """
     import subprocess
+
     logged_out = []
     logged_err = []
     if backend == 'auto':

@@ -12,6 +12,7 @@ The :func:`compatible` introspects a functions signature for accepted keyword
 arguments and returns the subset of a configuration dictionary that agrees with
 that signature.
 """
+
 from __future__ import annotations
 
 import typing
@@ -216,6 +217,7 @@ def compatible(
         ub.udict(report_config) & (sig.parameters)
     """
     import inspect
+
     sig = inspect.signature(func)
     argnames = []
     has_kwargs = False

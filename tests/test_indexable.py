@@ -182,6 +182,7 @@ def test_indexable_walker_map_patterns():
     print('mapped_v2 = {}'.format(ub.urepr(mapped_v2, nl=1)))
 
     import pytest
+
     with pytest.warns(Warning):
         assert ub.indexable_allclose(mapped_v1, mapped_v2)
 
@@ -205,6 +206,7 @@ def test_indexable_walker_map_patterns():
             fixup[path] = [v for k, v in sorted(value.items())]
 
     import pytest
+
     with pytest.warns(Warning):
         assert ub.indexable_allclose(self.data, self_v2)
     with pytest.warns(Warning):
@@ -217,6 +219,7 @@ def test_walk_iter_gen_behavior():
     from itertools import count
 
     import ubelt as ub
+
     # from functools import cache
     counter = count()
 
@@ -243,6 +246,7 @@ def test_walk_iter_gen_behavior():
     assert list(walker) == list(walker)
 
     import pytest
+
     # Exhausting the current iterator will cause StopIteration
     list(walker)
     with pytest.raises(StopIteration):

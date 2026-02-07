@@ -201,6 +201,7 @@ def download(
 
     if timeout is NoParam:
         import socket
+
         timeout = socket._GLOBAL_DEFAULT_TIMEOUT  # type: ignore[unresolved-attribute]
 
     from urllib.request import Request, urlopen
@@ -327,6 +328,7 @@ def download(
                         buffer = _urldata_read(chunksize)
                         _file_write(buffer)
                         _pbar_update(len(buffer))
+
             _critical_loop()
 
         if not _dst_is_io_object:
@@ -497,6 +499,7 @@ def grabdata(
 
     from ubelt.util_cache import CacheStamp
     from ubelt.util_platform import platform_cache_dir
+
     if appname and dpath:
         raise ValueError('Cannot specify appname with dpath')
     if fpath and (dpath or fname or appname):

@@ -9,6 +9,7 @@ written and read is unicode text.
 throw an error if the file or directory does not exist. It also contains
 workarounds for win32 issues with :mod:`shutil`.
 """
+
 from __future__ import annotations
 
 import os

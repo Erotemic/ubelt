@@ -22,6 +22,7 @@ See Also:
 
     :mod:`kwutil.util_time` - https://kwutil.readthedocs.io/en/latest/auto/kwutil.util_time.html
 """
+
 from __future__ import annotations
 
 import sys
@@ -51,6 +52,7 @@ def _needs_workaround39103():
         https://github.com/jaraco/tempora/blob/main/tempora/__init__.py#L59
     """
     from datetime import datetime as datetime_cls
+
     return len(datetime_cls(1, 1, 1).strftime('%Y')) != 4
 
 
@@ -470,6 +472,7 @@ def _timezone_coerce(tzinfo, allow_dateutil=True):
         >>> assert sec1 == sec2 == -time.timezone
     """
     import datetime as datetime_mod
+
     if isinstance(tzinfo, str):
         if tzinfo == 'local':
             # Note: the local timezone time.timezone is negated
@@ -543,6 +546,7 @@ class Timer:
         >>> assert elapsed1 <= elapsed2
         >>> assert isinstance(elapsed1, int)
     """
+
     _default_time = time.perf_counter
 
     elapsed: float

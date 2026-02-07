@@ -1,6 +1,7 @@
 """
 Vendor progiter into ubelt.
 """
+
 #!/usr/bin/env python3
 import scriptconfig as scfg
 
@@ -21,6 +22,7 @@ def main(cmdline=1, **kwargs):
         >>> main(cmdline=cmdline, **kwargs)
     """
     import xdev
+
     config = PortProgiterConfig.cli(cmdline=cmdline, data=kwargs, strict=True)
     print('config = ' + ub.urepr(dict(config), nl=1))
 
@@ -33,6 +35,7 @@ def main(cmdline=1, **kwargs):
     print(xdev.difftext(text2, text1, colored=1))
 
     import rich.prompt
+
     ans = config.yes or rich.prompt.Confirm.ask('do write?')
     if ans:
         fpath2.write_text(text1)

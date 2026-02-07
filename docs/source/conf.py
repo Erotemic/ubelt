@@ -110,7 +110,6 @@ Notes:
 # import sys
 # sys.path.insert(0, os.path.abspath('.'))
 
-
 # -- Project information -----------------------------------------------------
 from os.path import dirname, exists, join
 
@@ -122,19 +121,23 @@ def parse_version(fpath):
     Statically parse the version number from a python file
     """
     import ast
+
     if not exists(fpath):
         raise ValueError('fpath={!r} does not exist'.format(fpath))
     with open(fpath, 'r') as file_:
         sourcecode = file_.read()
     pt = ast.parse(sourcecode)
+
     class VersionVisitor(ast.NodeVisitor):
         def visit_Assign(self, node):
             for target in node.targets:
                 if getattr(target, 'id', None) == '__version__':
                     self.version = node.value.s
+
     visitor = VersionVisitor()
     visitor.visit(pt)
     return visitor.version
+
 
 project = 'ubelt'
 copyright = '2025, Jon Crall'
@@ -232,16 +235,13 @@ intersphinx_mapping = {
     'networkx': ('https://networkx.org/documentation/stable/', None),
     'scriptconfig': ('https://scriptconfig.readthedocs.io/en/latest/', None),
     'rich': ('https://rich.readthedocs.io/en/latest/', None),
-
     'numpy': ('https://numpy.org/doc/stable/', None),
     'sympy': ('https://docs.sympy.org/latest/', None),
     'scikit-learn': ('https://scikit-learn.org/stable/', None),
     'pandas': ('https://pandas.pydata.org/docs/', None),
     'matplotlib': ('https://matplotlib.org/stable/', None),
-
     'pytest': ('https://docs.pytest.org/en/latest/', None),
     'platformdirs': ('https://platformdirs.readthedocs.io/en/latest/', None),
-
     'timerit': ('https://timerit.readthedocs.io/en/latest/', None),
     'progiter': ('https://progiter.readthedocs.io/en/latest/', None),
     'dateutil': ('https://dateutil.readthedocs.io/en/latest/', None),
@@ -357,15 +357,12 @@ latex_elements = {
     # The paper size ('letterpaper' or 'a4paper').
     #
     # 'papersize': 'letterpaper',
-
     # The font size ('10pt', '11pt' or '12pt').
     #
     # 'pointsize': '10pt',
-
     # Additional stuff for the LaTeX preamble.
     #
     # 'preamble': '',
-
     # Latex figure (float) alignment
     #
     # 'figure_align': 'htbp',
@@ -413,6 +410,7 @@ from typing import Any, List  # NOQA
 MAX_TIME_MINUTES = None
 if MAX_TIME_MINUTES:
     import ubelt  # NOQA
+
     TIMER = ubelt.Timer()
     TIMER.tic()
 
@@ -459,6 +457,7 @@ class GoogleStyleDocstringProcessor:
         alias = [alias] if not isinstance(alias, (list, tuple, set)) else alias
         alias.append(tag)
         alias = tuple(alias)
+
         # TODO: better tag patterns
         def _wrap(func):
             self.registry[tag] = {
@@ -467,6 +466,7 @@ class GoogleStyleDocstringProcessor:
                 'func': func,
             }
             return func
+
         return _wrap
 
     def _register_builtins(self):
@@ -573,7 +573,6 @@ class GoogleStyleDocstringProcessor:
             accum[:] = []
 
         for line in orig_lines:
-
             found = None
             for regitem in self.registry.values():
                 if line.startswith(regitem['alias']):
@@ -728,11 +727,13 @@ class SphinxDocstring:
     """
     Helper to parse and modify sphinx docstrings
     """
+
     def __init__(docstr, lines):
         docstr.lines = lines
 
         # FORMAT THE RETURNS SECTION A BIT NICER
         import re
+
         tag_pat = re.compile(r'^:(\w*):')
         directive_pat = re.compile(r'^.. (\w*)::\s*(\w*)')
 
@@ -792,6 +793,7 @@ def paragraph(text):
         str: the reduced text block
     """
     import re
+
     out = re.sub(r'\s\s*', ' ', text).strip()
     return out
 
@@ -805,6 +807,7 @@ def create_doctest_figure(app, obj, name, lines):
     import types
 
     import xdoctest
+
     if isinstance(obj, types.ModuleType):
         module = obj
     else:
@@ -833,6 +836,7 @@ def create_doctest_figure(app, obj, name, lines):
     fig_num = 1
 
     import kwplot
+
     kwplot.autompl(force='agg')
     plt = kwplot.autoplt()
 
@@ -894,6 +898,7 @@ def create_doctest_figure(app, obj, name, lines):
                     # Define dummy skipped exception if pytest is not available
                     class Skipped(Exception):
                         pass
+
                 try:
                     doctest.mode = 'native'
                     doctest.run(verbose=0, on_error='raise')
@@ -938,6 +943,7 @@ def create_doctest_figure(app, obj, name, lines):
     end_index = len(lines)
     # Reverse order for inserts
     import shutil
+
     for info in to_insert_fpaths[::-1]:
         src_abs_fpath = info['fpath']
 
@@ -982,6 +988,7 @@ def postprocess_hyperlinks(app, doctree, docname):
     import pathlib
 
     from docutils import nodes
+
     for node in doctree.traverse(nodes.reference):
         if 'refuri' in node.attributes:
             refuri = node.attributes['refuri']

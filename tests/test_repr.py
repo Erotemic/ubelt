@@ -3,6 +3,7 @@ import ubelt as ub
 
 def test_newlines():
     import ubelt as ub
+
     dict_ = {
         'k1': [[1, 2, 3], [4, 5, 6]],
         'k2': [[1, 2, 3], [4, 5, 6]],
@@ -147,6 +148,7 @@ def test_list_of_numpy():
         import numpy as np
     except ImportError:
         import pytest
+
         pytest.skip('numpy is optional')
 
     import ubelt as ub
@@ -264,6 +266,7 @@ def test_numpy_scalar_precision():
         import numpy as np
     except ImportError:
         import pytest
+
         pytest.skip('numpy is optional')
     text = ub.urepr(np.float32(3.333333), precision=2)
     assert text == '3.33'
@@ -444,4 +447,5 @@ if __name__ == '__main__':
         pytest ~/code/ubelt/ubelt/tests/test_format.py  --verbose -s
     """
     import xdoctest
+
     xdoctest.doctest_module(__file__)

@@ -31,6 +31,7 @@ def benchmark_template():
     # Some bookkeeping needs to be done to build a dictionary that maps the
     # method names to the functions themselves.
     method_lut = {}
+
     def register_method(func):
         method_lut[func.__name__] = func
         return func
@@ -39,6 +40,7 @@ def benchmark_template():
     # parameters that you want to vary in the test.
 
     import benedict
+
     @register_method
     def accumulate_benedict_tryexcept(input_data):
         d = benedict.BeneDict()
@@ -119,6 +121,7 @@ def benchmark_template():
 
     def generate_input(input_size, num_unique_items):
         import random
+
         rng = random.Random()
         pool = range(num_unique_items)
         input_data = rng.choices(pool, k=input_size)
@@ -258,6 +261,7 @@ def benchmark_template():
         # kwplot autosns works well for IPython and script execution.
         # not sure about notebooks.
         import kwplot
+
         sns = kwplot.autosns()
         plt = kwplot.autoplt()
 

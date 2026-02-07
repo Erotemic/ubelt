@@ -29,6 +29,7 @@ Note:
     In the future the part of this module that defines Path may be renamed to
     util_pathlib.
 """
+
 from __future__ import annotations
 
 import os
@@ -245,6 +246,7 @@ def userhome(username: str | None = None) -> str:
             else:
                 # posix fallback when HOME is not defined
                 import pwd
+
                 userhome_dpath = pwd.getpwuid(os.getuid()).pw_dir
     else:
         # A specific user directory was requested
@@ -256,6 +258,7 @@ def userhome(username: str | None = None) -> str:
                 raise KeyError('Unknown user: {}'.format(username))
         else:
             import pwd
+
             try:
                 pwent = pwd.getpwnam(username)
             except KeyError:  # nocover
@@ -428,6 +431,7 @@ class ChDir:
         >>>         assert ub.Path.cwd() == dir1
         >>>     assert ub.Path.cwd() == dpath
     """
+
     def __init__(self, dpath: str | os.PathLike | None) -> None:
         """
         Args:
@@ -522,6 +526,7 @@ class TempDir:
             str: the path
         """
         import tempfile
+
         if not self.dpath:
             self.dpath = tempfile.mkdtemp()
         return self.dpath
@@ -529,6 +534,7 @@ class TempDir:
     def cleanup(self) -> None:
         if self.dpath:
             import shutil
+
             shutil.rmtree(self.dpath)
             self.dpath = None
 
@@ -727,6 +733,7 @@ class Path(_PathBase):
 
         * :py:meth:`pathlib.PurePath.match`
     """
+
     __slots__ = ()
 
     @classmethod
@@ -800,6 +807,7 @@ class Path(_PathBase):
             ~/.cache
         """
         from ubelt import util_platform
+
         if type == 'cache':
             base = util_platform.platform_cache_dir()
         elif type == 'config':
@@ -1865,6 +1873,7 @@ def _parse_chmod_code(code):
         >>>     list(_parse_chmod_code('a+b+c'))
     """
     import re
+
     pat = re.compile(r'([\+\-\=])')
     parts = code.split(',')
     for part in parts:

@@ -22,6 +22,7 @@ def bench_dict_hist_finalize():
     import timerit
 
     import ubelt as ub
+
     rng = random.Random(0)
     items = [rng.choice(string.printable) for _ in range(5000)]
     hist_ = ub.ddict(lambda: 0)
@@ -73,6 +74,7 @@ def bench_dict_hist():
     import timerit
 
     import ubelt as ub
+
     rng = random.Random(0)
     items = [rng.choice(string.printable) for _ in range(5000)]
 
@@ -115,6 +117,7 @@ def bench_sort_dictionary():
     import string
 
     import ubelt as ub
+
     rng = random.Random(0)
     items = [rng.choice(string.printable) for _ in range(5000)]
     hist_ = ub.ddict(lambda: 0)
@@ -142,4 +145,5 @@ if __name__ == '__main__':
         python ~/code/ubelt/dev/bench/bench_dict_hist.py bench_dict_hist_finalize
     """
     import fire
+
     fire.Fire()

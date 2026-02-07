@@ -7,6 +7,7 @@ import ubelt as ub
 
 def test_pathlib_compatability():
     import pathlib
+
     base = pathlib.Path(ub.Path.appdir('ubelt').ensuredir())
     dpath = base.joinpath('test_pathlib_mkdir')
 
@@ -25,6 +26,7 @@ def test_pathlib_compatability():
 
 def test_tempdir():
     import pytest
+
     with pytest.warns(Warning):
         temp = ub.TempDir()
     assert temp.dpath is None
@@ -54,6 +56,7 @@ def test_augpath_dpath():
 
 def test_ensuredir_recreate():
     import pytest
+
     base = ub.Path.appdir('ubelt/tests').ensuredir()
     folder = join(base, 'foo')
     member = join(folder, 'bar')
@@ -117,6 +120,7 @@ def test_copy_directory_cases():
     import pytest
 
     import ubelt as ub
+
     base = ub.Path.appdir('ubelt/tests/path/copy_move').delete().ensuredir()
 
     root1 = (base / 'root1').ensuredir()
@@ -279,6 +283,7 @@ def test_move_directory_cases():
     import pytest
 
     import ubelt as ub
+
     base = ub.Path.appdir('ubelt/tests/path/move').delete().ensuredir()
 
     root1 = (base / 'root1').ensuredir()

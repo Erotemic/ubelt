@@ -32,8 +32,10 @@ class ProjectStructure():
         self.install()
 
     """
+
     def __init__(self, repo_dpath='.', mod_name='demopkg_mwe', use_src=True):
         import ubelt as ub
+
         self.root = ub.Path(repo_dpath)
         self.mod_name = mod_name
         self.use_src = use_src
@@ -317,6 +319,7 @@ class ProjectStructure():
 
         def rich_file_content(fpath, lexer='bash'):
             import os
+
             text = fpath.read_text()
             return Panel(Syntax(text, lexer), title=os.fspath(fpath))
 
@@ -475,6 +478,7 @@ def test_import_of_editable_install():
     _check_skip_editable_module_tests()
     print('Testing editable installs')
     import ubelt as ub
+
     for PROJ in GLOBAL_PROJECTS:
         result = ub.modname_to_modpath(PROJ.mod_name)
         print(f'result={result}')

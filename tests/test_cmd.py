@@ -248,6 +248,7 @@ def test_cwd():
     import sys
 
     import ubelt as ub
+
     if not sys.platform.startswith('win32'):
         dpath = ub.Path.appdir('ubelt/tests').ensuredir()
         dpath = os.path.realpath(dpath)
@@ -262,6 +263,7 @@ def test_env():
     import sys
 
     import ubelt as ub
+
     if not sys.platform.startswith('win32'):
         env = os.environ.copy()
         env.update({'UBELT_TEST_ENV': '42'})
@@ -545,4 +547,5 @@ if __name__ == '__main__':
     """
 
     import xdoctest
+
     xdoctest.doctest_module(__file__)

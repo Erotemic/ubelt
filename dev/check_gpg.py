@@ -1,5 +1,3 @@
-
-
 def main():
     """
     Checks that the latest wheels on pypi agree with the gpg key
