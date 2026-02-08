@@ -165,7 +165,9 @@ def _rich_highlight(text, lexer_name):  # nocover
 
     syntax = Syntax(text, lexer_name, background_color='default')
     stream = io.StringIO()
-    write_console = Console(file=stream, soft_wrap=True, color_system='standard')
+    write_console = Console(
+        file=stream, soft_wrap=True, color_system='standard'
+    )
     write_console.print(syntax)
     new_text = stream.getvalue()
     return new_text

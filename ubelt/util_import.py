@@ -1199,6 +1199,7 @@ def _parse_static_node_value(node):
         return node.value
 
     raise TypeError(
-        'Cannot parse a static value from non-static node '
-        'of type: {!r}'.format(type(node))
+        'Cannot parse a static value from non-static node of type: {!r}'.format(
+            type(node)
+        )
     )
