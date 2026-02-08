@@ -34,12 +34,15 @@ jobs:
       run: |-
         # stop the build if there are Python syntax errors or undefined names
         flake8 ./ubelt --count --select=E9,F63,F7,F82 --show-source --statistics
-    - name: Typecheck with mypy
+    - name: Typecheck
       run: |-
         python -m pip install mypy
         pip install -r requirements/runtime.txt
         mypy --install-types --non-interactive ./ubelt
         mypy ./ubelt
+        python -m pip install ty
+        pip install -r requirements/runtime.txt
+        ty ./ubelt
   build_and_test_sdist:
     ##
     # Build the pure python package from source and test it in the
