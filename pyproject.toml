@@ -111,6 +111,11 @@ include = ["ubelt/util_cmd.py"]
 [tool.ty.overrides.rules]
 deprecated = "ignore"
 
+# TODO: Think about if we can fix copy and move signatures.
+[[tool.ty.overrides]]
+include = ["ubelt/util_path.py"]
+[tool.ty.overrides.rules]
+invalid-method-override = "ignore"
 
 
 [tool.ruff]
