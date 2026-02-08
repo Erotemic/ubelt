@@ -479,12 +479,14 @@ class SingletonTestServer(ub.NiceRepr):
         return self
 
     def close(self):
-        if self.proc.poll() is None:
+        if self.proc is not None and self.proc.poll() is None:
             self.proc.terminate()
             self.proc.wait()
         self.__class__.instance = None
 
     def __nice__(self):
+        if self.proc is None:
+            return '{} - file'.format(self.root_url)
         return '{} - {}'.format(self.root_url, self.proc.returncode)
 
     def __init__(self):
@@ -492,8 +494,6 @@ class SingletonTestServer(ub.NiceRepr):
         import sys
         import time
         from contextlib import closing
-
-        import requests
 
         import ubelt as ub
 
@@ -509,61 +509,80 @@ class SingletonTestServer(ub.NiceRepr):
                 s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
                 return s.getsockname()[1]
 
-        # Find an open port
-        port = find_free_port()
-        print('port = {!r}'.format(port))
-
         dpath = ub.Path.appdir(
             'ubelt/tests/test_download/simple_server'
         ).ensuredir()
-
-        if sys.platform.startswith('win32'):
-            pyexe = 'python'
-        else:
-            pyexe = sys.executable
-
-        server_cmd = [pyexe, '-m', 'http.server', str(port)]
-        info = ub.cmd(server_cmd, detach=True, cwd=dpath)
-        proc = info['proc']
-        self.proc = proc
         self.dpath = dpath
-        self.root_url = 'http://localhost:{}'.format(port)
 
-        if IS_PYPY and IS_WIN32:
-            # not sure why
-            import pytest
-
-            pytest.skip('not sure why download tests are failing on pypy win32')
-            init_sleeptime = 0.5
-            fail_sleeptime = 0.3
-            timeout = 10
+        # Fallback to file:// URLs when sockets are restricted. This keeps
+        # download tests meaningful in sandboxed environments where binding
+        # localhost is not permitted.
+        self.use_file_urls = False
+        try:
+            port = find_free_port()
+        except PermissionError:
+            # Socket creation/bind not allowed; use local file URLs instead.
+            self.use_file_urls = True
+            port = None
         else:
-            init_sleeptime = 0.002
-            fail_sleeptime = 0.01
-            timeout = 1
+            print('port = {!r}'.format(port))
 
-        time.sleep(init_sleeptime)
-        # Wait for the server to be alive
-        status_code = None
-        max_tries = 300
-        for _ in range(max_tries):
-            try:
-                resp = requests.get(self.root_url, timeout=timeout)
-            except requests.exceptions.ConnectionError:
-                time.sleep(fail_sleeptime)
+        if self.use_file_urls:
+            # No HTTP server process; serve files directly via file:// URLs.
+            self.proc = None
+            self.root_url = self.dpath.resolve().as_uri()
+        else:
+            # Normal path: spin up a localhost HTTP server for real downloads.
+            import requests
+
+            if sys.platform.startswith('win32'):
+                pyexe = 'python'
             else:
-                status_code = resp.status_code
-            if status_code == 200:
-                break
+                pyexe = sys.executable
 
-        poll_ret = self.proc.poll()
+            server_cmd = [pyexe, '-m', 'http.server', str(port)]
+            info = ub.cmd(server_cmd, detach=True, cwd=dpath)
+            proc = info['proc']
+            self.proc = proc
+            self.root_url = 'http://localhost:{}'.format(port)
 
-        if poll_ret is not None:
-            print('poll_ret = {!r}'.format(poll_ret))
-            print(self.proc.communicate())
-            raise AssertionError(
-                'Simple server did not start {}'.format(poll_ret)
-            )
+            if IS_PYPY and IS_WIN32:
+                # not sure why
+                import pytest
+
+                pytest.skip(
+                    'not sure why download tests are failing on pypy win32'
+                )
+                init_sleeptime = 0.5
+                fail_sleeptime = 0.3
+                timeout = 10
+            else:
+                init_sleeptime = 0.002
+                fail_sleeptime = 0.01
+                timeout = 1
+
+            time.sleep(init_sleeptime)
+            # Wait for the server to be alive
+            status_code = None
+            max_tries = 300
+            for _ in range(max_tries):
+                try:
+                    resp = requests.get(self.root_url, timeout=timeout)
+                except requests.exceptions.ConnectionError:
+                    time.sleep(fail_sleeptime)
+                else:
+                    status_code = resp.status_code
+                if status_code == 200:
+                    break
+
+            poll_ret = self.proc.poll()
+
+            if poll_ret is not None:
+                print('poll_ret = {!r}'.format(poll_ret))
+                print(self.proc.communicate())
+                raise AssertionError(
+                    'Simple server did not start {}'.format(poll_ret)
+                )
 
         self.urls = []
         self.write_file()
@@ -578,7 +597,15 @@ class SingletonTestServer(ub.NiceRepr):
             fpath = join(self.dpath, fname)
             with open(fpath, 'w') as file:
                 file.write(data)
-        urls = ['{}/{}'.format(self.root_url, fname) for fname in fnames]
+        if self.use_file_urls:
+            # Build file:// URLs when we cannot use sockets.
+            urls = [
+                ub.Path(join(self.dpath, fname)).resolve().as_uri()
+                for fname in fnames
+            ]
+        else:
+            # Build http:// URLs when we have a local server.
+            urls = ['{}/{}'.format(self.root_url, fname) for fname in fnames]
         self.urls.extend(urls)
         return urls
 
