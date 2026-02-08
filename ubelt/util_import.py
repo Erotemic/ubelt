@@ -134,6 +134,7 @@ class PythonPathContext:
             bool | None
         """
         need_recover = False
+        msg_parts: list[str] = []
         if len(sys.path) <= self.index:  # nocover
             msg_parts = [
                 'sys.path changed while in PythonPathContext.',

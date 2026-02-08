@@ -1,14 +1,13 @@
-from __future__ import annotations
-
 """
 Currently this module provides one utility
 :func:`ubelt.util_deprecate.schedule_deprecation` which allows a developer to
 easily mark features in their libraries as deprecated.
 """
+from __future__ import annotations
 
 
 # DEFAULT_WARN_CLASS = DeprecationWarning
-DEFAULT_WARN_CLASS = FutureWarning
+DEFAULT_WARN_CLASS: type[Warning] = FutureWarning
 
 
 def schedule_deprecation(
@@ -21,7 +20,7 @@ def schedule_deprecation(
     remove: str | None = None,
     # TODO: let the user have more control over the message.
     # message=None,
-    warncls: type | str = 'default',
+    warncls: type[Warning] | str = 'default',
     stacklevel: int = 1,
 ) -> str:
     """
@@ -243,6 +242,7 @@ def schedule_deprecation(
         raise RuntimeError(msg)
 
     if deprecate_now:
+        assert not isinstance(warncls, str)
         warnings.warn(msg, warncls, stacklevel=1 + stacklevel)
 
     return msg

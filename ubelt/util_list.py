@@ -355,10 +355,14 @@ class chunks(Iterable[List[VT]]):
         for chunk in chunks_with_sentinals:
             filt_chunk = [item for item in chunk if item is not sentinel]
             if len(filt_chunk) == chunksize:
+                if typing.TYPE_CHECKING:
+                    filt_chunk = cast(list[VT], filt_chunk)
                 yield filt_chunk
             else:
                 sizediff = chunksize - len(filt_chunk)
                 padded_chunk = filt_chunk + [filt_chunk[-1]] * sizediff
+                if typing.TYPE_CHECKING:
+                    padded_chunk = cast(list[VT], padded_chunk)
                 yield padded_chunk
 
 
@@ -890,6 +894,11 @@ def argsort(
             return key(vk[0])
 
         indices = [k for v, k in sorted(vk_iter, key=key_func, reverse=reverse)]
+    if typing.TYPE_CHECKING:
+        if isinstance(indexable, Mapping):
+            indices = cast(list[KT], indices)
+        else:
+            indices = cast(list[int], indices)
     return indices
 
 
@@ -1065,7 +1074,7 @@ class IterableMixin(Iterable):
         size: int | None = None,
         num: int | None = None,
         bordermode: str = 'none',
-    ) -> Iterable[list[VT]]:
+    ) -> Iterable[list[Any]]:
         return chunks(
             self,
             chunksize=size,

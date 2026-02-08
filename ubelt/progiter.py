@@ -377,7 +377,7 @@ class ProgIter(_TQDMCompat, _BackwardsCompat, Iterable[T]):
         100/100... rate=... Hz, total=..., wall=...
     """
 
-    stream: typing.IO
+    stream: typing.TextIO
     iterable: Iterable[T] | None
     desc: str | None
     total: int | None
@@ -420,7 +420,7 @@ class ProgIter(_TQDMCompat, _BackwardsCompat, Iterable[T]):
         show_wall: bool = False,
         enabled: bool = True,
         verbose: int | bool | None = None,
-        stream: typing.IO | None = None,
+        stream: typing.TextIO | None = None,
         chunksize: int | None = None,
         rel_adjust_limit: float = 4.0,
         homogeneous: bool | str = 'auto',
@@ -557,6 +557,8 @@ class ProgIter(_TQDMCompat, _BackwardsCompat, Iterable[T]):
 
         if stream is None:
             stream = sys.stdout
+        if typing.TYPE_CHECKING:
+            stream = typing.cast(typing.TextIO, stream)
 
         self.stream = stream
         self.iterable = iterable

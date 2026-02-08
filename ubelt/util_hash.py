@@ -416,6 +416,8 @@ class _Hashers:
             # by default the result of this function is a class we will make an
             # instance of, if we already have an instance, wrap it in a
             # callable so the external syntax does not need to change.
+            if typing.TYPE_CHECKING:
+                hasher = cast(HasherLike, hasher)
             return lambda: hasher
         else:
             # Ensure lazy registration functions have been executed

@@ -78,6 +78,7 @@ if typing.TYPE_CHECKING:
         Set,
         Type,
         Union,
+        cast
     )
 
     from ubelt.util_const import NoParamType
@@ -247,7 +248,7 @@ def dict_hist(
     weights: Optional[Iterable[float]] = None,
     ordered: bool = False,
     labels: Optional[Iterable[T]] = None,
-) -> dict[T, int]:
+) -> dict[T, int | float]:
     """
     Builds a histogram of items, counting the number of time each item appears
     in the input.
@@ -314,6 +315,8 @@ def dict_hist(
             hist_ = {k: 0 for k in labels}
         if weights is None:
             weights = it.repeat(1)  # 2x slower than Counter
+        if typing.TYPE_CHECKING:
+            hist_ = cast(typing.MutableMapping[typing.Any, float | int], hist_)
         # Accumulate weighted frequency
         for item, weight in zip(items, weights):
             hist_[item] += weight
@@ -530,6 +533,8 @@ def dict_diff(
         return {}
     else:
         first_dict = args[0]
+        if typing.TYPE_CHECKING:
+            first_dict = cast(Mapping[KT, VT], first_dict)
         dictclass = OrderedDict if isinstance(first_dict, OrderedDict) else dict
         # remove_keys = set.union(*map(set, args[1:]))
         # new = dictclass((k, v) for k, v in first_dict.items() if k not in remove_keys)
@@ -589,6 +594,8 @@ def dict_isect(
         dictclass = OrderedDict if isinstance(args[0], OrderedDict) else dict
         common_keys = set.intersection(*map(set, args))
         first_dict = args[0]
+        if typing.TYPE_CHECKING:
+            first_dict = cast(Mapping[KT, VT], first_dict)
         return dictclass(
             (k, first_dict[k]) for k in first_dict if k in common_keys
         )
