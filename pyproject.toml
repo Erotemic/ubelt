@@ -112,11 +112,6 @@ include = ["ubelt/util_cmd.py"]
 deprecated = "ignore"
 
 
-[[tool.ty.overrides]]
-include = ["ubelt/util_path.py"]
-[tool.ty.overrides.rules]
-invalid-method-override = "ignore"
-
 
 [tool.ruff]
 line-length = 80

@@ -53,9 +53,8 @@ from os.path import (
 from ubelt import util_io
 
 if typing.TYPE_CHECKING:
-    from collections.abc import Generator
     from types import TracebackType
-    from typing import Callable, Type
+    from typing import Callable, Type, Iterator
 
 
 __all__ = [
@@ -1080,7 +1079,8 @@ class Path(_PathBase):
 
         Note:
             The ubelt extension is the same as the original pathlib method,
-            except this returns returns the path instead of None.
+            except this returns returns the path instead of None. This is
+            convenient, but it does violate the Liskov Substitution Principle.
 
         Args:
             mode (int) : permission bits
@@ -1388,34 +1388,36 @@ class Path(_PathBase):
 
     def walk(
         self,
-        topdown: bool = True,
-        onerror: Callable[[OSError], None] | None = None,
-        followlinks: bool = False,
+        top_down: bool = True,
+        on_error: Callable[[OSError], object] | None = None,
+        follow_symlinks: bool = False,
         **kwargs,
-    ) -> Generator[tuple['Path', list[str], list[str]], None, None]:  # type: ignore[invalid-method-override]
+    ) -> Iterator[tuple['Path', list[str], list[str]]]:
         """
         A variant of :func:`os.walk` for pathlib
 
         Args:
-            topdown (bool):
+            top_down (bool):
                 if True starts yield nodes closer to the root first otherwise
                 yield nodes closer to the leaves first.
 
-            onerror (Callable[[OSError], None] | None):
+            on_error (Callable[[OSError], None] | None):
                 A function with one argument of type OSError. If the
                 error is raised the walk is aborted, otherwise it continues.
 
-            followlinks (bool):
+            follow_symlinks (bool):
                 if True recurse into symbolic directory links
 
             **kwargs:
-                Accepts aliases the 3.12 version of the above names: top_down,
-                on_error, follow_symlinks. In the future we may switch the 3.12
-                variants to be the primary arguments.
+                Accepts the old os.walk names of topdown, onerror, and
+                followlinks for backwards compatability.
 
         Yields:
             Tuple['Path', List[str], List[str]]:
                 the root path, directory names, and file names
+
+        Notes:
+            In python 3.12 this method was added to the pathlib.Path.
 
         Example:
             >>> import ubelt as ub
@@ -1444,9 +1446,9 @@ class Path(_PathBase):
             >>>         dirs.remove('CVS')  # don't visit CVS directories
         """
         # Add kwargs to support ubelt original kwargs as well as pathlib kwargs
-        top_down = kwargs.pop('top_down', topdown)
-        on_error = kwargs.pop('on_error', onerror)
-        follow_symlinks = kwargs.pop('follow_symlinks', followlinks)
+        top_down = kwargs.pop('topdown', top_down)
+        on_error = kwargs.pop('onerror', on_error)
+        follow_symlinks = kwargs.pop('followlinks', follow_symlinks)
 
         if len(kwargs):
             bad_key = list(kwargs)[0]
@@ -1712,6 +1714,8 @@ class Path(_PathBase):
             and behavior here are different (and ideally safer and more
             intuitive).
 
+            In 3.14 this method was added to pathlib.Path
+
         Note:
             Unlike cp on Linux, copying a src directory into a dst directory
             will not implicitly add the src directory name to the dst
@@ -1849,6 +1853,8 @@ class Path(_PathBase):
             data, and then delete the original (potentially inefficient), or
             use :func:`shutil.move` directly if you know how :func:`os.rename`
             works on your system.
+
+            In 3.14 this method was added to pathlib.Path
 
         Returns:
             Path: where the path was moved to

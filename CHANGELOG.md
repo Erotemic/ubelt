@@ -21,6 +21,7 @@ This project (loosely) adheres to [Semantic Versioning](https://semver.org/spec/
   default.
 * All .pyi files have been removed. Type annotations are now inline and validated with mypy and ty.
 * if ub.cmd has detach=True, CompletedProcess will now raise a RuntimeError for ret and return None for stdout and stderr.
+* Swapped ub.Path.walk to use the 3.12 argument names and support the old names as kwargs for backwards compatibility.
 
 ### Deprecated
 * Deprecated `DownloadManager`, due to being over scoped.
