@@ -1,0 +1,40 @@
+services:
+  uv:
+    build:
+      context: ..
+      dockerfile: .devcontainer/uv.dockerfile
+      args:
+        BASE_IMAGE: ${UV_BASE_IMAGE:-ubuntu:noble}
+        UV_VERSION: ${UV_VERSION:-0.9.27}
+        PYTHON_VERSION: ${PYTHON_VERSION:-3.13}
+    image: local/uv:dev
+
+
+  dev:
+    build:
+      context: ..
+      dockerfile: .devcontainer/Dockerfile
+      args:
+        BASE_IMAGE: local/uv:dev
+    image: ${DEV_IMAGE_NAME}
+    depends_on:
+      - uv
+    entrypoint: []
+
+    # keepalive for devcontainers
+    command: sleep infinity
+
+    # alternative to workspaceMount
+    volumes:
+      - ..:/workspaces/${WORKSPACE_NAME}:cached
+
+    # --- security hardening ---
+    init: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    pids_limit: 512
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=1g
+
