@@ -493,12 +493,11 @@ def _syspath_modname_to_modpath(
         ...static_analysis.py
         >>> print(_syspath_modname_to_modpath('xdoctest'))
         ...xdoctest
-        >>> # xdoctest: +REQUIRES(CPython)
-        >>> print(_syspath_modname_to_modpath('_ctypes'))
-        ..._ctypes...
+        >>> print(_syspath_modname_to_modpath('json'))
+        ...json
         >>> assert _syspath_modname_to_modpath('xdoctest', sys_path=[]) is None
         >>> assert _syspath_modname_to_modpath('xdoctest.static_analysis', sys_path=[]) is None
-        >>> assert _syspath_modname_to_modpath('_ctypes', sys_path=[]) is None
+        >>> assert _syspath_modname_to_modpath('json', sys_path=[]) is None
         >>> assert _syspath_modname_to_modpath('this', sys_path=[]) is None
 
     Example:
@@ -755,9 +754,8 @@ def _importlib_modname_to_modpath(modname):  # nocover
         >>> modname = 'xdoctest.static_analysis'
         >>> _importlib_modname_to_modpath(modname)
         ...static_analysis.py
-        >>> # xdoctest: +REQUIRES(CPython)
-        >>> _importlib_modname_to_modpath('_ctypes')
-        ..._ctypes...
+        >>> _importlib_modname_to_modpath('json')
+        ...json...
 
     Ignore:
         >>> _importlib_modname_to_modpath('cv2')
@@ -827,9 +825,8 @@ def modname_to_modpath(
         >>> modname = 'xdoctest'
         >>> modpath = modname_to_modpath(modname, hide_init=False)
         >>> assert modpath.endswith('__init__.py')
-        >>> # xdoctest: +REQUIRES(CPython)
-        >>> modpath = basename(modname_to_modpath('_ctypes'))
-        >>> assert 'ctypes' in modpath
+        >>> modpath = modname_to_modpath('json')
+        >>> assert 'json' in modpath
     """
     if hide_main or sys_path:
         modpath = _syspath_modname_to_modpath(modname, sys_path)
@@ -974,12 +971,11 @@ def modpath_to_modname(
         >>> assert modpath_to_modname(dirname(xdoctest.__file__.replace('.pyc', '.py'))) == 'xdoctest'
 
     Example:
-        >>> # xdoctest: +REQUIRES(CPython)
         >>> from ubelt.util_import import modpath_to_modname
         >>> from ubelt.util_import import modname_to_modpath
-        >>> modpath = modname_to_modpath('_ctypes')
+        >>> modpath = modname_to_modpath('json')
         >>> modname = modpath_to_modname(modpath)
-        >>> assert modname == '_ctypes'
+        >>> assert modname == 'json'
 
     Example:
         >>> from ubelt.util_import import modpath_to_modname
@@ -1170,37 +1166,39 @@ def _parse_static_node_value(node):
     import numbers
     from collections import OrderedDict
 
-    if (
-        isinstance(node, ast.Constant)
-        and isinstance(node.value, numbers.Number)
-        if IS_PY_GE_308
-        else isinstance(node, ast.Num)
-    ):  # type: ignore[deprecated]
-        value = node.value if IS_PY_GE_308 else node.n
-    elif (
-        isinstance(node, ast.Constant) and isinstance(node.value, str)
-        if IS_PY_GE_308
-        else isinstance(node, ast.Str)
-    ):  # type: ignore[deprecated]
-        value = node.value if IS_PY_GE_308 else node.s
-    elif isinstance(node, ast.List):
-        value = list(map(_parse_static_node_value, node.elts))
-    elif isinstance(node, ast.Tuple):
-        value = tuple(map(_parse_static_node_value, node.elts))
-    elif isinstance(node, (ast.Dict)):
+    if IS_PY_GE_308:
+        if isinstance(node, ast.Constant) and isinstance(
+            node.value, numbers.Number
+        ):
+            return node.value
+        if isinstance(node, ast.Constant) and isinstance(node.value, str):
+            return node.value
+    else:  # nocover
+        num_type = getattr(ast, 'Num', None)
+        str_type = getattr(ast, 'Str', None)
+        if num_type is not None and isinstance(node, num_type):
+            return node.n
+        if str_type is not None and isinstance(node, str_type):
+            return node.s
+
+    if isinstance(node, ast.List):
+        return list(map(_parse_static_node_value, node.elts))
+    if isinstance(node, ast.Tuple):
+        return tuple(map(_parse_static_node_value, node.elts))
+    if isinstance(node, ast.Dict):
         keys = map(_parse_static_node_value, node.keys)
         values = map(_parse_static_node_value, node.values)
-        value = OrderedDict(zip(keys, values))
-        # value = dict(zip(keys, values))
-    elif IS_PY_LT_314 and isinstance(
-        node, (ast.NameConstant)
-    ):  # nocover  # type: ignore[deprecated]
-        value = node.value
-    elif isinstance(node, ast.Constant):  # nocover
-        value = node.value
-    else:
-        raise TypeError(
-            'Cannot parse a static value from non-static node '
-            'of type: {!r}'.format(type(node))
-        )
-    return value
+        return OrderedDict(zip(keys, values))
+
+    if IS_PY_LT_314:  # nocover
+        nameconst_type = getattr(ast, 'NameConstant', None)
+        if nameconst_type is not None and isinstance(node, nameconst_type):
+            return node.value
+
+    if isinstance(node, ast.Constant):  # nocover
+        return node.value
+
+    raise TypeError(
+        'Cannot parse a static value from non-static node '
+        'of type: {!r}'.format(type(node))
+    )
