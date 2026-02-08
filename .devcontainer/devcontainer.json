@@ -1,34 +1,39 @@
 {
   "name": "ubelt Development",
-  "image": "mcr.microsoft.com/devcontainers/python:3.13",
-  "features": {
-    "ghcr.io/devcontainers/features/git:1": {}
-  },
-  "containerUser": "vscode",
+  "dockerComposeFile": ["compose.yml"],
+  "service": "dev",
+
+  "workspaceFolder": "/workspaces/ubelt",
+
   "remoteUser": "vscode",
-  "runArgs": [
-    "--cap-drop=ALL",
-    "--security-opt=no-new-privileges",
-    "--pids-limit=512"
-  ],
-  "postCreateCommand": ".devcontainer/postCreate.sh",
+  "updateRemoteUserUID": true,
+
+  "overrideCommand": false,
+
   "containerEnv": {
-    "UV_PYTHON": "3.13"
+    "DEBIAN_FRONTEND": "noninteractive",
+    "PIP_DISABLE_PIP_VERSION_CHECK": "1",
+    "PYTHONDONTWRITEBYTECODE": "1"
   },
+
+  "postCreateCommand": "bash -lc 'bash .devcontainer/scripts/post-create.sh'",
+
   "customizations": {
     "vscode": {
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "bash"
+      },
       "extensions": [
         "ms-python.python",
-        "ms-python.pylance",
-        "charliermarsh.ruff"
-      ],
-      "settings": {
-        "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python",
-        "python.terminal.activateEnvironment": true,
-        "python.terminal.activateEnvInCurrentTerminal": true,
-        "dev.containers.copyGitConfig": false,
-        "dev.containers.dockerCredentialHelper": false
-      }
+        "ms-python.vscode-pylance",
+        "redhat.vscode-yaml",
+        "editorconfig.editorconfig",
+        "charliermarsh.ruff",
+        "GitHub.vscode-pull-request-github",
+        "github.vscode-github-actions",
+        "GitHub.copilot",
+        "GitHub.copilot-chat"
+      ]
     }
   }
 }
