@@ -50,7 +50,7 @@ class TeeStringIO(io.StringIO):
         Args:
             redirect (io.IOBase): The other stream to write to.
         """
-        self.redirect = redirect  # type: io.IOBase
+        self.redirect: io.IOBase | None = redirect
         super().__init__()
 
         # Logic taken from prompt_toolkit/output/vt100.py version 3.0.5 in

@@ -1,3 +1,15 @@
+def _process_backend_available():
+    import multiprocessing as mp
+
+    try:
+        ctx = mp.get_context()
+        ctx.Lock()
+    except (PermissionError, OSError):
+        return False
+    else:
+        return True
+
+
 def test_job_pool_context_manager():
     import ubelt as ub
 
@@ -13,6 +25,22 @@ def test_job_pool_context_manager():
         for job in pool.as_completed(desc='collect jobs'):
             info = job.result()
             final.append(info)
+
+
+def test_job_pool_clear_completed_thread():
+    import ubelt as ub
+
+    jobs = ub.JobPool(mode='thread', max_workers=2)
+
+    for jobid in range(4):
+        jobs.submit(simple_worker, jobid)
+
+    for fs in jobs.as_completed():
+        fs.result()
+
+    assert len(jobs.jobs) > 0
+    jobs._clear_completed()
+    assert len(jobs.jobs) == 0
 
 
 def test_job_pool_as_completed_prog_args():
@@ -74,6 +102,10 @@ def test_executor_timeout():
 
 
 def test_job_pool_clear_completed():
+    if not _process_backend_available():
+        import pytest
+
+        pytest.skip('process backend not permitted')
     import gc
     import weakref
 
@@ -139,6 +171,10 @@ def simple_worker(jobid):
 
 
 def test_job_pool_transient():
+    if not _process_backend_available():
+        import pytest
+
+        pytest.skip('process backend not permitted')
     import weakref
 
     import ubelt as ub
@@ -181,6 +217,19 @@ def test_job_pool_transient():
             raise AssertionError
 
 
+def test_job_pool_transient_thread():
+    import ubelt as ub
+
+    jobs = ub.JobPool(mode='thread', max_workers=2, transient=True)
+    for jobid in range(4):
+        jobs.submit(simple_worker, jobid)
+
+    for fs in jobs.as_completed():
+        fs.result()
+
+    assert jobs.jobs == []
+
+
 def test_backends():
     import platform
     import sys
@@ -194,6 +243,10 @@ def test_backends():
         import pytest
 
         pytest.skip('not running this test on win32 for now')
+    if not _process_backend_available():
+        import pytest
+
+        pytest.skip('process backend not permitted')
     import ubelt as ub
 
     # Fork before threading!
@@ -277,6 +330,8 @@ def test_as_completed_timeout():
 
     # modes = ['thread', 'process', 'serial']
     modes = ['thread', 'process']
+    if not _process_backend_available():
+        modes = ['thread']
 
     timeout = 0.1
     dpath = ub.Path.appdir('ubelt', 'tests', 'futures', 'timeout').ensuredir()

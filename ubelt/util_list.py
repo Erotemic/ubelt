@@ -355,10 +355,14 @@ class chunks(Iterable[List[VT]]):
         for chunk in chunks_with_sentinals:
             filt_chunk = [item for item in chunk if item is not sentinel]
             if len(filt_chunk) == chunksize:
+                if typing.TYPE_CHECKING:
+                    filt_chunk = cast(list[VT], filt_chunk)
                 yield filt_chunk
             else:
                 sizediff = chunksize - len(filt_chunk)
                 padded_chunk = filt_chunk + [filt_chunk[-1]] * sizediff
+                if typing.TYPE_CHECKING:
+                    padded_chunk = cast(list[VT], padded_chunk)
                 yield padded_chunk
 
 
@@ -393,10 +397,26 @@ def iterable(obj: object, strok: bool = False) -> bool:
         return strok or not isinstance(obj, str)
 
 
+@typing.overload
 def take(
-    items: Sequence[VT] | Mapping[KT | int, VT],
-    indices: Iterable[int | KT],
-    default: Any | NoParamType = NoParam,
+    items: Mapping[KT, VT],
+    indices: Iterable[KT],
+    default: VT | NoParamType = NoParam,
+) -> Generator[VT, None, None]: ...
+
+
+@typing.overload
+def take(
+    items: Sequence[VT],
+    indices: Iterable[int],
+    default: VT | NoParamType = NoParam,
+) -> Generator[VT, None, None]: ...
+
+
+def take(
+    items: Sequence[VT] | Mapping[KT, VT],
+    indices: Iterable[int] | Iterable[KT],
+    default: VT | NoParamType = NoParam,
 ) -> Generator[VT, None, None]:
     """
     Lookup a subset of an indexable object using a sequence of indices.
@@ -461,16 +481,15 @@ def take(
         >>>     print('correctly got key error')
     """
     if default is NoParam:
-        if typing.TYPE_CHECKING:
-            if isinstance(items, Mapping):
-                indices = cast(Iterable[KT], indices)
-            else:
-                indices = cast(Iterable[int], indices)
         for index in indices:
+            # Note: there is not an easy way to get this to type check
+            # correctly without introducing an isinstance check.
             yield items[index]  # type: ignore[invalid-argument-type]
     else:
         if typing.TYPE_CHECKING:
-            items = cast(Mapping, items)
+            assert not isinstance(items, Sequence), 'cannot have a sequence with default'
+            items = cast(Mapping[KT, VT], items)
+            indices = cast(Iterable[KT], indices)
         for index in indices:
             yield items.get(index, default)
 
@@ -478,7 +497,6 @@ def take(
 def compress(items: Iterable[Any], flags: Iterable[bool]) -> Iterable[Any]:
     """
     Selects from ``items`` where the corresponding value in ``flags`` is True.
-
 
     Args:
         items (Iterable[Any]): a sequence to select items from
@@ -510,7 +528,7 @@ def flatten(nested: Iterable[Iterable[T]]) -> Iterable[T]:
     Transforms a nested iterable into a flat iterable.
 
     Args:
-        nested (Iterable[Iterable[Any]]): list of lists
+        nested (Iterable[Iterable[T]]): list of lists
 
     Returns:
         Iterable[Any]: flattened items
@@ -890,6 +908,11 @@ def argsort(
             return key(vk[0])
 
         indices = [k for v, k in sorted(vk_iter, key=key_func, reverse=reverse)]
+    if typing.TYPE_CHECKING:
+        if isinstance(indexable, Mapping):
+            indices = cast(list[KT], indices)
+        else:
+            indices = cast(list[int], indices)
     return indices
 
 
@@ -1065,7 +1088,7 @@ class IterableMixin(Iterable):
         size: int | None = None,
         num: int | None = None,
         bordermode: str = 'none',
-    ) -> Iterable[list[VT]]:
+    ) -> Iterable[list[Any]]:
         return chunks(
             self,
             chunksize=size,

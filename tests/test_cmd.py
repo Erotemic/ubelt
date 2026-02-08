@@ -172,6 +172,63 @@ def test_cmd_multiline_stdout():
     assert result['out'] == '\n'.join(list(map(str, range(10)))) + '\n'
 
 
+def test_normalize_system_returncode_fallback():
+    import os
+    import signal
+
+    import ubelt.util_cmd as uc
+
+    if not hasattr(os, 'fork'):
+        pytest.skip('posix only')
+
+    orig = getattr(uc.os, 'waitstatus_to_exitcode', None)
+    uc.os.waitstatus_to_exitcode = None
+    try:
+        # Exit status case
+        pid = os.fork()
+        if pid == 0:  # pragma: no cover
+            os._exit(3)
+        _, status = os.waitpid(pid, 0)
+        assert uc._normalize_system_returncode(status) == 3
+
+        # Signal case
+        pid = os.fork()
+        if pid == 0:  # pragma: no cover
+            signal.pause()
+            os._exit(0)
+        os.kill(pid, signal.SIGTERM)
+        _, status = os.waitpid(pid, 0)
+        assert uc._normalize_system_returncode(status) == -signal.SIGTERM
+    finally:
+        uc.os.waitstatus_to_exitcode = orig
+
+
+def test_proc_iteroutput_thread_timeout():
+    import subprocess
+
+    import ubelt.util_cmd as uc
+
+    proc = subprocess.Popen(
+        [PYEXE, '-c', 'import time; time.sleep(1)'],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+    )
+    try:
+        gen = uc._proc_iteroutput_thread(proc, timeout=0.001)
+        oline, eline = next(gen)
+        assert oline is subprocess.TimeoutExpired
+        assert eline is subprocess.TimeoutExpired
+        next(gen, None)
+    finally:
+        proc.kill()
+        proc.wait()
+        if proc.stdout is not None:
+            proc.stdout.close()
+        if proc.stderr is not None:
+            proc.stderr.close()
+
+
 @pytest.mark.skipif(sys.platform == 'win32', reason='does not run on win32')
 def test_cmd_interleaved_streams_sh():
     """

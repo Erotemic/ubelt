@@ -149,9 +149,17 @@ def _rich_highlight(text, lexer_name):  # nocover
 
     References:
         .. [RichDiscuss3076] https://github.com/Textualize/rich/discussions/3076
+
+    Example:
+        >>> # xdoctest: +REQUIRES(module:rich)
+        >>> from ubelt.util_colors import _rich_highlight
+        >>> import ubelt as ub
+        >>> text = 'import ubelt as ub; print(ub)'
+        >>> lexer_name = 'python'
+        >>> new_text = _rich_highlight(text, lexer_name)
+        >>> print(new_text)
     """
     import io
-
     from rich.console import Console
     from rich.syntax import Syntax
 
@@ -161,7 +169,7 @@ def _rich_highlight(text, lexer_name):  # nocover
         file=stream, soft_wrap=True, color_system='standard'
     )
     write_console.print(syntax)
-    new_text = write_console.file.getvalue()  # type: ignore[unresolved-attribute]
+    new_text = stream.getvalue()
     return new_text
 
 
