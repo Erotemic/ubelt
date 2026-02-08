@@ -42,7 +42,7 @@ jobs:
         mypy ./ubelt
         python -m pip install ty
         pip install -r requirements/runtime.txt
-        ty ./ubelt
+        ty check ./ubelt
   build_and_test_sdist:
     ##
     # Build the pure python package from source and test it in the
