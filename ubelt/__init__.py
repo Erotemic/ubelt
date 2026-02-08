@@ -24,7 +24,7 @@ Testing:
     xdoctest ubelt
 """
 
-__version__ = '1.4.1'
+__version__ = '1.4.2'
 
 # Deprecated functions
 from ubelt import util_format
