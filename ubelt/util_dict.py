@@ -78,7 +78,7 @@ if typing.TYPE_CHECKING:
         Set,
         Type,
         Union,
-        cast
+        cast,
     )
 
     from ubelt.util_const import NoParamType

@@ -483,7 +483,6 @@ def compress(items: Iterable[Any], flags: Iterable[bool]) -> Iterable[Any]:
     """
     Selects from ``items`` where the corresponding value in ``flags`` is True.
 
-
     Args:
         items (Iterable[Any]): a sequence to select items from
 
@@ -514,7 +513,7 @@ def flatten(nested: Iterable[Iterable[T]]) -> Iterable[T]:
     Transforms a nested iterable into a flat iterable.
 
     Args:
-        nested (Iterable[Iterable[Any]]): list of lists
+        nested (Iterable[Iterable[T]]): list of lists
 
     Returns:
         Iterable[Any]: flattened items
