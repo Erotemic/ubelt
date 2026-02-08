@@ -397,10 +397,26 @@ def iterable(obj: object, strok: bool = False) -> bool:
         return strok or not isinstance(obj, str)
 
 
+@typing.overload
 def take(
-    items: Sequence[VT] | Mapping[KT | int, VT],
-    indices: Iterable[int | KT],
-    default: Any | NoParamType = NoParam,
+    items: Mapping[KT, VT],
+    indices: Iterable[KT],
+    default: VT | NoParamType = NoParam,
+) -> Generator[VT, None, None]: ...
+
+
+@typing.overload
+def take(
+    items: Sequence[VT],
+    indices: Iterable[int],
+    default: VT | NoParamType = NoParam,
+) -> Generator[VT, None, None]: ...
+
+
+def take(
+    items: Sequence[VT] | Mapping[KT, VT],
+    indices: Iterable[int] | Iterable[KT],
+    default: VT | NoParamType = NoParam,
 ) -> Generator[VT, None, None]:
     """
     Lookup a subset of an indexable object using a sequence of indices.
@@ -465,16 +481,15 @@ def take(
         >>>     print('correctly got key error')
     """
     if default is NoParam:
-        if typing.TYPE_CHECKING:
-            if isinstance(items, Mapping):
-                indices = cast(Iterable[KT], indices)
-            else:
-                indices = cast(Iterable[int], indices)
         for index in indices:
+            # Note: there is not an easy way to get this to type check
+            # correctly without introducing an isinstance check.
             yield items[index]  # type: ignore[invalid-argument-type]
     else:
         if typing.TYPE_CHECKING:
-            items = cast(Mapping, items)
+            assert not isinstance(items, Sequence), 'cannot have a sequence with default'
+            items = cast(Mapping[KT, VT], items)
+            indices = cast(Iterable[KT], indices)
         for index in indices:
             yield items.get(index, default)
 
