@@ -475,7 +475,7 @@ def cmd(
                 out, err = _tee_output(
                     proc=proc,
                     stdout=stdout,
-                    stderr=stderr,  # type: ignore[invalid-argument-type]
+                    stderr=stderr,
                     backend=tee_backend,
                     timeout=timeout,
                     command_text=command_text,
@@ -616,7 +616,7 @@ def _normalize_system_returncode(status: int) -> int:
         return fn(status)
 
     # Py3.8 fallback
-    if os.name != 'posix':
+    if os.name != 'posix':  # nocover
         # Windows: os.system() is not a POSIX wait-status; don't decode it.
         return status
 
@@ -630,7 +630,7 @@ def _normalize_system_returncode(status: int) -> int:
     raise ValueError(f'Unknown POSIX wait status from os.system(): {status!r}')
 
 
-def _textio_iterlines(stream: io.TextIOBase) -> Iterator[str]:
+def _textio_iterlines(stream: typing.IO[str]) -> Iterator[str]:
     """
     Iterates over lines in a TextIO stream until an EOF is encountered.
     This is the iterator version of stream.readlines()
@@ -658,8 +658,8 @@ def _textio_iterlines(stream: io.TextIOBase) -> Iterator[str]:
 
 
 def _proc_async_iter_stream(
-    proc: subprocess.Popen,
-    stream: io.TextIOBase,
+    proc: subprocess.Popen[str],
+    stream: typing.IO[str],
     buffersize: int = 1,
     timeout: float | None = None,
 ) -> tuple[threading.Thread, 'queue.Queue[str | None]', 'queue.Queue[object]']:
@@ -701,8 +701,8 @@ def _proc_async_iter_stream(
 
 
 def _enqueue_output_thread_worker(
-    proc: subprocess.Popen,
-    stream: io.TextIOBase,
+    proc: subprocess.Popen[str],
+    stream: typing.IO[str],
     out_queue: 'queue.Queue[str | None]',
     control_queue: 'queue.Queue[object]',
     timeout: float | None = None,
@@ -792,7 +792,7 @@ def _enqueue_output_thread_worker(
 
 
 def _proc_iteroutput_thread(
-    proc: subprocess.Popen, timeout: float | None = None
+    proc: subprocess.Popen[str], timeout: float | None = None
 ) -> Iterator[
     tuple[str | None, str | None]
     | tuple[type[subprocess.TimeoutExpired], type[subprocess.TimeoutExpired]]
@@ -821,12 +821,14 @@ def _proc_iteroutput_thread(
 
     # logger.debug("Create stdout/stderr streams")
     # Create threads that read stdout / stderr and queue up the output
+    if proc.stdout is None or proc.stderr is None:  # nocover
+        raise ValueError('proc stdout/stderr streams must be pipes')
     stdout_thread, stdout_queue, stdout_ctrl = _proc_async_iter_stream(
         proc, proc.stdout, timeout=timeout
-    )  # type: ignore[invalid-argument-type]
+    )
     stderr_thread, stderr_queue, stderr_ctrl = _proc_async_iter_stream(
         proc, proc.stderr, timeout=timeout
-    )  # type: ignore[invalid-argument-type]
+    )
 
     stdout_live = True
     stderr_live = True
@@ -875,7 +877,7 @@ def _proc_iteroutput_thread(
 
 
 def _proc_iteroutput_select(
-    proc: subprocess.Popen, timeout: float | None = None
+    proc: subprocess.Popen[str], timeout: float | None = None
 ) -> Iterator[
     tuple[str | None, str | None]
     | tuple[type[subprocess.TimeoutExpired], type[subprocess.TimeoutExpired]]
@@ -932,9 +934,9 @@ def _proc_iteroutput_select(
 
 
 def _tee_output(
-    proc: subprocess.Popen,
-    stdout: io.TextIOBase | None = None,
-    stderr: io.TextIOBase | None = None,
+    proc: subprocess.Popen[str],
+    stdout: typing.IO[str] | None = None,
+    stderr: typing.IO[str] | None = None,
     backend: str = 'thread',
     timeout: float | None = None,
     command_text: str = '',

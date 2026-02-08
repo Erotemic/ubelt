@@ -150,18 +150,18 @@ def _rich_highlight(text, lexer_name):  # nocover
     References:
         .. [RichDiscuss3076] https://github.com/Textualize/rich/discussions/3076
     """
+    import importlib
     import io
 
-    from rich.console import Console
-    from rich.syntax import Syntax
-
-    syntax = Syntax(text, lexer_name, background_color='default')
+    console_mod = importlib.import_module('rich.console')
+    syntax_mod = importlib.import_module('rich.syntax')
+    syntax = syntax_mod.Syntax(text, lexer_name, background_color='default')
     stream = io.StringIO()
-    write_console = Console(
+    write_console = console_mod.Console(
         file=stream, soft_wrap=True, color_system='standard'
     )
     write_console.print(syntax)
-    new_text = write_console.file.getvalue()  # type: ignore[unresolved-attribute]
+    new_text = write_console.file.getvalue()
     return new_text
 
 

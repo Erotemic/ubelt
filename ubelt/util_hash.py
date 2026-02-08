@@ -382,8 +382,9 @@ class _Hashers:
         )
 
     def _register_blake3(self):  # nocover
-        import blake3
+        import importlib
 
+        blake3 = importlib.import_module('blake3')
         self.algos['blake3'] = blake3.blake3
         self.aliases['b3'] = 'blake3'
 
@@ -1106,7 +1107,9 @@ class HashableExtensions:
         Experimental. Define a default hash function for torch tensors, but do
         not use it by default. Currently, the user must call this explicitly.
         """
-        import torch
+        import importlib
+
+        torch = importlib.import_module('torch')
 
         @self.register(torch.Tensor)
         def _convert_torch_tensor(data):
