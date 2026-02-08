@@ -159,16 +159,13 @@ def _rich_highlight(text, lexer_name):  # nocover
         >>> new_text = _rich_highlight(text, lexer_name)
         >>> print(new_text)
     """
-    import importlib
     import io
+    from rich.console import Console
+    from rich.syntax import Syntax
 
-    console_mod = importlib.import_module('rich.console')
-    syntax_mod = importlib.import_module('rich.syntax')
-    syntax = syntax_mod.Syntax(text, lexer_name, background_color='default')
+    syntax = Syntax(text, lexer_name, background_color='default')
     stream = io.StringIO()
-    write_console = console_mod.Console(
-        file=stream, soft_wrap=True, color_system='standard'
-    )
+    write_console = Console(file=stream, soft_wrap=True, color_system='standard')
     write_console.print(syntax)
     new_text = stream.getvalue()
     return new_text
