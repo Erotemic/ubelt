@@ -105,6 +105,18 @@ include = [
 rules = { unresolved-import = "ignore" }
 
 
+# TODO: eventually fix these errors
+[[tool.ty.overrides]]
+include = ["ubelt/util_cmd.py"]
+[tool.ty.overrides.rules]
+deprecated = "ignore"
+
+
+[[tool.ty.overrides]]
+include = ["ubelt/util_path.py"]
+[tool.ty.overrides.rules]
+invalid-method-override = "ignore"
+
 
 [tool.ruff]
 line-length = 80
