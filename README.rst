@@ -217,11 +217,11 @@ The objective top 5 are:
 ================================================================================================================================================ ================
  Function name                                                                                                                                         Usefulness
 ================================================================================================================================================ ================
-`ubelt.urepr <https://ubelt.readthedocs.io/en/latest/ubelt.util_repr.html#ubelt.util_repr.urepr>`__                                                          3542
-`ubelt.Path <https://ubelt.readthedocs.io/en/latest/ubelt.util_path.html#ubelt.util_path.Path>`__                                                            1915
-`ubelt.paragraph <https://ubelt.readthedocs.io/en/latest/ubelt.util_str.html#ubelt.util_str.paragraph>`__                                                     866
-`ubelt.cmd <https://ubelt.readthedocs.io/en/latest/ubelt.util_cmd.html#ubelt.util_cmd.cmd>`__                                                                 654
-`ubelt.ProgIter <https://ubelt.readthedocs.io/en/latest/ubelt.progiter.html#ubelt.progiter.ProgIter>`__                                                       600
+`ubelt.urepr <https://ubelt.readthedocs.io/en/latest/auto/ubelt.util_repr.html#ubelt.util_repr.urepr>`__                                                     3648
+`ubelt.Path <https://ubelt.readthedocs.io/en/latest/auto/ubelt.util_path.html#ubelt.util_path.Path>`__                                                       2023
+`ubelt.paragraph <https://ubelt.readthedocs.io/en/latest/auto/ubelt.util_str.html#ubelt.util_str.paragraph>`__                                                911
+`ubelt.cmd <https://ubelt.readthedocs.io/en/latest/auto/ubelt.util_cmd.html#ubelt.util_cmd.cmd>`__                                                            659
+`ubelt.ProgIter <https://ubelt.readthedocs.io/en/latest/auto/ubelt.progiter.html#ubelt.progiter.ProgIter>`__                                                  621
 ================================================================================================================================================ ================
 
 The full `function usefulness chart <https://ubelt.readthedocs.io/en/latest/index.html#the-api-by-usefulness>`__ is in the documentation.
