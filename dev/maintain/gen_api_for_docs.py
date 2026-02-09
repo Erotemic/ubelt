@@ -127,7 +127,7 @@ def count_package_usage(modname):
     usage = ub.odict(sorted(usage.items(), key=lambda t: t[1])[::-1])
 
     if config['print_packages']:
-        print(ub.repr2(pkg_to_hist, nl=2))
+        print(ub.urepr(pkg_to_hist, nl=2))
 
     if config['remove_zeros']:
         for k, v in list(usage.items()):
@@ -162,7 +162,7 @@ def count_package_usage(modname):
 
     usage = ub.udict(usage).sorted_values(reverse=True)
 
-    print(ub.repr2(usage, nl=1))
+    print(ub.urepr(usage, nl=1))
     return usage
 
 
@@ -201,7 +201,7 @@ def gen_api_for_docs(modname):
                 parent_module = f'{modname}.{attrname}'
                 short_name = '{modname}.{subname}'.format(**locals())
                 full_name = '{parent_module}.{subname}'.format(**locals())
-                url = 'https://{modname}.readthedocs.io/en/latest/{parent_module}.html#{full_name}'.format(
+                url = 'https://{modname}.readthedocs.io/en/latest/auto/{parent_module}.html#{full_name}'.format(
                     **locals()
                 )
                 rst_ref = ':func:`{short_name}<{full_name}>`'.format(**locals())
@@ -263,7 +263,7 @@ def gen_api_for_docs(modname):
     print(
         ub.indent(
             'usage stats = '
-            + ub.repr2(
+            + ub.urepr(
                 kwarray.stats_dict(raw_scores, median=True, sum=True), nl=1
             )
         )
