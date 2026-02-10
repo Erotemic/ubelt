@@ -39,7 +39,7 @@ def main():
         '--cov-report',
         'term',
         '--durations',
-        '100',
+        '10',
         '--xdoctest',
         '--cov=' + package_name,
         os.fspath(mod_dpath),
