@@ -54,7 +54,7 @@ from ubelt import util_io
 
 if typing.TYPE_CHECKING:
     from types import TracebackType
-    from typing import Callable, Type, Iterator
+    from typing import Callable, Type, Iterator, Iterable
 
 
 __all__ = [
@@ -1893,7 +1893,7 @@ class Path(_PathBase):
         return Path(real_dst)
 
 
-def _parse_chmod_code(code):
+def _parse_chmod_code(code: str) -> Iterable[tuple[str, str, str]]:
     """
     Expand a chmod code into a list of actions.
 
@@ -1957,7 +1957,7 @@ def _parse_chmod_code(code):
         yield (targets, op, perms)
 
 
-def _resolve_chmod_code(old_mode, code):
+def _resolve_chmod_code(old_mode: int, code: str) -> int:
     """
     Modifies integer stat permissions based on a string code.
 
@@ -2045,7 +2045,7 @@ def _resolve_chmod_code(old_mode, code):
     return new_mode
 
 
-def _encode_chmod_int(int_code):
+def _encode_chmod_int(int_code: int) -> str:
     """
     Convert a chmod integer code to a string
 
@@ -2053,7 +2053,6 @@ def _encode_chmod_int(int_code):
 
     Args:
         int_code (int): mode from st_stat
-        concise (bool): if True, uses concise representations of special perms
 
     Returns:
         str: the permissions code
@@ -2129,7 +2128,7 @@ def _patch_win32_stats_on_pypy():
         stat.IO_REPARSE_TAG_SYMLINK = 0xA000000C  # type: ignore[unresolved-attribute]
 
 
-def _is_relative_to_backport(self, other):
+def _is_relative_to_backport(self, other) -> bool:
     r"""
     A backport of is_relative_to for Python <=3.8
 
