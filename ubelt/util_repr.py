@@ -50,6 +50,7 @@ As of ubelt 1.1.0 you can now access and update the default extensions via the
 >>>     return "monkey2({})".format(data)
 >>> print(ub.urepr({1: float('nan'), 2: float('inf'), 3: 3.0}, nl=0))
 """
+
 from __future__ import annotations
 import collections
 import typing
@@ -57,14 +58,12 @@ import typing
 from ubelt import util_list, util_str
 
 if typing.TYPE_CHECKING:
-    from typing import Any, Callable, TypedDict
+    from typing import Any, Callable, TypedDict, Collection, Iterable
+
     try:
         from typing import Unpack
     except ImportError:  # pragma: no cover
         from typing_extensions import Unpack
-
-    class RootInfo(TypedDict):
-        depth: int
 
     class LeafInfo(TypedDict, total=False):
         max_height: int
@@ -116,9 +115,6 @@ if typing.TYPE_CHECKING:
         # Legacy kwarg
         _dict_sort_behavior: str
 
-    class UReprImplKwargs(UReprKwargs):
-        # Additional arguments used in the internal impl
-        _root_info: RootInfo
 
 __all__ = ['urepr', 'ReprExtensions']
 
@@ -325,7 +321,9 @@ def urepr(data: object, **kwargs: Unpack[UReprKwargs]) -> str:
     return outstr
 
 
-def _urepr_impl(data: object, **kwargs: Unpack[UReprImplKwargs]) -> tuple[str, LeafInfo]:
+def _urepr_impl(
+    data: object, **kwargs: Unpack[UReprKwargs]
+) -> tuple[str, LeafInfo]:
     """Internal implementation for :func:`urepr`.
 
     Always returns a ``(text, leaf_info)`` tuple.
@@ -335,8 +333,6 @@ def _urepr_impl(data: object, **kwargs: Unpack[UReprImplKwargs]) -> tuple[str, L
     additional bookkeeping information.
     """
     custom_extensions = kwargs.get('extensions', None)
-
-    kwargs['_root_info'] = _rectify_root_info(kwargs.get('_root_info', None))
 
     if kwargs.get('compact', False):
         # Compact profile defaults
@@ -369,27 +365,12 @@ def _urepr_impl(data: object, **kwargs: Unpack[UReprImplKwargs]) -> tuple[str, L
         else:
             outstr = _format_object(data, **kwargs)
 
-    assert outstr is not None
-
-    _leaf_info = _rectify_leaf_info(_leaf_info)
-    return outstr, _leaf_info
-
-
-def _rectify_root_info(_root_info: RootInfo | None) -> RootInfo:
-    if _root_info is None:
-        _root_info = {
-            'depth': 0,
-        }
-    return _root_info
-
-
-def _rectify_leaf_info(_leaf_info: LeafInfo | None) -> LeafInfo:
     if _leaf_info is None:
         _leaf_info = {
             'max_height': 0,
             'min_height': 0,
         }
-    return _leaf_info
+    return outstr, _leaf_info
 
 
 class ReprExtensions:
@@ -721,7 +702,7 @@ def _lazy_init() -> None:
 _REPR_EXTENSIONS._lazy_queue.append(_lazy_init)
 
 
-def _format_object(val: Any, **kwargs: Any) -> str:
+def _format_object(val: Any, **kwargs: Unpack[UReprKwargs]) -> str:
     stritems = kwargs.get('si', kwargs.get('stritems', False))
     strvals = stritems or kwargs.get('sv', kwargs.get('strvals', False))
     base_valfunc = str if strvals else repr
@@ -729,7 +710,7 @@ def _format_object(val: Any, **kwargs: Any) -> str:
     return itemstr
 
 
-def _format_list(list_: Any, **kwargs: Any) -> tuple[str, LeafInfo]:
+def _format_list(list_: Collection, **kwargs: Unpack[UReprKwargs]) -> tuple[str, LeafInfo]:
     """
     Makes a pretty printable / human-readable string representation of a
     sequence. In most cases this string could be evaled.
@@ -753,9 +734,6 @@ def _format_list(list_: Any, **kwargs: Any) -> tuple[str, LeafInfo]:
         >>> print(_format_list([1], nobr=True)[0])
         1,
     """
-    kwargs['_root_info'] = _rectify_root_info(kwargs.get('_root_info', None))
-    kwargs['_root_info']['depth'] += 1
-
     newlines = kwargs.pop('nl', kwargs.pop('newlines', 1))
     kwargs['nl'] = _rectify_countdown_or_bool(newlines)
 
@@ -772,13 +750,7 @@ def _format_list(list_: Any, **kwargs: Any) -> tuple[str, LeafInfo]:
         nobraces = False  # force braces to prevent empty output
 
     is_tuple = isinstance(list_, tuple)
-    is_set = isinstance(
-        list_,
-        (
-            set,
-            frozenset,
-        ),
-    )
+    is_set = isinstance(list_, (set, frozenset))
     if nobraces:
         lbr, rbr = '', ''
     elif is_tuple:
@@ -815,7 +787,8 @@ def _format_list(list_: Any, **kwargs: Any) -> tuple[str, LeafInfo]:
 
 
 def _format_dict(
-    dict_: dict[Any, Any], **kwargs: Unpack[UReprImplKwargs],
+    dict_: dict,
+    **kwargs: Unpack[UReprKwargs],
 ) -> tuple[str, LeafInfo | None]:
     """
     Makes a pretty printable / human-readable string representation of a
@@ -867,9 +840,6 @@ def _format_dict(
             bc='ghi',
         )
     """
-    kwargs['_root_info'] = _rectify_root_info(kwargs.get('_root_info', None))
-    kwargs['_root_info']['depth'] += 1
-
     stritems = kwargs.pop('si', kwargs.pop('stritems', False))
     if stritems:
         kwargs['strkeys'] = True
@@ -999,7 +969,7 @@ def _join_itemstrs(
 
 
 def _dict_itemstrs(
-    dict_: dict, **kwargs: Unpack[UReprImplKwargs]
+    dict_: dict, **kwargs: Unpack[UReprKwargs]
 ) -> tuple[list[str], LeafInfo]:
     """
     Create a string representation for each item in a dict.
@@ -1018,7 +988,7 @@ def _dict_itemstrs(
         >>> char_order = [p[0] for p in itemstrs]
         >>> assert char_order == ['b', 'g', 'l', 'm', 's', 'w']
     """
-    import ubelt as ub
+    from ubelt.util_str import hzcat
 
     explicit = kwargs.get('explicit', False)
     kwargs['explicit'] = _rectify_countdown_or_bool(explicit)
@@ -1057,7 +1027,7 @@ def _dict_itemstrs(
                 # Fix issue with keys that span new lines
                 item_str = prefix + val_str
             else:
-                item_str = ub.hzcat([prefix, val_str])
+                item_str = hzcat([prefix, val_str])
         else:
             item_str = prefix + val_str
         return item_str, _leaf_info
@@ -1100,7 +1070,7 @@ def _dict_itemstrs(
 
 
 def _list_itemstrs(
-    list_: Any, **kwargs: Unpack[UReprImplKwargs]
+    list_: Iterable, **kwargs: Unpack[UReprKwargs]
 ) -> tuple[list[str], LeafInfo]:
     """
     Create a string representation for each item in a list.
@@ -1154,7 +1124,7 @@ def _sort_itemstrs(
     return itemstrs
 
 
-def _rectify_countdown_or_bool(count_or_bool: Any) -> bool | int:
+def _rectify_countdown_or_bool(count_or_bool: bool | int) -> bool | int:
     """
     used by recursive functions to specify which level to turn a bool on in
     counting down yields True, True, ..., False
@@ -1356,7 +1326,9 @@ def _align_lines(
     return new_lines
 
 
-# Give the urepr function itself a reference to the default extensions
-# register method so the user can modify them without accessing this module
-urepr.extensions = _REPR_EXTENSIONS  # type: ignore[attr-defined]
-urepr.register = _REPR_EXTENSIONS.register  # type: ignore[attr-defined]
+# Give the urepr function itself a reference to the default extensions register
+# method so the user can modify them without accessing this module In the
+# future we may make urepr a callable instance of a class instead of a function
+# in order to ensure proper typing of these attributes.
+setattr(urepr, 'extensions', _REPR_EXTENSIONS)
+setattr(urepr, 'register', _REPR_EXTENSIONS.register)
