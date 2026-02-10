@@ -7,6 +7,11 @@ This project (loosely) adheres to [Semantic Versioning](https://semver.org/spec/
 ## Version 1.4.2 - Unreleased
 
 
+### Changed
+* Improved urepr type annotations
+* Removed internal helpers from urepr
+
+
 ## Version 1.4.1 - Released 2026-02-08
 
 ### Added

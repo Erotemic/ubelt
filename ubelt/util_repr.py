@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 """
 Defines the function :func:`urepr`, which allows for a bit more customization
 than :func:`repr` or :func:`pprint.pformat`. See the docstring for more details.
@@ -53,21 +51,75 @@ As of ubelt 1.1.0 you can now access and update the default extensions via the
 >>> print(ub.urepr({1: float('nan'), 2: float('inf'), 3: 3.0}, nl=0))
 """
 
+from __future__ import annotations
 import collections
 import typing
 
 from ubelt import util_list, util_str
 
 if typing.TYPE_CHECKING:
-    from typing import Any, Callable
+    from typing import Any, Callable, TypedDict, Collection, Iterable
+
+    try:
+        from typing import Unpack
+    except ImportError:  # pragma: no cover
+        from typing_extensions import Unpack
+
+    class LeafInfo(TypedDict, total=False):
+        max_height: int
+        min_height: int
+
+    class UReprKwargs(TypedDict, total=False):
+        # Public / user-facing keyword arguments. (Aliases are included.)
+        si: bool
+        stritems: bool
+
+        strkeys: bool
+        sk: bool
+
+        strvals: bool
+        sv: bool
+
+        nl: int | bool
+        newlines: int | bool
+
+        nobr: bool
+        nobraces: bool
+
+        cbr: bool
+        compact_brace: bool
+
+        trailsep: bool
+        trailing_sep: bool
+
+        explicit: bool
+        compact: bool
+
+        precision: int | None
+        kvsep: str
+        itemsep: str
+
+        sort: bool | Callable[..., object] | None | str
+
+        suppress_small: bool
+        supress_small: bool  # legacy misspelling used by numpy formatter
+        max_line_width: int
+
+        with_dtype: bool
+        dtype: bool  # alias used by numpy formatter
+
+        align: bool | str
+
+        extensions: ReprExtensions
+
+        # Legacy kwarg
+        _dict_sort_behavior: str
+
 
 __all__ = ['urepr', 'ReprExtensions']
 
-# TODO: add a wrapper function so _return_info is not available in the top
-# level urepr. This will make type annotations more predictable.
 
-
-def urepr(data: object, **kwargs: Any) -> str | tuple[str, dict[str, int]]:
+def urepr(data: object, **kwargs: Unpack[UReprKwargs]) -> str:
     """
     Makes a pretty string representation of ``data``.
 
@@ -153,7 +205,7 @@ def urepr(data: object, **kwargs: Any) -> str | tuple[str, dict[str, int]]:
             which are currently not configurable. This may be modified in the
             future. Defaults to ' '.
 
-        sort (bool | collections.abc.Callable[..., object] | None):
+        sort (bool | Callable[..., object] | None):
             if 'auto', then sort unordered collections, but keep the ordering
             of ordered collections. This option attempts to be deterministic in
             most cases. Defaults to None.
@@ -183,8 +235,6 @@ def urepr(data: object, **kwargs: Any) -> str | tuple[str, dict[str, int]]:
 
     Note:
         There are also internal kwargs, which should not be used:
-
-            _return_info (bool):  return information about child context
 
             _root_info (depth): information about parent context
 
@@ -267,10 +317,22 @@ def urepr(data: object, **kwargs: Any) -> str | tuple[str, dict[str, int]]:
         >>> print(ub.urepr(data, compact=True, nobr=False))
         {a=100,b=[1,2,3],c={20=30,40=five}}
     """
-    custom_extensions = kwargs.get('extensions', None)
+    outstr, _ = _urepr_impl(data, **kwargs)
+    return outstr
 
-    _return_info = kwargs.get('_return_info', False)
-    kwargs['_root_info'] = _rectify_root_info(kwargs.get('_root_info', None))
+
+def _urepr_impl(
+    data: object, **kwargs: Unpack[UReprKwargs]
+) -> tuple[str, LeafInfo]:
+    """Internal implementation for :func:`urepr`.
+
+    Always returns a ``(text, leaf_info)`` tuple.
+
+    The public :func:`urepr` wrapper exists so the public return type is always
+    ``str`` (making type annotations predictable), while this provides
+    additional bookkeeping information.
+    """
+    custom_extensions = kwargs.get('extensions', None)
 
     if kwargs.get('compact', False):
         # Compact profile defaults
@@ -282,7 +344,7 @@ def urepr(data: object, **kwargs: Any) -> str | tuple[str, dict[str, int]]:
         kwargs['kvsep'] = kwargs.get('kvsep', '=')
 
     outstr: str | None = None
-    _leaf_info: dict[str, int] | None = None
+    _leaf_info: LeafInfo | None = None
 
     if custom_extensions:
         func = custom_extensions.lookup(data)
@@ -303,30 +365,12 @@ def urepr(data: object, **kwargs: Any) -> str | tuple[str, dict[str, int]]:
         else:
             outstr = _format_object(data, **kwargs)
 
-    assert outstr is not None
-
-    if _return_info:
-        _leaf_info = _rectify_leaf_info(_leaf_info)
-        return outstr, _leaf_info
-    else:
-        return outstr
-
-
-def _rectify_root_info(_root_info: dict[str, int] | None) -> dict[str, int]:
-    if _root_info is None:
-        _root_info = {
-            'depth': 0,
-        }
-    return _root_info
-
-
-def _rectify_leaf_info(_leaf_info: dict[str, int] | None) -> dict[str, int]:
     if _leaf_info is None:
         _leaf_info = {
             'max_height': 0,
             'min_height': 0,
         }
-    return _leaf_info
+    return outstr, _leaf_info
 
 
 class ReprExtensions:
@@ -399,7 +443,7 @@ class ReprExtensions:
             key (type | tuple[type, ...] | str): indicator of the type
 
         Returns:
-            collections.abc.Callable: decorator function
+            Callable: decorator function
         """
 
         def _decorator(func: Callable[..., Any]) -> Callable[..., Any]:
@@ -423,7 +467,7 @@ class ReprExtensions:
             data (Any): an instance that may have a registered formatter
 
         Returns:
-            collections.abc.Callable[..., object] | None: the formatter for the given type
+            Callable[..., object] | None: the formatter for the given type
         """
         # Evaluate the lazy queue if anything is in it
         if self._lazy_queue:
@@ -658,7 +702,7 @@ def _lazy_init() -> None:
 _REPR_EXTENSIONS._lazy_queue.append(_lazy_init)
 
 
-def _format_object(val: Any, **kwargs: Any) -> str:
+def _format_object(val: Any, **kwargs: Unpack[UReprKwargs]) -> str:
     stritems = kwargs.get('si', kwargs.get('stritems', False))
     strvals = stritems or kwargs.get('sv', kwargs.get('strvals', False))
     base_valfunc = str if strvals else repr
@@ -666,7 +710,7 @@ def _format_object(val: Any, **kwargs: Any) -> str:
     return itemstr
 
 
-def _format_list(list_: Any, **kwargs: Any) -> tuple[str, dict[str, int]]:
+def _format_list(list_: Collection, **kwargs: Unpack[UReprKwargs]) -> tuple[str, LeafInfo]:
     """
     Makes a pretty printable / human-readable string representation of a
     sequence. In most cases this string could be evaled.
@@ -690,9 +734,6 @@ def _format_list(list_: Any, **kwargs: Any) -> tuple[str, dict[str, int]]:
         >>> print(_format_list([1], nobr=True)[0])
         1,
     """
-    kwargs['_root_info'] = _rectify_root_info(kwargs.get('_root_info', None))
-    kwargs['_root_info']['depth'] += 1
-
     newlines = kwargs.pop('nl', kwargs.pop('newlines', 1))
     kwargs['nl'] = _rectify_countdown_or_bool(newlines)
 
@@ -709,13 +750,7 @@ def _format_list(list_: Any, **kwargs: Any) -> tuple[str, dict[str, int]]:
         nobraces = False  # force braces to prevent empty output
 
     is_tuple = isinstance(list_, tuple)
-    is_set = isinstance(
-        list_,
-        (
-            set,
-            frozenset,
-        ),
-    )
+    is_set = isinstance(list_, (set, frozenset))
     if nobraces:
         lbr, rbr = '', ''
     elif is_tuple:
@@ -752,8 +787,9 @@ def _format_list(list_: Any, **kwargs: Any) -> tuple[str, dict[str, int]]:
 
 
 def _format_dict(
-    dict_: dict[Any, Any], **kwargs: Any
-) -> tuple[str, dict[str, int] | None]:
+    dict_: dict,
+    **kwargs: Unpack[UReprKwargs],
+) -> tuple[str, LeafInfo | None]:
     """
     Makes a pretty printable / human-readable string representation of a
     dictionary. In most cases this string could be evaled.
@@ -804,9 +840,6 @@ def _format_dict(
             bc='ghi',
         )
     """
-    kwargs['_root_info'] = _rectify_root_info(kwargs.get('_root_info', None))
-    kwargs['_root_info']['depth'] += 1
-
     stritems = kwargs.pop('si', kwargs.pop('stritems', False))
     if stritems:
         kwargs['strkeys'] = True
@@ -874,7 +907,7 @@ def _join_itemstrs(
     itemstrs: list[str],
     itemsep: str,
     newlines: int | bool,
-    _leaf_info: dict[str, int],
+    _leaf_info: LeafInfo,
     nobraces: bool,
     trailing_sep: bool,
     compact_brace: bool,
@@ -936,25 +969,26 @@ def _join_itemstrs(
 
 
 def _dict_itemstrs(
-    dict_: dict[Any, Any], **kwargs: Any
-) -> tuple[list[str], dict[str, int]]:
+    dict_: dict, **kwargs: Unpack[UReprKwargs]
+) -> tuple[list[str], LeafInfo]:
     """
     Create a string representation for each item in a dict.
 
     Args:
         dict_ (dict): the dict
-        **kwargs: explicit, precision, kvsep, strkeys, _return_info, cbr,
-            compact_brace, sort
+        **kwargs: makes use of: explicit, precision, kvsep, strkeys, cbr,
+            compact_brace, sort, and passes the rest to recursive calls to
+            :func:`_urepr_impl`.
 
     Example:
-        >>> from ubelt.util_repr import *
+        >>> from ubelt.util_repr import _dict_itemstrs
         >>> dict_ =  {'b': .1, 'l': 'st', 'g': 1.0, 's': 10, 'm': 0.9, 'w': .5}
         >>> kwargs = {'strkeys': True, 'sort': True}
         >>> itemstrs, _ = _dict_itemstrs(dict_, **kwargs)
         >>> char_order = [p[0] for p in itemstrs]
         >>> assert char_order == ['b', 'g', 'l', 'm', 's', 'w']
     """
-    import ubelt as ub
+    from ubelt.util_str import hzcat
 
     explicit = kwargs.get('explicit', False)
     kwargs['explicit'] = _rectify_countdown_or_bool(explicit)
@@ -967,15 +1001,14 @@ def _dict_itemstrs(
         default_kvsep = '='
     kvsep = kwargs.get('kvsep', default_kvsep)
 
-    def make_item_str(key: Any, val: Any) -> tuple[str, dict[str, int]]:
+    def make_item_str(key: Any, val: Any) -> tuple[str, LeafInfo]:
         if explicit or kwargs.get('strkeys', default_strkeys):
             key_str = str(key)
         else:
             key_str = urepr(key, precision=precision, newlines=0)
 
         prefix = key_str + kvsep
-        kwargs['_return_info'] = True
-        _ret = urepr(val, **kwargs)
+        _ret = _urepr_impl(val, **kwargs)
         val_str, _leaf_info = _ret
 
         # If the first line does not end with an open nest char
@@ -994,16 +1027,16 @@ def _dict_itemstrs(
                 # Fix issue with keys that span new lines
                 item_str = prefix + val_str
             else:
-                item_str = ub.hzcat([prefix, val_str])
+                item_str = hzcat([prefix, val_str])
         else:
             item_str = prefix + val_str
-        return item_str, _leaf_info  # type: ignore[invalid-return-type]
+        return item_str, _leaf_info
 
     items = list(dict_.items())
     _tups = [make_item_str(key, val) for (key, val) in items]
     itemstrs = [t[0] for t in _tups]
     max_height = max([t[1]['max_height'] for t in _tups]) if _tups else 0
-    _leaf_info = {
+    _leaf_info: LeafInfo = {
         'max_height': max_height + 1,
     }
 
@@ -1037,22 +1070,21 @@ def _dict_itemstrs(
 
 
 def _list_itemstrs(
-    list_: Any, **kwargs: Any
-) -> tuple[list[str], dict[str, int]]:
+    list_: Iterable, **kwargs: Unpack[UReprKwargs]
+) -> tuple[list[str], LeafInfo]:
     """
     Create a string representation for each item in a list.
 
     Args:
-        list_ (collections.abc.Sequence[object]):
-        **kwargs: _return_info, sort
+        list_ (Sequence[object]):
+        **kwargs: sort
     """
     items = list(list_)
-    kwargs['_return_info'] = True
-    _tups: list[tuple[str, dict[str, int]]]
-    _tups = [urepr(item, **kwargs) for item in items]  # type: ignore[invalid-assignment]
+    _tups: list[tuple[str, LeafInfo]]
+    _tups = [_urepr_impl(item, **kwargs) for item in items]
     itemstrs = [t[0] for t in _tups]
     max_height = max([t[1]['max_height'] for t in _tups]) if _tups else 0
-    _leaf_info = {
+    _leaf_info: LeafInfo = {
         'max_height': max_height + 1,
     }
 
@@ -1092,7 +1124,7 @@ def _sort_itemstrs(
     return itemstrs
 
 
-def _rectify_countdown_or_bool(count_or_bool: Any) -> bool | int:
+def _rectify_countdown_or_bool(count_or_bool: bool | int) -> bool | int:
     """
     used by recursive functions to specify which level to turn a bool on in
     counting down yields True, True, ..., False
@@ -1294,7 +1326,9 @@ def _align_lines(
     return new_lines
 
 
-# Give the urepr function itself a reference to the default extensions
-# register method so the user can modify them without accessing this module
-urepr.extensions = _REPR_EXTENSIONS  # type: ignore[attr-defined]
-urepr.register = _REPR_EXTENSIONS.register  # type: ignore[attr-defined]
+# Give the urepr function itself a reference to the default extensions register
+# method so the user can modify them without accessing this module In the
+# future we may make urepr a callable instance of a class instead of a function
+# in order to ensure proper typing of these attributes.
+setattr(urepr, 'extensions', _REPR_EXTENSIONS)
+setattr(urepr, 'register', _REPR_EXTENSIONS.register)

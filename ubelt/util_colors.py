@@ -117,7 +117,7 @@ def highlight_code(
     return new_text
 
 
-def _pygments_highlight(text, lexer_name, **kwargs):
+def _pygments_highlight(text: str, lexer_name: str, **kwargs) -> str:
     """
     Original pygments highlight logic
     """
@@ -143,7 +143,7 @@ def _pygments_highlight(text, lexer_name, **kwargs):
     return new_text
 
 
-def _rich_highlight(text, lexer_name):  # nocover
+def _rich_highlight(text: str, lexer_name: str) -> str:  # nocover
     """
     Alternative rich-based highlighter
 
