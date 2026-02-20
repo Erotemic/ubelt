@@ -124,7 +124,6 @@ Ubelt is small. Its top-level API is defined using roughly 40 lines:
                                  sorted_vals, sorted_values, udict, varied_values,)
     from ubelt.util_deprecate import (schedule_deprecation,)
     from ubelt.util_download import (download, grabdata,)
-    from ubelt.util_download_manager import (DownloadManager,)
     from ubelt.util_func import (compatible, identity, inject_method,)
     from ubelt.util_repr import (ReprExtensions, urepr,)
     from ubelt.util_futures import (Executor, JobPool,)
