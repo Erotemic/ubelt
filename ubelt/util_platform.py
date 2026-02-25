@@ -415,6 +415,7 @@ def find_exe(
     if not multi:
         for fpath in results:
             return fpath
+        return None
     else:
         return list(results)
 

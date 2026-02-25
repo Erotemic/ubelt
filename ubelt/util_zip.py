@@ -421,7 +421,7 @@ class zopen(NiceRepr):
         ex_type: Type[BaseException] | None,
         ex_value: BaseException | None,
         ex_traceback: TracebackType | None,
-    ) -> bool | None:
+    ) -> None:
         """
         Args:
             ex_type (Type[BaseException] | None):
@@ -429,7 +429,7 @@ class zopen(NiceRepr):
             ex_traceback (TracebackType | None):
 
         Returns:
-            bool | None
+            None
         """
         self.close()
 

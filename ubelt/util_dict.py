@@ -78,6 +78,7 @@ if typing.TYPE_CHECKING:
         Set,
         Type,
         Union,
+        MutableMapping,
         cast,
     )
 
@@ -301,6 +302,7 @@ def dict_hist(
         >>> print(ub.repr2(hist4, nl=0))
         {1: 1, 2: 4, 39: 1, 900: 1, 1232: 0}
     """
+    hist_: MutableMapping
     if weights is None and labels is None:
         # Accumulate discrete frequency.
         # In this special case we use an optimized stdlib routine
@@ -316,7 +318,7 @@ def dict_hist(
         if weights is None:
             weights = it.repeat(1)  # 2x slower than Counter
         if typing.TYPE_CHECKING:
-            hist_ = cast(typing.MutableMapping[typing.Any, float | int], hist_)
+            hist_ = cast(MutableMapping[typing.Any, float | int], hist_)
         # Accumulate weighted frequency
         for item, weight in zip(items, weights):
             hist_[item] += weight
@@ -747,12 +749,16 @@ def sorted_values(
         {'spam': 2.62, 'eggs': 1.2, 'jam': 2.92}
     """
     if key is None:
+        def _value_sorter(kv: tuple[KT, VT]) -> VT:
+            return kv[1]
         newdict = OrderedDict(
-            sorted(dict_.items(), key=lambda kv: kv[1], reverse=reverse)
+            sorted(dict_.items(), key=_value_sorter, reverse=reverse)
         )
     else:
+        def _transformed_value_sorter(kv: tuple[KT, VT]) -> Any:
+            return key(kv[1])
         newdict = OrderedDict(
-            sorted(dict_.items(), key=lambda kv: key(kv[1]), reverse=reverse)
+            sorted(dict_.items(), key=_transformed_value_sorter, reverse=reverse)
         )
     return newdict
 
@@ -802,12 +808,16 @@ def sorted_keys(
         {'jam': 2.92, 'eggs': 1.2, 'spam': 2.62}
     """
     if key is None:
+        def _key_sorter(kv: tuple[KT, VT]) -> KT:
+            return kv[0]
         newdict = OrderedDict(
-            sorted(dict_.items(), key=lambda kv: kv[0], reverse=reverse)
+            sorted(dict_.items(), key=_key_sorter, reverse=reverse)
         )
     else:
+        def _transformed_key_sorter(kv: tuple[KT, VT]) -> Any:
+            return key(kv[0])
         newdict = OrderedDict(
-            sorted(dict_.items(), key=lambda kv: key(kv[0]), reverse=reverse)
+            sorted(dict_.items(), key=_transformed_key_sorter, reverse=reverse)
         )
     return newdict
 
@@ -984,7 +994,7 @@ def varied_values(
     longform: List[Dict[KT, VT]],
     min_variations: int = 0,
     default: Union[VT, NoParamType] = NoParam,
-) -> Dict[KT, Set[VT]]:
+) -> MutableMapping[KT, Set[VT]]:
     """
     Given a list of dictionaries, find the values that differ between them.
 
@@ -1100,7 +1110,7 @@ def varied_values(
         }
     """
     # Enumerate all defined columns
-    columns = set()
+    columns: set[KT] = set()
     for row in longform:
         if default is NoParam and len(row) != len(columns) and len(columns):
             missing = set(columns).symmetric_difference(set(row))
@@ -1118,6 +1128,9 @@ def varied_values(
             value = row.get(key, default)
             if isinstance(value, list):
                 value = tuple(value)
+            # It is not possible for value to be NoParam here.
+            if typing.TYPE_CHECKING:
+                value = typing.cast(VT, value)
             varied[key].add(value)
 
     # Remove any column that does not have enough variation
@@ -1818,7 +1831,7 @@ class SetDict(dict):
         """
         if cls is None:
             cls = type(self)
-        other_keys = set()
+        other_keys: set = set()
         for v in others:
             other_keys.update(v)
         if merge is None:

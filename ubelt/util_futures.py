@@ -188,7 +188,7 @@ class SerialExecutor:
         ex_type: Type[BaseException] | None,
         ex_value: BaseException | None,
         ex_traceback: TracebackType | None,
-    ) -> bool | None:
+    ) -> None:
         """
         Args:
             ex_type (Type[BaseException] | None):
@@ -198,7 +198,7 @@ class SerialExecutor:
         Returns:
             bool | None
         """
-        return False
+        return None
 
     def submit(
         self,

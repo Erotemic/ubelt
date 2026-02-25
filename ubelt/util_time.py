@@ -669,6 +669,7 @@ class Timer:
         self.elapsed = self.toc()
         if ex_traceback is not None:
             return False
+        return None
 
 
 # class Time:

@@ -1262,6 +1262,7 @@ class CacheStamp:
                         )
                     err = 'hash_prefix_mismatch'
                     return err
+        return None
 
     def _expires(
         self, now: datetime_mod.datetime | None = None

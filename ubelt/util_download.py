@@ -302,6 +302,8 @@ def download(
         if progkw is not None:
             _progkw.update(progkw)  # type: ignore[no-matching-overload]
         _progkw['disable'] = not verbose
+
+        pbar: Progress
         pbar = Progress(**_progkw)  # type: ignore[invalid-argument-type]
 
         pbar.set_extra(_build_extra)

@@ -649,6 +649,7 @@ class ProgIter(_TQDMCompat, _BackwardsCompat, Iterable[T]):
             return False
         else:
             self.end()
+        return None
 
     def __iter__(self) -> Iterator[T]:
         """

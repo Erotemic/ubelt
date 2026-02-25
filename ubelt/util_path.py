@@ -466,7 +466,7 @@ class ChDir:
         ex_type: Type[BaseException] | None,
         ex_value: BaseException | None,
         ex_traceback: TracebackType | None,
-    ) -> bool | None:
+    ) -> None:
         """
         Args:
             ex_type (Type[BaseException] | None):
@@ -474,7 +474,7 @@ class ChDir:
             ex_traceback (TracebackType | None):
 
         Returns:
-            bool | None
+            None
         """
         if self._context_dpath is not None:
             os.chdir(self._orig_dpath)
@@ -572,7 +572,7 @@ class TempDir:
         ex_type: Type[BaseException] | None,
         ex_value: BaseException | None,
         ex_traceback: TracebackType | None,
-    ) -> bool | None:
+    ) -> None:
         """
         Args:
             ex_type (Type[BaseException] | None):
@@ -580,7 +580,7 @@ class TempDir:
             ex_traceback (TracebackType | None):
 
         Returns:
-            bool | None
+            None
         """
         self.cleanup()
 
@@ -2088,6 +2088,8 @@ def _encode_chmod_int(int_code: int) -> str:
     )
     target_to_perms = defaultdict(list)
     for key, val in action_lut.items():
+        target: str
+        perm: int
         target, perm = key
         if int_code & val:
             target_to_perms[target].append(perm)

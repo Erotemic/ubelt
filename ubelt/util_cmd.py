@@ -662,7 +662,7 @@ def _proc_async_iter_stream(
     stream: typing.IO[str],
     buffersize: int = 1,
     timeout: float | None = None,
-) -> tuple[threading.Thread, 'queue.Queue[str | None]', 'queue.Queue[object]']:
+) -> tuple[threading.Thread, queue.Queue[str | None], queue.Queue[object]]:
     """
     Reads output from a process in a separate thread.
 
@@ -689,6 +689,8 @@ def _proc_async_iter_stream(
     import threading
 
     # logger.debug(f"Create and start thread for {id(stream)}")
+    out_queue: queue.Queue[str | None]
+    control_queue: queue.Queue[object]
     out_queue = queue.Queue(maxsize=buffersize)
     control_queue = queue.Queue(maxsize=1)
     io_thread = threading.Thread(
@@ -965,8 +967,8 @@ def _tee_output(
     """
     import subprocess
 
-    logged_out = []
-    logged_err = []
+    logged_out: list[str] = []
+    logged_err: list[str] = []
     if backend == 'auto':
         # backend = 'select' if POSIX else 'thread'
         backend = 'thread'

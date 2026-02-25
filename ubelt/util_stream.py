@@ -312,6 +312,7 @@ class CaptureStream:
                 self.close()
         if ex_traceback is not None:
             return False  # propagate exception
+        return None
 
     def __del__(self):  # nocover
         # Be robust during interpreter shutdown
