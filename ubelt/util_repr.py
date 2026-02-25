@@ -83,8 +83,8 @@ if typing.TYPE_CHECKING:
         nl: int | bool
         newlines: int | bool
 
-        nobr: bool
-        nobraces: bool
+        nobr: int | bool
+        nobraces: int | bool
 
         cbr: bool
         compact_brace: bool
@@ -92,7 +92,7 @@ if typing.TYPE_CHECKING:
         trailsep: bool
         trailing_sep: bool
 
-        explicit: bool
+        explicit: int | bool
         compact: bool
 
         precision: int | None
@@ -471,10 +471,11 @@ class ReprExtensions:
         """
         # Evaluate the lazy queue if anything is in it
         if self._lazy_queue:
-            for func in self._lazy_queue:
-                func()
+            for _lazy_func in self._lazy_queue:
+                _lazy_func()
             self._lazy_queue = []
 
+        func: Callable[..., Any] | None
         for type_, func in self._type_registry.items():
             if isinstance(data, type_):
                 return func
@@ -710,7 +711,9 @@ def _format_object(val: Any, **kwargs: Unpack[UReprKwargs]) -> str:
     return itemstr
 
 
-def _format_list(list_: Collection, **kwargs: Unpack[UReprKwargs]) -> tuple[str, LeafInfo]:
+def _format_list(
+    list_: Collection, **kwargs: Unpack[UReprKwargs]
+) -> tuple[str, LeafInfo]:
     """
     Makes a pretty printable / human-readable string representation of a
     sequence. In most cases this string could be evaled.
@@ -762,7 +765,8 @@ def _format_list(list_: Collection, **kwargs: Unpack[UReprKwargs]) -> tuple[str,
 
     # Doesn't actually put in trailing comma if on same line
     trailing_sep = kwargs.get(
-        'trailsep', kwargs.get('trailing_sep', newlines > 0 and len(itemstrs))
+        'trailsep',
+        kwargs.get('trailing_sep', newlines > 0 and len(itemstrs) > 0),
     )
 
     # The trailing separator is always needed for single item tuples
@@ -908,7 +912,7 @@ def _join_itemstrs(
     itemsep: str,
     newlines: int | bool,
     _leaf_info: LeafInfo,
-    nobraces: bool,
+    nobraces: int | bool,
     trailing_sep: bool,
     compact_brace: bool,
     lbr: str,
@@ -1152,6 +1156,7 @@ def _rectify_countdown_or_bool(count_or_bool: bool | int) -> bool | int:
         >>> print(result)
         [1, 0, 0, -1, -2, True, False, False]
     """
+    count_or_bool_: int | bool
     if count_or_bool is True or count_or_bool is False:
         count_or_bool_ = count_or_bool
     elif isinstance(count_or_bool, int):

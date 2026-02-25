@@ -84,6 +84,9 @@ count = true
 quiet-level = 3
 ignore-words-list = ['wont', 'cant', 'ANS', 'doesnt', 'arent', 'ans', 'thats', 'datas', 'isnt']
 
+[tool.ty.rules]
+unused-ignore-comment = "ignore"
+
 [tool.ty.src]
 exclude = [
     #'ubelt/util_path.py',
@@ -102,7 +105,8 @@ include = [
   "ubelt/util_indexable.py",
   "ubelt/util_deprecate.py",
 ]
-rules = { unresolved-import = "ignore" }
+[tool.ty.overrides.rules]
+unresolved-import = "ignore"
 
 
 # TODO: eventually fix these errors
@@ -110,6 +114,8 @@ rules = { unresolved-import = "ignore" }
 include = ["ubelt/util_cmd.py"]
 [tool.ty.overrides.rules]
 deprecated = "ignore"
+
+unused-ignore-comment = "ignore"
 
 # TODO: Think about if we can fix copy and move signatures.
 [[tool.ty.overrides]]

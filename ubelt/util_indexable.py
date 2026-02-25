@@ -20,13 +20,13 @@ from math import isclose
 
 if typing.TYPE_CHECKING:
     from types import TracebackType
-    from typing import Any, Mapping, MutableMapping, MutableSequence
+    from typing import Any, Mapping, MutableMapping, MutableSequence, Sequence
 
 
 try:
     from functools import cache
 except ImportError:  # nocover
-    from ubelt.util_memoize import memoize as cache
+    from ubelt.util_memoize import memoize as cache  # type: ignore[assignment]
 
 
 @cache
@@ -300,8 +300,8 @@ class IndexableWalker(Generator):
         for k in prefix:
             d = d[k]
         if typing.TYPE_CHECKING:
-            d = typing.cast(MutableMapping[Any, Any] | MutableSequence[Any], d)
-        d[key] = value
+            d = typing.cast(MutableMapping[Any, Any] | MutableSequence[Any], d)  # type: ignore[assignment]
+        d[key] = value   # type: ignore[index]
 
     def __getitem__(self, path: list) -> Any:
         """
@@ -312,6 +312,16 @@ class IndexableWalker(Generator):
 
         Returns:
             Any: value
+
+        Example:
+            >>> import ubelt as ub
+            >>> data = {
+            >>>     'foo': {'bar': 1},
+            >>>     'baz': [{'biz': 3}, {'buz': [4, 5, 6]}],
+            >>> }
+            >>> walker = ub.IndexableWalker(data)
+            >>> walker[['baz', 0, 'biz']]
+            3
         """
         import itertools as it
 
@@ -326,7 +336,7 @@ class IndexableWalker(Generator):
             d = d[k]
         return d[key]
 
-    def __delitem__(self, path: list) -> None:
+    def __delitem__(self, path: Sequence) -> None:
         """
         Remove nested value by path
 
@@ -339,6 +349,20 @@ class IndexableWalker(Generator):
         Args:
             path (List): list of indexes into the nested structure.
                 The item at the last index will be removed.
+
+        Example:
+            >>> import ubelt as ub
+            >>> data = {
+            >>>     'foo': {'bar': 1},
+            >>>     'baz': [{'biz': 3}, {'buz': [4, 5, 6]}],
+            >>> }
+            >>> walker = ub.IndexableWalker(data)
+            >>> del walker[['baz', 1, 'buz']]
+            >>> print(f'data = {ub.urepr(data, nl=1)}')
+            data = {
+                'foo': {'bar': 1},
+                'baz': [{'biz': 3}, {}],
+            }
         """
         d = self.data
         prefix, key = path[:-1], path[-1]
@@ -346,8 +370,10 @@ class IndexableWalker(Generator):
         for k in prefix:
             d = d[k]
         if typing.TYPE_CHECKING:
-            d = typing.cast(MutableMapping[Any, Any] | MutableSequence[Any], d)
-        del d[key]
+            d = typing.cast(MutableMapping[Any, Any] | MutableSequence[Any], d)  # type: ignore[assignment]
+        # to fix the typing here we need to guarentee that our data sequence
+        # wont hit an immutable type.
+        del d[key]   # type: ignore[union-attr]
 
     def keys(self, non_leaf=False):
         """
@@ -590,16 +616,18 @@ class IndexableWalker(Generator):
         flat_items1 = [
             (path, value)
             for path, value in walker1
-            if not isinstance(value, walker1.indexable_cls) or len(value) == 0
+            if not isinstance(value, walker1.indexable_cls) or len(value) == 0  # type: ignore[arg-type]
         ]
         flat_items2 = [
             (path, value)
             for path, value in walker2
-            if not isinstance(value, walker1.indexable_cls) or len(value) == 0
+            if not isinstance(value, walker1.indexable_cls) or len(value) == 0  # type: ignore[arg-type]
         ]
 
         flat_items1 = sorted(flat_items1)
         flat_items2 = sorted(flat_items2)
+
+        info: dict[str, Any]
 
         if len(flat_items1) != len(flat_items2):
             info = {'faillist': ['length mismatch']}

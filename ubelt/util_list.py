@@ -912,7 +912,7 @@ def argsort(
         if isinstance(indexable, Mapping):
             indices = cast(list[KT], indices)
         else:
-            indices = cast(list[int], indices)
+            indices = cast(list[int], indices)  # type: ignore[assignment]
     return indices
 
 
