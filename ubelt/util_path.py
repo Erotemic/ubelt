@@ -1073,7 +1073,7 @@ class Path(_PathBase):
         mode: int = 511,
         parents: bool = False,
         exist_ok: bool = False,
-    ) -> 'Path':  # type: ignore[invalid-method-override]
+    ) -> 'Path':  # type: ignore
         """
         Create a new directory at this given path.
 
@@ -1316,7 +1316,7 @@ class Path(_PathBase):
     #     super().hardlink_to(target)
     #     return self
 
-    def touch(self, mode: int = 0o0666, exist_ok: bool = True) -> 'Path':  # type: ignore[invalid-method-override]
+    def touch(self, mode: int = 0o0666, exist_ok: bool = True) -> 'Path':  # type: ignore
         """
         Create this file with the given access mode, if it doesn't exist.
 
@@ -1644,7 +1644,7 @@ class Path(_PathBase):
         follow_dir_symlinks: bool = False,
         meta: str | None = 'stats',
         overwrite: bool = False,
-    ) -> 'Path':
+    ) -> 'Path': # type: ignore
         """
         Copy this file or directory to dst.
 
@@ -1654,6 +1654,10 @@ class Path(_PathBase):
         (``src`` and ``dst``) these can either be files, directories, or not
         exist. Given these three states, the following table summarizes how
         this function copies this path to its destination.
+
+        FIXME:
+            pathlib.Path added a copy command, that is incompatible with ours, so we need
+            to address that.
 
         TextArt:
 
@@ -1812,7 +1816,7 @@ class Path(_PathBase):
         follow_file_symlinks: bool = False,
         follow_dir_symlinks: bool = False,
         meta: str | None = 'stats',
-    ) -> 'Path':
+    ) -> 'Path':  # type: ignore
         """
         Move a file from one location to another, or recursively move a
         directory from one location to another.
@@ -1820,6 +1824,10 @@ class Path(_PathBase):
         This method will refuse to overwrite anything, and there is currently
         no overwrite option for technical reasons. This may change in the
         future.
+
+        FIXME:
+            pathlib.Path added a move command, that is incompatible with ours, so we need
+            to address that. 
 
         Args:
             dst (str | PathLike):
@@ -2125,9 +2133,9 @@ def _patch_win32_stats_on_pypy():
     """
     if not hasattr(stat, 'IO_REPARSE_TAG_MOUNT_POINT'):  # nocover
         os.supports_follow_symlinks.add(os.stat)
-        stat.IO_REPARSE_TAG_APPEXECLINK = 0x8000001B  # type: ignore[unresolved-attribute]
-        stat.IO_REPARSE_TAG_MOUNT_POINT = 0xA0000003  # type: ignore[unresolved-attribute]
-        stat.IO_REPARSE_TAG_SYMLINK = 0xA000000C  # type: ignore[unresolved-attribute]
+        stat.IO_REPARSE_TAG_APPEXECLINK = 0x8000001B  # type: ignore
+        stat.IO_REPARSE_TAG_MOUNT_POINT = 0xA0000003  # type: ignore
+        stat.IO_REPARSE_TAG_SYMLINK = 0xA000000C  # type: ignore
 
 
 def _is_relative_to_backport(self, other) -> bool:

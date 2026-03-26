@@ -85,48 +85,10 @@ ignore-words-list = ['wont', 'cant', 'ANS', 'doesnt', 'arent', 'ans', 'thats', '
 [tool.mypy]
 ignore_missing_imports = true
 #ignore_errors = true
-disable_error_code = ["misc", "assignment", "index", "arg-type", "override", "union-attr", "attr-defined"]
-
 
 [tool.ty.rules]
-unused-ignore-comment = "ignore"
-
-[tool.ty.src]
-exclude = [
-    #'ubelt/util_path.py',
-    #'ubelt/util_stream.py'
-]
-
-
-[[tool.ty.overrides]]
-# Apply the ignore unresolved rules to these files
-include = [
-  "ubelt/__main__.py",
-  "ubelt/util_time.py",
-  "ubelt/util_repr.py",
-  "ubelt/util_hash.py",
-  "ubelt/util_colors.py",
-  "ubelt/util_indexable.py",
-  "ubelt/util_deprecate.py",
-]
-[tool.ty.overrides.rules]
+unused-type-ignore-comment = "ignore"
 unresolved-import = "ignore"
-
-
-# TODO: eventually fix these errors
-[[tool.ty.overrides]]
-include = ["ubelt/util_cmd.py"]
-[tool.ty.overrides.rules]
-deprecated = "ignore"
-
-unused-ignore-comment = "ignore"
-
-# TODO: Think about if we can fix copy and move signatures.
-[[tool.ty.overrides]]
-include = ["ubelt/util_path.py"]
-[tool.ty.overrides.rules]
-invalid-method-override = "ignore"
-
 
 [tool.ruff]
 line-length = 80
