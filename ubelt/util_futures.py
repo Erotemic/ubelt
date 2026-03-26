@@ -145,7 +145,7 @@ class SerialFuture(concurrent.futures.Future):
             for waiter in self._waiters:  # nocover
                 waiter.add_result(self)
             self._condition.notify_all()
-        self._invoke_callbacks()  # type: ignore[unresolved-attribute]
+        self._invoke_callbacks()  # type: ignore
 
     def _Future__get_result(self):
         # overrides private __getresult method

@@ -54,7 +54,7 @@ def download(
     chunksize: int = 8192,
     filesize: int | None = None,
     verbose: int | bool = 1,
-    timeout: float | NoParamType = NoParam,
+    timeout: int | float | NoParamType = NoParam,
     progkw: Mapping[str, Any] | NoParamType | None = None,
     requestkw: Mapping[str, Any] | NoParamType | None = None,
 ) -> str | os.PathLike | BinaryIO:
@@ -199,8 +199,10 @@ def download(
 
     if timeout is NoParam:
         import socket
-
-        timeout = socket._GLOBAL_DEFAULT_TIMEOUT  # type: ignore[unresolved-attribute]
+        # FIXME: this is using a non-public API
+        timeout_ = socket._GLOBAL_DEFAULT_TIMEOUT  # type: ignore
+    else:
+        timeout_ = timeout
 
     from urllib.request import Request, urlopen
 
@@ -218,7 +220,7 @@ def download(
     # Check if fpath was given as an BytesIO object
     _dst_is_io_object = hasattr(fpath, 'write')
 
-    if not _dst_is_io_object and not exists(dirname(fpath)):  # type: ignore[no-matching-overload]
+    if not _dst_is_io_object and not exists(dirname(fpath)):  # type: ignore
         raise Exception('parent of {} does not exist'.format(fpath))
 
     if verbose:
@@ -228,9 +230,9 @@ def download(
             print('Downloading url={!r} to fpath={!r}'.format(url, fpath))
 
     requestkw = requestkw or {}
-    requestkw['headers'] = {'User-Agent': 'Mozilla/5.0'}  # type: ignore[invalid-assignment]
-    req = Request(url, **requestkw)  # type: ignore[invalid-argument-type]
-    urldata = urlopen(req, timeout=timeout)  # type: ignore[invalid-argument-type]
+    requestkw['headers'] = {'User-Agent': 'Mozilla/5.0'}  # type: ignore
+    req = Request(url, **requestkw)  # type: ignore
+    urldata = urlopen(req, timeout=timeout_)  # type: ignore
 
     meta = urldata.info()
     if filesize is None:
@@ -300,11 +302,11 @@ def download(
             return msg
 
         if progkw is not None:
-            _progkw.update(progkw)  # type: ignore[no-matching-overload]
+            _progkw.update(progkw)  # type: ignore
         _progkw['disable'] = not verbose
 
         pbar: Progress
-        pbar = Progress(**_progkw)  # type: ignore[invalid-argument-type]
+        pbar = Progress(**_progkw)  # type: ignore
 
         pbar.set_extra(_build_extra)
         with pbar:
@@ -584,7 +586,7 @@ def grabdata(
                 hash_prefix=hash_prefix,
                 hasher=hasher,
                 **download_kw,
-            )  # type: ignore[invalid-assignment]
+            )  # type: ignore
             stamp.renew()
     assert fpath is not None
     return fpath

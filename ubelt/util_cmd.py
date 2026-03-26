@@ -246,7 +246,9 @@ def cmd(
             :func:`os.system` is used to execute the command in a platform
             dependent way. Other arguments such as env, tee, timeout, and shell
             are all ignored. Defaults to False. (New in version 1.1.0)
-
+            NOTE: os.system is soft-deprecated, so we may avoid supporting this
+            in the future.
+            
         timeout (float | None):
             If the process does not complete in ``timeout`` seconds, raise a
             :class:`subprocess.TimeoutExpired`. (New in version 1.1.0).
@@ -426,13 +428,13 @@ def cmd(
         popen_kwargs['universal_newlines'] = True
 
         if capture:
-            popen_kwargs['stdout'] = subprocess.PIPE
-            popen_kwargs['stderr'] = subprocess.PIPE
+            popen_kwargs['stdout'] = subprocess.PIPE  # type: ignore
+            popen_kwargs['stderr'] = subprocess.PIPE  # type: ignore
         elif not show:
             # The only way to suppress printing to the screen is by
             # piping to devnull
-            popen_kwargs['stdout'] = subprocess.DEVNULL
-            popen_kwargs['stderr'] = subprocess.DEVNULL
+            popen_kwargs['stdout'] = subprocess.DEVNULL  # type: ignore
+            popen_kwargs['stderr'] = subprocess.DEVNULL  # type: ignore
         proc = subprocess.Popen(args, **popen_kwargs)  # type: ignore
         return proc
 
@@ -918,19 +920,19 @@ def _proc_iteroutput_select(
                 yield subprocess.TimeoutExpired, subprocess.TimeoutExpired  # pyright: ignore[reportPossiblyUnboundVariable]
                 return  # nocover
 
-        reads = [proc.stdout.fileno(), proc.stderr.fileno()]  # type: ignore[possibly-missing-attribute]
+        reads = [proc.stdout.fileno(), proc.stderr.fileno()]  # type: ignore
         ret = select.select(reads, [], [], timeout)
         oline = eline = None
         for fd in ret[0]:
-            if fd == proc.stdout.fileno():  # type: ignore[possibly-missing-attribute]
-                oline = proc.stdout.readline()  # type: ignore[possibly-missing-attribute]
-            if fd == proc.stderr.fileno():  # type: ignore[possibly-missing-attribute]
-                eline = proc.stderr.readline()  # type: ignore[possibly-missing-attribute]
+            if fd == proc.stdout.fileno():  # type: ignore
+                oline = proc.stdout.readline()  # type: ignore
+            if fd == proc.stderr.fileno():  # type: ignore
+                eline = proc.stderr.readline()  # type: ignore
         yield oline, eline
 
     # Grab any remaining data in stdout and stderr after the process finishes
-    oline_iter = _textio_iterlines(proc.stdout)  # type: ignore[invalid-argument-type]
-    eline_iter = _textio_iterlines(proc.stderr)  # type: ignore[invalid-argument-type]
+    oline_iter = _textio_iterlines(proc.stdout)  # type: ignore
+    eline_iter = _textio_iterlines(proc.stderr)  # type: ignore
     for oline, eline in zip_longest(oline_iter, eline_iter):
         yield oline, eline
 
@@ -1000,11 +1002,11 @@ def _tee_output(
                 try:
                     out = ''.join(logged_out)
                 except UnicodeDecodeError:  # nocover
-                    out = '\n'.join(_.decode('utf-8') for _ in logged_out)
+                    out = '\n'.join(_.decode('utf-8') for _ in logged_out)  # type: ignore
                 try:
                     err = ''.join(logged_err)
                 except UnicodeDecodeError:  # nocover
-                    err = '\n'.join(_.decode('utf-8') for _ in logged_err)
+                    err = '\n'.join(_.decode('utf-8') for _ in logged_err)  # type: ignore
                 # Following the standard library implementation of
                 # :func:`subprocess.run`, we kill (not terminate) the process
                 # when the timeout expires. We shouldn't need the extra
@@ -1020,7 +1022,7 @@ def _tee_output(
                     oline = typing.cast(str, oline)
                 stdout.write(oline)
                 stdout.flush()
-            logged_out.append(oline)
+            logged_out.append(oline)  # type: ignore
         if eline:
             # logger.debug("Write eline to stderr.write and logged_err")
             if stderr:  # pragma: nobranch
@@ -1028,7 +1030,7 @@ def _tee_output(
                     eline = typing.cast(str, eline)
                 stderr.write(eline)
                 stderr.flush()
-            logged_err.append(eline)
+            logged_err.append(eline)  # type: ignore
         # logger.debug("Continue waiting for buffered output")
 
     # The motivation for this logic is unclear.
@@ -1037,11 +1039,11 @@ def _tee_output(
     try:
         out = ''.join(logged_out)
     except UnicodeDecodeError:  # nocover
-        out = '\n'.join(_.decode('utf-8') for _ in logged_out)
+        out = '\n'.join(_.decode('utf-8') for _ in logged_out)  # type: ignore
     try:
         err = ''.join(logged_err)
     except UnicodeDecodeError:  # nocover
-        err = '\n'.join(_.decode('utf-8') for _ in logged_err)
+        err = '\n'.join(_.decode('utf-8') for _ in logged_err)  # type: ignore
 
     return out, err
 

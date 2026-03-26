@@ -548,7 +548,7 @@ class HashableExtensions:
         def _hash_dispatch(data):
             raise NotImplementedError
 
-        _hash_dispatch.__is_base__ = True  # type: ignore[unresolved-attribute]
+        _hash_dispatch.__is_base__ = True  # type: ignore
         self._hash_dispatch = singledispatch(_hash_dispatch)
 
     def _evaluate_lazy_queue(self) -> None:
@@ -1419,7 +1419,7 @@ def _digest_hasher(hasher, base):
 def hash_data(
     data: object,
     hasher: str | HasherType | NoParamType = NoParam,
-    base: Union[list[str], tuple[str, ...], str, NoParamType] = NoParam,
+    base: Union[list[str], tuple[str, ...], str, int | NoParamType] = NoParam,
     types: bool = False,
     convert: bool = False,
     extensions: HashableExtensions | None = None,
@@ -1437,7 +1437,7 @@ def hash_data(
             (e.g.  'sha1', 'sha512', 'md5') as well as 'xxh32' and 'xxh64' if
             :mod:`xxhash` is installed. Defaults to 'sha512'.
 
-        base (list[str] | tuple[str, ...] | str | NoParamType):
+        base (list[str] | tuple[str, ...] | str | int | NoParamType):
             list of symbols or shorthand key.
             Valid keys are 'dec', 'hex', 'abc', and 'alphanum', 10, 16, 26, 32.
             Defaults to 'hex'.
@@ -1668,8 +1668,8 @@ def hash_file(
 
 # Give the hash_data function itself a reference to the default extensions
 # register method so the user can modify them without accessing this module
-hash_data.extensions = _HASHABLE_EXTENSIONS  # type: ignore[attr-defined]
-hash_data.register = _HASHABLE_EXTENSIONS.register  # type: ignore[attr-defined]
+hash_data.extensions = _HASHABLE_EXTENSIONS  # type: ignore
+hash_data.register = _HASHABLE_EXTENSIONS.register  # type: ignore
 
 
 # class Hasher:

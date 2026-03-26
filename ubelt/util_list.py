@@ -484,14 +484,14 @@ def take(
         for index in indices:
             # Note: there is not an easy way to get this to type check
             # correctly without introducing an isinstance check.
-            yield items[index]  # type: ignore[invalid-argument-type]
+            yield items[index]  # type: ignore
     else:
         if typing.TYPE_CHECKING:
             assert not isinstance(items, Sequence), 'cannot have a sequence with default'
             items = cast(Mapping[KT, VT], items)
             indices = cast(Iterable[KT], indices)
         for index in indices:
-            yield items.get(index, default)
+            yield items.get(index, default)  # type: ignore
 
 
 def compress(items: Iterable[Any], flags: Iterable[bool]) -> Iterable[Any]:
@@ -912,7 +912,7 @@ def argsort(
         if isinstance(indexable, Mapping):
             indices = cast(list[KT], indices)
         else:
-            indices = cast(list[int], indices)  # type: ignore[assignment]
+            indices = cast(list[int], indices)  # type: ignore
     return indices
 
 

@@ -253,10 +253,10 @@ class memoize_method:
             func (Callable): method to wrap
         """
         self._func = func
-        self._cache_name = '_cache__' + func.__name__  # type: ignore[invalid-assignment]
+        self._cache_name = '_cache__' + func.__name__  # type: ignore
         # Mimic attributes of a bound method
-        self.__func__ = func  # type: ignore[invalid-assignment]
-        functools.update_wrapper(self, func)  # type: ignore[invalid-argument-type]
+        self.__func__ = func  # type: ignore
+        functools.update_wrapper(self, func)  # type: ignore
 
     def __get__(self, instance: object, cls: type | None = None):
         """
@@ -285,7 +285,7 @@ class memoize_method:
 
         # Set the attribute to prevent calling __get__ again
         # Is there a better way to do this?
-        setattr(instance, self._func.__name__, bound_memoizer)  # type: ignore[possibly-missing-attribute]
+        setattr(instance, self._func.__name__, bound_memoizer)  # type: ignore
         return bound_memoizer
 
 
@@ -337,9 +337,9 @@ def memoize_property(fget: property | typing.Callable):
     """
     # Unwrap any existing property decorator
     while hasattr(fget, 'fget'):
-        fget = fget.fget  # type: ignore[invalid-assignment]
+        fget = fget.fget  # type: ignore
 
-    attr_name = '_' + fget.__name__  # type: ignore[unresolved-attribute]
+    attr_name = '_' + fget.__name__  # type: ignore
 
     @functools.wraps(fget)
     def fget_memoized(self):
