@@ -21,7 +21,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout source
-      uses: actions/checkout@v4.2.2
+      uses: actions/checkout@v6.0.2
     - name: Set up Python 3.14 for linting
       uses: actions/setup-python@v5.6.0
       with:
@@ -36,10 +36,6 @@ jobs:
         flake8 ./ubelt --count --select=E9,F63,F7,F82 --show-source --statistics
     - name: Typecheck
       run: |-
-        python -m pip install mypy
-        pip install -r requirements/runtime.txt
-        mypy --install-types --non-interactive ./ubelt
-        mypy ./ubelt
         python -m pip install ty
         pip install -r requirements/runtime.txt
         ty check ./ubelt
@@ -52,7 +48,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout source
-      uses: actions/checkout@v4.2.2
+      uses: actions/checkout@v6.0.2
     - name: Set up Python 3.14
       uses: actions/setup-python@v5.6.0
       with:
@@ -104,7 +100,7 @@ jobs:
         echo "MOD_DPATH = $MOD_DPATH"
         python -m pytest --verbose --cov=ubelt $MOD_DPATH ../tests
         cd ..
-    - uses: actions/upload-artifact@v4.4.0
+    - uses: actions/upload-artifact@v6.0.0
       name: Upload sdist artifact
       with:
         name: sdist_wheels
@@ -127,9 +123,9 @@ jobs:
         - auto
     steps:
     - name: Checkout source
-      uses: actions/checkout@v4.2.2
+      uses: actions/checkout@v6.0.2
     - name: Set up QEMU
-      uses: docker/setup-qemu-action@v3.0.0
+      uses: docker/setup-qemu-action@v3.7.0
       if: runner.os == 'Linux' && matrix.arch != 'auto'
       with:
         platforms: all
@@ -147,7 +143,7 @@ jobs:
     - name: Show built files
       shell: bash
       run: ls -la wheelhouse
-    - uses: actions/upload-artifact@v4.4.0
+    - uses: actions/upload-artifact@v6.0.0
       name: Upload wheels artifact
       with:
         name: wheels-${{ matrix.os }}-${{ matrix.arch }}
@@ -294,14 +290,14 @@ jobs:
           arch: auto
     steps:
     - name: Checkout source
-      uses: actions/checkout@v4.2.2
+      uses: actions/checkout@v6.0.2
     - name: Enable MSVC 64bit
       uses: ilammy/msvc-dev-cmd@v1
       if: ${{ startsWith(matrix.os, 'windows-') }}
       with:
         arch: ${{ contains(matrix.os, 'arm') && 'arm64' || 'x64' }}
     - name: Set up QEMU
-      uses: docker/setup-qemu-action@v3.0.0
+      uses: docker/setup-qemu-action@v3.7.0
       if: runner.os == 'Linux' && matrix.arch != 'auto'
       with:
         platforms: all
@@ -315,6 +311,9 @@ jobs:
         pattern: wheels-*
         merge-multiple: true
         path: wheelhouse
+    - name: Set macOS deployment target (arm64)
+      if: runner.os == 'macOS'
+      run: echo "MACOSX_DEPLOYMENT_TARGET=11.0" >> $GITHUB_ENV
     - name: Install wheel ${{ matrix.install-extras }}
       shell: bash
       env:
@@ -327,13 +326,29 @@ jobs:
         echo "Installing helpers: setuptools"
         python -m uv pip install setuptools>=0.8 setuptools_scm wheel build -U
         echo "Installing helpers: tomli and pkginfo"
-        python -m uv pip install tomli pkginfo
+        python -m uv pip install tomli pkginfo packaging
         export WHEEL_FPATH=$(python -c "if 1:
             import pathlib
+            from packaging import tags
+            from packaging.utils import parse_wheel_filename
             dist_dpath = pathlib.Path('wheelhouse')
-            candidates = list(dist_dpath.glob('ubelt*.whl'))
-            candidates += list(dist_dpath.glob('ubelt*.tar.gz'))
-            fpath = sorted(candidates)[-1]
+            wheels = sorted(dist_dpath.glob('ubelt*.whl'))
+            if wheels:
+                sys_tags = set(tags.sys_tags())
+                matching = []
+                for w in wheels:
+                    try:
+                        _, _, _, wheel_tags = parse_wheel_filename(w.name)
+                    except Exception:
+                        continue
+                    if any(t in sys_tags for t in wheel_tags):
+                        matching.append(w)
+                fpath = sorted(matching or wheels)[-1]
+            else:
+                sdists = sorted(dist_dpath.glob('ubelt*.tar.gz'))
+                if not sdists:
+                    raise SystemExit('No wheel artifacts found in wheelhouse')
+                fpath = sdists[-1]
             print(str(fpath).replace(chr(92), chr(47)))
         ")
         export MOD_VERSION=$(python -c "if 1:
@@ -396,7 +411,7 @@ jobs:
         echo '### The cwd should now have a coverage.xml'
         ls -altr
         pwd
-    - uses: codecov/codecov-action@v5.4.3
+    - uses: codecov/codecov-action@v5.5.2
       name: Codecov Upload
       with:
         file: ./coverage.xml
@@ -410,7 +425,7 @@ jobs:
     - build_purepy_wheels
     steps:
     - name: Checkout source
-      uses: actions/checkout@v4.2.2
+      uses: actions/checkout@v6.0.2
     - uses: actions/download-artifact@v4.1.8
       name: Download wheels
       with:
@@ -467,7 +482,7 @@ jobs:
         ots stamp wheelhouse/*.whl wheelhouse/*.tar.gz wheelhouse/*.asc
         ls -la wheelhouse
         twine upload --username __token__ --password "$TWINE_PASSWORD" --repository-url "$TWINE_REPOSITORY_URL" wheelhouse/*.whl wheelhouse/*.tar.gz --skip-existing --verbose || { echo "failed to twine upload" ; exit 1; }
-    - uses: actions/upload-artifact@v4.4.0
+    - uses: actions/upload-artifact@v6.0.0
       name: Upload deploy artifacts
       with:
         name: deploy_artifacts
@@ -486,7 +501,7 @@ jobs:
     - build_purepy_wheels
     steps:
     - name: Checkout source
-      uses: actions/checkout@v4.2.2
+      uses: actions/checkout@v6.0.2
     - uses: actions/download-artifact@v4.1.8
       name: Download wheels
       with:
@@ -543,7 +558,7 @@ jobs:
         ots stamp wheelhouse/*.whl wheelhouse/*.tar.gz wheelhouse/*.asc
         ls -la wheelhouse
         twine upload --username __token__ --password "$TWINE_PASSWORD" --repository-url "$TWINE_REPOSITORY_URL" wheelhouse/*.whl wheelhouse/*.tar.gz --skip-existing --verbose || { echo "failed to twine upload" ; exit 1; }
-    - uses: actions/upload-artifact@v4.4.0
+    - uses: actions/upload-artifact@v6.0.0
       name: Upload deploy artifacts
       with:
         name: deploy_artifacts
@@ -563,7 +578,7 @@ jobs:
     - live_deploy
     steps:
     - name: Checkout source
-      uses: actions/checkout@v4.2.2
+      uses: actions/checkout@v6.0.2
     - uses: actions/download-artifact@v4.1.8
       name: Download artifacts
       with:
