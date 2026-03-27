@@ -646,7 +646,7 @@ def map_values(
         >>> print(newdict)
     """
     if not hasattr(func, '__call__'):
-        func = typing.cast(Mapping[VT, T], func).__getitem__
+        func = typing.cast(typing.Mapping, func).__getitem__
     keyval_list = [(key, typing.cast(Callable[[VT], T], func)(val)) for key, val in dict_.items()]
     if cls is None:
         cls = OrderedDict if isinstance(dict_, OrderedDict) else dict
@@ -698,7 +698,7 @@ def map_keys(
         >>> assert newdict == {'a': [1, 2, 3], 'b': []}
     """
     if not hasattr(func, '__call__'):
-        func = typing.cast(Mapping[KT, T], func).__getitem__
+        func = typing.cast(typing.Mapping, func).__getitem__
     keyval_list = [(typing.cast(Callable[[KT], T], func)(key), val) for key, val in dict_.items()]
     if cls is None:
         cls = OrderedDict if isinstance(dict_, OrderedDict) else dict

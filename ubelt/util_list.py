@@ -340,7 +340,7 @@ class chunks(Iterable[List[VT]]):
         bordervalues = it.cycle(iter(items))
         for chunk in chunks_with_sentinals:
             yield typing.cast(
-                list[VT],
+                typing.List[VT],
                 [
                     item if item is not sentinel else next(bordervalues)
                     for item in chunk
