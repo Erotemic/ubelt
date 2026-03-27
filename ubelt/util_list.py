@@ -903,21 +903,20 @@ def argsort(
             indexable = cast(Mapping[KT, VT], indexable)
         vk_iter = ((v, k) for k, v in indexable.items())
     else:
-        vk_iter = ((v, k) for k, v in enumerate(indexable))  # type: ignore[misc]
+        pairs = list(enumerate(indexable))
+        if key is None:
+            return [k for k, v in sorted(pairs, key=operator.itemgetter(1), reverse=reverse)]
+        return [k for k, v in sorted(pairs, key=lambda kv: key(kv[1]), reverse=reverse)]
     # Sort by values and extract the indices
     if key is None:
         indices = [k for v, k in sorted(vk_iter, reverse=reverse)]
     else:
-        # If key is provided, call it using the value as input
-        def key_func(vk: tuple[typing.Any, typing.Any]) -> typing.Any:
-            return key(vk[0])
-
-        indices = [k for v, k in sorted(vk_iter, key=key_func, reverse=reverse)]
+        indices = [
+            k for v, k in sorted(vk_iter, key=lambda vk: key(vk[0]), reverse=reverse)
+        ]
     if typing.TYPE_CHECKING:
         if isinstance(indexable, Mapping):
             indices = cast(List[KT], indices)
-        else:
-            indices = cast(List[int], indices)  # type: ignore
     return indices
 
 

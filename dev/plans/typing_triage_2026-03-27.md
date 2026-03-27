@@ -34,6 +34,7 @@ Audit date: `2026-03-27`
 - The scan counts above are upper bounds.
 - The detailed inventory below is grouped by root cause, not by raw line count.
 - A single finding may cover several adjacent suppressions if they all stem from the same type-model problem.
+- Rows whose proposed next step begins with `Done on 2026-03-27` were completed after the initial audit and are kept here as closed inventory items.
 
 ## Triage Categories
 
@@ -116,7 +117,7 @@ These are the clearest places where typing debt is downstream of public API shap
 | Location | Symbol / behavior | Current directive / type | Why dubious | Category | Public API | Runtime/import cost | Proposed next step |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | `ubelt/util_cmd.py:423-437,926-938` | `make_proc()` plus select backend stdio access | Multiple `# type: ignore` around `Popen` kwargs, `proc.stdout`, and `proc.stderr` | The real issue is that the code models both "PIPE" and "not PIPE" states with the same dict and process type. | `Small refactor / type-model fix` | No | No | Split process construction into typed helper branches or use a local `TypedDict`-like model for `Popen` kwargs and a `PIPE`-only helper for tee/select paths. |
-| `ubelt/util_cmd.py:444,859-867,921-923` | `os.system()` returncode path and timeout timers | One `# type: ignore` plus two `pyright: ignore` pairs | These are local control-flow issues, not dynamic API problems. | `Simple fix` | No | No | Hoist typed timer variables and make `_normalize_system_returncode()` accept the `os.system()` return type directly. |
+| `ubelt/util_cmd.py:444,859-867,921-923` | `os.system()` returncode path and timeout timers | One `# type: ignore` plus two `pyright: ignore` pairs | These are local control-flow issues, not dynamic API problems. | `Simple fix` | No | No | Done on `2026-03-27`. Removed the `os.system()` ignore and rewrote the timeout sentinels with explicit local timer state. |
 | `ubelt/util_cmd.py:498-499,1008-1049` | timeout error population and logged output fallback | `typing.cast(Any, ...)` and several `# type: ignore` | The tee path is mixing "definitely text" and "maybe bytes" concepts in one container. | `Small refactor / type-model fix` | No | No | Normalize tee buffers to one concrete type per path, then remove the `Any` casts and append/join ignores. |
 | `ubelt/util_cmd.py:130-158` | `CmdOutput` mapping-backed process result type | dict subclass with partially implicit keys | The public result object is only lightly typed today; robust typing wants a more explicit shape than "dict with some conventional keys". | `Small refactor / type-model fix` | Yes | No | Introduce a dedicated typed result schema for known keys while preserving dict compatibility. |
 
@@ -124,8 +125,8 @@ These are the clearest places where typing debt is downstream of public API shap
 
 | Location | Symbol / behavior | Current directive / type | Why dubious | Category | Public API | Runtime/import cost | Proposed next step |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| `ubelt/util_dict.py:232-235` | `group_items()` pair iterator | `# type: ignore[assignment]` on `zip(key, items)` | The callable-vs-iterable key union is not reflected cleanly in local iterator typing. | `Simple fix` | Yes | No | Use separate local variables for callable and iterable branches with a single concrete iterator type. |
-| `ubelt/util_dict.py:312-405` | `dict_hist()` and `find_duplicates()` staging containers | Several `# type: ignore[assignment]` | The code moves among `Counter`, `defaultdict`, and `dict` without a stable local mapping type. | `Simple fix` | Yes | No | Normalize these locals to a single `MutableMapping[...]` model and stop reassigning them across unrelated concrete types. |
+| `ubelt/util_dict.py:232-235` | `group_items()` pair iterator | `# type: ignore[assignment]` on `zip(key, items)` | The callable-vs-iterable key union is not reflected cleanly in local iterator typing. | `Simple fix` | Yes | No | Done on `2026-03-27`. Introduced a concrete local pair-iterator type so both branches assign cleanly. |
+| `ubelt/util_dict.py:312-405` | `dict_hist()` and `find_duplicates()` staging containers | Several `# type: ignore[assignment]` | The code moves among `Counter`, `defaultdict`, and `dict` without a stable local mapping type. | `Simple fix` | Yes | No | Done on `2026-03-27`. Split the `Counter` and weighted branches into concrete local models and returned normal dicts without ignores. |
 | `ubelt/util_dict.py:759-836` | `sorted_values()` and `sorted_keys()` | `typing.cast(Any, lambda ...)` plus `# type: ignore` | `Any` is compensating for poorly typed sort-key lambdas. | `Small refactor / type-model fix` | Yes | No | Use named helper functions with concrete tuple parameter types instead of `Any`-casts inside `sorted()`. |
 | `ubelt/util_dict.py:899-902,1145,1725` | `invert_dict()`, `varied_values()`, and `SetDict.union()` staging | `# type: ignore[arg-type]`, `attr-defined`, `assignment` | These are classic "container mutation shape" issues that should be modelable without `Any`. | `Small refactor / type-model fix` | Yes | No | Introduce concrete local aliases for `defaultdict[VT, set[KT]]`, iterable-of-items constructors, and list-to-tuple normalization. |
 | `ubelt/util_dict.py:1406-1861` | set-style dict operators and helpers | Repeated `Mapping[Any, Any]`, `Iterable[Any]`, and `other: typing.Any` | The public API is broader than necessary and leaks `Any` through nearly every set-like operator. | `Small refactor / type-model fix` | Yes | No | Replace public `Any` surfaces with `object`, `Mapping[KT, VT]`, `Iterable[tuple[KT, VT]]`, or a small shared alias that preserves `Self`. |
@@ -136,13 +137,13 @@ These are the clearest places where typing debt is downstream of public API shap
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | `ubelt/util_list.py:294-369` | chunk iterator and sentinel handling | Multiple `# type: ignore[...]` in `_new_iterator()`, `noborder()`, and `replicate()` | Sentinel filtering is defeating the checker because the iterator/value type is not modeled clearly. | `Small refactor / type-model fix` | Yes | No | Introduce a private helper for chunk post-processing so each branch returns `list[VT]` without inline ignores. |
 | `ubelt/util_list.py:396,490,499` | `iterable()` and `take()` | `# type: ignore` on `iter(obj)`, indexed sequence access, and `Mapping.get()` | These functions mix sequence and mapping behavior in a way that is easy at runtime but awkward statically. | `Requires runtime overhead` | Yes | Small | If we want to eliminate the ignores completely, add runtime branch narrowing (`isinstance(..., Sequence)` / `Mapping`) before indexing. |
-| `ubelt/util_list.py:906-920,926-995` | `argsort()`, `argmax()`, and `argmin()` key functions | `# type: ignore[misc]`, `typing.Any` tuple/key helpers | The key-function plumbing is too loose for a strongly typed comparator path. | `Simple fix` | Yes | No | Use typed helper functions for `(value, key)` tuples and return narrower local types after mapping-vs-sequence branching. |
+| `ubelt/util_list.py:906-920,926-995` | `argsort()`, `argmax()`, and `argmin()` key functions | `# type: ignore[misc]`, `typing.Any` tuple/key helpers | The key-function plumbing is too loose for a strongly typed comparator path. | `Simple fix` | Yes | No | Partially done on `2026-03-27`. `argsort()` no longer needs the sequence-branch ignore; `argmax()` / `argmin()` key typing still need a follow-up cleanup. |
 
 ### `ubelt/util_path.py`
 
 | Location | Symbol / behavior | Current directive / type | Why dubious | Category | Public API | Runtime/import cost | Proposed next step |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| `ubelt/util_path.py:375` | legacy tuple-input handling in `ensuredir()` | `join(*dpath)  # type: ignore` | This is a local path coercion issue, not a public design blocker. | `Simple fix` | Yes | No | Normalize tuple-like path inputs through `os.fspath()` / explicit sequence handling before calling `join()`. |
+| `ubelt/util_path.py:375` | legacy tuple-input handling in `ensuredir()` | `join(*dpath)  # type: ignore` | This is a local path coercion issue, not a public design blocker. | `Simple fix` | Yes | No | Done on `2026-03-27`. Added an explicit tuple-part coercion helper and removed the ignore. |
 | `ubelt/util_path.py:1071,1323` | chainable `mkdir()` / `touch()` | `# type: ignore` on override signatures | These directly conflict with `pathlib.Path` contracts. | `Requires breaking backward compatibility` | Yes | No | Decide whether chainability stays; if yes, keep the type escape hatch and record it as intentional. |
 | `ubelt/util_path.py:1218,1344,1402,1612-1626` | `chmod()`, `relative_to()`, `walk()`, `_request_copy_function()` | `-> typing.Any`, `**kwargs: typing.Any`, `Callable[..., Any]` | Most of these can be modeled with tighter return and callback types. | `Simple fix` | Yes | No | Tighten `chmod()` to return `Path`, narrow `**kwargs` to `object`, and use a concrete alias for the shutil copy-callable shape. |
 | `ubelt/util_path.py:1653,1826` | `copy()` / `move()` | `# type: ignore` | Stdlib added these names later with incompatible contracts, so typing debt is downstream of API shape. | `Requires breaking backward compatibility` | Yes | No | Resolve the name-collision strategy before attempting precise typing. |
@@ -169,7 +170,7 @@ These are the clearest places where typing debt is downstream of public API shap
 | Location | Symbol / behavior | Current directive / type | Why dubious | Category | Public API | Runtime/import cost | Proposed next step |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | `ubelt/orderedset.py:158-160` | fancy indexing in `__getitem__()` | two bare `# type: ignore` comments | The index parameter is richer than the local branch typing, but this is still modelable. | `Small refactor / type-model fix` | Yes | No | Split the branch types more explicitly and avoid relying on `hasattr('__index__')` for everything. |
-| `ubelt/orderedset.py:205,424` | pickle restore path and equality input | `# type: ignore[arg-type]` and `other: typing.Any` | Both are looser than needed. | `Simple fix` | Yes | No | Narrow `__setstate__()` to the actual accepted restore shape and change `other` to `object`. |
+| `ubelt/orderedset.py:205,424` | pickle restore path and equality input | `# type: ignore[arg-type]` and `other: typing.Any` | Both are looser than needed. | `Simple fix` | Yes | No | Done on `2026-03-27`. Narrowed `__setstate__()` via tuple-vs-list branching and typed `__eq__()` against `object` with an explicit iterable check. |
 | `ubelt/orderedset.py:225` | `add()` return type | override ignore and `-> int` | This is the strongest `OrderedSet` typing blocker and is a public API decision, not an annotation omission. | `Requires breaking backward compatibility` | Yes | No | Keep tracked under the structural blocker list until the return contract is settled. |
 
 ### `ubelt/util_memoize.py`
@@ -227,7 +228,7 @@ These are the clearest places where typing debt is downstream of public API shap
 
 | Location | Symbol / behavior | Current directive / type | Why dubious | Category | Public API | Runtime/import cost | Proposed next step |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| `ubelt/util_func.py:21-25` | `identity()` | `arg: Any | None`, `*args: Any`, `**kwargs: Any`, `-> Any` | This function is a textbook type-preservation candidate. | `Simple fix` | Yes | No | Preserve the first argument type instead of returning raw `Any`. |
+| `ubelt/util_func.py:21-25` | `identity()` | `arg: Any | None`, `*args: Any`, `**kwargs: Any`, `-> Any` | This function is a textbook type-preservation candidate. | `Simple fix` | Yes | No | Done on `2026-03-27`. Preserved the first argument type with a type variable. |
 | `ubelt/util_func.py:68-124` | `inject_method()` and `compatible()` | `self: Any`, `Callable[..., Any]`, `dict[str, Any]`, one `# type: ignore` | The APIs are broad, but not so broad that they need `Any` everywhere. | `Small refactor / type-model fix` | Yes | No | Use object-typed instance inputs, a typed bound-method helper, and mapping/object-oriented config types instead of raw `Any`. |
 
 ### `ubelt/progiter.py`
@@ -276,7 +277,7 @@ These are the clearest places where typing debt is downstream of public API shap
 
 | Location | Symbol / behavior | Current directive / type | Why dubious | Category | Public API | Runtime/import cost | Proposed next step |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| `ubelt/util_mixins.py:159` | `NiceRepr.__nice__()` default `__len__` path | `# type: ignore` on direct `self.__len__()` call | This is a local narrowing issue caused by `hasattr()` not implying `Sized`. | `Simple fix` | Yes | No | Use a local protocol / `typing.cast` to `Sized` in the narrowed branch instead of a blanket ignore. |
+| `ubelt/util_mixins.py:159` | `NiceRepr.__nice__()` default `__len__` path | `# type: ignore` on direct `self.__len__()` call | This is a local narrowing issue caused by `hasattr()` not implying `Sized`. | `Simple fix` | Yes | No | Done on `2026-03-27`. Switched to an explicit `Sized` check and `len(self)` in the default branch. |
 
 ## Test Appendix
 

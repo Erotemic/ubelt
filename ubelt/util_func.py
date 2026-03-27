@@ -15,14 +15,22 @@ that signature.
 
 from __future__ import annotations
 
+from collections.abc import Iterable as IterableABC
 import typing
+
+T = typing.TypeVar('T')
+V = typing.TypeVar('V')
+
+
+class SupportsBool(typing.Protocol):
+    def __bool__(self) -> bool: ...  # nocover
 
 
 def identity(
-    arg: typing.Any | None = None,
-    *args: typing.Any,
-    **kwargs: typing.Any,
-) -> typing.Any:
+    arg: T | None = None,
+    *args: object,
+    **kwargs: object,
+) -> T | None:
     """
     Return the value of the first argument unchanged.
 
@@ -117,11 +125,11 @@ def inject_method(
 
 
 def compatible(
-    config: dict[str, typing.Any],
+    config: dict[str, V],
     func: typing.Callable,
     start: int = 0,
-    keywords: bool | typing.Iterable[str] = True,
-) -> dict[str, typing.Any]:
+    keywords: bool | str | typing.Iterable[str] | SupportsBool = True,
+) -> dict[str, V]:
     """
     Take the "compatible" subset of a dictionary that a function will accept as
     keyword arguments.
@@ -240,13 +248,11 @@ def compatible(
 
     # Test if keywords is a non-string iterable
     if not isinstance(keywords, (bool, str)):
-        try:
-            iter(keywords)
-        except Exception:
-            keywords = bool(keywords)
-        else:
+        if isinstance(keywords, IterableABC):
             argnames.extend(keywords)
             keywords = False
+        else:
+            keywords = bool(keywords)
 
     if has_kwargs and keywords:
         # kwargs could be anything, so keep everything

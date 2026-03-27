@@ -333,7 +333,7 @@ def expandpath(path: str | os.PathLike) -> str:
 
 
 def ensuredir(
-    dpath: str | os.PathLike | tuple[str | os.PathLike, ...],
+    dpath: str | os.PathLike[str] | tuple[str | os.PathLike[str], ...],
     mode: int = 0o1777,
     verbose: int = 0,
     recreate: bool = False,
@@ -371,8 +371,14 @@ def ensuredir(
         >>> assert dpath.exists()
         >>> dpath.delete()
     """
-    if isinstance(dpath, (list, tuple)):
-        dpath = join(*dpath)  # type: ignore
+    def _coerce_path_part(part: str | os.PathLike[str]) -> str:
+        if isinstance(part, str):
+            return part
+        return part.__fspath__()
+
+    if isinstance(dpath, tuple):
+        parts = typing.cast(tuple[str | os.PathLike[str], ...], dpath)
+        dpath = join(*(_coerce_path_part(part) for part in parts))
 
     if recreate:
         from ubelt import schedule_deprecation

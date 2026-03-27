@@ -441,7 +441,7 @@ def cmd(
         from ubelt.util_path import ChDir
 
         with ChDir(cwd):
-            raw = os.system(command_text)  # type: ignore
+            raw = os.system(command_text)
             ret = _normalize_system_returncode(raw)
         info = CmdOutput(
             **{
@@ -840,11 +840,14 @@ def _proc_iteroutput_thread(
     stdout_live = True
     stderr_live = True
 
+    start_time: float | None = None
+    timeout_exc: type[subprocess.TimeoutExpired] | None = None
     if timeout is not None:
         import subprocess
-        from time import monotonic as _time
+        from time import monotonic
 
-        start_time = _time()
+        start_time = monotonic()
+        timeout_exc = subprocess.TimeoutExpired
 
     oline = None
     eline = None
@@ -856,7 +859,11 @@ def _proc_iteroutput_thread(
 
         if timeout is not None:
             # Check for timeouts
-            elapsed = _time() - start_time  # pyright: ignore[reportPossiblyUnboundVariable]
+            from time import monotonic
+
+            assert start_time is not None
+            assert timeout_exc is not None
+            elapsed = monotonic() - start_time
             if elapsed >= timeout:
                 stdout_ctrl.put('STOP')
                 stderr_ctrl.put('STOP')
@@ -864,7 +871,7 @@ def _proc_iteroutput_thread(
                 # because they might get stuck in a readline
                 # stdout_thread.join()
                 # stderr_thread.join()
-                yield subprocess.TimeoutExpired, subprocess.TimeoutExpired  # pyright: ignore[reportPossiblyUnboundVariable]
+                yield timeout_exc, timeout_exc
                 return
 
         if stdout_live:  # pragma: nobranch
@@ -909,18 +916,25 @@ def _proc_iteroutput_select(
     import select
     from itertools import zip_longest
 
+    start_time: float | None = None
+    timeout_exc: type[subprocess.TimeoutExpired] | None = None
     if timeout is not None:
         import subprocess
-        from time import monotonic as _time
+        from time import monotonic
 
-        start_time = _time()
+        start_time = monotonic()
+        timeout_exc = subprocess.TimeoutExpired
 
     # Read output while the external program is running
     while proc.poll() is None:
         if timeout is not None:
-            elapsed = _time() - start_time  # pyright: ignore[reportPossiblyUnboundVariable]
+            from time import monotonic
+
+            assert start_time is not None
+            assert timeout_exc is not None
+            elapsed = monotonic() - start_time
             if elapsed >= timeout:
-                yield subprocess.TimeoutExpired, subprocess.TimeoutExpired  # pyright: ignore[reportPossiblyUnboundVariable]
+                yield timeout_exc, timeout_exc
                 return  # nocover
 
         reads = [proc.stdout.fileno(), proc.stderr.fileno()]  # type: ignore
