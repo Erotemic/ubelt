@@ -726,7 +726,9 @@ def _custom_import_modpath(
     return module
 
 
-def _importlib_import_modpath(modpath: str | os.PathLike) -> ModuleType:  # nocover
+def _importlib_import_modpath(
+    modpath: str | os.PathLike,
+) -> ModuleType:  # nocover
     """
     Alternative to import_module_from_path using importlib mechainsms
 
@@ -864,8 +866,7 @@ def normalize_modpath(
     modpath: str,
     hide_init: bool = True,
     hide_main: bool = False,
-) -> str:
-    ...
+) -> str: ...
 
 
 # If you pass in a PathLike, you might get a PathLike or a string
@@ -875,8 +876,7 @@ def normalize_modpath(
     modpath: os.PathLike,
     hide_init: bool = True,
     hide_main: bool = False,
-) -> str | os.PathLike:
-    ...
+) -> str | os.PathLike: ...
 
 
 def normalize_modpath(
@@ -1115,9 +1115,7 @@ def is_modname_importable(
     return flag
 
 
-def _static_parse(
-    varname: str, fpath: str | os.PathLike
-) -> typing.Any:
+def _static_parse(varname: str, fpath: str | os.PathLike) -> typing.Any:
     """
     Statically parse the a constant variable from a python file
 

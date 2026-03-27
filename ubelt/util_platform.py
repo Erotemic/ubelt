@@ -486,13 +486,17 @@ def find_path(
             # to match with all possible "valid" suffixes specified by PATHEXT
             pathext = [''] + os.environ.get('PATHEXT', '').split(os.pathsep)
             candidates = (p + ext for p in candidates for ext in pathext)
-        candidates = typing.cast(typing.Iterable[str], filter(exists, candidates))
+        candidates = typing.cast(
+            typing.Iterable[str], filter(exists, candidates)
+        )
     else:
         import glob
 
         candidates = typing.cast(
             typing.Iterable[str],
-            it.chain.from_iterable(glob.glob(pattern) for pattern in candidates),
+            it.chain.from_iterable(
+                glob.glob(pattern) for pattern in candidates
+            ),
         )
 
     for candidate in candidates:

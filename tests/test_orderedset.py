@@ -1,10 +1,10 @@
 from __future__ import annotations
+
 import collections
 import itertools as it
 import operator
 import pickle
 import random
-import sys
 import typing
 
 import pytest
@@ -288,8 +288,9 @@ def check_results_(
             assert a is not b, name + ' should all be different items'
 
 
-def _operator_consistency_testdata(
-) -> typing.Iterator[tuple[OrderedSet[int], OrderedSet[int]]]:
+def _operator_consistency_testdata() -> typing.Iterator[
+    tuple[OrderedSet[int], OrderedSet[int]]
+]:
     """
     Predefined and random data used to test operator consistency.
     """

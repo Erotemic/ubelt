@@ -52,13 +52,14 @@ As of ubelt 1.1.0 you can now access and update the default extensions via the
 """
 
 from __future__ import annotations
+
 import collections
 import typing
 
 from ubelt import util_list, util_str
 
 if typing.TYPE_CHECKING:
-    from typing import Any, Callable, TypedDict, Collection, Iterable
+    from typing import Any, Callable, Collection, Iterable, TypedDict
 
     try:
         from typing import Unpack

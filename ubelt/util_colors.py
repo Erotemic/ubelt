@@ -163,6 +163,7 @@ def _rich_highlight(text: str, lexer_name: str) -> str:  # nocover
         >>> print(new_text)
     """
     import io
+
     from rich.console import Console
     from rich.syntax import Syntax
 

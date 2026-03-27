@@ -55,16 +55,13 @@ from __future__ import annotations
 import concurrent.futures
 import typing
 from concurrent.futures import as_completed
-from typing import cast
-from typing import Protocol
+from typing import Protocol, cast
 
 __all__ = ['Executor', 'JobPool']
 
 if typing.TYPE_CHECKING:
     from concurrent.futures import (
         Future,
-        ProcessPoolExecutor,
-        ThreadPoolExecutor,
     )
     from types import TracebackType
     from typing import (
@@ -73,9 +70,9 @@ if typing.TYPE_CHECKING:
         Generator,
         Iterable,
         Iterator,
-        cast,
         Type,
         TypeVar,
+        cast,
     )
 
     T = TypeVar('T')
@@ -123,9 +120,7 @@ class SerialFuture(concurrent.futures.Future):
     args: tuple
     kw: dict
 
-    def __init__(
-        self, func: Callable[..., Any], *args: Any, **kw: Any
-    ) -> None:
+    def __init__(self, func: Callable[..., Any], *args: Any, **kw: Any) -> None:
         super(SerialFuture, self).__init__()
         self.func = func
         self.args = args

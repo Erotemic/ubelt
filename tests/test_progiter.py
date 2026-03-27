@@ -1,7 +1,9 @@
 """
 pytest tests/test_progiter.py
 """
+
 from __future__ import annotations
+
 import itertools as it
 import sys
 import typing
@@ -18,7 +20,9 @@ class FakeStream:
     """
 
     def __init__(
-        self, verbose: int = 0, callback: typing.Callable[[], None] | None = None
+        self,
+        verbose: int = 0,
+        callback: typing.Callable[[], None] | None = None,
     ) -> None:
         self.verbose = verbose
         self.callback = callback
@@ -340,7 +344,10 @@ def test_eta_window_None() -> None:
 def test_adjust_freq() -> None:
     # nothing to check (that I can think of) run test for coverage
     prog: typing.Any = ProgIter(
-        range(20), enabled=True, eta_window=None, rel_adjust_limit=4.0  # type: ignore
+        range(20),
+        enabled=True,
+        eta_window=None,
+        rel_adjust_limit=4.0,  # type: ignore
     )
 
     # Adjust frequency up to have each update happen every 1sec or so
@@ -514,7 +521,9 @@ def test_mixed_iteration_and_step() -> None:
             for size in range(0, 10):
                 for n_inner_steps in range(size):
                     prog = ProgIter(
-                        range(size), adjust=adjust, homogeneous=homogeneous  # type: ignore
+                        range(size),
+                        adjust=adjust,
+                        homogeneous=homogeneous,  # type: ignore
                     )
                     iprog = iter(prog)
                     try:

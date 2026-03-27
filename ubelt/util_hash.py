@@ -67,9 +67,9 @@ import hashlib
 import math
 import typing
 from collections import OrderedDict
+from typing import Sequence, cast
 
 from ubelt.util_const import NoParam
-from typing import Sequence, cast
 
 if typing.TYPE_CHECKING:
     from os import PathLike
@@ -441,7 +441,9 @@ class _Hashers:
 _HASHERS = _Hashers()
 
 
-def _rectify_hasher(hasher: NoParamType | str | HasherType | HasherLike) -> HasherType:
+def _rectify_hasher(
+    hasher: NoParamType | str | HasherType | HasherLike,
+) -> HasherType:
     """
     Convert a string-based key into a hasher class
 
@@ -479,7 +481,9 @@ def _rectify_hasher(hasher: NoParamType | str | HasherType | HasherLike) -> Hash
     return _HASHERS.lookup(hasher)
 
 
-def _rectify_base(base: str | int | list[str] | tuple[str, ...] | NoParamType) -> Sequence[str]:
+def _rectify_base(
+    base: str | int | list[str] | tuple[str, ...] | NoParamType,
+) -> Sequence[str]:
     """
     transforms base shorthand into the full list representation
 
@@ -653,7 +657,7 @@ class HashableExtensions:
             hash_types = [hash_types]
 
         def _decor_closure(
-            hash_func: typing.Callable[..., tuple[bytes, bytes]]
+            hash_func: typing.Callable[..., tuple[bytes, bytes]],
         ) -> typing.Callable[..., tuple[bytes, bytes]]:
             for hash_type in hash_types:
                 self._hash_dispatch.register(hash_type)(hash_func)
@@ -857,7 +861,9 @@ class HashableExtensions:
             return prefix, hashable
 
         @self.register(np.random.RandomState)
-        def _convert_numpy_random_state(data: typing.Any) -> tuple[bytes, bytes]:
+        def _convert_numpy_random_state(
+            data: typing.Any,
+        ) -> tuple[bytes, bytes]:
             """
             Example:
                 >>> import ubelt as ub

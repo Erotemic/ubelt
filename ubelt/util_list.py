@@ -490,7 +490,9 @@ def take(
             yield items[index]  # type: ignore
     else:
         if typing.TYPE_CHECKING:
-            assert not isinstance(items, Sequence), 'cannot have a sequence with default'
+            assert not isinstance(items, Sequence), (
+                'cannot have a sequence with default'
+            )
             items = cast(Mapping[KT, VT], items)
             indices = cast(Iterable[KT], indices)
         for index in indices:

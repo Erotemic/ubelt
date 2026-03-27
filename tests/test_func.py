@@ -4,9 +4,7 @@ import typing
 def test_compatible_keywords() -> None:
     import ubelt as ub
 
-    def func(
-        a: int, e: int, f: int, *args: object, **kwargs: object
-    ) -> int:
+    def func(a: int, e: int, f: int, *args: object, **kwargs: object) -> int:
         return a * e * f
 
     config = {

@@ -1,6 +1,6 @@
 from __future__ import annotations
-import typing
 
+import typing
 from os.path import exists, join
 
 import ubelt as ub

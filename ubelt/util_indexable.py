@@ -306,7 +306,7 @@ class IndexableWalker(Generator):
             d = typing.cast(
                 typing.Union[MutableMapping[Any, Any], MutableSequence[Any]], d
             )  # type: ignore[assignment]
-        d[key] = value   # type: ignore[index]
+        d[key] = value  # type: ignore[index]
 
     def __getitem__(self, path: list) -> Any:
         """
@@ -380,7 +380,7 @@ class IndexableWalker(Generator):
             )  # type: ignore[assignment]
         # to fix the typing here we need to guarentee that our data sequence
         # wont hit an immutable type.
-        del d[key]   # type: ignore[union-attr]
+        del d[key]  # type: ignore[union-attr]
 
     def keys(self, non_leaf: bool = False) -> typing.Iterator[list]:
         """
@@ -480,8 +480,8 @@ class IndexableWalker(Generator):
             _data, _prefix = stack.pop()
             # Create an items iterable of depending on the indexable data type
             if isinstance(_data, self.list_cls):
-                items: typing.Iterator[tuple[typing.Any, typing.Any]] = enumerate(
-                    typing.cast(typing.Iterable[typing.Any], _data)
+                items: typing.Iterator[tuple[typing.Any, typing.Any]] = (
+                    enumerate(typing.cast(typing.Iterable[typing.Any], _data))
                 )
             elif isinstance(_data, self.dict_cls):
                 if typing.TYPE_CHECKING:

@@ -6,7 +6,6 @@ easily mark features in their libraries as deprecated.
 
 from __future__ import annotations
 
-
 # DEFAULT_WARN_CLASS = DeprecationWarning
 DEFAULT_WARN_CLASS: type[Warning] = FutureWarning
 

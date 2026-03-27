@@ -54,7 +54,7 @@ from ubelt import util_io
 
 if typing.TYPE_CHECKING:
     from types import TracebackType
-    from typing import Callable, Type, Iterator, Iterable
+    from typing import Callable, Iterable, Iterator, Type
 
 
 __all__ = [
@@ -1622,6 +1622,7 @@ class Path(_PathBase):
 
         # Note: Avoiding the use of the partial enables shutil optimizations
         from functools import partial
+
         copy_function: typing.Callable[..., typing.Any]
 
         if meta is None:

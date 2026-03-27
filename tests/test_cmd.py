@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 import sys
 import typing
 
@@ -120,7 +121,11 @@ def test_cmd_tee_thread() -> None:
 
     if ub.WIN32:
         # Windows cant break apart commands consistently
-        command: str | list[str] = [PYEXE, '-c', 'for i in range(10): print(str(i))']
+        command: str | list[str] = [
+            PYEXE,
+            '-c',
+            'for i in range(10): print(str(i))',
+        ]
     else:
         command = '{pyexe} -c "for i in range(10): print(str(i))"'.format(
             pyexe=PYEXE
@@ -169,7 +174,11 @@ def test_cmd_multiline_stdout() -> None:
     """
     if ub.WIN32:
         # Windows cant break apart commands consistently
-        command: str | list[str] = [PYEXE, '-c', 'for i in range(10): print(str(i))']
+        command: str | list[str] = [
+            PYEXE,
+            '-c',
+            'for i in range(10): print(str(i))',
+        ]
     else:
         command = '{pyexe} -c "for i in range(10): print(str(i))"'.format(
             pyexe=PYEXE

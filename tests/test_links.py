@@ -1,13 +1,15 @@
 """
 TODO: test _can_symlink=False variants on systems that can symlink.
 """
+
 from __future__ import annotations
+
 import os
 import sys
+import typing
 from os.path import dirname, exists, isdir, isfile, islink, join, relpath
 
 import pytest
-import typing
 
 import ubelt as ub
 from ubelt import util_links
@@ -512,7 +514,7 @@ def test_overwrite_symlink() -> None:
 
 
 def _force_junction(
-    func: typing.Callable[..., typing.Any]
+    func: typing.Callable[..., typing.Any],
 ) -> typing.Callable[..., typing.Any]:
     from functools import wraps
 

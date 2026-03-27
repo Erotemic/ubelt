@@ -55,10 +55,10 @@ Ignore:
 
 import ctypes
 import ctypes.wintypes
-import typing
 
 # Makes mypy happy
 import sys
+import typing
 
 assert sys.platform == 'win32'
 

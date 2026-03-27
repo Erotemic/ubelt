@@ -981,10 +981,7 @@ class CacheStamp:
     def _rectify_products(
         self,
         product: (
-            str
-            | os.PathLike
-            | typing.Sequence[str | os.PathLike]
-            | None
+            str | os.PathLike | typing.Sequence[str | os.PathLike] | None
         ) = None,
     ) -> list[typing.Any] | None:
         """
@@ -1003,7 +1000,12 @@ class CacheStamp:
                 typing.Sequence[typing.Union[str, os.PathLike]], [products]
             )
         products = list(
-            map(Path, typing.cast(typing.Iterable[typing.Union[str, os.PathLike]], products))
+            map(
+                Path,
+                typing.cast(
+                    typing.Iterable[typing.Union[str, os.PathLike]], products
+                ),
+            )
         )
         return products
 
@@ -1019,10 +1021,7 @@ class CacheStamp:
     def _product_info(
         self,
         product: (
-            str
-            | os.PathLike
-            | typing.Sequence[str | os.PathLike]
-            | None
+            str | os.PathLike | typing.Sequence[str | os.PathLike] | None
         ) = None,
     ) -> dict[str, typing.Any]:
         """
@@ -1056,10 +1055,7 @@ class CacheStamp:
     def _product_file_stats(
         self,
         product: (
-            str
-            | os.PathLike
-            | typing.Sequence[str | os.PathLike]
-            | None
+            str | os.PathLike | typing.Sequence[str | os.PathLike] | None
         ) = None,
     ) -> dict[str, list[float] | list[int]]:
         products = self._rectify_products(product)
@@ -1074,10 +1070,7 @@ class CacheStamp:
     def _product_file_hash(
         self,
         product: (
-            str
-            | os.PathLike
-            | typing.Sequence[str | os.PathLike]
-            | None
+            str | os.PathLike | typing.Sequence[str | os.PathLike] | None
         ) = None,
     ) -> list[str] | None:
         if self.hasher is None:

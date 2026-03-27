@@ -88,7 +88,6 @@ import sys
 import typing
 
 if typing.TYPE_CHECKING:
-    import io
     import queue
     import subprocess
     import threading

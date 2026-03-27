@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 import os
 import platform
 import sys
@@ -472,7 +473,7 @@ class SingletonTestServer(ub.NiceRepr):
     _instance: typing.Any = None
 
     @classmethod
-    def instance(cls) -> "SingletonTestServer":
+    def instance(cls) -> 'SingletonTestServer':
         if cls._instance is not None:
             self = cls._instance
         else:

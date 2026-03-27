@@ -8,7 +8,11 @@ def test_cache_stamp() -> None:
     ub.ensuredir(dpath)
     product = dpath / 'expensive-to-compute.txt'
     self = ub.CacheStamp(
-        'test1', dpath=dpath, depends='test1', product=product, hasher=None  # type: ignore
+        'test1',
+        dpath=dpath,
+        depends='test1',
+        product=product,
+        hasher=None,  # type: ignore
     )
     if self.expired():
         product.write_text('very expensive')
@@ -35,7 +39,11 @@ def test_cache_stamp_corrupt_product_nohasher() -> None:
     ub.ensuredir(dpath)
     product = dpath / (name + '.txt')
     self = ub.CacheStamp(
-        name, dpath=dpath, depends=name, product=product, hasher=None  # type: ignore
+        name,
+        dpath=dpath,
+        depends=name,
+        product=product,
+        hasher=None,  # type: ignore
     )
     # Disable the new (as of 1.1.0) size and mtime checks
     # note: as of version 1.1.0 we also have to disable the new size and
@@ -57,7 +65,11 @@ def test_not_time_expired() -> None:
     ub.delete(dpath)
     ub.ensuredir(dpath)
     self = ub.CacheStamp(
-        'test1', dpath=dpath, depends='test1', expires=10000, hasher=None  # type: ignore
+        'test1',
+        dpath=dpath,
+        depends='test1',
+        expires=10000,
+        hasher=None,  # type: ignore
     )
     self.renew()
     assert not self.expired()
@@ -69,7 +81,11 @@ def test_time_expired() -> None:
     ub.delete(dpath)
     ub.ensuredir(dpath)
     self = ub.CacheStamp(
-        'test1', dpath=dpath, depends='test1', expires=-10000, hasher=None  # type: ignore
+        'test1',
+        dpath=dpath,
+        depends='test1',
+        expires=-10000,
+        hasher=None,  # type: ignore
     )
     self.renew()
     assert self.expired() == 'expired_cert'

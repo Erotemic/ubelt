@@ -58,9 +58,9 @@ import itertools as it
 import operator as op
 import sys
 import typing
-from typing import Callable
 from collections import OrderedDict, defaultdict
 from collections.abc import Generator, Iterable, Mapping
+from typing import Callable
 
 from ubelt.util_const import NoParam
 
@@ -74,12 +74,12 @@ if typing.TYPE_CHECKING:
         Callable,
         Dict,
         List,
+        MutableMapping,
         Optional,
         Self,
         Set,
         Type,
         Union,
-        MutableMapping,
         cast,
     )
 
@@ -647,7 +647,10 @@ def map_values(
     """
     if not hasattr(func, '__call__'):
         func = typing.cast(typing.Mapping, func).__getitem__
-    keyval_list = [(key, typing.cast(Callable[[VT], T], func)(val)) for key, val in dict_.items()]
+    keyval_list = [
+        (key, typing.cast(Callable[[VT], T], func)(val))
+        for key, val in dict_.items()
+    ]
     if cls is None:
         cls = OrderedDict if isinstance(dict_, OrderedDict) else dict
     newdict = cls(keyval_list)
@@ -699,7 +702,10 @@ def map_keys(
     """
     if not hasattr(func, '__call__'):
         func = typing.cast(typing.Mapping, func).__getitem__
-    keyval_list = [(typing.cast(Callable[[KT], T], func)(key), val) for key, val in dict_.items()]
+    keyval_list = [
+        (typing.cast(Callable[[KT], T], func)(key), val)
+        for key, val in dict_.items()
+    ]
     if cls is None:
         cls = OrderedDict if isinstance(dict_, OrderedDict) else dict
     newdict = cls(keyval_list)
@@ -750,9 +756,13 @@ def sorted_values(
         {'spam': 2.62, 'eggs': 1.2, 'jam': 2.92}
     """
     if key is None:
-        newdict = OrderedDict(sorted(dict_.items(), key=lambda kv: kv[1], reverse=reverse))  # type: ignore
+        newdict = OrderedDict(
+            sorted(dict_.items(), key=lambda kv: kv[1], reverse=reverse)
+        )  # type: ignore
     else:
-        newdict = OrderedDict(sorted(dict_.items(), key=lambda kv: key(kv[1]), reverse=reverse))  # type: ignore
+        newdict = OrderedDict(
+            sorted(dict_.items(), key=lambda kv: key(kv[1]), reverse=reverse)
+        )  # type: ignore
     return newdict
 
 
@@ -801,9 +811,13 @@ def sorted_keys(
         {'jam': 2.92, 'eggs': 1.2, 'spam': 2.62}
     """
     if key is None:
-        newdict = OrderedDict(sorted(dict_.items(), key=lambda kv: kv[0], reverse=reverse))  # type: ignore
+        newdict = OrderedDict(
+            sorted(dict_.items(), key=lambda kv: kv[0], reverse=reverse)
+        )  # type: ignore
     else:
-        newdict = OrderedDict(sorted(dict_.items(), key=lambda kv: key(kv[0]), reverse=reverse))  # type: ignore
+        newdict = OrderedDict(
+            sorted(dict_.items(), key=lambda kv: key(kv[0]), reverse=reverse)
+        )  # type: ignore
     return newdict
 
 

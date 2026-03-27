@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 import typing
 
 
@@ -36,7 +37,6 @@ def test_job_pool_clear_completed_thread() -> None:
 
     jobs = ub.JobPool(mode='thread', max_workers=2)
     with jobs:
-
         for jobid in range(4):
             jobs.submit(simple_worker, jobid)
 
@@ -56,7 +56,6 @@ def test_job_pool_as_completed_prog_args() -> None:
 
     pool = ub.JobPool('thread', max_workers=1)
     with pool:
-
         for data in ub.ProgIter(range(10), desc='submit jobs'):
             pool.submit(worker, data)
 

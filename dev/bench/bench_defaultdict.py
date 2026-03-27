@@ -15,7 +15,6 @@ CommandLine:
 
 
 def benchmark_template():
-    from collections import defaultdict
 
     import pandas as pd
     import timerit

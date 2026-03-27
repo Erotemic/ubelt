@@ -199,6 +199,7 @@ def download(
 
     if timeout is NoParam:
         import socket
+
         # FIXME: this is using a non-public API
         timeout_ = socket._GLOBAL_DEFAULT_TIMEOUT  # type: ignore
     else:

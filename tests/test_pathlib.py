@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 import ubelt as ub
 
 DEBUG_PATH = 0
