@@ -992,7 +992,9 @@ class CacheStamp:
             return None
         if not isinstance(products, (list, tuple)):
             products = [products]
-        products = list(map(Path, typing.cast(typing.Iterable[str | os.PathLike], products)))
+        products = list(
+            map(Path, typing.cast(typing.Iterable[typing.Union[str, os.PathLike]], products))
+        )
         return products
 
     def _rectify_hash_prefixes(self):

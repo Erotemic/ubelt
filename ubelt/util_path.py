@@ -1068,7 +1068,7 @@ class Path(_PathBase):
         self.mkdir(mode=mode, parents=True, exist_ok=True)
         return self
 
-    def mkdir(  # type: ignore[override]
+    def mkdir(  # type: ignore
         self,
         mode: int = 511,
         parents: bool = False,
@@ -1637,7 +1637,7 @@ class Path(_PathBase):
             raise KeyError(meta)
         return copy_function
 
-    def copy(  # type: ignore[override]
+    def copy(  # type: ignore
         self,
         dst: str | os.PathLike,
         follow_file_symlinks: bool = False,
@@ -1810,7 +1810,7 @@ class Path(_PathBase):
             raise FileExistsError('The source path does not exist')
         return Path(dst)
 
-    def move(  # type: ignore[override]
+    def move(  # type: ignore
         self,
         dst: str | os.PathLike,
         follow_file_symlinks: bool = False,

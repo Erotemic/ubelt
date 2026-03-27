@@ -478,7 +478,7 @@ def find_path(
     if isinstance(path, str):
         dpaths: list[str] = path.split(os.pathsep)
     else:
-        dpaths = typing.cast(list[str], list(path))
+        dpaths = typing.cast(typing.List[str], list(path))
     candidates: Iterable[str] = (join(dpath, name) for dpath in dpaths)
     if exact:
         if WIN32:  # nocover
