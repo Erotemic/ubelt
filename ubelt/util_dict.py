@@ -60,7 +60,7 @@ import sys
 import typing
 from collections import OrderedDict, defaultdict
 from collections.abc import Generator, Iterable, Mapping
-from typing import Callable
+from typing import Callable, Union, DefaultDict
 
 from ubelt.util_const import NoParam
 
@@ -71,7 +71,6 @@ T = typing.TypeVar('T')
 if typing.TYPE_CHECKING:
     from typing import (
         Any,
-        Callable,
         Dict,
         List,
         MutableMapping,
@@ -79,7 +78,6 @@ if typing.TYPE_CHECKING:
         Self,
         Set,
         Type,
-        Union,
         cast,
     )
 
@@ -314,7 +312,7 @@ def dict_hist(
     else:
         hist_2: defaultdict[T, int | float] | dict[T, int | float]
         if labels is None:
-            hist_2 = defaultdict[T, int | float](lambda: 0)
+            hist_2 : DefaultDict[T, Union[int, float]] = defaultdict(lambda: 0)
         else:
             hist_2 = {k: 0 for k in labels}
         if weights is None:

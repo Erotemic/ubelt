@@ -60,6 +60,7 @@ except ImportError:  # pragma: no cover
 
 if typing.TYPE_CHECKING:
     from typing import Callable
+    CacheKey = tuple[object, object]
 
 
 # TODO: Need to think if we can fix any of the typing ignores in this file.
@@ -69,7 +70,6 @@ __all__ = ['memoize', 'memoize_method', 'memoize_property']
 P = ParamSpec('P')
 T = typing.TypeVar('T')
 S = typing.TypeVar('S')
-CacheKey = tuple[object, object]
 
 
 def _hashable(item: object) -> object:

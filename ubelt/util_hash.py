@@ -389,7 +389,7 @@ class _Hashers:
         import importlib
 
         blake3 = importlib.import_module('blake3')
-        self.algos['blake3'] = blake3.blake3
+        self.algos['blake3'] = cast(HasherType, blake3.blake3)
         self.aliases['b3'] = 'blake3'
 
     def _register_hashlib(self) -> None:

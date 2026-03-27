@@ -52,6 +52,8 @@ from os.path import (
 
 from ubelt import util_io
 
+from typing import Union, Tuple
+
 if typing.TYPE_CHECKING:
     from types import TracebackType
     from typing import Callable, Iterable, Iterator, Type
@@ -377,7 +379,7 @@ def ensuredir(
         return part.__fspath__()
 
     if isinstance(dpath, tuple):
-        parts = typing.cast(tuple[str | os.PathLike[str], ...], dpath)
+        parts = typing.cast("Tuple[Union[str, os.PathLike[str]], ...]", dpath)
         dpath = join(*(_coerce_path_part(part) for part in parts))
 
     if recreate:

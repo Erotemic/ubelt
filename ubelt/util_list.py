@@ -28,7 +28,7 @@ import operator
 import typing
 from collections.abc import Sized
 from itertools import zip_longest
-from typing import Iterable, List, Mapping, Sequence, TypeVar
+from typing import Iterable, List, Mapping, Sequence, TypeVar, Tuple, Union
 
 from ubelt import util_dict
 from ubelt.util_const import NoParam
@@ -373,7 +373,7 @@ class chunks(Iterable[List[VT]]):
         # consume successive values of the same sequence
         copied_iters = [iter(items)] * chunksize
         chunks_with_sentinals = typing.cast(
-            Iterable[tuple[VT | _ChunkSentinel, ...]],
+            Iterable[Tuple[Union[VT, _ChunkSentinel], ...]],
             zip_longest(*copied_iters, fillvalue=_CHUNK_SENTINEL),
         )
         # Dont fill empty space in the last chunk, just return it as is
@@ -390,7 +390,7 @@ class chunks(Iterable[List[VT]]):
     ) -> Generator[list[VT], None, None]:
         copied_iters = [iter(items)] * chunksize
         chunks_with_sentinals = typing.cast(
-            Iterable[tuple[VT | _ChunkSentinel, ...]],
+            Iterable[Tuple[Union[VT, _ChunkSentinel], ...]],
             zip_longest(*copied_iters, fillvalue=_CHUNK_SENTINEL),
         )
         # Fill empty space in the last chunk with values from the beginning
@@ -411,7 +411,7 @@ class chunks(Iterable[List[VT]]):
         copied_iters = [iter(items)] * chunksize
         # Fill empty space in the last chunk by replicating the last value
         chunks_with_sentinals = typing.cast(
-            Iterable[tuple[VT | _ChunkSentinel, ...]],
+            Iterable[Tuple[Union[VT, _ChunkSentinel], ...]],
             zip_longest(*copied_iters, fillvalue=_CHUNK_SENTINEL),
         )
         for chunk in chunks_with_sentinals:
