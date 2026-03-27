@@ -33,16 +33,28 @@ from typing import Iterable, List, Mapping, Sequence, TypeVar
 from ubelt import util_dict
 from ubelt.util_const import NoParam
 
+T = TypeVar('T')
+KT = TypeVar('KT')
+VT = TypeVar('VT')
+VT_co = TypeVar('VT_co', covariant=True)
+
 if typing.TYPE_CHECKING:
     from collections.abc import Generator, Iterator
-    from typing import Any, Callable, cast
+    from typing import Any, Callable, Protocol, cast
 
     from ubelt.util_const import NoParamType
 
-    T = TypeVar('T')
-    KT = TypeVar('KT')
+    class _SizedIterable(Protocol[VT_co]):
+        def __iter__(self) -> Iterator[VT_co]: ...
+        def __len__(self) -> int: ...
+ChunkBorderMode = typing.Literal['none', 'cycle', 'replicate']
 
-VT = TypeVar('VT')
+
+class _ChunkSentinel:
+    pass
+
+
+_CHUNK_SENTINEL = _ChunkSentinel()
 
 __all__ = [
     'allsame',
@@ -172,13 +184,49 @@ class chunks(Iterable[List[VT]]):
 
     """
 
+    @typing.overload
+    def __init__(
+        self,
+        items: Iterable[VT],
+        chunksize: int,
+        nchunks: None = None,
+        total: int | None = None,
+        bordermode: ChunkBorderMode = 'none',
+        legacy: bool = False,
+    ) -> None:
+        ...
+
+    @typing.overload
+    def __init__(
+        self,
+        items: _SizedIterable[VT],
+        chunksize: None = None,
+        nchunks: int = ...,
+        total: int | None = None,
+        bordermode: ChunkBorderMode = 'none',
+        legacy: bool = False,
+    ) -> None:
+        ...
+
+    @typing.overload
+    def __init__(
+        self,
+        items: Iterable[VT],
+        chunksize: None = None,
+        nchunks: int = ...,
+        total: int = ...,
+        bordermode: ChunkBorderMode = 'none',
+        legacy: bool = False,
+    ) -> None:
+        ...
+
     def __init__(
         self,
         items: Iterable[VT],
         chunksize: int | None = None,
         nchunks: int | None = None,
         total: int | None = None,
-        bordermode: str = 'none',
+        bordermode: ChunkBorderMode = 'none',
         legacy: bool = False,
     ) -> None:
         """
@@ -251,7 +299,7 @@ class chunks(Iterable[List[VT]]):
         self.nchunks = nchunks
         assert chunksize is not None
         self.chunksize: int = chunksize
-        self.bordermode = bordermode
+        self.bordermode: ChunkBorderMode = bordermode
 
     def __len__(self) -> int:
         if self.nchunks is None:
@@ -278,9 +326,9 @@ class chunks(Iterable[List[VT]]):
     def _new_iterator(self) -> Iterator[list[VT]]:
         chunksize = self.chunksize
         nchunks = self.nchunks
-        chunksize = self.chunksize
         remainder = self.remainder
 
+        iterator: Iterator[VT]
         if self.bordermode == 'cycle':
             iterator = it.cycle(iter(self.items))
         elif self.bordermode == 'replicate':
@@ -291,13 +339,14 @@ class chunks(Iterable[List[VT]]):
                 while True:
                     yield item
 
-            iterator = replicator(iter(self.items))  # type: ignore[assignment]
+            iterator = replicator(iter(self.items))
         elif self.bordermode == 'none':
-            iterator = iter(self.items)  # type: ignore[assignment,arg-type]
+            iterator = iter(self.items)
         else:
             raise KeyError(self.bordermode)
 
         # Build an iterator that describes how big each chunk will be
+        chunksize_iter: Iterator[int]
         if remainder:
             # TODO:
             # handle replicate and cycle border modes
@@ -310,7 +359,7 @@ class chunks(Iterable[List[VT]]):
             )
         else:
             assert nchunks is not None
-            chunksize_iter = it.repeat(chunksize, nchunks)  # type: ignore[assignment]
+            chunksize_iter = it.repeat(chunksize, nchunks)
         for _chunksize in chunksize_iter:
             chunk = list(it.islice(iterator, _chunksize))
             # if chunk:
@@ -322,51 +371,60 @@ class chunks(Iterable[List[VT]]):
     ) -> Generator[list[VT], None, None]:
         # feed the same iter to zip_longest multiple times, this causes it to
         # consume successive values of the same sequence
-        sentinel = object()
         copied_iters = [iter(items)] * chunksize
-        chunks_with_sentinals = zip_longest(*copied_iters, fillvalue=sentinel)
+        chunks_with_sentinals = typing.cast(
+            Iterable[tuple[VT | _ChunkSentinel, ...]],
+            zip_longest(*copied_iters, fillvalue=_CHUNK_SENTINEL),
+        )
         # Dont fill empty space in the last chunk, just return it as is
         for chunk in chunks_with_sentinals:
-            yield [item for item in chunk if item is not sentinel]  # type: ignore[misc]
+            filt_chunk: list[VT] = []
+            for item in chunk:
+                if not isinstance(item, _ChunkSentinel):
+                    filt_chunk.append(item)
+            yield filt_chunk
 
     @staticmethod
     def cycle(
         items: Iterable[VT], chunksize: int
     ) -> Generator[list[VT], None, None]:
-        sentinel = object()
         copied_iters = [iter(items)] * chunksize
-        chunks_with_sentinals = zip_longest(*copied_iters, fillvalue=sentinel)
+        chunks_with_sentinals = typing.cast(
+            Iterable[tuple[VT | _ChunkSentinel, ...]],
+            zip_longest(*copied_iters, fillvalue=_CHUNK_SENTINEL),
+        )
         # Fill empty space in the last chunk with values from the beginning
         bordervalues = it.cycle(iter(items))
         for chunk in chunks_with_sentinals:
-            yield typing.cast(
-                typing.List[VT],
-                [
-                    item if item is not sentinel else next(bordervalues)
-                    for item in chunk
-                ],
-            )
+            padded_chunk: list[VT] = []
+            for item in chunk:
+                if isinstance(item, _ChunkSentinel):
+                    padded_chunk.append(next(bordervalues))
+                else:
+                    padded_chunk.append(item)
+            yield padded_chunk
 
     @staticmethod
     def replicate(
         items: Iterable[VT], chunksize: int
     ) -> Generator[list[VT], None, None]:
-        sentinel = object()
         copied_iters = [iter(items)] * chunksize
         # Fill empty space in the last chunk by replicating the last value
-        chunks_with_sentinals = zip_longest(*copied_iters, fillvalue=sentinel)
+        chunks_with_sentinals = typing.cast(
+            Iterable[tuple[VT | _ChunkSentinel, ...]],
+            zip_longest(*copied_iters, fillvalue=_CHUNK_SENTINEL),
+        )
         for chunk in chunks_with_sentinals:
-            filt_chunk = [item for item in chunk if item is not sentinel]
+            filt_chunk: list[VT] = []
+            for item in chunk:
+                if not isinstance(item, _ChunkSentinel):
+                    filt_chunk.append(item)
             if len(filt_chunk) == chunksize:
-                if typing.TYPE_CHECKING:
-                    filt_chunk = cast(List[VT], filt_chunk)  # type: ignore[assignment]
-                yield filt_chunk  # type: ignore[misc]
+                yield filt_chunk
             else:
                 sizediff = chunksize - len(filt_chunk)
                 padded_chunk = filt_chunk + [filt_chunk[-1]] * sizediff
-                if typing.TYPE_CHECKING:
-                    padded_chunk = cast(List[VT], padded_chunk)  # type: ignore[assignment]
-                yield padded_chunk  # type: ignore[misc]
+                yield padded_chunk
 
 
 def iterable(obj: object, strok: bool = False) -> bool:
@@ -1091,9 +1149,9 @@ class IterableMixin(Iterable):
         self,
         size: int | None = None,
         num: int | None = None,
-        bordermode: str = 'none',
+        bordermode: ChunkBorderMode = 'none',
     ) -> Iterable[list[Any]]:
-        return chunks(
+        return typing.cast(typing.Any, chunks)(
             self,
             chunksize=size,
             nchunks=num,

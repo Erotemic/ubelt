@@ -59,6 +59,8 @@ from typing import Protocol, cast
 
 __all__ = ['Executor', 'JobPool']
 
+T = typing.TypeVar('T')
+
 if typing.TYPE_CHECKING:
     from concurrent.futures import (
         Future,
@@ -71,11 +73,8 @@ if typing.TYPE_CHECKING:
         Iterable,
         Iterator,
         Type,
-        TypeVar,
         cast,
     )
-
-    T = TypeVar('T')
 
     class _ExecutorBackend(Protocol):
         def __enter__(self) -> Any: ...
@@ -102,7 +101,7 @@ else:
     _ExecutorBackend = typing.Any
 
 
-class SerialFuture(concurrent.futures.Future):
+class SerialFuture(concurrent.futures.Future, typing.Generic[T]):
     """
     Non-threading / multiprocessing version of future for drop in compatibility
     with concurrent.futures.
@@ -117,11 +116,13 @@ class SerialFuture(concurrent.futures.Future):
         kw (Dict): keyword arguments to call the function with
     """
 
-    func: Callable
-    args: tuple
-    kw: dict
+    func: typing.Callable[..., T]
+    args: tuple[typing.Any, ...]
+    kw: dict[str, typing.Any]
 
-    def __init__(self, func: Callable[..., Any], *args: Any, **kw: Any) -> None:
+    def __init__(
+        self, func: typing.Callable[..., T], *args: typing.Any, **kw: typing.Any
+    ) -> None:
         super(SerialFuture, self).__init__()
         self.func = func
         self.args = args
@@ -136,7 +137,7 @@ class SerialFuture(concurrent.futures.Future):
         self.set_result(result)
         self._run_count += 1
 
-    def set_result(self, result: Any) -> None:
+    def set_result(self, result: T) -> None:
         """
         Overrides the implementation to revert to pre python3.8 behavior
 
@@ -229,7 +230,7 @@ class SerialExecutor:
         func: Callable[..., T],
         *args: Any,
         **kw: Any,
-    ) -> SerialFuture:
+    ) -> SerialFuture[T]:
         """
         Submit a job to be executed later
 
@@ -447,7 +448,7 @@ class Executor:
         func: Callable[..., T],
         *args: Any,
         **kw: Any,
-    ) -> concurrent.futures.Future:
+    ) -> concurrent.futures.Future[T]:
         """
         Calls the submit function of the underlying backend.
 
@@ -511,7 +512,7 @@ class Executor:
         )
 
 
-class JobPool:
+class JobPool(typing.Generic[T]):
     """
     Abstracts away boilerplate of submitting and collecting jobs
 
@@ -540,7 +541,7 @@ class JobPool:
     """
 
     executor: Executor
-    jobs: list[Future]
+    jobs: list[Future[T]]
     transient: bool
 
     def __init__(
@@ -571,8 +572,8 @@ class JobPool:
         return len(self.jobs)
 
     def submit(
-        self, func: Callable[..., Any], *args: Any, **kwargs: Any
-    ) -> concurrent.futures.Future:
+        self, func: Callable[..., T], *args: Any, **kwargs: Any
+    ) -> concurrent.futures.Future[T]:
         """
         Submit a job managed by the pool
 
@@ -597,7 +598,7 @@ class JobPool:
         self.jobs = []
         return self.executor.shutdown()
 
-    def __enter__(self) -> JobPool:
+    def __enter__(self) -> JobPool[T]:
         self.executor.__enter__()
         return self
 
@@ -627,7 +628,7 @@ class JobPool:
         timeout: float | None = None,
         desc: str | None = None,
         progkw: dict | None = None,
-    ) -> Generator[concurrent.futures.Future, None, None]:
+    ) -> Generator[concurrent.futures.Future[T], None, None]:
         """
         Generates completed jobs in an arbitrary order
 
@@ -671,7 +672,7 @@ class JobPool:
         """
         from ubelt.progiter import ProgIter
 
-        job_iter: Iterable[concurrent.futures.Future[Any]] = as_completed(
+        job_iter: Iterable[concurrent.futures.Future[T]] = as_completed(
             self.jobs, timeout=timeout
         )
         if desc is not None:
@@ -690,7 +691,7 @@ class JobPool:
                 self.jobs.remove(job)
             yield job
 
-    def join(self, **kwargs: Any) -> list[Any]:
+    def join(self, **kwargs: Any) -> list[T]:
         """
         Like :func:`JobPool.as_completed`, but executes the `result` method
         of each future and returns only after all processes are complete.
@@ -725,7 +726,7 @@ class JobPool:
             results.append(result)
         return results
 
-    def __iter__(self) -> Iterator[concurrent.futures.Future]:
+    def __iter__(self) -> Iterator[concurrent.futures.Future[T]]:
         """
         An alternative to as completed.
 
