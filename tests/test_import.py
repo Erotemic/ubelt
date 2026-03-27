@@ -1,6 +1,8 @@
+from __future__ import annotations
 import itertools as it
 import os
 import sys
+import typing
 from os.path import join
 
 import pytest
@@ -9,7 +11,7 @@ import ubelt as ub
 from ubelt.util_import import PythonPathContext
 
 
-def test_import_modpath_basic():
+def test_import_modpath_basic() -> None:
     assert 'testmod' not in sys.modules
     with pytest.warns(Warning):
         temp = ub.TempDir()
@@ -30,7 +32,7 @@ def test_import_modpath_basic():
         assert 'testmod' in sys.modules
 
 
-def test_import_modpath_package():
+def test_import_modpath_package() -> None:
     assert '_tmproot373.sub1.sub2.testmod' not in sys.modules
     with pytest.warns(Warning):
         temp = ub.TempDir().start()
@@ -65,14 +67,16 @@ def test_import_modpath_package():
         assert '_tmproot373' in sys.modules
 
 
-def test_import_modname_builtin():
+def test_import_modname_builtin() -> None:
     module = ub.import_module_from_name('ast')
     import ast
 
     assert module is ast
 
 
-def _static_modname_to_modpath(modname, **kwargs):
+def _static_modname_to_modpath(
+    modname: str, **kwargs: typing.Any
+) -> str | None:
     # Calls ub.modname_to_modpath with checks
     had = modname in sys.modules
     try:
@@ -86,17 +90,18 @@ def _static_modname_to_modpath(modname, **kwargs):
     return modpath
 
 
-def test_modname_to_modpath_single():
+def test_modname_to_modpath_single() -> None:
     with pytest.warns(Warning):
         temp = ub.TempDir()
     with temp:
         dpath = temp.dpath
+        assert dpath is not None
 
         # Single module
-        single = ub.touch(join(dpath, '_tmpsingle.py'))  # type: ignore
+        single = ub.touch(join(dpath, '_tmpsingle.py'))
         single_main = ub.touch(join(dpath, '__main__.py'))
 
-        with PythonPathContext(dpath):  # type: ignore
+        with PythonPathContext(dpath):
             assert single == _static_modname_to_modpath('_tmpsingle')
             assert single == _static_modname_to_modpath(
                 '_tmpsingle', hide_init=True, hide_main=False
@@ -130,7 +135,7 @@ def test_modname_to_modpath_single():
             )
 
 
-def test_modname_to_modpath_package():
+def test_modname_to_modpath_package() -> None:
     """
     CommandLine:
         pytest testing/test_static.py::test_modname_to_modpath_package
@@ -145,16 +150,16 @@ def test_modname_to_modpath_package():
         sub1 = ub.ensuredir((root, 'sub1'))  # type: ignore
         sub2 = ub.ensuredir((sub1, 'sub2'))  # type: ignore
 
-        root_init = ub.touch(join(root, '__init__.py'))
-        sub1_init = ub.touch(join(sub1, '__init__.py'))
-        sub2_init = ub.touch(join(sub2, '__init__.py'))
+        root_init = str(ub.touch(join(root, '__init__.py')))
+        sub1_init = str(ub.touch(join(sub1, '__init__.py')))
+        sub2_init = str(ub.touch(join(sub2, '__init__.py')))
 
-        mod0 = ub.touch(join(root, 'mod0.py'))
-        mod1 = ub.touch(join(sub1, 'mod1.py'))
-        mod2 = ub.touch(join(sub2, 'mod2.py'))
+        mod0 = str(ub.touch(join(root, 'mod0.py')))
+        mod1 = str(ub.touch(join(sub1, 'mod1.py')))
+        mod2 = str(ub.touch(join(sub2, 'mod2.py')))
 
-        root_main = ub.touch(join(root, '__main__.py'))
-        sub2_main = ub.touch(join(sub2, '__main__.py'))
+        root_main = str(ub.touch(join(root, '__main__.py')))
+        sub2_main = str(ub.touch(join(sub2, '__main__.py')))
 
         bad1 = ub.ensuredir((root, 'bad1'))
         bad2 = ub.ensuredir((sub1, 'bad2'))
@@ -429,7 +434,7 @@ def test_modname_to_modpath_package():
             assert '_tmproot927.sub1.mod2.mod2' not in sys.modules
 
 
-def test_modname_to_modpath_namespace():
+def test_modname_to_modpath_namespace() -> None:
     """
     from ubelt.util_import import _importlib_modname_to_modpath
     from ubelt.util_import import _syspath_modname_to_modpath
@@ -469,7 +474,7 @@ def test_modname_to_modpath_namespace():
             assert '_tmpbad' not in sys.modules
 
 
-def test_package_submodules():
+def test_package_submodules() -> None:
     """
     CommandLine:
         pytest testing/test_static.py::test_package_submodules -s
@@ -481,27 +486,28 @@ def test_package_submodules():
         temp = ub.TempDir()
     with temp:
         dpath = temp.dpath
+        assert dpath is not None
 
         # Create a dummy package hierarchy
-        root = ub.ensuredir((dpath, '_tmproot927'))
-        sub1 = ub.ensuredir((root, 'sub1'))
-        sub2 = ub.ensuredir((sub1, 'sub2'))
+        root = os.fspath(ub.ensuredir((dpath, '_tmproot927')))
+        sub1 = os.fspath(ub.ensuredir((root, 'sub1')))
+        sub2 = os.fspath(ub.ensuredir((sub1, 'sub2')))
 
-        root_init = ub.touch(join(root, '__init__.py'))
-        sub1_init = ub.touch(join(sub1, '__init__.py'))
-        sub2_init = ub.touch(join(sub2, '__init__.py'))
+        root_init = os.fspath(ub.touch(join(root, '__init__.py')))
+        sub1_init = os.fspath(ub.touch(join(sub1, '__init__.py')))
+        sub2_init = os.fspath(ub.touch(join(sub2, '__init__.py')))
 
-        mod0 = ub.touch(join(root, 'mod0.py'))
-        mod1 = ub.touch(join(sub1, 'mod1.py'))
-        mod2 = ub.touch(join(sub2, 'mod2.py'))
+        mod0 = os.fspath(ub.touch(join(root, 'mod0.py')))
+        mod1 = os.fspath(ub.touch(join(sub1, 'mod1.py')))
+        mod2 = os.fspath(ub.touch(join(sub2, 'mod2.py')))
 
-        root_main = ub.touch(join(root, '__main__.py'))
-        sub2_main = ub.touch(join(sub2, '__main__.py'))
+        root_main = os.fspath(ub.touch(join(root, '__main__.py')))
+        sub2_main = os.fspath(ub.touch(join(sub2, '__main__.py')))
 
-        bad1 = ub.ensuredir((root, 'bad1'))
-        bad2 = ub.ensuredir((sub1, 'bad2'))
-        b0 = ub.touch(join(bad1, 'b0.py'))
-        b1 = ub.touch(join(bad2, 'b1.py'))
+        bad1 = os.fspath(ub.ensuredir((root, 'bad1')))
+        bad2 = os.fspath(ub.ensuredir((sub1, 'bad2')))
+        b0 = os.fspath(ub.touch(join(bad1, 'b0.py')))
+        b1 = os.fspath(ub.touch(join(bad2, 'b1.py')))
 
         with PythonPathContext(dpath):
             subpaths = sorted(static.package_modpaths(root, with_pkg=True))
@@ -533,7 +539,7 @@ def test_package_submodules():
             assert '_tmproot927.sub1.mod2.mod2' not in sys.modules
 
 
-def test_modpath_to_modname():
+def test_modpath_to_modname() -> None:
     """
     CommandLine:
         pytest testing/test_static.py::test_modpath_to_modname -s
@@ -543,29 +549,28 @@ def test_modpath_to_modname():
         temp = ub.TempDir()
     with temp:
         dpath = temp.dpath
+        assert dpath is not None
 
         # Create a dummy package hierarchy
-        root = ub.ensuredir((dpath, '_tmproot927'))
-        sub1 = ub.ensuredir((root, 'sub1'))
-        sub2 = ub.ensuredir((sub1, 'sub2'))
+        root = os.fspath(ub.ensuredir((dpath, '_tmproot927')))
+        sub1 = os.fspath(ub.ensuredir((root, 'sub1')))
+        sub2 = os.fspath(ub.ensuredir((sub1, 'sub2')))
 
-        root_init = ub.touch(join(root, '__init__.py'))
-        sub1_init = ub.touch(join(sub1, '__init__.py'))
-        sub2_init = ub.touch(join(sub2, '__init__.py'))
+        root_init = str(ub.touch(join(root, '__init__.py')))
+        sub1_init = str(ub.touch(join(sub1, '__init__.py')))
+        sub2_init = str(ub.touch(join(sub2, '__init__.py')))
 
-        mod0 = ub.touch(join(root, 'mod0.py'))
-        mod1 = ub.touch(join(sub1, 'mod1.py'))
-        mod2 = ub.touch(join(sub2, 'mod2.py'))
+        mod0 = str(ub.touch(join(root, 'mod0.py')))
+        mod1 = str(ub.touch(join(sub1, 'mod1.py')))
+        mod2 = str(ub.touch(join(sub2, 'mod2.py')))
 
-        root_main = ub.touch(join(root, '__main__.py'))
-        sub2_main = ub.touch(join(sub2, '__main__.py'))
+        root_main = str(ub.touch(join(root, '__main__.py')))
+        sub2_main = str(ub.touch(join(sub2, '__main__.py')))
 
-        bad1 = ub.ensuredir((root, 'bad1'))
-        bad2 = ub.ensuredir((sub1, 'bad2'))
-        b0 = ub.touch(join(bad1, 'b0.py'))
-        b1 = ub.touch(join(bad2, 'b1.py'))
-
-        import os
+        bad1 = os.fspath(ub.ensuredir((root, 'bad1')))
+        bad2 = os.fspath(ub.ensuredir((sub1, 'bad2')))
+        b0 = str(ub.touch(join(bad1, 'b0.py')))
+        b1 = str(ub.touch(join(bad2, 'b1.py')))
 
         ub.modpath_to_modname(
             root, relativeto=os.path.dirname(dpath)
@@ -709,7 +714,7 @@ def test_modpath_to_modname():
             assert '_tmproot927.sub1.mod2.mod2' not in sys.modules
 
 
-def test_splitmodpath():
+def test_splitmodpath() -> None:
     with pytest.raises(ValueError):
         ub.split_modpath('does/not/exists/module.py')
     ub.split_modpath('does/not/exists/module.py', check=False)

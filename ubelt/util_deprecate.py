@@ -201,7 +201,7 @@ def schedule_deprecation(
     else:
         modname_str = f'{modname} '
 
-    def _handle_when(when, default):
+    def _handle_when(when: object, default: bool) -> tuple[bool, str]:
         if when is None:
             is_now = default
             when_str = ''
@@ -215,6 +215,7 @@ def schedule_deprecation(
                 if current == 'unknown':
                     is_now = default
                 else:
+                    assert not isinstance(current, str)
                     is_now = current >= when
         else:
             is_now = bool(when)

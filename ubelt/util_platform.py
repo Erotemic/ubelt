@@ -139,7 +139,7 @@ def platform_cache_dir() -> str:
 # ---
 
 
-def get_app_data_dir(appname: str, *args) -> str:
+def get_app_data_dir(appname: str, *args: str) -> str:
     r"""
     Returns a writable directory for an application.
     This should be used for temporary deletable data.
@@ -173,7 +173,7 @@ def get_app_data_dir(appname: str, *args) -> str:
     return dpath
 
 
-def ensure_app_data_dir(appname: str, *args) -> str:
+def ensure_app_data_dir(appname: str, *args: str) -> str:
     """
     Calls :func:`get_app_data_dir` but ensures the directory exists.
 
@@ -203,7 +203,7 @@ def ensure_app_data_dir(appname: str, *args) -> str:
     return dpath
 
 
-def get_app_config_dir(appname: str, *args) -> str:
+def get_app_config_dir(appname: str, *args: str) -> str:
     r"""
     Returns a writable directory for an application
     This should be used for persistent configuration files.
@@ -237,7 +237,7 @@ def get_app_config_dir(appname: str, *args) -> str:
     return dpath
 
 
-def ensure_app_config_dir(appname: str, *args) -> str:
+def ensure_app_config_dir(appname: str, *args: str) -> str:
     """
     Calls :func:`get_app_config_dir` but ensures the directory exists.
 
@@ -267,7 +267,7 @@ def ensure_app_config_dir(appname: str, *args) -> str:
     return dpath
 
 
-def get_app_cache_dir(appname: str, *args) -> str:
+def get_app_cache_dir(appname: str, *args: str) -> str:
     r"""
     Returns a writable directory for an application.
     This should be used for temporary deletable data.
@@ -304,7 +304,7 @@ def get_app_cache_dir(appname: str, *args) -> str:
     return dpath
 
 
-def ensure_app_cache_dir(appname: str, *args) -> str:
+def ensure_app_cache_dir(appname: str, *args: str) -> str:
     """
     Calls :func:`get_app_cache_dir` but ensures the directory exists.
 

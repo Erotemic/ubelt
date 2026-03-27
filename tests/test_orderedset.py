@@ -1,35 +1,37 @@
+from __future__ import annotations
 import collections
 import itertools as it
 import operator
 import pickle
 import random
 import sys
+import typing
 
 import pytest
 
 from ubelt import OrderedSet
 
 
-def test_pickle():
+def test_pickle() -> None:
     set1 = OrderedSet('abracadabra')
     roundtrip = pickle.loads(pickle.dumps(set1))
     assert roundtrip == set1
 
 
-def test_empty_pickle():
-    empty_oset = OrderedSet()
+def test_empty_pickle() -> None:
+    empty_oset: OrderedSet[typing.Any] = OrderedSet()
     empty_roundtrip = pickle.loads(pickle.dumps(empty_oset))
     assert empty_roundtrip == empty_oset
 
 
-def test_order():
+def test_order() -> None:
     set1 = OrderedSet('abracadabra')
     assert len(set1) == 5
     assert set1 == OrderedSet(['a', 'b', 'r', 'c', 'd'])
     assert list(reversed(set1)) == ['d', 'c', 'r', 'b', 'a']
 
 
-def test_binary_operations():
+def test_binary_operations() -> None:
     set1 = OrderedSet('abracadabra')
     set2 = OrderedSet('simsalabim')
     assert set1 != set2
@@ -41,7 +43,7 @@ def test_binary_operations():
     assert set1 - set2 == OrderedSet(['r', 'c', 'd'])
 
 
-def test_indexing():
+def test_indexing() -> None:
     set1 = OrderedSet('abracadabra')
     assert set1[:] == set1
     assert set1.copy() == set1
@@ -63,41 +65,41 @@ class FancyIndexTester:
     NumPy.
     """
 
-    def __init__(self, indices):
+    def __init__(self, indices: typing.Iterable[int]) -> None:
         self.indices = indices
 
-    def __iter__(self):
+    def __iter__(self) -> typing.Iterator[int]:
         return iter(self.indices)
 
-    def __index__(self):
+    def __index__(self) -> int:
         raise TypeError('NumPy arrays have weird __index__ methods')
 
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
         # Emulate NumPy being fussy about the == operator
         raise TypeError
 
 
-def test_fancy_index_class():
+def test_fancy_index_class() -> None:
     set1 = OrderedSet('abracadabra')
     indexer = FancyIndexTester([1, 0, 4, 3, 0, 2])
-    assert ''.join(set1[indexer]) == 'badcar'
+    assert ''.join(set1[indexer]) == 'badcar'  # type: ignore[call-overload]  # ty: ignore[invalid-argument-type]
 
 
-def test_pandas_compat():
+def test_pandas_compat() -> None:
     set1 = OrderedSet('abracadabra')
     assert set1.get_loc('b') == 1
     assert set1.get_indexer(['b', 'r']) == [1, 2]
 
 
-def test_tuples():
-    set1 = OrderedSet()
+def test_tuples() -> None:
+    set1: OrderedSet[tuple[str, int]] = OrderedSet()
     tup = ('tuple', 1)
     set1.add(tup)
     assert set1.index(tup) == 0
     assert set1[0] == tup
 
 
-def test_remove():
+def test_remove() -> None:
     set1 = OrderedSet('abracadabra')
 
     set1.remove('a')
@@ -122,14 +124,14 @@ def test_remove():
     set1.discard('a')
 
 
-def test_remove_error():
+def test_remove_error() -> None:
     # If we .remove() an element that's not there, we get a KeyError
     set1 = OrderedSet('abracadabra')
     with pytest.raises(KeyError):
         set1.remove('z')
 
 
-def test_clear():
+def test_clear() -> None:
     set1 = OrderedSet('abracadabra')
     set1.clear()
 
@@ -137,7 +139,7 @@ def test_clear():
     assert set1 == OrderedSet()
 
 
-def test_update():
+def test_update() -> None:
     set1 = OrderedSet('abcd')
     result = set1.update('efgh')
 
@@ -152,7 +154,7 @@ def test_update():
     assert ''.join(set2) == 'abcdef'
 
 
-def test_pop():
+def test_pop() -> None:
     set1 = OrderedSet('ab')
     elem = set1.pop()
 
@@ -164,30 +166,30 @@ def test_pop():
     pytest.raises(KeyError, set1.pop)
 
 
-def test_getitem_type_error():
+def test_getitem_type_error() -> None:
     set1 = OrderedSet('ab')
     with pytest.raises(TypeError):
-        set1['a']
+        set1['a']  # type: ignore[index]  # ty: ignore[invalid-argument-type]
 
 
-def test_update_value_error():
+def test_update_value_error() -> None:
     set1 = OrderedSet('ab')
     with pytest.raises(ValueError):
         # noinspection PyTypeChecker
-        set1.update(3)
+        set1.update(3)  # type: ignore[arg-type]  # ty: ignore[invalid-argument-type]
 
 
-def test_empty_repr():
-    set1 = OrderedSet()
+def test_empty_repr() -> None:
+    set1: OrderedSet[typing.Any] = OrderedSet()
     assert repr(set1) == 'OrderedSet()'
 
 
-def test_eq_wrong_type():
-    set1 = OrderedSet()
+def test_eq_wrong_type() -> None:
+    set1: OrderedSet[typing.Any] = OrderedSet()
     assert set1 != 2
 
 
-def test_ordered_equality():
+def test_ordered_equality() -> None:
     # Ordered set checks order against sequences.
     assert OrderedSet([1, 2]) == OrderedSet([1, 2])
     assert OrderedSet([1, 2]) == [1, 2]
@@ -195,7 +197,7 @@ def test_ordered_equality():
     assert OrderedSet([1, 2]) == collections.deque([1, 2])
 
 
-def test_ordered_inequality():
+def test_ordered_inequality() -> None:
     # Ordered set checks order against sequences.
     assert OrderedSet([1, 2]) != OrderedSet([2, 1])
 
@@ -211,7 +213,7 @@ def test_ordered_inequality():
     assert OrderedSet([1, 2]) != collections.deque([2, 2, 1])
 
 
-def test_comparisons():
+def test_comparisons() -> None:
     # Comparison operators on sets actually test for subset and superset.
     assert OrderedSet([1, 2]) < OrderedSet([1, 2, 3])
     assert OrderedSet([1, 2]) > OrderedSet([1])
@@ -220,7 +222,7 @@ def test_comparisons():
     assert OrderedSet([1, 2]) > {1}
 
 
-def test_unordered_equality():
+def test_unordered_equality() -> None:
     # Unordered set checks order against non-sequences.
     assert OrderedSet([1, 2]) == {1, 2}
     assert OrderedSet([1, 2]) == frozenset([2, 1])
@@ -240,7 +242,7 @@ def test_unordered_equality():
     assert OrderedSet([1, 2]) == iter([2, 1, 1])
 
 
-def test_unordered_inequality():
+def test_unordered_inequality() -> None:
     assert OrderedSet([1, 2]) != set([])
     assert OrderedSet([1, 2]) != frozenset([2, 1, 3])
 
@@ -253,7 +255,10 @@ def test_unordered_inequality():
     assert OrderedSet([1, 2]) != collections.OrderedDict([(2, 2), (3, 1)])
 
 
-def allsame_(iterable, eq=operator.eq):
+def allsame_(
+    iterable: typing.Iterable[typing.Any],
+    eq: typing.Callable[[typing.Any, typing.Any], bool] = operator.eq,
+) -> bool:
     """returns True of all items in iterable equal each other"""
     iter_ = iter(iterable)
     try:
@@ -263,7 +268,11 @@ def allsame_(iterable, eq=operator.eq):
     return all(eq(first, item) for item in iter_)
 
 
-def check_results_(results, datas, name):
+def check_results_(
+    results: typing.Iterable[typing.Any],
+    datas: typing.Any,
+    name: str,
+) -> None:
     """
     helper for binary operator tests.
 
@@ -279,7 +288,8 @@ def check_results_(results, datas, name):
             assert a is not b, name + ' should all be different items'
 
 
-def _operator_consistency_testdata():
+def _operator_consistency_testdata(
+) -> typing.Iterator[tuple[OrderedSet[int], OrderedSet[int]]]:
     """
     Predefined and random data used to test operator consistency.
     """
@@ -313,7 +323,7 @@ def _operator_consistency_testdata():
         yield data2, data1
 
 
-def test_operator_consistency_isect():
+def test_operator_consistency_isect() -> None:
     for data1, data2 in _operator_consistency_testdata():
         result1 = data1.copy()
         result1.intersection_update(data2)
@@ -324,7 +334,7 @@ def test_operator_consistency_isect():
         )
 
 
-def test_operator_consistency_difference():
+def test_operator_consistency_difference() -> None:
     for data1, data2 in _operator_consistency_testdata():
         result1 = data1.copy()
         result1.difference_update(data2)
@@ -335,7 +345,7 @@ def test_operator_consistency_difference():
         )
 
 
-def test_operator_consistency_xor():
+def test_operator_consistency_xor() -> None:
     for data1, data2 in _operator_consistency_testdata():
         result1 = data1.copy()
         result1.symmetric_difference_update(data2)
@@ -346,7 +356,7 @@ def test_operator_consistency_xor():
         )
 
 
-def test_operator_consistency_union():
+def test_operator_consistency_union() -> None:
     for data1, data2 in _operator_consistency_testdata():
         result1 = data1.copy()
         result1.update(data2)
@@ -357,7 +367,7 @@ def test_operator_consistency_union():
         )
 
 
-def test_operator_consistency_subset():
+def test_operator_consistency_subset() -> None:
     for data1, data2 in _operator_consistency_testdata():
         result1 = data1 <= data2
         result2 = data1.issubset(data2)
@@ -367,7 +377,7 @@ def test_operator_consistency_subset():
         )
 
 
-def test_operator_consistency_superset():
+def test_operator_consistency_superset() -> None:
     for data1, data2 in _operator_consistency_testdata():
         result1 = data1 >= data2
         result2 = data1.issuperset(data2)
@@ -377,7 +387,7 @@ def test_operator_consistency_superset():
         )
 
 
-def test_operator_consistency_disjoint():
+def test_operator_consistency_disjoint() -> None:
     for data1, data2 in _operator_consistency_testdata():
         result1 = data1.isdisjoint(data2)
         result2 = len(data1.intersection(data2)) == 0
@@ -386,7 +396,7 @@ def test_operator_consistency_disjoint():
         )
 
 
-def test_bitwise_and_consistency():
+def test_bitwise_and_consistency() -> None:
     # Specific case that was failing without explicit __and__ definition
     data1 = OrderedSet([12, 13, 1, 8, 16, 15, 9, 11, 18, 6, 4, 3, 19, 17])
     data2 = OrderedSet([19, 4, 9, 3, 2, 10, 15, 17, 11, 13, 20, 6, 14, 16, 8])

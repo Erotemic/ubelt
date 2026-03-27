@@ -1,9 +1,11 @@
+import typing
+
 import pytest
 
 import ubelt as ub
 
 
-def test_chunk_errors():
+def test_chunk_errors() -> None:
     with pytest.raises(ValueError):
         ub.chunks(range(9))
 
@@ -14,17 +16,17 @@ def test_chunk_errors():
         len(ub.chunks((_ for _ in range(2)), nchunks=2))
 
 
-def test_chunk_total_chunksize():
-    gen = ub.chunks([], total=10, chunksize=4)
+def test_chunk_total_chunksize() -> None:
+    gen: typing.Any = ub.chunks([], total=10, chunksize=4)
     assert len(gen) == 3
 
 
-def test_chunk_total_nchunks():
-    gen = ub.chunks([], total=10, nchunks=4)
+def test_chunk_total_nchunks() -> None:
+    gen: typing.Any = ub.chunks([], total=10, nchunks=4)
     assert len(gen) == 4
 
 
-def test_chunk_len():
+def test_chunk_len() -> None:
     gen = ub.chunks([1] * 6, chunksize=3)
     assert len(gen) == 2
 

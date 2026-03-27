@@ -418,7 +418,7 @@ def import_module_from_name(modname: str) -> ModuleType:
     return module
 
 
-def _extension_module_tags():
+def _extension_module_tags() -> list[str]:
     """
     Returns valid tags an extension module might have
 
@@ -436,7 +436,7 @@ def _extension_module_tags():
     return tags
 
 
-def _platform_pylib_exts():  # nocover
+def _platform_pylib_exts() -> tuple[str, ...]:  # nocover
     """
     Returns .so, .pyd, or .dylib depending on linux, win or mac.
     On python3 return the previous with and without abi (e.g.
@@ -459,7 +459,9 @@ def _platform_pylib_exts():  # nocover
 
 
 def _syspath_modname_to_modpath(
-    modname, sys_path=None, exclude=None
+    modname: str,
+    sys_path: typing.Sequence[str | os.PathLike] | None = None,
+    exclude: typing.Sequence[str | os.PathLike] | None = None,
 ) -> str | None:
     """
     syspath version of modname_to_modpath
@@ -527,7 +529,7 @@ def _syspath_modname_to_modpath(
     """
     import glob
 
-    def _isvalid(modpath, base):
+    def _isvalid(modpath: str, base: str | os.PathLike) -> bool:
         # every directory up to the module, should have an init
         subdir = dirname(modpath)
         while subdir and subdir != base:
@@ -553,7 +555,7 @@ def _syspath_modname_to_modpath(
 
     if exclude:
 
-        def normalize(p):
+        def normalize(p: str | os.PathLike) -> str:
             if sys.platform.startswith('win32'):  # nocover
                 return realpath(p).lower()
             else:
@@ -565,7 +567,7 @@ def _syspath_modname_to_modpath(
             p for p in candidate_dpaths if normalize(p) not in real_exclude
         ]
 
-    def check_dpath(dpath):
+    def check_dpath(dpath: str | os.PathLike) -> str | None:
         # Check for directory-based modules (has precedence over files)
         modpath = join(dpath, _fname_we)
         if exists(modpath):
@@ -579,6 +581,7 @@ def _syspath_modname_to_modpath(
             if isfile(modpath):
                 if _isvalid(modpath, dpath):
                     return modpath
+        return None
 
     _pkg_name = _fname_we.split(os.path.sep)[0]
     _pkg_name_hypen = _pkg_name.replace('_', '-')
@@ -697,11 +700,15 @@ def _syspath_modname_to_modpath(
                     break
 
     if typing.TYPE_CHECKING:
-        found_modpath = typing.cast(str | None, found_modpath)
+        found_modpath = typing.cast(typing.Optional[str], found_modpath)
     return found_modpath
 
 
-def _custom_import_modpath(modpath, index=-1):
+def _custom_import_modpath(
+    modpath: str | os.PathLike,
+    index: int = -1,
+) -> ModuleType:
+    modpath = os.fspath(modpath)
     dpath, rel_modpath = split_modpath(modpath)
     modname = modpath_to_modname(modpath)
     try:
@@ -719,13 +726,14 @@ def _custom_import_modpath(modpath, index=-1):
     return module
 
 
-def _importlib_import_modpath(modpath):  # nocover
+def _importlib_import_modpath(modpath: str | os.PathLike) -> ModuleType:  # nocover
     """
     Alternative to import_module_from_path using importlib mechainsms
 
     Args:
         modname (str): the module name.
     """
+    modpath = os.fspath(modpath)
     dpath, rel_modpath = split_modpath(modpath)
     modname = modpath_to_modname(modpath)
     import importlib.util
@@ -738,7 +746,7 @@ def _importlib_import_modpath(modpath):  # nocover
     return module
 
 
-def _importlib_modname_to_modpath(modname):  # nocover
+def _importlib_modname_to_modpath(modname: str) -> str:  # nocover
     """
     faster version of :func:`_syspath_modname_to_modpath` using builtin
     python mechanisms, but unfortunately it doesn't play nice with pytest.
@@ -1107,7 +1115,9 @@ def is_modname_importable(
     return flag
 
 
-def _static_parse(varname, fpath):
+def _static_parse(
+    varname: str, fpath: str | os.PathLike
+) -> typing.Any:
     """
     Statically parse the a constant variable from a python file
 
@@ -1156,13 +1166,13 @@ def _static_parse(varname, fpath):
     pt = ast.parse(sourcecode)
 
     class StaticVisitor(ast.NodeVisitor):
-        def visit_Assign(self, node):
+        def visit_Assign(self, node: ast.Assign) -> None:
             for target in node.targets:
                 target_id = getattr(target, 'id', None)
                 if target_id == varname:
                     self.static_value = _parse_static_node_value(node.value)
 
-        def visit_AnnAssign(self, node):
+        def visit_AnnAssign(self, node: ast.AnnAssign) -> None:
             target = node.target
             target_id = getattr(target, 'id', None)
             if target_id == varname:
@@ -1178,7 +1188,7 @@ def _static_parse(varname, fpath):
     return value
 
 
-def _parse_static_node_value(node):
+def _parse_static_node_value(node: object) -> typing.Any:
     """
     Extract a constant value from a node if possible
     """
@@ -1197,9 +1207,9 @@ def _parse_static_node_value(node):
         num_type = getattr(ast, 'Num', None)
         str_type = getattr(ast, 'Str', None)
         if num_type is not None and isinstance(node, num_type):
-            return node.n
+            return typing.cast(typing.Any, node).n
         if str_type is not None and isinstance(node, str_type):
-            return node.s
+            return typing.cast(typing.Any, node).s
 
     if isinstance(node, ast.List):
         return list(map(_parse_static_node_value, node.elts))
@@ -1213,7 +1223,7 @@ def _parse_static_node_value(node):
     if IS_PY_LT_314:  # nocover
         nameconst_type = getattr(ast, 'NameConstant', None)
         if nameconst_type is not None and isinstance(node, nameconst_type):
-            return node.value
+            return typing.cast(typing.Any, node).value
 
     if isinstance(node, ast.Constant):  # nocover
         return node.value

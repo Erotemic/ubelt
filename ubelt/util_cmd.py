@@ -422,7 +422,7 @@ def cmd(
         log(ps1 + command_text)
 
     # Create a new process to execute the command
-    def make_proc():
+    def make_proc() -> subprocess.Popen[str]:
         # delay the creation of the process until we validate all args
         popen_kwargs = {'cwd': cwd, 'env': env, 'shell': shell}
         popen_kwargs['universal_newlines'] = True
@@ -495,7 +495,9 @@ def cmd(
                     if WIN32:  # nocover
                         # Win32 needs a communicate after the kill to get the
                         # output. See stdlib for details.
-                        exc.stdout, exc.stderr = proc.communicate()
+                        exc_stdout, exc_stderr = proc.communicate()
+                        exc.stdout = typing.cast(typing.Any, exc_stdout)
+                        exc.stderr = typing.cast(typing.Any, exc_stderr)
                     else:
                         # Posix implementations already handle the populate.
                         proc.wait()
@@ -519,7 +521,7 @@ def cmd(
         # We used the popen context manager, which means that wait was called,
         # the process has existed, so it is safe to return a reference to the
         # process object.
-        ret = proc.poll()
+        ret = typing.cast(int, proc.poll())
         info = CmdOutput(
             **{
                 'out': out,
@@ -734,7 +736,7 @@ def _enqueue_output_thread_worker(
     import queue
     # logger.debug(f"Start worker for {id(stream)=} with {timeout=}")
 
-    def _check_if_stopped():  # nocover
+    def _check_if_stopped() -> bool | None:  # nocover
         try:
             # Check if we were told to stop
             control_queue.get(timeout=POLL_TIME)
@@ -743,8 +745,9 @@ def _enqueue_output_thread_worker(
         else:
             # logger.debug(f"Thread acknowledges stop request for {id(stream)}")
             return True
+        return None
 
-    def enqueue(item):  # nocover
+    def enqueue(item: str | None) -> bool:  # nocover
         # Alternate between checking if we were stopped and putting the item in
         # the queue. This helps with the issue of an open process stream on
         # exit but it doesn't fully solve the issue because we still might

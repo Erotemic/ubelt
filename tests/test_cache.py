@@ -1,3 +1,5 @@
+from __future__ import annotations
+import typing
 from os.path import exists
 
 import pytest
@@ -5,12 +7,12 @@ import pytest
 import ubelt as ub
 
 
-def test_noexist_meta_clear():
+def test_noexist_meta_clear() -> None:
     """
     What no errors happen when an external processes removes meta
     """
 
-    def func():
+    def func() -> str:
         return 'expensive result'
 
     cacher = ub.Cacher('name', 'params', verbose=10)
@@ -31,12 +33,12 @@ def test_noexist_meta_clear():
     assert not exists(data_fpath)
 
 
-def test_clear_quiet():
+def test_clear_quiet() -> None:
     """
     What no errors happen when an external processes removes meta
     """
 
-    def func():
+    def func() -> str:
         return 'expensive result'
 
     cacher = ub.Cacher('name', 'params', verbose=0)
@@ -46,14 +48,14 @@ def test_clear_quiet():
     cacher.clear()
 
 
-def test_corrupt():
+def test_corrupt() -> None:
     """
     What no errors happen when an external processes removes meta
 
     python ubelt/tests/test_cache.py test_corrupt
     """
 
-    def func():
+    def func() -> list[str]:
         return ['expensive result']
 
     cacher = ub.Cacher('name', 'params', verbose=10)
@@ -80,8 +82,8 @@ def test_corrupt():
         cacher.load()
 
 
-def _setup_corrupt_cacher(verbose=0):
-    def func():
+def _setup_corrupt_cacher(verbose: int = 0) -> typing.Any:
+    def func() -> list[str]:
         return ['expensive result']
 
     cacher = ub.Cacher('name', 'params', verbose=verbose)
@@ -96,14 +98,14 @@ def _setup_corrupt_cacher(verbose=0):
     return cacher
 
 
-def test_onerror_clear():
+def test_onerror_clear() -> None:
     cacher = _setup_corrupt_cacher()
     assert cacher.tryload(on_error='clear') is None
     assert not exists(cacher.get_fpath())
     cacher.clear()
 
 
-def test_onerror_raise():
+def test_onerror_raise() -> None:
     cacher = _setup_corrupt_cacher(verbose=1)
     with pytest.raises(Exception):
         assert cacher.tryload(on_error='raise')
@@ -111,7 +113,7 @@ def test_onerror_raise():
     cacher.clear()
 
 
-def test_onerror_bad_method():
+def test_onerror_bad_method() -> None:
     cacher = _setup_corrupt_cacher()
     assert exists(cacher.get_fpath())
     with pytest.raises(KeyError):
@@ -120,7 +122,7 @@ def test_onerror_bad_method():
     cacher.clear()
 
 
-def test_cache_hit():
+def test_cache_hit() -> None:
     cacher = ub.Cacher('name', 'params', verbose=2)
     cacher.clear()
     assert not cacher.exists()
@@ -130,13 +132,13 @@ def test_cache_hit():
     assert data == ['some', 'data']
 
 
-def test_disable():
+def test_disable() -> None:
     """
     What no errors happen when an external processes removes meta
     """
     nonlocal_var = [0]
 
-    def func():
+    def func() -> list[str]:
         nonlocal_var[0] += 1
         return ['expensive result']
 
@@ -155,14 +157,14 @@ def test_disable():
     assert cacher.tryload() is None
 
 
-def test_disabled_cache_stamp():
+def test_disabled_cache_stamp() -> None:
     stamp = ub.CacheStamp('foo', 'bar', enabled=False)
     assert stamp.expired() == 'disabled', (
         'disabled cache stamps are always expired'
     )
 
 
-def test_cache_depends():
+def test_cache_depends() -> None:
     """
     What no errors happen when an external processes removes meta
     """
@@ -173,7 +175,7 @@ def test_cache_depends():
     assert cfgstr.startswith('8a82eef87cb905220841f95')
 
 
-def test_cache_cfgstr():
+def test_cache_cfgstr() -> None:
     """
     TODO: remove when cfgstr is removed
     """
@@ -184,7 +186,7 @@ def test_cache_cfgstr():
         # assert cacher1.depends == 'abc'
 
 
-def test_cache_stamp_with_hash():
+def test_cache_stamp_with_hash() -> None:
     dpath = ub.Path.appdir('ubelt/tests/test-cache-stamp-with-hash')
     for verbose in [0, 1]:
         dpath.delete().ensuredir()

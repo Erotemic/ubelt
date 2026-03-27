@@ -1,7 +1,12 @@
-def test_compatible_keywords():
+import typing
+
+
+def test_compatible_keywords() -> None:
     import ubelt as ub
 
-    def func(a, e, f, *args, **kwargs):
+    def func(
+        a: int, e: int, f: int, *args: object, **kwargs: object
+    ) -> int:
         return a * e * f
 
     config = {
@@ -27,7 +32,7 @@ def test_compatible_keywords():
     }
 
 
-def test_positional_only_args():
+def test_positional_only_args() -> None:
     import sys
 
     import pytest
@@ -46,9 +51,9 @@ def test_positional_only_args():
             return a * e * f
         """
     )
-    ns = {}
+    ns: dict[str, object] = {}
     exec(pos_only_code, ns, ns)
-    func = ns['func']
+    func = typing.cast(typing.Callable[..., object], ns['func'])
     config = {
         'a': 2,
         'b': 3,

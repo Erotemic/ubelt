@@ -25,6 +25,7 @@ from __future__ import annotations
 import os
 import platform
 import sys
+import typing
 import warnings
 from os.path import exists, join
 
@@ -36,11 +37,17 @@ if sys.platform.startswith('win32'):
     except ImportError:
         # Use vendored subset of jaraco.windows
         from ubelt import _win32_jaraco as jwfs
+else:
+    jwfs = None
 
 __win32_can_symlink__: bool | None = None
 
 
-def _win32_can_symlink(verbose=0, force=False, testing=False):
+def _win32_can_symlink(
+    verbose: int = 0,
+    force: bool = False,
+    testing: bool = False,
+) -> bool:
     """
     Args:
         verbose (int): verbosity level
@@ -196,7 +203,12 @@ def _win32_can_symlink(verbose=0, force=False, testing=False):
     return can_symlink
 
 
-def _symlink(path, link, overwrite=0, verbose=0):
+def _symlink(
+    path: str | os.PathLike,
+    link: str | os.PathLike,
+    overwrite: int | bool = 0,
+    verbose: int = 0,
+) -> str | os.PathLike:
     """
     Windows helper for ub.symlink
     """
@@ -255,9 +267,15 @@ def _symlink(path, link, overwrite=0, verbose=0):
                 raise IOError('Link already exists')
 
     _win32_symlink2(path, link, verbose=verbose)
+    return link
 
 
-def _win32_symlink2(path, link, allow_fallback=True, verbose=0):
+def _win32_symlink2(
+    path: str | os.PathLike,
+    link: str | os.PathLike,
+    allow_fallback: bool = True,
+    verbose: int = 0,
+) -> str | os.PathLike:
     """
     Perform a real symbolic link if possible. However, on most versions of
     windows you need special privileges to create a real symlink. Therefore, we
@@ -276,7 +294,11 @@ def _win32_symlink2(path, link, allow_fallback=True, verbose=0):
         return _win32_junction(path, link, verbose)
 
 
-def _win32_symlink(path, link, verbose=0):
+def _win32_symlink(
+    path: str | os.PathLike,
+    link: str | os.PathLike,
+    verbose: int = 0,
+) -> str | os.PathLike:
     """
     Creates real symlink. This will only work in versions greater than Windows
     Vista. Creating real symlinks requires admin permissions or at least
@@ -318,7 +340,11 @@ def _win32_symlink(path, link, verbose=0):
     return link
 
 
-def _win32_junction(path, link, verbose=0):
+def _win32_junction(
+    path: str | os.PathLike,
+    link: str | os.PathLike,
+    verbose: int = 0,
+) -> str | os.PathLike:
     """
     On older (pre 10) versions of windows we need admin privileges to make
     symlinks, however junctions seem to work.
@@ -371,6 +397,10 @@ def _win32_junction(path, link, verbose=0):
         if verbose:
             print('... as hard link')
         # command = 'mklink /H "{}" "{}"'.format(link, path)
+        if jwfs is None:
+            raise ImportError(
+                'jaraco.windows.filesystem is required to run _win32_junction'
+            )
         try:
             jwfs.link(path, link)  # this seems to be allowed
         except Exception:
@@ -391,7 +421,7 @@ def _win32_junction(path, link, verbose=0):
     return link
 
 
-def _win32_is_junction(path):
+def _win32_is_junction(path: str | os.PathLike) -> bool:
     """
     Determines if a path is a win32 junction
 
@@ -433,7 +463,7 @@ def _win32_is_junction(path):
         return _is_reparse_point(path) and not os.path.islink(path)
 
 
-def _is_reparse_point(path):
+def _is_reparse_point(path: str | os.PathLike) -> bool:
     """
     Check if a directory is a reparse point in windows.
 
@@ -457,7 +487,7 @@ def _is_reparse_point(path):
     #     return child.returncode == 0
 
 
-def _win32_read_junction(path):
+def _win32_read_junction(path: str | os.PathLike) -> str:
     """
     Returns the location that the junction points, raises ValueError if path is
     not a junction.
@@ -523,7 +553,7 @@ def _win32_read_junction(path):
     return subname
 
 
-def _win32_rmtree(path, verbose=0):
+def _win32_rmtree(path: str | os.PathLike, verbose: int = 0) -> None:
     """
     rmtree for win32 that treats junctions like directory symlinks.
     The junction removal portion may not be safe on race conditions.
@@ -536,10 +566,10 @@ def _win32_rmtree(path, verbose=0):
     """
     path = os.fspath(path)
 
-    def _rmjunctions(root):
+    def _rmjunctions(root: str | os.PathLike) -> None:
         from os.path import isdir, islink, join
 
-        for r, ds, fs in os.walk(root):
+        for r, ds, fs in os.walk(os.fspath(root)):
             subdirs = []
             for d in ds:
                 path = join(r, d)
@@ -573,7 +603,9 @@ def _win32_rmtree(path, verbose=0):
         # now we can rmtree as normal
         import shutil
 
-        def onerror(func, path, exc_info):
+        def onerror(
+            func: typing.Any, path: str | os.PathLike, exc_info: typing.Any
+        ) -> None:
             print('Error')
             print('func = {!r}'.format(func))
             print('path = {!r}'.format(path))
@@ -582,7 +614,10 @@ def _win32_rmtree(path, verbose=0):
         shutil.rmtree(path, onerror=onerror)
 
 
-def _win32_is_hardlinked(fpath1, fpath2):
+def _win32_is_hardlinked(
+    fpath1: str | os.PathLike,
+    fpath2: str | os.PathLike,
+) -> bool:
     """
     Test if two hard links point to the same location
 
@@ -609,7 +644,7 @@ def _win32_is_hardlinked(fpath1, fpath2):
         )
 
     # NOTE: jwf.samefile(fpath1, fpath2) seems to behave differently
-    def get_read_handle(fpath):
+    def get_read_handle(fpath: str | os.PathLike) -> typing.Any:
         if os.path.isdir(fpath):
             dwFlagsAndAttributes = jwfs.api.FILE_FLAG_BACKUP_SEMANTICS
         else:
@@ -625,7 +660,7 @@ def _win32_is_hardlinked(fpath1, fpath2):
         )
         return hFile
 
-    def get_unique_id(hFile):
+    def get_unique_id(hFile: typing.Any) -> tuple[int, int, int]:
         info = jwfs.api.BY_HANDLE_FILE_INFORMATION()
         res = jwfs.api.GetFileInformationByHandle(hFile, info)
         jwfs.handle_nonzero_success(res)
@@ -648,7 +683,10 @@ def _win32_is_hardlinked(fpath1, fpath2):
     return are_equal
 
 
-def _win32_dir(path, star=''):
+def _win32_dir(
+    path: str | os.PathLike,
+    star: str = '',
+) -> typing.Iterator[tuple[str, str, str | None]]:
     """
     Using the windows cmd shell to get information about a directory
     """

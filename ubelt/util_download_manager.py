@@ -158,7 +158,7 @@ class DownloadManager:
         prog: None | bool | type = None,
         desc: str | None = None,
         verbose: int = 1,
-    ):
+    ) -> typing.Iterable[typing.Any]:
         """
         Generate completed jobs as they become available
 

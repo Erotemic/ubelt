@@ -1,9 +1,8 @@
 from __future__ import unicode_literals
 
-from os.path import os
+import os
 
-
-def test_touch():
+def test_touch() -> None:
     import ubelt as ub
 
     dpath = ub.Path.appdir('ubelt', 'tests').ensuredir()
@@ -14,7 +13,7 @@ def test_touch():
     os.unlink(fpath)
 
 
-def test_readwrite():
+def test_readwrite() -> None:
     import pytest
 
     import ubelt as ub

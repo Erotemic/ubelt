@@ -1,7 +1,7 @@
 import ubelt as ub
 
 
-def test_capture_stdout_enabled():
+def test_capture_stdout_enabled() -> None:
     with ub.CaptureStdout(enabled=False) as cap:
         print('foobar')
     assert cap.text is None
@@ -12,7 +12,7 @@ def test_capture_stdout_enabled():
     assert cap.text.strip() == 'foobar'
 
 
-def test_capture_stdout_exception():
+def test_capture_stdout_exception() -> None:
     """
     CommandLine:
         pytest ubelt/tests/test_str.py::test_capture_stdout_exception -s

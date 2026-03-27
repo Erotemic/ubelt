@@ -1,4 +1,6 @@
+from __future__ import annotations
 import sys
+import typing
 
 import pytest
 
@@ -9,7 +11,7 @@ import ubelt as ub
 PYEXE = sys.executable
 
 
-def test_cmd_stdout():
+def test_cmd_stdout() -> None:
     """
     Debug:
 
@@ -30,7 +32,7 @@ def test_cmd_stdout():
     assert cap.text.strip() == 'hello stdout'
 
 
-def test_cmd_veryverbose():
+def test_cmd_veryverbose() -> None:
     with ub.CaptureStdout() as cap:
         result = ub.cmd('echo hello stdout', verbose=3)
     assert result['out'].strip() == 'hello stdout'
@@ -39,7 +41,7 @@ def test_cmd_veryverbose():
     # assert cap.text.strip() == 'hello stdout'
 
 
-def test_tee_false():
+def test_tee_false() -> None:
     with ub.CaptureStdout() as cap:
         result = ub.cmd('echo hello stdout', verbose=3, tee=False)
     assert result['out'].strip() == 'hello stdout'
@@ -48,7 +50,7 @@ def test_tee_false():
     print(cap.text)
 
 
-def test_cmd_stdout_quiet():
+def test_cmd_stdout_quiet() -> None:
     with ub.CaptureStdout() as cap:
         result = ub.cmd('echo hello stdout', verbose=False)
     assert result['out'].strip() == 'hello stdout', (
@@ -58,12 +60,12 @@ def test_cmd_stdout_quiet():
     assert cap.text.strip() == '', 'nothing should print to stdout'
 
 
-def test_cmd_stderr():
+def test_cmd_stderr() -> None:
     result = ub.cmd('echo hello stderr 1>&2', shell=True, verbose=True)
     assert result['err'].strip() == 'hello stderr'
 
 
-def test_cmd_with_list_of_pathlib():
+def test_cmd_with_list_of_pathlib() -> None:
     """
     ub.cmd can accept a pathlib.Path in a list of its arguments.
     """
@@ -74,7 +76,7 @@ def test_cmd_with_list_of_pathlib():
     assert str(fpath) in result['out']
 
 
-def test_cmd_with_single_pathlib():
+def test_cmd_with_single_pathlib() -> None:
     """
     ub.cmd can accept a pathlib.Path as its single argument
     """
@@ -85,7 +87,7 @@ def test_cmd_with_single_pathlib():
     result.check_returncode()
 
 
-def test_cmd_tee_auto():
+def test_cmd_tee_auto() -> None:
     """
     pytest ubelt/tests/test_cmd.py -k tee_backend
     pytest ubelt/tests/test_cmd.py
@@ -97,7 +99,7 @@ def test_cmd_tee_auto():
     assert result['out'] == '\n'.join(list(map(str, range(100)))) + '\n'
 
 
-def test_cmd_tee_thread():
+def test_cmd_tee_thread() -> None:
     """
     CommandLine:
         pytest ubelt/tests/test_cmd.py::test_cmd_tee_thread -s
@@ -118,7 +120,7 @@ def test_cmd_tee_thread():
 
     if ub.WIN32:
         # Windows cant break apart commands consistently
-        command = [PYEXE, '-c', 'for i in range(10): print(str(i))']
+        command: str | list[str] = [PYEXE, '-c', 'for i in range(10): print(str(i))']
     else:
         command = '{pyexe} -c "for i in range(10): print(str(i))"'.format(
             pyexe=PYEXE
@@ -134,7 +136,7 @@ def test_cmd_tee_thread():
 
 
 @pytest.mark.skipif(sys.platform == 'win32', reason='not available on win32')
-def test_cmd_tee_select():
+def test_cmd_tee_select() -> None:
     command = '{pyexe} -c "for i in range(100): print(str(i))"'.format(
         pyexe=PYEXE
     )
@@ -149,7 +151,7 @@ def test_cmd_tee_select():
 
 
 @pytest.mark.skipif(sys.platform == 'win32', reason='not available on win32')
-def test_cmd_tee_badmethod():
+def test_cmd_tee_badmethod() -> None:
     """
     pytest tests/test_cmd.py::test_cmd_tee_badmethod
     """
@@ -160,14 +162,14 @@ def test_cmd_tee_badmethod():
         ub.cmd(command, verbose=2, tee_backend='bad tee backend')
 
 
-def test_cmd_multiline_stdout():
+def test_cmd_multiline_stdout() -> None:
     """
     python ubelt/tests/test_cmd.py test_cmd_multiline_stdout
     pytest ubelt/tests/test_cmd.py::test_cmd_multiline_stdout
     """
     if ub.WIN32:
         # Windows cant break apart commands consistently
-        command = [PYEXE, '-c', 'for i in range(10): print(str(i))']
+        command: str | list[str] = [PYEXE, '-c', 'for i in range(10): print(str(i))']
     else:
         command = '{pyexe} -c "for i in range(10): print(str(i))"'.format(
             pyexe=PYEXE
@@ -176,7 +178,7 @@ def test_cmd_multiline_stdout():
     assert result['out'] == '\n'.join(list(map(str, range(10)))) + '\n'
 
 
-def test_normalize_system_returncode_fallback():
+def test_normalize_system_returncode_fallback() -> None:
     import os
     import signal
 
@@ -207,7 +209,7 @@ def test_normalize_system_returncode_fallback():
         uc.os.waitstatus_to_exitcode = orig  # type: ignore
 
 
-def test_proc_iteroutput_thread_timeout():
+def test_proc_iteroutput_thread_timeout() -> None:
     import subprocess
 
     import ubelt.util_cmd as uc
@@ -234,7 +236,7 @@ def test_proc_iteroutput_thread_timeout():
 
 
 @pytest.mark.skipif(sys.platform == 'win32', reason='does not run on win32')
-def test_cmd_interleaved_streams_sh():
+def test_cmd_interleaved_streams_sh() -> None:
     """
     A test that ``Crosses the Streams'' of stdout and stderr
 
@@ -283,7 +285,7 @@ def test_cmd_interleaved_streams_sh():
 
 
 @pytest.mark.skipif(sys.platform == 'win32', reason='does not run on win32')
-def test_cmd_interleaved_streams_py():
+def test_cmd_interleaved_streams_py() -> None:
     # apparently multiline quotes dont work on win32
     if False:
         # slow mode
@@ -343,7 +345,7 @@ def test_cmd_interleaved_streams_py():
         assert result['err'] == '!E0\n!E5\n!E10\n'
 
 
-def test_cwd():
+def test_cwd() -> None:
     """
     CommandLine:
         python ~/code/ubelt/ubelt/tests/test_cmd.py test_cwd
@@ -355,14 +357,14 @@ def test_cwd():
 
     if not sys.platform.startswith('win32'):
         dpath = ub.Path.appdir('ubelt/tests').ensuredir()
-        dpath = os.path.realpath(dpath)
-        info = ub.cmd('pwd', cwd=dpath, shell=True)
+        real_dpath = os.path.realpath(dpath)
+        info = ub.cmd('pwd', cwd=real_dpath, shell=True)
         print('info = {}'.format(ub.urepr(info, nl=1)))
-        print('dpath = {!r}'.format(dpath))
-        assert info['out'].strip() == dpath
+        print('dpath = {!r}'.format(real_dpath))
+        assert info['out'].strip() == real_dpath
 
 
-def test_env():
+def test_env() -> None:
     import os
     import sys
 
@@ -377,7 +379,7 @@ def test_env():
 
 
 # @pytest.mark.skipif(sys.platform == 'win32', reason='does not run on win32')
-def test_timeout():
+def test_timeout() -> None:
     """
     xdoctest ~/code/ubelt/tests/test_cmd.py test_timeout
     """
@@ -409,13 +411,16 @@ def test_timeout():
     #         "
     #         ''').lstrip()]
 
-    initial_grid = list(
+    initial_grid: list[dict[str, object]] = list(
         ub.named_product(
-            {
-                'tee': [0, 1],
-                'capture': [0, 1],
-                'timeout': [0, 0.001, 0.01],
-            }
+            typing.cast(
+                typing.Any,
+                {
+                    'tee': [0, 1],
+                    'capture': [0, 1],
+                    'timeout': [0, 0.001, 0.01],
+                },
+            )
         )
     )
     expanded_grid = []
@@ -435,19 +440,22 @@ def test_timeout():
             return
 
 
-def test_subprocess_compatability():
+def test_subprocess_compatability() -> None:
     import subprocess
 
     import ubelt as ub
 
-    def check_compatability(command, common_kwargs):
+    def check_compatability(
+        command: str | list[str], common_kwargs: typing.Any
+    ) -> None:
         ub_out = ub.cmd(command, verbose=1, capture=False, **common_kwargs)
         sp_out = subprocess.run(command, **common_kwargs)
         assert sp_out.stderr == ub_out.stderr
         assert sp_out.stdout == ub_out.stdout
         assert sp_out.returncode == ub_out.returncode
         assert sp_out.args == ub_out.args
-        assert ub_out.check_returncode() == sp_out.check_returncode()
+        ub_out.check_returncode()
+        sp_out.check_returncode()
 
         if sys.version_info[0:2] >= (3, 11):
             ub_out = ub.cmd(command, verbose=0, capture=True, **common_kwargs)
@@ -461,7 +469,8 @@ def test_subprocess_compatability():
             assert sp_out.stdout == ub_out.stdout
             assert sp_out.returncode == ub_out.returncode
             assert sp_out.args == ub_out.args
-            assert ub_out.check_returncode() == sp_out.check_returncode()
+            ub_out.check_returncode()
+            sp_out.check_returncode()
 
         ub_out = ub.cmd(command, verbose=0, capture=False, **common_kwargs)
         sp_out = subprocess.run(
@@ -474,9 +483,10 @@ def test_subprocess_compatability():
         assert sp_out.stdout == ub_out.stdout
         assert sp_out.returncode == ub_out.returncode
         assert sp_out.args == ub_out.args
-        assert ub_out.check_returncode() == sp_out.check_returncode()
+        ub_out.check_returncode()
+        sp_out.check_returncode()
 
-    command = ['echo', 'hello world']
+    command: str | list[str] = ['echo', 'hello world']
     common_kwargs = {'shell': False}
     check_compatability(command, common_kwargs)
 
@@ -494,14 +504,16 @@ def test_subprocess_compatability():
         check_compatability(command, common_kwargs)
 
 
-def test_failing_subprocess_compatability():
+def test_failing_subprocess_compatability() -> None:
     import subprocess
 
     import pytest
 
     import ubelt as ub
 
-    def check_failing_compatability(command, common_kwargs):
+    def check_failing_compatability(
+        command: str | list[str], common_kwargs: typing.Any
+    ) -> None:
         ub_out = ub.cmd(command, verbose=1, capture=False, **common_kwargs)
         sp_out = subprocess.run(command, **common_kwargs)
         assert sp_out.stderr == ub_out.stderr
@@ -547,7 +559,7 @@ def test_failing_subprocess_compatability():
             sp_out.check_returncode()
 
     if not ub.WIN32:
-        command = ['ls', '-l', 'does not exist']
+        command: str | list[str] = ['ls', '-l', 'does not exist']
         common_kwargs = {'shell': False}
         check_failing_compatability(command, common_kwargs)
 
@@ -556,7 +568,7 @@ def test_failing_subprocess_compatability():
         check_failing_compatability(command, common_kwargs)
 
 
-def test_cmdoutput_object_with_non_subprocess_backends():
+def test_cmdoutput_object_with_non_subprocess_backends() -> None:
     import pytest
 
     import ubelt as ub
@@ -604,7 +616,7 @@ def test_cmdoutput_object_with_non_subprocess_backends():
     info.check_returncode()
 
 
-def _dev_debug_timeouts():
+def _dev_debug_timeouts() -> None:
     """
     Notes used when implementing timeout
 

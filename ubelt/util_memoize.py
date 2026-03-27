@@ -62,7 +62,7 @@ if typing.TYPE_CHECKING:
 __all__ = ['memoize', 'memoize_method', 'memoize_property']
 
 
-def _hashable(item):
+def _hashable(item: typing.Any) -> typing.Any:
     """
     Returns the item if it is naturally hashable, otherwise it tries to use
     ubelt.util_hash.hash_data to make it hashable. Errors if it cannot.
@@ -75,7 +75,10 @@ def _hashable(item):
         return item
 
 
-def _make_signature_key(args, kwargs):
+def _make_signature_key(
+    args: tuple[typing.Any, ...],
+    kwargs: dict[str, typing.Any],
+) -> tuple[typing.Any, typing.Any]:
     """
     Transforms function args into a key that can be used by the cache
 
@@ -99,7 +102,7 @@ def _make_signature_key(args, kwargs):
         >>> with pytest.raises(TypeError):
         >>>     _make_signature_key((Dummy(),), kwargs={})
     """
-    kwitems = kwargs.items()
+    kwitems: typing.Iterable[tuple[str, typing.Any]] = kwargs.items()
     # TODO: we should check if Python is at least 3.7 and sort by kwargs
     # keys otherwise. Should we use hash_data for key generation
     if (sys.version_info.major, sys.version_info.minor) < (3, 7):  # nocover
@@ -115,7 +118,7 @@ def _make_signature_key(args, kwargs):
     return key
 
 
-def memoize(func: Callable) -> Callable:
+def memoize(func: Callable[..., Any]) -> Callable[..., Any]:
     """
     memoization decorator that respects args and kwargs
 
@@ -159,7 +162,7 @@ def memoize(func: Callable) -> Callable:
     cache = {}
 
     @functools.wraps(func)
-    def memoizer(*args, **kwargs):
+    def memoizer(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
         key = _make_signature_key(args, kwargs)
         if key not in cache:
             cache[key] = func(*args, **kwargs)
@@ -258,7 +261,9 @@ class memoize_method:
         self.__func__ = func  # type: ignore
         functools.update_wrapper(self, func)  # type: ignore
 
-    def __get__(self, instance: object, cls: type | None = None):
+    def __get__(
+        self, instance: object, cls: type | None = None
+    ) -> typing.Callable[..., Any]:
         """
         Descriptor get method. Called when the decorated method is accessed
         from an object instance.
@@ -274,7 +279,9 @@ class memoize_method:
 
         # https://stackoverflow.com/questions/71413937/what-does-using-get-on-a-function-do
         @functools.wraps(unbound)
-        def memoizer(instance, *args, **kwargs):
+        def memoizer(
+            instance: typing.Any, *args: typing.Any, **kwargs: typing.Any
+        ) -> typing.Any:
             key = _make_signature_key(args, kwargs)
             if key not in cache:
                 cache[key] = unbound(instance, *args, **kwargs)
@@ -289,7 +296,7 @@ class memoize_method:
         return bound_memoizer
 
 
-def memoize_property(fget: property | typing.Callable):
+def memoize_property(fget: property | typing.Callable[..., Any]) -> property:
     """
     Return a property attribute for new-style classes that only calls its
     getter on the first access. The result is stored and on subsequent accesses
@@ -336,15 +343,19 @@ def memoize_property(fget: property | typing.Callable):
         >>> c.another_name
     """
     # Unwrap any existing property decorator
-    while hasattr(fget, 'fget'):
-        fget = fget.fget  # type: ignore
+    getter: typing.Callable[..., typing.Any]
+    if isinstance(fget, property):
+        assert fget.fget is not None
+        getter = fget.fget
+    else:
+        getter = fget
 
-    attr_name = '_' + fget.__name__  # type: ignore
+    attr_name = '_' + getattr(getter, '__name__')
 
-    @functools.wraps(fget)
-    def fget_memoized(self):
+    @functools.wraps(getter)
+    def fget_memoized(self: typing.Any) -> typing.Any:
         if not hasattr(self, attr_name):
-            setattr(self, attr_name, fget(self))
+            setattr(self, attr_name, getter(self))
         return getattr(self, attr_name)
 
     return property(fget_memoized)

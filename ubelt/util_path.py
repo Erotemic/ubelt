@@ -754,7 +754,7 @@ class Path(_PathBase):
     def appdir(
         cls,
         appname: str | None = None,
-        *args,
+        *args: str,
         type: str = 'cache',
     ) -> 'Path':
         """
@@ -1215,7 +1215,11 @@ class Path(_PathBase):
         new = self.__class__(shrunk)
         return new
 
-    def chmod(self, mode, follow_symlinks=True):
+    def chmod(
+        self,
+        mode: int | str,
+        follow_symlinks: bool = True,
+    ) -> typing.Any:
         """
         Change the permissions of the path, like os.chmod().
 
@@ -1334,7 +1338,11 @@ class Path(_PathBase):
         super().touch(mode=mode, exist_ok=exist_ok)
         return self
 
-    def relative_to(self, *other, **kwargs):
+    def relative_to(
+        self,
+        *other: str | os.PathLike,
+        **kwargs: typing.Any,
+    ) -> Path:
         """
         Return the relative path to another path identified by the passed
         arguments.  If the operation is not possible (because this is not a
@@ -1391,7 +1399,7 @@ class Path(_PathBase):
         top_down: bool = True,
         on_error: Callable[[OSError], object] | None = None,
         follow_symlinks: bool = False,
-        **kwargs,
+        **kwargs: typing.Any,
     ) -> Iterator[tuple['Path', list[str], list[str]]]:
         """
         A variant of :func:`os.walk` for pathlib
@@ -1476,7 +1484,7 @@ class Path(_PathBase):
             for root, dnames, fnames in walker:
                 yield (cls(root), dnames, fnames)
 
-    def __add__(self, other) -> str:
+    def __add__(self, other: str) -> str:
         """
         Returns a new string starting with this fspath representation.
 
@@ -1502,7 +1510,7 @@ class Path(_PathBase):
         """
         return os.fspath(self) + other
 
-    def __radd__(self, other) -> str:
+    def __radd__(self, other: str) -> str:
         """
         Returns a new string ending with this fspath representation.
 
@@ -1528,7 +1536,7 @@ class Path(_PathBase):
         """
         return other + os.fspath(self)
 
-    def endswith(self, suffix: str | tuple[str, ...], *args) -> bool:
+    def endswith(self, suffix: str | tuple[str, ...], *args: int) -> bool:
         """
         Test if the fspath representation ends with ``suffix``.
 
@@ -1563,7 +1571,7 @@ class Path(_PathBase):
         """
         return os.fspath(self).endswith(suffix, *args)
 
-    def startswith(self, prefix: str | tuple[str, ...], *args) -> bool:
+    def startswith(self, prefix: str | tuple[str, ...], *args: int) -> bool:
         """
         Test if the fspath representation starts with ``prefix``.
 
@@ -1602,8 +1610,11 @@ class Path(_PathBase):
     # This is discussed in https://peps.python.org/pep-0428/#filesystem-modification
 
     def _request_copy_function(
-        self, follow_file_symlinks=True, follow_dir_symlinks=True, meta='stats'
-    ):
+        self,
+        follow_file_symlinks: bool = True,
+        follow_dir_symlinks: bool = True,
+        meta: str | None = 'stats',
+    ) -> typing.Callable[..., typing.Any]:
         """
         Get a copy_function based on specified capabilities
         """
@@ -1611,6 +1622,7 @@ class Path(_PathBase):
 
         # Note: Avoiding the use of the partial enables shutil optimizations
         from functools import partial
+        copy_function: typing.Callable[..., typing.Any]
 
         if meta is None:
             if follow_file_symlinks:
@@ -2122,7 +2134,7 @@ def _encode_chmod_int(int_code: int) -> str:
     return code
 
 
-def _patch_win32_stats_on_pypy():
+def _patch_win32_stats_on_pypy() -> None:
     """
     Handle [PyPyIssue4953]_ [PyPyDiscuss4952]_.
 
@@ -2137,7 +2149,7 @@ def _patch_win32_stats_on_pypy():
         stat.IO_REPARSE_TAG_SYMLINK = 0xA000000C  # type: ignore
 
 
-def _is_relative_to_backport(self, other) -> bool:
+def _is_relative_to_backport(self: typing.Any, other: typing.Any) -> bool:
     r"""
     A backport of is_relative_to for Python <=3.8
 
@@ -2201,7 +2213,11 @@ def _is_relative_to_backport(self, other) -> bool:
         return True
 
 
-def _relative_path_backport(self, other, walk_up=False):  # nocover
+def _relative_path_backport(
+    self: typing.Any,
+    other: typing.Any,
+    walk_up: bool = False,
+) -> Path:  # nocover
     if not isinstance(other, _PathBase):
         other = type(self)(*other)
         # other = self.with_segments(other)

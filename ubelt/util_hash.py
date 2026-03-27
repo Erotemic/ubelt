@@ -369,7 +369,7 @@ class _Hashers:
             self._evaluate_registration_queue()
         return key in self.algos or key in self.aliases
 
-    def _register_xxhash(self):  # nocover
+    def _register_xxhash(self) -> None:  # nocover
         import xxhash
 
         self.algos['xxh32'] = xxhash.xxh32
@@ -382,7 +382,7 @@ class _Hashers:
             }
         )
 
-    def _register_blake3(self):  # nocover
+    def _register_blake3(self) -> None:  # nocover
         import importlib
 
         blake3 = importlib.import_module('blake3')
@@ -441,7 +441,7 @@ class _Hashers:
 _HASHERS = _Hashers()
 
 
-def _rectify_hasher(hasher):
+def _rectify_hasher(hasher: NoParamType | str | HasherType | HasherLike) -> HasherType:
     """
     Convert a string-based key into a hasher class
 
@@ -548,7 +548,7 @@ class HashableExtensions:
         # New singledispatch registry implementation
         from functools import singledispatch
 
-        def _hash_dispatch(data):
+        def _hash_dispatch(data: object) -> tuple[bytes, bytes]:
             raise NotImplementedError
 
         _hash_dispatch.__is_base__ = True  # type: ignore
@@ -652,7 +652,9 @@ class HashableExtensions:
         if not isinstance(hash_types, (list, tuple)):
             hash_types = [hash_types]
 
-        def _decor_closure(hash_func):
+        def _decor_closure(
+            hash_func: typing.Callable[..., tuple[bytes, bytes]]
+        ) -> typing.Callable[..., tuple[bytes, bytes]]:
             for hash_type in hash_types:
                 self._hash_dispatch.register(hash_type)(hash_func)
             return hash_func
@@ -744,7 +746,7 @@ class HashableExtensions:
             raise TypeError(msg)
         return hash_func
 
-    def _hash_dataclass(self, data):
+    def _hash_dataclass(self, data: object) -> tuple[bytes, bytes]:
         """
         Dataclasses don't dispatch.
 
@@ -770,7 +772,8 @@ class HashableExtensions:
         header = (cls.__module__, cls.__qualname__)
         # fields() order is the definition order, which is guaranteed
         items = [
-            (f.name, getattr(data, f.name)) for f in dataclasses.fields(data)
+            (f.name, getattr(data, f.name))
+            for f in dataclasses.fields(cast(typing.Any, data))
         ]
         # Use the existing machinery to serialize recursively
         seq = _hashable_sequence(
@@ -797,7 +800,7 @@ class HashableExtensions:
         self.iterable_checks.append(func)
         return func
 
-    def _register_numpy_extensions(self):
+    def _register_numpy_extensions(self) -> None:
         """
         Registers custom functions to hash numpy data structures.
 
@@ -807,12 +810,12 @@ class HashableExtensions:
         import numpy as np
 
         @self.add_iterable_check
-        def is_object_ndarray(data):
+        def is_object_ndarray(data: object) -> bool:
             # ndarrays of objects cannot be hashed directly.
             return isinstance(data, np.ndarray) and data.dtype.kind == 'O'
 
         @self.register(np.ndarray)
-        def _convert_numpy_array(data):
+        def _convert_numpy_array(data: typing.Any) -> tuple[bytes, bytes]:
             """
             Example:
                 >>> import ubelt as ub
@@ -854,7 +857,7 @@ class HashableExtensions:
             return prefix, hashable
 
         @self.register(np.random.RandomState)
-        def _convert_numpy_random_state(data):
+        def _convert_numpy_random_state(data: typing.Any) -> tuple[bytes, bytes]:
             """
             Example:
                 >>> import ubelt as ub
@@ -875,7 +878,7 @@ class HashableExtensions:
             prefix = b'RNG'
             return prefix, hashable
 
-    def _register_builtin_class_extensions(self):
+    def _register_builtin_class_extensions(self) -> None:
         """
         Register hashing extensions for a selection of classes included in
         python stdlib.
@@ -969,15 +972,15 @@ class HashableExtensions:
         import uuid
 
         @self.register(numbers.Integral)
-        def _convert_numpy_int(data):
+        def _convert_numpy_int(data: typing.Any) -> tuple[bytes, bytes]:
             return _convert_to_hashable(int(data), extensions=self)
 
         @self.register(numbers.Real)
-        def _convert_numpy_float(data):
+        def _convert_numpy_float(data: typing.Any) -> tuple[bytes, bytes]:
             return _convert_to_hashable(float(data), extensions=self)
 
         @self.register(decimal.Decimal)
-        def _convert_decimal(data):
+        def _convert_decimal(data: typing.Any) -> tuple[bytes, bytes]:
             _hashable_sequence
             seq = _hashable_sequence(
                 data.as_tuple(),
@@ -989,7 +992,7 @@ class HashableExtensions:
             return prefix, hashable
 
         @self.register(datetime_mod.date)
-        def _convert_date(data):
+        def _convert_date(data: typing.Any) -> tuple[bytes, bytes]:
             _hashable_sequence
             seq = _hashable_sequence(
                 data.timetuple(),
@@ -1001,7 +1004,7 @@ class HashableExtensions:
             return prefix, hashable
 
         @self.register(datetime_mod.datetime)
-        def _convert_datetime(data):
+        def _convert_datetime(data: typing.Any) -> tuple[bytes, bytes]:
             _hashable_sequence
             seq = _hashable_sequence(
                 data.timetuple(),
@@ -1013,13 +1016,13 @@ class HashableExtensions:
             return prefix, hashable
 
         @self.register(uuid.UUID)
-        def _convert_uuid(data):
+        def _convert_uuid(data: typing.Any) -> tuple[bytes, bytes]:
             hashable = data.bytes
             prefix = b'UUID'
             return prefix, hashable
 
         @self.register(set)
-        def _convert_set(data):
+        def _convert_set(data: typing.Any) -> tuple[bytes, bytes]:
             try:
                 # what raises a TypeError differs between Python 2 and 3
                 ordered_ = sorted(data)
@@ -1041,7 +1044,7 @@ class HashableExtensions:
             return prefix, hashable
 
         @self.register(dict)
-        def _convert_dict(data):
+        def _convert_dict(data: typing.Any) -> tuple[bytes, bytes]:
             try:
                 ordered_ = sorted(data.items())
                 # what raises a TypeError differs between Python 2 and 3
@@ -1062,7 +1065,7 @@ class HashableExtensions:
             return prefix, hashable
 
         @self.register(OrderedDict)
-        def _convert_ordered_dict(data):
+        def _convert_ordered_dict(data: typing.Any) -> tuple[bytes, bytes]:
             """
             Currently ordered dictionaries are considered separately from
             regular dictionaries. I'm not sure what the right thing to do is.
@@ -1079,7 +1082,7 @@ class HashableExtensions:
             return prefix, hashable
 
         @self.register(slice)
-        def _convert_slice(data):
+        def _convert_slice(data: typing.Any) -> tuple[bytes, bytes]:
             """
             Currently ordered dictionaries are considered separately from
             regular dictionaries. I'm not sure what the right thing to do is.
@@ -1098,7 +1101,7 @@ class HashableExtensions:
         self.register(pathlib.Path)(lambda x: (b'PATH', str(x).encode('utf-8')))
         # other data structures
 
-    def _register_agressive_extensions(self):  # nocover
+    def _register_agressive_extensions(self) -> None:  # nocover
         """
         Extensions that might be desired, but we do not enable them by default
 
@@ -1107,7 +1110,7 @@ class HashableExtensions:
         """
         pass
 
-    def _register_torch_extensions(self):  # nocover
+    def _register_torch_extensions(self) -> None:  # nocover
         """
         Experimental. Define a default hash function for torch tensors, but do
         not use it by default. Currently, the user must call this explicitly.
@@ -1117,7 +1120,7 @@ class HashableExtensions:
         torch = importlib.import_module('torch')
 
         @self.register(torch.Tensor)
-        def _convert_torch_tensor(data):
+        def _convert_torch_tensor(data: typing.Any) -> tuple[bytes, bytes]:
             data_ = data.data.cpu().numpy()
             prefix = b'TORCH_TENSOR'
             return prefix, _convert_to_hashable(data_, extensions=self)[1]
@@ -1126,7 +1129,7 @@ class HashableExtensions:
 _HASHABLE_EXTENSIONS = HashableExtensions()
 
 
-def _lazy_init():
+def _lazy_init() -> None:
     """
     Delay the registration of any external libraries until a hashable extension
     is needed.
@@ -1167,7 +1170,11 @@ class _HashTracer:
         return b''.join(self.sequence)
 
 
-def _hashable_sequence(data: Any, types=False, extensions=None):
+def _hashable_sequence(
+    data: Any,
+    types: bool = False,
+    extensions: HashableExtensions | None = None,
+) -> list[bytes]:
     r"""
     Extracts the sequence of bytes that would be hashed by hash_data
 
@@ -1183,7 +1190,11 @@ def _hashable_sequence(data: Any, types=False, extensions=None):
     return hasher.sequence
 
 
-def _convert_to_hashable(data: Any, types=True, extensions=None):
+def _convert_to_hashable(
+    data: Any,
+    types: bool = True,
+    extensions: HashableExtensions | None = None,
+) -> tuple[bytes, bytes]:
     r"""
     Converts ``data`` into a hashable byte representation if an appropriate
     hashing function is known.
@@ -1262,7 +1273,12 @@ _ITER_PREFIX = b'_[_'
 _ITER_SUFFIX = b'_]_'
 
 
-def _update_hasher(hasher: _HashTracer | HasherLike, data: Any, types: bool = True, extensions : HashableExtensions | None = None):
+def _update_hasher(
+    hasher: _HashTracer | HasherLike,
+    data: Any,
+    types: bool = True,
+    extensions: HashableExtensions | None = None,
+) -> None:
     """
     Converts ``data`` into a byte representation and calls update on the hasher
     :class:`hashlib._hashlib.HASH` algorithm.
@@ -1339,7 +1355,7 @@ def _update_hasher(hasher: _HashTracer | HasherLike, data: Any, types: bool = Tr
         hasher.update(binary_data)
 
 
-def _convert_hexstr_base(hexstr, base: Sequence[str]) -> str:
+def _convert_hexstr_base(hexstr: str, base: Sequence[str]) -> str:
     r"""
     Packs a long hexstr into a shorter length string with a larger base.
 

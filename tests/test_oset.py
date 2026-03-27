@@ -1,21 +1,25 @@
 import itertools as it
 import random
+import typing
 
 import ubelt as ub
 
 
-def test_operators():
+def test_operators() -> None:
     """
     CommandLine:
         python ~/code/ubelt/ubelt/tests/test_oset.py test_operators
     """
     rng = random.Random(0)
 
-    def random_oset(rng, a=20, b=20):
+    def random_oset(
+        rng: random.Random, a: int = 20, b: int = 20
+    ) -> ub.OrderedSet[int]:
         return ub.OrderedSet(rng.randint(0, a) for _ in range(b))
 
-    def check_results(*results, **kw):
+    def check_results(*results: object, **kw: object) -> None:
         name = kw.get('name', 'set test')
+        assert isinstance(name, str)
         datas = kw.get('datas', [])
         if not ub.allsame(results):
             raise AssertionError(
@@ -27,7 +31,12 @@ def test_operators():
             if not isinstance(a, (bool, int)):
                 assert a is not b, name + ' should all be different items'
 
-    def operator_tests(data1, data2):
+    def operator_tests(
+        data1: ub.OrderedSet[int], data2: ub.OrderedSet[int]
+    ) -> None:
+        result1: typing.Any
+        result2: typing.Any
+        result3: typing.Any
         result1 = data1.copy()
         print('====')
         print('data1 = {!r}'.format(data1))
@@ -108,8 +117,8 @@ def test_operators():
         operator_tests(data2, data1)
 
 
-def test_equality():
-    def check(a, b):
+def test_equality() -> None:
+    def check(a: ub.OrderedSet[int], b: ub.OrderedSet[int]) -> None:
         # Self checks
         assert a == a
         assert a >= a
@@ -130,7 +139,7 @@ def test_equality():
         assert b != a
         assert not b == a
 
-    a = ub.oset([])
+    a: ub.OrderedSet[int] = ub.oset([])
     b = ub.oset([1])
     c = ub.oset([1, 2])
     d = ub.oset([1, 2, 3])

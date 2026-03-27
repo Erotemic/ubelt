@@ -289,7 +289,7 @@ def download(
         # import time
         # start_time = time.monotonic()
 
-        def _build_extra():
+        def _build_extra() -> str:
             pbar._curr_measurement.time
             bytes_down = pbar._iter_idx
             total_seconds = pbar._total_seconds + 1e-9
@@ -312,7 +312,7 @@ def download(
         with pbar:
             _pbar_update = pbar.update
 
-            def _critical_loop():
+            def _critical_loop() -> None:
                 # Initialize the buffer to a non-empty object
                 buffer = ' '
                 if hash_prefix:

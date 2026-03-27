@@ -1518,7 +1518,7 @@ class SetDict(dict):
     # - inplace versions
 
     # Not sure why its hard to type annotate this.
-    def __ior__(self, other) -> Self:  # type: ignore[misc]
+    def __ior__(self, other: typing.Any) -> Self:  # type: ignore[misc]
         """
         The inplace union operator ``|=``.
 

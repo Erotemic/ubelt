@@ -38,6 +38,7 @@ from __future__ import annotations
 
 import os
 import sys
+import typing
 import warnings
 
 # Global state that determines if ANSI-coloring text is allowed
@@ -52,7 +53,7 @@ def highlight_code(
     text: str,
     lexer_name: str = 'python',
     backend: str = 'pygments',
-    **kwargs,
+    **kwargs: typing.Any,
 ) -> str:
     """
     Highlights a block of text using ANSI tags based on language syntax.
@@ -117,7 +118,9 @@ def highlight_code(
     return new_text
 
 
-def _pygments_highlight(text: str, lexer_name: str, **kwargs) -> str:
+def _pygments_highlight(
+    text: str, lexer_name: str, **kwargs: typing.Any
+) -> str:
     """
     Original pygments highlight logic
     """

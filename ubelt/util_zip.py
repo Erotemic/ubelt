@@ -282,16 +282,16 @@ class zopen(NiceRepr):
         self.name = fpath
         self.mode = mode
         self._seekable = seekable
-        self._zfpath = None  # points to the base zipfile (if appropriate)
-        self._temp_dpath = None  # for temporary extraction
-        self._zfile_read = None  # underlying opened zipfile object
+        self._zfpath: str | None = None  # points to the base zipfile
+        self._temp_dpath: str | None = None  # for temporary extraction
+        self._zfile_read: typing.Any | None = None  # opened zipfile object
         # The _handle pointer should be a file-like object that this zopen
         # object impersonate, by forwarding most every getattr call to it.
-        self._handle = None
+        self._handle: typing.Any | None = None
         self._open()
 
     @property
-    def zfile(self):
+    def zfile(self) -> typing.Any:
         """
         Access the underlying archive file
         """
@@ -304,7 +304,7 @@ class zopen(NiceRepr):
             self._zfile_read = myzip
         return self._zfile_read
 
-    def namelist(self):
+    def namelist(self) -> list[str]:
         """
         Lists the contents of this zipfile
         """
@@ -312,7 +312,7 @@ class zopen(NiceRepr):
         namelist = myzip.namelist()
         return namelist
 
-    def __nice__(self):
+    def __nice__(self) -> str:
         if self._zfpath is None:
             return 'handle={}, mode={}'.format(str(self._handle), self.mode)
         else:
@@ -320,14 +320,14 @@ class zopen(NiceRepr):
                 self._handle, self._zfpath, self.mode
             )
 
-    def __getattr__(self, key):
+    def __getattr__(self, key: str) -> typing.Any:
         # Expose attributes of wrapped handle
         if hasattr(self._handle, key):
             assert self._handle is not self
             return getattr(self._handle, key)
         raise AttributeError(key)
 
-    def __dir__(self):
+    def __dir__(self) -> list[str]:
         # Expose attributes of wrapped handle
         zopen_attributes = {
             'namelist',
@@ -339,7 +339,7 @@ class zopen(NiceRepr):
             keyset.update(set(dir(self._handle)))
         return sorted(keyset | zopen_attributes)
 
-    def _cleanup(self):
+    def _cleanup(self) -> None:
         # print('self._cleanup = {!r}'.format(self._cleanup))
         if self._handle is not None:
             if not getattr(self, 'closed', True):
@@ -357,11 +357,11 @@ class zopen(NiceRepr):
     def __del__(self) -> None:
         self._cleanup()
 
-    def _split_archive(self):
+    def _split_archive(self) -> tuple[str | None, str | None]:
         archivefile, internal = split_archive(self.fpath, self.ext)
         return archivefile, internal
 
-    def _open(self):
+    def _open(self) -> None:
         """
         This logic sets the "_handle" to the appropriate backend object
         such that zopen can behave like a standard IO object.
@@ -379,7 +379,7 @@ class zopen(NiceRepr):
         """
         if 'r' not in self.mode:
             raise NotImplementedError('Only read mode is supported for now')
-        _handle = None
+        _handle: typing.Any | None = None
         fpath = os.fspath(self.fpath)
         if exists(fpath):
             _handle = open(fpath, self.mode)
@@ -413,7 +413,7 @@ class zopen(NiceRepr):
             raise IOError('file {!r} does not exist'.format(fpath))
         self._handle = _handle
 
-    def __enter__(self):
+    def __enter__(self) -> zopen:
         return self
 
     def __exit__(

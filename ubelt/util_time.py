@@ -39,7 +39,7 @@ __all__ = ['timestamp', 'timeparse', 'Timer']
 
 
 @lru_cache(maxsize=None)
-def _needs_workaround39103():
+def _needs_workaround39103() -> bool:
     """
     Depending on the system C library, either %04Y or %Y wont work.
     This is an actual Python bug:
@@ -429,7 +429,10 @@ def timeparse(
     return datetime_obj
 
 
-def _timezone_coerce(tzinfo, allow_dateutil=True):
+def _timezone_coerce(
+    tzinfo: str | datetime.timezone,
+    allow_dateutil: bool = True,
+) -> datetime.tzinfo:
     """
     Ensure output it a timezone instance.
 
@@ -486,6 +489,7 @@ def _timezone_coerce(tzinfo, allow_dateutil=True):
     """
     import datetime as datetime_mod
 
+    out_tzinfo: datetime.tzinfo
     if isinstance(tzinfo, str):
         if tzinfo == 'local':
             # Note: the local timezone time.timezone is negated
@@ -497,9 +501,10 @@ def _timezone_coerce(tzinfo, allow_dateutil=True):
             if allow_dateutil:
                 from dateutil import tz as tz_mod
 
-                out_tzinfo = tz_mod.gettz(tzinfo)
-                if out_tzinfo is None:
+                tz_candidate = tz_mod.gettz(tzinfo)
+                if tz_candidate is None:
                     raise KeyError(tzinfo)
+                out_tzinfo = tz_candidate
             else:
                 raise ValueError(
                     (

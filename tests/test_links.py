@@ -1,12 +1,13 @@
 """
 TODO: test _can_symlink=False variants on systems that can symlink.
 """
-
+from __future__ import annotations
 import os
 import sys
 from os.path import dirname, exists, isdir, isfile, islink, join, relpath
 
 import pytest
+import typing
 
 import ubelt as ub
 from ubelt import util_links
@@ -16,9 +17,11 @@ if sys.platform.startswith('win32'):
         import jaraco.windows.filesystem as jwfs
     except ImportError:
         jwfs = None
+else:
+    jwfs = None
 
 
-def test_rel_dir_link():
+def test_rel_dir_link() -> None:
     """
     xdoctest ~/code/ubelt/tests/test_links.py test_rel_dir_link
     """
@@ -79,7 +82,7 @@ def test_rel_dir_link():
         os.chdir(orig)
 
 
-def test_rel_file_link():
+def test_rel_file_link() -> None:
     import pytest
 
     import ubelt as ub
@@ -142,7 +145,7 @@ def test_rel_file_link():
         os.chdir(orig)
 
 
-def test_delete_symlinks():
+def test_delete_symlinks() -> None:
     """
     CommandLine:
         python -m ubelt.tests.test_links test_delete_symlinks
@@ -167,7 +170,9 @@ def test_delete_symlinks():
     broken_fpath = join(dpath, 'broken_fpath.txt')
     broken_flink = join(dpath, 'broken_flink.txt')
 
-    def check_path_condition(path, positive, want, msg):
+    def check_path_condition(
+        path: str, positive: bool, want: bool, msg: str
+    ) -> None:
         if not want:
             positive = not positive
             msg = 'not ' + msg
@@ -182,12 +187,12 @@ def test_delete_symlinks():
             print('isfile(path) = {!r}'.format(isfile(path)))
             raise AssertionError('path={} {}'.format(path, msg))
 
-    def assert_sometrace(path, want=True):
+    def assert_sometrace(path: str, want: bool = True) -> None:
         # Either exists or is a broken link
         positive = exists(path) or islink(path)
         check_path_condition(path, positive, want, 'has trace')
 
-    def assert_broken_link(path, want=True):
+    def assert_broken_link(path: str, want: bool = True) -> None:
         if util_links._can_symlink():
             print(
                 'path={} should{} be a broken link'.format(
@@ -233,39 +238,39 @@ def test_delete_symlinks():
     ub.delete(broken_dpath, verbose=2)
     util_links._dirstats(dpath)
 
-    assert_broken_link(broken_flink, 1)
-    assert_broken_link(broken_dlink, 1)
-    assert_sometrace(broken_fpath, 0)
-    assert_sometrace(broken_dpath, 0)
+    assert_broken_link(broken_flink, True)
+    assert_broken_link(broken_dlink, True)
+    assert_sometrace(broken_fpath, False)
+    assert_sometrace(broken_dpath, False)
 
-    assert_broken_link(happy_flink, 0)
-    assert_broken_link(happy_dlink, 0)
-    assert_sometrace(happy_fpath, 1)
-    assert_sometrace(happy_dpath, 1)
+    assert_broken_link(happy_flink, False)
+    assert_broken_link(happy_dlink, False)
+    assert_sometrace(happy_fpath, True)
+    assert_sometrace(happy_dpath, True)
 
     # broken symlinks no longer exist after they are deleted
     ub.delete(broken_dlink, verbose=2)
     util_links._dirstats(dpath)
-    assert_sometrace(broken_dlink, 0)
+    assert_sometrace(broken_dlink, False)
 
     ub.delete(broken_flink, verbose=2)
     util_links._dirstats(dpath)
-    assert_sometrace(broken_flink, 0)
+    assert_sometrace(broken_flink, False)
 
     # real symlinks no longer exist after they are deleted
     # but the original data is fine
     ub.delete(happy_dlink, verbose=2)
     util_links._dirstats(dpath)
-    assert_sometrace(happy_dlink, 0)
-    assert_sometrace(happy_dpath, 1)
+    assert_sometrace(happy_dlink, False)
+    assert_sometrace(happy_dpath, True)
 
     ub.delete(happy_flink, verbose=2)
     util_links._dirstats(dpath)
-    assert_sometrace(happy_flink, 0)
-    assert_sometrace(happy_fpath, 1)
+    assert_sometrace(happy_flink, False)
+    assert_sometrace(happy_fpath, True)
 
 
-def test_modify_directory_symlinks():
+def test_modify_directory_symlinks() -> None:
     import pytest
 
     import ubelt as ub
@@ -328,7 +333,7 @@ def test_modify_directory_symlinks():
     assert not dir_path2.exists()
 
 
-def test_modify_file_symlinks():
+def test_modify_file_symlinks() -> None:
     """
     CommandLine:
         python -m ubelt.tests.test_links test_modify_symlinks
@@ -359,7 +364,7 @@ def test_modify_file_symlinks():
     assert happy_flink.read_text() == 'bar'
 
 
-def test_broken_link():
+def test_broken_link() -> None:
     """
     CommandLine:
         python -m ubelt.tests.test_links test_broken_link
@@ -403,7 +408,7 @@ def test_broken_link():
         assert exists(broken_flink)
 
 
-def test_cant_overwrite_file_with_symlink():
+def test_cant_overwrite_file_with_symlink() -> None:
     if ub.WIN32:
         # Can't distinguish this case on windows
         pytest.skip()
@@ -437,7 +442,7 @@ def test_cant_overwrite_file_with_symlink():
             )
 
 
-def test_overwrite_symlink():
+def test_overwrite_symlink() -> None:
     """
     CommandLine:
         python ~/code/ubelt/tests/test_links.py test_overwrite_symlink
@@ -506,11 +511,13 @@ def test_overwrite_symlink():
         ub.symlink(happy_fpath, happy_flink, verbose=verbose, overwrite=True)
 
 
-def _force_junction(func):
+def _force_junction(
+    func: typing.Callable[..., typing.Any]
+) -> typing.Callable[..., typing.Any]:
     from functools import wraps
 
     @wraps(func)
-    def _wrap(*args):
+    def _wrap(*args: typing.Any) -> typing.Any:
         if not ub.WIN32:
             pytest.skip()
         from ubelt import _win32_links
@@ -522,7 +529,7 @@ def _force_junction(func):
     return _wrap
 
 
-def test_symlink_to_rel_symlink():
+def test_symlink_to_rel_symlink() -> None:
     """
     Test a case with a absolute link to a relative link to a real path.
     """

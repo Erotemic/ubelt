@@ -359,13 +359,13 @@ class chunks(Iterable[List[VT]]):
             filt_chunk = [item for item in chunk if item is not sentinel]
             if len(filt_chunk) == chunksize:
                 if typing.TYPE_CHECKING:
-                    filt_chunk = cast(list[VT], filt_chunk)  # type: ignore[assignment]
+                    filt_chunk = cast(List[VT], filt_chunk)  # type: ignore[assignment]
                 yield filt_chunk  # type: ignore[misc]
             else:
                 sizediff = chunksize - len(filt_chunk)
                 padded_chunk = filt_chunk + [filt_chunk[-1]] * sizediff
                 if typing.TYPE_CHECKING:
-                    padded_chunk = cast(list[VT], padded_chunk)  # type: ignore[assignment]
+                    padded_chunk = cast(List[VT], padded_chunk)  # type: ignore[assignment]
                 yield padded_chunk  # type: ignore[misc]
 
 
@@ -907,15 +907,15 @@ def argsort(
         indices = [k for v, k in sorted(vk_iter, reverse=reverse)]
     else:
         # If key is provided, call it using the value as input
-        def key_func(vk):
+        def key_func(vk: tuple[typing.Any, typing.Any]) -> typing.Any:
             return key(vk[0])
 
         indices = [k for v, k in sorted(vk_iter, key=key_func, reverse=reverse)]
     if typing.TYPE_CHECKING:
         if isinstance(indexable, Mapping):
-            indices = cast(list[KT], indices)
+            indices = cast(List[KT], indices)
         else:
-            indices = cast(list[int], indices)  # type: ignore
+            indices = cast(List[int], indices)  # type: ignore
     return indices
 
 

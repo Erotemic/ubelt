@@ -125,7 +125,7 @@ class TeeStringIO(io.StringIO):
             return super().fileno()
 
     @property
-    def encoding(self):
+    def encoding(self) -> typing.Any:
         """
         Gets the encoding of the `redirect` IO object
 
@@ -157,11 +157,11 @@ class TeeStringIO(io.StringIO):
             return super().encoding
 
     @encoding.setter
-    def encoding(self, value):
+    def encoding(self, value: typing.Any) -> None:
         # Adding a setter to make mypy happy
         raise AttributeError('encoding is read-only on TeeStringIO')
 
-    def write(self, msg: str):
+    def write(self, msg: str) -> int:
         """
         Write to this and the redirected stream
 
@@ -186,7 +186,7 @@ class TeeStringIO(io.StringIO):
             self.redirect.write(msg)
         return super().write(msg)
 
-    def flush(self):
+    def flush(self) -> None:
         """
         Flush to this and the redirected stream
 
@@ -314,7 +314,7 @@ class CaptureStream:
             return False  # propagate exception
         return None
 
-    def __del__(self):  # nocover
+    def __del__(self) -> None:  # nocover
         # Be robust during interpreter shutdown
         try:
             if getattr(self, 'started', False):

@@ -123,7 +123,9 @@ class SerialFuture(concurrent.futures.Future):
     args: tuple
     kw: dict
 
-    def __init__(self, func, *args, **kw) -> None:
+    def __init__(
+        self, func: Callable[..., Any], *args: Any, **kw: Any
+    ) -> None:
         super(SerialFuture, self).__init__()
         self.func = func
         self.args = args
@@ -133,12 +135,12 @@ class SerialFuture(concurrent.futures.Future):
         # fake being finished to cause __get_result to be called
         self._state = concurrent.futures._base.FINISHED
 
-    def _run(self):
+    def _run(self) -> None:
         result = self.func(*self.args, **self.kw)
         self.set_result(result)
         self._run_count += 1
 
-    def set_result(self, result) -> None:
+    def set_result(self, result: Any) -> None:
         """
         Overrides the implementation to revert to pre python3.8 behavior
 
@@ -173,7 +175,7 @@ class SerialFuture(concurrent.futures.Future):
             self._condition.notify_all()
         self._invoke_callbacks()  # type: ignore
 
-    def _Future__get_result(self):
+    def _Future__get_result(self) -> typing.Any:
         # overrides private __getresult method
         if not self._run_count:
             self._run()
@@ -573,7 +575,7 @@ class JobPool:
         return len(self.jobs)
 
     def submit(
-        self, func: Callable[..., Any], *args, **kwargs
+        self, func: Callable[..., Any], *args: Any, **kwargs: Any
     ) -> concurrent.futures.Future:
         """
         Submit a job managed by the pool

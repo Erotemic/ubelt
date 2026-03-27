@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import os
 import sys
+import typing
 from os.path import exists
 
 __all__ = [
@@ -117,8 +118,10 @@ def writeto(
             file.write(bytes)
 
 
-def _ensure_bytes(text):
-    """ensures text is in a suitable format for writing"""
+def _ensure_bytes(text: str | bytes) -> bytes:
+    """Ensure text is in a suitable format for writing."""
+    if isinstance(text, bytes):
+        return text
     return text.encode('utf8')
 
 
@@ -182,7 +185,7 @@ def touch(
     mode: int = 0o666,
     dir_fd: int | None = None,
     verbose: int = 0,
-    **kwargs,
+    **kwargs: typing.Any,
 ) -> str | os.PathLike:
     """
     change file timestamps

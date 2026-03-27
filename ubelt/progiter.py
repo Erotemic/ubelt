@@ -108,7 +108,7 @@ CLEAR_BEFORE: str = '\r'
 AT_END: str = '\n'
 
 
-def _infer_length(iterable):
+def _infer_length(iterable: typing.Any) -> int | None:
     """
     Try and infer the length using the PEP 424 length hint if available.
 
@@ -222,7 +222,7 @@ class _TQDMCompat:
         """tqdm api compatibility. does nothing"""
         pass
 
-    def moveto(self, n) -> None:
+    def moveto(self, n: int) -> None:
         """tqdm api compatibility. does nothing"""
         pass
 
@@ -248,7 +248,7 @@ class _TQDMCompat:
         return 0
 
     @classmethod
-    def set_lock(cls, lock) -> None:
+    def set_lock(cls, lock: typing.Any) -> None:
         """tqdm api compatibility. does nothing"""
         pass
 
@@ -261,7 +261,7 @@ class _TQDMCompat:
         self,
         ordered_dict: dict | None = None,
         refresh: bool = True,
-        **kwargs,
+        **kwargs: typing.Any,
     ) -> None:
         """
         tqdm api compatibility. calls set_extra
@@ -294,7 +294,9 @@ class _TQDMCompat:
         )
         self.set_postfix_str(postfix, refresh=refresh)
 
-    def set_postfix(self, postfix, **kwargs) -> None:
+    def set_postfix(
+        self, postfix: str | dict | None, **kwargs: typing.Any
+    ) -> None:
         if isinstance(postfix, str):
             self.set_postfix_str(postfix, **kwargs)
         else:
@@ -426,7 +428,7 @@ class ProgIter(_TQDMCompat, _BackwardsCompat, Iterable[T]):
         rel_adjust_limit: float = 4.0,
         homogeneous: bool | str = 'auto',
         timer: typing.Callable[[], float] | None = None,
-        **kwargs,
+        **kwargs: typing.Any,
     ) -> None:
         """
         See attributes more arg information
@@ -581,7 +583,7 @@ class ProgIter(_TQDMCompat, _BackwardsCompat, Iterable[T]):
         self.chunksize = chunksize
         self.rel_adjust_limit = rel_adjust_limit
         self.extra = ''
-        self._extra_fn = None
+        self._extra_fn: typing.Callable[[], str] | None = None
         self.started = False
         self.finished = False
 
@@ -590,13 +592,14 @@ class ProgIter(_TQDMCompat, _BackwardsCompat, Iterable[T]):
         self._timer = timer
 
         self.homogeneous = homogeneous
-        self._likely_homogeneous = None
+        self._likely_homogeneous: bool | None = None
 
         # indicates if the cursor is currently at the start of a line (True) or
         # if characters have been written with no newline yet.
         self._cursor_at_newline = True
 
         self._prev_msg_len = 0  # used to ensure lines are fully cleared
+        self._est_seconds_left: float | int | None = None
 
         self._reset_internals()
 
@@ -691,7 +694,7 @@ class ProgIter(_TQDMCompat, _BackwardsCompat, Iterable[T]):
             self._extra_fn = None
             self.extra = extra
 
-    def _reset_internals(self):
+    def _reset_internals(self) -> None:
         """
         Initialize all variables used in the internal state
         """
@@ -837,7 +840,9 @@ class ProgIter(_TQDMCompat, _BackwardsCompat, Iterable[T]):
 
         self.end()
 
-    def _homogeneous_check(self, gen):
+    def _homogeneous_check(
+        self, gen: typing.Iterator[tuple[int, T]]
+    ) -> typing.Iterator[T]:
         # NOTE: We could have a more complex heuristic with negligible
         # overhead and more robustness that checks every n iterations
         # that such that the time call overhead would be negligible.
@@ -855,7 +860,7 @@ class ProgIter(_TQDMCompat, _BackwardsCompat, Iterable[T]):
         # is only .01% of the total loop time
         overhead_threshold = 50e-9 * 10_000
 
-        slowest = 0
+        slowest = 0.0
         for self._iter_idx, item in islice(gen, num_initial_steps):
             yield item
             self._slow_path_step_body()
@@ -864,7 +869,7 @@ class ProgIter(_TQDMCompat, _BackwardsCompat, Iterable[T]):
         # We are moving fast, take the faster path
         self._likely_homogeneous = slowest < overhead_threshold
 
-    def _slow_path_step_body(self, force=False):
+    def _slow_path_step_body(self, force: bool = False) -> None:
         # In the slow path, we don't make any assumption about how long
         # iterations take. So on every iteration we must measure the time
         self._measure_time()
@@ -901,7 +906,7 @@ class ProgIter(_TQDMCompat, _BackwardsCompat, Iterable[T]):
         self._iter_idx += inc
         self._slow_path_step_body(force=force)
 
-    def _adjust_frequency(self):
+    def _adjust_frequency(self) -> None:
         # Adjust frequency so the next print will not happen until
         # approximately `time_thresh` seconds have passed as estimated by
         # iter_idx.
@@ -920,7 +925,7 @@ class ProgIter(_TQDMCompat, _BackwardsCompat, Iterable[T]):
         min_freq = int(self.freq // rel_limit)
         self.freq = max(min(new_freq, max_freq), min_freq, 1)
 
-    def _measure_time(self):
+    def _measure_time(self) -> None:
         """
         Measures the current time and update info about how long we've been
         waiting since the last iteration was displayed.
@@ -975,10 +980,10 @@ class ProgIter(_TQDMCompat, _BackwardsCompat, Iterable[T]):
         # Mark when our next measurement should be in "fast mode"
         self._next_measure_idx = self._iter_idx + self.freq
 
-    def _update_message_template(self):
+    def _update_message_template(self) -> None:
         self._msg_fmtstr = self._build_message_template()
 
-    def _build_message_template(self):
+    def _build_message_template(self) -> tuple[str, str, str]:
         """
         Defines the template for the progress line
 
@@ -1214,7 +1219,7 @@ class ProgIter(_TQDMCompat, _BackwardsCompat, Iterable[T]):
         self._display_timedelta = 0
         self._force_next_display = False
 
-    def _tryflush(self):
+    def _tryflush(self) -> None:
         """flush to the internal stream"""
         try:
             # flush sometimes causes issues in IPython notebooks
@@ -1222,7 +1227,7 @@ class ProgIter(_TQDMCompat, _BackwardsCompat, Iterable[T]):
         except IOError:  # nocover
             pass
 
-    def _write(self, msg):
+    def _write(self, msg: str) -> None:
         """
         write to the internal stream
 

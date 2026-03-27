@@ -1,4 +1,4 @@
-def test_capture_stream_error():
+def test_capture_stream_error() -> None:
     import ubelt as ub
 
     class DummyException(Exception): ...
@@ -13,7 +13,7 @@ def test_capture_stream_error():
     assert cap.text.startswith('hello there')
 
 
-def test_capture_stream_stream_assign():
+def test_capture_stream_stream_assign() -> None:
     import ubelt as ub
 
     with ub.CaptureStdout() as cap:
@@ -27,7 +27,7 @@ def test_capture_stream_stream_assign():
     assert cap.orig_stdout is cap.orig_stream  # type: ignore
 
 
-def test_tee_string_io_flush():
+def test_tee_string_io_flush() -> None:
     import io
 
     from ubelt.util_stream import TeeStringIO

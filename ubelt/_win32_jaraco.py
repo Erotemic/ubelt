@@ -55,6 +55,7 @@ Ignore:
 
 import ctypes
 import ctypes.wintypes
+import typing
 
 # Makes mypy happy
 import sys
@@ -62,7 +63,7 @@ import sys
 assert sys.platform == 'win32'
 
 
-def handle_nonzero_success(result):
+def handle_nonzero_success(result: int) -> None:
     if result == 0:
         raise ctypes.WinError()
 
@@ -82,11 +83,11 @@ class BY_HANDLE_FILE_INFORMATION(ctypes.Structure):
     ]
 
     @property
-    def file_size(self):
+    def file_size(self) -> int:
         return (self.file_size_high << 32) + self.file_size_low
 
     @property
-    def file_index(self):
+    def file_index(self) -> int:
         return (self.file_index_high << 32) + self.file_index_low
 
 
@@ -103,13 +104,13 @@ class REPARSE_DATA_BUFFER(ctypes.Structure):
         ('path_buffer', (ctypes.c_byte * 1)),
     ]
 
-    def get_print_name(self):
+    def get_print_name(self) -> str:
         wchar_size = ctypes.sizeof(ctypes.wintypes.WCHAR)
         arr_typ = ctypes.wintypes.WCHAR * (self.print_name_length // wchar_size)
         data = ctypes.byref(self.path_buffer, self.print_name_offset)
         return ctypes.cast(data, ctypes.POINTER(arr_typ)).contents.value
 
-    def get_substitute_name(self):
+    def get_substitute_name(self) -> str:
         wchar_size = ctypes.sizeof(ctypes.wintypes.WCHAR)
         arr_typ = ctypes.wintypes.WCHAR * (
             self.substitute_name_length // wchar_size
@@ -194,7 +195,7 @@ DeviceIoControl.argtypes = [
 DeviceIoControl.restype = ctypes.wintypes.BOOL
 
 
-def is_reparse_point(path):
+def is_reparse_point(path: str) -> bool:
     """
     Determine if the given path is a reparse point.
     Return False if the file does not exist or the file attributes cannot
@@ -206,7 +207,7 @@ def is_reparse_point(path):
     )
 
 
-def link(target, link):
+def link(target: str, link: str) -> None:
     """
     Establishes a hard link between an existing file and a new file.
     """
@@ -214,8 +215,12 @@ def link(target, link):
 
 
 def _reparse_DeviceIoControl(
-    device, io_control_code, in_buffer, out_buffer, overlapped=None
-):
+    device: typing.Any,
+    io_control_code: int,
+    in_buffer: typing.Any,
+    out_buffer: typing.Any,
+    overlapped: typing.Any = None,
+) -> bytes:
     # ubelt note: name is overloaded, so we mangle it here.
     if overlapped is not None:
         raise NotImplementedError('overlapped handles not yet supported')
@@ -243,7 +248,7 @@ def _reparse_DeviceIoControl(
     handle_nonzero_success(res)
     handle_nonzero_success(returned_bytes)
 
-    return out_buffer[: returned_bytes.value]
+    return bytes(out_buffer[: returned_bytes.value])
 
 
 # Fake the jaraco api

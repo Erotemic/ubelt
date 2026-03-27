@@ -65,7 +65,7 @@ def identity(
 
 
 def inject_method(
-    self,
+    self: typing.Any,
     func: typing.Callable[..., typing.Any],
     name: str | None = None,
 ) -> None:
