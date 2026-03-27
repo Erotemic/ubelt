@@ -580,6 +580,23 @@ def test_symlink_to_rel_symlink() -> None:
     # ub.symlink(real_path=link1, link_path=link2, verbose=1)
 
 
+def test_readlink_accepts_bytes() -> None:
+    if ub.WIN32:
+        pytest.skip('byte-path readlink behavior is posix-only')
+
+    dpath = ub.Path.appdir(
+        'ubelt/tests/test_links', 'test_readlink_bytes'
+    ).ensuredir()
+    ub.delete(dpath, verbose=0)
+    dpath.ensuredir()
+    real_fpath = dpath / 'real'
+    link_fpath = dpath / 'link'
+    real_fpath.write_text('x')
+    ub.symlink(real_fpath, link_fpath, verbose=0)
+    got = util_links._readlink(os.fsencode(link_fpath))
+    assert isinstance(got, str)
+
+
 # class TestSymlinksForceJunction:
 fj_test_delete_symlinks = _force_junction(test_delete_symlinks)
 fj_test_modify_directory_symlinks = _force_junction(

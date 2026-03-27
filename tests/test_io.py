@@ -29,3 +29,10 @@ def test_readwrite() -> None:
     with pytest.warns(Warning):
         read_ = ub.readfrom(fpath, verbose=True)
     assert read_ == to_write
+
+
+def test_ensure_bytes_bytes_passthrough() -> None:
+    from ubelt.util_io import _ensure_bytes
+
+    data = b'hello'
+    assert _ensure_bytes(data) is data

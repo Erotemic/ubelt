@@ -76,29 +76,30 @@ if typing.TYPE_CHECKING:
     )
 
     T = TypeVar('T')
-
-
-class _ExecutorBackend(Protocol):
-    def __enter__(self) -> Any: ...
-    def __exit__(
-        self,
-        ex_type: Type[BaseException] | None,
-        ex_value: BaseException | None,
-        ex_traceback: TracebackType | None,
-    ) -> bool | None: ...
-    def submit(
-        self,
-        func: Callable[..., T],
-        *args: Any,
-        **kw: Any,
-    ) -> concurrent.futures.Future[T]: ...
-    def shutdown(self) -> None: ...
-    def map(
-        self,
-        fn: Callable[..., T],
-        *iterables: Iterable[Any],
-        **kwargs: Any,
-    ) -> Iterator[T]: ...
+    
+    class _ExecutorBackend(Protocol):
+        def __enter__(self) -> Any: ...
+        def __exit__(
+            self,
+            ex_type: Type[BaseException] | None,
+            ex_value: BaseException | None,
+            ex_traceback: TracebackType | None,
+        ) -> bool | None: ...
+        def submit(
+            self,
+            func: Callable[..., T],
+            *args: Any,
+            **kw: Any,
+        ) -> concurrent.futures.Future[T]: ...
+        def shutdown(self) -> None: ...
+        def map(
+            self,
+            fn: Callable[..., T],
+            *iterables: Iterable[Any],
+            **kwargs: Any,
+        ) -> Iterator[T]: ...
+else:
+    _ExecutorBackend = typing.Any
 
 
 class SerialFuture(concurrent.futures.Future):

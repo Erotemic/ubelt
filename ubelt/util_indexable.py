@@ -418,7 +418,7 @@ class IndexableWalker(Generator):
         """
         for item in self._walk():
             if item is None:
-                continue
+                continue  # nocover
             path, value = item
             if non_leaf or not isinstance(value, self.indexable_cls):
                 yield path
@@ -452,7 +452,7 @@ class IndexableWalker(Generator):
         """
         for item in self._walk():
             if item is None:
-                continue
+                continue  # nocover
             path, value = item
             if non_leaf or not isinstance(value, self.indexable_cls):
                 yield value
@@ -635,7 +635,7 @@ class IndexableWalker(Generator):
         flat_items1 = []
         for item in walker1:
             if item is None:
-                continue
+                continue  # nocover
             path, value = item
             if not isinstance(value, walker1.indexable_cls) or (
                 isinstance(value, Sized) and len(value) == 0
@@ -644,7 +644,7 @@ class IndexableWalker(Generator):
         flat_items2 = []
         for item in walker2:
             if item is None:
-                continue
+                continue  # nocover
             path, value = item
             if not isinstance(value, walker1.indexable_cls) or (
                 isinstance(value, Sized) and len(value) == 0
@@ -788,7 +788,7 @@ class IndexableWalker(Generator):
         flat_items1 = {}
         for item in walker1:
             if item is None:
-                continue
+                continue  # nocover
             path, value = item
             if not isinstance(value, walker1.indexable_cls) or (
                 isinstance(value, Sized) and len(value) == 0
@@ -797,7 +797,7 @@ class IndexableWalker(Generator):
         flat_items2 = {}
         for item in walker2:
             if item is None:
-                continue
+                continue  # nocover
             path, value = item
             if not isinstance(value, walker1.indexable_cls) or (
                 isinstance(value, Sized) and len(value) == 0

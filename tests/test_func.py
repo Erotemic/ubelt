@@ -62,3 +62,23 @@ def test_positional_only_args() -> None:
     }
     pos_only = ub.compatible(config, func)
     assert sorted(pos_only) == ['f']
+
+
+def test_compatible_noniterable_keywords_flag() -> None:
+    import ubelt as ub
+
+    def func(a: int, e: int, f: int) -> int:
+        return a * e * f
+
+    class TruthyNonIterable:
+        def __bool__(self) -> bool:
+            return True
+
+    config = {
+        'a': 2,
+        'b': 3,
+        'e': 13,
+        'f': 17,
+    }
+    got = ub.compatible(config, func, keywords=TruthyNonIterable())
+    assert got == {'a': 2, 'e': 13, 'f': 17}
