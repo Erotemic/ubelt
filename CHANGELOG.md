@@ -9,6 +9,7 @@ This project (loosely) adheres to [Semantic Versioning](https://semver.org/spec/
 
 ### Changed
 * Improved urepr type annotations
+* Improved general type annotations
 * Removed internal helpers from urepr
 
 

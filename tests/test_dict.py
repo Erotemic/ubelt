@@ -3,7 +3,7 @@ import pytest
 import ubelt as ub
 
 
-def test_auto_dict():
+def test_auto_dict() -> None:
     auto = ub.AutoDict()
     assert 0 not in auto
     auto[0][10][100] = None
@@ -11,7 +11,7 @@ def test_auto_dict():
     assert isinstance(auto[0], ub.AutoDict)
 
 
-def test_auto_dict_to_dict():
+def test_auto_dict_to_dict() -> None:
     from ubelt.util_dict import AutoDict
 
     auto = AutoDict()
@@ -35,7 +35,7 @@ def test_auto_dict_to_dict():
     assert isinstance(static['dict']['n3']['n4'], AutoDict)
 
 
-def test_auto_dict_ordered():
+def test_auto_dict_ordered() -> None:
     # To Dict should respect ordering
     from ubelt.util_dict import AutoDict, AutoOrderedDict
 
@@ -55,11 +55,11 @@ def test_auto_dict_ordered():
     assert list(auto[0].values())[0:3] == [3, 2, 1], 'maintain order'
 
 
-def test_dzip_errors():
+def test_dzip_errors() -> None:
     with pytest.raises(TypeError):
-        ub.dzip([1], 2)
+        ub.dzip([1], 2)  # type: ignore
     with pytest.raises(TypeError):
-        ub.dzip(1, [2])
+        ub.dzip(1, [2])  # type: ignore
     with pytest.raises(ValueError):
         ub.dzip([1, 2, 3], [])
     with pytest.raises(ValueError):
@@ -68,7 +68,7 @@ def test_dzip_errors():
         ub.dzip([1, 2, 3], [4, 5])
 
 
-def test_group_items_callable():
+def test_group_items_callable() -> None:
     pairs = [
         ('ham', 'protein'),
         ('jam', 'fruit'),
@@ -83,12 +83,12 @@ def test_group_items_callable():
     result1 = ub.group_items(items, groupids)
     result2 = ub.group_items(items, lut.__getitem__)
 
-    result1 = ub.map_values(set, result1)
-    result2 = ub.map_values(set, result2)
+    result1 = ub.map_values(lambda x: set(x), result1)  # type: ignore[arg-type,return-value]
+    result2 = ub.map_values(lambda x: set(x), result2)  # type: ignore[arg-type,return-value]
     assert result1 == result2
 
 
-def test_dict_hist_ordered():
+def test_dict_hist_ordered() -> None:
     import random
     import string
 
@@ -102,7 +102,7 @@ def test_dict_hist_ordered():
     assert a == b
 
 
-def test_dict_subset_iterable():
+def test_dict_subset_iterable() -> None:
     """
     CommandLine:
         xdoctest -m ~/code/ubelt/tests/test_dict.py test_dict_subset_iterable
@@ -114,7 +114,7 @@ def test_dict_subset_iterable():
     assert dict(got) == dict_
 
 
-def test_dict_subset_default():
+def test_dict_subset_default() -> None:
     """
     Test dict_subset with default value for missing keys.
     """

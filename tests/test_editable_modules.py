@@ -13,6 +13,7 @@ produces so we can simply reconstruct the environment.
 
 import os
 import sys
+import typing
 
 
 class ProjectStructure:
@@ -34,7 +35,12 @@ class ProjectStructure:
 
     """
 
-    def __init__(self, repo_dpath='.', mod_name='demopkg_mwe', use_src=True):
+    def __init__(
+        self,
+        repo_dpath: typing.Any = '.',
+        mod_name: str = 'demopkg_mwe',
+        use_src: bool = True,
+    ) -> None:
         import ubelt as ub
 
         self.root = ub.Path(repo_dpath)
@@ -49,15 +55,15 @@ class ProjectStructure:
         self.python_path = self.root / self.python_relpath
         self.mod_dpath = self.python_path / self.mod_name
 
-    def setup(self):
+    def setup(self) -> None:
         self.generate()
         self.install()
 
-    def teardown(self):
+    def teardown(self) -> None:
         self.uninstall()
         self.delete()
 
-    def install(self):
+    def install(self) -> None:
         import sys
 
         import ubelt as ub
@@ -68,10 +74,10 @@ class ProjectStructure:
             check=True,
         )
 
-    def delete(self):
+    def delete(self) -> None:
         self.root.delete()
 
-    def uninstall(self):
+    def uninstall(self) -> None:
         import sys
 
         import ubelt as ub
@@ -82,7 +88,7 @@ class ProjectStructure:
             check=True,
         )
 
-    def generate(self, with_cxx=0):
+    def generate(self, with_cxx: int = 0) -> None:
         import ubelt as ub
 
         self.mod_dpath.delete().ensuredir()
@@ -338,7 +344,7 @@ class ProjectStructure:
             (self.mod_dpath / 'submod.py').write_text('A = 1')
             (self.mod_dpath / 'submod.pyi').write_text('A: int')
 
-    def analyze(self):
+    def analyze(self) -> None:
         """
         For debugging and development only, don't run in the tests
 
@@ -357,13 +363,17 @@ class ProjectStructure:
 
         console = Console()
 
-        def rich_file_content(fpath, lexer='bash'):
+        def rich_file_content(
+            fpath: typing.Any, lexer: str = 'bash'
+        ) -> typing.Any:
             import os
 
             text = fpath.read_text()
             return Panel(Syntax(text, lexer), title=os.fspath(fpath))
 
-        def print_egg_path_content(egg_info_dpath, color='blue'):
+        def print_egg_path_content(
+            egg_info_dpath: typing.Any, color: str = 'blue'
+        ) -> None:
             blocklist = {'requires.txt'}
             fpaths = egg_info_dpath.ls()
             table = Table(f'[{color}]' + str(egg_info_dpath))
@@ -463,7 +473,7 @@ class ProjectStructure:
                 '[yellow] Package does not seem installed, so skipping import test'
             )
 
-    def serialize_install(self):
+    def serialize_install(self) -> None:
         # TODO: serialize this step to make it fast
         import distutils.sysconfig
 
@@ -486,7 +496,7 @@ class ProjectStructure:
 GLOBAL_PROJECTS = []
 
 
-def _check_skip_editable_module_tests():
+def _check_skip_editable_module_tests() -> None:
     UBELT_DO_EDITABLE_TESTS = os.environ.get('UBELT_DO_EDITABLE_TESTS', '')
     if not UBELT_DO_EDITABLE_TESTS:
         import pytest
@@ -504,7 +514,7 @@ def _check_skip_editable_module_tests():
         pytest.skip('skip editable module tests on FreeBSD')
 
 
-def setup_module(module):
+def setup_module(module: object) -> None:
     """setup any state specific to the execution of the given module."""
     import uuid
 
@@ -540,7 +550,7 @@ def setup_module(module):
             proj.analyze()
 
 
-def teardown_module(module):
+def teardown_module(module: object) -> None:
     """teardown any state that was previously setup with a setup_module
     method.
     """
@@ -549,7 +559,7 @@ def teardown_module(module):
         PROJ.teardown()
 
 
-def test_import_of_editable_install():
+def test_import_of_editable_install() -> None:
     _check_skip_editable_module_tests()
     print('Testing editable installs')
     import ubelt as ub

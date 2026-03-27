@@ -1,4 +1,7 @@
+from __future__ import annotations
+
 import itertools as it
+import typing
 import uuid
 
 import pytest
@@ -12,12 +15,14 @@ from ubelt.util_hash import (
 )
 
 try:
-    import numpy as np
+    import numpy as _np
 except ImportError:
     np = None
+else:
+    np = _np
 
 
-def _benchmark():
+def _benchmark() -> None:
     """
     On 64-bit processors sha512 may be faster than sha256
 
@@ -30,7 +35,7 @@ def _benchmark():
         # for key in hashlib.algorithms_guaranteed:
         for key in algos:
             hashtype = _rectify_hasher(key)
-            t1 = ub.Timerit(100, bestof=10, label=key, verbose=0)
+            t1 = ub.Timerit(100, bestof=10, label=key, verbose=0)  # type: ignore
             for timer in t1:
                 data = b'8' * n
                 with timer:
@@ -46,7 +51,7 @@ def _benchmark():
         # for key in hashlib.algorithms_guaranteed:
         for key in algos:
             hashtype = _rectify_hasher(key)
-            t1 = ub.Timerit(100, bestof=10, label=key, verbose=0)
+            t1 = ub.Timerit(100, bestof=10, label=key, verbose=0)  # type: ignore
             for timer in t1:
                 data = b'8' * n
                 hasher = hashtype()
@@ -83,13 +88,13 @@ def _benchmark():
     """
 
 
-def test_hash_data_with_types():
+def test_hash_data_with_types() -> None:
     if np is None:
         pytest.skip('requires numpy')
     counter = [0]
     failed = []
 
-    def check_hash(want, input_):
+    def check_hash(want: str | None, input_: typing.Any) -> None:
         count = counter[0] = counter[0] + 1
         got = ub.hash_data(input_, hasher='sha512', base='abc', types=True)
         got = got[0:32]
@@ -108,7 +113,7 @@ def test_hash_data_with_types():
     check_hash('foevisahdffoxfasicvyklrmuuwqnfcc', ['1', '2', '3'])
     check_hash(
         'rkcnfxkjwkrfejhbpcpopmyubhbvonkt',
-        ['1', np.array([1, 2, 3], dtype=np.int64), '3'],
+        ['1', np.array([1, 2, 3], dtype=np.int64), '3'],  # type: ignore
     )
     check_hash('lxssoxdkstvccsyqaybaokehclyctgmn', '123')
     check_hash('fpvptydigvgjimbzadztgpvjpqrevwcq', zip([1, 2, 3], [4, 5, 6]))
@@ -117,13 +122,13 @@ def test_hash_data_with_types():
     assert len(failed) == 0
 
 
-def test_hash_data_without_types():
+def test_hash_data_without_types() -> None:
     if np is None:
         pytest.skip('requires numpy')
     counter = [0]
     failed = []
 
-    def check_hash(want, input_):
+    def check_hash(want: str | None, input_: typing.Any) -> None:
         count = counter[0] = counter[0] + 1
         got = ub.hash_data(input_, hasher='sha1', base='hex', types=False)
         # assert got.startswith(want), 'want={}, got={}'.format(want, got)
@@ -141,7 +146,7 @@ def test_hash_data_without_types():
     check_hash('d6d265a904bc7df97bd54a8c2ff4546e211c3cd8', ['1', '2', '3'])
     check_hash(
         'eff59c7c787bd223a680c9d625f54756be4fdf5b',
-        ['1', np.array([1, 2, 3], dtype=np.int64), '3'],
+        ['1', np.array([1, 2, 3], dtype=np.int64), '3'],  # type: ignore
     )
     check_hash('40bd001563085fc35165329ea1ff5c5ecbdbbeef', '123')
     check_hash(
@@ -152,11 +157,11 @@ def test_hash_data_without_types():
     assert len(failed) == 0
 
 
-def test_available():
+def test_available() -> None:
     assert 'sha1' in ub.util_hash._HASHERS.available()
 
 
-def test_idempotency():
+def test_idempotency() -> None:
     # When we disable types and join sequence items, the hashable
     # sequence should be idempotent
     nested_data = ['fds', [3, 2, 3], {3: 2, '3': [3, 2, {3}]}, {1, 2, 3}]
@@ -165,7 +170,7 @@ def test_idempotency():
     assert hashable1 == hashable2
 
 
-def test_special_floats():
+def test_special_floats() -> None:
     # Tests a fix from version 0.10.3 for inf/nan floats
     # standard_floats = [0.0, 0.1, 0.2]
     data = [
@@ -206,13 +211,13 @@ def test_special_floats():
     _sanity_check(data)
 
 
-def test_hashable_sequence_sanity():
+def test_hashable_sequence_sanity() -> None:
     data = [1, 2, [3.2, 5]]
     # data = [1]
     _sanity_check(data)
 
 
-def _sanity_check(data):
+def _sanity_check(data: typing.Any) -> None:
     hasher_code = 'sha512'
     hasher_type = ub.util_hash._rectify_hasher(hasher_code)
 
@@ -245,108 +250,108 @@ def _sanity_check(data):
     assert encoded_byt == seq2
 
     tracer1 = ub.util_hash._HashTracer()
-    ub.hash_data(encoded_byt, types=False, hasher=tracer1)
+    ub.hash_data(encoded_byt, types=False, hasher=tracer1)  # type: ignore
     traced_bytes1 = tracer1.hexdigest()
     print('traced_bytes1 = {!r}'.format(traced_bytes1))
     assert traced_bytes1 == encoded_byt
 
     tracer2 = ub.util_hash._HashTracer()
-    ub.hash_data(encoded_byt, types=False, hasher=tracer2)
+    ub.hash_data(encoded_byt, types=False, hasher=tracer2)  # type: ignore
     traced_bytes2 = tracer1.hexdigest()
     print('traced_bytes2 = {!r}'.format(traced_bytes2))
     assert traced_bytes2 == traced_bytes1
 
 
-def test_numpy_object_array():
+def test_numpy_object_array() -> None:
     """
     _HASHABLE_EXTENSIONS = ub.util_hash._HASHABLE_EXTENSIONS
     """
     if np is None:
         pytest.skip('requires numpy')
     # An object array should have the same repr as a list of a tuple of data
-    data = np.array([1, 2, 3], dtype=object)
+    data = np.array([1, 2, 3], dtype=object)  # type: ignore
     objhash = ub.hash_data(data)
     assert ub.hash_data([1, 2, 3]) == objhash
     assert ub.hash_data((1, 2, 3)) == objhash
 
     # Ensure this works when the object array is nested
-    data = [np.array([1, 2, 3], dtype=object)]
+    data = [np.array([1, 2, 3], dtype=object)]  # type: ignore
     objhash = ub.hash_data(data)
     assert ub.hash_data([[1, 2, 3]]) == objhash
     assert ub.hash_data([(1, 2, 3)]) == objhash
     assert ub.hash_data(([1, 2, 3],)) == objhash
 
 
-def test_ndarray_int_object_convert():
+def test_ndarray_int_object_convert() -> None:
     if np is None:
         pytest.skip('requires numpy')
     data_list = [[1, 2, 3], [4, 5, 6]]
 
-    data = np.array(data_list, dtype=np.int64)
+    data = np.array(data_list, dtype=np.int64)  # type: ignore
 
     s1 = b''.join(_hashable_sequence(data.astype(object)))
     s2 = b''.join(_hashable_sequence(data_list))
     s3 = b''.join(_hashable_sequence(data.tolist()))
-    s4 = b''.join(_hashable_sequence(data.astype(np.uint8).astype(object)))
+    s4 = b''.join(_hashable_sequence(data.astype(np.uint8).astype(object)))  # type: ignore
 
     assert s1 == s4
     assert s2 == s4
     assert s3 == s4
 
 
-def test_ndarray_zeros():
+def test_ndarray_zeros() -> None:
     if np is None:
         pytest.skip('requires numpy')
-    data = np.zeros((3, 3), dtype=np.int64)
+    data = np.zeros((3, 3), dtype=np.int64)  # type: ignore
     hashid = ub.hash_data(data)
     assert hashid != ub.hash_data(data.ravel()), 'shape should influence data'
-    assert hashid != ub.hash_data(data.astype(np.float32))
-    assert hashid != ub.hash_data(data.astype(np.int32))
-    assert hashid != ub.hash_data(data.astype(np.int8))
+    assert hashid != ub.hash_data(data.astype(np.float32))  # type: ignore
+    assert hashid != ub.hash_data(data.astype(np.int32))  # type: ignore
+    assert hashid != ub.hash_data(data.astype(np.int8))  # type: ignore
 
 
-def test_nesting():
+def test_nesting() -> None:
     assert _hashable_sequence([1, 1, 1]) != _hashable_sequence([[1], 1, 1])
     assert _hashable_sequence([[1], 1]) != _hashable_sequence([[1, 1]])
     assert _hashable_sequence([1, [1]]) != _hashable_sequence([[1, 1]])
     assert _hashable_sequence([[[1]]]) != _hashable_sequence([[1]])
 
 
-def test_numpy_int():
+def test_numpy_int() -> None:
     if np is None:
         pytest.skip('requires numpy')
-    assert _hashable_sequence(np.int8(3)) == _hashable_sequence(3)
-    assert _hashable_sequence(np.int16(3)) == _hashable_sequence(3)
-    assert _hashable_sequence(np.int32(3)) == _hashable_sequence(3)
-    assert _hashable_sequence(np.int64(3)) == _hashable_sequence(3)
-    assert _hashable_sequence(np.uint8(3)) == _hashable_sequence(3)
-    assert _hashable_sequence(np.uint16(3)) == _hashable_sequence(3)
-    assert _hashable_sequence(np.uint32(3)) == _hashable_sequence(3)
-    assert _hashable_sequence(np.uint64(3)) == _hashable_sequence(3)
+    assert _hashable_sequence(np.int8(3)) == _hashable_sequence(3)  # type: ignore
+    assert _hashable_sequence(np.int16(3)) == _hashable_sequence(3)  # type: ignore
+    assert _hashable_sequence(np.int32(3)) == _hashable_sequence(3)  # type: ignore
+    assert _hashable_sequence(np.int64(3)) == _hashable_sequence(3)  # type: ignore
+    assert _hashable_sequence(np.uint8(3)) == _hashable_sequence(3)  # type: ignore
+    assert _hashable_sequence(np.uint16(3)) == _hashable_sequence(3)  # type: ignore
+    assert _hashable_sequence(np.uint32(3)) == _hashable_sequence(3)  # type: ignore
+    assert _hashable_sequence(np.uint64(3)) == _hashable_sequence(3)  # type: ignore
 
 
-def test_numpy_float():
+def test_numpy_float() -> None:
     if np is None:
         pytest.skip('requires numpy')
-    assert _hashable_sequence(np.float16(3.0)) == _hashable_sequence(3.0)
-    assert _hashable_sequence(np.float32(3.0)) == _hashable_sequence(3.0)
-    assert _hashable_sequence(np.float64(3.0)) == _hashable_sequence(3.0)
+    assert _hashable_sequence(np.float16(3.0)) == _hashable_sequence(3.0)  # type: ignore
+    assert _hashable_sequence(np.float32(3.0)) == _hashable_sequence(3.0)  # type: ignore
+    assert _hashable_sequence(np.float64(3.0)) == _hashable_sequence(3.0)  # type: ignore
     try:
-        assert _hashable_sequence(np.float128(3.0)) == _hashable_sequence(3.0)
+        assert _hashable_sequence(np.float128(3.0)) == _hashable_sequence(3.0)  # type: ignore
     except AttributeError:
         pass
 
 
-def test_numpy_random_state():
+def test_numpy_random_state() -> None:
     if np is None:
         pytest.skip('requires numpy')
-    data = np.random.RandomState(0)
+    data = np.random.RandomState(0)  # type: ignore
     assert ub.hash_data(
         data, hasher='sha512', types=True, base='abc'
     ).startswith('snkngbxghabesvowzalqtvdvjtvslmxve')
 
 
-def test_uuid():
+def test_uuid() -> None:
     data = uuid.UUID('12345678-1234-1234-1234-123456789abc')
     sequence = b''.join(_hashable_sequence(data, types=True))
     assert sequence == b'UUID\x124Vx\x124\x124\x124\x124Vx\x9a\xbc'
@@ -361,7 +366,7 @@ def test_uuid():
     ), 'the hash should be equal when ignoring types'
 
 
-def test_decimal():
+def test_decimal() -> None:
     import decimal
 
     data = decimal.Decimal('3.1415')
@@ -393,7 +398,7 @@ def test_decimal():
     assert sequence4 != sequence3, 'quirky test'
 
 
-def test_datetime():
+def test_datetime() -> None:
     import datetime as datetime_mod
 
     data = datetime_mod.datetime(2101, 1, 1)
@@ -418,7 +423,7 @@ def test_datetime():
     )
 
 
-def test_date():
+def test_date() -> None:
     import datetime as datetime_mod
 
     data = datetime_mod.date(2101, 1, 1)
@@ -443,7 +448,7 @@ def test_date():
     )
 
 
-def test_hash_data_custom_base():
+def test_hash_data_custom_base() -> None:
     data = 1
     # A larger base means the string can be shorter
     hashid_26 = ub.hash_data(data, base='abc', hasher='sha512', types=True)
@@ -461,7 +466,7 @@ def test_hash_data_custom_base():
     assert hashid_2.startswith('110101111100100111001110101010010')
 
 
-def test_hash_file():
+def test_hash_file() -> None:
     fpath = ub.Path.appdir('ubelt/tests').ensuredir() / 'tmp.txt'
     fpath.write_text('foobar')
     hashid1_a = ub.hash_file(fpath, hasher='sha512', stride=1, blocksize=1)
@@ -480,7 +485,7 @@ def test_hash_file():
     assert hashid3_c == hashid2_b
 
 
-def test_empty_hash_file():
+def test_empty_hash_file() -> None:
     fpath = ub.Path.appdir('ubelt/tests').ensuredir() / 'tmp.txt'
     fpath.write_bytes(b'')
     a = ub.hash_file(fpath, hasher='sha512', stride=1, blocksize=1)
@@ -490,7 +495,7 @@ def test_empty_hash_file():
     assert a == b == c == d
 
 
-def test_convert_base_hex():
+def test_convert_base_hex() -> None:
     # Test that hex values are unchanged
     for i in it.chain(range(-10, 10), range(-1000, 1000, 7)):
         text = hex(i).replace('0x', '')
@@ -499,7 +504,7 @@ def test_convert_base_hex():
         )
 
 
-def test_convert_base_decimal():
+def test_convert_base_decimal() -> None:
     base_10 = list(map(str, range(10)))
     # Test that decimal values agree with python conversion
     for i in it.chain(range(-10, 10), range(-1000, 1000, 7)):
@@ -508,7 +513,7 @@ def test_convert_base_decimal():
         assert int(text_16, 16) == int(text_10, 10)
 
 
-def test_convert_base_simple():
+def test_convert_base_simple() -> None:
     # Quick one-of tests
     assert _convert_hexstr_base('aaa0111', _ALPHABET_16) == 'aaa0111'
 
@@ -523,7 +528,7 @@ def test_convert_base_simple():
     assert _convert_hexstr_base('aaa0111', base_10) == '178913553'
 
 
-def test_no_prefix():
+def test_no_prefix() -> None:
     full = b''.join(_hashable_sequence(1, types=True))
     part = b''.join(_hashable_sequence(1, types=False))
     # assert full == b'INT\x00\x00\x00\x01'
@@ -532,7 +537,7 @@ def test_no_prefix():
     assert part == b'\x01'
 
 
-def _test_int_bytes():
+def _test_int_bytes() -> None:
     assert ub.util_hash._int_to_bytes(0) == b'\x00'
     assert ub.util_hash._int_to_bytes(1) == b'\x01'
     assert ub.util_hash._int_to_bytes(2) == b'\x02'
@@ -550,14 +555,14 @@ def _test_int_bytes():
     )
 
 
-def test_xxhash():
+def test_xxhash() -> None:
     if 'xxh64' in ub.util_hash._HASHERS.available():
         assert ub.hash_data('foo', hasher='xxh64') == '33bf00a859c4ba3f'
     else:
         pytest.skip('xxhash is not available')
 
 
-def test_blake3():
+def test_blake3() -> None:
     if 'blake3' in ub.util_hash._HASHERS.available():
         assert (
             ub.hash_data('foo', hasher='b3')
@@ -567,13 +572,13 @@ def test_blake3():
         pytest.skip('blake3 is not available')
 
 
-def test_base32():
+def test_base32() -> None:
     hashstr = ub.hash_data('abc', hasher='sha1', base=32, types=False)
     print(f'hashstr={hashstr}')
     assert hashstr == 'VGMT4NSHA2AWVOR6EVYXQUGCNSONBWE5'
 
 
-def test_hash_dataclasses():
+def test_hash_dataclasses() -> None:
     from dataclasses import dataclass
 
     import ubelt as ub
@@ -593,7 +598,7 @@ def test_hash_dataclasses():
     assert ub.hash_data(a) != ub.hash_data(c)
 
 
-def test_compatible_hash_bases():
+def test_compatible_hash_bases() -> None:
     """
     Ubelt ~1.2.3 has a ~bug~ incompatibility with non-hex hash bases. Depending
     on leftover amount of data in the byte stream, our hex reencoding may be
@@ -631,7 +636,7 @@ def test_compatible_hash_bases():
     # hasher = 'sha512'
     text = 'foobar'
 
-    trace = ub.hash_data(text, hasher=ub.util_hash._HashTracer(), types=False)
+    trace = ub.hash_data(text, hasher=ub.util_hash._HashTracer(), types=False)  # type: ignore
     print(f'text={text}')
     print(f'trace={trace}')
     print(f'hasher={hasher}')
@@ -754,7 +759,7 @@ def test_compatible_hash_bases():
         encode('base32upper', raw_bytes).upper()
 
         """
-        if base == list(base64._b32alphabet.decode()):
+        if base == list(base64._b32alphabet.decode()):  # type: ignore
             # NOTE: This code has an incompatibility with standard base encodings
             # because it does not pad the bytes. I.e. for base 64 3 bytes are
             # converted into 4 characters, so we need a input string divisible by
@@ -835,7 +840,7 @@ def test_compatible_hash_bases():
             #              )
 
 
-def test_hash_data_simple_equivalence_and_sensitivity():
+def test_hash_data_simple_equivalence_and_sensitivity() -> None:
     from dataclasses import dataclass
 
     @dataclass
@@ -879,7 +884,7 @@ def test_hash_data_simple_equivalence_and_sensitivity():
         assert ha != hc
 
 
-def test_hash_data_nested_dataclass_structure():
+def test_hash_data_nested_dataclass_structure() -> None:
     from dataclasses import dataclass, field
     from typing import List, Tuple
 
@@ -914,7 +919,7 @@ def test_hash_data_nested_dataclass_structure():
     assert h1 != h3
 
 
-def test_hash_data_mutable_field_stability():
+def test_hash_data_mutable_field_stability() -> None:
     from dataclasses import dataclass, field
     from typing import List, Tuple
 

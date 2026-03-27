@@ -72,6 +72,7 @@ class DownloadManager:
 
     download_root: str | os.PathLike
     cache: bool
+    _dl_func: typing.Callable[..., object]
 
     def __init__(
         self,
@@ -157,7 +158,7 @@ class DownloadManager:
         prog: None | bool | type = None,
         desc: str | None = None,
         verbose: int = 1,
-    ):
+    ) -> typing.Iterable[typing.Any]:
         """
         Generate completed jobs as they become available
 

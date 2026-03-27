@@ -20,7 +20,7 @@ CommandLine:
 """
 
 import sys
-from typing import Dict, List, Optional
+from typing import List
 
 from mypy.nodes import (
     # FuncBase, Block,

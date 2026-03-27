@@ -226,7 +226,6 @@ GLOBAL_COUNTER = 0
 
 
 def my_function(arg):
-    import asyncio
     import random
     import time
 

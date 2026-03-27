@@ -70,8 +70,8 @@ def repr2(data: object, **kwargs: Any) -> str:
     return text
 
 
-repr2.extensions = urepr.extensions  # type: ignore[attr-defined]
-repr2.register = urepr.register  # type: ignore[attr-defined]
+repr2.extensions = urepr.extensions  # type: ignore
+repr2.register = urepr.register  # type: ignore
 
 
 # Deprecated aliases

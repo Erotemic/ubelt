@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 """
 Helpers for downloading data
 
@@ -13,8 +15,6 @@ checks if the data already exists in the download location, and only downloads
 if it needs to.
 
 """
-
-from __future__ import annotations
 
 import os
 import typing
@@ -54,7 +54,7 @@ def download(
     chunksize: int = 8192,
     filesize: int | None = None,
     verbose: int | bool = 1,
-    timeout: float | NoParamType = NoParam,
+    timeout: int | float | NoParamType = NoParam,
     progkw: Mapping[str, Any] | NoParamType | None = None,
     requestkw: Mapping[str, Any] | NoParamType | None = None,
 ) -> str | os.PathLike | BinaryIO:
@@ -200,7 +200,10 @@ def download(
     if timeout is NoParam:
         import socket
 
-        timeout = socket._GLOBAL_DEFAULT_TIMEOUT  # type: ignore[unresolved-attribute]
+        # FIXME: this is using a non-public API
+        timeout_ = socket._GLOBAL_DEFAULT_TIMEOUT  # type: ignore
+    else:
+        timeout_ = timeout
 
     from urllib.request import Request, urlopen
 
@@ -218,7 +221,7 @@ def download(
     # Check if fpath was given as an BytesIO object
     _dst_is_io_object = hasattr(fpath, 'write')
 
-    if not _dst_is_io_object and not exists(dirname(fpath)):  # type: ignore[no-matching-overload]
+    if not _dst_is_io_object and not exists(dirname(fpath)):  # type: ignore
         raise Exception('parent of {} does not exist'.format(fpath))
 
     if verbose:
@@ -228,9 +231,9 @@ def download(
             print('Downloading url={!r} to fpath={!r}'.format(url, fpath))
 
     requestkw = requestkw or {}
-    requestkw['headers'] = {'User-Agent': 'Mozilla/5.0'}  # type: ignore[invalid-assignment]
-    req = Request(url, **requestkw)  # type: ignore[invalid-argument-type]
-    urldata = urlopen(req, timeout=timeout)  # type: ignore[invalid-argument-type]
+    requestkw['headers'] = {'User-Agent': 'Mozilla/5.0'}  # type: ignore
+    req = Request(url, **requestkw)  # type: ignore
+    urldata = urlopen(req, timeout=timeout_)  # type: ignore
 
     meta = urldata.info()
     if filesize is None:
@@ -287,7 +290,7 @@ def download(
         # import time
         # start_time = time.monotonic()
 
-        def _build_extra():
+        def _build_extra() -> str:
             pbar._curr_measurement.time
             bytes_down = pbar._iter_idx
             total_seconds = pbar._total_seconds + 1e-9
@@ -300,15 +303,17 @@ def download(
             return msg
 
         if progkw is not None:
-            _progkw.update(progkw)  # type: ignore[no-matching-overload]
+            _progkw.update(progkw)  # type: ignore
         _progkw['disable'] = not verbose
-        pbar = Progress(**_progkw)  # type: ignore[invalid-argument-type]
+
+        pbar: Progress
+        pbar = Progress(**_progkw)  # type: ignore
 
         pbar.set_extra(_build_extra)
         with pbar:
             _pbar_update = pbar.update
 
-            def _critical_loop():
+            def _critical_loop() -> None:
                 # Initialize the buffer to a non-empty object
                 buffer = ' '
                 if hash_prefix:
@@ -518,6 +523,7 @@ def grabdata(
     if dpath is None or fname is None:
         dpath, fname = split(fpath)
 
+    hasher_name: str | None = None
     if hasher is not None:
         if isinstance(hasher, str):
             hasher_name = hasher
@@ -534,8 +540,6 @@ def grabdata(
                 remove='1.5.0',
             )
             hasher_name = getattr(hasher, 'name', None)
-    else:
-        hasher_name = None
 
     if hasher_name is not None and hash_prefix:
         depends = hasher_name
@@ -582,7 +586,7 @@ def grabdata(
                 hash_prefix=hash_prefix,
                 hasher=hasher,
                 **download_kw,
-            )  # type: ignore[invalid-assignment]
+            )  # type: ignore
             stamp.renew()
     assert fpath is not None
     return fpath

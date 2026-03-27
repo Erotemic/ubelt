@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 """
 This module exposes :class:`Cacher` and :class:`CacheStamp` classes, which
 provide a simple API for on-disk caching.
@@ -115,8 +117,6 @@ Example:
 RelatedWork:
     https://github.com/shaypal5/cachier
 """
-
-from __future__ import annotations
 
 import os
 import typing
@@ -793,7 +793,7 @@ class Cacher:
         # dynamically so the cache depends on function args. This might be a
         # better UX, and I know there are existing libraires out there that we
         # would need to compare to in order to
-        def _wrapper():
+        def _wrapper() -> T:
             data = self.ensure(func)
             return data
 
@@ -978,7 +978,12 @@ class CacheStamp:
         certificate = self.cacher.tryload(cfgstr=cfgstr, on_error='clear')
         return certificate
 
-    def _rectify_products(self, product=None):
+    def _rectify_products(
+        self,
+        product: (
+            str | os.PathLike | typing.Sequence[str | os.PathLike] | None
+        ) = None,
+    ) -> list[typing.Any] | None:
         """
         puts products in a normalized format
 
@@ -991,11 +996,20 @@ class CacheStamp:
         if products is None:
             return None
         if not isinstance(products, (list, tuple)):
-            products = [products]
-        products = list(map(Path, products))  # type: ignore[invalid-argument-type]
+            products = typing.cast(
+                typing.Sequence[typing.Union[str, os.PathLike]], [products]
+            )
+        products = list(
+            map(
+                Path,
+                typing.cast(
+                    typing.Iterable[typing.Union[str, os.PathLike]], products
+                ),
+            )
+        )
         return products
 
-    def _rectify_hash_prefixes(self):
+    def _rectify_hash_prefixes(self) -> list[str] | None:
         """puts products in a normalized format"""
         hash_prefixes = self.hash_prefix
         if hash_prefixes is None:
@@ -1004,12 +1018,17 @@ class CacheStamp:
             hash_prefixes = [hash_prefixes]
         return hash_prefixes
 
-    def _product_info(self, product=None):
+    def _product_info(
+        self,
+        product: (
+            str | os.PathLike | typing.Sequence[str | os.PathLike] | None
+        ) = None,
+    ) -> dict[str, typing.Any]:
         """
         Compute summary info about each product on disk.
         """
         products = self._rectify_products(product)
-        product_info = {}
+        product_info: dict[str, typing.Any] = {}
         product_info.update(self._product_file_stats())
         if self.hasher is None:
             hasher_name = None
@@ -1033,7 +1052,12 @@ class CacheStamp:
         product_info['hash'] = self._product_file_hash(products)
         return product_info
 
-    def _product_file_stats(self, product=None):
+    def _product_file_stats(
+        self,
+        product: (
+            str | os.PathLike | typing.Sequence[str | os.PathLike] | None
+        ) = None,
+    ) -> dict[str, list[float] | list[int]]:
         products = self._rectify_products(product)
         assert products is not None
         product_stats = [p.stat() for p in products]
@@ -1043,7 +1067,12 @@ class CacheStamp:
         }
         return product_file_stats
 
-    def _product_file_hash(self, product=None):
+    def _product_file_hash(
+        self,
+        product: (
+            str | os.PathLike | typing.Sequence[str | os.PathLike] | None
+        ) = None,
+    ) -> list[str] | None:
         if self.hasher is None:
             product_file_hash = None
         else:
@@ -1220,9 +1249,9 @@ class CacheStamp:
                         print('[cacher] stamp expired {}'.format(err))
                     return err
 
-            err = self._check_certificate_hashes(certificate)
-            if err:
-                return err
+            cert_err: str | None = self._check_certificate_hashes(certificate)
+            if cert_err:
+                return cert_err
 
             # We are expired if the hash of the existing product data
             # does not match the expected hash in the certificate
@@ -1262,6 +1291,7 @@ class CacheStamp:
                         )
                     err = 'hash_prefix_mismatch'
                     return err
+        return None
 
     def _expires(
         self, now: datetime_mod.datetime | None = None

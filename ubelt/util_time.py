@@ -33,13 +33,13 @@ from functools import lru_cache
 if typing.TYPE_CHECKING:
     import datetime
     from types import TracebackType
-    from typing import Callable, Type
+    from typing import Callable, ClassVar, Type
 
 __all__ = ['timestamp', 'timeparse', 'Timer']
 
 
 @lru_cache(maxsize=None)
-def _needs_workaround39103():
+def _needs_workaround39103() -> bool:
     """
     Depending on the system C library, either %04Y or %Y wont work.
     This is an actual Python bug:
@@ -429,7 +429,10 @@ def timeparse(
     return datetime_obj
 
 
-def _timezone_coerce(tzinfo, allow_dateutil=True):
+def _timezone_coerce(
+    tzinfo: str | datetime.timezone,
+    allow_dateutil: bool = True,
+) -> datetime.tzinfo:
     """
     Ensure output it a timezone instance.
 
@@ -486,6 +489,7 @@ def _timezone_coerce(tzinfo, allow_dateutil=True):
     """
     import datetime as datetime_mod
 
+    out_tzinfo: datetime.tzinfo
     if isinstance(tzinfo, str):
         if tzinfo == 'local':
             # Note: the local timezone time.timezone is negated
@@ -497,9 +501,10 @@ def _timezone_coerce(tzinfo, allow_dateutil=True):
             if allow_dateutil:
                 from dateutil import tz as tz_mod
 
-                out_tzinfo = tz_mod.gettz(tzinfo)
-                if out_tzinfo is None:
+                tz_candidate = tz_mod.gettz(tzinfo)
+                if tz_candidate is None:
                     raise KeyError(tzinfo)
+                out_tzinfo = tz_candidate
             else:
                 raise ValueError(
                     (
@@ -561,7 +566,7 @@ class Timer:
         >>> assert isinstance(elapsed1, int)
     """
 
-    _default_time = time.perf_counter
+    _default_time: ClassVar[Callable[[], float]] = time.perf_counter
 
     elapsed: float
     tstart: float
@@ -609,7 +614,7 @@ class Timer:
         if self.ns:
             self._time = time.perf_counter_ns
         else:
-            self._time = self._default_time
+            self._time = type(self)._default_time
 
     def tic(self) -> Timer:
         """
@@ -669,6 +674,7 @@ class Timer:
         self.elapsed = self.toc()
         if ex_traceback is not None:
             return False
+        return None
 
 
 # class Time:

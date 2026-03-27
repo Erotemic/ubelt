@@ -88,7 +88,6 @@ import sys
 import typing
 
 if typing.TYPE_CHECKING:
-    import io
     import queue
     import subprocess
     import threading
@@ -246,6 +245,8 @@ def cmd(
             :func:`os.system` is used to execute the command in a platform
             dependent way. Other arguments such as env, tee, timeout, and shell
             are all ignored. Defaults to False. (New in version 1.1.0)
+            NOTE: os.system is soft-deprecated, so we may avoid supporting this
+            in the future.
 
         timeout (float | None):
             If the process does not complete in ``timeout`` seconds, raise a
@@ -420,19 +421,19 @@ def cmd(
         log(ps1 + command_text)
 
     # Create a new process to execute the command
-    def make_proc():
+    def make_proc() -> subprocess.Popen[str]:
         # delay the creation of the process until we validate all args
         popen_kwargs = {'cwd': cwd, 'env': env, 'shell': shell}
         popen_kwargs['universal_newlines'] = True
 
         if capture:
-            popen_kwargs['stdout'] = subprocess.PIPE
-            popen_kwargs['stderr'] = subprocess.PIPE
+            popen_kwargs['stdout'] = subprocess.PIPE  # type: ignore
+            popen_kwargs['stderr'] = subprocess.PIPE  # type: ignore
         elif not show:
             # The only way to suppress printing to the screen is by
             # piping to devnull
-            popen_kwargs['stdout'] = subprocess.DEVNULL
-            popen_kwargs['stderr'] = subprocess.DEVNULL
+            popen_kwargs['stdout'] = subprocess.DEVNULL  # type: ignore
+            popen_kwargs['stderr'] = subprocess.DEVNULL  # type: ignore
         proc = subprocess.Popen(args, **popen_kwargs)  # type: ignore
         return proc
 
@@ -440,7 +441,7 @@ def cmd(
         from ubelt.util_path import ChDir
 
         with ChDir(cwd):
-            raw = os.system(command_text)
+            raw = os.system(command_text)  # type: ignore
             ret = _normalize_system_returncode(raw)
         info = CmdOutput(
             **{
@@ -493,7 +494,9 @@ def cmd(
                     if WIN32:  # nocover
                         # Win32 needs a communicate after the kill to get the
                         # output. See stdlib for details.
-                        exc.stdout, exc.stderr = proc.communicate()
+                        exc_stdout, exc_stderr = proc.communicate()
+                        exc.stdout = typing.cast(typing.Any, exc_stdout)
+                        exc.stderr = typing.cast(typing.Any, exc_stderr)
                     else:
                         # Posix implementations already handle the populate.
                         proc.wait()
@@ -517,7 +520,7 @@ def cmd(
         # We used the popen context manager, which means that wait was called,
         # the process has existed, so it is safe to return a reference to the
         # process object.
-        ret = proc.poll()
+        ret = typing.cast(int, proc.poll())
         info = CmdOutput(
             **{
                 'out': out,
@@ -584,6 +587,7 @@ def _resolve_command(
     # to text if shell is True, and to tuple if shell is False. On windows,
     # the input is text if shell is True, but can be either if shell is
     # False as noted in [SO_33560364]_.
+    args: str | list[str]
     if shell or system:
         # When shell=True, args is sent to the shell (e.g. bin/sh) as text
         args = command_text
@@ -662,7 +666,7 @@ def _proc_async_iter_stream(
     stream: typing.IO[str],
     buffersize: int = 1,
     timeout: float | None = None,
-) -> tuple[threading.Thread, 'queue.Queue[str | None]', 'queue.Queue[object]']:
+) -> tuple[threading.Thread, queue.Queue[str | None], queue.Queue[object]]:
     """
     Reads output from a process in a separate thread.
 
@@ -689,6 +693,8 @@ def _proc_async_iter_stream(
     import threading
 
     # logger.debug(f"Create and start thread for {id(stream)}")
+    out_queue: queue.Queue[str | None]
+    control_queue: queue.Queue[object]
     out_queue = queue.Queue(maxsize=buffersize)
     control_queue = queue.Queue(maxsize=1)
     io_thread = threading.Thread(
@@ -729,7 +735,7 @@ def _enqueue_output_thread_worker(
     import queue
     # logger.debug(f"Start worker for {id(stream)=} with {timeout=}")
 
-    def _check_if_stopped():  # nocover
+    def _check_if_stopped() -> bool | None:  # nocover
         try:
             # Check if we were told to stop
             control_queue.get(timeout=POLL_TIME)
@@ -738,8 +744,9 @@ def _enqueue_output_thread_worker(
         else:
             # logger.debug(f"Thread acknowledges stop request for {id(stream)}")
             return True
+        return None
 
-    def enqueue(item):  # nocover
+    def enqueue(item: str | None) -> bool:  # nocover
         # Alternate between checking if we were stopped and putting the item in
         # the queue. This helps with the issue of an open process stream on
         # exit but it doesn't fully solve the issue because we still might
@@ -916,19 +923,19 @@ def _proc_iteroutput_select(
                 yield subprocess.TimeoutExpired, subprocess.TimeoutExpired  # pyright: ignore[reportPossiblyUnboundVariable]
                 return  # nocover
 
-        reads = [proc.stdout.fileno(), proc.stderr.fileno()]  # type: ignore[possibly-missing-attribute]
+        reads = [proc.stdout.fileno(), proc.stderr.fileno()]  # type: ignore
         ret = select.select(reads, [], [], timeout)
         oline = eline = None
         for fd in ret[0]:
-            if fd == proc.stdout.fileno():  # type: ignore[possibly-missing-attribute]
-                oline = proc.stdout.readline()  # type: ignore[possibly-missing-attribute]
-            if fd == proc.stderr.fileno():  # type: ignore[possibly-missing-attribute]
-                eline = proc.stderr.readline()  # type: ignore[possibly-missing-attribute]
+            if fd == proc.stdout.fileno():  # type: ignore
+                oline = proc.stdout.readline()  # type: ignore
+            if fd == proc.stderr.fileno():  # type: ignore
+                eline = proc.stderr.readline()  # type: ignore
         yield oline, eline
 
     # Grab any remaining data in stdout and stderr after the process finishes
-    oline_iter = _textio_iterlines(proc.stdout)  # type: ignore[invalid-argument-type]
-    eline_iter = _textio_iterlines(proc.stderr)  # type: ignore[invalid-argument-type]
+    oline_iter = _textio_iterlines(proc.stdout)  # type: ignore
+    eline_iter = _textio_iterlines(proc.stderr)  # type: ignore
     for oline, eline in zip_longest(oline_iter, eline_iter):
         yield oline, eline
 
@@ -965,8 +972,8 @@ def _tee_output(
     """
     import subprocess
 
-    logged_out = []
-    logged_err = []
+    logged_out: list[str] = []
+    logged_err: list[str] = []
     if backend == 'auto':
         # backend = 'select' if POSIX else 'thread'
         backend = 'thread'
@@ -998,11 +1005,11 @@ def _tee_output(
                 try:
                     out = ''.join(logged_out)
                 except UnicodeDecodeError:  # nocover
-                    out = '\n'.join(_.decode('utf-8') for _ in logged_out)
+                    out = '\n'.join(_.decode('utf-8') for _ in logged_out)  # type: ignore
                 try:
                     err = ''.join(logged_err)
                 except UnicodeDecodeError:  # nocover
-                    err = '\n'.join(_.decode('utf-8') for _ in logged_err)
+                    err = '\n'.join(_.decode('utf-8') for _ in logged_err)  # type: ignore
                 # Following the standard library implementation of
                 # :func:`subprocess.run`, we kill (not terminate) the process
                 # when the timeout expires. We shouldn't need the extra
@@ -1018,7 +1025,7 @@ def _tee_output(
                     oline = typing.cast(str, oline)
                 stdout.write(oline)
                 stdout.flush()
-            logged_out.append(oline)
+            logged_out.append(oline)  # type: ignore
         if eline:
             # logger.debug("Write eline to stderr.write and logged_err")
             if stderr:  # pragma: nobranch
@@ -1026,7 +1033,7 @@ def _tee_output(
                     eline = typing.cast(str, eline)
                 stderr.write(eline)
                 stderr.flush()
-            logged_err.append(eline)
+            logged_err.append(eline)  # type: ignore
         # logger.debug("Continue waiting for buffered output")
 
     # The motivation for this logic is unclear.
@@ -1035,11 +1042,11 @@ def _tee_output(
     try:
         out = ''.join(logged_out)
     except UnicodeDecodeError:  # nocover
-        out = '\n'.join(_.decode('utf-8') for _ in logged_out)
+        out = '\n'.join(_.decode('utf-8') for _ in logged_out)  # type: ignore
     try:
         err = ''.join(logged_err)
     except UnicodeDecodeError:  # nocover
-        err = '\n'.join(_.decode('utf-8') for _ in logged_err)
+        err = '\n'.join(_.decode('utf-8') for _ in logged_err)  # type: ignore
 
     return out, err
 

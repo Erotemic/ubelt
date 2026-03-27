@@ -139,7 +139,7 @@ def platform_cache_dir() -> str:
 # ---
 
 
-def get_app_data_dir(appname: str, *args) -> str:
+def get_app_data_dir(appname: str, *args: str) -> str:
     r"""
     Returns a writable directory for an application.
     This should be used for temporary deletable data.
@@ -173,7 +173,7 @@ def get_app_data_dir(appname: str, *args) -> str:
     return dpath
 
 
-def ensure_app_data_dir(appname: str, *args) -> str:
+def ensure_app_data_dir(appname: str, *args: str) -> str:
     """
     Calls :func:`get_app_data_dir` but ensures the directory exists.
 
@@ -203,7 +203,7 @@ def ensure_app_data_dir(appname: str, *args) -> str:
     return dpath
 
 
-def get_app_config_dir(appname: str, *args) -> str:
+def get_app_config_dir(appname: str, *args: str) -> str:
     r"""
     Returns a writable directory for an application
     This should be used for persistent configuration files.
@@ -237,7 +237,7 @@ def get_app_config_dir(appname: str, *args) -> str:
     return dpath
 
 
-def ensure_app_config_dir(appname: str, *args) -> str:
+def ensure_app_config_dir(appname: str, *args: str) -> str:
     """
     Calls :func:`get_app_config_dir` but ensures the directory exists.
 
@@ -267,7 +267,7 @@ def ensure_app_config_dir(appname: str, *args) -> str:
     return dpath
 
 
-def get_app_cache_dir(appname: str, *args) -> str:
+def get_app_cache_dir(appname: str, *args: str) -> str:
     r"""
     Returns a writable directory for an application.
     This should be used for temporary deletable data.
@@ -304,7 +304,7 @@ def get_app_cache_dir(appname: str, *args) -> str:
     return dpath
 
 
-def ensure_app_cache_dir(appname: str, *args) -> str:
+def ensure_app_cache_dir(appname: str, *args: str) -> str:
     """
     Calls :func:`get_app_cache_dir` but ensures the directory exists.
 
@@ -415,6 +415,7 @@ def find_exe(
     if not multi:
         for fpath in results:
             return fpath
+        return None
     else:
         return list(results)
 
@@ -475,22 +476,27 @@ def find_path(
     if path is None:
         path = os.environ.get('PATH', os.defpath)
     if isinstance(path, str):
-        dpaths = path.split(os.pathsep)
+        dpaths: list[str] = path.split(os.pathsep)
     else:
-        dpaths = path
-    candidates = (join(dpath, name) for dpath in dpaths)
+        dpaths = typing.cast(typing.List[str], list(path))
+    candidates: Iterable[str] = (join(dpath, name) for dpath in dpaths)
     if exact:
         if WIN32:  # nocover
             # on WIN32 allow ``name`` to omit the extension suffix by trying
             # to match with all possible "valid" suffixes specified by PATHEXT
             pathext = [''] + os.environ.get('PATHEXT', '').split(os.pathsep)
             candidates = (p + ext for p in candidates for ext in pathext)
-        candidates = filter(exists, candidates)
+        candidates = typing.cast(
+            typing.Iterable[str], filter(exists, candidates)
+        )
     else:
         import glob
 
-        candidates = it.chain.from_iterable(
-            glob.glob(pattern) for pattern in candidates
+        candidates = typing.cast(
+            typing.Iterable[str],
+            it.chain.from_iterable(
+                glob.glob(pattern) for pattern in candidates
+            ),
         )
 
     for candidate in candidates:

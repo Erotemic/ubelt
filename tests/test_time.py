@@ -6,20 +6,21 @@ from xdoctest.utils import CaptureStdout
 import ubelt as ub
 
 
-def test_timer_nonewline():
+def test_timer_nonewline() -> None:
     with CaptureStdout() as cap:
         timer = ub.Timer(newline=False, verbose=1)
         timer.tic()
         timer.toc()
+    assert cap.text is not None
     assert cap.text.replace('u', '').startswith("\ntic('')...toc('')")
 
 
-def test_timestamp():
+def test_timestamp() -> None:
     stamp = ub.timestamp()
     assert re.match(r'\d+-\d+-\d+T\d+[\+\-]\d+', stamp)
 
 
-def test_timer_default_verbosity():
+def test_timer_default_verbosity() -> None:
     with CaptureStdout() as cap:
         ub.Timer('').tic().toc()
     assert cap.text == '', 'should be quiet by default when label is not given'
@@ -29,7 +30,7 @@ def test_timer_default_verbosity():
     assert cap.text != '', 'should be verbose by default when label is given'
 
 
-def test_timer_error():
+def test_timer_error() -> None:
     try:
         with ub.Timer() as timer:
             raise Exception()
@@ -38,7 +39,7 @@ def test_timer_error():
     assert timer.elapsed > 0
 
 
-def test_timestamp_corner_cases():
+def test_timestamp_corner_cases() -> None:
     import datetime as datetime_mod
     from datetime import datetime as datetime_cls
 
@@ -47,7 +48,7 @@ def test_timestamp_corner_cases():
     assert stamp == '0001-01-01T010101+0'
 
 
-def test_timeparse_minimal():
+def test_timeparse_minimal() -> None:
     # We should always be able to parse these
     good_stamps = [
         '2000-11-22T111111.44444Z',
@@ -61,9 +62,9 @@ def test_timeparse_minimal():
         '2000-11-22T111111',
     ]
     for stamp in good_stamps:
-        result = ub.timeparse(stamp, allow_dateutil=0)
+        result = ub.timeparse(stamp, allow_dateutil=False)
         recon_stamp = ub.timestamp(result, precision=9)
-        recon_result = ub.timeparse(recon_stamp, allow_dateutil=0)
+        recon_result = ub.timeparse(recon_stamp, allow_dateutil=False)
         print('----')
         print(f'stamp        = {stamp}')
         print(f'recon_stamp  = {recon_stamp}')
@@ -72,7 +73,7 @@ def test_timeparse_minimal():
         assert recon_result == result
 
 
-def test_timeparse_with_dateutil():
+def test_timeparse_with_dateutil() -> None:
     import ubelt as ub
 
     # See Also: https://github.com/dateutil/dateutil/blob/master/tests/test_isoparser.py
@@ -153,7 +154,7 @@ def test_timeparse_with_dateutil():
             assert result == recon_result
 
 
-def test_timeparse_bad_stamps():
+def test_timeparse_bad_stamps() -> None:
     # We can never parse these types of stamps
     bad_stamps = ['', 'foobar', '0000-00-00T00:00:00.0000+05']
     for stamp in bad_stamps:

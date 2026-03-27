@@ -1,4 +1,9 @@
-def _process_backend_available():
+from __future__ import annotations
+
+import typing
+
+
+def _process_backend_available() -> bool:
     import multiprocessing as mp
 
     try:
@@ -10,10 +15,10 @@ def _process_backend_available():
         return True
 
 
-def test_job_pool_context_manager():
+def test_job_pool_context_manager() -> None:
     import ubelt as ub
 
-    def worker(data):
+    def worker(data: int) -> int:
         return data + 1
 
     pool = ub.JobPool('thread', max_workers=16)
@@ -27,12 +32,11 @@ def test_job_pool_context_manager():
             final.append(info)
 
 
-def test_job_pool_clear_completed_thread():
+def test_job_pool_clear_completed_thread() -> None:
     import ubelt as ub
 
     jobs = ub.JobPool(mode='thread', max_workers=2)
     with jobs:
-
         for jobid in range(4):
             jobs.submit(simple_worker, jobid)
 
@@ -44,15 +48,14 @@ def test_job_pool_clear_completed_thread():
         assert len(jobs.jobs) == 0
 
 
-def test_job_pool_as_completed_prog_args():
+def test_job_pool_as_completed_prog_args() -> None:
     import ubelt as ub
 
-    def worker(data):
+    def worker(data: int) -> int:
         return data + 1
 
     pool = ub.JobPool('thread', max_workers=1)
     with pool:
-
         for data in ub.ProgIter(range(10), desc='submit jobs'):
             pool.submit(worker, data)
 
@@ -64,14 +67,14 @@ def test_job_pool_as_completed_prog_args():
             )
 
         print(f'cap.text={cap.text}')
-        num_lines = len(cap.text.split('\n'))
+        num_lines = len(cap.text.split('\n'))  # type: ignore
         num_jobs = len(pool.jobs)
         assert num_lines > num_jobs
 
         print('final = {!r}'.format(final))
 
 
-def test_executor_timeout():
+def test_executor_timeout() -> None:
     import pytest
 
     pytest.skip(
@@ -83,7 +86,7 @@ def test_executor_timeout():
 
     import ubelt as ub
 
-    def long_job(n, t):
+    def long_job(n: int, t: float) -> None:
         for i in range(n):
             time.sleep(t)
 
@@ -102,7 +105,7 @@ def test_executor_timeout():
             print('ex_ = {!r}'.format(ex_))
 
 
-def test_job_pool_clear_completed():
+def test_job_pool_clear_completed() -> None:
     if not _process_backend_available():
         import pytest
 
@@ -112,18 +115,18 @@ def test_job_pool_clear_completed():
 
     import ubelt as ub
 
-    is_deleted = {}
-    weak_futures = {}
+    is_deleted: dict[int, bool] = {}
+    weak_futures: dict[int, typing.Any] = {}
 
     jobs = ub.JobPool(mode='process', max_workers=4)
 
-    def make_finalizer(jobid):
-        def _finalizer():
+    def make_finalizer(jobid: int) -> typing.Callable[[], None]:
+        def _finalizer() -> None:
             is_deleted[jobid] = True
 
         return _finalizer
 
-    def debug_referrers():
+    def debug_referrers() -> None:
         if 0:
             referrers = ub.udict({})
             for jobid, ref in weak_futures.items():
@@ -162,18 +165,18 @@ def test_job_pool_clear_completed():
         if not any(is_deleted.values()):
             raise AssertionError
 
-    fs = None
+    fs = typing.cast(typing.Any, None)
 
     if 'pypy' not in platform.python_implementation().lower():
         if not all(is_deleted.values()):
             raise AssertionError
 
 
-def simple_worker(jobid):
+def simple_worker(jobid: int) -> int:
     return jobid
 
 
-def test_job_pool_transient():
+def test_job_pool_transient() -> None:
     if not _process_backend_available():
         import pytest
 
@@ -182,13 +185,13 @@ def test_job_pool_transient():
 
     import ubelt as ub
 
-    is_deleted = {}
-    weak_futures = {}
+    is_deleted: dict[int, bool] = {}
+    weak_futures: dict[int, typing.Any] = {}
 
     jobs = ub.JobPool(mode='process', max_workers=4, transient=True)
 
-    def make_finalizer(jobid):
-        def _finalizer():
+    def make_finalizer(jobid: int) -> typing.Callable[[], None]:
+        def _finalizer() -> None:
             is_deleted[jobid] = True
 
         return _finalizer
@@ -214,14 +217,14 @@ def test_job_pool_transient():
         if not any(is_deleted.values()):
             raise AssertionError
 
-    fs = None
+    fs = typing.cast(typing.Any, None)
 
     if 'pypy' not in platform.python_implementation().lower():
         if not all(is_deleted.values()):
             raise AssertionError
 
 
-def test_job_pool_transient_thread():
+def test_job_pool_transient_thread() -> None:
     import ubelt as ub
 
     jobs = ub.JobPool(mode='thread', max_workers=2, transient=True)
@@ -235,7 +238,7 @@ def test_job_pool_transient_thread():
         assert jobs.jobs == []
 
 
-def test_backends():
+def test_backends() -> None:
     import platform
     import sys
 
@@ -273,7 +276,7 @@ def test_backends():
             print('result = {!r}'.format(result))
 
 
-def test_done_callback():
+def test_done_callback() -> None:
     import ubelt as ub
 
     self1 = ub.Executor(mode='serial', max_workers=0)
@@ -289,7 +292,7 @@ def test_done_callback():
             print('result = {!r}'.format(result))
 
 
-def _killable_worker(kill_fpath):
+def _killable_worker(kill_fpath: typing.Any) -> None:
     """
     An infinite loop that we can kill by writing a sentinel value to disk
     """
@@ -304,7 +307,7 @@ def _killable_worker(kill_fpath):
             return
 
 
-def _sleepy_worker(seconds, loops=100):
+def _sleepy_worker(seconds: float, loops: int = 100) -> float | None:
     """
     An infinite loop that we can kill by writing a sentinel value to disk
     """
@@ -318,7 +321,7 @@ def _sleepy_worker(seconds, loops=100):
             return elapsed
 
 
-def test_as_completed_timeout():
+def test_as_completed_timeout() -> None:
     """
     xdoctest ~/code/ubelt/tests/test_futures.py test_as_completed_timeout
     """

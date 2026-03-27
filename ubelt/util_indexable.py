@@ -13,24 +13,24 @@ References:
 from __future__ import annotations
 
 import typing
-from collections.abc import Generator
+from collections.abc import Generator, Sized
 from math import isclose
 
 # from collections.abc import Iterable
 
 if typing.TYPE_CHECKING:
     from types import TracebackType
-    from typing import Any, Mapping, MutableMapping, MutableSequence
+    from typing import Any, Mapping, MutableMapping, MutableSequence, Sequence
 
 
 try:
     from functools import cache
 except ImportError:  # nocover
-    from ubelt.util_memoize import memoize as cache
+    from ubelt.util_memoize import memoize as cache  # type: ignore[assignment]
 
 
 @cache
-def _lazy_numpy():
+def _lazy_numpy() -> typing.Any | None:
     try:
         import numpy as np
     except ImportError:  # nocover
@@ -192,11 +192,11 @@ class IndexableWalker(Generator):
     dict_cls: tuple[type, ...]
     list_cls: tuple[type, ...]
     indexable_cls: tuple[type, ...]
-    _walk_gen: None | Generator[tuple[list, Any], Any, Any]
+    _walk_gen: None | Generator[tuple[list, Any] | None, Any, Any]
 
     def __init__(
         self,
-        data,
+        data: dict | list | tuple,
         dict_cls: tuple[type, ...] = (dict,),
         list_cls: tuple[type, ...] = (list, tuple),
     ) -> None:
@@ -208,7 +208,7 @@ class IndexableWalker(Generator):
 
     def __iter__(
         self,
-    ) -> Generator[tuple[list, typing.Any], typing.Any, typing.Any]:
+    ) -> Generator[tuple[list, typing.Any] | None, typing.Any, typing.Any]:
         """
         Iterates through the indexable ``self.data``
 
@@ -220,8 +220,9 @@ class IndexableWalker(Generator):
                 value (Any): the value at the path
         """
         # Calling iterate multiple times will clobber the internal state
-        self._walk_gen = self._walk()
-        return self._walk_gen
+        walk_gen = self._walk()
+        self._walk_gen = walk_gen
+        return walk_gen
 
     def __next__(self) -> typing.Any:
         """
@@ -232,11 +233,12 @@ class IndexableWalker(Generator):
         """
         if self._walk_gen is None:
             self._walk_gen = self._walk()
+        assert self._walk_gen is not None
         return next(self._walk_gen)
 
     # TODO: maybe we implement a map function?
 
-    def send(self, arg) -> None:
+    def send(self, arg: typing.Any) -> None:
         """
         send(arg) -> send 'arg' into generator,
         return next yielded value or raise StopIteration.
@@ -246,6 +248,7 @@ class IndexableWalker(Generator):
             raise TypeError(
                 'cannot send to walker before iteration has started'
             )
+        assert self._walk_gen is not None
         self._walk_gen.send(arg)
 
     def throw(
@@ -300,8 +303,10 @@ class IndexableWalker(Generator):
         for k in prefix:
             d = d[k]
         if typing.TYPE_CHECKING:
-            d = typing.cast(MutableMapping[Any, Any] | MutableSequence[Any], d)
-        d[key] = value
+            d = typing.cast(
+                typing.Union[MutableMapping[Any, Any], MutableSequence[Any]], d
+            )  # type: ignore[assignment]
+        d[key] = value  # type: ignore[index]
 
     def __getitem__(self, path: list) -> Any:
         """
@@ -312,6 +317,16 @@ class IndexableWalker(Generator):
 
         Returns:
             Any: value
+
+        Example:
+            >>> import ubelt as ub
+            >>> data = {
+            >>>     'foo': {'bar': 1},
+            >>>     'baz': [{'biz': 3}, {'buz': [4, 5, 6]}],
+            >>> }
+            >>> walker = ub.IndexableWalker(data)
+            >>> walker[['baz', 0, 'biz']]
+            3
         """
         import itertools as it
 
@@ -326,7 +341,7 @@ class IndexableWalker(Generator):
             d = d[k]
         return d[key]
 
-    def __delitem__(self, path: list) -> None:
+    def __delitem__(self, path: Sequence) -> None:
         """
         Remove nested value by path
 
@@ -339,6 +354,20 @@ class IndexableWalker(Generator):
         Args:
             path (List): list of indexes into the nested structure.
                 The item at the last index will be removed.
+
+        Example:
+            >>> import ubelt as ub
+            >>> data = {
+            >>>     'foo': {'bar': 1},
+            >>>     'baz': [{'biz': 3}, {'buz': [4, 5, 6]}],
+            >>> }
+            >>> walker = ub.IndexableWalker(data)
+            >>> del walker[['baz', 1, 'buz']]
+            >>> print(f'data = {ub.urepr(data, nl=1)}')
+            data = {
+                'foo': {'bar': 1},
+                'baz': [{'biz': 3}, {}],
+            }
         """
         d = self.data
         prefix, key = path[:-1], path[-1]
@@ -346,10 +375,14 @@ class IndexableWalker(Generator):
         for k in prefix:
             d = d[k]
         if typing.TYPE_CHECKING:
-            d = typing.cast(MutableMapping[Any, Any] | MutableSequence[Any], d)
-        del d[key]
+            d = typing.cast(
+                typing.Union[MutableMapping[Any, Any], MutableSequence[Any]], d
+            )  # type: ignore[assignment]
+        # to fix the typing here we need to guarentee that our data sequence
+        # wont hit an immutable type.
+        del d[key]  # type: ignore[union-attr]
 
-    def keys(self, non_leaf=False):
+    def keys(self, non_leaf: bool = False) -> typing.Iterator[list]:
         """
         Iterate over the nested paths in the container.
 
@@ -383,11 +416,14 @@ class IndexableWalker(Generator):
             >>> assert not any(['emptynest' in p for p in keys])
             >>> assert any(['emptynest' in p for p in keys_with_nonleafs])
         """
-        for path, value in self._walk():
+        for item in self._walk():
+            if item is None:
+                continue  # nocover
+            path, value = item
             if non_leaf or not isinstance(value, self.indexable_cls):
                 yield path
 
-    def values(self, non_leaf=False):
+    def values(self, non_leaf: bool = False) -> typing.Iterator[typing.Any]:
         """
         Iterate over the values nested within the container.
 
@@ -414,11 +450,18 @@ class IndexableWalker(Generator):
             >>> assert not any(isinstance(v, list) for v in values)
             >>> assert any(isinstance(v, list) for v in keys_with_nonleafs)
         """
-        for path, value in self._walk():
+        for item in self._walk():
+            if item is None:
+                continue  # nocover
+            path, value = item
             if non_leaf or not isinstance(value, self.indexable_cls):
                 yield value
 
-    def _walk(self, data=None, prefix=[]):
+    def _walk(
+        self,
+        data: typing.Any = None,
+        prefix: list = [],
+    ) -> Generator[tuple[list, typing.Any] | None, typing.Any, typing.Any]:
         """
         Defines the underlying generator used by IndexableWalker
 
@@ -437,11 +480,13 @@ class IndexableWalker(Generator):
             _data, _prefix = stack.pop()
             # Create an items iterable of depending on the indexable data type
             if isinstance(_data, self.list_cls):
-                items = enumerate(_data)
+                items: typing.Iterator[tuple[typing.Any, typing.Any]] = (
+                    enumerate(typing.cast(typing.Iterable[typing.Any], _data))
+                )
             elif isinstance(_data, self.dict_cls):
                 if typing.TYPE_CHECKING:
                     _data = typing.cast(Mapping[Any, Any], _data)
-                items = _data.items()
+                items = iter(_data.items())
             else:
                 raise TypeError(type(_data))
 
@@ -587,19 +632,29 @@ class IndexableWalker(Generator):
 
         _isclose_fn, _iskw = _make_isclose_fn(rel_tol, abs_tol, equal_nan)
 
-        flat_items1 = [
-            (path, value)
-            for path, value in walker1
-            if not isinstance(value, walker1.indexable_cls) or len(value) == 0
-        ]
-        flat_items2 = [
-            (path, value)
-            for path, value in walker2
-            if not isinstance(value, walker1.indexable_cls) or len(value) == 0
-        ]
+        flat_items1 = []
+        for item in walker1:
+            if item is None:
+                continue  # nocover
+            path, value = item
+            if not isinstance(value, walker1.indexable_cls) or (
+                isinstance(value, Sized) and len(value) == 0
+            ):
+                flat_items1.append((path, value))
+        flat_items2 = []
+        for item in walker2:
+            if item is None:
+                continue  # nocover
+            path, value = item
+            if not isinstance(value, walker1.indexable_cls) or (
+                isinstance(value, Sized) and len(value) == 0
+            ):
+                flat_items2.append((path, value))
 
         flat_items1 = sorted(flat_items1)
         flat_items2 = sorted(flat_items2)
+
+        info: dict[str, Any]
 
         if len(flat_items1) != len(flat_items2):
             info = {'faillist': ['length mismatch']}
@@ -642,7 +697,13 @@ class IndexableWalker(Generator):
         else:
             return final_flag
 
-    def diff(self, other, rel_tol=1e-9, abs_tol=0.0, equal_nan=False):
+    def diff(
+        self,
+        other: IndexableWalker | list | dict,
+        rel_tol: float = 1e-9,
+        abs_tol: float = 0.0,
+        equal_nan: bool = False,
+    ) -> dict[str, typing.Any]:
         """
         Walks through two nested data structures finds differences in the
         structures.
@@ -724,16 +785,24 @@ class IndexableWalker(Generator):
                 other, dict_cls=self.dict_cls, list_cls=self.list_cls
             )
         # TODO: numpy optimizations
-        flat_items1 = {
-            tuple(path): value
-            for path, value in walker1
-            if not isinstance(value, walker1.indexable_cls) or len(value) == 0
-        }
-        flat_items2 = {
-            tuple(path): value
-            for path, value in walker2
-            if not isinstance(value, walker1.indexable_cls) or len(value) == 0
-        }
+        flat_items1 = {}
+        for item in walker1:
+            if item is None:
+                continue  # nocover
+            path, value = item
+            if not isinstance(value, walker1.indexable_cls) or (
+                isinstance(value, Sized) and len(value) == 0
+            ):
+                flat_items1[tuple(path)] = value
+        flat_items2 = {}
+        for item in walker2:
+            if item is None:
+                continue  # nocover
+            path, value = item
+            if not isinstance(value, walker1.indexable_cls) or (
+                isinstance(value, Sized) and len(value) == 0
+            ):
+                flat_items2[tuple(path)] = value
 
         common = flat_items1.keys() & flat_items2.keys()
         unique1 = flat_items1.keys() - flat_items2.keys()
@@ -781,7 +850,11 @@ class IndexableWalker(Generator):
         return info
 
 
-def _make_isclose_fn(rel_tol, abs_tol, equal_nan):
+def _make_isclose_fn(
+    rel_tol: float,
+    abs_tol: float,
+    equal_nan: bool,
+) -> tuple[typing.Any, dict[str, typing.Any]]:
     np = _lazy_numpy()
     if np is None:  # nocover
         _isclose_fn = isclose

@@ -1,3 +1,6 @@
+from __future__ import annotations
+
+import typing
 from os.path import exists, join
 
 import ubelt as ub
@@ -5,7 +8,7 @@ import ubelt as ub
 # DEBUG_PATH = ub.Path.home().name == 'joncrall'
 
 
-def test_pathlib_compatability():
+def test_pathlib_compatability() -> None:
     import pathlib
 
     base = pathlib.Path(ub.Path.appdir('ubelt').ensuredir())
@@ -14,7 +17,7 @@ def test_pathlib_compatability():
     # ensuredir
     ub.delete(dpath)
     assert not dpath.exists()
-    got = ub.ensuredir(dpath)
+    got = ub.Path(ub.ensuredir(dpath))
     assert got.exists()
 
     # shrinkuser
@@ -24,37 +27,40 @@ def test_pathlib_compatability():
     assert not ub.expandpath(base).startswith('~')
 
 
-def test_tempdir():
+def test_tempdir() -> None:
     import pytest
 
     with pytest.warns(Warning):
         temp = ub.TempDir()
     assert temp.dpath is None
     temp.ensure()
+    assert temp.dpath is not None
     assert exists(temp.dpath)
     # Double ensure for coverage
     temp.ensure()
+    assert temp.dpath is not None
     assert exists(temp.dpath)
 
     dpath = temp.dpath
     temp.cleanup()
+    assert dpath is not None
     assert not exists(dpath)
     assert temp.dpath is None
 
 
-def test_augpath_identity():
+def test_augpath_identity() -> None:
     assert ub.augpath('foo') == 'foo'
     assert ub.augpath('foo/bar') == join('foo', 'bar')
     assert ub.augpath('') == ''
 
 
-def test_augpath_dpath():
+def test_augpath_dpath() -> None:
     assert ub.augpath('foo', dpath='bar') == join('bar', 'foo')
     assert ub.augpath('foo/bar', dpath='baz') == join('baz', 'bar')
     assert ub.augpath('', dpath='bar').startswith('bar')
 
 
-def test_ensuredir_recreate():
+def test_ensuredir_recreate() -> None:
     import pytest
 
     base = ub.Path.appdir('ubelt/tests').ensuredir()
@@ -69,7 +75,7 @@ def test_ensuredir_recreate():
     assert not exists(member)
 
 
-def test_ensuredir_verbosity():
+def test_ensuredir_verbosity() -> None:
     base = ub.Path.appdir('ubelt/tests').ensuredir()
 
     with ub.CaptureStdout() as cap:
@@ -77,19 +83,23 @@ def test_ensuredir_verbosity():
     assert cap.text == ''
     # None defaults to verbose=0
     with ub.CaptureStdout() as cap:
-        ub.ensuredir((base, 'foo'), verbose=None)
+        ub.ensuredir((base, 'foo'), verbose=None)  # type: ignore[arg-type]  # ty: ignore[invalid-argument-type]
     assert cap.text == ''
 
     ub.delete(join(base, 'foo'))
     with ub.CaptureStdout() as cap:
         ub.ensuredir(join(base, 'foo'), verbose=1)
+    assert cap.text is not None
     assert 'creating' in cap.text
     with ub.CaptureStdout() as cap:
         ub.ensuredir(join(base, 'foo'), verbose=1)
+    assert cap.text is not None
     assert 'existing' in cap.text
 
 
-def demo_nested_paths(dpath, nfiles=2, ndirs=1, depth=0):
+def demo_nested_paths(
+    dpath: ub.Path, nfiles: int = 2, ndirs: int = 1, depth: int = 0
+) -> None:
     for idx in range(nfiles):
         (dpath / f'file_{idx}.txt').write_text(
             f'hello world idx={idx} depth={depth}'
@@ -107,11 +117,14 @@ def demo_nested_paths(dpath, nfiles=2, ndirs=1, depth=0):
             )
 
 
-def relative_contents(dpath):
-    return [p.relative_to(dpath) for p in sorted(dpath.glob('**'), key=str)]
+def relative_contents(dpath: ub.Path) -> list[typing.Any]:
+    return [
+        typing.cast(ub.Path, p).relative_to(dpath)
+        for p in sorted(dpath.glob('**'), key=str)
+    ]
 
 
-def test_copy_directory_cases():
+def test_copy_directory_cases() -> None:
     """
     Ignore:
 
@@ -142,7 +155,7 @@ def test_copy_directory_cases():
     # <src>/<contents>.
     for key, src in paths.items():
         for meta in ['stats', 'mode', None]:
-            kwargs = {'meta': meta}
+            kwargs: dict[str, typing.Any] = {'meta': meta}
             root2.delete().ensuredir()
             # Because root2 exists we error if overwrite if False
             with pytest.raises(FileExistsError):
@@ -161,17 +174,17 @@ def test_copy_directory_cases():
             contents2 = relative_contents(new_dpath)
             # But we can't do it again
             with pytest.raises(FileExistsError):
-                src.copy(root2 / src.name, **kwargs)
+                src.copy(root2 / src.name, **kwargs)  # type: ignore
             assert contents2 == relative_contents(new_dpath)
             # Unless overwrite is True
-            new_dpath = src.copy(root2 / src.name, overwrite=True, **kwargs)
+            new_dpath = src.copy(root2 / src.name, overwrite=True, **kwargs)  # type: ignore
             # And in all cases the contents should be unchanged
             assert contents2 == relative_contents(new_dpath)
 
             # Test copy src into root2/sub1/sub2 when root/sub1 does not exist
             root2.delete().ensuredir()
             dst = root2 / 'sub1/sub2'
-            new_dpath = src.copy(dst, **kwargs)
+            new_dpath = src.copy(dst, **kwargs)  # type: ignore
             assert new_dpath.name == 'sub2'
             # Unlike cp, Path.copy will create the intermediate directories
             assert contents1 == relative_contents(new_dpath)
@@ -272,7 +285,7 @@ def test_copy_directory_cases():
             assert len(contents2) == 1
 
 
-def test_move_directory_cases():
+def test_move_directory_cases() -> None:
     """
     Ignore:
 
@@ -311,19 +324,19 @@ def test_move_directory_cases():
             root2.delete().ensuredir()
             # We cannot move to a file that exists
             with pytest.raises(FileExistsError):
-                src.move(root2, **kwargs)
+                src.move(root2, **kwargs)  # type: ignore
 
             contents1 = relative_contents(src)
             # We can move to a directory that doesn't exist
             root2.delete().ensuredir()
-            new_dpath = src.move(root2 / src.name, **kwargs)
+            new_dpath = src.move(root2 / src.name, **kwargs)  # type: ignore
             assert new_dpath.name == src.name
             contents2 = relative_contents(new_dpath)
             assert not src.exists()
             assert contents1 == contents2
 
             with pytest.raises(FileExistsError):
-                src.move(root2 / src.name, **kwargs)
+                src.move(root2 / src.name, **kwargs)  # type: ignore
 
             # Test move src into root2/sub1/sub2 when root/sub1 does not exist
             # Reset original dires
@@ -333,13 +346,13 @@ def test_move_directory_cases():
             demo_nested_paths(paths['deep'], depth=3)
             root2.delete().ensuredir()
             dst = root2 / 'sub1/sub2'
-            new_dpath = src.move(dst, **kwargs)
+            new_dpath = src.move(dst, **kwargs)  # type: ignore
             assert new_dpath.name == 'sub2'
             # Unlike cp, Path.move will create the intermediate directories
             assert contents1 == relative_contents(new_dpath)
 
 
-def test_follow_file_symlinks():
+def test_follow_file_symlinks() -> None:
     import ubelt as ub
 
     root = (

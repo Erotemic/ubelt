@@ -55,14 +55,13 @@ from __future__ import annotations
 import concurrent.futures
 import typing
 from concurrent.futures import as_completed
+from typing import Protocol, cast
 
 __all__ = ['Executor', 'JobPool']
 
 if typing.TYPE_CHECKING:
     from concurrent.futures import (
         Future,
-        ProcessPoolExecutor,
-        ThreadPoolExecutor,
     )
     from types import TracebackType
     from typing import (
@@ -73,9 +72,34 @@ if typing.TYPE_CHECKING:
         Iterator,
         Type,
         TypeVar,
+        cast,
     )
 
     T = TypeVar('T')
+
+    class _ExecutorBackend(Protocol):
+        def __enter__(self) -> Any: ...
+        def __exit__(
+            self,
+            ex_type: Type[BaseException] | None,
+            ex_value: BaseException | None,
+            ex_traceback: TracebackType | None,
+        ) -> bool | None: ...
+        def submit(
+            self,
+            func: Callable[..., T],
+            *args: Any,
+            **kw: Any,
+        ) -> concurrent.futures.Future[T]: ...
+        def shutdown(self) -> None: ...
+        def map(
+            self,
+            fn: Callable[..., T],
+            *iterables: Iterable[Any],
+            **kwargs: Any,
+        ) -> Iterator[T]: ...
+else:
+    _ExecutorBackend = typing.Any
 
 
 class SerialFuture(concurrent.futures.Future):
@@ -97,7 +121,7 @@ class SerialFuture(concurrent.futures.Future):
     args: tuple
     kw: dict
 
-    def __init__(self, func, *args, **kw) -> None:
+    def __init__(self, func: Callable[..., Any], *args: Any, **kw: Any) -> None:
         super(SerialFuture, self).__init__()
         self.func = func
         self.args = args
@@ -107,12 +131,12 @@ class SerialFuture(concurrent.futures.Future):
         # fake being finished to cause __get_result to be called
         self._state = concurrent.futures._base.FINISHED
 
-    def _run(self):
+    def _run(self) -> None:
         result = self.func(*self.args, **self.kw)
         self.set_result(result)
         self._run_count += 1
 
-    def set_result(self, result) -> None:
+    def set_result(self, result: Any) -> None:
         """
         Overrides the implementation to revert to pre python3.8 behavior
 
@@ -145,9 +169,9 @@ class SerialFuture(concurrent.futures.Future):
             for waiter in self._waiters:  # nocover
                 waiter.add_result(self)
             self._condition.notify_all()
-        self._invoke_callbacks()  # type: ignore[unresolved-attribute]
+        self._invoke_callbacks()  # type: ignore
 
-    def _Future__get_result(self):
+    def _Future__get_result(self) -> typing.Any:
         # overrides private __getresult method
         if not self._run_count:
             self._run()
@@ -188,7 +212,7 @@ class SerialExecutor:
         ex_type: Type[BaseException] | None,
         ex_value: BaseException | None,
         ex_traceback: TracebackType | None,
-    ) -> bool | None:
+    ) -> None:
         """
         Args:
             ex_type (Type[BaseException] | None):
@@ -198,7 +222,7 @@ class SerialExecutor:
         Returns:
             bool | None
         """
-        return False
+        return None
 
     def submit(
         self,
@@ -352,7 +376,7 @@ class Executor:
         >>>     assert results == [1, 3, 5, 7, 9, 11, 13, 15, 17, 19]
     """
 
-    backend: SerialExecutor | ThreadPoolExecutor | ProcessPoolExecutor
+    backend: _ExecutorBackend
 
     def __init__(self, mode: str = 'thread', max_workers: int = 0) -> None:
         """
@@ -366,12 +390,19 @@ class Executor:
         """
         from concurrent import futures
 
+        backend: _ExecutorBackend
         if mode == 'serial' or max_workers == 0:
             backend = SerialExecutor()
         elif mode == 'thread':
-            backend = futures.ThreadPoolExecutor(max_workers=max_workers)
+            backend = cast(
+                _ExecutorBackend,
+                futures.ThreadPoolExecutor(max_workers=max_workers),
+            )
         elif mode == 'process':
-            backend = futures.ProcessPoolExecutor(max_workers=max_workers)
+            backend = cast(
+                _ExecutorBackend,
+                futures.ProcessPoolExecutor(max_workers=max_workers),
+            )
         elif mode == 'interpreter':  # nocover
             # Requires 3.14+
             InterpreterPoolExecutor = getattr(
@@ -540,7 +571,7 @@ class JobPool:
         return len(self.jobs)
 
     def submit(
-        self, func: Callable[..., Any], *args, **kwargs
+        self, func: Callable[..., Any], *args: Any, **kwargs: Any
     ) -> concurrent.futures.Future:
         """
         Submit a job managed by the pool
@@ -640,7 +671,9 @@ class JobPool:
         """
         from ubelt.progiter import ProgIter
 
-        job_iter = as_completed(self.jobs, timeout=timeout)
+        job_iter: Iterable[concurrent.futures.Future[Any]] = as_completed(
+            self.jobs, timeout=timeout
+        )
         if desc is not None:
             if progkw is None:
                 progkw = {}

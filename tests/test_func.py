@@ -1,7 +1,10 @@
-def test_compatible_keywords():
+import typing
+
+
+def test_compatible_keywords() -> None:
     import ubelt as ub
 
-    def func(a, e, f, *args, **kwargs):
+    def func(a: int, e: int, f: int, *args: object, **kwargs: object) -> int:
         return a * e * f
 
     config = {
@@ -14,11 +17,11 @@ def test_compatible_keywords():
     }
 
     assert ub.compatible(config, func, keywords=True) is config
-    assert ub.compatible(config, func, keywords=1) is config
+    assert ub.compatible(config, func, keywords=True) is config
     assert ub.compatible(config, func, keywords='truthy') is config
 
     assert ub.compatible(config, func, keywords=['iterable']) is not config
-    assert ub.compatible(config, func, keywords=0) is not config
+    assert ub.compatible(config, func, keywords=False) is not config
     assert ub.compatible(config, func, keywords={'b'}) == {
         'a': 2,
         'e': 13,
@@ -27,7 +30,7 @@ def test_compatible_keywords():
     }
 
 
-def test_positional_only_args():
+def test_positional_only_args() -> None:
     import sys
 
     import pytest
@@ -46,9 +49,9 @@ def test_positional_only_args():
             return a * e * f
         """
     )
-    ns = {}
+    ns: dict[str, object] = {}
     exec(pos_only_code, ns, ns)
-    func = ns['func']
+    func = typing.cast(typing.Callable[..., object], ns['func'])
     config = {
         'a': 2,
         'b': 3,
@@ -59,3 +62,23 @@ def test_positional_only_args():
     }
     pos_only = ub.compatible(config, func)
     assert sorted(pos_only) == ['f']
+
+
+def test_compatible_noniterable_keywords_flag() -> None:
+    import ubelt as ub
+
+    def func(a: int, e: int, f: int) -> int:
+        return a * e * f
+
+    class TruthyNonIterable:
+        def __bool__(self) -> bool:
+            return True
+
+    config = {
+        'a': 2,
+        'b': 3,
+        'e': 13,
+        'f': 17,
+    }
+    got = ub.compatible(config, func, keywords=TruthyNonIterable())
+    assert got == {'a': 2, 'e': 13, 'f': 17}

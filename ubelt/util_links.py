@@ -234,7 +234,7 @@ def symlink(
     return link
 
 
-def _readlink(link):
+def _readlink(link: str | os.PathLike[str]) -> str:
     # Note:
     # https://docs.python.org/3/library/os.html#os.readlink
     # os.readlink was changed on win32 in version 3.8: Added support for
@@ -242,21 +242,25 @@ def _readlink(link):
     # typically includes \\?\ prefix) rather than the optional “print name”
     # field that was previously returned.
 
+    link_ = os.fspath(link)
+    if isinstance(link_, bytes):
+        link_ = link_.decode()
+
     if _win32_links:  # nocover
-        if _win32_links._win32_is_junction(link):
+        if _win32_links._win32_is_junction(link_):
             import platform
 
             if platform.python_implementation() == 'PyPy':
                 # On PyPy this test can have a false positive
                 # for what should be a regular link.
-                path = os.readlink(link)
+                path = os.readlink(link_)
                 junction_prefix = '\\\\?\\'
                 if path.startswith(junction_prefix):
                     path = path[len(junction_prefix) :]
                     return path
-            return _win32_links._win32_read_junction(link)
+            return _win32_links._win32_read_junction(link_)
     try:
-        path = os.readlink(link)
+        path = os.readlink(link_)
         if util_platform.WIN32:  # nocover
             junction_prefix = '\\\\?\\'
             if path.startswith(junction_prefix):
@@ -269,7 +273,7 @@ def _readlink(link):
         raise
 
 
-def _can_symlink(verbose=0):  # nocover
+def _can_symlink(verbose: int = 0) -> bool:  # nocover
     """
     Return true if we have permission to create real symlinks.
     This check always returns True on non-win32 systems.
@@ -281,7 +285,7 @@ def _can_symlink(verbose=0):  # nocover
         return True
 
 
-def _dirstats(dpath=None):  # nocover
+def _dirstats(dpath: str | os.PathLike | None = None) -> None:  # nocover
     """
     Testing helper for printing directory information
     (mostly for investigating windows weirdness)

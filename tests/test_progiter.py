@@ -2,8 +2,11 @@
 pytest tests/test_progiter.py
 """
 
+from __future__ import annotations
+
 import itertools as it
 import sys
+import typing
 from io import StringIO
 
 from xdoctest.utils import CaptureStdout, strip_ansi
@@ -16,13 +19,17 @@ class FakeStream:
     Helper to hook into and introspect when progiter writes to the display
     """
 
-    def __init__(self, verbose=0, callback=None):
+    def __init__(
+        self,
+        verbose: int = 0,
+        callback: typing.Callable[[], None] | None = None,
+    ) -> None:
         self.verbose = verbose
         self.callback = callback
         self._callcount = 0
-        self.messages = []
+        self.messages: list[str] = []
 
-    def write(self, msg):
+    def write(self, msg: str) -> None:
         self._callcount += 1
         self.messages.append(msg)
         if self.verbose:
@@ -30,7 +37,7 @@ class FakeStream:
         if self.callback is not None:
             self.callback()
 
-    def flush(self, *args, **kw): ...
+    def flush(self, *args: object, **kw: object) -> None: ...
 
 
 class FakeTimer:
@@ -39,22 +46,23 @@ class FakeTimer:
     You must tic this timer yourself.
     """
 
-    def __init__(self, times=[1]):
-        self._time = 0
+    def __init__(self, times: typing.Iterable[int] = (1,)) -> None:
+        self._time: float | int = 0
         self._callcount = 0
         self._iter = it.cycle(times)
 
-    def tic(self, step=None):
+    def tic(self, step: float | int | None = None) -> None:
         if step is None:
             step = next(self._iter)
-        self._time += step
+        delta: float | int = step
+        self._time += delta
 
-    def __call__(self):
+    def __call__(self) -> float | int:
         self._callcount += 1
         return self._time
 
 
-def test_rate_format_string():
+def test_rate_format_string() -> None:
     # Less of a test than a demo
     rates = [1 * 10**i for i in range(-10, 10)]
 
@@ -88,10 +96,10 @@ def test_rate_format_string():
     ]
 
 
-def test_rate_format():
+def test_rate_format() -> None:
     # Define a function that takes some time
     file = StringIO()
-    prog = ProgIter(file=file)
+    prog: typing.Any = ProgIter(file=file)
     prog.begin()
 
     prog._iters_per_second = 0.000001
@@ -110,9 +118,9 @@ def test_rate_format():
     assert rate_part == '10000.00'
 
 
-def test_progiter():
+def test_progiter() -> None:
     # Define a function that takes some time
-    def is_prime(n):
+    def is_prime(n: int) -> bool:
         return n >= 2 and not any(n % i == 0 for i in range(2, n))
 
     N = 500
@@ -204,7 +212,7 @@ def test_progiter():
         list(psequence)
 
 
-def test_progiter_offset_10():
+def test_progiter_offset_10() -> None:
     """
     pytest -s  tests/test_progiter.py::test_progiter_offset_10
     """
@@ -235,7 +243,7 @@ def test_progiter_offset_10():
     assert got == want
 
 
-def test_progiter_offset_0():
+def test_progiter_offset_0() -> None:
     """
     pytest -s  tests/test_progiter.py::test_progiter_offset_0
     """
@@ -265,7 +273,7 @@ def test_progiter_offset_0():
     assert got == want
 
 
-def test_unknown_total():
+def test_unknown_total() -> None:
     """
     Make sure a question mark is printed if the total is unknown
     """
@@ -283,17 +291,19 @@ def test_unknown_total():
     assert all('?' in line for line in got), 'all lines should have an eroteme'
 
 
-def test_initial():
+def test_initial() -> None:
     """
     Make sure a question mark is printed if the total is unknown
     """
     file = StringIO()
-    prog = ProgIter(initial=9001, file=file, show_times=False, clearline=False)
+    prog: typing.Any = ProgIter(
+        initial=9001, file=file, show_times=False, clearline=False
+    )
     message = prog.format_message_parts()[1]
     assert strip_ansi(message) == ' 9001/?... '
 
 
-def test_clearline():
+def test_clearline() -> None:
     """
     Make sure a question mark is printed if the total is unknown
 
@@ -301,7 +311,7 @@ def test_clearline():
     """
     file = StringIO()
     # Clearline=False version should simply have a newline at the end.
-    prog = ProgIter(file=file, show_times=False, clearline=False)
+    prog: typing.Any = ProgIter(file=file, show_times=False, clearline=False)
     before, message, after = prog.format_message_parts()
     assert before == ''
     assert strip_ansi(message).strip(' ') == '0/?...'
@@ -313,7 +323,7 @@ def test_clearline():
     assert strip_ansi(message).strip(' ') == '0/?...'
 
 
-def test_disabled():
+def test_disabled() -> None:
     prog = ProgIter(range(20), enabled=True)
     prog.begin()
     assert prog.started
@@ -324,24 +334,27 @@ def test_disabled():
     assert not prog.started
 
 
-def test_eta_window_None():
+def test_eta_window_None() -> None:
     # nothing to check (that I can think of) run test for coverage
-    prog = ProgIter(range(20), enabled=True, eta_window=None)
+    prog = ProgIter(range(20), enabled=True, eta_window=None)  # type: ignore
     for _ in prog:
         pass
 
 
-def test_adjust_freq():
+def test_adjust_freq() -> None:
     # nothing to check (that I can think of) run test for coverage
-    prog = ProgIter(
-        range(20), enabled=True, eta_window=None, rel_adjust_limit=4.0
+    prog: typing.Any = ProgIter(
+        range(20),
+        enabled=True,
+        eta_window=typing.cast(typing.Any, None),
+        rel_adjust_limit=4.0,  # type: ignore
     )
 
     # Adjust frequency up to have each update happen every 1sec or so
     prog.freq = 1
     prog.time_thresh = 1.0
-    prog._max_between_count = -1.0
-    prog._max_between_time = -1.0
+    prog._max_between_count = -1.0  # type: ignore
+    prog._max_between_time = -1.0  # type: ignore
     prog._measure_timedelta = 1
     prog._measure_countdelta = 1000
     prog._adjust_frequency()
@@ -368,7 +381,7 @@ def test_adjust_freq():
     assert prog.freq == 1
 
 
-def test_tqdm_compatibility():
+def test_tqdm_compatibility() -> None:
     prog = ProgIter(range(20), total=20, miniters=17, show_times=False)
     assert prog.pos == 0
     assert prog.freq == 17
@@ -377,6 +390,7 @@ def test_tqdm_compatibility():
 
     with CaptureStdout() as cap:
         ProgIter.write('foo')
+    assert cap.text is not None
     assert cap.text.strip() == 'foo'
 
     with CaptureStdout() as cap:
@@ -386,6 +400,7 @@ def test_tqdm_compatibility():
         prog.refresh()
         prog.close()
     assert prog.label == 'new desc'
+    assert cap.text is not None
     assert 'new desc' in cap.text.strip()
 
     with CaptureStdout() as cap:
@@ -393,6 +408,7 @@ def test_tqdm_compatibility():
         prog.set_description('new desc', refresh=True)
         prog.close()
     assert prog.label == 'new desc'
+    assert cap.text is not None
     assert 'new desc' in cap.text.strip()
 
     with CaptureStdout() as cap:
@@ -402,6 +418,7 @@ def test_tqdm_compatibility():
         prog.refresh()
         prog.close()
     assert prog.label == 'new desc'
+    assert cap.text is not None
     assert 'new desc' in cap.text.strip()
 
     with CaptureStdout() as cap:
@@ -409,6 +426,7 @@ def test_tqdm_compatibility():
         prog.set_postfix({'foo': 'bar'}, baz='biz', x=object(), y=2)
         prog.begin()
     assert prog.length is None
+    assert cap.text is not None
     assert 'foo=bar' in cap.text.strip()
     assert 'baz=biz' in cap.text.strip()
     assert 'y=2' in cap.text.strip()
@@ -417,23 +435,25 @@ def test_tqdm_compatibility():
     with CaptureStdout() as cap:
         prog = ProgIter(show_times=False)
         prog.set_postfix_str('bar baz', refresh=False)
+    assert cap.text is not None
     assert 'bar baz' not in cap.text.strip()
 
     with CaptureStdout() as cap:
         prog = ProgIter(show_times=False)
         prog.set_postfix('bar baz', refresh=False)
+    assert cap.text is not None
     assert 'bar baz' not in cap.text.strip()
 
 
 class IntObject:
-    def __init__(self):
+    def __init__(self) -> None:
         self.n = 0
 
-    def inc(self, *args, **kwargs):
+    def inc(self, *args: typing.Any, **kwargs: typing.Any) -> None:
         self.n += 1
 
 
-def test_adjust_fast_early_slow_late_doesnt_get_stuck():
+def test_adjust_fast_early_slow_late_doesnt_get_stuck() -> None:
     cnt = IntObject()
     fake_stream = FakeStream(verbose=0, callback=cnt.inc)
     fake_timer = FakeTimer()
@@ -446,7 +466,7 @@ def test_adjust_fast_early_slow_late_doesnt_get_stuck():
         rel_adjust_limit=1000000.0,
         homogeneous=False,
         timer=fake_timer,
-        stream=fake_stream,
+        stream=fake_stream,  # type: ignore
     )
     it = iter(prog)
     # Few fast updates at the beginning
@@ -461,7 +481,7 @@ def test_adjust_fast_early_slow_late_doesnt_get_stuck():
     assert cnt.n > 8
 
 
-def test_adjust_slow_early_fast_late_doesnt_spam():
+def test_adjust_slow_early_fast_late_doesnt_spam() -> None:
     cnt = IntObject()
     fake_stream = FakeStream(verbose=0, callback=cnt.inc)
     fake_timer = FakeTimer()
@@ -474,7 +494,7 @@ def test_adjust_slow_early_fast_late_doesnt_spam():
         rel_adjust_limit=1000000.0,
         homogeneous=False,
         timer=fake_timer,
-        stream=fake_stream,
+        stream=fake_stream,  # type: ignore
     )
     it = iter(prog)
     # Few slow updates at the beginning
@@ -489,19 +509,21 @@ def test_adjust_slow_early_fast_late_doesnt_spam():
     assert cnt.n < 20
 
 
-def test_homogeneous_heuristic_with_iter_lengths():
+def test_homogeneous_heuristic_with_iter_lengths() -> None:
     for size in range(0, 10):
         list(ProgIter(range(size), homogeneous='auto'))
 
 
-def test_mixed_iteration_and_step():
+def test_mixed_iteration_and_step() -> None:
     # Check to ensure nothing breaks
     for adjust in [0, 1]:
         for homogeneous in [0, 1] if adjust else [0]:
             for size in range(0, 10):
                 for n_inner_steps in range(size):
                     prog = ProgIter(
-                        range(size), adjust=adjust, homogeneous=homogeneous
+                        range(size),
+                        adjust=typing.cast(typing.Any, adjust),
+                        homogeneous=homogeneous,  # type: ignore
                     )
                     iprog = iter(prog)
                     try:
@@ -513,7 +535,7 @@ def test_mixed_iteration_and_step():
                         ...
 
 
-def check_issue_32_non_homogeneous_time_threshold_prints():
+def check_issue_32_non_homogeneous_time_threshold_prints() -> None:
     """
     xdoctest ~/code/progiter/tests/test_progiter.py check_issue_32_non_homogeneous_time_threshold_prints
     """
@@ -531,7 +553,7 @@ def check_issue_32_non_homogeneous_time_threshold_prints():
         timer=fake_timer,
         time_thresh=time_thresh,
         homogeneous='auto',
-        stream=fake_stream,
+        stream=fake_stream,  # type: ignore
         clearline=False,
     )
 
@@ -543,7 +565,7 @@ def check_issue_32_non_homogeneous_time_threshold_prints():
 
     states = []
 
-    def record_state():
+    def record_state() -> dict[str, typing.Any]:
         real_display_timedelta = (
             fake_timer._time - prog._display_measurement.time
         )
@@ -601,7 +623,7 @@ def check_issue_32_non_homogeneous_time_threshold_prints():
     # adjustments happen at the write times
 
 
-def test_end_message_is_displayed():
+def test_end_message_is_displayed() -> None:
     """
     Older versions of progiter had a bug where the end step would not trigger
     if calculations were updated without a display
@@ -617,7 +639,7 @@ def test_end_message_is_displayed():
     assert '1000/1000' in text, 'end message should have printed'
 
 
-def test_standalone_display():
+def test_standalone_display() -> None:
     from ubelt import ProgIter
 
     fake_stream = FakeStream(verbose=1)
@@ -630,7 +652,7 @@ def test_standalone_display():
         timer=fake_timer,
         time_thresh=time_thresh,
         homogeneous=True,
-        stream=fake_stream,
+        stream=fake_stream,  # type: ignore
         clearline=True,
     )
 
@@ -668,7 +690,7 @@ def test_standalone_display():
     ]
 
 
-def test_no_percent():
+def test_no_percent() -> None:
     from ubelt import ProgIter
 
     fake_stream = FakeStream(verbose=1)
@@ -682,7 +704,7 @@ def test_no_percent():
         time_thresh=time_thresh,
         show_percent=False,
         homogeneous=True,
-        stream=fake_stream,
+        stream=fake_stream,  # type: ignore
         clearline=True,
     )
 
@@ -719,7 +741,7 @@ def test_no_percent():
     ]
 
 
-def test_clearline_padding():
+def test_clearline_padding() -> None:
     """
     Ensure we overwrite the entire previous message
     """
@@ -731,7 +753,7 @@ def test_clearline_padding():
         time_thresh=99999999,
         show_percent=False,
         homogeneous=True,
-        stream=fake_stream,
+        stream=fake_stream,  # type: ignore
         clearline=True,
     )
     prog.start()
@@ -770,23 +792,23 @@ def test_clearline_padding():
     )
 
 
-def test_extra_callback():
+def test_extra_callback() -> None:
     from ubelt import ProgIter
 
     fake_stream = FakeStream(verbose=1)
     fake_timer = FakeTimer()
     time_thresh = 50
 
-    def build_extra():
+    def build_extra() -> str:
         return chr(prog._iter_idx % 26 + 97) * 3
 
     N = 20
-    prog = ProgIter(
+    prog: typing.Any = ProgIter(
         range(N),
         timer=fake_timer,
         time_thresh=time_thresh,
         homogeneous=True,
-        stream=fake_stream,
+        stream=fake_stream,  # type: ignore[arg-type]  # ty: ignore[invalid-argument-type]
         clearline=True,
     )
     prog.set_extra(build_extra)

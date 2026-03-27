@@ -59,9 +59,9 @@ class TeeStringIO(io.StringIO):
         # allow us to embed in IPython while still capturing and Teeing
         # stdout.
         if redirect is not None:
-            self.buffer = getattr(redirect, 'buffer', redirect)  # type: ignore[invalid-assignment]
+            self.buffer = getattr(redirect, 'buffer', redirect)  # type: ignore
         else:
-            self.buffer = None  # type: ignore[invalid-assignment]
+            self.buffer = None  # type: ignore
 
         # Note: mypy doesn't like this type
         # buffer (io.BufferedIOBase | io.IOBase | None): the redirected buffer attribute
@@ -125,7 +125,7 @@ class TeeStringIO(io.StringIO):
             return super().fileno()
 
     @property
-    def encoding(self):
+    def encoding(self) -> typing.Any:
         """
         Gets the encoding of the `redirect` IO object
 
@@ -152,16 +152,16 @@ class TeeStringIO(io.StringIO):
         # Returns:
         #     None | str
         if self.redirect is not None:
-            return self.redirect.encoding  # type: ignore[possibly-missing-attribute]
+            return self.redirect.encoding  # type: ignore
         else:
             return super().encoding
 
     @encoding.setter
-    def encoding(self, value):
+    def encoding(self, value: typing.Any) -> None:
         # Adding a setter to make mypy happy
         raise AttributeError('encoding is read-only on TeeStringIO')
 
-    def write(self, msg: str):
+    def write(self, msg: str) -> int:
         """
         Write to this and the redirected stream
 
@@ -186,7 +186,7 @@ class TeeStringIO(io.StringIO):
             self.redirect.write(msg)
         return super().write(msg)
 
-    def flush(self):
+    def flush(self) -> None:
         """
         Flush to this and the redirected stream
 
@@ -240,7 +240,7 @@ class CaptureStream:
         depending on `suppress`. Called at start of each capture.
         """
         redirect = None if self.suppress else self._get_stream()
-        return TeeStringIO(redirect)  # type: ignore[invalid-argument-type]
+        return TeeStringIO(redirect)  # type: ignore
 
     def log_part(self) -> None:
         """Log what has been captured since the last call to :meth:`log_part`."""
@@ -312,8 +312,9 @@ class CaptureStream:
                 self.close()
         if ex_traceback is not None:
             return False  # propagate exception
+        return None
 
-    def __del__(self):  # nocover
+    def __del__(self) -> None:  # nocover
         # Be robust during interpreter shutdown
         try:
             if getattr(self, 'started', False):

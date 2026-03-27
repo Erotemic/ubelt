@@ -1,7 +1,11 @@
+from __future__ import annotations
+
+import typing
+
 import ubelt as ub
 
 
-def test_newlines():
+def test_newlines() -> None:
     import ubelt as ub
 
     dict_ = {
@@ -35,7 +39,7 @@ def test_newlines():
     )
 
 
-def test_negative_newlines():
+def test_negative_newlines() -> None:
     import ubelt as ub
 
     dict_ = {
@@ -79,10 +83,10 @@ def test_negative_newlines():
     )
 
 
-def test_compact_brace():
+def test_compact_brace() -> None:
     import ubelt as ub
 
-    def _nest(d, w):
+    def _nest(d: int, w: int) -> dict[str, typing.Any]:
         if d == 0:
             return {}
         else:
@@ -92,7 +96,7 @@ def test_compact_brace():
             }
 
     dict_ = _nest(d=3, w=1)
-    result = ub.urepr(dict_, nl=4, precision=2, compact_brace=0, sort=1)
+    result = ub.urepr(dict_, nl=4, precision=2, compact_brace=False, sort=True)
     print(result)
     assert result == ub.codeblock(
         """
@@ -121,7 +125,7 @@ def test_compact_brace():
         """
     )
 
-    result = ub.urepr(dict_, nl=4, precision=2, compact_brace=1, sort=1)
+    result = ub.urepr(dict_, nl=4, precision=2, compact_brace=True, sort=True)
     print(result)
     assert result == ub.codeblock(
         """
@@ -137,7 +141,7 @@ def test_compact_brace():
     )
 
 
-def test_empty():
+def test_empty() -> None:
     import ubelt as ub
 
     assert ub.urepr(list()) == '[]'
@@ -153,7 +157,7 @@ def test_empty():
     assert ub.urepr(dict(), nobr=1, explicit=1) == 'dict()'
 
 
-def test_list_of_numpy():
+def test_list_of_numpy() -> None:
     try:
         import numpy as np
     except ImportError:
@@ -234,7 +238,7 @@ def test_list_of_numpy():
     )
 
 
-def test_dict_of_numpy():
+def test_dict_of_numpy() -> None:
     try:
         import numpy as np
     except ImportError:
@@ -278,7 +282,7 @@ def test_dict_of_numpy():
     )
 
 
-def test_numpy_scalar_precision():
+def test_numpy_scalar_precision() -> None:
     try:
         import numpy as np
     except ImportError:
@@ -289,7 +293,7 @@ def test_numpy_scalar_precision():
     assert text == '3.33'
 
 
-def test_urepr_tuple_keys():
+def test_urepr_tuple_keys() -> None:
     data = {
         ('one', 'two'): 100,
         ('three', 'four'): 200,
@@ -309,7 +313,7 @@ def test_urepr_tuple_keys():
         ('one', 'two'): 100,
         ('three', 'four'): 200,
     }
-    text = ub.urepr(data, sk=1)
+    text = ub.urepr(data, sk=True)
     print(text)
     assert text == ub.codeblock(
         """
@@ -321,11 +325,11 @@ def test_urepr_tuple_keys():
     )
 
 
-def test_newline_keys():
+def test_newline_keys() -> None:
     import ubelt as ub
 
     class NLRepr:
-        def __repr__(self):
+        def __repr__(self) -> str:
             return ub.codeblock(
                 """
                 <This repr has newlines, and the first line is long:
@@ -379,7 +383,7 @@ def test_newline_keys():
     assert text == want
 
 
-def test_format_inf():
+def test_format_inf() -> None:
     import ubelt as ub
 
     ub.urepr(float('inf'))
@@ -390,15 +394,15 @@ def test_format_inf():
     except ImportError:
         pass
     else:
-        ub.urepr(float(np.inf), sv=1)
-        text1 = ub.urepr(np.array([np.inf, 1, 2, np.nan, -np.inf]), sv=0)
+        ub.urepr(float(np.inf), sv=True)
+        text1 = ub.urepr(np.array([np.inf, 1, 2, np.nan, -np.inf]), sv=False)
         assert 'np.inf' in text1 and 'np.nan' in text1
-        text2 = ub.urepr(np.array([np.inf, 1, 2, np.nan, -np.inf]), sv=1)
+        text2 = ub.urepr(np.array([np.inf, 1, 2, np.nan, -np.inf]), sv=True)
         assert 'np.inf' not in text2 and 'inf' in text2
         assert 'np.nan' not in text2 and 'nan' in text2
 
 
-def test_autosort():
+def test_autosort() -> None:
     import sys
 
     import ubelt as ub
@@ -435,7 +439,7 @@ def test_autosort():
         )
 
 
-def test_align_with_nobrace():
+def test_align_with_nobrace() -> None:
     data = {'123': 123, '45': 45, '6': 6}
     text = ub.urepr(data, align=':')
     print(text)
@@ -460,7 +464,7 @@ def test_align_with_nobrace():
     )
 
 
-def test_align_bool():
+def test_align_bool() -> None:
     data = {'a': 1, 'bb': 2}
     text = ub.urepr(data, align=True, explicit=True)
     print(text)

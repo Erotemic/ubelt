@@ -1,10 +1,12 @@
+from __future__ import annotations
+
 import ubelt as ub
 
 DEBUG_PATH = 0
 # ub.Path.home().name == 'joncrall'
 
 
-def _demo_directory_structure():
+def _demo_directory_structure() -> ub.Path:
     import uuid
 
     import ubelt as ub
@@ -119,7 +121,7 @@ def _demo_directory_structure():
 ### MOVE TESTS
 
 
-def test_move_dir_to_non_existing():
+def test_move_dir_to_non_existing() -> None:
     base = _demo_directory_structure()
     root = base / 'root'
 
@@ -135,8 +137,8 @@ def test_move_dir_to_non_existing():
     root.move(base / 'our_move')
 
     if ub.LINUX:
-        ub.cmd(f'mv {root2} {base}/linux_move', verbose=2, check=1)
-        ub.cmd(f'mv -T {root3} {base}/linux_moveT', verbose=2, check=1)
+        ub.cmd(f'mv {root2} {base}/linux_move', verbose=2, check=1)  # type: ignore
+        ub.cmd(f'mv -T {root3} {base}/linux_moveT', verbose=2, check=1)  # type: ignore
 
     if DEBUG_PATH:
         import xdev
@@ -153,7 +155,7 @@ def test_move_dir_to_non_existing():
     base.delete()
 
 
-def test_move_to_nested_non_existing():
+def test_move_to_nested_non_existing() -> None:
     base = _demo_directory_structure()
     root = base / 'root'
 
@@ -177,8 +179,8 @@ def test_move_to_nested_non_existing():
     if ub.LINUX:
         # Posix fails unless the parent exists
         (base / 'linux').ensuredir()
-        ub.cmd(f'mv -v {root2} {base}/linux/move', verbose=2, check=1)
-        ub.cmd(f'mv -Tv {root3} {base}/linux/moveT', verbose=2, check=1)
+        ub.cmd(f'mv -v {root2} {base}/linux/move', verbose=2, check=1)  # type: ignore
+        ub.cmd(f'mv -Tv {root3} {base}/linux/moveT', verbose=2, check=1)  # type: ignore
     if DEBUG_PATH:
         import xdev
 
@@ -195,7 +197,7 @@ def test_move_to_nested_non_existing():
     base.delete()
 
 
-def test_move_dir_to_existing_dir_noconflict():
+def test_move_dir_to_existing_dir_noconflict() -> None:
     base = _demo_directory_structure()
     root = base / 'root'
 
@@ -220,8 +222,8 @@ def test_move_dir_to_existing_dir_noconflict():
         root.move(base / 'our_move')
 
     if ub.LINUX:
-        ub.cmd(f'mv {root2} {base}/linux_move', verbose=2, check=1)
-        ub.cmd(f'mv -T {root3} {base}/linux_moveT', verbose=2, check=1)
+        ub.cmd(f'mv {root2} {base}/linux_move', verbose=2, check=1)  # type: ignore
+        ub.cmd(f'mv -T {root3} {base}/linux_moveT', verbose=2, check=1)  # type: ignore
 
     if DEBUG_PATH:
         import xdev
@@ -231,7 +233,7 @@ def test_move_dir_to_existing_dir_noconflict():
     base.delete()
 
 
-def test_move_dir_to_existing_dir_withconflict():
+def test_move_dir_to_existing_dir_withconflict() -> None:
     base = _demo_directory_structure()
 
     root = base / 'root'
@@ -314,7 +316,7 @@ def test_move_dir_to_existing_dir_withconflict():
 ### Simple Copy Tests
 
 
-def test_copy_basic():
+def test_copy_basic() -> None:
     dpath = ub.Path.appdir('ubelt', 'tests', 'test_path', 'test_copy_basic')
     dpath.delete().ensuredir()
     fpath = dpath / 'file.txt'
@@ -355,7 +357,7 @@ def test_copy_basic():
         xdev.tree_repr(dpath)
 
 
-def test_copy_meta():
+def test_copy_meta() -> None:
     dpath = ub.Path.appdir('ubelt', 'tests', 'test_path', 'test_copy_basic')
     dpath.delete().ensuredir()
     fpath = dpath / 'file.txt'
@@ -387,7 +389,7 @@ def test_copy_meta():
 ### Simple Move Tests
 
 
-def test_move_basic():
+def test_move_basic() -> None:
     dpath = ub.Path.appdir('ubelt', 'tests', 'test_path', 'test_move_basic')
     dpath.delete().ensuredir()
     fpath = dpath / 'file.txt'
@@ -413,7 +415,7 @@ def test_move_basic():
         xdev.tree_repr(dpath)
 
 
-def test_move_meta():
+def test_move_meta() -> None:
     base_dpath = ub.Path.appdir(
         'ubelt', 'tests', 'test_path', 'test_move_basic'
     )
@@ -444,7 +446,7 @@ def test_move_meta():
 ### COPY TESTS
 
 
-def test_copy_dir_to_non_existing():
+def test_copy_dir_to_non_existing() -> None:
     base = _demo_directory_structure()
     root = base / 'root'
     if DEBUG_PATH:
@@ -476,7 +478,7 @@ def test_copy_dir_to_non_existing():
     base.delete()
 
 
-def test_copy_to_nested_non_existing_with_different_symlink_flags():
+def test_copy_to_nested_non_existing_with_different_symlink_flags() -> None:
     base = _demo_directory_structure()
     root = base / 'root'
     if DEBUG_PATH:
@@ -512,7 +514,7 @@ def test_copy_to_nested_non_existing_with_different_symlink_flags():
     base.delete()
 
 
-def test_copy_dir_to_existing_dir_noconflict():
+def test_copy_dir_to_existing_dir_noconflict() -> None:
     base = _demo_directory_structure()
     root = base / 'root'
     (root / 'links' / 'cyclic').delete()
@@ -551,7 +553,7 @@ def test_copy_dir_to_existing_dir_noconflict():
     base.delete()
 
 
-def test_copy_dir_to_existing_dir_withconflict():
+def test_copy_dir_to_existing_dir_withconflict() -> None:
     base = _demo_directory_structure()
 
     root = base / 'root'
@@ -586,8 +588,8 @@ def test_copy_dir_to_existing_dir_withconflict():
     root.copy(dst1, overwrite=True)
 
     if ub.LINUX:
-        ub.cmd(f'cp -r {root} {dst2}', verbose=2, check=1)
-        ub.cmd(f'cp -r -T {root} {dst3}', verbose=2, check=1)
+        ub.cmd(f'cp -r {root} {dst2}', verbose=2, check=1)  # type: ignore
+        ub.cmd(f'cp -r -T {root} {dst3}', verbose=2, check=1)  # type: ignore
 
     if DEBUG_PATH:
         import xdev
@@ -627,13 +629,15 @@ def test_copy_dir_to_existing_dir_withconflict():
     base.delete()
 
 
-def _comparable_walk(p):
+def _comparable_walk(
+    p: ub.Path,
+) -> list[tuple[tuple[str, ...], tuple[str, ...]]]:
     return sorted(
         [(tuple(sorted(f)), tuple(sorted(d))) for (r, f, d) in (p).walk()]
     )
 
 
-def test_walk_compat_312():
+def test_walk_compat_312() -> None:
     """
     Test that our version works the same as the 3.12 version
     """
@@ -665,7 +669,7 @@ def test_walk_compat_312():
     assert subdirs1 == subdirs2
 
 
-def test_walk_bad_kwargs():
+def test_walk_bad_kwargs() -> None:
     import pytest
 
     import ubelt as ub
