@@ -71,8 +71,11 @@ from typing import Sequence, cast
 
 from ubelt.util_const import NoParam
 
+HashableT = typing.TypeVar('HashableT')
+
 if typing.TYPE_CHECKING:
     from os import PathLike
+    from _typeshed import DataclassInstance
     from typing import Any, Callable, Optional, Union
 
     from ubelt.util_const import NoParamType
@@ -330,7 +333,7 @@ class _Hashers:
     """
 
     def __init__(self) -> None:
-        self.algos: dict[str, Callable] = {}
+        self.algos: dict[str, HasherType] = {}
         self.aliases: dict[str, str] = {}
         self._lazy_queue = [
             self._register_xxhash,
@@ -401,7 +404,9 @@ class _Hashers:
             for key in extra:
                 self.algos[key] = hashlib.new(key)
 
-    def lookup(self, hasher: NoParamType | str | Any) -> Callable[[], Any]:
+    def lookup(
+        self, hasher: NoParamType | str | HasherType | HasherLike
+    ) -> HasherType:
         """
         Args:
             hasher (NoParamType | str | object):
@@ -419,6 +424,7 @@ class _Hashers:
             # callable so the external syntax does not need to change.
             if typing.TYPE_CHECKING:
                 hasher = cast(HasherLike, hasher)
+                return cast(HasherType, lambda: hasher)
             return lambda: hasher
         else:
             # Ensure lazy registration functions have been executed
@@ -546,7 +552,7 @@ class HashableExtensions:
     """
 
     def __init__(self) -> None:
-        self.iterable_checks: list[Callable[..., bool]] = []
+        self.iterable_checks: list[Callable[[object], bool]] = []
         self._lazy_queue: list[Callable[[], None]] = []
 
         # New singledispatch registry implementation
@@ -564,8 +570,14 @@ class HashableExtensions:
         self._lazy_queue.clear()
 
     def register(
-        self, hash_types: Union[type, tuple[type, ...], list[type]]
-    ) -> Callable[..., Any]:
+        self,
+        hash_types: type[HashableT]
+        | tuple[type[HashableT], ...]
+        | list[type[HashableT]],
+    ) -> Callable[
+        [Callable[[HashableT], tuple[bytes, bytes]]],
+        Callable[[HashableT], tuple[bytes, bytes]],
+    ]:
         """
         Registers a function to generate a hash for data of the appropriate
         types. This can be used to register custom classes. Internally this is
@@ -657,15 +669,15 @@ class HashableExtensions:
             hash_types = [hash_types]
 
         def _decor_closure(
-            hash_func: typing.Callable[..., tuple[bytes, bytes]],
-        ) -> typing.Callable[..., tuple[bytes, bytes]]:
+            hash_func: typing.Callable[[HashableT], tuple[bytes, bytes]],
+        ) -> typing.Callable[[HashableT], tuple[bytes, bytes]]:
             for hash_type in hash_types:
                 self._hash_dispatch.register(hash_type)(hash_func)
             return hash_func
 
         return _decor_closure
 
-    def lookup(self, data: object) -> Callable[..., tuple[bytes, bytes]]:
+    def lookup(self, data: object) -> Callable[[object], tuple[bytes, bytes]]:
         """
         Returns an appropriate function to hash ``data`` if one has been
         registered.
@@ -770,14 +782,14 @@ class HashableExtensions:
             >>> assert ub.hash_data(a) == ub.hash_data(b)
             >>> assert ub.hash_data(a) != ub.hash_data(c)
         """
-        import dataclasses
-
         cls = data.__class__
         header = (cls.__module__, cls.__qualname__)
         # fields() order is the definition order, which is guaranteed
+        if typing.TYPE_CHECKING:
+            cls = cast(type[DataclassInstance], cls)
         items = [
             (f.name, getattr(data, f.name))
-            for f in dataclasses.fields(cast(typing.Any, data))
+            for f in dataclasses.fields(cls)
         ]
         # Use the existing machinery to serialize recursively
         seq = _hashable_sequence(
@@ -790,8 +802,8 @@ class HashableExtensions:
         return prefix, hashable
 
     def add_iterable_check(
-        self, func: Callable[..., bool]
-    ) -> Callable[..., bool]:
+        self, func: Callable[[object], bool]
+    ) -> Callable[[object], bool]:
         """
         Registers a function that detects when a type is iterable
 
@@ -819,7 +831,7 @@ class HashableExtensions:
             return isinstance(data, np.ndarray) and data.dtype.kind == 'O'
 
         @self.register(np.ndarray)
-        def _convert_numpy_array(data: typing.Any) -> tuple[bytes, bytes]:
+        def _convert_numpy_array(data: np.ndarray) -> tuple[bytes, bytes]:
             """
             Example:
                 >>> import ubelt as ub
@@ -862,7 +874,7 @@ class HashableExtensions:
 
         @self.register(np.random.RandomState)
         def _convert_numpy_random_state(
-            data: typing.Any,
+            data: np.random.RandomState,
         ) -> tuple[bytes, bytes]:
             """
             Example:
@@ -978,15 +990,15 @@ class HashableExtensions:
         import uuid
 
         @self.register(numbers.Integral)
-        def _convert_numpy_int(data: typing.Any) -> tuple[bytes, bytes]:
+        def _convert_numpy_int(data: numbers.Integral) -> tuple[bytes, bytes]:
             return _convert_to_hashable(int(data), extensions=self)
 
         @self.register(numbers.Real)
-        def _convert_numpy_float(data: typing.Any) -> tuple[bytes, bytes]:
+        def _convert_numpy_float(data: numbers.Real) -> tuple[bytes, bytes]:
             return _convert_to_hashable(float(data), extensions=self)
 
         @self.register(decimal.Decimal)
-        def _convert_decimal(data: typing.Any) -> tuple[bytes, bytes]:
+        def _convert_decimal(data: decimal.Decimal) -> tuple[bytes, bytes]:
             _hashable_sequence
             seq = _hashable_sequence(
                 data.as_tuple(),
@@ -998,7 +1010,7 @@ class HashableExtensions:
             return prefix, hashable
 
         @self.register(datetime_mod.date)
-        def _convert_date(data: typing.Any) -> tuple[bytes, bytes]:
+        def _convert_date(data: datetime_mod.date) -> tuple[bytes, bytes]:
             _hashable_sequence
             seq = _hashable_sequence(
                 data.timetuple(),
@@ -1010,7 +1022,9 @@ class HashableExtensions:
             return prefix, hashable
 
         @self.register(datetime_mod.datetime)
-        def _convert_datetime(data: typing.Any) -> tuple[bytes, bytes]:
+        def _convert_datetime(
+            data: datetime_mod.datetime,
+        ) -> tuple[bytes, bytes]:
             _hashable_sequence
             seq = _hashable_sequence(
                 data.timetuple(),
@@ -1022,20 +1036,24 @@ class HashableExtensions:
             return prefix, hashable
 
         @self.register(uuid.UUID)
-        def _convert_uuid(data: typing.Any) -> tuple[bytes, bytes]:
+        def _convert_uuid(data: uuid.UUID) -> tuple[bytes, bytes]:
             hashable = data.bytes
             prefix = b'UUID'
             return prefix, hashable
 
         @self.register(set)
-        def _convert_set(data: typing.Any) -> tuple[bytes, bytes]:
+        def _convert_set(data: set[object]) -> tuple[bytes, bytes]:
+            data_ = list(data)
+            if typing.TYPE_CHECKING:
+                sortable_data = cast(list[typing.Any], data_)
+            else:
+                sortable_data = data_
             try:
                 # what raises a TypeError differs between Python 2 and 3
-                ordered_ = sorted(data)
+                ordered_ = sorted(sortable_data)
             except TypeError:
                 from ubelt.util_list import argsort
 
-                data_ = list(data)
                 sortx = argsort(data_, key=str)
                 ordered_ = [data_[k] for k in sortx]
             # See: [util_hash.Note.1]
@@ -1050,7 +1068,9 @@ class HashableExtensions:
             return prefix, hashable
 
         @self.register(dict)
-        def _convert_dict(data: typing.Any) -> tuple[bytes, bytes]:
+        def _convert_dict(
+            data: dict[object, object],
+        ) -> tuple[bytes, bytes]:
             try:
                 ordered_ = sorted(data.items())
                 # what raises a TypeError differs between Python 2 and 3
@@ -1071,7 +1091,9 @@ class HashableExtensions:
             return prefix, hashable
 
         @self.register(OrderedDict)
-        def _convert_ordered_dict(data: typing.Any) -> tuple[bytes, bytes]:
+        def _convert_ordered_dict(
+            data: OrderedDict[object, object],
+        ) -> tuple[bytes, bytes]:
             """
             Currently ordered dictionaries are considered separately from
             regular dictionaries. I'm not sure what the right thing to do is.
@@ -1088,7 +1110,7 @@ class HashableExtensions:
             return prefix, hashable
 
         @self.register(slice)
-        def _convert_slice(data: typing.Any) -> tuple[bytes, bytes]:
+        def _convert_slice(data: slice) -> tuple[bytes, bytes]:
             """
             Currently ordered dictionaries are considered separately from
             regular dictionaries. I'm not sure what the right thing to do is.
