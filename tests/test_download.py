@@ -54,7 +54,7 @@ def test_download_with_fpath():
     assert got_fpath == fpath
     assert exists(fpath)
 
-    with open(got_fpath, 'rb') as file:
+    with open(got_fpath, 'rb') as file:  # type: ignore
         data = file.read()
     assert len(data) > 1200, 'should have downloaded some bytes'
 
@@ -175,13 +175,13 @@ def test_grabdata_nohash():
     fname = basename(url)
     fpath = (dpath / fname).delete()
     assert not fpath.exists()
-    ub.grabdata(url, fpath=fpath, hasher=None, verbose=10)
+    ub.grabdata(url, fpath=fpath, hasher=None, verbose=10)  # type: ignore
     assert fpath.exists()
     # Even without the hasher, if the size of the data changes at all
     # we should be able to detect and correct it.
     orig_text = fpath.read_text()
     fpath.write_text('corrupted')
-    ub.grabdata(url, fpath=fpath, hasher=None, verbose=10)
+    ub.grabdata(url, fpath=fpath, hasher=None, verbose=10)  # type: ignore
     assert fpath.read_text() == orig_text
 
 
@@ -440,7 +440,7 @@ def _devcheck_progres_download_bar():
 
     file = DummyIO()
     url = urls[0]
-    dl_file = ub.download(url, fpath=file, progkw=dict(desc='dling'))
+    dl_file = ub.download(url, fpath=file, progkw=dict(desc='dling'))  # type: ignore
     dl_file
 
 
@@ -482,7 +482,7 @@ class SingletonTestServer(ub.NiceRepr):
         if self.proc is not None and self.proc.poll() is None:
             self.proc.terminate()
             self.proc.wait()
-        self.__class__.instance = None
+        self.__class__.instance = None  # type: ignore
 
     def __nice__(self):
         if self.proc is None:
@@ -647,6 +647,7 @@ def test_download_with_progkw():
             progkw={'verbose': 3, 'freq': 1, 'adjust': False, 'time_thresh': 0},
             chunksize=128,
         )
+    assert cap.text is not None
     assert len(cap.text.split('\n')) > 10
 
 
@@ -669,6 +670,7 @@ def test_download_with_filesize():
         )
     import re
 
+    assert cap.text is not None
     assert re.search(r'\d\d\d\d\.\d\d%', cap.text), 'should report over 100%'
 
 
@@ -800,7 +802,7 @@ def test_grabdata_delete_hash_stamp():
     url = _demo_url(128 * 12)
     prefix1 = '43f92597d7eb08b57c88b636'
     fpath = ub.grabdata(url, fname=fname, hash_prefix=prefix1)
-    stamp_fpath = ub.Path(fpath + '.stamp_sha512.json')
+    stamp_fpath = ub.Path(str(fpath) + '.stamp_sha512.json')
     ub.delete(stamp_fpath)
     fpath = ub.grabdata(url, fname=fname, hash_prefix=prefix1)
 

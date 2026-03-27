@@ -14,11 +14,11 @@ def test_compatible_keywords():
     }
 
     assert ub.compatible(config, func, keywords=True) is config
-    assert ub.compatible(config, func, keywords=1) is config
+    assert ub.compatible(config, func, keywords=True) is config
     assert ub.compatible(config, func, keywords='truthy') is config
 
     assert ub.compatible(config, func, keywords=['iterable']) is not config
-    assert ub.compatible(config, func, keywords=0) is not config
+    assert ub.compatible(config, func, keywords=False) is not config
     assert ub.compatible(config, func, keywords={'b'}) == {
         'a': 2,
         'e': 13,

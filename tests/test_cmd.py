@@ -26,6 +26,7 @@ def test_cmd_stdout():
     with ub.CaptureStdout() as cap:
         result = ub.cmd('echo hello stdout', verbose=True)
     assert result['out'].strip() == 'hello stdout'
+    assert cap.text is not None
     assert cap.text.strip() == 'hello stdout'
 
 
@@ -33,6 +34,7 @@ def test_cmd_veryverbose():
     with ub.CaptureStdout() as cap:
         result = ub.cmd('echo hello stdout', verbose=3)
     assert result['out'].strip() == 'hello stdout'
+    assert cap.text is not None
     print(cap.text)
     # assert cap.text.strip() == 'hello stdout'
 
@@ -41,6 +43,7 @@ def test_tee_false():
     with ub.CaptureStdout() as cap:
         result = ub.cmd('echo hello stdout', verbose=3, tee=False)
     assert result['out'].strip() == 'hello stdout'
+    assert cap.text is not None
     assert 'hello world' not in cap.text
     print(cap.text)
 
@@ -51,6 +54,7 @@ def test_cmd_stdout_quiet():
     assert result['out'].strip() == 'hello stdout', (
         'should still capture internally'
     )
+    assert cap.text is not None
     assert cap.text.strip() == '', 'nothing should print to stdout'
 
 
@@ -76,7 +80,7 @@ def test_cmd_with_single_pathlib():
     """
     if not ub.POSIX:
         pytest.skip('posix only')
-    ls_exe = ub.Path(ub.find_exe('ls'))
+    ls_exe = ub.Path(ub.find_exe('ls'))  # type: ignore
     result = ub.cmd(ls_exe)
     result.check_returncode()
 
@@ -182,7 +186,7 @@ def test_normalize_system_returncode_fallback():
         pytest.skip('posix only')
 
     orig = getattr(uc.os, 'waitstatus_to_exitcode', None)
-    uc.os.waitstatus_to_exitcode = None
+    uc.os.waitstatus_to_exitcode = None  # type: ignore
     try:
         # Exit status case
         pid = os.fork()
@@ -200,7 +204,7 @@ def test_normalize_system_returncode_fallback():
         _, status = os.waitpid(pid, 0)
         assert uc._normalize_system_returncode(status) == -signal.SIGTERM
     finally:
-        uc.os.waitstatus_to_exitcode = orig
+        uc.os.waitstatus_to_exitcode = orig  # type: ignore
 
 
 def test_proc_iteroutput_thread_timeout():
@@ -558,25 +562,27 @@ def test_cmdoutput_object_with_non_subprocess_backends():
     import ubelt as ub
 
     info = ub.cmd('echo hello world', verbose=1)
+    assert info.stdout is not None
+    assert info.stderr is not None
     assert info.stdout.strip() == 'hello world'
     assert info.stderr.strip() == ''
     info.check_returncode()
 
     # In this case, when tee=0 the user can still capture the output
-    info = ub.cmd('echo hello world', detach=True, capture=True, tee=0)
+    info = ub.cmd('echo hello world', detach=True, capture=True, tee=False)
     assert info.stdout is None
     assert info.stderr is None
     assert info['proc'].communicate()[0] is not None
 
     # In this case, when tee=0 and capture=False, the user cannot capture the output
-    info = ub.cmd('echo hello world', detach=True, capture=False, tee=0)
+    info = ub.cmd('echo hello world', detach=True, capture=False, tee=False)
     assert info.stdout is None
     assert info.stderr is None
     assert info['proc'].communicate()[0] is None
 
     # In this case when tee=1, a detached process will show its output but
     # capturing will not be possible.
-    info = ub.cmd('echo hello world', detach=True, capture=False, tee=1)
+    info = ub.cmd('echo hello world', detach=True, capture=False, tee=True)
     assert info.stdout is None
     assert info.stderr is None
     info['proc'].communicate()

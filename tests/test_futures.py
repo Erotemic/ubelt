@@ -64,7 +64,7 @@ def test_job_pool_as_completed_prog_args():
             )
 
         print(f'cap.text={cap.text}')
-        num_lines = len(cap.text.split('\n'))
+        num_lines = len(cap.text.split('\n'))  # type: ignore
         num_jobs = len(pool.jobs)
         assert num_lines > num_jobs
 

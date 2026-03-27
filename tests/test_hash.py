@@ -30,7 +30,7 @@ def _benchmark():
         # for key in hashlib.algorithms_guaranteed:
         for key in algos:
             hashtype = _rectify_hasher(key)
-            t1 = ub.Timerit(100, bestof=10, label=key, verbose=0)
+            t1 = ub.Timerit(100, bestof=10, label=key, verbose=0)  # type: ignore
             for timer in t1:
                 data = b'8' * n
                 with timer:
@@ -46,7 +46,7 @@ def _benchmark():
         # for key in hashlib.algorithms_guaranteed:
         for key in algos:
             hashtype = _rectify_hasher(key)
-            t1 = ub.Timerit(100, bestof=10, label=key, verbose=0)
+            t1 = ub.Timerit(100, bestof=10, label=key, verbose=0)  # type: ignore
             for timer in t1:
                 data = b'8' * n
                 hasher = hashtype()
@@ -108,7 +108,7 @@ def test_hash_data_with_types():
     check_hash('foevisahdffoxfasicvyklrmuuwqnfcc', ['1', '2', '3'])
     check_hash(
         'rkcnfxkjwkrfejhbpcpopmyubhbvonkt',
-        ['1', np.array([1, 2, 3], dtype=np.int64), '3'],
+        ['1', np.array([1, 2, 3], dtype=np.int64), '3'],  # type: ignore
     )
     check_hash('lxssoxdkstvccsyqaybaokehclyctgmn', '123')
     check_hash('fpvptydigvgjimbzadztgpvjpqrevwcq', zip([1, 2, 3], [4, 5, 6]))
@@ -141,7 +141,7 @@ def test_hash_data_without_types():
     check_hash('d6d265a904bc7df97bd54a8c2ff4546e211c3cd8', ['1', '2', '3'])
     check_hash(
         'eff59c7c787bd223a680c9d625f54756be4fdf5b',
-        ['1', np.array([1, 2, 3], dtype=np.int64), '3'],
+        ['1', np.array([1, 2, 3], dtype=np.int64), '3'],  # type: ignore
     )
     check_hash('40bd001563085fc35165329ea1ff5c5ecbdbbeef', '123')
     check_hash(
@@ -245,13 +245,13 @@ def _sanity_check(data):
     assert encoded_byt == seq2
 
     tracer1 = ub.util_hash._HashTracer()
-    ub.hash_data(encoded_byt, types=False, hasher=tracer1)
+    ub.hash_data(encoded_byt, types=False, hasher=tracer1)  # type: ignore
     traced_bytes1 = tracer1.hexdigest()
     print('traced_bytes1 = {!r}'.format(traced_bytes1))
     assert traced_bytes1 == encoded_byt
 
     tracer2 = ub.util_hash._HashTracer()
-    ub.hash_data(encoded_byt, types=False, hasher=tracer2)
+    ub.hash_data(encoded_byt, types=False, hasher=tracer2)  # type: ignore
     traced_bytes2 = tracer1.hexdigest()
     print('traced_bytes2 = {!r}'.format(traced_bytes2))
     assert traced_bytes2 == traced_bytes1
@@ -264,13 +264,13 @@ def test_numpy_object_array():
     if np is None:
         pytest.skip('requires numpy')
     # An object array should have the same repr as a list of a tuple of data
-    data = np.array([1, 2, 3], dtype=object)
+    data = np.array([1, 2, 3], dtype=object)  # type: ignore
     objhash = ub.hash_data(data)
     assert ub.hash_data([1, 2, 3]) == objhash
     assert ub.hash_data((1, 2, 3)) == objhash
 
     # Ensure this works when the object array is nested
-    data = [np.array([1, 2, 3], dtype=object)]
+    data = [np.array([1, 2, 3], dtype=object)]  # type: ignore
     objhash = ub.hash_data(data)
     assert ub.hash_data([[1, 2, 3]]) == objhash
     assert ub.hash_data([(1, 2, 3)]) == objhash
@@ -282,12 +282,12 @@ def test_ndarray_int_object_convert():
         pytest.skip('requires numpy')
     data_list = [[1, 2, 3], [4, 5, 6]]
 
-    data = np.array(data_list, dtype=np.int64)
+    data = np.array(data_list, dtype=np.int64)  # type: ignore
 
     s1 = b''.join(_hashable_sequence(data.astype(object)))
     s2 = b''.join(_hashable_sequence(data_list))
     s3 = b''.join(_hashable_sequence(data.tolist()))
-    s4 = b''.join(_hashable_sequence(data.astype(np.uint8).astype(object)))
+    s4 = b''.join(_hashable_sequence(data.astype(np.uint8).astype(object)))  # type: ignore
 
     assert s1 == s4
     assert s2 == s4
@@ -297,12 +297,12 @@ def test_ndarray_int_object_convert():
 def test_ndarray_zeros():
     if np is None:
         pytest.skip('requires numpy')
-    data = np.zeros((3, 3), dtype=np.int64)
+    data = np.zeros((3, 3), dtype=np.int64)  # type: ignore
     hashid = ub.hash_data(data)
     assert hashid != ub.hash_data(data.ravel()), 'shape should influence data'
-    assert hashid != ub.hash_data(data.astype(np.float32))
-    assert hashid != ub.hash_data(data.astype(np.int32))
-    assert hashid != ub.hash_data(data.astype(np.int8))
+    assert hashid != ub.hash_data(data.astype(np.float32))  # type: ignore
+    assert hashid != ub.hash_data(data.astype(np.int32))  # type: ignore
+    assert hashid != ub.hash_data(data.astype(np.int8))  # type: ignore
 
 
 def test_nesting():
@@ -315,24 +315,24 @@ def test_nesting():
 def test_numpy_int():
     if np is None:
         pytest.skip('requires numpy')
-    assert _hashable_sequence(np.int8(3)) == _hashable_sequence(3)
-    assert _hashable_sequence(np.int16(3)) == _hashable_sequence(3)
-    assert _hashable_sequence(np.int32(3)) == _hashable_sequence(3)
-    assert _hashable_sequence(np.int64(3)) == _hashable_sequence(3)
-    assert _hashable_sequence(np.uint8(3)) == _hashable_sequence(3)
-    assert _hashable_sequence(np.uint16(3)) == _hashable_sequence(3)
-    assert _hashable_sequence(np.uint32(3)) == _hashable_sequence(3)
-    assert _hashable_sequence(np.uint64(3)) == _hashable_sequence(3)
+    assert _hashable_sequence(np.int8(3)) == _hashable_sequence(3)  # type: ignore
+    assert _hashable_sequence(np.int16(3)) == _hashable_sequence(3)  # type: ignore
+    assert _hashable_sequence(np.int32(3)) == _hashable_sequence(3)  # type: ignore
+    assert _hashable_sequence(np.int64(3)) == _hashable_sequence(3)  # type: ignore
+    assert _hashable_sequence(np.uint8(3)) == _hashable_sequence(3)  # type: ignore
+    assert _hashable_sequence(np.uint16(3)) == _hashable_sequence(3)  # type: ignore
+    assert _hashable_sequence(np.uint32(3)) == _hashable_sequence(3)  # type: ignore
+    assert _hashable_sequence(np.uint64(3)) == _hashable_sequence(3)  # type: ignore
 
 
 def test_numpy_float():
     if np is None:
         pytest.skip('requires numpy')
-    assert _hashable_sequence(np.float16(3.0)) == _hashable_sequence(3.0)
-    assert _hashable_sequence(np.float32(3.0)) == _hashable_sequence(3.0)
-    assert _hashable_sequence(np.float64(3.0)) == _hashable_sequence(3.0)
+    assert _hashable_sequence(np.float16(3.0)) == _hashable_sequence(3.0)  # type: ignore
+    assert _hashable_sequence(np.float32(3.0)) == _hashable_sequence(3.0)  # type: ignore
+    assert _hashable_sequence(np.float64(3.0)) == _hashable_sequence(3.0)  # type: ignore
     try:
-        assert _hashable_sequence(np.float128(3.0)) == _hashable_sequence(3.0)
+        assert _hashable_sequence(np.float128(3.0)) == _hashable_sequence(3.0)  # type: ignore
     except AttributeError:
         pass
 
@@ -340,7 +340,7 @@ def test_numpy_float():
 def test_numpy_random_state():
     if np is None:
         pytest.skip('requires numpy')
-    data = np.random.RandomState(0)
+    data = np.random.RandomState(0)  # type: ignore
     assert ub.hash_data(
         data, hasher='sha512', types=True, base='abc'
     ).startswith('snkngbxghabesvowzalqtvdvjtvslmxve')
@@ -631,7 +631,7 @@ def test_compatible_hash_bases():
     # hasher = 'sha512'
     text = 'foobar'
 
-    trace = ub.hash_data(text, hasher=ub.util_hash._HashTracer(), types=False)
+    trace = ub.hash_data(text, hasher=ub.util_hash._HashTracer(), types=False)  # type: ignore
     print(f'text={text}')
     print(f'trace={trace}')
     print(f'hasher={hasher}')
@@ -754,7 +754,7 @@ def test_compatible_hash_bases():
         encode('base32upper', raw_bytes).upper()
 
         """
-        if base == list(base64._b32alphabet.decode()):
+        if base == list(base64._b32alphabet.decode()):  # type: ignore
             # NOTE: This code has an incompatibility with standard base encodings
             # because it does not pad the bytes. I.e. for base 64 3 bytes are
             # converted into 4 characters, so we need a input string divisible by

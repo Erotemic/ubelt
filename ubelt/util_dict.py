@@ -58,6 +58,7 @@ import itertools as it
 import operator as op
 import sys
 import typing
+from typing import Callable
 from collections import OrderedDict, defaultdict
 from collections.abc import Generator, Iterable, Mapping
 

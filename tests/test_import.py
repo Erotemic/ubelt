@@ -14,7 +14,7 @@ def test_import_modpath_basic():
     with pytest.warns(Warning):
         temp = ub.TempDir()
     with temp:
-        modpath = ub.Path(temp.dpath) / 'testmod.py'
+        modpath = ub.Path(temp.dpath) / 'testmod.py'  # type: ignore
         text = ub.codeblock(
             """
             a = 'value'
@@ -36,7 +36,7 @@ def test_import_modpath_package():
         temp = ub.TempDir().start()
     # with ub.TempDir() as temp:
     if True:
-        dpath = ub.Path(temp.dpath)
+        dpath = ub.Path(temp.dpath)  # type: ignore
 
         # Create a dummy package hierarchy
         root = (dpath / '_tmproot373').ensuredir()
@@ -93,10 +93,10 @@ def test_modname_to_modpath_single():
         dpath = temp.dpath
 
         # Single module
-        single = ub.touch(join(dpath, '_tmpsingle.py'))
+        single = ub.touch(join(dpath, '_tmpsingle.py'))  # type: ignore
         single_main = ub.touch(join(dpath, '__main__.py'))
 
-        with PythonPathContext(dpath):
+        with PythonPathContext(dpath):  # type: ignore
             assert single == _static_modname_to_modpath('_tmpsingle')
             assert single == _static_modname_to_modpath(
                 '_tmpsingle', hide_init=True, hide_main=False
@@ -141,9 +141,9 @@ def test_modname_to_modpath_package():
         dpath = temp.dpath
 
         # Create a dummy package hierarchy
-        root = ub.ensuredir((dpath, '_tmproot927'))
-        sub1 = ub.ensuredir((root, 'sub1'))
-        sub2 = ub.ensuredir((sub1, 'sub2'))
+        root = ub.ensuredir((dpath, '_tmproot927'))  # type: ignore
+        sub1 = ub.ensuredir((root, 'sub1'))  # type: ignore
+        sub2 = ub.ensuredir((sub1, 'sub2'))  # type: ignore
 
         root_init = ub.touch(join(root, '__init__.py'))
         sub1_init = ub.touch(join(sub1, '__init__.py'))
@@ -161,7 +161,7 @@ def test_modname_to_modpath_package():
         ub.touch(join(bad1, 'b0.py'))
         ub.touch(join(bad2, 'b0.py'))
 
-        with PythonPathContext(dpath):
+        with PythonPathContext(dpath):  # type: ignore
             # Bad module directories should return None
             assert _static_modname_to_modpath('_tmproot927.bad1') is None
             assert _static_modname_to_modpath('_tmproot927.sub1.bad1') is None
@@ -442,15 +442,15 @@ def test_modname_to_modpath_namespace():
         dpath = temp.dpath
 
         # Some "bad" non-module directories
-        tmpbad = ub.ensuredir((dpath, '_tmpbad'))
+        tmpbad = ub.ensuredir((dpath, '_tmpbad'))  # type: ignore
 
         # Make a submodule of a bad directory, look good.
-        sub_bad = ub.ensuredir((tmpbad, 'sub_bad'))
+        sub_bad = ub.ensuredir((tmpbad, 'sub_bad'))  # type: ignore
         ub.touch(join(tmpbad, '_inbad.py'))
         subbad = ub.touch(join(sub_bad, '__init__.py'))  # NOQA
         b0 = ub.touch(join(sub_bad, 'b0.py'))  # NOQA
 
-        with PythonPathContext(dpath):
+        with PythonPathContext(dpath):  # type: ignore
             assert _static_modname_to_modpath('_tmpbad') is None
 
             # Tricky case, these modules look good outside of _tmpbad WOW, you

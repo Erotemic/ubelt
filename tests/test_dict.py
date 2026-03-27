@@ -57,9 +57,9 @@ def test_auto_dict_ordered():
 
 def test_dzip_errors():
     with pytest.raises(TypeError):
-        ub.dzip([1], 2)
+        ub.dzip([1], 2)  # type: ignore
     with pytest.raises(TypeError):
-        ub.dzip(1, [2])
+        ub.dzip(1, [2])  # type: ignore
     with pytest.raises(ValueError):
         ub.dzip([1, 2, 3], [])
     with pytest.raises(ValueError):

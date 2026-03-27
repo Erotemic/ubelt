@@ -8,6 +8,7 @@ def test_capture_stdout_enabled():
 
     with ub.CaptureStdout(enabled=True) as cap:
         print('foobar')
+    assert cap.text is not None
     assert cap.text.strip() == 'foobar'
 
 
@@ -21,4 +22,5 @@ def test_capture_stdout_exception():
             raise Exception('foobar')
     except Exception:
         pass
+    assert cap.text is not None
     assert cap.text.strip() == ''

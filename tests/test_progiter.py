@@ -326,7 +326,7 @@ def test_disabled():
 
 def test_eta_window_None():
     # nothing to check (that I can think of) run test for coverage
-    prog = ProgIter(range(20), enabled=True, eta_window=None)
+    prog = ProgIter(range(20), enabled=True, eta_window=None)  # type: ignore
     for _ in prog:
         pass
 
@@ -334,14 +334,14 @@ def test_eta_window_None():
 def test_adjust_freq():
     # nothing to check (that I can think of) run test for coverage
     prog = ProgIter(
-        range(20), enabled=True, eta_window=None, rel_adjust_limit=4.0
+        range(20), enabled=True, eta_window=None, rel_adjust_limit=4.0  # type: ignore
     )
 
     # Adjust frequency up to have each update happen every 1sec or so
     prog.freq = 1
     prog.time_thresh = 1.0
-    prog._max_between_count = -1.0
-    prog._max_between_time = -1.0
+    prog._max_between_count = -1.0  # type: ignore
+    prog._max_between_time = -1.0  # type: ignore
     prog._measure_timedelta = 1
     prog._measure_countdelta = 1000
     prog._adjust_frequency()
@@ -446,7 +446,7 @@ def test_adjust_fast_early_slow_late_doesnt_get_stuck():
         rel_adjust_limit=1000000.0,
         homogeneous=False,
         timer=fake_timer,
-        stream=fake_stream,
+        stream=fake_stream,  # type: ignore
     )
     it = iter(prog)
     # Few fast updates at the beginning
@@ -474,7 +474,7 @@ def test_adjust_slow_early_fast_late_doesnt_spam():
         rel_adjust_limit=1000000.0,
         homogeneous=False,
         timer=fake_timer,
-        stream=fake_stream,
+        stream=fake_stream,  # type: ignore
     )
     it = iter(prog)
     # Few slow updates at the beginning
@@ -501,7 +501,7 @@ def test_mixed_iteration_and_step():
             for size in range(0, 10):
                 for n_inner_steps in range(size):
                     prog = ProgIter(
-                        range(size), adjust=adjust, homogeneous=homogeneous
+                        range(size), adjust=adjust, homogeneous=homogeneous  # type: ignore
                     )
                     iprog = iter(prog)
                     try:
@@ -531,7 +531,7 @@ def check_issue_32_non_homogeneous_time_threshold_prints():
         timer=fake_timer,
         time_thresh=time_thresh,
         homogeneous='auto',
-        stream=fake_stream,
+        stream=fake_stream,  # type: ignore
         clearline=False,
     )
 
@@ -630,7 +630,7 @@ def test_standalone_display():
         timer=fake_timer,
         time_thresh=time_thresh,
         homogeneous=True,
-        stream=fake_stream,
+        stream=fake_stream,  # type: ignore
         clearline=True,
     )
 
@@ -682,7 +682,7 @@ def test_no_percent():
         time_thresh=time_thresh,
         show_percent=False,
         homogeneous=True,
-        stream=fake_stream,
+        stream=fake_stream,  # type: ignore
         clearline=True,
     )
 
@@ -731,7 +731,7 @@ def test_clearline_padding():
         time_thresh=99999999,
         show_percent=False,
         homogeneous=True,
-        stream=fake_stream,
+        stream=fake_stream,  # type: ignore
         clearline=True,
     )
     prog.start()

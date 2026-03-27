@@ -161,17 +161,17 @@ def test_copy_directory_cases():
             contents2 = relative_contents(new_dpath)
             # But we can't do it again
             with pytest.raises(FileExistsError):
-                src.copy(root2 / src.name, **kwargs)
+                src.copy(root2 / src.name, **kwargs)  # type: ignore
             assert contents2 == relative_contents(new_dpath)
             # Unless overwrite is True
-            new_dpath = src.copy(root2 / src.name, overwrite=True, **kwargs)
+            new_dpath = src.copy(root2 / src.name, overwrite=True, **kwargs)  # type: ignore
             # And in all cases the contents should be unchanged
             assert contents2 == relative_contents(new_dpath)
 
             # Test copy src into root2/sub1/sub2 when root/sub1 does not exist
             root2.delete().ensuredir()
             dst = root2 / 'sub1/sub2'
-            new_dpath = src.copy(dst, **kwargs)
+            new_dpath = src.copy(dst, **kwargs)  # type: ignore
             assert new_dpath.name == 'sub2'
             # Unlike cp, Path.copy will create the intermediate directories
             assert contents1 == relative_contents(new_dpath)
@@ -311,19 +311,19 @@ def test_move_directory_cases():
             root2.delete().ensuredir()
             # We cannot move to a file that exists
             with pytest.raises(FileExistsError):
-                src.move(root2, **kwargs)
+                src.move(root2, **kwargs)  # type: ignore
 
             contents1 = relative_contents(src)
             # We can move to a directory that doesn't exist
             root2.delete().ensuredir()
-            new_dpath = src.move(root2 / src.name, **kwargs)
+            new_dpath = src.move(root2 / src.name, **kwargs)  # type: ignore
             assert new_dpath.name == src.name
             contents2 = relative_contents(new_dpath)
             assert not src.exists()
             assert contents1 == contents2
 
             with pytest.raises(FileExistsError):
-                src.move(root2 / src.name, **kwargs)
+                src.move(root2 / src.name, **kwargs)  # type: ignore
 
             # Test move src into root2/sub1/sub2 when root/sub1 does not exist
             # Reset original dires
@@ -333,7 +333,7 @@ def test_move_directory_cases():
             demo_nested_paths(paths['deep'], depth=3)
             root2.delete().ensuredir()
             dst = root2 / 'sub1/sub2'
-            new_dpath = src.move(dst, **kwargs)
+            new_dpath = src.move(dst, **kwargs)  # type: ignore
             assert new_dpath.name == 'sub2'
             # Unlike cp, Path.move will create the intermediate directories
             assert contents1 == relative_contents(new_dpath)

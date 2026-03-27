@@ -36,7 +36,7 @@ def _available_prog():
 def test_find_exe_idempotence():
     prog_name = _available_prog()
     prog_fpath = ub.find_exe(prog_name)
-    assert prog_fpath == ub.find_exe(prog_fpath), (
+    assert prog_fpath == ub.find_exe(prog_fpath), (  # type: ignore
         'find_exe with an existing path should work'
     )
 

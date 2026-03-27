@@ -135,8 +135,8 @@ def test_move_dir_to_non_existing():
     root.move(base / 'our_move')
 
     if ub.LINUX:
-        ub.cmd(f'mv {root2} {base}/linux_move', verbose=2, check=1)
-        ub.cmd(f'mv -T {root3} {base}/linux_moveT', verbose=2, check=1)
+        ub.cmd(f'mv {root2} {base}/linux_move', verbose=2, check=1)  # type: ignore
+        ub.cmd(f'mv -T {root3} {base}/linux_moveT', verbose=2, check=1)  # type: ignore
 
     if DEBUG_PATH:
         import xdev
@@ -177,8 +177,8 @@ def test_move_to_nested_non_existing():
     if ub.LINUX:
         # Posix fails unless the parent exists
         (base / 'linux').ensuredir()
-        ub.cmd(f'mv -v {root2} {base}/linux/move', verbose=2, check=1)
-        ub.cmd(f'mv -Tv {root3} {base}/linux/moveT', verbose=2, check=1)
+        ub.cmd(f'mv -v {root2} {base}/linux/move', verbose=2, check=1)  # type: ignore
+        ub.cmd(f'mv -Tv {root3} {base}/linux/moveT', verbose=2, check=1)  # type: ignore
     if DEBUG_PATH:
         import xdev
 
@@ -220,8 +220,8 @@ def test_move_dir_to_existing_dir_noconflict():
         root.move(base / 'our_move')
 
     if ub.LINUX:
-        ub.cmd(f'mv {root2} {base}/linux_move', verbose=2, check=1)
-        ub.cmd(f'mv -T {root3} {base}/linux_moveT', verbose=2, check=1)
+        ub.cmd(f'mv {root2} {base}/linux_move', verbose=2, check=1)  # type: ignore
+        ub.cmd(f'mv -T {root3} {base}/linux_moveT', verbose=2, check=1)  # type: ignore
 
     if DEBUG_PATH:
         import xdev
@@ -586,8 +586,8 @@ def test_copy_dir_to_existing_dir_withconflict():
     root.copy(dst1, overwrite=True)
 
     if ub.LINUX:
-        ub.cmd(f'cp -r {root} {dst2}', verbose=2, check=1)
-        ub.cmd(f'cp -r -T {root} {dst3}', verbose=2, check=1)
+        ub.cmd(f'cp -r {root} {dst2}', verbose=2, check=1)  # type: ignore
+        ub.cmd(f'cp -r -T {root} {dst3}', verbose=2, check=1)  # type: ignore
 
     if DEBUG_PATH:
         import xdev
