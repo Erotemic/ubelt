@@ -72,6 +72,7 @@ class DownloadManager:
 
     download_root: str | os.PathLike
     cache: bool
+    _dl_func: typing.Callable[..., object]
 
     def __init__(
         self,

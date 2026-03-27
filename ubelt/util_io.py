@@ -160,6 +160,7 @@ def readfrom(
         error='2.0.0',
         remove='2.1.0',
     )
+    text: str | list[str]
     with open(fpath, 'rb') as file:
         if aslines:
             text = [

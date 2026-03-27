@@ -476,23 +476,24 @@ def find_path(
     if path is None:
         path = os.environ.get('PATH', os.defpath)
     if isinstance(path, str):
-        dpaths = path.split(os.pathsep)
+        dpaths: list[str] = path.split(os.pathsep)
     else:
-        dpaths = path
-    candidates = (join(dpath, name) for dpath in dpaths)
+        dpaths = typing.cast(list[str], list(path))
+    candidates: Iterable[str] = (join(dpath, name) for dpath in dpaths)
     if exact:
         if WIN32:  # nocover
             # on WIN32 allow ``name`` to omit the extension suffix by trying
             # to match with all possible "valid" suffixes specified by PATHEXT
             pathext = [''] + os.environ.get('PATHEXT', '').split(os.pathsep)
             candidates = (p + ext for p in candidates for ext in pathext)
-        candidates = filter(exists, candidates)
+        candidates = typing.cast(typing.Iterable[str], filter(exists, candidates))
     else:
         import glob
 
-        candidates = it.chain.from_iterable(
-            glob.glob(pattern) for pattern in candidates
+        candidates = typing.cast(
+            typing.Iterable[str],
+            it.chain.from_iterable(glob.glob(pattern) for pattern in candidates),
         )
 
     for candidate in candidates:
-        yield typing.cast(str, candidate)
+        yield candidate

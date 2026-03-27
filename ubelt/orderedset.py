@@ -508,9 +508,9 @@ class OrderedSet(MutableSet[T], Sequence[T]):
         cls = self.__class__ if isinstance(self, OrderedSet) else OrderedSet
         if sets:
             common = set.intersection(*map(set, sets))
-            items = (item for item in self if item in common)
+            items: typing.Iterable[T] = (item for item in self if item in common)
         else:
-            items = self
+            items = typing.cast(typing.Iterable[T], self)
         return cls(items)
 
     def difference(self, *sets) -> OrderedSet:
@@ -536,9 +536,9 @@ class OrderedSet(MutableSet[T], Sequence[T]):
         cls = self.__class__
         if sets:
             other = set.union(*map(set, sets))
-            items = (item for item in self if item not in other)
+            items: typing.Iterable[T] = (item for item in self if item not in other)
         else:
-            items = self
+            items = typing.cast(typing.Iterable[T], self)
         return cls(items)
 
     def issubset(self, other: Sequence) -> bool:

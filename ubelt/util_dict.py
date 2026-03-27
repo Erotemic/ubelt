@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 """
 Functions for working with dictionaries.
 
@@ -51,8 +53,6 @@ References:
     .. [Pep3106] https://peps.python.org/pep-3106/
     .. [GHDictMap] https://github.com/ulisesojeda/dictionary_map
 """
-
-from __future__ import annotations
 
 import itertools as it
 import operator as op
@@ -232,7 +232,7 @@ def group_items(
         keyfunc = typing.cast(Callable[[VT], KT], key)
         pair_list = ((keyfunc(item), item) for item in items)
     else:
-        pair_list = zip(key, items)
+        pair_list = zip(key, items)  # type: ignore[assignment]
 
     # Optimized alternatives are benchmarked in
     # ../dev/bench/bench_group_items.py
@@ -309,13 +309,13 @@ def dict_hist(
         # In this special case we use an optimized stdlib routine
         from collections import Counter
 
-        hist_ = Counter()
+        hist_ = Counter()  # type: ignore[assignment]
         hist_.update(items)
     else:
         if labels is None:
-            hist_ = defaultdict(lambda: 0)
+            hist_ = defaultdict(lambda: 0)  # type: ignore[assignment]
         else:
-            hist_ = {k: 0 for k in labels}
+            hist_ = {k: 0 for k in labels}  # type: ignore[assignment]
         if weights is None:
             weights = it.repeat(1)  # 2x slower than Counter
         if typing.TYPE_CHECKING:
@@ -331,7 +331,7 @@ def dict_hist(
         )
     else:
         # Cast to a normal dictionary
-        hist = dict(hist_)
+        hist = dict(hist_)  # type: ignore[assignment]
     return hist
 
 
@@ -391,7 +391,7 @@ def find_duplicates(
         {5: [0, 1], 6: [2, 3], 7: [4, 5]}
     """
     # Build mapping from items to the indices at which they appear
-    duplicates = defaultdict(list)
+    duplicates = defaultdict(list)  # type: ignore[assignment]
     if key is None:
         for count, item in enumerate(items):
             duplicates[item].append(count)
@@ -399,10 +399,10 @@ def find_duplicates(
         for count, item in enumerate(items):
             duplicates[key(item)].append(count)
     # remove items seen fewer than k times.
-    for key in list(duplicates.keys()):
-        if len(duplicates[key]) < k:
-            del duplicates[key]
-    duplicates = dict(duplicates)
+    for dup_key in list(duplicates.keys()):
+        if len(duplicates[dup_key]) < k:
+            del duplicates[dup_key]
+    duplicates = dict(duplicates)  # type: ignore[assignment]
     return duplicates
 
 
@@ -866,10 +866,10 @@ def invert_dict(
             inverted = cls((val, key) for key, val in dict_.items())
     else:
         # Handle non-unique keys using groups
-        inverted = defaultdict(set)
+        inverted = defaultdict(set)  # type: ignore[arg-type, assignment]
         for key, value in dict_.items():
-            inverted[value].add(key)
-        inverted = cls(inverted)
+            inverted[value].add(key)  # type: ignore[attr-defined]
+        inverted = cls(inverted)  # type: ignore[assignment]
     return inverted
 
 
@@ -1112,7 +1112,7 @@ def varied_values(
         for key in columns:
             value = row.get(key, default)
             if isinstance(value, list):
-                value = tuple(value)
+                value = tuple(value)  # type: ignore[assignment]
             # It is not possible for value to be NoParam here.
             if typing.TYPE_CHECKING:
                 value = typing.cast(VT, value)
@@ -1518,7 +1518,7 @@ class SetDict(dict):
     # - inplace versions
 
     # Not sure why its hard to type annotate this.
-    def __ior__(self, other) -> Self:
+    def __ior__(self, other) -> Self:  # type: ignore[misc]
         """
         The inplace union operator ``|=``.
 
@@ -1692,7 +1692,7 @@ class SetDict(dict):
             cls = self.__class__
         args = it.chain([self], others)
         if merge is None:
-            new = cls(it.chain.from_iterable(d.items() for d in args))
+            new = cls(it.chain.from_iterable(d.items() for d in args))  # type: ignore[attr-defined]
         else:
             raise NotImplementedError('merge function is not yet implemented')
         return new

@@ -33,7 +33,7 @@ from functools import lru_cache
 if typing.TYPE_CHECKING:
     import datetime
     from types import TracebackType
-    from typing import Callable, Type
+    from typing import Callable, ClassVar, Type
 
 __all__ = ['timestamp', 'timeparse', 'Timer']
 
@@ -561,7 +561,7 @@ class Timer:
         >>> assert isinstance(elapsed1, int)
     """
 
-    _default_time = time.perf_counter
+    _default_time: ClassVar[Callable[[], float]] = time.perf_counter
 
     elapsed: float
     tstart: float
@@ -609,7 +609,7 @@ class Timer:
         if self.ns:
             self._time = time.perf_counter_ns
         else:
-            self._time = self._default_time
+            self._time = type(self)._default_time
 
     def tic(self) -> Timer:
         """

@@ -1068,12 +1068,12 @@ class Path(_PathBase):
         self.mkdir(mode=mode, parents=True, exist_ok=True)
         return self
 
-    def mkdir(
+    def mkdir(  # type: ignore[override]
         self,
         mode: int = 511,
         parents: bool = False,
         exist_ok: bool = False,
-    ) -> 'Path':  # type: ignore
+    ) -> 'Path':
         """
         Create a new directory at this given path.
 
@@ -1637,14 +1637,14 @@ class Path(_PathBase):
             raise KeyError(meta)
         return copy_function
 
-    def copy(
+    def copy(  # type: ignore[override]
         self,
         dst: str | os.PathLike,
         follow_file_symlinks: bool = False,
         follow_dir_symlinks: bool = False,
         meta: str | None = 'stats',
         overwrite: bool = False,
-    ) -> 'Path': # type: ignore
+    ) -> 'Path':
         """
         Copy this file or directory to dst.
 
@@ -1810,13 +1810,13 @@ class Path(_PathBase):
             raise FileExistsError('The source path does not exist')
         return Path(dst)
 
-    def move(
+    def move(  # type: ignore[override]
         self,
         dst: str | os.PathLike,
         follow_file_symlinks: bool = False,
         follow_dir_symlinks: bool = False,
         meta: str | None = 'stats',
-    ) -> 'Path':  # type: ignore
+    ) -> 'Path':
         """
         Move a file from one location to another, or recursively move a
         directory from one location to another.
@@ -1827,7 +1827,7 @@ class Path(_PathBase):
 
         FIXME:
             pathlib.Path added a move command, that is incompatible with ours, so we need
-            to address that. 
+            to address that.
 
         Args:
             dst (str | PathLike):
@@ -2034,7 +2034,7 @@ def _resolve_chmod_code(old_mode: int, code: str) -> int:
                 target + perm for target, perm in it.product(targets, perms)
             )
             action_values = (action_lut[key] for key in action_keys)
-            action_values = list(action_values)
+            action_values = list(action_values)  # type: ignore[assignment]
             if op == '+':
                 for val in action_values:
                     new_mode |= val
@@ -2096,7 +2096,8 @@ def _encode_chmod_int(int_code: int) -> str:
     )
     target_to_perms = defaultdict(list)
     for key, val in action_lut.items():
-        target, perm = key
+        target = key[0]
+        perm = key[1]
         if int_code & val:
             target_to_perms[target].append(perm)
 
@@ -2235,4 +2236,4 @@ def _relative_path_backport(self, other, walk_up=False):  # nocover
 
 
 if PYTHON_LE_3_8:  # nocover
-    Path.is_relative_to = _is_relative_to_backport
+    Path.is_relative_to = _is_relative_to_backport  # type: ignore

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 """
 This module exposes :class:`Cacher` and :class:`CacheStamp` classes, which
 provide a simple API for on-disk caching.
@@ -115,8 +117,6 @@ Example:
 RelatedWork:
     https://github.com/shaypal5/cachier
 """
-
-from __future__ import annotations
 
 import os
 import typing
@@ -1220,9 +1220,9 @@ class CacheStamp:
                         print('[cacher] stamp expired {}'.format(err))
                     return err
 
-            err = self._check_certificate_hashes(certificate)
-            if err:
-                return err
+            cert_err: str | None = self._check_certificate_hashes(certificate)
+            if cert_err:
+                return cert_err
 
             # We are expired if the hash of the existing product data
             # does not match the expected hash in the certificate

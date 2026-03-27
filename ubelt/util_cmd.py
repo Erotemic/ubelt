@@ -586,6 +586,7 @@ def _resolve_command(
     # to text if shell is True, and to tuple if shell is False. On windows,
     # the input is text if shell is True, but can be either if shell is
     # False as noted in [SO_33560364]_.
+    args: str | list[str]
     if shell or system:
         # When shell=True, args is sent to the shell (e.g. bin/sh) as text
         args = command_text

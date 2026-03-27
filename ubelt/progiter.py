@@ -272,25 +272,25 @@ class _TQDMCompat:
             **kwargs:
         """
         # Sort in alphabetical order to be more deterministic
-        postfix = collections.OrderedDict(
+        postfix_od = collections.OrderedDict(
             [] if ordered_dict is None else ordered_dict
         )
         for key in sorted(kwargs.keys()):
-            postfix[key] = kwargs[key]
+            postfix_od[key] = kwargs[key]
         # Preprocess stats according to datatype
-        for key in postfix.keys():
+        for key in postfix_od.keys():
             import numbers
 
             # Number: limit the length of the string
-            if isinstance(postfix[key], numbers.Number):
-                postfix[key] = '{0:2.3g}'.format(postfix[key])
+            if isinstance(postfix_od[key], numbers.Number):
+                postfix_od[key] = '{0:2.3g}'.format(postfix_od[key])
             # Else for any other type, try to get the string conversion
-            elif not isinstance(postfix[key], str):
-                postfix[key] = str(postfix[key])
+            elif not isinstance(postfix_od[key], str):
+                postfix_od[key] = str(postfix_od[key])
             # Else if it's a string, don't need to preprocess anything
         # Stitch together to get the final postfix
         postfix = ', '.join(
-            key + '=' + postfix[key].strip() for key in postfix.keys()
+            key + '=' + postfix_od[key].strip() for key in postfix_od.keys()
         )
         self.set_postfix_str(postfix, refresh=refresh)
 
@@ -397,6 +397,7 @@ class ProgIter(_TQDMCompat, _BackwardsCompat, Iterable[T]):
     chunksize: int | None
     rel_adjust_limit: float
     extra: str
+    _extra_fn: typing.Callable[[], str] | None
     started: bool
     finished: bool
     homogeneous: bool | str
@@ -804,10 +805,10 @@ class ProgIter(_TQDMCompat, _BackwardsCompat, Iterable[T]):
         # checks need more calculation. This is worth duplicating code for.
 
         if self.adjust:
-            homogeneous = self.homogeneous
+            homogeneous: bool | str = self.homogeneous
             if homogeneous == 'auto':
                 yield from self._homogeneous_check(gen)
-                homogeneous = self._likely_homogeneous
+                homogeneous = bool(self._likely_homogeneous)
 
             if homogeneous:
                 use_fast_path = True

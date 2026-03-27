@@ -180,7 +180,10 @@ def schedule_deprecation(
     import sys
     import warnings
 
+    from packaging.version import Version as VersionType
     from packaging.version import parse as Version
+
+    current: str | VersionType
 
     if modname is not None:
         module = sys.modules[modname]

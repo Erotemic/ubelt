@@ -291,9 +291,9 @@ class chunks(Iterable[List[VT]]):
                 while True:
                     yield item
 
-            iterator = replicator(iter(self.items))
+            iterator = replicator(iter(self.items))  # type: ignore[assignment]
         elif self.bordermode == 'none':
-            iterator = iter(self.items)
+            iterator = iter(self.items)  # type: ignore[assignment,arg-type]
         else:
             raise KeyError(self.bordermode)
 
@@ -310,7 +310,7 @@ class chunks(Iterable[List[VT]]):
             )
         else:
             assert nchunks is not None
-            chunksize_iter = it.repeat(chunksize, nchunks)
+            chunksize_iter = it.repeat(chunksize, nchunks)  # type: ignore[assignment]
         for _chunksize in chunksize_iter:
             chunk = list(it.islice(iterator, _chunksize))
             # if chunk:
@@ -327,7 +327,7 @@ class chunks(Iterable[List[VT]]):
         chunks_with_sentinals = zip_longest(*copied_iters, fillvalue=sentinel)
         # Dont fill empty space in the last chunk, just return it as is
         for chunk in chunks_with_sentinals:
-            yield [item for item in chunk if item is not sentinel]
+            yield [item for item in chunk if item is not sentinel]  # type: ignore[misc]
 
     @staticmethod
     def cycle(
@@ -339,10 +339,13 @@ class chunks(Iterable[List[VT]]):
         # Fill empty space in the last chunk with values from the beginning
         bordervalues = it.cycle(iter(items))
         for chunk in chunks_with_sentinals:
-            yield [
-                item if item is not sentinel else next(bordervalues)
-                for item in chunk
-            ]
+            yield typing.cast(
+                list[VT],
+                [
+                    item if item is not sentinel else next(bordervalues)
+                    for item in chunk
+                ],
+            )
 
     @staticmethod
     def replicate(
@@ -356,14 +359,14 @@ class chunks(Iterable[List[VT]]):
             filt_chunk = [item for item in chunk if item is not sentinel]
             if len(filt_chunk) == chunksize:
                 if typing.TYPE_CHECKING:
-                    filt_chunk = cast(list[VT], filt_chunk)
-                yield filt_chunk
+                    filt_chunk = cast(list[VT], filt_chunk)  # type: ignore[assignment]
+                yield filt_chunk  # type: ignore[misc]
             else:
                 sizediff = chunksize - len(filt_chunk)
                 padded_chunk = filt_chunk + [filt_chunk[-1]] * sizediff
                 if typing.TYPE_CHECKING:
-                    padded_chunk = cast(list[VT], padded_chunk)
-                yield padded_chunk
+                    padded_chunk = cast(list[VT], padded_chunk)  # type: ignore[assignment]
+                yield padded_chunk  # type: ignore[misc]
 
 
 def iterable(obj: object, strok: bool = False) -> bool:
@@ -898,7 +901,7 @@ def argsort(
             indexable = cast(Mapping[KT, VT], indexable)
         vk_iter = ((v, k) for k, v in indexable.items())
     else:
-        vk_iter = ((v, k) for k, v in enumerate(indexable))
+        vk_iter = ((v, k) for k, v in enumerate(indexable))  # type: ignore[misc]
     # Sort by values and extract the indices
     if key is None:
         indices = [k for v, k in sorted(vk_iter, reverse=reverse)]

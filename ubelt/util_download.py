@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 """
 Helpers for downloading data
 
@@ -13,8 +15,6 @@ checks if the data already exists in the download location, and only downloads
 if it needs to.
 
 """
-
-from __future__ import annotations
 
 import os
 import typing
@@ -522,6 +522,7 @@ def grabdata(
     if dpath is None or fname is None:
         dpath, fname = split(fpath)
 
+    hasher_name: str | None = None
     if hasher is not None:
         if isinstance(hasher, str):
             hasher_name = hasher
@@ -538,8 +539,6 @@ def grabdata(
                 remove='1.5.0',
             )
             hasher_name = getattr(hasher, 'name', None)
-    else:
-        hasher_name = None
 
     if hasher_name is not None and hash_prefix:
         depends = hasher_name

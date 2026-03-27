@@ -69,10 +69,11 @@ import typing
 from collections import OrderedDict
 
 from ubelt.util_const import NoParam
+from typing import Sequence, cast
 
 if typing.TYPE_CHECKING:
     from os import PathLike
-    from typing import Any, Callable, Optional, Union, cast
+    from typing import Any, Callable, Optional, Union
 
     from ubelt.util_const import NoParamType
     # A constructor / factory that returns a hashlib-style hash object.
@@ -478,7 +479,7 @@ def _rectify_hasher(hasher):
     return _HASHERS.lookup(hasher)
 
 
-def _rectify_base(base):
+def _rectify_base(base: str | int | list[str] | tuple[str, ...] | NoParamType) -> Sequence[str]:
     """
     transforms base shorthand into the full list representation
 
@@ -517,13 +518,15 @@ def _rectify_base(base):
     elif base in [10, 'dec']:
         return _ALPHABET_10
     else:
-        if not isinstance(base, (list, tuple)):
+        if isinstance(base, (list, tuple)):
+            base_ = cast(Sequence[str], base)
+            return base_
+        else:
             raise TypeError(
                 'Argument `base` must be a key, list, or tuple; not {}'.format(
                     type(base)
                 )
             )
-        return base
 
 
 class HashableExtensions:
@@ -1164,7 +1167,7 @@ class _HashTracer:
         return b''.join(self.sequence)
 
 
-def _hashable_sequence(data, types=False, extensions=None):
+def _hashable_sequence(data: Any, types=False, extensions=None):
     r"""
     Extracts the sequence of bytes that would be hashed by hash_data
 
@@ -1180,13 +1183,13 @@ def _hashable_sequence(data, types=False, extensions=None):
     return hasher.sequence
 
 
-def _convert_to_hashable(data, types=True, extensions=None):
+def _convert_to_hashable(data: Any, types=True, extensions=None):
     r"""
     Converts ``data`` into a hashable byte representation if an appropriate
     hashing function is known.
 
     Args:
-        data (object): ordered data with structure
+        data (Any): ordered data with structure
         types (bool): include type prefixes in the hash
 
     Returns:
@@ -1259,13 +1262,13 @@ _ITER_PREFIX = b'_[_'
 _ITER_SUFFIX = b'_]_'
 
 
-def _update_hasher(hasher, data, types=True, extensions=None):
+def _update_hasher(hasher: _HashTracer | HasherLike, data: Any, types: bool = True, extensions : HashableExtensions | None = None):
     """
     Converts ``data`` into a byte representation and calls update on the hasher
     :class:`hashlib._hashlib.HASH` algorithm.
 
     Args:
-        hasher (HasherType): instance of a hashlib algorithm
+        hasher (HasherLike): instance of a hashlib algorithm
         data (object): ordered data with structure
         types (bool): include type prefixes in the hash
         extensions (HashableExtensions | None): overrides global extensions
@@ -1336,7 +1339,7 @@ def _update_hasher(hasher, data, types=True, extensions=None):
         hasher.update(binary_data)
 
 
-def _convert_hexstr_base(hexstr, base):
+def _convert_hexstr_base(hexstr, base: Sequence[str]) -> str:
     r"""
     Packs a long hexstr into a shorter length string with a larger base.
 
@@ -1404,7 +1407,7 @@ def _convert_hexstr_base(hexstr, base):
         return newbase_str
 
 
-def _digest_hasher(hasher, base):
+def _digest_hasher(hasher: HasherLike, base: Sequence[str]) -> str:
     """counterpart to _update_hasher"""
     # Get a 128 character hex string
     hex_text = hasher.hexdigest()
@@ -1417,7 +1420,7 @@ def _digest_hasher(hasher, base):
 
 # @profile
 def hash_data(
-    data: object,
+    data: Any,
     hasher: str | HasherType | NoParamType = NoParam,
     base: Union[list[str], tuple[str, ...], str, int | NoParamType] = NoParam,
     types: bool = False,
@@ -1428,8 +1431,9 @@ def hash_data(
     Get a unique hash depending on the state of the data.
 
     Args:
-        data (object):
-            Any sort of loosely organized data
+        data (Any):
+            Any sort of loosely organized data that can be handled by the
+            current registered extensions.
 
         hasher (str | HasherType | NoParamType):
             string code or a hash algorithm from hashlib. Valid hashing
@@ -1489,12 +1493,12 @@ def hash_data(
             # warnings.warn('Unable to encode input as json due to: {!r}'.format(ex))
             pass
 
-    base = _rectify_base(base)
-    hasher = _rectify_hasher(hasher)()
+    base_ = _rectify_base(base)
+    hasher_obj: HasherLike = _rectify_hasher(hasher)()
     # Feed the data into the hasher
-    _update_hasher(hasher, data, types=types, extensions=extensions)
+    _update_hasher(hasher_obj, data, types=types, extensions=extensions)
     # Get the hashed representation
-    text = _digest_hasher(hasher, base)
+    text = _digest_hasher(hasher_obj, base_)
     return text
 
 
@@ -1624,8 +1628,8 @@ def hash_file(
         assert our_result == std_result
     """
     # TODO: add logic such that you can update an existing hasher
-    base = _rectify_base(base)
-    hasher = _rectify_hasher(hasher)()
+    base_ = _rectify_base(base)
+    hasher_obj: HasherLike = _rectify_hasher(hasher)()
     with open(fpath, 'rb') as file:
         buf = file.read(blocksize)
         # We separate implementations for speed. Haven't benchmarked, but the
@@ -1634,13 +1638,13 @@ def hash_file(
             if stride > 1:
                 # skip blocks when stride is greater than 1
                 while len(buf) > 0:
-                    hasher.update(buf)
+                    hasher_obj.update(buf)
                     file.seek(blocksize * (stride - 1), 1)
                     buf = file.read(blocksize)
             else:
                 # otherwise hash the entire file
                 while len(buf) > 0:
-                    hasher.update(buf)
+                    hasher_obj.update(buf)
                     buf = file.read(blocksize)
         else:
             # In this case we hash at most ``maxbytes``
@@ -1649,7 +1653,7 @@ def hash_file(
                 while len(buf) > 0 and maxremain > 0:
                     buf = buf[:maxremain]
                     maxremain -= len(buf)
-                    hasher.update(buf)
+                    hasher_obj.update(buf)
                     if maxremain > 0:
                         file.seek(blocksize * (stride - 1), 1)
                         buf = file.read(blocksize)
@@ -1657,12 +1661,12 @@ def hash_file(
                 while len(buf) > 0 and maxremain > 0:
                     buf = buf[:maxremain]
                     maxremain -= len(buf)
-                    hasher.update(buf)
+                    hasher_obj.update(buf)
                     if maxremain > 0:
                         buf = file.read(blocksize)
 
     # Get the hashed representation
-    text = _digest_hasher(hasher, base)
+    text = _digest_hasher(hasher_obj, base_)
     return text
 
 

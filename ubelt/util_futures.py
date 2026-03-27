@@ -55,6 +55,8 @@ from __future__ import annotations
 import concurrent.futures
 import typing
 from concurrent.futures import as_completed
+from typing import cast
+from typing import Protocol
 
 __all__ = ['Executor', 'JobPool']
 
@@ -71,11 +73,35 @@ if typing.TYPE_CHECKING:
         Generator,
         Iterable,
         Iterator,
+        cast,
         Type,
         TypeVar,
     )
 
     T = TypeVar('T')
+
+
+class _ExecutorBackend(Protocol):
+    def __enter__(self) -> Any: ...
+    def __exit__(
+        self,
+        ex_type: Type[BaseException] | None,
+        ex_value: BaseException | None,
+        ex_traceback: TracebackType | None,
+    ) -> bool | None: ...
+    def submit(
+        self,
+        func: Callable[..., T],
+        *args: Any,
+        **kw: Any,
+    ) -> concurrent.futures.Future[T]: ...
+    def shutdown(self) -> None: ...
+    def map(
+        self,
+        fn: Callable[..., T],
+        *iterables: Iterable[Any],
+        **kwargs: Any,
+    ) -> Iterator[T]: ...
 
 
 class SerialFuture(concurrent.futures.Future):
@@ -352,7 +378,7 @@ class Executor:
         >>>     assert results == [1, 3, 5, 7, 9, 11, 13, 15, 17, 19]
     """
 
-    backend: SerialExecutor | ThreadPoolExecutor | ProcessPoolExecutor
+    backend: _ExecutorBackend
 
     def __init__(self, mode: str = 'thread', max_workers: int = 0) -> None:
         """
@@ -366,12 +392,19 @@ class Executor:
         """
         from concurrent import futures
 
+        backend: _ExecutorBackend
         if mode == 'serial' or max_workers == 0:
             backend = SerialExecutor()
         elif mode == 'thread':
-            backend = futures.ThreadPoolExecutor(max_workers=max_workers)
+            backend = cast(
+                _ExecutorBackend,
+                futures.ThreadPoolExecutor(max_workers=max_workers),
+            )
         elif mode == 'process':
-            backend = futures.ProcessPoolExecutor(max_workers=max_workers)
+            backend = cast(
+                _ExecutorBackend,
+                futures.ProcessPoolExecutor(max_workers=max_workers),
+            )
         elif mode == 'interpreter':  # nocover
             # Requires 3.14+
             InterpreterPoolExecutor = getattr(
@@ -640,7 +673,9 @@ class JobPool:
         """
         from ubelt.progiter import ProgIter
 
-        job_iter = as_completed(self.jobs, timeout=timeout)
+        job_iter: Iterable[concurrent.futures.Future[Any]] = as_completed(
+            self.jobs, timeout=timeout
+        )
         if desc is not None:
             if progkw is None:
                 progkw = {}
