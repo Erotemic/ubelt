@@ -12,8 +12,8 @@
 ## Python, Typing & Docs
 
 * Support Python >=3.8.
-* Avoid typing code that adds runtime overhead (e.g. cast).
-* Prefer putting typing code in if typing.TYPE_CHECKING blocks.
+* Avoid typing code that adds runtime overhead.
+* Prefer putting typing code in if `typing.TYPE_CHECKING` blocks.
 
 ## Tests & Coverage
 
