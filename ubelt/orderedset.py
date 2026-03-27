@@ -202,7 +202,7 @@ class OrderedSet(MutableSet[T], Sequence[T]):
         else:
             self.__init__(state)
 
-    def __contains__(self, value: T) -> bool:  # type: ignore[invalid-method-override]
+    def __contains__(self, value: object) -> bool:
         """
         Test if the item is in this ordered set
 

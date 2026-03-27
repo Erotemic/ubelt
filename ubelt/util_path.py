@@ -2096,8 +2096,6 @@ def _encode_chmod_int(int_code: int) -> str:
     )
     target_to_perms = defaultdict(list)
     for key, val in action_lut.items():
-        target: str
-        perm: int
         target, perm = key
         if int_code & val:
             target_to_perms[target].append(perm)

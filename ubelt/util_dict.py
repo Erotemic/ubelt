@@ -228,7 +228,7 @@ def group_items(
         }
     """
     if callable(key):
-        keyfunc = key
+        keyfunc = typing.cast(Callable[[VT], KT], key)
         pair_list = ((keyfunc(item), item) for item in items)
     else:
         pair_list = zip(key, items)
@@ -645,8 +645,8 @@ def map_values(
         >>> print(newdict)
     """
     if not hasattr(func, '__call__'):
-        func = func.__getitem__
-    keyval_list = [(key, func(val)) for key, val in dict_.items()]
+        func = typing.cast(Mapping[VT, T], func).__getitem__
+    keyval_list = [(key, typing.cast(Callable[[VT], T], func)(val)) for key, val in dict_.items()]
     if cls is None:
         cls = OrderedDict if isinstance(dict_, OrderedDict) else dict
     newdict = cls(keyval_list)
@@ -697,8 +697,8 @@ def map_keys(
         >>> assert newdict == {'a': [1, 2, 3], 'b': []}
     """
     if not hasattr(func, '__call__'):
-        func = func.__getitem__
-    keyval_list = [(func(key), val) for key, val in dict_.items()]
+        func = typing.cast(Mapping[KT, T], func).__getitem__
+    keyval_list = [(typing.cast(Callable[[KT], T], func)(key), val) for key, val in dict_.items()]
     if cls is None:
         cls = OrderedDict if isinstance(dict_, OrderedDict) else dict
     newdict = cls(keyval_list)
@@ -749,17 +749,9 @@ def sorted_values(
         {'spam': 2.62, 'eggs': 1.2, 'jam': 2.92}
     """
     if key is None:
-        def _value_sorter(kv: tuple[KT, VT]) -> VT:
-            return kv[1]
-        newdict = OrderedDict(
-            sorted(dict_.items(), key=_value_sorter, reverse=reverse)
-        )
+        newdict = OrderedDict(sorted(dict_.items(), key=lambda kv: kv[1], reverse=reverse))  # type: ignore
     else:
-        def _transformed_value_sorter(kv: tuple[KT, VT]) -> Any:
-            return key(kv[1])
-        newdict = OrderedDict(
-            sorted(dict_.items(), key=_transformed_value_sorter, reverse=reverse)
-        )
+        newdict = OrderedDict(sorted(dict_.items(), key=lambda kv: key(kv[1]), reverse=reverse))  # type: ignore
     return newdict
 
 
@@ -808,17 +800,9 @@ def sorted_keys(
         {'jam': 2.92, 'eggs': 1.2, 'spam': 2.62}
     """
     if key is None:
-        def _key_sorter(kv: tuple[KT, VT]) -> KT:
-            return kv[0]
-        newdict = OrderedDict(
-            sorted(dict_.items(), key=_key_sorter, reverse=reverse)
-        )
+        newdict = OrderedDict(sorted(dict_.items(), key=lambda kv: kv[0], reverse=reverse))  # type: ignore
     else:
-        def _transformed_key_sorter(kv: tuple[KT, VT]) -> Any:
-            return key(kv[0])
-        newdict = OrderedDict(
-            sorted(dict_.items(), key=_transformed_key_sorter, reverse=reverse)
-        )
+        newdict = OrderedDict(sorted(dict_.items(), key=lambda kv: key(kv[0]), reverse=reverse))  # type: ignore
     return newdict
 
 

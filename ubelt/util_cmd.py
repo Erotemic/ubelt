@@ -248,7 +248,7 @@ def cmd(
             are all ignored. Defaults to False. (New in version 1.1.0)
             NOTE: os.system is soft-deprecated, so we may avoid supporting this
             in the future.
-            
+
         timeout (float | None):
             If the process does not complete in ``timeout`` seconds, raise a
             :class:`subprocess.TimeoutExpired`. (New in version 1.1.0).
@@ -442,7 +442,7 @@ def cmd(
         from ubelt.util_path import ChDir
 
         with ChDir(cwd):
-            raw = os.system(command_text)
+            raw = os.system(command_text)  # type: ignore
             ret = _normalize_system_returncode(raw)
         info = CmdOutput(
             **{

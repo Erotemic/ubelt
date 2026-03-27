@@ -495,4 +495,4 @@ def find_path(
         )
 
     for candidate in candidates:
-        yield candidate
+        yield typing.cast(str, candidate)
