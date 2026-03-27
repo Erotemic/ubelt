@@ -346,7 +346,7 @@ def test_adjust_freq() -> None:
     prog: typing.Any = ProgIter(
         range(20),
         enabled=True,
-        eta_window=None,
+        eta_window=typing.cast(typing.Any, None),
         rel_adjust_limit=4.0,  # type: ignore
     )
 
@@ -522,7 +522,7 @@ def test_mixed_iteration_and_step() -> None:
                 for n_inner_steps in range(size):
                     prog = ProgIter(
                         range(size),
-                        adjust=adjust,
+                        adjust=typing.cast(typing.Any, adjust),
                         homogeneous=homogeneous,  # type: ignore
                     )
                     iprog = iter(prog)

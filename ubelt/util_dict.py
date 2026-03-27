@@ -757,11 +757,19 @@ def sorted_values(
     """
     if key is None:
         newdict = OrderedDict(
-            sorted(dict_.items(), key=lambda kv: kv[1], reverse=reverse)
+            sorted(
+                dict_.items(),
+                key=typing.cast(typing.Any, lambda kv: kv[1]),
+                reverse=reverse,
+            )
         )  # type: ignore
     else:
         newdict = OrderedDict(
-            sorted(dict_.items(), key=lambda kv: key(kv[1]), reverse=reverse)
+            sorted(
+                dict_.items(),
+                key=typing.cast(typing.Any, lambda kv: key(kv[1])),
+                reverse=reverse,
+            )
         )  # type: ignore
     return newdict
 
@@ -812,11 +820,19 @@ def sorted_keys(
     """
     if key is None:
         newdict = OrderedDict(
-            sorted(dict_.items(), key=lambda kv: kv[0], reverse=reverse)
+            sorted(
+                dict_.items(),
+                key=typing.cast(typing.Any, lambda kv: kv[0]),
+                reverse=reverse,
+            )
         )  # type: ignore
     else:
         newdict = OrderedDict(
-            sorted(dict_.items(), key=lambda kv: key(kv[0]), reverse=reverse)
+            sorted(
+                dict_.items(),
+                key=typing.cast(typing.Any, lambda kv: key(kv[0])),
+                reverse=reverse,
+            )
         )  # type: ignore
     return newdict
 
