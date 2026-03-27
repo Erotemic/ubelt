@@ -76,7 +76,7 @@ if typing.TYPE_CHECKING:
     )
 
     T = TypeVar('T')
-    
+
     class _ExecutorBackend(Protocol):
         def __enter__(self) -> Any: ...
         def __exit__(
