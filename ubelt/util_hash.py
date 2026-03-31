@@ -67,7 +67,7 @@ import hashlib
 import math
 import typing
 from collections import OrderedDict
-from typing import Sequence, cast
+from typing import Callable, Sequence, cast
 
 from ubelt.util_const import NoParam
 
@@ -76,26 +76,27 @@ HashableT = typing.TypeVar('HashableT')
 if typing.TYPE_CHECKING:
     from os import PathLike
     from _typeshed import DataclassInstance
-    from typing import Any, Callable, Optional, Union
+    from typing import Any, Optional, Union
 
     from ubelt.util_const import NoParamType
-    # A constructor / factory that returns a hashlib-style hash object.
-    # Kept behind TYPE_CHECKING to ensure near-zero runtime/import-time cost.
-
-    BytesLike = bytes | bytearray | memoryview
-
-    class HasherLike(typing.Protocol):
-        def update(self, data: BytesLike, /) -> None: ...
-        def digest(self) -> bytes: ...
-        def hexdigest(self) -> str: ...
-        def copy(
-            self,
-        ) -> 'HasherLike': ...  # or Self if you want (typing.Self on 3.11+)
-
-    HasherType = Callable[..., HasherLike]
 
 
 __all__ = ['hash_data', 'hash_file']
+
+
+BytesLike = bytes | bytearray | memoryview
+
+
+# A constructor / factory that returns a hashlib-style hash object.
+class HasherLike(typing.Protocol):
+    def update(self, data: BytesLike, /) -> None: ...  # nocover
+    def digest(self) -> bytes: ...  # nocover
+    def hexdigest(self) -> str: ...  # nocover
+    def copy(
+        self,
+    ) -> 'HasherLike': ...  # nocover
+
+HasherType = Callable[..., HasherLike]
 
 # incremented when we make a change that modifies hashes
 HASH_VERSION: int = 2

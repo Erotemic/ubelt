@@ -28,7 +28,7 @@ import operator
 import typing
 from collections.abc import Sized
 from itertools import zip_longest
-from typing import Iterable, List, Mapping, Sequence, TypeVar
+from typing import Iterable, List, Mapping, Sequence, TypeVar, cast
 
 from ubelt import util_dict
 from ubelt.util_const import NoParam
@@ -40,7 +40,7 @@ VT_co = TypeVar('VT_co', covariant=True)
 
 if typing.TYPE_CHECKING:
     from collections.abc import Generator, Iterator
-    from typing import Any, Callable, Protocol, cast
+    from typing import Any, Callable, Protocol
 
     from ubelt.util_const import NoParamType
 
