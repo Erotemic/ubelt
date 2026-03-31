@@ -6,11 +6,13 @@ This project (loosely) adheres to [Semantic Versioning](https://semver.org/spec/
 
 ## Version 1.4.2 - Unreleased
 
-
 ### Changed
 * Improved urepr type annotations
 * Improved general type annotations
 * Removed internal helpers from urepr
+
+### Breaking
+* In order to better support static typing some corner case behaviors have changed, e.g. instead of checking `hasattr(self, '__len__')` we check `isinstance(self, Sized):` in NiceRepr.
 
 
 ## Version 1.4.1 - Released 2026-02-08

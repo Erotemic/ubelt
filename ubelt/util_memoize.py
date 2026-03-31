@@ -52,6 +52,7 @@ import sys
 import typing
 
 from ubelt import util_hash
+from typing import cast, Mapping
 
 try:
     from typing import Concatenate, ParamSpec
@@ -173,7 +174,7 @@ def memoize(func: Callable[P, T]) -> Callable[P, T]:
 
     @functools.wraps(func)
     def memoizer(*args: P.args, **kwargs: P.kwargs) -> T:
-        key = _make_signature_key(args, dict(kwargs))
+        key = _make_signature_key(args, cast(Mapping, kwargs))
         if key not in cache:
             cache[key] = func(*args, **kwargs)
         return cache[key]
@@ -302,7 +303,7 @@ class memoize_method(typing.Generic[S, P, T]):
 
         unbound = self._func
         cache = getattr(instance, self._cache_name, None)
-        if not isinstance(cache, dict):  # pragma: no branch
+        if cache is None:  # pragma: no branch
             cache = {}
             setattr(instance, self._cache_name, cache)
 
