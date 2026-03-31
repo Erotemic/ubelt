@@ -26,6 +26,16 @@ class SupportsBool(typing.Protocol):
     def __bool__(self) -> bool: ...  # nocover
 
 
+@typing.overload
+def identity() -> None:
+    ...
+
+
+@typing.overload
+def identity(arg: T, *args: object, **kwargs: object) -> T:
+    ...
+
+
 def identity(
     arg: T | None = None,
     *args: object,
@@ -50,12 +60,12 @@ def identity(
     assigning it to a value.
 
     Args:
-        arg (Any | None): The value to return unchanged.
+        arg (T | None): The value to return unchanged.
         *args: Ignored
         **kwargs: Ignored
 
     Returns:
-        Any: arg - The same value of the first positional argument.
+        T: arg - The same value of the first positional argument.
 
     References:
         .. [WikiIdentity] https://en.wikipedia.org/wiki/Identity_function
