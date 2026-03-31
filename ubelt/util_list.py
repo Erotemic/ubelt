@@ -28,7 +28,7 @@ import operator
 import typing
 from collections.abc import Sized
 from itertools import zip_longest
-from typing import Iterable, List, Mapping, Sequence, TypeVar, Tuple, Union
+from typing import Iterable, List, Mapping, Sequence, TypeVar
 
 from ubelt import util_dict
 from ubelt.util_const import NoParam
@@ -49,12 +49,6 @@ if typing.TYPE_CHECKING:
         def __len__(self) -> int: ...
 ChunkBorderMode = typing.Literal['none', 'cycle', 'replicate']
 
-
-class _ChunkSentinel:
-    pass
-
-
-_CHUNK_SENTINEL = _ChunkSentinel()
 
 __all__ = [
     'allsame',
@@ -371,60 +365,51 @@ class chunks(Iterable[List[VT]]):
     ) -> Generator[list[VT], None, None]:
         # feed the same iter to zip_longest multiple times, this causes it to
         # consume successive values of the same sequence
+        sentinel = object()
         copied_iters = [iter(items)] * chunksize
-        chunks_with_sentinals = typing.cast(
-            Iterable[Tuple[Union[VT, _ChunkSentinel], ...]],
-            zip_longest(*copied_iters, fillvalue=_CHUNK_SENTINEL),
-        )
+        chunks_with_sentinals = zip_longest(*copied_iters, fillvalue=sentinel)
         # Dont fill empty space in the last chunk, just return it as is
         for chunk in chunks_with_sentinals:
-            filt_chunk: list[VT] = []
-            for item in chunk:
-                if not isinstance(item, _ChunkSentinel):
-                    filt_chunk.append(item)
-            yield filt_chunk
+            yield [item for item in chunk if item is not sentinel]  # type: ignore[misc]
 
     @staticmethod
     def cycle(
         items: Iterable[VT], chunksize: int
     ) -> Generator[list[VT], None, None]:
+        sentinel = object()
         copied_iters = [iter(items)] * chunksize
-        chunks_with_sentinals = typing.cast(
-            Iterable[Tuple[Union[VT, _ChunkSentinel], ...]],
-            zip_longest(*copied_iters, fillvalue=_CHUNK_SENTINEL),
-        )
+        chunks_with_sentinals = zip_longest(*copied_iters, fillvalue=sentinel)
         # Fill empty space in the last chunk with values from the beginning
         bordervalues = it.cycle(iter(items))
         for chunk in chunks_with_sentinals:
-            padded_chunk: list[VT] = []
-            for item in chunk:
-                if isinstance(item, _ChunkSentinel):
-                    padded_chunk.append(next(bordervalues))
-                else:
-                    padded_chunk.append(item)
-            yield padded_chunk
+            yield typing.cast(
+                typing.List[VT],
+                [
+                    item if item is not sentinel else next(bordervalues)
+                    for item in chunk
+                ],
+            )
 
     @staticmethod
     def replicate(
         items: Iterable[VT], chunksize: int
     ) -> Generator[list[VT], None, None]:
+        sentinel = object()
         copied_iters = [iter(items)] * chunksize
         # Fill empty space in the last chunk by replicating the last value
-        chunks_with_sentinals = typing.cast(
-            Iterable[Tuple[Union[VT, _ChunkSentinel], ...]],
-            zip_longest(*copied_iters, fillvalue=_CHUNK_SENTINEL),
-        )
+        chunks_with_sentinals = zip_longest(*copied_iters, fillvalue=sentinel)
         for chunk in chunks_with_sentinals:
-            filt_chunk: list[VT] = []
-            for item in chunk:
-                if not isinstance(item, _ChunkSentinel):
-                    filt_chunk.append(item)
+            filt_chunk = [item for item in chunk if item is not sentinel]
             if len(filt_chunk) == chunksize:
-                yield filt_chunk
+                if typing.TYPE_CHECKING:
+                    filt_chunk = cast(List[VT], filt_chunk)  # type: ignore[assignment]
+                yield filt_chunk  # type: ignore[misc]
             else:
                 sizediff = chunksize - len(filt_chunk)
                 padded_chunk = filt_chunk + [filt_chunk[-1]] * sizediff
-                yield padded_chunk
+                if typing.TYPE_CHECKING:
+                    padded_chunk = cast(List[VT], padded_chunk)  # type: ignore[assignment]
+                yield padded_chunk  # type: ignore[misc]
 
 
 def iterable(obj: object, strok: bool = False) -> bool:
@@ -961,17 +946,16 @@ def argsort(
             indexable = cast(Mapping[KT, VT], indexable)
         vk_iter = ((v, k) for k, v in indexable.items())
     else:
-        pairs = list(enumerate(indexable))
-        if key is None:
-            return [k for k, v in sorted(pairs, key=operator.itemgetter(1), reverse=reverse)]
-        return [k for k, v in sorted(pairs, key=lambda kv: key(kv[1]), reverse=reverse)]
+        vk_iter = ((v, k) for k, v in enumerate(indexable))  # type: ignore[misc]
     # Sort by values and extract the indices
     if key is None:
         indices = [k for v, k in sorted(vk_iter, reverse=reverse)]
     else:
-        indices = [
-            k for v, k in sorted(vk_iter, key=lambda vk: key(vk[0]), reverse=reverse)
-        ]
+        # If key is provided, call it using the value as input
+        def key_func(vk: tuple[typing.Any, typing.Any]) -> typing.Any:
+            return key(vk[0])
+
+        indices = [k for v, k in sorted(vk_iter, key=key_func, reverse=reverse)]
     if typing.TYPE_CHECKING:
         if isinstance(indexable, Mapping):
             indices = cast(List[KT], indices)
@@ -1145,16 +1129,34 @@ class IterableMixin(Iterable):
     duplicates = util_dict.find_duplicates
     group = util_dict.group_items
 
+    @typing.overload
+    def chunks(
+        self,
+        size: int,
+        num: None = None,
+        bordermode: ChunkBorderMode = 'none',
+    ) -> Iterable[list[VT]]:
+        ...
+
+    @typing.overload
+    def chunks(
+        self,
+        size: None = None,
+        num: int = ...,
+        bordermode: ChunkBorderMode = 'none',
+    ) -> Iterable[list[VT]]:
+        ...
+
     def chunks(
         self,
         size: int | None = None,
         num: int | None = None,
         bordermode: ChunkBorderMode = 'none',
     ) -> Iterable[list[Any]]:
-        return typing.cast(typing.Any, chunks)(
+        return chunks(  # type: ignore
             self,
-            chunksize=size,
-            nchunks=num,
+            chunksize=size,  # type: ignore
+            nchunks=num,   # type: ignore
             bordermode=bordermode,
         )
 
