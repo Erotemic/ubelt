@@ -1043,17 +1043,12 @@ class HashableExtensions:
 
         @self.register(set)
         def _convert_set(data: set[typing.Any]) -> tuple[bytes, bytes]:
-            data_ = list(data)
-            # if typing.TYPE_CHECKING:
-            #     sortable_data = cast(list[typing.Any], data_)
-            # else:
-            #     sortable_data = data_
             try:
                 # what raises a TypeError differs between Python 2 and 3
                 ordered_ = sorted(data)
             except TypeError:
                 from ubelt.util_list import argsort
-
+                data_ = list(data)
                 sortx = argsort(data_, key=str)
                 ordered_ = [data_[k] for k in sortx]
             # See: [util_hash.Note.1]
