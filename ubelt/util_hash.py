@@ -67,7 +67,7 @@ import hashlib
 import math
 import typing
 from collections import OrderedDict
-from typing import Callable, Sequence, cast
+from typing import Union, Callable, Sequence, cast
 
 from ubelt.util_const import NoParam
 
@@ -76,15 +76,14 @@ HashableT = typing.TypeVar('HashableT')
 if typing.TYPE_CHECKING:
     from os import PathLike
     from _typeshed import DataclassInstance
-    from typing import Any, Optional, Union
-
+    from typing import Any, Optional
     from ubelt.util_const import NoParamType
 
 
 __all__ = ['hash_data', 'hash_file']
 
 
-BytesLike = bytes | bytearray | memoryview
+BytesLike = Union[bytes, bytearray, memoryview]
 
 
 # A constructor / factory that returns a hashlib-style hash object.
