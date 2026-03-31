@@ -310,9 +310,9 @@ def dict_hist(
 
         hist_data = Counter(items)
     else:
-        hist_2: defaultdict[T, int | float] | dict[T, int | float]
+        hist_2: dict[T, int | float]
         if labels is None:
-            hist_2 : DefaultDict[T, Union[int, float]] = defaultdict(lambda: 0)
+            hist_2 = defaultdict(lambda: 0)
         else:
             hist_2 = {k: 0 for k in labels}
         if weights is None:
