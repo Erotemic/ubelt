@@ -1078,7 +1078,7 @@ def argmin(
 
 def peek(
     iterable: Iterable[T], default: T | NoParamType = NoParam
-) -> T | NoParamType:
+) -> T:
     """
     Look at the first item of an iterable. If the input is an iterator, then
     the next element is exhausted (i.e. a pop operation).
@@ -1115,7 +1115,7 @@ def peek(
     if default is NoParam:
         return next(iter(iterable))
     else:
-        return next(iter(iterable), default)
+        return next(iter(iterable), cast(T, default))
 
 
 # Stubs for potential future object oriented wrappers
