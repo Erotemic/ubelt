@@ -91,7 +91,7 @@ if typing.TYPE_CHECKING:
     import queue
     import subprocess
     import threading
-    from collections.abc import Iterator, Sequence
+    from collections.abc import Iterator, Sequence, Mapping
 
 
 __pitch__ = """
@@ -182,7 +182,7 @@ def cmd(
     verbose: int = 0,
     tee: bool | None = None,
     cwd: str | os.PathLike[str] | None = None,
-    env: dict[str, str] | None = None,
+    env: Mapping[str, str] | None = None,
     tee_backend: str = 'auto',
     check: bool = False,
     system: bool = False,
