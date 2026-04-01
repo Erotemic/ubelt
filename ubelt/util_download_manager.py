@@ -10,6 +10,7 @@ if typing.TYPE_CHECKING:
     import concurrent.futures
     import os
     from collections.abc import Iterable
+    import ubelt as ub
 
 __all__ = ['DownloadManager']
 
@@ -72,6 +73,7 @@ class DownloadManager:
 
     download_root: str | os.PathLike
     cache: bool
+    _pool: ub.JobPool[typing.Any]
     _dl_func: typing.Callable[..., object]
 
     def __init__(

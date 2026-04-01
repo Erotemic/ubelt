@@ -234,7 +234,9 @@ def symlink(
     return link
 
 
-def _readlink(link: str | os.PathLike[str]) -> str:
+def _readlink(
+    link: str | bytes | os.PathLike[str] | os.PathLike[bytes]
+) -> str:
     # Note:
     # https://docs.python.org/3/library/os.html#os.readlink
     # os.readlink was changed on win32 in version 3.8: Added support for

@@ -2,6 +2,23 @@ from __future__ import annotations
 
 import typing
 
+if typing.TYPE_CHECKING:
+    try:
+        from typing import assert_type
+    except ImportError:  # pragma: no cover
+        from typing_extensions import assert_type
+
+    import ubelt as ub
+
+    _typed_executor = ub.Executor(mode='serial')
+    _typed_future = _typed_executor.submit(int, '3')
+    assert_type(_typed_future.result(), int)
+    _typed_map_iter = _typed_executor.map(int, ['1', '2'])
+    assert_type(next(_typed_map_iter), int)
+    _typed_pool: ub.JobPool[int] = ub.JobPool(mode='serial')
+    _typed_pool.submit(int, '4')
+    assert_type(_typed_pool.join(), list[int])
+
 
 def _process_backend_available() -> bool:
     import multiprocessing as mp
@@ -21,7 +38,7 @@ def test_job_pool_context_manager() -> None:
     def worker(data: int) -> int:
         return data + 1
 
-    pool = ub.JobPool('thread', max_workers=16)
+    pool: ub.JobPool[int] = ub.JobPool('thread', max_workers=16)
     with pool:
         for data in ub.ProgIter(range(10), desc='submit jobs'):
             pool.submit(worker, data)
@@ -35,7 +52,7 @@ def test_job_pool_context_manager() -> None:
 def test_job_pool_clear_completed_thread() -> None:
     import ubelt as ub
 
-    jobs = ub.JobPool(mode='thread', max_workers=2)
+    jobs: ub.JobPool[int] = ub.JobPool(mode='thread', max_workers=2)
     with jobs:
         for jobid in range(4):
             jobs.submit(simple_worker, jobid)
@@ -54,7 +71,7 @@ def test_job_pool_as_completed_prog_args() -> None:
     def worker(data: int) -> int:
         return data + 1
 
-    pool = ub.JobPool('thread', max_workers=1)
+    pool: ub.JobPool[int] = ub.JobPool('thread', max_workers=1)
     with pool:
         for data in ub.ProgIter(range(10), desc='submit jobs'):
             pool.submit(worker, data)
@@ -118,7 +135,7 @@ def test_job_pool_clear_completed() -> None:
     is_deleted: dict[int, bool] = {}
     weak_futures: dict[int, typing.Any] = {}
 
-    jobs = ub.JobPool(mode='process', max_workers=4)
+    jobs: ub.JobPool[int] = ub.JobPool(mode='process', max_workers=4)
 
     def make_finalizer(jobid: int) -> typing.Callable[[], None]:
         def _finalizer() -> None:
@@ -188,7 +205,9 @@ def test_job_pool_transient() -> None:
     is_deleted: dict[int, bool] = {}
     weak_futures: dict[int, typing.Any] = {}
 
-    jobs = ub.JobPool(mode='process', max_workers=4, transient=True)
+    jobs: ub.JobPool[int] = ub.JobPool(
+        mode='process', max_workers=4, transient=True
+    )
 
     def make_finalizer(jobid: int) -> typing.Callable[[], None]:
         def _finalizer() -> None:
@@ -227,7 +246,9 @@ def test_job_pool_transient() -> None:
 def test_job_pool_transient_thread() -> None:
     import ubelt as ub
 
-    jobs = ub.JobPool(mode='thread', max_workers=2, transient=True)
+    jobs: ub.JobPool[int] = ub.JobPool(
+        mode='thread', max_workers=2, transient=True
+    )
     with jobs:
         for jobid in range(4):
             jobs.submit(simple_worker, jobid)
@@ -342,7 +363,9 @@ def test_as_completed_timeout() -> None:
     kill_fpath = dpath / kill_fname
 
     for mode in modes:
-        jobs = ub.JobPool(mode=mode, max_workers=2)
+        jobs: ub.JobPool[float | None] = ub.JobPool(
+            mode=mode, max_workers=2
+        )
         with jobs:
             print('Submitting')
             timer = ub.Timer().tic()

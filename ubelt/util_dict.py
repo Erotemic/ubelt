@@ -60,7 +60,7 @@ import sys
 import typing
 from collections import OrderedDict, defaultdict
 from collections.abc import Generator, Iterable, Mapping
-from typing import Callable
+from typing import Callable, Union, DefaultDict
 
 from ubelt.util_const import NoParam
 
@@ -71,7 +71,6 @@ T = typing.TypeVar('T')
 if typing.TYPE_CHECKING:
     from typing import (
         Any,
-        Callable,
         Dict,
         List,
         MutableMapping,
@@ -79,7 +78,6 @@ if typing.TYPE_CHECKING:
         Self,
         Set,
         Type,
-        Union,
         cast,
     )
 
@@ -228,11 +226,12 @@ def group_items(
             ],
         }
     """
+    pair_list: Iterable[tuple[KT, VT]]
     if callable(key):
         keyfunc = typing.cast(Callable[[VT], KT], key)
         pair_list = ((keyfunc(item), item) for item in items)
     else:
-        pair_list = zip(key, items)  # type: ignore[assignment]
+        pair_list = zip(key, items)
 
     # Optimized alternatives are benchmarked in
     # ../dev/bench/bench_group_items.py
@@ -303,36 +302,33 @@ def dict_hist(
         >>> print(ub.repr2(hist4, nl=0))
         {1: 1, 2: 4, 39: 1, 900: 1, 1232: 0}
     """
-    hist_: MutableMapping
+    hist_data: Mapping[T, int | float]
     if weights is None and labels is None:
         # Accumulate discrete frequency.
         # In this special case we use an optimized stdlib routine
         from collections import Counter
 
-        hist_ = Counter()  # type: ignore[assignment]
-        hist_.update(items)
+        hist_data = Counter(items)
     else:
+        hist_2: dict[T, int | float]
         if labels is None:
-            hist_ = defaultdict(lambda: 0)  # type: ignore[assignment]
+            hist_2 = defaultdict(lambda: 0)
         else:
-            hist_ = {k: 0 for k in labels}  # type: ignore[assignment]
+            hist_2 = {k: 0 for k in labels}
         if weights is None:
             weights = it.repeat(1)  # 2x slower than Counter
-        if typing.TYPE_CHECKING:
-            hist_ = cast(MutableMapping[typing.Any, float | int], hist_)
         # Accumulate weighted frequency
         for item, weight in zip(items, weights):
-            hist_[item] += weight
+            hist_2[item] += weight
+        hist_data = hist_2
     if ordered:
         # Order by value
         getval = op.itemgetter(1)
-        hist = OrderedDict(
-            [(key, value) for (key, value) in sorted(hist_.items(), key=getval)]
+        return OrderedDict(
+            [(key, value) for (key, value) in sorted(hist_data.items(), key=getval)]
         )
-    else:
-        # Cast to a normal dictionary
-        hist = dict(hist_)  # type: ignore[assignment]
-    return hist
+    # Cast to a normal dictionary
+    return dict(hist_data)
 
 
 def find_duplicates(
@@ -391,7 +387,7 @@ def find_duplicates(
         {5: [0, 1], 6: [2, 3], 7: [4, 5]}
     """
     # Build mapping from items to the indices at which they appear
-    duplicates = defaultdict(list)  # type: ignore[assignment]
+    duplicates: defaultdict[T, List[int]] = defaultdict(list)
     if key is None:
         for count, item in enumerate(items):
             duplicates[item].append(count)
@@ -402,8 +398,7 @@ def find_duplicates(
     for dup_key in list(duplicates.keys()):
         if len(duplicates[dup_key]) < k:
             del duplicates[dup_key]
-    duplicates = dict(duplicates)  # type: ignore[assignment]
-    return duplicates
+    return dict(duplicates)
 
 
 def dict_subset(

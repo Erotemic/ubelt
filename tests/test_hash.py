@@ -14,6 +14,28 @@ from ubelt.util_hash import (
     _rectify_hasher,
 )
 
+if typing.TYPE_CHECKING:
+    try:
+        from typing import assert_type
+    except ImportError:  # pragma: no cover
+        from typing_extensions import assert_type
+
+    _typed_hasher_ctor = _rectify_hasher('sha1')
+    _typed_hasher_obj = _typed_hasher_ctor()
+    assert_type(_typed_hasher_obj.hexdigest(), str)
+
+    _typed_extensions = ub.util_hash.HashableExtensions()
+
+    class _CustomHashType:
+        attr: int
+
+    @_typed_extensions.register(_CustomHashType)
+    def _hash_custom(data: _CustomHashType) -> tuple[bytes, bytes]:
+        return b'CUSTOM', bytes([data.attr])
+
+    _typed_hashfunc = _typed_extensions.lookup(_CustomHashType())
+    assert_type(_typed_hashfunc(_CustomHashType()), tuple[bytes, bytes])
+
 try:
     import numpy as _np
 except ImportError:

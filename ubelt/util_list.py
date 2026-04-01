@@ -28,21 +28,27 @@ import operator
 import typing
 from collections.abc import Sized
 from itertools import zip_longest
-from typing import Iterable, List, Mapping, Sequence, TypeVar
+from typing import Iterable, List, Mapping, Sequence, TypeVar, cast
 
 from ubelt import util_dict
 from ubelt.util_const import NoParam
 
+T = TypeVar('T')
+KT = TypeVar('KT')
+VT = TypeVar('VT')
+VT_co = TypeVar('VT_co', covariant=True)
+
 if typing.TYPE_CHECKING:
     from collections.abc import Generator, Iterator
-    from typing import Any, Callable, cast
+    from typing import Any, Callable, Protocol
 
     from ubelt.util_const import NoParamType
 
-    T = TypeVar('T')
-    KT = TypeVar('KT')
+    class _SizedIterable(Protocol[VT_co]):
+        def __iter__(self) -> Iterator[VT_co]: ...
+        def __len__(self) -> int: ...
+ChunkBorderMode = typing.Literal['none', 'cycle', 'replicate']
 
-VT = TypeVar('VT')
 
 __all__ = [
     'allsame',
@@ -172,13 +178,49 @@ class chunks(Iterable[List[VT]]):
 
     """
 
+    @typing.overload
+    def __init__(
+        self,
+        items: Iterable[VT],
+        chunksize: int,
+        nchunks: None = None,
+        total: int | None = None,
+        bordermode: ChunkBorderMode = 'none',
+        legacy: bool = False,
+    ) -> None:
+        ...
+
+    @typing.overload
+    def __init__(
+        self,
+        items: _SizedIterable[VT],
+        chunksize: None = None,
+        nchunks: int = ...,
+        total: int | None = None,
+        bordermode: ChunkBorderMode = 'none',
+        legacy: bool = False,
+    ) -> None:
+        ...
+
+    @typing.overload
+    def __init__(
+        self,
+        items: Iterable[VT],
+        chunksize: None = None,
+        nchunks: int = ...,
+        total: int = ...,
+        bordermode: ChunkBorderMode = 'none',
+        legacy: bool = False,
+    ) -> None:
+        ...
+
     def __init__(
         self,
         items: Iterable[VT],
         chunksize: int | None = None,
         nchunks: int | None = None,
         total: int | None = None,
-        bordermode: str = 'none',
+        bordermode: ChunkBorderMode = 'none',
         legacy: bool = False,
     ) -> None:
         """
@@ -251,7 +293,7 @@ class chunks(Iterable[List[VT]]):
         self.nchunks = nchunks
         assert chunksize is not None
         self.chunksize: int = chunksize
-        self.bordermode = bordermode
+        self.bordermode: ChunkBorderMode = bordermode
 
     def __len__(self) -> int:
         if self.nchunks is None:
@@ -278,9 +320,9 @@ class chunks(Iterable[List[VT]]):
     def _new_iterator(self) -> Iterator[list[VT]]:
         chunksize = self.chunksize
         nchunks = self.nchunks
-        chunksize = self.chunksize
         remainder = self.remainder
 
+        iterator: Iterator[VT]
         if self.bordermode == 'cycle':
             iterator = it.cycle(iter(self.items))
         elif self.bordermode == 'replicate':
@@ -291,13 +333,14 @@ class chunks(Iterable[List[VT]]):
                 while True:
                     yield item
 
-            iterator = replicator(iter(self.items))  # type: ignore[assignment]
+            iterator = replicator(iter(self.items))
         elif self.bordermode == 'none':
-            iterator = iter(self.items)  # type: ignore[assignment,arg-type]
+            iterator = iter(self.items)
         else:
             raise KeyError(self.bordermode)
 
         # Build an iterator that describes how big each chunk will be
+        chunksize_iter: Iterator[int]
         if remainder:
             # TODO:
             # handle replicate and cycle border modes
@@ -310,7 +353,7 @@ class chunks(Iterable[List[VT]]):
             )
         else:
             assert nchunks is not None
-            chunksize_iter = it.repeat(chunksize, nchunks)  # type: ignore[assignment]
+            chunksize_iter = it.repeat(chunksize, nchunks)
         for _chunksize in chunksize_iter:
             chunk = list(it.islice(iterator, _chunksize))
             # if chunk:
@@ -916,8 +959,6 @@ def argsort(
     if typing.TYPE_CHECKING:
         if isinstance(indexable, Mapping):
             indices = cast(List[KT], indices)
-        else:
-            indices = cast(List[int], indices)  # type: ignore
     return indices
 
 
@@ -1037,7 +1078,7 @@ def argmin(
 
 def peek(
     iterable: Iterable[T], default: T | NoParamType = NoParam
-) -> T | NoParamType:
+) -> T:
     """
     Look at the first item of an iterable. If the input is an iterator, then
     the next element is exhausted (i.e. a pop operation).
@@ -1074,7 +1115,7 @@ def peek(
     if default is NoParam:
         return next(iter(iterable))
     else:
-        return next(iter(iterable), default)
+        return next(iter(iterable), cast(T, default))
 
 
 # Stubs for potential future object oriented wrappers
@@ -1088,16 +1129,34 @@ class IterableMixin(Iterable):
     duplicates = util_dict.find_duplicates
     group = util_dict.group_items
 
+    @typing.overload
+    def chunks(
+        self,
+        size: int,
+        num: None = None,
+        bordermode: ChunkBorderMode = 'none',
+    ) -> Iterable[list[VT]]:
+        ...
+
+    @typing.overload
+    def chunks(
+        self,
+        size: None = None,
+        num: int = ...,
+        bordermode: ChunkBorderMode = 'none',
+    ) -> Iterable[list[VT]]:
+        ...
+
     def chunks(
         self,
         size: int | None = None,
         num: int | None = None,
-        bordermode: str = 'none',
+        bordermode: ChunkBorderMode = 'none',
     ) -> Iterable[list[Any]]:
-        return chunks(
+        return chunks(  # type: ignore
             self,
-            chunksize=size,
-            nchunks=num,
+            chunksize=size,  # type: ignore
+            nchunks=num,   # type: ignore
             bordermode=bordermode,
         )
 

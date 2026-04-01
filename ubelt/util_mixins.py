@@ -48,6 +48,7 @@ Example:
 
 from __future__ import annotations
 
+from collections.abc import Sized
 import warnings
 
 
@@ -151,12 +152,10 @@ class NiceRepr:
         Returns:
             str
         """
-        if hasattr(self, '__len__'):
+        if isinstance(self, Sized):
             # It is a common pattern for objects to use __len__ in __nice__
             # As a convenience we define a default __nice__ for these objects
-            # return str(len(self))
-            # hasattr doesn't narrow to Sized for ty, so call __len__ directly
-            return str(self.__len__())  # type: ignore
+            return str(len(self))
         else:
             # In all other cases force the subclass to overload __nice__
             raise NotImplementedError(

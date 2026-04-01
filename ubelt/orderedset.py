@@ -34,11 +34,12 @@ from __future__ import annotations
 
 import itertools as it
 import typing
+from collections.abc import Iterable
 from collections import deque
 from typing import MutableSet, Sequence
 
 if typing.TYPE_CHECKING:
-    from collections.abc import Iterable, Iterator
+    from collections.abc import Iterator
 
 T = typing.TypeVar('T')
 
@@ -199,10 +200,9 @@ class OrderedSet(MutableSet[T], Sequence[T]):
     def __setstate__(self, state: tuple[None] | list[T]) -> None:
         self.items = []
         self.map = {}
-        if state == (None,):
+        if isinstance(state, tuple):
             return
-        else:
-            self.update(state)  # type: ignore[arg-type]
+        self.update(state)
 
     def __contains__(self, value: object) -> bool:
         """
@@ -421,7 +421,7 @@ class OrderedSet(MutableSet[T], Sequence[T]):
             return '%s()' % (self.__class__.__name__,)
         return '%s(%r)' % (self.__class__.__name__, list(self))
 
-    def __eq__(self, other: typing.Any) -> bool:
+    def __eq__(self, other: object) -> bool:
         """
         Returns true if the containers have the same items. If `other` is a
         Sequence, then order is checked, otherwise it is ignored.
@@ -449,13 +449,10 @@ class OrderedSet(MutableSet[T], Sequence[T]):
             # Check that this OrderedSet contains the same elements, in the
             # same order, as the other object.
             return list(self) == list(other)
-        try:
-            other_as_set = set(other)
-        except TypeError:
+        if not isinstance(other, Iterable):
             # If `other` can't be converted into a set, it's not equal.
             return False
-        else:
-            return set(self) == other_as_set
+        return set(self) == set(other)
 
     def union(self, *sets: Iterable[T]) -> OrderedSet[T]:
         """
