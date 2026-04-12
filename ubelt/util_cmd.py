@@ -1054,20 +1054,18 @@ def _tee_output(
                 raise subprocess.TimeoutExpired(command_text, timeout, out, err)
         if oline:
             # logger.debug("Write oline to stdout.write and logged_out")
+            oline_ = typing.cast(str, oline)
             if stdout:  # pragma: nobranch
-                if typing.TYPE_CHECKING:
-                    oline = typing.cast(str, oline)
-                stdout.write(oline)
+                stdout.write(oline_)
                 stdout.flush()
-            logged_out.append(oline)  # type: ignore
+            logged_out.append(oline_)
         if eline:
             # logger.debug("Write eline to stderr.write and logged_err")
+            eline_ = typing.cast(str, eline)
             if stderr:  # pragma: nobranch
-                if typing.TYPE_CHECKING:
-                    eline = typing.cast(str, eline)
-                stderr.write(eline)
+                stderr.write(eline_)
                 stderr.flush()
-            logged_err.append(eline)  # type: ignore
+            logged_err.append(eline_)
         # logger.debug("Continue waiting for buffered output")
 
     # The motivation for this logic is unclear.
