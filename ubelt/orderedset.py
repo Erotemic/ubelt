@@ -172,9 +172,6 @@ class OrderedSet(MutableSet[T], Sequence[T]):
         """
         Return a shallow copy of this object.
 
-        Returns:
-            OrderedSet
-
         Example:
             >>> this = OrderedSet([1, 2, 3])
             >>> other = this.copy()
@@ -211,9 +208,6 @@ class OrderedSet(MutableSet[T], Sequence[T]):
         Args:
             value (T): check if this item exists in the set
 
-        Returns:
-            bool
-
         Example:
             >>> 1 in OrderedSet([1, 3, 2])
             True
@@ -233,7 +227,7 @@ class OrderedSet(MutableSet[T], Sequence[T]):
             value (T): the item to add
 
         Returns:
-            int: the index of the items. Note, violates the Liskov Substitution
+            the index of the items. Note, violates the Liskov Substitution
             Principle and might be changed.
 
         Example:
@@ -303,7 +297,7 @@ class OrderedSet(MutableSet[T], Sequence[T]):
             stop (int | None): not supported yet
 
         Returns:
-            int | List[int]
+            The ``index`` in ``self`` such that ``self[index] == value``
 
         Example:
             >>> oset = OrderedSet([1, 2, 3])

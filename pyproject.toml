@@ -87,6 +87,7 @@ ignore_missing_imports = true
 #ignore_errors = true
 
 [tool.ty.rules]
+unused-ignore-comment = "ignore"
 unused-type-ignore-comment = "ignore"
 unresolved-import = "ignore"
 

@@ -27,13 +27,11 @@ class SupportsBool(typing.Protocol):
 
 
 @typing.overload
-def identity() -> None:
-    ...
+def identity() -> None: ...
 
 
 @typing.overload
-def identity(arg: T, *args: object, **kwargs: object) -> T:
-    ...
+def identity(arg: T, *args: object, **kwargs: object) -> T: ...
 
 
 def identity(

@@ -95,6 +95,7 @@ class HasherLike(typing.Protocol):
         self,
     ) -> 'HasherLike': ...  # nocover
 
+
 HasherType = Callable[..., HasherLike]
 
 # incremented when we make a change that modifies hashes
@@ -788,8 +789,7 @@ class HashableExtensions:
         if typing.TYPE_CHECKING:
             cls = cast(type[DataclassInstance], cls)
         items = [
-            (f.name, getattr(data, f.name))
-            for f in dataclasses.fields(cls)
+            (f.name, getattr(data, f.name)) for f in dataclasses.fields(cls)
         ]
         # Use the existing machinery to serialize recursively
         seq = _hashable_sequence(
@@ -1048,6 +1048,7 @@ class HashableExtensions:
                 ordered_ = sorted(data)
             except TypeError:
                 from ubelt.util_list import argsort
+
                 data_ = list(data)
                 sortx = argsort(data_, key=str)
                 ordered_ = [data_[k] for k in sortx]

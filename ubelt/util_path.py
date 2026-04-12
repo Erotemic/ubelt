@@ -373,13 +373,14 @@ def ensuredir(
         >>> assert dpath.exists()
         >>> dpath.delete()
     """
+
     def _coerce_path_part(part: str | os.PathLike[str]) -> str:
         if isinstance(part, str):
             return part
         return part.__fspath__()
 
     if isinstance(dpath, tuple):
-        parts = typing.cast("Tuple[Union[str, os.PathLike[str]], ...]", dpath)
+        parts = typing.cast('Tuple[Union[str, os.PathLike[str]], ...]', dpath)
         dpath = join(*(_coerce_path_part(part) for part in parts))
 
     if recreate:

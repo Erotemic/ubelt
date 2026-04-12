@@ -47,6 +47,8 @@ if typing.TYPE_CHECKING:
     class _SizedIterable(Protocol[VT_co]):
         def __iter__(self) -> Iterator[VT_co]: ...
         def __len__(self) -> int: ...
+
+
 ChunkBorderMode = typing.Literal['none', 'cycle', 'replicate']
 
 
@@ -187,8 +189,7 @@ class chunks(Iterable[List[VT]]):
         total: int | None = None,
         bordermode: ChunkBorderMode = 'none',
         legacy: bool = False,
-    ) -> None:
-        ...
+    ) -> None: ...
 
     @typing.overload
     def __init__(
@@ -199,8 +200,7 @@ class chunks(Iterable[List[VT]]):
         total: int | None = None,
         bordermode: ChunkBorderMode = 'none',
         legacy: bool = False,
-    ) -> None:
-        ...
+    ) -> None: ...
 
     @typing.overload
     def __init__(
@@ -211,8 +211,7 @@ class chunks(Iterable[List[VT]]):
         total: int = ...,
         bordermode: ChunkBorderMode = 'none',
         legacy: bool = False,
-    ) -> None:
-        ...
+    ) -> None: ...
 
     def __init__(
         self,
@@ -1076,9 +1075,7 @@ def argmin(
         return argsort(indexable, key=key)[0]
 
 
-def peek(
-    iterable: Iterable[T], default: T | NoParamType = NoParam
-) -> T:
+def peek(iterable: Iterable[T], default: T | NoParamType = NoParam) -> T:
     """
     Look at the first item of an iterable. If the input is an iterator, then
     the next element is exhausted (i.e. a pop operation).
@@ -1135,8 +1132,7 @@ class IterableMixin(Iterable):
         size: int,
         num: None = None,
         bordermode: ChunkBorderMode = 'none',
-    ) -> Iterable[list[VT]]:
-        ...
+    ) -> Iterable[list[VT]]: ...
 
     @typing.overload
     def chunks(
@@ -1144,8 +1140,7 @@ class IterableMixin(Iterable):
         size: None = None,
         num: int = ...,
         bordermode: ChunkBorderMode = 'none',
-    ) -> Iterable[list[VT]]:
-        ...
+    ) -> Iterable[list[VT]]: ...
 
     def chunks(
         self,
@@ -1156,7 +1151,7 @@ class IterableMixin(Iterable):
         return chunks(  # type: ignore
             self,
             chunksize=size,  # type: ignore
-            nchunks=num,   # type: ignore
+            nchunks=num,  # type: ignore
             bordermode=bordermode,
         )
 

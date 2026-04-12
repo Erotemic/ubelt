@@ -25,7 +25,9 @@ def test_chunk_errors() -> None:
         typing.cast(typing.Any, ub.chunks)(range(9), chunksize=2, nchunks=2)
 
     with pytest.raises(ValueError):
-        len(typing.cast(typing.Any, ub.chunks)((_ for _ in range(2)), nchunks=2))
+        len(
+            typing.cast(typing.Any, ub.chunks)((_ for _ in range(2)), nchunks=2)
+        )
 
 
 def test_chunk_total_chunksize() -> None:
