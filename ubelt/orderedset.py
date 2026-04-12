@@ -321,7 +321,7 @@ class OrderedSet(MutableSet[T], Sequence[T]):
         Raises KeyError if the set is empty.
 
         Returns:
-            T
+            The value that was removed
 
         Example:
             >>> oset = OrderedSet([1, 2, 3])
@@ -386,8 +386,7 @@ class OrderedSet(MutableSet[T], Sequence[T]):
 
     def __iter__(self) -> Iterator:
         """
-        Returns:
-            Iterator
+        Standard iterator over items in this set
 
         Example:
             >>> list(iter(OrderedSet([1, 2, 3])))
@@ -421,10 +420,11 @@ class OrderedSet(MutableSet[T], Sequence[T]):
         Sequence, then order is checked, otherwise it is ignored.
 
         Args:
-            other (Any): item to compare against
+            other: item to compare against
 
         Returns:
-            bool
+            If they share the same items, and - if ``other`` is ordered - if
+            they have the same order.
 
         Example:
             >>> oset = OrderedSet([1, 3, 2])

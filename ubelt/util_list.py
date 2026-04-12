@@ -369,7 +369,7 @@ class chunks(Iterable[List[VT]]):
         chunks_with_sentinals = zip_longest(*copied_iters, fillvalue=sentinel)
         # Dont fill empty space in the last chunk, just return it as is
         for chunk in chunks_with_sentinals:
-            yield [item for item in chunk if item is not sentinel]  # type: ignore[misc]
+            yield [item for item in chunk if item is not sentinel]  # type: ignore
 
     @staticmethod
     def cycle(

@@ -92,6 +92,22 @@ if typing.TYPE_CHECKING:
     import subprocess
     import threading
     from collections.abc import Iterator, Sequence, Mapping
+    from typing import TypedDict, NotRequired
+
+    class PopenKwargs(TypedDict):
+        bufsize: NotRequired[int]
+        executable: NotRequired[str | os.PathLike[str] | None]
+        stdin: NotRequired[int | None]
+        stdout: NotRequired[int | None]
+        stderr: NotRequired[int | None]
+        shell: NotRequired[bool]
+        cwd: NotRequired[str | os.PathLike[str] | None]
+        env: NotRequired[Mapping[str, str] | None]
+        universal_newlines: NotRequired[bool | None]
+        text: NotRequired[bool | None]
+        encoding: NotRequired[str | None]
+        errors: NotRequired[str | None]
+        # Add other Popen kwargs as needed
 
 
 __pitch__ = """
@@ -423,18 +439,19 @@ def cmd(
     # Create a new process to execute the command
     def make_proc() -> subprocess.Popen[str]:
         # delay the creation of the process until we validate all args
+        popen_kwargs: PopenKwargs = {}
         popen_kwargs = {'cwd': cwd, 'env': env, 'shell': shell}
         popen_kwargs['universal_newlines'] = True
 
         if capture:
-            popen_kwargs['stdout'] = subprocess.PIPE  # type: ignore
-            popen_kwargs['stderr'] = subprocess.PIPE  # type: ignore
+            popen_kwargs['stdout'] = subprocess.PIPE
+            popen_kwargs['stderr'] = subprocess.PIPE
         elif not show:
             # The only way to suppress printing to the screen is by
             # piping to devnull
-            popen_kwargs['stdout'] = subprocess.DEVNULL  # type: ignore
-            popen_kwargs['stderr'] = subprocess.DEVNULL  # type: ignore
-        proc = subprocess.Popen(args, **popen_kwargs)  # type: ignore
+            popen_kwargs['stdout'] = subprocess.DEVNULL
+            popen_kwargs['stderr'] = subprocess.DEVNULL
+        proc = subprocess.Popen(args, **popen_kwargs)
         return proc
 
     if system:
