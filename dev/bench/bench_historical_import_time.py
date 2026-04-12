@@ -36,6 +36,7 @@ Notes
 * The default target is "import ubelt".
 * Measurements are done in subprocesses to better isolate import timing.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -61,7 +62,7 @@ class MeasureRow:
     label: str
     target: str
     repetition: int
-    mode: str           # "wall" or "importtime"
+    mode: str  # "wall" or "importtime"
     ok: bool
     value_us: float | None
     returncode: int | None
@@ -77,94 +78,118 @@ def run(
     capture: bool = True,
 ) -> subprocess.CompletedProcess:
     kwargs = {
-        "cwd": os.fspath(cwd) if cwd is not None else None,
-        "env": env,
-        "text": True,
+        'cwd': os.fspath(cwd) if cwd is not None else None,
+        'env': env,
+        'text': True,
     }
     if capture:
-        kwargs["stdout"] = subprocess.PIPE
-        kwargs["stderr"] = subprocess.PIPE
+        kwargs['stdout'] = subprocess.PIPE
+        kwargs['stderr'] = subprocess.PIPE
     proc = subprocess.run(cmd, **kwargs)
     if check and proc.returncode != 0:
         raise RuntimeError(
-            f"Command failed ({proc.returncode}): {' '.join(map(str, cmd))}\n"
-            f"--- stdout ---\n{proc.stdout or ''}\n"
-            f"--- stderr ---\n{proc.stderr or ''}"
+            f'Command failed ({proc.returncode}): {" ".join(map(str, cmd))}\n'
+            f'--- stdout ---\n{proc.stdout or ""}\n'
+            f'--- stderr ---\n{proc.stderr or ""}'
         )
     return proc
 
 
 def repo_root() -> pathlib.Path:
-    proc = run(["git", "rev-parse", "--show-toplevel"])
+    proc = run(['git', 'rev-parse', '--show-toplevel'])
     return pathlib.Path(proc.stdout.strip())
 
 
 def safe_name(text: str) -> str:
-    return re.sub(r"[^A-Za-z0-9._-]+", "_", text)
+    return re.sub(r'[^A-Za-z0-9._-]+', '_', text)
 
 
 def venv_python(venv_dir: pathlib.Path) -> pathlib.Path:
-    if os.name == "nt":
-        return venv_dir / "Scripts" / "python.exe"
-    return venv_dir / "bin" / "python"
+    if os.name == 'nt':
+        return venv_dir / 'Scripts' / 'python.exe'
+    return venv_dir / 'bin' / 'python'
 
 
-def create_worktree(repo_dpath: pathlib.Path, ref: str, wt_dpath: pathlib.Path) -> None:
-    run(["git", "worktree", "add", "--detach", os.fspath(wt_dpath), ref], cwd=repo_dpath)
+def create_worktree(
+    repo_dpath: pathlib.Path, ref: str, wt_dpath: pathlib.Path
+) -> None:
+    run(
+        ['git', 'worktree', 'add', '--detach', os.fspath(wt_dpath), ref],
+        cwd=repo_dpath,
+    )
 
 
 def remove_worktree(repo_dpath: pathlib.Path, wt_dpath: pathlib.Path) -> None:
     try:
-        run(["git", "worktree", "remove", "--force", os.fspath(wt_dpath)], cwd=repo_dpath)
+        run(
+            ['git', 'worktree', 'remove', '--force', os.fspath(wt_dpath)],
+            cwd=repo_dpath,
+        )
     except Exception:
         shutil.rmtree(wt_dpath, ignore_errors=True)
 
 
-def create_uv_venv(python_spec: str, venv_dir: pathlib.Path, cwd: pathlib.Path) -> pathlib.Path:
-    run(["uv", "venv", "--python", python_spec, os.fspath(venv_dir)], cwd=cwd)
+def create_uv_venv(
+    python_spec: str, venv_dir: pathlib.Path, cwd: pathlib.Path
+) -> pathlib.Path:
+    run(['uv', 'venv', '--python', python_spec, os.fspath(venv_dir)], cwd=cwd)
     pyexe = venv_python(venv_dir)
     if not pyexe.exists():
-        raise RuntimeError(f"Expected venv python at {pyexe}")
+        raise RuntimeError(f'Expected venv python at {pyexe}')
     return pyexe
 
 
-def install_ref(pyexe: pathlib.Path, wt_dpath: pathlib.Path, venv_dpath: pathlib.Path) -> None:
+def install_ref(
+    pyexe: pathlib.Path, wt_dpath: pathlib.Path, venv_dpath: pathlib.Path
+) -> None:
     """
     Install the ref into the uv-created environment.
     For import-time measurement, runtime requirements are sufficient.
     """
     env = os.environ.copy()
-    env.setdefault("PYTHONUTF8", "1")
-    env["VIRTUAL_ENV"] = os.fspath(venv_dpath)
-    env["PATH"] = f"{venv_python(venv_dpath).parent}{os.pathsep}{env.get('PATH', '')}"
+    env.setdefault('PYTHONUTF8', '1')
+    env['VIRTUAL_ENV'] = os.fspath(venv_dpath)
+    env['PATH'] = (
+        f'{venv_python(venv_dpath).parent}{os.pathsep}{env.get("PATH", "")}'
+    )
 
-    req_runtime = wt_dpath / "requirements" / "runtime.txt"
+    req_runtime = wt_dpath / 'requirements' / 'runtime.txt'
     if req_runtime.exists():
         run(
-            ["uv", "pip", "install", "--python", os.fspath(pyexe), "-r", os.fspath(req_runtime)],
+            [
+                'uv',
+                'pip',
+                'install',
+                '--python',
+                os.fspath(pyexe),
+                '-r',
+                os.fspath(req_runtime),
+            ],
             cwd=wt_dpath,
             env=env,
         )
 
     run(
-        ["uv", "pip", "install", "--python", os.fspath(pyexe), "-e", "."],
+        ['uv', 'pip', 'install', '--python', os.fspath(pyexe), '-e', '.'],
         cwd=wt_dpath,
         env=env,
     )
 
 
-def measure_wall_import_us(pyexe: pathlib.Path, stmt: str) -> tuple[bool, float | None, int, str | None]:
+def measure_wall_import_us(
+    pyexe: pathlib.Path, stmt: str
+) -> tuple[bool, float | None, int, str | None]:
     code = (
-        "import json, time\n"
-        "t0 = time.perf_counter()\n"
-        f"{stmt}\n"
-        "dt_us = (time.perf_counter() - t0) * 1e6\n"
+        'import json, time\n'
+        't0 = time.perf_counter()\n'
+        f'{stmt}\n'
+        'dt_us = (time.perf_counter() - t0) * 1e6\n'
         "print(json.dumps({'wall_us': dt_us}))\n"
     )
     env = os.environ.copy()
-    env["PYTHONDONTWRITEBYTECODE"] = "1"
+    env['PYTHONDONTWRITEBYTECODE'] = '1'
     proc = subprocess.run(
-        [os.fspath(pyexe), "-c", code],
+        [os.fspath(pyexe), '-c', code],
         text=True,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
@@ -174,20 +199,27 @@ def measure_wall_import_us(pyexe: pathlib.Path, stmt: str) -> tuple[bool, float 
         return False, None, proc.returncode, proc.stderr
     try:
         data = json.loads(proc.stdout.strip())
-        return True, float(data["wall_us"]), proc.returncode, None
+        return True, float(data['wall_us']), proc.returncode, None
     except Exception as ex:
-        return False, None, proc.returncode, (
-            f"Failed to parse wall-time JSON: {ex}\n"
-            f"--- stdout ---\n{proc.stdout}\n"
-            f"--- stderr ---\n{proc.stderr}"
+        return (
+            False,
+            None,
+            proc.returncode,
+            (
+                f'Failed to parse wall-time JSON: {ex}\n'
+                f'--- stdout ---\n{proc.stdout}\n'
+                f'--- stderr ---\n{proc.stderr}'
+            ),
         )
 
 
-def measure_importtime_us(pyexe: pathlib.Path, stmt: str) -> tuple[bool, float | None, int, str | None]:
+def measure_importtime_us(
+    pyexe: pathlib.Path, stmt: str
+) -> tuple[bool, float | None, int, str | None]:
     env = os.environ.copy()
-    env["PYTHONDONTWRITEBYTECODE"] = "1"
+    env['PYTHONDONTWRITEBYTECODE'] = '1'
     proc = subprocess.run(
-        [os.fspath(pyexe), "-X", "importtime", "-c", stmt],
+        [os.fspath(pyexe), '-X', 'importtime', '-c', stmt],
         text=True,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
@@ -198,17 +230,25 @@ def measure_importtime_us(pyexe: pathlib.Path, stmt: str) -> tuple[bool, float |
 
     lines = [line for line in proc.stderr.splitlines() if line.strip()]
     if not lines:
-        return False, None, proc.returncode, "No stderr output from -X importtime"
+        return (
+            False,
+            None,
+            proc.returncode,
+            'No stderr output from -X importtime',
+        )
 
     final_line = lines[-1]
     try:
-        tail = final_line.split(": ", 1)[1]
-        parts = [p.strip() for p in tail.split("|")]
+        tail = final_line.split(': ', 1)[1]
+        parts = [p.strip() for p in tail.split('|')]
         cumulative_us = float(parts[1])
         return True, cumulative_us, proc.returncode, None
     except Exception as ex:
-        return False, None, proc.returncode, (
-            f"Could not parse importtime line: {final_line}\n{ex}"
+        return (
+            False,
+            None,
+            proc.returncode,
+            (f'Could not parse importtime line: {final_line}\n{ex}'),
         )
 
 
@@ -224,11 +264,11 @@ def benchmark_ref(
     root_tmp: pathlib.Path,
 ) -> list[MeasureRow]:
     rows: list[MeasureRow] = []
-    label = ref if kind != "head" else "HEAD"
+    label = ref if kind != 'head' else 'HEAD'
 
-    wt_name = safe_name(f"bench-import-{label}")
-    wt_dpath = root_tmp / "worktrees" / wt_name
-    venv_dpath = root_tmp / "venvs" / wt_name
+    wt_name = safe_name(f'bench-import-{label}')
+    wt_dpath = root_tmp / 'worktrees' / wt_name
+    venv_dpath = root_tmp / 'venvs' / wt_name
 
     wt_dpath.parent.mkdir(parents=True, exist_ok=True)
     venv_dpath.parent.mkdir(parents=True, exist_ok=True)
@@ -238,9 +278,17 @@ def benchmark_ref(
     except Exception as ex:
         return [
             MeasureRow(
-                ref=ref, kind=kind, label=label, target="",
-                repetition=0, mode="setup", ok=False, value_us=None,
-                returncode=None, stage="worktree", error=str(ex),
+                ref=ref,
+                kind=kind,
+                label=label,
+                target='',
+                repetition=0,
+                mode='setup',
+                ok=False,
+                value_us=None,
+                returncode=None,
+                stage='worktree',
+                error=str(ex),
             )
         ]
 
@@ -251,9 +299,17 @@ def benchmark_ref(
             remove_worktree(repo_dpath, wt_dpath)
         return [
             MeasureRow(
-                ref=ref, kind=kind, label=label, target="",
-                repetition=0, mode="setup", ok=False, value_us=None,
-                returncode=None, stage="venv", error=str(ex),
+                ref=ref,
+                kind=kind,
+                label=label,
+                target='',
+                repetition=0,
+                mode='setup',
+                ok=False,
+                value_us=None,
+                returncode=None,
+                stage='venv',
+                error=str(ex),
             )
         ]
 
@@ -264,9 +320,17 @@ def benchmark_ref(
             remove_worktree(repo_dpath, wt_dpath)
         return [
             MeasureRow(
-                ref=ref, kind=kind, label=label, target="",
-                repetition=0, mode="setup", ok=False, value_us=None,
-                returncode=None, stage="install", error=str(ex),
+                ref=ref,
+                kind=kind,
+                label=label,
+                target='',
+                repetition=0,
+                mode='setup',
+                ok=False,
+                value_us=None,
+                returncode=None,
+                stage='install',
+                error=str(ex),
             )
         ]
 
@@ -284,11 +348,11 @@ def benchmark_ref(
                     label=label,
                     target=target,
                     repetition=rep,
-                    mode="wall",
+                    mode='wall',
                     ok=ok,
                     value_us=value_us,
                     returncode=rc,
-                    stage="measure",
+                    stage='measure',
                     error=err,
                 )
             )
@@ -301,11 +365,11 @@ def benchmark_ref(
                     label=label,
                     target=target,
                     repetition=rep,
-                    mode="importtime",
+                    mode='importtime',
                     ok=ok,
                     value_us=value_us,
                     returncode=rc,
-                    stage="measure",
+                    stage='measure',
                     error=err,
                 )
             )
@@ -326,22 +390,28 @@ def summarize(rows: list[MeasureRow]) -> list[dict]:
     for (label, target, mode), items in grouped.items():
         vals = [r.value_us for r in items if r.ok and r.value_us is not None]
         first = items[0]
-        out.append({
-            "ref": first.ref,
-            "kind": first.kind,
-            "label": label,
-            "target": target,
-            "mode": mode,
-            "num_runs": len(items),
-            "num_success": len(vals),
-            "num_failed": len(items) - len(vals),
-            "mean_us": statistics.mean(vals) if vals else None,
-            "median_us": statistics.median(vals) if vals else None,
-            "min_us": min(vals) if vals else None,
-            "max_us": max(vals) if vals else None,
-            "stdev_us": statistics.stdev(vals) if len(vals) >= 2 else 0.0 if vals else None,
-            "errors": [r.error for r in items if not r.ok and r.error],
-        })
+        out.append(
+            {
+                'ref': first.ref,
+                'kind': first.kind,
+                'label': label,
+                'target': target,
+                'mode': mode,
+                'num_runs': len(items),
+                'num_success': len(vals),
+                'num_failed': len(items) - len(vals),
+                'mean_us': statistics.mean(vals) if vals else None,
+                'median_us': statistics.median(vals) if vals else None,
+                'min_us': min(vals) if vals else None,
+                'max_us': max(vals) if vals else None,
+                'stdev_us': statistics.stdev(vals)
+                if len(vals) >= 2
+                else 0.0
+                if vals
+                else None,
+                'errors': [r.error for r in items if not r.ok and r.error],
+            }
+        )
     return out
 
 
@@ -351,7 +421,7 @@ def write_csv_rows(rows: list[dict], fpath: pathlib.Path) -> None:
         fieldnames = list(rows[0].keys())
     else:
         fieldnames = []
-    with fpath.open("w", newline="") as file:
+    with fpath.open('w', newline='') as file:
         writer = csv.DictWriter(file, fieldnames=fieldnames)
         if fieldnames:
             writer.writeheader()
@@ -369,48 +439,54 @@ def make_plot(rows: list[MeasureRow], fpath: pathlib.Path) -> None:
         import matplotlib.pyplot as plt
         import seaborn as sns
     except Exception as ex:
-        print(f"[WARN] Could not import plotting dependencies: {ex}")
+        print(f'[WARN] Could not import plotting dependencies: {ex}')
         return
 
     plot_rows = [
         {
-            "label": row.label,
-            "target": row.target,
-            "mode": row.mode,
-            "value_us": row.value_us,
+            'label': row.label,
+            'target': row.target,
+            'mode': row.mode,
+            'value_us': row.value_us,
         }
         for row in rows
-        if row.ok and row.value_us is not None and row.mode in {"wall", "importtime"}
+        if row.ok
+        and row.value_us is not None
+        and row.mode in {'wall', 'importtime'}
     ]
     if not plot_rows:
-        print("[WARN] No successful runs to plot")
+        print('[WARN] No successful runs to plot')
         return
 
     df = pd.DataFrame(plot_rows)
-    group_keys = list(dict.fromkeys(zip(df["target"], df["mode"])))
+    group_keys = list(dict.fromkeys(zip(df['target'], df['mode'])))
     num_groups = len(group_keys)
     fig_height = max(4, 3.5 * num_groups)
-    fig, axes = plt.subplots(num_groups, 1, figsize=(max(10, 1.2 * df["label"].nunique()), fig_height))
+    fig, axes = plt.subplots(
+        num_groups,
+        1,
+        figsize=(max(10, 1.2 * df['label'].nunique()), fig_height),
+    )
     if num_groups == 1:
         axes = [axes]
 
     for ax, (target, mode) in zip(axes, group_keys):
-        subdf = df[(df["target"] == target) & (df["mode"] == mode)].copy()
-        order = list(dict.fromkeys(subdf["label"].tolist()))
+        subdf = df[(df['target'] == target) & (df['mode'] == mode)].copy()
+        order = list(dict.fromkeys(subdf['label'].tolist()))
         sns.pointplot(
             data=subdf,
-            x="label",
-            y="value_us",
+            x='label',
+            y='value_us',
             order=order,
-            errorbar="sd",
+            errorbar='sd',
             capsize=0.2,
             join=True,
             ax=ax,
         )
-        ax.set_ylabel("time (μs)")
-        ax.set_xlabel("version / ref")
-        ax.set_title(f"{mode}: {target}")
-        ax.tick_params(axis="x", rotation=60)
+        ax.set_ylabel('time (μs)')
+        ax.set_xlabel('version / ref')
+        ax.set_title(f'{mode}: {target}')
+        ax.tick_params(axis='x', rotation=60)
         ax.grid(True, alpha=0.3)
 
     fig.tight_layout()
@@ -422,45 +498,45 @@ def make_plot(rows: list[MeasureRow], fpath: pathlib.Path) -> None:
 def parse_args(argv: Iterable[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--python",
+        '--python',
         required=True,
         help="Python spec for uv, e.g. '3.12', 'python3.11', or '/path/to/python'",
     )
     parser.add_argument(
-        "--ref",
-        dest="refs",
-        action="append",
+        '--ref',
+        dest='refs',
+        action='append',
         required=True,
-        help="Git ref to benchmark. May be repeated.",
+        help='Git ref to benchmark. May be repeated.',
     )
     parser.add_argument(
-        "--target",
-        dest="targets",
-        action="append",
+        '--target',
+        dest='targets',
+        action='append',
         default=None,
         help='Import statement to benchmark. May be repeated. Example: --target "import ubelt"',
     )
     parser.add_argument(
-        "--warmup",
+        '--warmup',
         type=int,
         default=5,
-        help="Number of warmup repetitions per target/ref before timing starts.",
+        help='Number of warmup repetitions per target/ref before timing starts.',
     )
     parser.add_argument(
-        "--repetitions",
+        '--repetitions',
         type=int,
         default=30,
-        help="Number of measured repetitions per target/ref.",
+        help='Number of measured repetitions per target/ref.',
     )
     parser.add_argument(
-        "--outdir",
-        default="dev/bench-import-times",
-        help="Directory to write CSV, JSON, and PNG outputs.",
+        '--outdir',
+        default='dev/bench-import-times',
+        help='Directory to write CSV, JSON, and PNG outputs.',
     )
     parser.add_argument(
-        "--keep-worktrees",
-        action="store_true",
-        help="Do not remove worktrees after running.",
+        '--keep-worktrees',
+        action='store_true',
+        help='Do not remove worktrees after running.',
     )
     return parser.parse_args(argv)
 
@@ -474,33 +550,33 @@ def main(argv: Iterable[str] | None = None) -> int:
 
     refs: list[tuple[str, str]] = []
     for ref in args.refs:
-        refs.append((ref, "head" if ref == "HEAD" else "ref"))
+        refs.append((ref, 'head' if ref == 'HEAD' else 'ref'))
 
-    targets = args.targets or ["import ubelt"]
+    targets = args.targets or ['import ubelt']
 
     metadata = {
-        "python_spec": args.python,
-        "refs": [r[0] for r in refs],
-        "targets": targets,
-        "warmup": args.warmup,
-        "repetitions": args.repetitions,
-        "platform": platform.platform(),
-        "system": platform.system(),
-        "machine": platform.machine(),
-        "repo_root": os.fspath(repo_dpath),
+        'python_spec': args.python,
+        'refs': [r[0] for r in refs],
+        'targets': targets,
+        'warmup': args.warmup,
+        'repetitions': args.repetitions,
+        'platform': platform.platform(),
+        'system': platform.system(),
+        'machine': platform.machine(),
+        'repo_root': os.fspath(repo_dpath),
     }
 
-    print(f"[INFO] repo_dpath={repo_dpath}")
-    print(f"[INFO] benchmarking refs={[r[0] for r in refs]}")
-    print(f"[INFO] using python={args.python}")
-    print(f"[INFO] targets={targets}")
+    print(f'[INFO] repo_dpath={repo_dpath}')
+    print(f'[INFO] benchmarking refs={[r[0] for r in refs]}')
+    print(f'[INFO] using python={args.python}')
+    print(f'[INFO] targets={targets}')
 
     all_rows: list[MeasureRow] = []
 
-    with tempfile.TemporaryDirectory(prefix="ubelt-bench-import-") as tmp:
+    with tempfile.TemporaryDirectory(prefix='ubelt-bench-import-') as tmp:
         root_tmp = pathlib.Path(tmp)
         for ref, kind in refs:
-            print(f"\n[INFO] === Benchmarking {ref} ({kind}) ===")
+            print(f'\n[INFO] === Benchmarking {ref} ({kind}) ===')
             rows = benchmark_ref(
                 repo_dpath=repo_dpath,
                 ref=ref,
@@ -516,24 +592,24 @@ def main(argv: Iterable[str] | None = None) -> int:
 
             fail_rows = [r for r in rows if not r.ok]
             if fail_rows:
-                print(f"[WARN] {ref} failed at stage={fail_rows[0].stage}")
+                print(f'[WARN] {ref} failed at stage={fail_rows[0].stage}')
                 if fail_rows[0].error:
                     print(fail_rows[0].error[:2000])
 
             ok_rows = [r for r in rows if r.ok and r.value_us is not None]
             if ok_rows:
-                print(f"[INFO] {ref}: successful measurements={len(ok_rows)}")
+                print(f'[INFO] {ref}: successful measurements={len(ok_rows)}')
             else:
-                print(f"[WARN] {ref}: no successful measurements")
+                print(f'[WARN] {ref}: no successful measurements')
 
     row_dicts = [asdict(r) for r in all_rows]
     summary = summarize(all_rows)
 
-    rows_csv_fpath = outdir / "import_benchmark_rows.csv"
-    summary_csv_fpath = outdir / "import_benchmark_summary.csv"
-    summary_json_fpath = outdir / "import_benchmark_summary.json"
-    plot_fpath = outdir / "import_benchmark_plot.png"
-    metadata_json_fpath = outdir / "import_benchmark_metadata.json"
+    rows_csv_fpath = outdir / 'import_benchmark_rows.csv'
+    summary_csv_fpath = outdir / 'import_benchmark_summary.csv'
+    summary_json_fpath = outdir / 'import_benchmark_summary.json'
+    plot_fpath = outdir / 'import_benchmark_plot.png'
+    metadata_json_fpath = outdir / 'import_benchmark_metadata.json'
 
     write_csv_rows(row_dicts, rows_csv_fpath)
     write_csv_rows(summary, summary_csv_fpath)
@@ -541,18 +617,20 @@ def main(argv: Iterable[str] | None = None) -> int:
     write_json(metadata, metadata_json_fpath)
     make_plot(all_rows, plot_fpath)
 
-    print(f"\n[INFO] Wrote: {rows_csv_fpath}")
-    print(f"[INFO] Wrote: {summary_csv_fpath}")
-    print(f"[INFO] Wrote: {summary_json_fpath}")
-    print(f"[INFO] Wrote: {metadata_json_fpath}")
-    print(f"[INFO] Wrote: {plot_fpath}")
+    print(f'\n[INFO] Wrote: {rows_csv_fpath}')
+    print(f'[INFO] Wrote: {summary_csv_fpath}')
+    print(f'[INFO] Wrote: {summary_json_fpath}')
+    print(f'[INFO] Wrote: {metadata_json_fpath}')
+    print(f'[INFO] Wrote: {plot_fpath}')
 
     num_fail = sum(1 for r in all_rows if not r.ok)
     if num_fail:
-        print(f"[WARN] Completed with {num_fail} failed measurement/setup rows recorded in the outputs")
+        print(
+            f'[WARN] Completed with {num_fail} failed measurement/setup rows recorded in the outputs'
+        )
         return 1
     return 0
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     raise SystemExit(main())

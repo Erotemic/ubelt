@@ -363,9 +363,7 @@ def test_as_completed_timeout() -> None:
     kill_fpath = dpath / kill_fname
 
     for mode in modes:
-        jobs: ub.JobPool[float | None] = ub.JobPool(
-            mode=mode, max_workers=2
-        )
+        jobs: ub.JobPool[float | None] = ub.JobPool(mode=mode, max_workers=2)
         with jobs:
             print('Submitting')
             timer = ub.Timer().tic()

@@ -91,7 +91,23 @@ if typing.TYPE_CHECKING:
     import queue
     import subprocess
     import threading
-    from collections.abc import Iterator, Sequence
+    from collections.abc import Iterator, Sequence, Mapping
+    from typing import TypedDict, NotRequired
+
+    class PopenKwargs(TypedDict):
+        bufsize: NotRequired[int]
+        executable: NotRequired[str | os.PathLike[str] | None]
+        stdin: NotRequired[int | None]
+        stdout: NotRequired[int | None]
+        stderr: NotRequired[int | None]
+        shell: NotRequired[bool]
+        cwd: NotRequired[str | os.PathLike[str] | None]
+        env: NotRequired[Mapping[str, str] | None]
+        universal_newlines: NotRequired[bool | None]
+        text: NotRequired[bool | None]
+        encoding: NotRequired[str | None]
+        errors: NotRequired[str | None]
+        # Add other Popen kwargs as needed
 
 
 __pitch__ = """
@@ -182,7 +198,7 @@ def cmd(
     verbose: int = 0,
     tee: bool | None = None,
     cwd: str | os.PathLike[str] | None = None,
-    env: dict[str, str] | None = None,
+    env: Mapping[str, str] | None = None,
     tee_backend: str = 'auto',
     check: bool = False,
     system: bool = False,
@@ -423,18 +439,19 @@ def cmd(
     # Create a new process to execute the command
     def make_proc() -> subprocess.Popen[str]:
         # delay the creation of the process until we validate all args
+        popen_kwargs: PopenKwargs = {}
         popen_kwargs = {'cwd': cwd, 'env': env, 'shell': shell}
         popen_kwargs['universal_newlines'] = True
 
         if capture:
-            popen_kwargs['stdout'] = subprocess.PIPE  # type: ignore
-            popen_kwargs['stderr'] = subprocess.PIPE  # type: ignore
+            popen_kwargs['stdout'] = subprocess.PIPE
+            popen_kwargs['stderr'] = subprocess.PIPE
         elif not show:
             # The only way to suppress printing to the screen is by
             # piping to devnull
-            popen_kwargs['stdout'] = subprocess.DEVNULL  # type: ignore
-            popen_kwargs['stderr'] = subprocess.DEVNULL  # type: ignore
-        proc = subprocess.Popen(args, **popen_kwargs)  # type: ignore
+            popen_kwargs['stdout'] = subprocess.DEVNULL
+            popen_kwargs['stderr'] = subprocess.DEVNULL
+        proc = subprocess.Popen(args, **popen_kwargs)
         return proc
 
     if system:
@@ -925,6 +942,9 @@ def _proc_iteroutput_select(
         start_time = monotonic()
         timeout_exc = subprocess.TimeoutExpired
 
+    assert proc.stdout is not None
+    assert proc.stderr is not None
+
     # Read output while the external program is running
     while proc.poll() is None:
         if timeout is not None:
@@ -937,19 +957,19 @@ def _proc_iteroutput_select(
                 yield timeout_exc, timeout_exc
                 return  # nocover
 
-        reads = [proc.stdout.fileno(), proc.stderr.fileno()]  # type: ignore
+        reads = [proc.stdout.fileno(), proc.stderr.fileno()]
         ret = select.select(reads, [], [], timeout)
         oline = eline = None
         for fd in ret[0]:
-            if fd == proc.stdout.fileno():  # type: ignore
-                oline = proc.stdout.readline()  # type: ignore
-            if fd == proc.stderr.fileno():  # type: ignore
-                eline = proc.stderr.readline()  # type: ignore
+            if fd == proc.stdout.fileno():
+                oline = proc.stdout.readline()
+            if fd == proc.stderr.fileno():
+                eline = proc.stderr.readline()
         yield oline, eline
 
     # Grab any remaining data in stdout and stderr after the process finishes
-    oline_iter = _textio_iterlines(proc.stdout)  # type: ignore
-    eline_iter = _textio_iterlines(proc.stderr)  # type: ignore
+    oline_iter = _textio_iterlines(proc.stdout)
+    eline_iter = _textio_iterlines(proc.stderr)
     for oline, eline in zip_longest(oline_iter, eline_iter):
         yield oline, eline
 
@@ -1019,10 +1039,12 @@ def _tee_output(
                 try:
                     out = ''.join(logged_out)
                 except UnicodeDecodeError:  # nocover
+                    # FIXME: this is likely unreachable code.
                     out = '\n'.join(_.decode('utf-8') for _ in logged_out)  # type: ignore
                 try:
                     err = ''.join(logged_err)
                 except UnicodeDecodeError:  # nocover
+                    # FIXME: this is likely unreachable code.
                     err = '\n'.join(_.decode('utf-8') for _ in logged_err)  # type: ignore
                 # Following the standard library implementation of
                 # :func:`subprocess.run`, we kill (not terminate) the process
@@ -1034,20 +1056,18 @@ def _tee_output(
                 raise subprocess.TimeoutExpired(command_text, timeout, out, err)
         if oline:
             # logger.debug("Write oline to stdout.write and logged_out")
+            oline_ = typing.cast(str, oline)
             if stdout:  # pragma: nobranch
-                if typing.TYPE_CHECKING:
-                    oline = typing.cast(str, oline)
-                stdout.write(oline)
+                stdout.write(oline_)
                 stdout.flush()
-            logged_out.append(oline)  # type: ignore
+            logged_out.append(oline_)
         if eline:
             # logger.debug("Write eline to stderr.write and logged_err")
+            eline_ = typing.cast(str, eline)
             if stderr:  # pragma: nobranch
-                if typing.TYPE_CHECKING:
-                    eline = typing.cast(str, eline)
-                stderr.write(eline)
+                stderr.write(eline_)
                 stderr.flush()
-            logged_err.append(eline)  # type: ignore
+            logged_err.append(eline_)
         # logger.debug("Continue waiting for buffered output")
 
     # The motivation for this logic is unclear.
@@ -1056,10 +1076,12 @@ def _tee_output(
     try:
         out = ''.join(logged_out)
     except UnicodeDecodeError:  # nocover
+        # FIXME: this is likely unreachable code.
         out = '\n'.join(_.decode('utf-8') for _ in logged_out)  # type: ignore
     try:
         err = ''.join(logged_err)
     except UnicodeDecodeError:  # nocover
+        # FIXME: this is likely unreachable code.
         err = '\n'.join(_.decode('utf-8') for _ in logged_err)  # type: ignore
 
     return out, err

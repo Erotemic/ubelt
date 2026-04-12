@@ -325,7 +325,10 @@ def dict_hist(
         # Order by value
         getval = op.itemgetter(1)
         return OrderedDict(
-            [(key, value) for (key, value) in sorted(hist_data.items(), key=getval)]
+            [
+                (key, value)
+                for (key, value) in sorted(hist_data.items(), key=getval)
+            ]
         )
     # Cast to a normal dictionary
     return dict(hist_data)

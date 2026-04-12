@@ -61,6 +61,7 @@ except ImportError:  # pragma: no cover
 
 if typing.TYPE_CHECKING:
     from typing import Callable
+
     CacheKey = tuple[object, object]
 
 
@@ -278,14 +279,12 @@ class memoize_method(typing.Generic[S, P, T]):
     @typing.overload
     def __get__(
         self, instance: None, cls: type[S] | None = None
-    ) -> memoize_method[S, P, T]:
-        ...
+    ) -> memoize_method[S, P, T]: ...
 
     @typing.overload
     def __get__(
         self, instance: S, cls: type[S] | None = None
-    ) -> Callable[P, T]:
-        ...
+    ) -> Callable[P, T]: ...
 
     def __get__(
         self, instance: S | None, cls: type[S] | None = None
@@ -322,18 +321,14 @@ class memoize_method(typing.Generic[S, P, T]):
 
 
 @typing.overload
-def memoize_property(fget: property) -> property:
-    ...
+def memoize_property(fget: property) -> property: ...
 
 
 @typing.overload
-def memoize_property(fget: typing.Callable[[S], T]) -> property:
-    ...
+def memoize_property(fget: typing.Callable[[S], T]) -> property: ...
 
 
-def memoize_property(
-    fget: property | typing.Callable[[S], T]
-) -> property:
+def memoize_property(fget: property | typing.Callable[[S], T]) -> property:
     """
     Return a property attribute for new-style classes that only calls its
     getter on the first access. The result is stored and on subsequent accesses

@@ -172,9 +172,6 @@ class OrderedSet(MutableSet[T], Sequence[T]):
         """
         Return a shallow copy of this object.
 
-        Returns:
-            OrderedSet
-
         Example:
             >>> this = OrderedSet([1, 2, 3])
             >>> other = this.copy()
@@ -211,9 +208,6 @@ class OrderedSet(MutableSet[T], Sequence[T]):
         Args:
             value (T): check if this item exists in the set
 
-        Returns:
-            bool
-
         Example:
             >>> 1 in OrderedSet([1, 3, 2])
             True
@@ -222,7 +216,7 @@ class OrderedSet(MutableSet[T], Sequence[T]):
         """
         return value in self.map
 
-    def add(self, value: T) -> int:  # type: ignore[override]  # ty: ignore[invalid-method-override]
+    def add(self, value: T) -> int:  # type: ignore
         """
         Add ``value`` as an item to this OrderedSet, then return its index.
 
@@ -233,7 +227,7 @@ class OrderedSet(MutableSet[T], Sequence[T]):
             value (T): the item to add
 
         Returns:
-            int: the index of the items. Note, violates the Liskov Substitution
+            the index of the items. Note, violates the Liskov Substitution
             Principle and might be changed.
 
         Example:
@@ -303,7 +297,7 @@ class OrderedSet(MutableSet[T], Sequence[T]):
             stop (int | None): not supported yet
 
         Returns:
-            int | List[int]
+            The ``index`` in ``self`` such that ``self[index] == value``
 
         Example:
             >>> oset = OrderedSet([1, 2, 3])
@@ -327,7 +321,7 @@ class OrderedSet(MutableSet[T], Sequence[T]):
         Raises KeyError if the set is empty.
 
         Returns:
-            T
+            The value that was removed
 
         Example:
             >>> oset = OrderedSet([1, 2, 3])
@@ -392,8 +386,7 @@ class OrderedSet(MutableSet[T], Sequence[T]):
 
     def __iter__(self) -> Iterator:
         """
-        Returns:
-            Iterator
+        Standard iterator over items in this set
 
         Example:
             >>> list(iter(OrderedSet([1, 2, 3])))
@@ -427,10 +420,11 @@ class OrderedSet(MutableSet[T], Sequence[T]):
         Sequence, then order is checked, otherwise it is ignored.
 
         Args:
-            other (Any): item to compare against
+            other: item to compare against
 
         Returns:
-            bool
+            If they share the same items, and - if ``other`` is ordered - if
+            they have the same order.
 
         Example:
             >>> oset = OrderedSet([1, 3, 2])
