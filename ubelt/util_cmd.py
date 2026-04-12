@@ -954,14 +954,17 @@ def _proc_iteroutput_select(
                 yield timeout_exc, timeout_exc
                 return  # nocover
 
-        reads = [proc.stdout.fileno(), proc.stderr.fileno()]  # type: ignore
+        assert proc.stdout is not None
+        assert proc.stderr is not None
+
+        reads = [proc.stdout.fileno(), proc.stderr.fileno()]
         ret = select.select(reads, [], [], timeout)
         oline = eline = None
         for fd in ret[0]:
-            if fd == proc.stdout.fileno():  # type: ignore
-                oline = proc.stdout.readline()  # type: ignore
-            if fd == proc.stderr.fileno():  # type: ignore
-                eline = proc.stderr.readline()  # type: ignore
+            if fd == proc.stdout.fileno():
+                oline = proc.stdout.readline()
+            if fd == proc.stderr.fileno():
+                eline = proc.stderr.readline()
         yield oline, eline
 
     # Grab any remaining data in stdout and stderr after the process finishes
