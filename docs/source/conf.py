@@ -427,7 +427,7 @@ class PatchedPythonDomain(PythonDomain):
     """
 
     def resolve_xref(
-        self, env, fromdocname, builder, typ, target, node, contnode
+        self, env, fromdocname, builder, type, target, node, contnode
     ):
         """
         Helps to resolves cross-references
@@ -437,7 +437,7 @@ class PatchedPythonDomain(PythonDomain):
         if target.startswith('xdoc.'):
             target = 'xdoctest.' + target[3]
         return_value = super(PatchedPythonDomain, self).resolve_xref(
-            env, fromdocname, builder, typ, target, node, contnode
+            env, fromdocname, builder, type, target, node, contnode
         )
         return return_value
 
@@ -830,9 +830,11 @@ def create_doctest_figure(app, obj, name, lines):
     The idea is that each doctest that produces a figure should generate that
     and then that figure should be part of the docs.
     """
-    import xdoctest
     import sys
     import types
+
+    import xdoctest
+    import xdoctest.core
 
     if isinstance(obj, types.ModuleType):
         module = obj
@@ -1027,8 +1029,9 @@ def postprocess_hyperlinks(app, doctree, docname):
     "autodoc-process-docstring" event.
     """
     # Your hyperlink postprocessing logic here
-    from docutils import nodes
     import pathlib
+
+    from docutils import nodes
 
     for node in doctree.traverse(nodes.reference):
         if 'refuri' in node.attributes:
@@ -1054,6 +1057,7 @@ def fix_rst_todo_section(lines):
 
 def setup(app):
     import sphinx
+    import sphinx.application
 
     app: sphinx.application.Sphinx = app
     app.add_domain(PatchedPythonDomain, override=True)
