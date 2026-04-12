@@ -942,6 +942,9 @@ def _proc_iteroutput_select(
         start_time = monotonic()
         timeout_exc = subprocess.TimeoutExpired
 
+    assert proc.stdout is not None
+    assert proc.stderr is not None
+
     # Read output while the external program is running
     while proc.poll() is None:
         if timeout is not None:
@@ -954,9 +957,6 @@ def _proc_iteroutput_select(
                 yield timeout_exc, timeout_exc
                 return  # nocover
 
-        assert proc.stdout is not None
-        assert proc.stderr is not None
-
         reads = [proc.stdout.fileno(), proc.stderr.fileno()]
         ret = select.select(reads, [], [], timeout)
         oline = eline = None
@@ -968,8 +968,8 @@ def _proc_iteroutput_select(
         yield oline, eline
 
     # Grab any remaining data in stdout and stderr after the process finishes
-    oline_iter = _textio_iterlines(proc.stdout)  # type: ignore
-    eline_iter = _textio_iterlines(proc.stderr)  # type: ignore
+    oline_iter = _textio_iterlines(proc.stdout)
+    eline_iter = _textio_iterlines(proc.stderr)
     for oline, eline in zip_longest(oline_iter, eline_iter):
         yield oline, eline
 
