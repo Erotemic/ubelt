@@ -216,7 +216,7 @@ class OrderedSet(MutableSet[T], Sequence[T]):
         """
         return value in self.map
 
-    def add(self, value: T) -> int:  # type: ignore[override]  # ty: ignore[invalid-method-override]
+    def add(self, value: T) -> int:  # type: ignore
         """
         Add ``value`` as an item to this OrderedSet, then return its index.
 

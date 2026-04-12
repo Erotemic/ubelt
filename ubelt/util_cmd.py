@@ -1039,10 +1039,12 @@ def _tee_output(
                 try:
                     out = ''.join(logged_out)
                 except UnicodeDecodeError:  # nocover
+                    # FIXME: this is likely unreachable code.
                     out = '\n'.join(_.decode('utf-8') for _ in logged_out)  # type: ignore
                 try:
                     err = ''.join(logged_err)
                 except UnicodeDecodeError:  # nocover
+                    # FIXME: this is likely unreachable code.
                     err = '\n'.join(_.decode('utf-8') for _ in logged_err)  # type: ignore
                 # Following the standard library implementation of
                 # :func:`subprocess.run`, we kill (not terminate) the process
@@ -1074,10 +1076,12 @@ def _tee_output(
     try:
         out = ''.join(logged_out)
     except UnicodeDecodeError:  # nocover
+        # FIXME: this is likely unreachable code.
         out = '\n'.join(_.decode('utf-8') for _ in logged_out)  # type: ignore
     try:
         err = ''.join(logged_err)
     except UnicodeDecodeError:  # nocover
+        # FIXME: this is likely unreachable code.
         err = '\n'.join(_.decode('utf-8') for _ in logged_err)  # type: ignore
 
     return out, err
