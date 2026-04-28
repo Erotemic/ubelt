@@ -49,8 +49,11 @@ class NoParamType:
     However, try to never assign this value to a persistent variable.  Use this
     class sparingly.
 
+    In Python 3.15+ prefer stdlib sentinel values from [PEP_0611]_.
+
     References:
         .. [SO_41048643]: http://stackoverflow.com/questions/41048643/a-second-none
+        .. [PEP_0661]: https://peps.python.org/pep-0661/
 
     Example:
         >>> # Use case
