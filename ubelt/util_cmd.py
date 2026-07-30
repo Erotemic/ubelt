@@ -586,7 +586,7 @@ def _resolve_command(
         command_text = command
         command_tup = None
     elif isinstance(command, os.PathLike):
-        path_command = typing.cast(os.PathLike[str], command)
+        path_command = typing.cast('os.PathLike[str]', command)
         command_text = os.fspath(path_command)
         command_tup = None
     else:
