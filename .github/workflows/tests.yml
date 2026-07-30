@@ -453,6 +453,18 @@ jobs:
         USE_UV_LOCK: ${{ matrix.use-lockfile }}
         LOCK_REQUIREMENTS: ${{ matrix.lock-requirements }}
       run: |-
+        if [[ "${RUNNER_OS:-}" == "Windows" ]]; then
+            MSVC_CL_EXE="$(command -v cl.exe || true)"
+            if [[ -n "$MSVC_CL_EXE" ]]; then
+                MSVC_LINK_DIR="$(dirname "$MSVC_CL_EXE")"
+                export PATH="$MSVC_LINK_DIR:$PATH"
+                hash -r
+                echo "Prioritized MSVC linker directory: $MSVC_LINK_DIR"
+                echo "Resolved link.exe: $(command -v link.exe || true)"
+            else
+                echo "MSVC cl.exe was not found; leaving PATH unchanged"
+            fi
+        fi
         echo "Finding the path to the wheel"
         ls wheelhouse || echo "wheelhouse does not exist"
         echo "Installing helpers: update pip"
