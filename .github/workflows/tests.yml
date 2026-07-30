@@ -164,6 +164,7 @@ jobs:
     ##
     name: ${{ matrix.python-version }} on ${{ matrix.os }}, arch=${{ matrix.arch }} with ${{ matrix.install-extras }}
     runs-on: ${{ matrix.os }}
+    continue-on-error: ${{ matrix.experimental || false }}
     needs:
     - build_purepy_wheels
     strategy:
@@ -283,6 +284,7 @@ jobs:
           arch: auto
           allow-prereleases: 'true'
           check-latest: 'true'
+          experimental: true
           use-lockfile: 'false'
         - python-version: pypy-3.11
           install-extras: tests,optional
@@ -346,6 +348,7 @@ jobs:
           arch: auto
           allow-prereleases: 'true'
           check-latest: 'true'
+          experimental: true
           use-lockfile: 'false'
         - python-version: pypy-3.11
           install-extras: tests,optional
@@ -409,6 +412,7 @@ jobs:
           arch: auto
           allow-prereleases: 'true'
           check-latest: 'true'
+          experimental: true
           use-lockfile: 'false'
         - python-version: pypy-3.11
           install-extras: tests,optional
