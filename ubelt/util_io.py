@@ -17,6 +17,8 @@ import sys
 import typing
 from os.path import exists
 
+PathType = typing.TypeVar('PathType', bound=typing.Union[str, os.PathLike])
+
 __all__ = [
     'readfrom',
     'writeto',
@@ -125,12 +127,39 @@ def _ensure_bytes(text: str | bytes) -> bytes:
     return text.encode('utf8')
 
 
+@typing.overload
+def readfrom(
+    fpath: str | os.PathLike,
+    aslines: typing.Literal[False] = False,
+    errors: str = 'replace',
+    verbose: int | None = None,
+) -> str: ...
+
+
+@typing.overload
+def readfrom(
+    fpath: str | os.PathLike,
+    aslines: typing.Literal[True],
+    errors: str = 'replace',
+    verbose: int | None = None,
+) -> list[str]: ...
+
+
+@typing.overload
+def readfrom(
+    fpath: str | os.PathLike,
+    aslines: bool,
+    errors: str = 'replace',
+    verbose: int | None = None,
+) -> str | list[str]: ...
+
+
 def readfrom(
     fpath: str | os.PathLike,
     aslines: bool = False,
     errors: str = 'replace',
     verbose: int | None = None,
-) -> str | bytes | list[str] | list[bytes]:
+) -> str | list[str]:
     """
     Reads (utf8) text from a file.
 
@@ -181,12 +210,12 @@ def readfrom(
 
 
 def touch(
-    fpath: str | os.PathLike,
+    fpath: PathType,
     mode: int = 0o666,
     dir_fd: int | None = None,
     verbose: int = 0,
     **kwargs: typing.Any,
-) -> str | os.PathLike:
+) -> PathType:
     """
     change file timestamps
 

@@ -334,6 +334,30 @@ def ensure_app_cache_dir(appname: str, *args: str) -> str:
     return dpath
 
 
+@typing.overload
+def find_exe(
+    name: str | os.PathLike,
+    multi: typing.Literal[False] = False,
+    path: str | Iterable[str | os.PathLike] | None = None,
+) -> str | None: ...
+
+
+@typing.overload
+def find_exe(
+    name: str | os.PathLike,
+    multi: typing.Literal[True],
+    path: str | Iterable[str | os.PathLike] | None = None,
+) -> list[str]: ...
+
+
+@typing.overload
+def find_exe(
+    name: str | os.PathLike,
+    multi: bool,
+    path: str | Iterable[str | os.PathLike] | None = None,
+) -> str | list[str] | None: ...
+
+
 def find_exe(
     name: str | os.PathLike,
     multi: bool = False,

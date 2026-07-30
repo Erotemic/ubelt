@@ -58,6 +58,8 @@ if typing.TYPE_CHECKING:
     from types import TracebackType
     from typing import Callable, Iterable, Iterator, Type
 
+PathType = typing.TypeVar('PathType', bound=typing.Union[str, os.PathLike])
+
 
 __all__ = [
     'Path',
@@ -332,6 +334,24 @@ def expandpath(path: str | os.PathLike) -> str:
     path = expanduser(path)
     path = expandvars(path)
     return path
+
+
+@typing.overload
+def ensuredir(
+    dpath: PathType,
+    mode: int = 0o1777,
+    verbose: int = 0,
+    recreate: bool = False,
+) -> PathType: ...
+
+
+@typing.overload
+def ensuredir(
+    dpath: tuple[str | os.PathLike[str], ...],
+    mode: int = 0o1777,
+    verbose: int = 0,
+    recreate: bool = False,
+) -> str: ...
 
 
 def ensuredir(

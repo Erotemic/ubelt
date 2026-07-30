@@ -45,7 +45,7 @@ def symlink(
     link_path: str | os.PathLike,
     overwrite: bool = False,
     verbose: int = 0,
-) -> str | os.PathLike:
+) -> str:
     """
     Create a link ``link_path`` that mirrors ``real_path``.
 
@@ -66,7 +66,7 @@ def symlink(
         verbose (int): verbosity level. Defaults to 0.
 
     Returns:
-        str | PathLike: link path
+        str: normalized link path
 
     Note:
         In the future we may rework and rename this function to something like

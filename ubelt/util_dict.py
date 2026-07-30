@@ -835,6 +835,30 @@ def sorted_keys(
     return newdict
 
 
+@typing.overload
+def invert_dict(
+    dict_: Dict[KT, VT],
+    unique_vals: typing.Literal[True] = True,
+    cls: Optional[type] = None,
+) -> Dict[VT, KT]: ...
+
+
+@typing.overload
+def invert_dict(
+    dict_: Dict[KT, VT],
+    unique_vals: typing.Literal[False],
+    cls: Optional[type] = None,
+) -> Dict[VT, Set[KT]]: ...
+
+
+@typing.overload
+def invert_dict(
+    dict_: Dict[KT, VT],
+    unique_vals: bool,
+    cls: Optional[type] = None,
+) -> Union[Dict[VT, KT], Dict[VT, Set[KT]]]: ...
+
+
 def invert_dict(
     dict_: Dict[KT, VT], unique_vals: bool = True, cls: Optional[type] = None
 ) -> Union[Dict[VT, KT], Dict[VT, Set[KT]]]:

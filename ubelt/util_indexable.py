@@ -507,6 +507,49 @@ class IndexableWalker(Generator):
                     if isinstance(value, self.indexable_cls):
                         stack.append((value, path))
 
+    @typing.overload
+    def allclose(
+        self,
+        other: IndexableWalker | list | dict,
+        rel_tol: float = 1e-9,
+        abs_tol: float = 0.0,
+        equal_nan: bool = False,
+        return_info: typing.Literal[False] = False,
+    ) -> bool: ...
+
+    @typing.overload
+    def allclose(
+        self,
+        other: IndexableWalker | list | dict,
+        rel_tol: float = 1e-9,
+        abs_tol: float = 0.0,
+        equal_nan: bool = False,
+        *,
+        return_info: typing.Literal[True],
+    ) -> tuple[bool, dict]: ...
+
+    @typing.overload
+    def allclose(
+        self,
+        other: IndexableWalker | list | dict,
+        rel_tol: float = 1e-9,
+        abs_tol: float = 0.0,
+        equal_nan: bool = False,
+        *,
+        return_info: bool,
+    ) -> bool | tuple[bool, dict]: ...
+
+    @typing.overload
+    def allclose(
+        self,
+        other: IndexableWalker | list | dict,
+        rel_tol: float,
+        abs_tol: float,
+        equal_nan: bool,
+        return_info: bool,
+        /,
+    ) -> bool | tuple[bool, dict]: ...
+
     def allclose(
         self,
         other: IndexableWalker | list | dict,
@@ -880,6 +923,49 @@ class IndexableWalker(Generator):
         }
         return info
 
+
+
+@typing.overload
+def indexable_allclose(
+    items1: dict | list | tuple,
+    items2: dict | list | tuple,
+    rel_tol: float = 1e-9,
+    abs_tol: float = 0.0,
+    return_info: typing.Literal[False] = False,
+) -> bool: ...
+
+
+@typing.overload
+def indexable_allclose(
+    items1: dict | list | tuple,
+    items2: dict | list | tuple,
+    rel_tol: float = 1e-9,
+    abs_tol: float = 0.0,
+    *,
+    return_info: typing.Literal[True],
+) -> tuple[bool, dict]: ...
+
+
+@typing.overload
+def indexable_allclose(
+    items1: dict | list | tuple,
+    items2: dict | list | tuple,
+    rel_tol: float = 1e-9,
+    abs_tol: float = 0.0,
+    *,
+    return_info: bool,
+) -> bool | tuple[bool, dict]: ...
+
+
+@typing.overload
+def indexable_allclose(
+    items1: dict | list | tuple,
+    items2: dict | list | tuple,
+    rel_tol: float,
+    abs_tol: float,
+    return_info: bool,
+    /,
+) -> bool | tuple[bool, dict]: ...
 
 
 def indexable_allclose(
