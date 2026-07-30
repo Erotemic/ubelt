@@ -126,7 +126,7 @@ jobs:
         IMPORTED_FPR=$($GPG_EXECUTABLE --list-keys --with-colons "$GPG_KEYID" | awk -F: '/^fpr/ { print $10; exit }')
         if [[ "$IMPORTED_FPR" != "$GPG_KEYID" ]]; then echo "ERROR: imported GPG fingerprint $IMPORTED_FPR does not match pinned $GPG_KEYID"; exit 1; fi
         echo "GPG fingerprint verified: $IMPORTED_FPR"
-        VERSION=$(python -c 'import ast, pathlib; tree = ast.parse(pathlib.Path('"'"'ubelt/__init__.py'"'"').read_text()); print(next(ast.literal_eval(n.value) for n in tree.body if isinstance(n, ast.Assign) and any(getattr(t, "id", None) == "__version__" for t in n.targets)))')
+        VERSION=$(python -c "import setup; print(setup.VERSION)")
         python -m pip install pip uv -U
         python -m pip install packaging twine -U
         python -m pip install urllib3 requests[security]
@@ -222,7 +222,7 @@ jobs:
         IMPORTED_FPR=$($GPG_EXECUTABLE --list-keys --with-colons "$GPG_KEYID" | awk -F: '/^fpr/ { print $10; exit }')
         if [[ "$IMPORTED_FPR" != "$GPG_KEYID" ]]; then echo "ERROR: imported GPG fingerprint $IMPORTED_FPR does not match pinned $GPG_KEYID"; exit 1; fi
         echo "GPG fingerprint verified: $IMPORTED_FPR"
-        VERSION=$(python -c 'import ast, pathlib; tree = ast.parse(pathlib.Path('"'"'ubelt/__init__.py'"'"').read_text()); print(next(ast.literal_eval(n.value) for n in tree.body if isinstance(n, ast.Assign) and any(getattr(t, "id", None) == "__version__" for t in n.targets)))')
+        VERSION=$(python -c "import setup; print(setup.VERSION)")
         python -m pip install pip uv -U
         python -m pip install packaging twine -U
         python -m pip install urllib3 requests[security]
@@ -295,7 +295,7 @@ jobs:
       id: release_meta
       shell: bash
       run: |-
-        export VERSION=$(python -c 'import ast, pathlib; tree = ast.parse(pathlib.Path('"'"'ubelt/__init__.py'"'"').read_text()); print(next(ast.literal_eval(n.value) for n in tree.body if isinstance(n, ast.Assign) and any(getattr(t, "id", None) == "__version__" for t in n.targets)))')
+        export VERSION=$(python -c "import setup; print(setup.VERSION)")
         echo "VERSION=$VERSION"
         test -n "$VERSION" || { echo "failed to parse version" ; exit 1; }
         TAG="v$VERSION"
