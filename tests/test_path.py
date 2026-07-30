@@ -118,10 +118,7 @@ def demo_nested_paths(
 
 
 def relative_contents(dpath: ub.Path) -> list[typing.Any]:
-    return [
-        typing.cast(ub.Path, p).relative_to(dpath)
-        for p in sorted(dpath.glob('**'), key=str)
-    ]
+    return [p.relative_to(dpath) for p in sorted(dpath.glob('**'), key=str)]
 
 
 def test_copy_directory_cases() -> None:

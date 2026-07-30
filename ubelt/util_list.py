@@ -897,7 +897,7 @@ def argsort(
     indexable: Iterable[VT] | Mapping[KT, VT],
     key: Callable[[VT], Any] | None = None,
     reverse: bool = False,
-) -> Sequence[int] | Sequence[KT]:
+) -> Sequence[int | KT]:
     """
     Returns the indices that would sort a indexable object.
 
