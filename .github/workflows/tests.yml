@@ -164,7 +164,6 @@ jobs:
     ##
     name: ${{ matrix.python-version }} on ${{ matrix.os }}, arch=${{ matrix.arch }} with ${{ matrix.install-extras }}
     runs-on: ${{ matrix.os }}
-    continue-on-error: ${{ matrix.experimental || false }}
     needs:
     - build_purepy_wheels
     strategy:
@@ -435,6 +434,8 @@ jobs:
         python-version: ${{ matrix.python-version }}
         allow-prereleases: ${{ matrix.allow-prereleases }}
         check-latest: ${{ matrix.check-latest }}
+      id: setup_python
+      continue-on-error: ${{ matrix.experimental || false }}
     - uses: actions/download-artifact@v7.0.0
       name: Download wheels
       with:
@@ -445,6 +446,9 @@ jobs:
       if: runner.os == 'macOS'
       run: echo "MACOSX_DEPLOYMENT_TARGET=11.0" >> $GITHUB_ENV
     - name: Install wheel ${{ matrix.install-extras }}
+      id: install_wheel
+      if: steps.setup_python.outcome == 'success'
+      continue-on-error: ${{ matrix.experimental || false }}
       shell: bash
       env:
         INSTALL_EXTRAS: ${{ matrix.install-extras }}
@@ -506,6 +510,9 @@ jobs:
         python -m pip install --prefer-binary "${INSTALL_TARGET}"
         echo "Install finished."
     - name: Test wheel ${{ matrix.install-extras }}
+      id: test_wheel
+      if: steps.install_wheel.outcome == 'success'
+      continue-on-error: ${{ matrix.experimental || false }}
       shell: bash
       env:
         CI_PYTHON_VERSION: py${{ matrix.python-version }}
@@ -537,7 +544,7 @@ jobs:
         cd ..
         ls -al
     - name: Combine coverage Linux
-      if: runner.os == 'Linux'
+      if: runner.os == 'Linux' && steps.test_wheel.outcome == 'success'
       run: |-
         echo '############ PWD'
         pwd
@@ -556,5 +563,14 @@ jobs:
       with:
         file: ./coverage.xml
         token: ${{ secrets.CODECOV_TOKEN }}
+      if: steps.test_wheel.outcome == 'success'
+    - name: Report experimental failure
+      if: matrix.experimental && (steps.setup_python.outcome == 'failure' || steps.install_wheel.outcome == 'failure' || steps.test_wheel.outcome == 'failure')
+      shell: bash
+      run: |-
+        message="Experimental matrix entry failed; see logs above."
+        echo "::warning title=Experimental CI failure::$message"
+        echo "### Experimental CI failure" >> "$GITHUB_STEP_SUMMARY"
+        echo "$message" >> "$GITHUB_STEP_SUMMARY"
 
 
