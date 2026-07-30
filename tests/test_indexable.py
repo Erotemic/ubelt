@@ -232,6 +232,56 @@ def test_indexable_walker_map_patterns() -> None:
         assert not ub.indexable_allclose(self.data, mapped_v1)
 
 
+def test_indexable_allclose_python_float_does_not_use_numpy() -> None:
+    """Python float comparisons should not depend on NumPy behavior."""
+    import unittest.mock
+
+    import pytest
+
+    np = pytest.importorskip('numpy')
+
+    lhs = ub.IndexableWalker({'value': 1.0})
+    rhs = {'value': 1.0 + 1e-10}
+    with unittest.mock.patch.object(
+        np, 'isclose', side_effect=AssertionError('unexpected NumPy call')
+    ):
+        assert lhs.allclose(rhs)
+        info = ub.IndexableWalker({'value': 1.0}).diff(rhs)
+        assert info['num_approximations'] == 1
+        assert info['num_differences'] == 0
+
+
+def test_indexable_allclose_numpy_float_scalars() -> None:
+    """NumPy floating scalars should use NumPy's scalar comparison path."""
+    import pytest
+
+    np = pytest.importorskip('numpy')
+
+    lhs = {'value': np.float32(1.0)}
+    rhs = {'value': np.float32(1.0 + 1e-6)}
+    assert ub.IndexableWalker(lhs).allclose(rhs, rel_tol=1e-5)
+
+    info = ub.IndexableWalker(lhs).diff(rhs, rel_tol=1e-5)
+    assert info['num_approximations'] == 1
+    assert info['num_differences'] == 0
+
+
+def test_indexable_allclose_equal_nan_without_numpy_isclose() -> None:
+    """Python NaNs use the standard-library path even when NumPy is present."""
+    import unittest.mock
+
+    import pytest
+
+    np = pytest.importorskip('numpy')
+
+    lhs = ub.IndexableWalker({'value': float('nan')})
+    rhs = {'value': float('nan')}
+    with unittest.mock.patch.object(
+        np, 'isclose', side_effect=AssertionError('unexpected NumPy call')
+    ):
+        assert lhs.allclose(rhs, equal_nan=True)
+
+
 def test_walk_iter_gen_behavior() -> None:
     from itertools import count
 
