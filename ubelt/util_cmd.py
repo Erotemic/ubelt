@@ -458,7 +458,7 @@ def cmd(
         from ubelt.util_path import ChDir
 
         with ChDir(cwd):
-            raw = os.system(command_text)
+            raw = os.system(command_text)  # ty: ignore[deprecated]
             ret = _normalize_system_returncode(raw)
         info = CmdOutput(
             **{
@@ -586,7 +586,8 @@ def _resolve_command(
         command_text = command
         command_tup = None
     elif isinstance(command, os.PathLike):
-        command_text = os.fspath(command)
+        path_command = typing.cast('os.PathLike[str]', command)
+        command_text = os.fspath(path_command)
         command_tup = None
     else:
         import shlex

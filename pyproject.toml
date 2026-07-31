@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 
 [tool.xcookie]
-tags = [ "purepy", "erotemic", "github",]
+tags = [ "purepy", "erotemic", "github", "mypy",]
 mod_name = "ubelt"
 repo_name = "ubelt"
 rel_mod_parent_dpath = "."
@@ -16,6 +16,8 @@ use_uv = true
 author_email = "erotemic@gmail.com"
 description = "A Python utility belt containing simple tools, a stdlib like feel, and extra batteries"
 #ci_cpython_versions=["3.6", "3.7", "3.8", "3.9", "3.10", "3.11", "3.12", "3.13.0-beta.2"]
+ci_allow_failure = [{python-version = "3.15"}]
+typecheck_extra_paths = ["tests/typecheck_consumer.py"]
 ci_pypi_trusted_publishing = true
 ci_gpg_secret_transport = "direct_ci"
 license = "Apache 2"
@@ -30,7 +32,7 @@ classifiers = [
     'Operating System :: Microsoft :: Windows',
     'Operating System :: MacOS',
     'Operating System :: POSIX :: Linux',
-    'Typing :: Stubs Only',
+    'Typing :: Typed',
 ]
 
 [tool.xcookie.setuptools]

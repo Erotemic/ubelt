@@ -237,7 +237,7 @@ def compatible(
     import inspect
 
     sig = inspect.signature(func)
-    argnames = []
+    argnames: list[str] = []
     has_kwargs = False
     for arg in sig.parameters.values():
         if arg.kind == inspect.Parameter.VAR_KEYWORD:
@@ -257,6 +257,8 @@ def compatible(
     # Test if keywords is a non-string iterable
     if not isinstance(keywords, (bool, str)):
         if isinstance(keywords, IterableABC):
+            if typing.TYPE_CHECKING:
+                keywords = typing.cast(typing.Iterable[str], keywords)
             argnames.extend(keywords)
             keywords = False
         else:

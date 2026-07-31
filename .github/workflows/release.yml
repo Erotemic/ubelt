@@ -8,6 +8,8 @@ name: PurePyRelease
 
 on:
   push:
+    branches: [ main, 'release*' ]
+    tags: [ '*' ]
   workflow_dispatch:
 
 jobs:
@@ -23,7 +25,7 @@ jobs:
     - name: Checkout source
       uses: actions/checkout@v6.0.2
     - name: Set up Python 3.14
-      uses: actions/setup-python@v5.6.0
+      uses: actions/setup-python@v6.2.0
       with:
         python-version: '3.14'
     - name: Build sdist
@@ -45,7 +47,7 @@ jobs:
     ##
     # Build the pure-python wheels used by the release workflow.
     ##
-    name: ${{ matrix.python-version }} on ${{ matrix.os }}, arch=${{ matrix.arch }} with ${{ matrix.install-extras }}
+    name: Build wheel ${{ matrix.python-version }} on ${{ matrix.os }}, arch=${{ matrix.arch }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -59,13 +61,8 @@ jobs:
     steps:
     - name: Checkout source
       uses: actions/checkout@v6.0.2
-    - name: Set up QEMU
-      uses: docker/setup-qemu-action@v3.7.0
-      if: runner.os == 'Linux' && matrix.arch != 'auto'
-      with:
-        platforms: all
     - name: Setup Python
-      uses: actions/setup-python@v5.6.0
+      uses: actions/setup-python@v6.2.0
       with:
         python-version: ${{ matrix.python-version }}
     - name: Build pure wheel
@@ -93,13 +90,13 @@ jobs:
     steps:
     - name: Checkout source
       uses: actions/checkout@v6.0.2
-    - uses: actions/download-artifact@v4.1.8
+    - uses: actions/download-artifact@v7.0.0
       name: Download wheels
       with:
         pattern: wheels-*
         merge-multiple: true
         path: wheelhouse
-    - uses: actions/download-artifact@v4.1.8
+    - uses: actions/download-artifact@v7.0.0
       name: Download sdist
       with:
         name: sdist_wheels
@@ -189,13 +186,13 @@ jobs:
     steps:
     - name: Checkout source
       uses: actions/checkout@v6.0.2
-    - uses: actions/download-artifact@v4.1.8
+    - uses: actions/download-artifact@v7.0.0
       name: Download wheels
       with:
         pattern: wheels-*
         merge-multiple: true
         path: wheelhouse
-    - uses: actions/download-artifact@v4.1.8
+    - uses: actions/download-artifact@v7.0.0
       name: Download sdist
       with:
         name: sdist_wheels
@@ -285,7 +282,7 @@ jobs:
     steps:
     - name: Checkout source
       uses: actions/checkout@v6.0.2
-    - uses: actions/download-artifact@v4.1.8
+    - uses: actions/download-artifact@v7.0.0
       name: Download artifacts
       with:
         name: deploy_artifacts
@@ -294,12 +291,35 @@ jobs:
       shell: bash
       run: ls -la wheelhouse
     - run: 'echo "Automatic Release Notes. TODO: improve" > ${{ github.workspace }}-CHANGELOG.txt'
-    - name: Tag Release Commit
-      if: (startsWith(github.event.ref, 'refs/heads/release'))
+    - name: Resolve Release Tag
+      id: release_meta
+      shell: bash
       run: |-
         export VERSION=$(python -c "import setup; print(setup.VERSION)")
-        git tag "v$VERSION"
-        git push origin "v$VERSION"
+        echo "VERSION=$VERSION"
+        test -n "$VERSION" || { echo "failed to parse version" ; exit 1; }
+        TAG="v$VERSION"
+        if [[ "$GITHUB_REF" == refs/tags/* ]]; then
+            EVENT_TAG="${GITHUB_REF#refs/tags/}"
+            TAG="$EVENT_TAG"
+        fi
+        echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+    - name: Tag Release Commit
+      if: (startsWith(github.event.ref, 'refs/heads/release'))
+      shell: bash
+      run: |-
+        TAG="${{ steps.release_meta.outputs.tag }}"
+        REMOTE_SHA=$(git ls-remote --refs origin "refs/tags/$TAG" | awk '{print $1}')
+        if [[ -n "$REMOTE_SHA" ]]; then
+            test "$REMOTE_SHA" = "$GITHUB_SHA" || {
+                echo "$TAG already points to $REMOTE_SHA, not $GITHUB_SHA"
+                exit 1
+            }
+            echo "$TAG already points to this release commit"
+        else
+            git tag "$TAG" "$GITHUB_SHA"
+            git push origin "refs/tags/$TAG"
+        fi
     - uses: softprops/action-gh-release@v1
       name: Create Release
       id: create_release
@@ -307,8 +327,9 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         body_path: ${{ github.workspace }}-CHANGELOG.txt
-        tag_name: ${{ github.ref }}
-        name: Release ${{ github.ref }}
+        tag_name: ${{ steps.release_meta.outputs.tag }}
+        name: Release ${{ steps.release_meta.outputs.tag }}
+        target_commitish: ${{ github.sha }}
         body: Automatic Release
         generate_release_notes: true
         draft: true

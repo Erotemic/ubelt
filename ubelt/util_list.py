@@ -541,17 +541,17 @@ def take(
             yield items.get(index, default)  # type: ignore
 
 
-def compress(items: Iterable[Any], flags: Iterable[bool]) -> Iterable[Any]:
+def compress(items: Iterable[T], flags: Iterable[bool]) -> Iterator[T]:
     """
     Selects from ``items`` where the corresponding value in ``flags`` is True.
 
     Args:
-        items (Iterable[Any]): a sequence to select items from
+        items (Iterable[T]): a sequence to select items from
 
         flags (Iterable[bool]): corresponding sequence of bools
 
     Returns:
-        Iterable[Any]: a subset of masked items
+        Iterator[T]: a subset of masked items
 
     Notes:
         This function is based on :func:`numpy.compress`, but is pure Python
@@ -897,7 +897,7 @@ def argsort(
     indexable: Iterable[VT] | Mapping[KT, VT],
     key: Callable[[VT], Any] | None = None,
     reverse: bool = False,
-) -> Sequence[int] | Sequence[KT]:
+) -> Sequence[int | KT]:
     """
     Returns the indices that would sort a indexable object.
 

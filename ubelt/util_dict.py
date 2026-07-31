@@ -67,6 +67,12 @@ from ubelt.util_const import NoParam
 KT = typing.TypeVar('KT')
 VT = typing.TypeVar('VT')
 T = typing.TypeVar('T')
+KT2 = typing.TypeVar('KT2')
+VT2 = typing.TypeVar('VT2')
+DefaultT = typing.TypeVar('DefaultT')
+DictT = typing.TypeVar(
+    'DictT', bound=typing.Dict[typing.Any, typing.Any]
+)
 
 if typing.TYPE_CHECKING:
     from typing import (
@@ -80,6 +86,8 @@ if typing.TYPE_CHECKING:
         Type,
         cast,
     )
+
+    from _typeshed import SupportsKeysAndGetItem
 
     from ubelt.util_const import NoParamType
 
@@ -835,6 +843,30 @@ def sorted_keys(
     return newdict
 
 
+@typing.overload
+def invert_dict(
+    dict_: Dict[KT, VT],
+    unique_vals: typing.Literal[True] = True,
+    cls: Optional[type] = None,
+) -> Dict[VT, KT]: ...
+
+
+@typing.overload
+def invert_dict(
+    dict_: Dict[KT, VT],
+    unique_vals: typing.Literal[False],
+    cls: Optional[type] = None,
+) -> Dict[VT, Set[KT]]: ...
+
+
+@typing.overload
+def invert_dict(
+    dict_: Dict[KT, VT],
+    unique_vals: bool,
+    cls: Optional[type] = None,
+) -> Union[Dict[VT, KT], Dict[VT, Set[KT]]]: ...
+
+
 def invert_dict(
     dict_: Dict[KT, VT], unique_vals: bool = True, cls: Optional[type] = None
 ) -> Union[Dict[VT, KT], Dict[VT, Set[KT]]]:
@@ -1154,7 +1186,7 @@ def varied_values(
     return varied
 
 
-class SetDict(dict):
+class SetDict(typing.Dict[KT, VT]):
     """
     A dictionary subclass where all set operations are defined.
 
@@ -1382,7 +1414,25 @@ class SetDict(dict):
 
     """
 
-    def copy(self) -> SetDict:
+    if typing.TYPE_CHECKING:
+        @classmethod
+        @typing.overload
+        def fromkeys(
+            cls, iterable: Iterable[T], value: None = None, /
+        ) -> SetDict[T, typing.Any | None]: ...
+
+        @classmethod
+        @typing.overload
+        def fromkeys(
+            cls, iterable: Iterable[T], value: VT2, /
+        ) -> SetDict[T, VT2]: ...
+
+        @classmethod
+        def fromkeys(
+            cls, iterable: Iterable[typing.Any], value: typing.Any = None, /
+        ) -> SetDict[typing.Any, typing.Any]: ...
+
+    def copy(self: Self) -> Self:
         """
         Example:
             >>> import ubelt as ub
@@ -1401,7 +1451,9 @@ class SetDict(dict):
         return self.__class__(self)
 
     # We could just use the builtin variant for this specific operation
-    def __or__(self: Self, other: Mapping[Any, Any]) -> Self:
+    def __or__(
+        self, other: Mapping[KT2, VT2], /
+    ) -> SetDict[KT | KT2, VT | VT2]:
         """
         The ``|`` union operator
 
@@ -1411,9 +1463,14 @@ class SetDict(dict):
         Returns:
             SetDict
         """
-        return self.union(other, cls=type(self))
+        return typing.cast(
+            'SetDict[KT | KT2, VT | VT2]',
+            self.union(other, cls=type(self)),
+        )
 
-    def __and__(self: Self, other: Mapping[Any, Any]) -> Self:
+    def __and__(
+        self: Self, other: Mapping[typing.Any, typing.Any] | Iterable[object], /
+    ) -> Self:
         """
         The ``&`` intersection operator
 
@@ -1425,7 +1482,9 @@ class SetDict(dict):
         """
         return self.intersection(other, cls=type(self))
 
-    def __sub__(self: Self, other: Mapping[Any, Any]) -> Self:
+    def __sub__(
+        self: Self, other: Mapping[typing.Any, typing.Any] | Iterable[object], /
+    ) -> Self:
         """
         The ``-`` difference operator
 
@@ -1437,7 +1496,9 @@ class SetDict(dict):
         """
         return self.difference(other, cls=type(self))
 
-    def __xor__(self: Self, other: Mapping[Any, Any]) -> Self:
+    def __xor__(
+        self, other: Mapping[KT2, VT2], /
+    ) -> SetDict[KT | KT2, VT | VT2]:
         """
         The ``^`` symmetric_difference operator
 
@@ -1447,11 +1508,16 @@ class SetDict(dict):
         Returns:
             SetDict
         """
-        return self.symmetric_difference(other, cls=type(self))
+        return typing.cast(
+            'SetDict[KT | KT2, VT | VT2]',
+            self.symmetric_difference(other, cls=type(self)),
+        )
 
     # - reverse versions
 
-    def __ror__(self: Self, other: Mapping[Any, Any]) -> Self:
+    def __ror__(
+        self, other: Mapping[KT2, VT2], /
+    ) -> SetDict[KT | KT2, VT | VT2]:
         """
         Args:
             other (Mapping):
@@ -1472,9 +1538,14 @@ class SetDict(dict):
             d1={1: 10, 2: 20, 3: 3, 4: 40}
             d2={1: 1, 2: 2, 4: 40, 3: 3}
         """
-        return type(self)(other).union(self, cls=type(self))
+        return typing.cast(
+            'SetDict[KT | KT2, VT | VT2]',
+            type(self)(other).union(self, cls=type(self)),
+        )
 
-    def __rand__(self: Self, other: Mapping[Any, Any]) -> Self:
+    def __rand__(
+        self, other: Mapping[KT2, VT2], /
+    ) -> SetDict[KT2, VT2]:
         """
         Args:
             other (Mapping):
@@ -1495,9 +1566,14 @@ class SetDict(dict):
             d1={1: 1, 2: 2}
             d2={1: 10, 2: 20}
         """
-        return type(self)(other).intersection(self, cls=type(self))
+        return typing.cast(
+            'SetDict[KT2, VT2]',
+            type(self)(other).intersection(self, cls=type(self)),
+        )
 
-    def __rsub__(self: Self, other: Mapping[Any, Any]) -> Self:
+    def __rsub__(
+        self, other: Mapping[KT2, VT2], /
+    ) -> SetDict[KT2, VT2]:
         """
         Args:
             other (Mapping):
@@ -1518,9 +1594,14 @@ class SetDict(dict):
             d1={3: 3}
             d2={4: 40}
         """
-        return type(self)(other).difference(self, cls=type(self))
+        return typing.cast(
+            'SetDict[KT2, VT2]',
+            type(self)(other).difference(self, cls=type(self)),
+        )
 
-    def __rxor__(self: Self, other: Mapping[Any, Any]) -> Self:
+    def __rxor__(
+        self, other: Mapping[KT2, VT2], /
+    ) -> SetDict[KT | KT2, VT | VT2]:
         """
         Args:
             other (Mapping):
@@ -1541,12 +1622,24 @@ class SetDict(dict):
             d1={3: 3, 4: 40}
             d2={4: 40, 3: 3}
         """
-        return type(self)(other).symmetric_difference(self, cls=type(self))
+        return typing.cast(
+            'SetDict[KT | KT2, VT | VT2]',
+            type(self)(other).symmetric_difference(self, cls=type(self)),
+        )
 
     # - inplace versions
 
-    # Not sure why its hard to type annotate this.
-    def __ior__(self, other: typing.Any) -> Self:  # type: ignore[misc]
+    @typing.overload  # type: ignore[misc, override]
+    def __ior__(
+        self: Self, other: SupportsKeysAndGetItem[KT, VT], /
+    ) -> Self: ...
+
+    @typing.overload
+    def __ior__(
+        self: Self, other: Iterable[tuple[KT, VT]], /
+    ) -> Self: ...
+
+    def __ior__(self: Self, other: typing.Any, /) -> Self:  # type: ignore[misc]
         """
         The inplace union operator ``|=``.
 
@@ -1570,7 +1663,9 @@ class SetDict(dict):
         self.update(other)
         return self
 
-    def __iand__(self, other: Union[Mapping, Iterable]) -> SetDict:
+    def __iand__(
+        self: Self, other: Mapping[typing.Any, typing.Any] | Iterable[object], /
+    ) -> Self:
         """
         The inplace intersection operator ``&=``.
 
@@ -1593,7 +1688,9 @@ class SetDict(dict):
             del self[k]
         return self
 
-    def __isub__(self, other: Union[Mapping, Iterable]) -> SetDict:
+    def __isub__(
+        self: Self, other: Mapping[typing.Any, typing.Any] | Iterable[object], /
+    ) -> Self:
         """
         The inplace difference operator ``-=``.
 
@@ -1635,7 +1732,7 @@ class SetDict(dict):
             del self[k]
         return self
 
-    def __ixor__(self, other: Mapping) -> SetDict:
+    def __ixor__(self: Self, other: Mapping[KT, VT], /) -> Self:  # type: ignore[misc]
         """
         The inplace symmetric difference operator ``^=``.
 
@@ -1663,12 +1760,38 @@ class SetDict(dict):
 
     ### Main set operations
 
+    @typing.overload
     def union(
         self: Self,
-        *others: Mapping[Any, Any],
-        cls: type[Self] | None = None,
+        *,
+        cls: None = None,
         merge: Callable | None = None,
-    ) -> Self:
+    ) -> Self: ...
+
+    @typing.overload
+    def union(
+        self,
+        other: Mapping[KT2, VT2],
+        /,
+        *others: Mapping[KT | KT2, VT | VT2],
+        cls: None = None,
+        merge: Callable | None = None,
+    ) -> SetDict[KT | KT2, VT | VT2]: ...
+
+    @typing.overload
+    def union(
+        self,
+        *others: Mapping[typing.Any, typing.Any],
+        cls: type[DictT],
+        merge: Callable | None = None,
+    ) -> DictT: ...
+
+    def union(
+        self,
+        *others: typing.Any,
+        cls: typing.Any = None,
+        merge: Callable | None = None,
+    ) -> typing.Any:
         """
         Return the key-wise union of two or more dictionaries.
 
@@ -1725,12 +1848,28 @@ class SetDict(dict):
             raise NotImplementedError('merge function is not yet implemented')
         return new
 
+    @typing.overload
     def intersection(
         self: Self,
-        *others: Iterable[Any],
-        cls: type[Self] | None = None,
+        *others: Iterable[typing.Any],
+        cls: None = None,
         merge: Callable | None = None,
-    ) -> Self:
+    ) -> Self: ...
+
+    @typing.overload
+    def intersection(
+        self,
+        *others: Iterable[typing.Any],
+        cls: type[DictT],
+        merge: Callable | None = None,
+    ) -> DictT: ...
+
+    def intersection(
+        self,
+        *others: Iterable[typing.Any],
+        cls: type[dict] | None = None,
+        merge: Callable | None = None,
+    ) -> typing.Any:
         """
         Return the key-wise intersection of two or more dictionaries.
 
@@ -1793,12 +1932,28 @@ class SetDict(dict):
             raise NotImplementedError('merge function is not yet implemented')
         return new
 
+    @typing.overload
     def difference(
         self: Self,
-        *others: Iterable[Any],
-        cls: type[Self] | None = None,
+        *others: Iterable[typing.Any],
+        cls: None = None,
         merge: Callable | None = None,
-    ) -> Self:
+    ) -> Self: ...
+
+    @typing.overload
+    def difference(
+        self,
+        *others: Iterable[typing.Any],
+        cls: type[DictT],
+        merge: Callable | None = None,
+    ) -> DictT: ...
+
+    def difference(
+        self,
+        *others: Iterable[typing.Any],
+        cls: type[dict] | None = None,
+        merge: Callable | None = None,
+    ) -> typing.Any:
         """
         Return the key-wise difference between this dictionary and one or
         more other dictionary / keys.
@@ -1854,12 +2009,38 @@ class SetDict(dict):
             raise NotImplementedError('merge function is not yet implemented')
         return new
 
+    @typing.overload
     def symmetric_difference(
         self: Self,
-        *others: Mapping[Any, Any],
-        cls: type[Self] | None = None,
+        *,
+        cls: None = None,
         merge: Callable | None = None,
-    ) -> Self:
+    ) -> Self: ...
+
+    @typing.overload
+    def symmetric_difference(
+        self,
+        other: Mapping[KT2, VT2],
+        /,
+        *others: Mapping[KT | KT2, VT | VT2],
+        cls: None = None,
+        merge: Callable | None = None,
+    ) -> SetDict[KT | KT2, VT | VT2]: ...
+
+    @typing.overload
+    def symmetric_difference(
+        self,
+        *others: Mapping[typing.Any, typing.Any],
+        cls: type[DictT],
+        merge: Callable | None = None,
+    ) -> DictT: ...
+
+    def symmetric_difference(
+        self,
+        *others: typing.Any,
+        cls: typing.Any = None,
+        merge: Callable | None = None,
+    ) -> typing.Any:
         """
         Return the key-wise symmetric difference between this dictionary and
         one or more other dictionaries.
@@ -1927,7 +2108,7 @@ sdict = SetDict
 
 
 # Might need to make these mixins for 3.6
-class UDict(SetDict):
+class UDict(SetDict[KT, VT]):
     """
     A subclass of dict with ubelt enhancements
 
@@ -1989,9 +2170,133 @@ class UDict(SetDict):
         >>> assert a.map_values(lambda x: x * 10) == {1: 200, 2: 200, 3: 300, 4: 400}
     """
 
+    if typing.TYPE_CHECKING:
+        @classmethod
+        @typing.overload
+        def fromkeys(
+            cls, iterable: Iterable[T], value: None = None, /
+        ) -> UDict[T, typing.Any | None]: ...
+
+        @classmethod
+        @typing.overload
+        def fromkeys(
+            cls, iterable: Iterable[T], value: VT2, /
+        ) -> UDict[T, VT2]: ...
+
+        @classmethod
+        def fromkeys(
+            cls, iterable: Iterable[typing.Any], value: typing.Any = None, /
+        ) -> UDict[typing.Any, typing.Any]: ...
+
+        def __or__(
+            self, other: Mapping[KT2, VT2], /
+        ) -> UDict[KT | KT2, VT | VT2]: ...
+
+        def __ror__(
+            self, other: Mapping[KT2, VT2], /
+        ) -> UDict[KT | KT2, VT | VT2]: ...
+
+        def __xor__(
+            self, other: Mapping[KT2, VT2], /
+        ) -> UDict[KT | KT2, VT | VT2]: ...
+
+        def __rand__(
+            self, other: Mapping[KT2, VT2], /
+        ) -> UDict[KT2, VT2]: ...
+
+        def __rsub__(
+            self, other: Mapping[KT2, VT2], /
+        ) -> UDict[KT2, VT2]: ...
+
+        def __rxor__(
+            self, other: Mapping[KT2, VT2], /
+        ) -> UDict[KT | KT2, VT | VT2]: ...
+
+        @typing.overload
+        def union(
+            self: Self,
+            *,
+            cls: None = None,
+            merge: Callable | None = None,
+        ) -> Self: ...
+
+        @typing.overload
+        def union(
+            self,
+            other: Mapping[KT2, VT2],
+            /,
+            *others: Mapping[KT | KT2, VT | VT2],
+            cls: None = None,
+            merge: Callable | None = None,
+        ) -> UDict[KT | KT2, VT | VT2]: ...
+
+        @typing.overload
+        def union(
+            self,
+            *others: Mapping[typing.Any, typing.Any],
+            cls: type[DictT],
+            merge: Callable | None = None,
+        ) -> DictT: ...
+
+        def union(
+            self,
+            *others: typing.Any,
+            cls: typing.Any = None,
+            merge: Callable | None = None,
+        ) -> typing.Any: ...
+
+        @typing.overload
+        def symmetric_difference(
+            self: Self,
+            *,
+            cls: None = None,
+            merge: Callable | None = None,
+        ) -> Self: ...
+
+        @typing.overload
+        def symmetric_difference(
+            self,
+            other: Mapping[KT2, VT2],
+            /,
+            *others: Mapping[KT | KT2, VT | VT2],
+            cls: None = None,
+            merge: Callable | None = None,
+        ) -> UDict[KT | KT2, VT | VT2]: ...
+
+        @typing.overload
+        def symmetric_difference(
+            self,
+            *others: Mapping[typing.Any, typing.Any],
+            cls: type[DictT],
+            merge: Callable | None = None,
+        ) -> DictT: ...
+
+        def symmetric_difference(
+            self,
+            *others: typing.Any,
+            cls: typing.Any = None,
+            merge: Callable | None = None,
+        ) -> typing.Any: ...
+
+    @typing.overload
     def subdict(
-        self, keys: Iterable[KT], default: Union[object, NoParamType] = NoParam
-    ) -> UDict:
+        self: Self,
+        keys: Iterable[KT],
+        default: NoParamType = NoParam,
+    ) -> Self: ...
+
+    @typing.overload
+    def subdict(
+        self,
+        keys: Iterable[KT],
+        default: DefaultT,
+    ) -> UDict[KT, VT | DefaultT]: ...
+
+    def subdict(
+        self,
+        keys: Iterable[KT],
+        default: object | NoParamType = NoParam,
+    ) -> typing.Any:
         """
         Get a subset of a dictionary
 
@@ -2024,16 +2329,32 @@ class UDict(SetDict):
             s = {2: 'A_c', 5: 'A_f', 100: 'DEF'}
         """
         # TODO: make this work with defaultdict?
-        cls = self.__class__
+        cls = typing.cast(typing.Any, self.__class__)
         if default is NoParam:
-            new = cls([(k, self[k]) for k in keys])
+            new = cls((k, self[k]) for k in keys)
         else:
-            new = cls([(k, self.get(k, default)) for k in keys])
+            new = cls((k, self.get(k, default)) for k in keys)
         return new
 
+    @typing.overload
     def take(
-        self, keys: Iterable[KT], default: Union[object, NoParamType] = NoParam
-    ) -> Generator[VT, None, None]:
+        self,
+        keys: Iterable[KT],
+        default: NoParamType = NoParam,
+    ) -> Generator[VT, None, None]: ...
+
+    @typing.overload
+    def take(
+        self,
+        keys: Iterable[KT],
+        default: DefaultT,
+    ) -> Generator[VT | DefaultT, None, None]: ...
+
+    def take(
+        self,
+        keys: Iterable[KT],
+        default: object | NoParamType = NoParam,
+    ) -> Generator[typing.Any, None, None]:
         """
         Get values of an iterable of keys.
 
@@ -2075,9 +2396,22 @@ class UDict(SetDict):
             for k in keys:
                 yield self.get(k, default)
 
+    @typing.overload
     def invert(
-        self, unique_vals: bool = True
-    ) -> Union[Dict[VT, KT], Dict[VT, Set[KT]]]:
+        self, unique_vals: typing.Literal[True] = True
+    ) -> UDict[VT, KT]: ...
+
+    @typing.overload
+    def invert(
+        self, unique_vals: typing.Literal[False]
+    ) -> UDict[VT, set[KT]]: ...
+
+    @typing.overload
+    def invert(
+        self, unique_vals: bool
+    ) -> UDict[VT, KT] | UDict[VT, set[KT]]: ...
+
+    def invert(self, unique_vals: bool = True) -> typing.Any:
         """
         Swaps the keys and values in a dictionary.
 
@@ -2111,8 +2445,8 @@ class UDict(SetDict):
         return invert_dict(self, unique_vals=unique_vals, cls=self.__class__)
 
     def map_keys(
-        self, func: Union[Callable[[KT], T], Mapping[KT, T]]
-    ) -> Dict[T, VT]:
+        self, func: Callable[[KT], T] | Mapping[KT, T]
+    ) -> UDict[T, VT]:
         """
         Apply a function to every value in a dictionary.
 
@@ -2130,11 +2464,13 @@ class UDict(SetDict):
             >>> new = ub.udict({'a': [1, 2, 3], 'b': []}).map_keys(ord)
             >>> assert new == {97: [1, 2, 3], 98: []}
         """
-        return map_keys(func, self, cls=self.__class__)
+        return typing.cast(
+            'UDict[T, VT]', map_keys(func, self, cls=self.__class__)
+        )
 
     def map_values(
-        self, func: Union[Callable[[VT], T], Mapping[VT, T]]
-    ) -> Dict[KT, T]:
+        self, func: Callable[[VT], T] | Mapping[VT, T]
+    ) -> UDict[KT, T]:
         """
         Apply a function to every value in a dictionary.
 
@@ -2152,7 +2488,9 @@ class UDict(SetDict):
             >>> newdict = ub.udict({'a': [1, 2, 3], 'b': []}).map_values(len)
             >>> assert newdict ==  {'a': 3, 'b': 0}
         """
-        return map_values(func, self, cls=self.__class__)
+        return typing.cast(
+            'UDict[KT, T]', map_values(func, self, cls=self.__class__)
+        )
 
     def sorted_keys(
         self, key: Optional[Callable[[KT], Any]] = None, reverse: bool = False
@@ -2210,7 +2548,15 @@ class UDict(SetDict):
         """
         return sorted_values(self, key=key, reverse=reverse, cls=self.__class__)
 
-    def peek_key(self, default: Union[KT, NoParamType] = NoParam) -> KT:
+    @typing.overload
+    def peek_key(self, default: NoParamType = NoParam) -> KT: ...
+
+    @typing.overload
+    def peek_key(self, default: DefaultT) -> KT | DefaultT: ...
+
+    def peek_key(
+        self, default: object | NoParamType = NoParam
+    ) -> typing.Any:
         """
         Get the first key in the dictionary
 
@@ -2229,9 +2575,17 @@ class UDict(SetDict):
         """
         from ubelt.util_list import peek
 
-        return typing.cast(KT, peek(self.keys(), default=default))
+        return peek(self.keys(), default=default)
 
-    def peek_value(self, default: Union[VT, NoParamType] = NoParam) -> VT:
+    @typing.overload
+    def peek_value(self, default: NoParamType = NoParam) -> VT: ...
+
+    @typing.overload
+    def peek_value(self, default: DefaultT) -> VT | DefaultT: ...
+
+    def peek_value(
+        self, default: object | NoParamType = NoParam
+    ) -> typing.Any:
         """
         Get the first value in the dictionary
 
@@ -2249,10 +2603,11 @@ class UDict(SetDict):
         """
         from ubelt.util_list import peek
 
-        return typing.cast(VT, peek(self.values(), default=default))
+        return peek(self.values(), default=default)
 
 
-class AutoDict(UDict):
+
+class AutoDict(UDict[typing.Any, typing.Any]):
     """
     An infinitely nested default dict of dicts.
 
@@ -2271,7 +2626,7 @@ class AutoDict(UDict):
 
     _base = UDict
 
-    def __getitem__(self, key: KT) -> Union[VT, AutoDict]:
+    def __getitem__(self, key: typing.Any) -> typing.Any:
         """
         Args:
             key (KT): key to lookup
@@ -2286,7 +2641,7 @@ class AutoDict(UDict):
             value = self[key] = self.__class__()
         return value
 
-    def to_dict(self) -> dict:
+    def to_dict(self) -> dict[typing.Any, typing.Any]:
         """
         Recursively casts a AutoDict into a regular dictionary. All directly
         nested AutoDict values are also converted.
@@ -2321,4 +2676,5 @@ class AutoDict(UDict):
 
 # DEPRECATED. This is no longer needed. AutoDict is always ordered
 AutoOrderedDict = AutoDict
+
 udict = UDict

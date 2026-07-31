@@ -83,7 +83,7 @@ def test_ensuredir_verbosity() -> None:
     assert cap.text == ''
     # None defaults to verbose=0
     with ub.CaptureStdout() as cap:
-        ub.ensuredir((base, 'foo'), verbose=None)  # type: ignore[arg-type]  # ty: ignore[invalid-argument-type]
+        ub.ensuredir((base, 'foo'), verbose=None)
     assert cap.text == ''
 
     ub.delete(join(base, 'foo'))
@@ -118,10 +118,7 @@ def demo_nested_paths(
 
 
 def relative_contents(dpath: ub.Path) -> list[typing.Any]:
-    return [
-        typing.cast(ub.Path, p).relative_to(dpath)
-        for p in sorted(dpath.glob('**'), key=str)
-    ]
+    return [p.relative_to(dpath) for p in sorted(dpath.glob('**'), key=str)]
 
 
 def test_copy_directory_cases() -> None:

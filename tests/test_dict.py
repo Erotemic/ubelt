@@ -156,3 +156,30 @@ def test_dict_subset_default() -> None:
 #     import netharn as nh
 #     nh.util.autompl()
 #     nh.util.multi_plot(xdata, ydata)
+
+
+def test_dictionary_class_alias_runtime_identity():
+    """Typing-oriented class naming must not change the runtime API."""
+    import pickle
+
+    import ubelt as ub
+
+    assert ub.udict is ub.UDict
+    assert ub.sdict is ub.SetDict
+    assert ub.udict.__name__ == 'UDict'
+    assert ub.udict.__qualname__ == 'UDict'
+    assert ub.sdict.__name__ == 'SetDict'
+    assert ub.sdict.__qualname__ == 'SetDict'
+
+    data = ub.udict({'a': 1})
+    assert isinstance(data, ub.udict)
+    assert type(data.copy()) is ub.udict
+    assert type(data | {'b': 2}) is ub.udict
+    assert type(data.union({'b': 2})) is ub.udict
+    assert type(data.symmetric_difference({'b': 2})) is ub.udict
+    assert type(data.intersection({'a'})) is ub.udict
+    assert type(data.difference({'missing'})) is ub.udict
+    assert type({'b': 2} | data) is ub.udict
+    assert type(ub.udict.fromkeys(['a'], 1)) is ub.udict
+    assert pickle.loads(pickle.dumps(data)) == data
+    assert type(pickle.loads(pickle.dumps(data))) is ub.udict

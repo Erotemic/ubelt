@@ -260,8 +260,6 @@ class memoize_method(typing.Generic[S, P, T]):
         >>> assert method2('z') == ('z2', 'F2')
     """
 
-    __func__: Callable[Concatenate[S, P], T]
-
     def __init__(self, func: Callable[Concatenate[S, P], T]) -> None:
         """
         Args:
@@ -273,8 +271,11 @@ class memoize_method(typing.Generic[S, P, T]):
             raise ValueError('memoize_method requires a named function')
         self._func_name = func_name
         self._cache_name = '_cache__' + self._func_name
-        # Mimic the bound method attribute that some callers may inspect.
-        self.__func__ = func
+
+    @property
+    def __func__(self) -> Callable[Concatenate[S, P], T]:
+        """The wrapped function, matching the bound-method attribute."""
+        return self._func
 
     @typing.overload
     def __get__(

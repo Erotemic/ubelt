@@ -493,7 +493,7 @@ class ProjectStructure:
         print(f'editable_fpaths={editable_fpaths}')
 
 
-GLOBAL_PROJECTS = []
+GLOBAL_PROJECTS: typing.List[ProjectStructure] = []
 
 
 def _check_skip_editable_module_tests() -> None:

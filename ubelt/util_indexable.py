@@ -30,12 +30,13 @@ except ImportError:  # nocover
 
 
 @cache
-def _lazy_numpy() -> typing.Any | None:
+def _lazy_numpy() -> tuple[typing.Any | None, frozenset[type]]:
     try:
         import numpy as np
     except ImportError:  # nocover
-        return None
-    return np
+        return None, frozenset()
+    numpy_float_types = frozenset(np.floating.__subclasses__())
+    return np, numpy_float_types
 
 
 class Difference(typing.NamedTuple):
@@ -506,6 +507,49 @@ class IndexableWalker(Generator):
                     if isinstance(value, self.indexable_cls):
                         stack.append((value, path))
 
+    @typing.overload
+    def allclose(
+        self,
+        other: IndexableWalker | list | dict,
+        rel_tol: float = 1e-9,
+        abs_tol: float = 0.0,
+        equal_nan: bool = False,
+        return_info: typing.Literal[False] = False,
+    ) -> bool: ...
+
+    @typing.overload
+    def allclose(
+        self,
+        other: IndexableWalker | list | dict,
+        rel_tol: float = 1e-9,
+        abs_tol: float = 0.0,
+        equal_nan: bool = False,
+        *,
+        return_info: typing.Literal[True],
+    ) -> tuple[bool, dict]: ...
+
+    @typing.overload
+    def allclose(
+        self,
+        other: IndexableWalker | list | dict,
+        rel_tol: float = 1e-9,
+        abs_tol: float = 0.0,
+        equal_nan: bool = False,
+        *,
+        return_info: bool,
+    ) -> bool | tuple[bool, dict]: ...
+
+    @typing.overload
+    def allclose(
+        self,
+        other: IndexableWalker | list | dict,
+        rel_tol: float,
+        abs_tol: float,
+        equal_nan: bool,
+        return_info: bool,
+        /,
+    ) -> bool | tuple[bool, dict]: ...
+
     def allclose(
         self,
         other: IndexableWalker | list | dict,
@@ -531,7 +575,7 @@ class IndexableWalker(Generator):
                 magnitude of the input values
 
             equal_nan (bool):
-                if True, numpy must be available, and consider nans as equal.
+                if True, consider nans as equal.
 
             return_info (bool):
                 if True, return extra info dict. Defaults to False.
@@ -630,7 +674,7 @@ class IndexableWalker(Generator):
                 other, dict_cls=self.dict_cls, list_cls=self.list_cls
             )
 
-        _isclose_fn, _iskw = _make_isclose_fn(rel_tol, abs_tol, equal_nan)
+        np, numpy_float_types = _lazy_numpy()
 
         flat_items1 = []
         for item in walker1:
@@ -670,11 +714,28 @@ class IndexableWalker(Generator):
 
                 # TODO: Could add a numpy optimization here.
 
-                flag = (v1 == v2) or (
-                    isinstance(v1, float)
-                    and isinstance(v2, float)
-                    and _isclose_fn(v1, v2, **_iskw)
-                )
+                flag = v1 == v2
+                if not flag:
+                    if isinstance(v1, float) and isinstance(v2, float):
+                        flag = isclose(
+                            v1, v2, rel_tol=rel_tol, abs_tol=abs_tol
+                        )
+                        if equal_nan and not flag:
+                            flag = v1 != v1 and v2 != v2
+                    elif (
+                        np is not None
+                        and type(v1) in numpy_float_types
+                        and type(v2) in numpy_float_types
+                    ):
+                        flag = bool(
+                            np.isclose(
+                                v1,
+                                v2,
+                                rtol=rel_tol,
+                                atol=abs_tol,
+                                equal_nan=equal_nan,
+                            )
+                        )
                 if flag:
                     passlist.append(p1)
                 else:
@@ -721,7 +782,7 @@ class IndexableWalker(Generator):
                 magnitude of the input values
 
             equal_nan (bool):
-                if True, numpy must be available, and consider nans as equal.
+                if True, consider nans as equal.
 
         Returns:
             dict: information about the diff with
@@ -810,7 +871,7 @@ class IndexableWalker(Generator):
 
         num_approximations = 0
 
-        _isclose_fn, _iskw = _make_isclose_fn(rel_tol, abs_tol, equal_nan)
+        np, numpy_float_types = _lazy_numpy()
 
         faillist = []
         passlist = []
@@ -819,11 +880,24 @@ class IndexableWalker(Generator):
             v2 = flat_items2[key]
             flag = v1 == v2
             if not flag:
-                flag = (
-                    isinstance(v1, float)
-                    and isinstance(v2, float)
-                    and _isclose_fn(v1, v2, **_iskw)
-                )
+                if isinstance(v1, float) and isinstance(v2, float):
+                    flag = isclose(v1, v2, rel_tol=rel_tol, abs_tol=abs_tol)
+                    if equal_nan and not flag:
+                        flag = v1 != v1 and v2 != v2
+                elif (
+                    np is not None
+                    and type(v1) in numpy_float_types
+                    and type(v2) in numpy_float_types
+                ):
+                    flag = bool(
+                        np.isclose(
+                            v1,
+                            v2,
+                            rtol=rel_tol,
+                            atol=abs_tol,
+                            equal_nan=equal_nan,
+                        )
+                    )
                 num_approximations += flag
             if flag:
                 passlist.append(key)
@@ -850,21 +924,48 @@ class IndexableWalker(Generator):
         return info
 
 
-def _make_isclose_fn(
+
+@typing.overload
+def indexable_allclose(
+    items1: dict | list | tuple,
+    items2: dict | list | tuple,
+    rel_tol: float = 1e-9,
+    abs_tol: float = 0.0,
+    return_info: typing.Literal[False] = False,
+) -> bool: ...
+
+
+@typing.overload
+def indexable_allclose(
+    items1: dict | list | tuple,
+    items2: dict | list | tuple,
+    rel_tol: float = 1e-9,
+    abs_tol: float = 0.0,
+    *,
+    return_info: typing.Literal[True],
+) -> tuple[bool, dict]: ...
+
+
+@typing.overload
+def indexable_allclose(
+    items1: dict | list | tuple,
+    items2: dict | list | tuple,
+    rel_tol: float = 1e-9,
+    abs_tol: float = 0.0,
+    *,
+    return_info: bool,
+) -> bool | tuple[bool, dict]: ...
+
+
+@typing.overload
+def indexable_allclose(
+    items1: dict | list | tuple,
+    items2: dict | list | tuple,
     rel_tol: float,
     abs_tol: float,
-    equal_nan: bool,
-) -> tuple[typing.Any, dict[str, typing.Any]]:
-    np = _lazy_numpy()
-    if np is None:  # nocover
-        _isclose_fn = isclose
-        _iskw = dict(rel_tol=rel_tol, abs_tol=abs_tol)
-        if equal_nan:
-            raise NotImplementedError('requires numpy')
-    else:
-        _isclose_fn = np.isclose
-        _iskw = dict(rtol=rel_tol, atol=abs_tol, equal_nan=equal_nan)
-    return _isclose_fn, _iskw
+    return_info: bool,
+    /,
+) -> bool | tuple[bool, dict]: ...
 
 
 def indexable_allclose(
