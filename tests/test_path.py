@@ -83,7 +83,7 @@ def test_ensuredir_verbosity() -> None:
     assert cap.text == ''
     # None defaults to verbose=0
     with ub.CaptureStdout() as cap:
-        ub.ensuredir((base, 'foo'), verbose=None)  # type: ignore[arg-type]  # ty: ignore[invalid-argument-type]
+        ub.ensuredir((base, 'foo'), verbose=None)
     assert cap.text == ''
 
     ub.delete(join(base, 'foo'))
