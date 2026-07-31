@@ -436,7 +436,7 @@ def test_timeout() -> None:
     for raw_kw in initial_grid:
         # This grid intentionally mixes values for unrelated keyword
         # parameters. Mark that dynamic keyword-bag boundary explicitly.
-        kw = ub.udict(typing.cast(dict[str, typing.Any], raw_kw))
+        kw = ub.udict(typing.cast('dict[str, typing.Any]', raw_kw))
         if kw['tee']:
             if not ub.WIN32:
                 expanded_grid.append(kw | {'tee_backend': 'select'})
