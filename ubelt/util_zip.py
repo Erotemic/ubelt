@@ -322,9 +322,21 @@ class zopen(NiceRepr):
 
     def __getattr__(self, key: str) -> typing.Any:
         # Expose attributes of wrapped handle
-        if hasattr(self._handle, key):
-            assert self._handle is not self
-            return getattr(self._handle, key)
+        handle = self.__dict__.get('_handle', None)
+        if handle is not None and hasattr(handle, key):
+            assert handle is not self
+            attr = getattr(handle, key)
+            if callable(attr):
+                # Keep this zopen instance alive until delegated calls finish.
+                # Otherwise expressions like ``zopen(path).read()`` can drop
+                # the temporary zopen between attribute lookup and the call,
+                # causing __del__ to close the underlying handle too early.
+                def _proxy(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
+                    current = self._handle
+                    return getattr(current, key)(*args, **kwargs)
+
+                return _proxy
+            return attr
         raise AttributeError(key)
 
     def __dir__(self) -> list[str]:
@@ -340,19 +352,28 @@ class zopen(NiceRepr):
         return sorted(keyset | zopen_attributes)
 
     def _cleanup(self) -> None:
-        # print('self._cleanup = {!r}'.format(self._cleanup))
-        if self._handle is not None:
-            if not getattr(self, 'closed', True):
-                closemethod = getattr(self, 'close', None)
-                if closemethod is not None:  # nocover
-                    closemethod()
-                closemethod = None
+        self.close()
         self._handle = None
-        if self._temp_dpath and exists(self._temp_dpath):
-            # os.unlink(self._temp_dpath)
-            from ubelt.util_io import delete
+        self._zfile_read = None
 
-            delete(self._temp_dpath)
+    def close(self) -> None:
+        """Close all resources owned by this file wrapper."""
+        handle = self.__dict__.get('_handle', None)
+        zfile = self.__dict__.get('_zfile_read', None)
+        try:
+            if handle is not None and not getattr(handle, 'closed', True):
+                handle.close()
+        finally:
+            try:
+                if zfile is not None:
+                    zfile.close()
+            finally:
+                temp_dpath = self.__dict__.get('_temp_dpath', None)
+                if temp_dpath and exists(temp_dpath):
+                    from ubelt.util_io import delete
+
+                    delete(temp_dpath)
+                self._temp_dpath = None
 
     def __del__(self) -> None:
         self._cleanup()

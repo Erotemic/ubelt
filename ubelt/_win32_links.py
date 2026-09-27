@@ -551,21 +551,22 @@ def _win32_read_junction(path: str | os.PathLike) -> str:
     if handle == jwfs.api.INVALID_HANDLE_VALUE:
         raise OSError()
 
-    res = jwfs.reparse.DeviceIoControl(
-        handle, jwfs.api.FSCTL_GET_REPARSE_POINT, None, 10240
-    )
-
-    bytes = ctypes.create_string_buffer(res)
-    p_rdb = ctypes.cast(bytes, ctypes.POINTER(jwfs.api.REPARSE_DATA_BUFFER))
-    rdb = p_rdb.contents
-
-    if rdb.tag not in [2684354563, jwfs.api.IO_REPARSE_TAG_SYMLINK]:
-        raise RuntimeError(
-            'Expected <2684354563 or 2684354572>, but got %d' % rdb.tag
+    try:
+        res = jwfs.reparse.DeviceIoControl(
+            handle, jwfs.api.FSCTL_GET_REPARSE_POINT, None, 10240
         )
+        bytes = ctypes.create_string_buffer(res)
+        p_rdb = ctypes.cast(bytes, ctypes.POINTER(jwfs.api.REPARSE_DATA_BUFFER))
+        rdb = p_rdb.contents
 
-    jwfs.handle_nonzero_success(jwfs.api.CloseHandle(handle))
-    subname = rdb.get_substitute_name()
+        if rdb.tag not in [2684354563, jwfs.api.IO_REPARSE_TAG_SYMLINK]:
+            raise RuntimeError(
+                'Expected <2684354563 or 2684354572>, but got %d' % rdb.tag
+            )
+        subname = rdb.get_substitute_name()
+    finally:
+        jwfs.handle_nonzero_success(jwfs.api.CloseHandle(handle))
+
     # probably has something to do with long paths, not sure
     if subname.startswith('?\\'):
         subname = subname[2:]

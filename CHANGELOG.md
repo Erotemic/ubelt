@@ -18,6 +18,18 @@ This project (loosely) adheres to [Semantic Versioning](https://semver.org/spec/
   behavior is preserved for backwards compatibility, but callers should choose
   an explicit mode before Ubelt 2.0.0.
 
+### Fixed
+* Fixed negative fractional and sub-minute UTC offsets, and daylight-saving
+  handling in local timestamp/time parsing.
+* Fixed ``zopen`` resource cleanup and delegated calls on temporary instances.
+* Fixed ``download`` request-header merging and the reported transfer rate.
+* Fixed symlink idempotence for equivalent target spellings and corrected the
+  physical-path collision error message.
+* Fixed ANSI-aware repr alignment, bound-method injection, and zero-value base
+  conversion.
+* Fixed ``SerialFuture`` so evaluation, exceptions, and callbacks occur once.
+* Fixed two Windows reparse-point resource/result handling errors.
+
 
 ## Version 1.4.2 - Released 2026-04-12
 

@@ -119,7 +119,12 @@ def inject_method(
         >>> ub.inject_method(self, baz, 'bar')
         >>> assert self.bar() == 'baz'
     """
-    # TODO: if func is a bound method we should probably unbind it
+    bound_func = getattr(func, '__func__', None)
+    bound_self = getattr(func, '__self__', None)
+    if bound_func is not None and bound_self is not None:
+        # Rebind methods to the requested instance rather than preserving the
+        # instance they happened to be bound to when passed in.
+        func = bound_func
     new_method = func.__get__(self, self.__class__)  # type: ignore
     if name is None:
         name = getattr(func, '__name__', None)
@@ -237,7 +242,7 @@ def compatible(
     import inspect
 
     sig = inspect.signature(func)
-    argnames: list[str] = []
+    argnames = []
     has_kwargs = False
     for arg in sig.parameters.values():
         if arg.kind == inspect.Parameter.VAR_KEYWORD:
@@ -257,8 +262,6 @@ def compatible(
     # Test if keywords is a non-string iterable
     if not isinstance(keywords, (bool, str)):
         if isinstance(keywords, IterableABC):
-            if typing.TYPE_CHECKING:
-                keywords = typing.cast(typing.Iterable[str], keywords)
             argnames.extend(keywords)
             keywords = False
         else:

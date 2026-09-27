@@ -199,7 +199,9 @@ def timestamp(
     if datetime_obj is None or datetime_obj.tzinfo is None:
         # In either case, we need to construct a timezone object
         tzinfo = _timezone_coerce(
-            default_timezone, allow_dateutil=allow_dateutil
+            default_timezone,
+            allow_dateutil=allow_dateutil,
+            datetime_obj=datetime_obj,
         )
         # If datetime_obj is unspecified, create a timezone aware now object
         if datetime_obj is None:
@@ -215,17 +217,32 @@ def timestamp(
         raise ValueError(
             f'{tzinfo!r}.utcoffset({datetime_obj!r}) returned None'
         )
-    offset_seconds = offset.total_seconds()
-    # offset_seconds = tzinfo.utcoffset(None).total_seconds()
+    total_microseconds = (
+        (offset.days * 86400 + offset.seconds) * 1000000
+        + offset.microseconds
+    )
 
-    seconds_per_hour = 3600
-    tz_hour, tz_remain = divmod(offset_seconds, seconds_per_hour)
-    tz_hour = int(tz_hour)
-    if tz_remain:
-        seconds_per_minute = 60
-        tz_min = int(tz_remain // seconds_per_minute)
-        utc_offset = '{:+03d}{:02d}'.format(tz_hour, tz_min)
+    microseconds_per_second = 1000000
+    microseconds_per_minute = 60 * microseconds_per_second
+    microseconds_per_hour = 60 * microseconds_per_minute
+    tz_sign = -1 if total_microseconds < 0 else 1
+    tz_hour, tz_remain = divmod(
+        abs(total_microseconds), microseconds_per_hour
+    )
+    tz_min, tz_remain = divmod(tz_remain, microseconds_per_minute)
+    tz_second, tz_microsecond = divmod(tz_remain, microseconds_per_second)
+    sign_char = '-' if tz_sign < 0 else '+'
+    if tz_second or tz_microsecond:
+        second_text = '{:02d}'.format(tz_second)
+        if tz_microsecond:
+            second_text += '.{:06d}'.format(tz_microsecond).rstrip('0')
+        utc_offset = '{}{:02d}{:02d}{}'.format(
+            sign_char, tz_hour, tz_min, second_text
+        )
+    elif tz_min:
+        utc_offset = '{}{:02d}{:02d}'.format(sign_char, tz_hour, tz_min)
     else:
+        tz_hour *= tz_sign
         utc_offset = str(tz_hour) if tz_hour < 0 else '+' + str(tz_hour)
     if precision > 0:
         fprecision = 6  # microseconds are padded to 6 decimals
@@ -422,7 +439,9 @@ def timeparse(
     if datetime_obj.tzinfo is None:
         # Timezone is unspecified, need to construct the default one.
         tzinfo = _timezone_coerce(
-            default_timezone, allow_dateutil=allow_dateutil
+            default_timezone,
+            allow_dateutil=allow_dateutil,
+            datetime_obj=datetime_obj,
         )
         datetime_obj = datetime_obj.replace(tzinfo=tzinfo)
 
@@ -432,6 +451,7 @@ def timeparse(
 def _timezone_coerce(
     tzinfo: str | datetime.timezone,
     allow_dateutil: bool = True,
+    datetime_obj: datetime.datetime | None = None,
 ) -> datetime.tzinfo:
     """
     Ensure output it a timezone instance.
@@ -480,21 +500,28 @@ def _timezone_coerce(
         >>> import pytest
         >>> from ubelt.util_time import *  # NOQA
         >>> from ubelt.util_time import _timezone_coerce
-        >>> import time
+        >>> import datetime as datetime_mod
         >>> tz1 = _timezone_coerce('local', allow_dateutil=0)
         >>> tz2 = _timezone_coerce('local', allow_dateutil=1)
-        >>> sec1 = tz1.utcoffset(None).total_seconds()
-        >>> sec2 = tz2.utcoffset(None).total_seconds()
-        >>> assert sec1 == sec2 == -time.timezone
+        >>> now = datetime_mod.datetime.now()
+        >>> sec1 = tz1.utcoffset(now).total_seconds()
+        >>> sec2 = tz2.utcoffset(now).total_seconds()
+        >>> expected = now.astimezone().utcoffset().total_seconds()
+        >>> assert sec1 == sec2 == expected
     """
     import datetime as datetime_mod
 
     out_tzinfo: datetime.tzinfo
     if isinstance(tzinfo, str):
         if tzinfo == 'local':
-            # Note: the local timezone time.timezone is negated
-            _delta = datetime_mod.timedelta(seconds=-time.timezone)
-            out_tzinfo = datetime_mod.timezone(_delta)
+            # Let the platform determine the local offset for the date in
+            # question. In particular, ``time.timezone`` only represents the
+            # standard-time offset and is wrong during daylight saving time.
+            if datetime_obj is None:
+                datetime_obj = datetime_mod.datetime.now()
+            local_aware = datetime_obj.astimezone()
+            assert local_aware.tzinfo is not None
+            out_tzinfo = local_aware.tzinfo
         elif tzinfo == 'utc':
             out_tzinfo = datetime_mod.timezone.utc
         else:

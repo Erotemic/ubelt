@@ -257,7 +257,7 @@ def symlink(
         if verbose:
             print('... already exists')
         pointed = _readlink(link)
-        if pointed == path:
+        if pointed == path or _symlink_targets_equivalent(link, pointed, path):
             if verbose > 1:
                 print('... and points to the right place')
             return link
@@ -286,7 +286,7 @@ def symlink(
             if verbose:
                 print('... already exists, but its a file. This will error.')
             raise FileExistsError(
-                'cannot overwrite a physical path: "{}"'.format(path)
+                'cannot overwrite a physical path: "{}"'.format(link)
             )
         else:  # nocover
             if verbose:
@@ -308,6 +308,23 @@ def symlink(
         )
 
     return link
+
+
+def _symlink_targets_equivalent(
+    link: str | os.PathLike,
+    target1: str | os.PathLike,
+    target2: str | os.PathLike,
+) -> bool:
+    """Check if two symlink target strings name the same path."""
+    link_parent = os.path.dirname(os.path.abspath(os.fsdecode(link)))
+
+    def _normalize_target(target: str | os.PathLike) -> str:
+        target_ = os.fsdecode(target)
+        if not os.path.isabs(target_):
+            target_ = os.path.join(link_parent, target_)
+        return os.path.normcase(os.path.abspath(target_))
+
+    return _normalize_target(target1) == _normalize_target(target2)
 
 
 def _readlink(link: str | bytes | os.PathLike[str] | os.PathLike[bytes]) -> str:
