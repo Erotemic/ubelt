@@ -27,10 +27,15 @@ from __future__ import annotations
 
 import os
 import sys
+import typing
 import warnings
 from os.path import exists, islink, join, normpath
 
 from ubelt import util_io, util_platform
+from ubelt.util_const import NoParam
+
+if typing.TYPE_CHECKING:
+    from ubelt.util_const import NoParamType
 
 __all__ = ['symlink']
 
@@ -45,7 +50,9 @@ def symlink(
     link_path: str | os.PathLike,
     overwrite: bool = False,
     verbose: int = 0,
-) -> str:
+    *,
+    relative: bool | typing.Literal['legacy'] | NoParamType = NoParam,
+) -> str | os.PathLike:
     """
     Create a link ``link_path`` that mirrors ``real_path``.
 
@@ -65,8 +72,16 @@ def symlink(
 
         verbose (int): verbosity level. Defaults to 0.
 
+        relative (bool | str):
+            Controls how the symlink target is encoded. ``True`` makes it
+            relative, ``False`` makes it absolute, and ``'legacy'`` preserves
+            historical behavior. Emits a warning if omitted and ``real_path``
+            is relative (buggy behavior is the default for backwards compat,
+            ensure real_path is absolute, or specify this arg, in the future
+            the default behavior may change to be non-buggy).
+
     Returns:
-        str: normalized link path
+        str | PathLike: link path
 
     Note:
         In the future we may rework and rename this function to something like
@@ -91,7 +106,9 @@ def symlink(
         support symlinks (e.g. Linux), none of the above applies.
 
     Note:
-        This function may contain a bug when creating a relative link
+        The historical behavior for relative ``real_path`` inputs is retained
+        for backwards compatibility. New code should pass ``relative=True`` or
+        ``relative=False`` explicitly when ``real_path`` is relative.
 
     References:
         .. [WikiSymLink] https://en.wikipedia.org/wiki/Symbolic_link
@@ -150,6 +167,23 @@ def symlink(
         >>> import ubelt as ub
         >>> if ub.WIN32:
         >>>     pytest.skip()  # hack for windows for now. Todo cleaner xdoctest conditional
+        >>> # Explicitly request a relocatable relative symbolic link.
+        >>> dpath = ub.Path.appdir('ubelt', 'test_symlink_relative').delete().ensuredir()
+        >>> real_path = (dpath / 'data' / 'real_file.txt')
+        >>> link_path = (dpath / 'links' / 'link_file.txt')
+        >>> real_path.parent.ensuredir()
+        >>> link_path.parent.ensuredir()
+        >>> real_path.write_text('foo')
+        >>> result = ub.symlink(real_path, link_path, relative=True)
+        >>> assert not os.path.isabs(os.readlink(result))
+        >>> assert ub.Path(result).read_text() == 'foo'
+        >>> dpath.delete()
+
+    Example:
+        >>> import pytest
+        >>> import ubelt as ub
+        >>> if ub.WIN32:
+        >>>     pytest.skip()  # hack for windows for now. Todo cleaner xdoctest conditional
         >>> # Specifying bad paths should error.
         >>> import ubelt as ub
         >>> import pytest
@@ -170,16 +204,52 @@ def symlink(
     path = normpath(real_path)
     link = normpath(link_path)
 
-    if not os.path.isabs(path):
-        # if path is not absolute it must be specified relative to link
-        if not _can_symlink():  # nocover
-            # On windows, we need to use absolute paths
-            path = os.path.abspath(path)
-        else:
-            # FIXME: This behavior seems like it might be wrong.
-            path = os.path.relpath(path, os.path.dirname(link))
-            # abs_path = join(os.path.dirname(link), path)
-            ...
+    if relative is NoParam:
+        if not os.path.isabs(path):
+            warnings.warn(
+                'Passing a relative real_path to ub.symlink without explicitly '
+                'specifying relative= uses legacy path semantics. This is '
+                'deprecated and will require an explicit choice in ubelt 2.0.0. '
+                'Pass relative=True to encode a relative symbolic-link target, '
+                'relative=False to encode an absolute target, or '
+                'relative="legacy" to preserve the historical behavior.',
+                FutureWarning,
+                stacklevel=2,
+            )
+        relative = 'legacy'
+    elif relative is not True and relative is not False and relative != 'legacy':
+        raise ValueError(
+            'relative must be True, False, or "legacy", got {!r}'.format(
+                relative
+            )
+        )
+
+    target_is_directory = None
+    if relative == 'legacy':
+        # Historical behavior. A relative real_path names an object relative to
+        # the current working directory, but the text stored in a real symlink
+        # is converted into the link parent's coordinate system. Keep this
+        # branch byte-for-byte compatible with previous behavior where possible.
+        if not os.path.isabs(path):
+            if not _can_symlink():  # nocover
+                # On windows fallbacks, we need to use absolute paths.
+                path = os.path.abspath(path)
+            else:
+                path = os.path.relpath(path, os.path.dirname(link))
+    else:
+        # Explicit modes separate how real_path is interpreted from how an
+        # actual symbolic-link target is represented.
+        path = os.path.abspath(path)
+        if _win32_links is not None:  # nocover
+            # Windows symlink creation needs to know whether the target is a
+            # directory. Probe while path still names the source directly,
+            # before relative=True changes its coordinate system.
+            target_is_directory = os.path.isdir(path)
+        if relative:
+            if _can_symlink():
+                link_parent = os.path.dirname(os.path.abspath(link))
+                path = os.path.relpath(path, link_parent)
+            # Otherwise the Windows fallback will use an absolute source path.
 
     if verbose:
         print('Symlink: {link} -> {path}'.format(path=path, link=link))
@@ -229,7 +299,13 @@ def symlink(
     if _win32_links is None:
         os.symlink(path, link)
     else:  # nocover
-        _win32_links._symlink(path, link, overwrite=overwrite, verbose=verbose)
+        _win32_links._symlink(
+            path,
+            link,
+            overwrite=overwrite,
+            verbose=verbose,
+            target_is_directory=target_is_directory,
+        )
 
     return link
 

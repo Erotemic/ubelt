@@ -4,10 +4,19 @@ We are currently working on porting this changelog to the specifications in
 [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 This project (loosely) adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Version 1.4.4 - Unreleased
+## Version 1.4.3 - Unreleased
 
+### Added
+* Added an explicit ``relative=`` mode to ``ub.symlink``. ``relative=True``
+  requests a relative symbolic-link target and ``relative=False`` requests an
+  absolute target. The temporary ``relative='legacy'`` mode preserves the old
+  behavior without warnings.
 
-## Version 1.4.3 - Released 2026-07-30
+### Deprecated
+* Calling ``ub.symlink`` with a relative ``real_path`` and without explicitly
+  specifying ``relative=`` now emits a ``FutureWarning``. The historical
+  behavior is preserved for backwards compatibility, but callers should choose
+  an explicit mode before Ubelt 2.0.0.
 
 
 ## Version 1.4.2 - Released 2026-04-12
