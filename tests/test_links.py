@@ -7,6 +7,7 @@ from __future__ import annotations
 import os
 import sys
 import typing
+import warnings
 from os.path import dirname, exists, isdir, isfile, islink, join, relpath
 
 import pytest
@@ -49,7 +50,7 @@ def test_rel_dir_link() -> None:
         os.chdir(dpath)
         real_path = relpath(real_dpath, dpath)
         link_path = relpath(link_dpath, dpath)
-        link = ub.symlink(real_path, link_path)
+        link = ub.symlink(real_path, link_path, relative='legacy')
         # Note: on windows this is hacked.
         pointed = ub.util_links._readlink(link)
         resolved = os.path.realpath(ub.expandpath(join(dirname(link), pointed)))
@@ -106,7 +107,7 @@ def test_rel_file_link() -> None:
         os.chdir(dpath)
         real_path = relpath(real_fpath, dpath)
         link_path = relpath(link_fpath, dpath)
-        link = ub.symlink(real_path, link_path)
+        link = ub.symlink(real_path, link_path, relative='legacy')
         import sys
 
         if sys.platform.startswith('win32') and isfile(link):
@@ -531,6 +532,218 @@ def _force_junction(
     return _wrap
 
 
+def test_symlink_relative_modes(tmp_path) -> None:
+    """Explicit modes control representation without changing source identity."""
+    if not util_links._can_symlink():
+        pytest.skip('requires real symbolic links')
+
+    real = tmp_path / 'data' / 'real.txt'
+    link_parent = tmp_path / 'links'
+    link = link_parent / 'link.txt'
+    real.parent.mkdir()
+    link_parent.mkdir()
+    real.write_text('data')
+
+    result = ub.symlink(real, link, relative=True)
+    pointed = os.readlink(result)
+    assert pointed == os.path.relpath(real, link.parent)
+    assert not os.path.isabs(pointed)
+    assert link.read_text() == 'data'
+
+    link.unlink()
+    result = ub.symlink(real, link, relative=False)
+    pointed = os.readlink(result)
+    assert pointed == os.path.abspath(real)
+    assert os.path.isabs(pointed)
+    assert link.read_text() == 'data'
+
+
+def test_symlink_explicit_modes_with_relative_source(tmp_path, monkeypatch) -> None:
+    """A relative source is cwd-relative in both new explicit modes."""
+    if not util_links._can_symlink():
+        pytest.skip('requires real symbolic links')
+
+    real = tmp_path / 'data' / 'real.txt'
+    link_parent = tmp_path / 'links'
+    link = link_parent / 'link.txt'
+    real.parent.mkdir()
+    link_parent.mkdir()
+    real.write_text('data')
+    monkeypatch.chdir(tmp_path)
+
+    ub.symlink('data/real.txt', 'links/link.txt', relative=True)
+    assert os.readlink(link) == os.path.relpath(real, link.parent)
+    assert link.read_text() == 'data'
+
+    link.unlink()
+    ub.symlink('data/real.txt', 'links/link.txt', relative=False)
+    assert os.readlink(link) == os.path.abspath(real)
+    assert link.read_text() == 'data'
+
+
+def test_symlink_explicit_modes_do_not_probe_target_type_on_posix(
+    tmp_path, monkeypatch
+) -> None:
+    """Directory-type probing is only needed by the Windows implementation."""
+    if util_links._win32_links is not None:
+        pytest.skip('POSIX-specific behavior')
+
+    real = tmp_path / 'real.txt'
+    link = tmp_path / 'link.txt'
+    real.write_text('data')
+
+    def fail_isdir(path):
+        raise AssertionError('POSIX symlink creation should not call isdir')
+
+    monkeypatch.setattr(os.path, 'isdir', fail_isdir)
+    ub.symlink(real, link, relative=True)
+    assert link.read_text() == 'data'
+
+
+def test_symlink_implicit_relative_source_warns(tmp_path, monkeypatch) -> None:
+    """Omission preserves legacy behavior but asks callers to choose a mode."""
+    if not util_links._can_symlink():
+        pytest.skip('requires real symbolic links')
+
+    real = tmp_path / 'data' / 'real.txt'
+    link_parent = tmp_path / 'links'
+    link = link_parent / 'link.txt'
+    real.parent.mkdir()
+    link_parent.mkdir()
+    real.write_text('data')
+    monkeypatch.chdir(tmp_path)
+
+    with pytest.warns(FutureWarning, match='relative='):
+        ub.symlink('data/real.txt', 'links/link.txt')
+    expected = os.path.relpath('data/real.txt', 'links')
+    assert os.readlink(link) == expected
+    assert link.read_text() == 'data'
+
+    link.unlink()
+    with warnings.catch_warnings():
+        warnings.simplefilter('error', FutureWarning)
+        ub.symlink('data/real.txt', 'links/link.txt', relative='legacy')
+    assert os.readlink(link) == expected
+    assert link.read_text() == 'data'
+
+
+def test_symlink_absolute_source_omission_does_not_warn(tmp_path) -> None:
+    """The common historical absolute-source call remains quiet."""
+    real = tmp_path / 'real.txt'
+    link = tmp_path / 'link.txt'
+    real.write_text('data')
+    with warnings.catch_warnings():
+        warnings.simplefilter('error', FutureWarning)
+        ub.symlink(real, link)
+    assert link.read_text() == 'data'
+
+
+def test_symlink_invalid_relative_mode(tmp_path) -> None:
+    real = tmp_path / 'real.txt'
+    link = tmp_path / 'link.txt'
+    real.write_text('data')
+    with pytest.raises(ValueError, match='relative must be'):
+        ub.symlink(real, link, relative='sometimes')
+
+
+def test_symlink_explicit_mode_passes_windows_target_type(monkeypatch, tmp_path) -> None:
+    """The public helper computes directory type before relativizing targets."""
+    calls = []
+
+    class FakeWin32Links:
+        can_symlink = True
+
+        @classmethod
+        def _win32_can_symlink(cls, verbose=0):
+            return cls.can_symlink
+
+        @staticmethod
+        def _symlink(
+            path,
+            link,
+            overwrite=False,
+            verbose=0,
+            target_is_directory=None,
+        ):
+            calls.append(
+                {
+                    'path': path,
+                    'link': link,
+                    'target_is_directory': target_is_directory,
+                }
+            )
+            return link
+
+    monkeypatch.setattr(util_links, '_win32_links', FakeWin32Links)
+    real = tmp_path / 'real_dir'
+    real.mkdir()
+    link_parent = tmp_path / 'links'
+    link_parent.mkdir()
+
+    link1 = link_parent / 'link1'
+    ub.symlink(real, link1, relative=True)
+    assert calls[-1]['path'] == os.path.relpath(real, link1.parent)
+    assert calls[-1]['target_is_directory'] is True
+
+    link2 = link_parent / 'link2'
+    ub.symlink(real, link2, relative='legacy')
+    assert calls[-1]['path'] == os.path.normpath(real)
+    assert calls[-1]['target_is_directory'] is None
+
+    FakeWin32Links.can_symlink = False
+    link3 = link_parent / 'link3'
+    ub.symlink(real, link3, relative=True)
+    assert calls[-1]['path'] == os.path.abspath(real)
+    assert calls[-1]['target_is_directory'] is True
+
+
+def test_win32_symlink_target_type_hint(monkeypatch, tmp_path) -> None:
+    """Explicit relative mode keeps target type knowledge on Windows."""
+    from ubelt import _win32_links
+
+    forwarded = {}
+    orig_win32_symlink2 = _win32_links._win32_symlink2
+
+    def fake_win32_symlink2(
+        path,
+        link,
+        allow_fallback=True,
+        verbose=0,
+        target_is_directory=None,
+    ):
+        forwarded['target_is_directory'] = target_is_directory
+        return link
+
+    monkeypatch.setattr(_win32_links, '_win32_symlink2', fake_win32_symlink2)
+    link = tmp_path / 'link'
+    _win32_links._symlink(
+        tmp_path / 'target',
+        link,
+        target_is_directory=True,
+    )
+    assert forwarded['target_is_directory'] is True
+    monkeypatch.setattr(_win32_links, '_win32_symlink2', orig_win32_symlink2)
+
+    called = {}
+
+    def fake_win32_symlink(
+        path,
+        link,
+        verbose=0,
+        target_is_directory=None,
+    ):
+        called['target_is_directory'] = target_is_directory
+        return link
+
+    monkeypatch.setattr(_win32_links, '_win32_can_symlink', lambda: True)
+    monkeypatch.setattr(_win32_links, '_win32_symlink', fake_win32_symlink)
+    _win32_links._win32_symlink2(
+        'relative-target',
+        'link',
+        target_is_directory=True,
+    )
+    assert called['target_is_directory'] is True
+
 def test_symlink_to_rel_symlink() -> None:
     """
     Test a case with a absolute link to a relative link to a real path.
@@ -554,9 +767,9 @@ def test_symlink_to_rel_symlink() -> None:
 
     print('Should create')
 
-    # rel_link1_to_real = os.path.relpath(real, link1.parent)
-    # FIXME: This ub.symlink behavior seems broken
-
+    # Create the relative pointer directly. The check below intentionally
+    # documents a separate idempotence limitation: ub.symlink currently
+    # compares the stored target text, not resolved target identity.
     link1.symlink_to(os.path.relpath(real, link1.parent))
     # ub.symlink(real_path=rel_link1_to_real, link_path=link1, verbose=3)
 
