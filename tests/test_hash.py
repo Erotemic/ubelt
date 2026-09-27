@@ -9,6 +9,7 @@ import pytest
 import ubelt as ub
 from ubelt.util_hash import (
     _ALPHABET_16,
+    _ALPHABET_26,
     _convert_hexstr_base,
     _hashable_sequence,
     _rectify_hasher,
@@ -548,6 +549,7 @@ def test_convert_base_simple() -> None:
 
     base_10 = list(map(str, range(10)))
     assert _convert_hexstr_base('aaa0111', base_10) == '178913553'
+    assert _convert_hexstr_base('0', _ALPHABET_26) == _ALPHABET_26[0]
 
 
 def test_no_prefix() -> None:

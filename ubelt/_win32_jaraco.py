@@ -246,7 +246,7 @@ def _reparse_DeviceIoControl(
     )
 
     handle_nonzero_success(res)
-    handle_nonzero_success(returned_bytes)
+    handle_nonzero_success(returned_bytes.value)
 
     return bytes(out_buffer[: returned_bytes.value])
 

@@ -767,9 +767,8 @@ def test_symlink_to_rel_symlink() -> None:
 
     print('Should create')
 
-    # Create the relative pointer directly. The check below intentionally
-    # documents a separate idempotence limitation: ub.symlink currently
-    # compares the stored target text, not resolved target identity.
+    # Create the relative pointer directly. ub.symlink should recognize that
+    # an equivalent absolute target already points to the same location.
     link1.symlink_to(os.path.relpath(real, link1.parent))
     # ub.symlink(real_path=rel_link1_to_real, link_path=link1, verbose=3)
 
@@ -785,10 +784,8 @@ def test_symlink_to_rel_symlink() -> None:
     """
     # _ = ub.cmd(f'tree {dpath}', verbose=3)
 
-    import pytest
-
-    with pytest.raises(FileExistsError):
-        ub.symlink(real_path=real, link_path=link1, verbose=3)
+    result = ub.symlink(real_path=real, link_path=link1, verbose=3)
+    assert os.fspath(result) == os.fspath(link1)
 
     # ub.symlink(real_path=link1, link_path=link2, verbose=1)
 
@@ -830,3 +827,97 @@ if __name__ == '__main__':
     import xdoctest
 
     xdoctest.doctest_module(__file__)
+
+
+def test_symlink_idempotence_equivalent_target_spellings(tmp_path) -> None:
+    if not util_links._can_symlink():
+        pytest.skip('requires real symbolic links')
+
+    real = tmp_path / 'data' / 'real.txt'
+    link = tmp_path / 'links' / 'link.txt'
+    real.parent.mkdir()
+    link.parent.mkdir()
+    real.write_text('data')
+
+    stored_target = os.path.relpath(real, link.parent)
+    os.symlink(stored_target, link)
+    before = os.readlink(link)
+
+    result = ub.symlink(real, link, relative=False)
+    assert os.fspath(result) == os.fspath(link)
+    assert os.readlink(link) == before
+    assert link.read_text() == 'data'
+
+
+def test_symlink_idempotence_equivalent_broken_targets(tmp_path) -> None:
+    if not util_links._can_symlink():
+        pytest.skip('requires real symbolic links')
+
+    missing = tmp_path / 'data' / 'missing.txt'
+    link = tmp_path / 'links' / 'link.txt'
+    link.parent.mkdir()
+
+    stored_target = os.path.relpath(missing, link.parent)
+    os.symlink(stored_target, link)
+    result = ub.symlink(missing, link, relative=False)
+    assert os.fspath(result) == os.fspath(link)
+    assert os.readlink(link) == stored_target
+    assert not link.exists()
+
+
+def test_symlink_physical_collision_error_names_link(tmp_path) -> None:
+    real = tmp_path / 'real.txt'
+    link = tmp_path / 'occupied.txt'
+    real.write_text('source')
+    link.write_text('occupied')
+
+    with pytest.raises(FileExistsError) as exc_info:
+        ub.symlink(real, link)
+    message = str(exc_info.value)
+    assert str(link) in message
+    assert str(real) not in message
+
+
+def test_win32_read_junction_closes_handle_on_error(monkeypatch) -> None:
+    from ubelt import _win32_links
+
+    closed = []
+
+    class FakeApi:
+        INVALID_HANDLE_VALUE = -1
+        OPEN_EXISTING = 3
+        FILE_FLAG_OPEN_REPARSE_POINT = 0x1
+        FILE_FLAG_BACKUP_SEMANTICS = 0x2
+        FSCTL_GET_REPARSE_POINT = 0x3
+
+        @staticmethod
+        def CreateFile(*args):
+            return 123
+
+        @staticmethod
+        def CloseHandle(handle):
+            closed.append(handle)
+            return 1
+
+    class FakeReparse:
+        @staticmethod
+        def DeviceIoControl(*args):
+            raise RuntimeError('device failure')
+
+    class FakeJwfs:
+        api = FakeApi
+        reparse = FakeReparse
+
+        @staticmethod
+        def is_reparse_point(path):
+            return True
+
+        @staticmethod
+        def handle_nonzero_success(result):
+            if result == 0:
+                raise OSError
+
+    monkeypatch.setattr(_win32_links, 'jwfs', FakeJwfs)
+    with pytest.raises(RuntimeError, match='device failure'):
+        _win32_links._win32_read_junction('fake-junction')
+    assert closed == [123]

@@ -59,7 +59,7 @@ import typing
 from ubelt import util_list, util_str
 
 if typing.TYPE_CHECKING:
-    from typing import Any, Callable, Collection, Iterable, Literal, TypedDict
+    from typing import Any, Callable, Collection, Iterable, TypedDict
 
     try:
         from typing import Unpack
@@ -100,7 +100,7 @@ if typing.TYPE_CHECKING:
         kvsep: str
         itemsep: str
 
-        sort: bool | Callable[[Any], Any] | None | Literal['auto']
+        sort: bool | Callable[..., object] | None | str
 
         suppress_small: bool
         supress_small: bool  # legacy misspelling used by numpy formatter
@@ -1069,7 +1069,6 @@ def _dict_itemstrs(
             sort = False
 
     if sort:
-        key: Callable[[Any], Any] | None
         key = sort if callable(sort) else None
         itemstrs = _sort_itemstrs(items, itemstrs, key)
     return itemstrs, _leaf_info
@@ -1103,7 +1102,6 @@ def _list_itemstrs(
         # but keep ordering of ordered collections like lists.
         sort = isinstance(list_, (set, frozenset))
     if sort:
-        key: Callable[[Any], Any] | None
         key = sort if callable(sort) else None
         itemstrs = _sort_itemstrs(items, itemstrs, key)
     return itemstrs, _leaf_info
@@ -1327,7 +1325,12 @@ def _align_lines(
             lhs = character.join(tup[0:rpos])
             rhs = character.join(tup[rpos:])
             # pad the new line with requested justification
-            newline = lhs.ljust(maxlen) + replchar + rhs
+            if handle_ansi:  # nocover
+                visible_lhs = ansi_escape.sub('', lhs)
+                padlen = maxlen - len(visible_lhs)
+                newline = lhs + (' ' * padlen) + replchar + rhs
+            else:  # nocover
+                newline = lhs.ljust(maxlen) + replchar + rhs
             new_lines.append(newline)
         else:
             new_lines.append(replchar.join(tup))

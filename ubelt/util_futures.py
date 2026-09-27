@@ -106,6 +106,11 @@ class SerialFuture(concurrent.futures.Future, typing.Generic[T]):
     Non-threading / multiprocessing version of future for drop in compatibility
     with concurrent.futures.
 
+    The callable is evaluated lazily the first time its result or exception is
+    requested. Internally this future advertises a finished state so it remains
+    compatible with :func:`concurrent.futures.as_completed`; the public future
+    methods track whether the callable has actually been evaluated.
+
     TODO:
         warn if the user specifies timeout as we cannot handle it without
         threads
@@ -127,55 +132,89 @@ class SerialFuture(concurrent.futures.Future, typing.Generic[T]):
         self.func = func
         self.args = args
         self.kw = kw
-        # self._condition = FakeCondition()
         self._run_count = 0
-        # fake being finished to cause __get_result to be called
+        # Pretend to concurrent.futures.as_completed that this lazy serial job
+        # is available to collect. Public methods below use _run_count to
+        # distinguish that compatibility state from actual evaluation.
         self._state = concurrent.futures._base.FINISHED
 
     def _run(self) -> None:
-        result = self.func(*self.args, **self.kw)
-        self.set_result(result)
-        self._run_count += 1
+        if self._run_count:
+            return
+        try:
+            result = self.func(*self.args, **self.kw)
+        except BaseException as ex:
+            self.set_exception(ex)
+        else:
+            self.set_result(result)
+
+    def done(self) -> bool:
+        """Return True once the serial callable has actually been evaluated."""
+        with self._condition:
+            return bool(self._run_count)
+
+    def add_done_callback(
+        self,
+        fn: typing.Callable[[concurrent.futures.Future[T]], typing.Any],
+    ) -> None:
+        """Attach a callback that runs after actual serial evaluation."""
+        with self._condition:
+            if not self._run_count:
+                self._done_callbacks.append(fn)
+                return
+        try:
+            fn(self)
+        except Exception:
+            concurrent.futures._base.LOGGER.exception(
+                'exception calling callback for %r', self
+            )
+
+    def exception(self, timeout: float | None = None) -> BaseException | None:
+        """Evaluate the serial callable once and return its exception, if any."""
+        if not self._run_count:
+            self._run()
+        return self._exception
 
     def set_result(self, result: T) -> None:
-        """
-        Overrides the implementation to revert to pre python3.8 behavior
-
-        Example:
-            >>> # Just for coverage
-            >>> from ubelt.util_futures import SerialFuture  # NOQA
-            >>> self = SerialFuture(print, 'arg1', 'arg2')
-            >>> self.add_done_callback(lambda x: print('done callback got x = {}'.format(x)))
-            >>> print('result() before set_result()')
-            >>> ret = self.result()
-            >>> print('ret = {!r}'.format(ret))
-            >>> self.set_result(1)
-            >>> ret = self.result()
-            >>> print('ret = {!r}'.format(ret))
-            >>> #
-            >>> print('set_result() before result()')
-            >>> self = SerialFuture(print, 'arg1', 'arg2')
-            >>> self.add_done_callback(lambda x: print('done callback got x = {}'.format(x)))
-            >>> self.set_result(1)
-            >>> ret = self.result()
-            >>> print('ret = {!r}'.format(ret))
-        """
+        """Mark this serial future complete with ``result``."""
         with self._condition:
+            if self._run_count:
+                raise concurrent.futures.InvalidStateError(
+                    '{}: {!r}'.format(self._state, self)
+                )
             self._result = result
-            self._state = concurrent.futures._base.FINISHED
-            # I'm cheating a little by not covering this.
-            # Lets call it, cheating in good faith. *shifty eyes*
-            # I don't know how to test it, and its not a critical pieces of the
-            # library. Consider it a bug.  help wanted.
+            self._exception = None
+            self._run_count = 1
             for waiter in self._waiters:  # nocover
                 waiter.add_result(self)
             self._condition.notify_all()
         self._invoke_callbacks()  # type: ignore
 
+    def set_exception(self, exception: BaseException) -> None:
+        """Mark this serial future complete with ``exception``."""
+        with self._condition:
+            if self._run_count:
+                raise concurrent.futures.InvalidStateError(
+                    '{}: {!r}'.format(self._state, self)
+                )
+            self._exception = exception
+            self._result = None
+            self._run_count = 1
+            for waiter in self._waiters:  # nocover
+                waiter.add_exception(self)
+            self._condition.notify_all()
+        self._invoke_callbacks()  # type: ignore
+
     def _Future__get_result(self) -> typing.Any:
-        # overrides private __getresult method
+        # Override Future's private result helper so lazy serial jobs execute on
+        # first collection while still appearing available to as_completed.
         if not self._run_count:
             self._run()
+        if self._exception is not None:
+            try:
+                raise self._exception
+            finally:
+                self = None  # type: ignore
         return self._result
 
 

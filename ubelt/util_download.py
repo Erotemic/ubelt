@@ -230,9 +230,16 @@ def download(
         else:
             print('Downloading url={!r} to fpath={!r}'.format(url, fpath))
 
-    requestkw = requestkw or {}
-    requestkw['headers'] = {'User-Agent': 'Mozilla/5.0'}  # type: ignore
-    req = Request(url, **requestkw)  # type: ignore
+    if requestkw is NoParam or requestkw is None:
+        requestkw_ = {}
+    else:
+        requestkw_ = dict(requestkw)
+    headers = {'User-Agent': 'Mozilla/5.0'}
+    given_headers = requestkw_.get('headers', None)
+    if given_headers is not None:
+        headers.update(given_headers)
+    requestkw_['headers'] = headers
+    req = Request(url, **requestkw_)  # type: ignore
     urldata = urlopen(req, timeout=timeout_)  # type: ignore
 
     meta = urldata.info()
@@ -295,11 +302,9 @@ def download(
             bytes_down = pbar._iter_idx
             total_seconds = pbar._total_seconds + 1e-9
             num_kb_down = int(bytes_down) / 1024
-            num_mb_down = int(num_kb_down / 1024)
             kb_per_second = int(num_kb_down / (total_seconds))
-            # fmt_msg = ' {:d} MB, {:d} KB/s'
             fmt_msg = ' {:d} KB/s'
-            msg = fmt_msg.format(num_mb_down, kb_per_second)
+            msg = fmt_msg.format(kb_per_second)
             return msg
 
         if progkw is not None:

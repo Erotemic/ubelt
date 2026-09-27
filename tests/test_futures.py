@@ -413,6 +413,107 @@ def test_as_completed_timeout() -> None:
         print('End of function')
 
 
+def test_serial_future_evaluates_once_on_success() -> None:
+    from ubelt.util_futures import SerialFuture
+
+    calls = []
+    callbacks = []
+
+    def worker():
+        calls.append('run')
+        return 42
+
+    future = SerialFuture(worker)
+    assert not future.done()
+    future.add_done_callback(lambda f: callbacks.append(f.result()))
+    assert callbacks == []
+
+    assert future.result() == 42
+    assert future.done()
+    assert future.exception() is None
+    assert callbacks == [42]
+    assert future.result() == 42
+    assert calls == ['run']
+
+
+def test_serial_future_evaluates_once_on_exception() -> None:
+    import pytest
+
+    from ubelt.util_futures import SerialFuture
+
+    calls = []
+    callbacks = []
+
+    class DemoError(Exception):
+        pass
+
+    def worker():
+        calls.append('run')
+        raise DemoError('boom')
+
+    future = SerialFuture(worker)
+    future.add_done_callback(lambda f: callbacks.append(f.done()))
+    assert not future.done()
+    assert callbacks == []
+
+    error = future.exception()
+    assert isinstance(error, DemoError)
+    assert future.done()
+    assert callbacks == [True]
+
+    with pytest.raises(DemoError, match='boom'):
+        future.result()
+    with pytest.raises(DemoError, match='boom'):
+        future.result()
+    assert calls == ['run']
+
+
+def test_serial_future_post_completion_paths() -> None:
+    import concurrent.futures
+
+    import pytest
+
+    from ubelt.util_futures import SerialFuture
+
+    calls = []
+    future = SerialFuture(lambda: calls.append('run') or 42)
+    assert future.result() == 42
+
+    # A direct second run is a no-op. This protects one-shot evaluation even
+    # for callers that reach the private helper.
+    future._run()
+    assert calls == ['run']
+
+    callbacks = []
+    future.add_done_callback(lambda f: callbacks.append(f.result()))
+    assert callbacks == [42]
+
+    def bad_callback(f):
+        raise RuntimeError('callback boom')
+
+    # Future callback exceptions are logged rather than propagated.
+    future.add_done_callback(bad_callback)
+
+    with pytest.raises(concurrent.futures.InvalidStateError):
+        future.set_result(43)
+    with pytest.raises(concurrent.futures.InvalidStateError):
+        future.set_exception(RuntimeError('late exception'))
+
+
+def test_serial_future_as_completed_remains_lazy() -> None:
+    import concurrent.futures
+
+    from ubelt.util_futures import SerialFuture
+
+    calls = []
+    future = SerialFuture(lambda: calls.append('run') or 3)
+    completed = list(concurrent.futures.as_completed([future]))
+    assert completed == [future]
+    assert calls == []
+    assert not future.done()
+    assert completed[0].result() == 3
+    assert calls == ['run']
+
 if __name__ == '__main__':
     """
     CommandLine:

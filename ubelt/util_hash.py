@@ -1391,7 +1391,7 @@ def _convert_hexstr_base(hexstr: str, base: Sequence[str]) -> str:
         >>> print(_convert_hexstr_base('ffffffff', _ALPHABET_26))
         nxmrlxv
         >>> print(_convert_hexstr_base('0', _ALPHABET_26))
-        0
+        a
         >>> print(_convert_hexstr_base('-ffffffff', _ALPHABET_26))
         -nxmrlxv
         >>> print(_convert_hexstr_base('aafffff1', _ALPHABET_16))
@@ -1433,7 +1433,7 @@ def _convert_hexstr_base(hexstr: str, base: Sequence[str]) -> str:
         # a similar way to base64, but for now this is fine.
         x = int(hexstr, 16)  # first convert to an integer in base 16
         if x == 0:
-            return '0'  # bug: should be base[0]
+            return base[0]
         sign = 1 if x > 0 else -1
         x *= sign
         digits = []
