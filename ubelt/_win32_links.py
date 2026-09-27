@@ -208,6 +208,7 @@ def _symlink(
     link: str | os.PathLike,
     overwrite: int | bool = 0,
     verbose: int = 0,
+    target_is_directory: bool | None = None,
 ) -> str | os.PathLike:
     """
     Windows helper for ub.symlink
@@ -266,7 +267,12 @@ def _symlink(
             if exists(link):
                 raise IOError('Link already exists')
 
-    _win32_symlink2(path, link, verbose=verbose)
+    _win32_symlink2(
+        path,
+        link,
+        verbose=verbose,
+        target_is_directory=target_is_directory,
+    )
     return link
 
 
@@ -275,6 +281,7 @@ def _win32_symlink2(
     link: str | os.PathLike,
     allow_fallback: bool = True,
     verbose: int = 0,
+    target_is_directory: bool | None = None,
 ) -> str | os.PathLike:
     """
     Perform a real symbolic link if possible. However, on most versions of
@@ -289,7 +296,12 @@ def _win32_symlink2(
     believe real symlinks will.
     """
     if _win32_can_symlink():
-        return _win32_symlink(path, link, verbose)
+        return _win32_symlink(
+            path,
+            link,
+            verbose,
+            target_is_directory=target_is_directory,
+        )
     else:
         return _win32_junction(path, link, verbose)
 
@@ -298,6 +310,7 @@ def _win32_symlink(
     path: str | os.PathLike,
     link: str | os.PathLike,
     verbose: int = 0,
+    target_is_directory: bool | None = None,
 ) -> str | os.PathLike:
     """
     Creates real symlink. This will only work in versions greater than Windows
@@ -310,7 +323,13 @@ def _win32_symlink(
 
     from ubelt import util_cmd
 
-    if os.path.isdir(path):
+    if target_is_directory is None:
+        # Preserve historical behavior for internal legacy callers. Explicit
+        # ub.symlink modes pass this hint before converting an absolute source
+        # path into a relative target string.
+        target_is_directory = os.path.isdir(path)
+
+    if target_is_directory:
         # directory symbolic link
         if verbose:
             print('... as directory symlink')
@@ -532,21 +551,22 @@ def _win32_read_junction(path: str | os.PathLike) -> str:
     if handle == jwfs.api.INVALID_HANDLE_VALUE:
         raise OSError()
 
-    res = jwfs.reparse.DeviceIoControl(
-        handle, jwfs.api.FSCTL_GET_REPARSE_POINT, None, 10240
-    )
-
-    bytes = ctypes.create_string_buffer(res)
-    p_rdb = ctypes.cast(bytes, ctypes.POINTER(jwfs.api.REPARSE_DATA_BUFFER))
-    rdb = p_rdb.contents
-
-    if rdb.tag not in [2684354563, jwfs.api.IO_REPARSE_TAG_SYMLINK]:
-        raise RuntimeError(
-            'Expected <2684354563 or 2684354572>, but got %d' % rdb.tag
+    try:
+        res = jwfs.reparse.DeviceIoControl(
+            handle, jwfs.api.FSCTL_GET_REPARSE_POINT, None, 10240
         )
+        bytes = ctypes.create_string_buffer(res)
+        p_rdb = ctypes.cast(bytes, ctypes.POINTER(jwfs.api.REPARSE_DATA_BUFFER))
+        rdb = p_rdb.contents
 
-    jwfs.handle_nonzero_success(jwfs.api.CloseHandle(handle))
-    subname = rdb.get_substitute_name()
+        if rdb.tag not in [2684354563, jwfs.api.IO_REPARSE_TAG_SYMLINK]:
+            raise RuntimeError(
+                'Expected <2684354563 or 2684354572>, but got %d' % rdb.tag
+            )
+        subname = rdb.get_substitute_name()
+    finally:
+        jwfs.handle_nonzero_success(jwfs.api.CloseHandle(handle))
+
     # probably has something to do with long paths, not sure
     if subname.startswith('?\\'):
         subname = subname[2:]

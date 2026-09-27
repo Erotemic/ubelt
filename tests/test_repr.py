@@ -486,3 +486,18 @@ if __name__ == '__main__':
     import xdoctest
 
     xdoctest.doctest_module(__file__)
+
+
+def test_align_lines_with_ansi() -> None:
+    import re
+
+    from ubelt.util_repr import _align_lines
+
+    ansi_escape = re.compile(r'\x1b[^m]*m')
+    lines = [
+        '\x1b[31ma\x1b[0m = 1',
+        'long = 2',
+    ]
+    aligned = _align_lines(lines, '=')
+    visible = [ansi_escape.sub('', line) for line in aligned]
+    assert visible[0].index('=') == visible[1].index('=')

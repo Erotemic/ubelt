@@ -844,6 +844,130 @@ def teardown_module(module: object) -> None:
     SingletonTestServer.instance().close()
 
 
+def test_download_requestkw_headers_are_merged_without_mutation(monkeypatch) -> None:
+    import copy
+    import io
+    import urllib.request
+
+    import ubelt as ub
+
+    captured = {}
+    data = b'payload'
+
+    class FakeMeta:
+        def get_all(self, key):
+            if key == 'Content-Length':
+                return [str(len(data))]
+            return None
+
+    class FakeResponse:
+        def __init__(self):
+            self.stream = io.BytesIO(data)
+
+        def info(self):
+            return FakeMeta()
+
+        def read(self, size=-1):
+            return self.stream.read(size)
+
+    def fake_request(url, **kwargs):
+        captured['url'] = url
+        captured['requestkw'] = kwargs
+        return object()
+
+    def fake_urlopen(req, timeout=None):
+        return FakeResponse()
+
+    monkeypatch.setattr(urllib.request, 'Request', fake_request)
+    monkeypatch.setattr(urllib.request, 'urlopen', fake_urlopen)
+
+    requestkw = {
+        'headers': {
+            'Authorization': 'secret',
+            'User-Agent': 'custom-agent',
+        },
+        'method': 'GET',
+    }
+    original = copy.deepcopy(requestkw)
+    file = io.BytesIO()
+    ub.download(
+        'https://example.test/data',
+        fpath=file,
+        verbose=0,
+        requestkw=requestkw,
+    )
+
+    assert requestkw == original
+    assert captured['requestkw']['method'] == 'GET'
+    assert captured['requestkw']['headers'] == {
+        'Authorization': 'secret',
+        'User-Agent': 'custom-agent',
+    }
+    assert file.getvalue() == data
+
+
+def test_download_progress_reports_rate(monkeypatch) -> None:
+    import io
+    import types
+    import urllib.request
+
+    import ubelt as ub
+
+    data = b'x' * 2048
+    extras = []
+
+    class FakeMeta:
+        def get_all(self, key):
+            if key == 'Content-Length':
+                return [str(len(data))]
+            return None
+
+    class FakeResponse:
+        def __init__(self):
+            self.stream = io.BytesIO(data)
+
+        def info(self):
+            return FakeMeta()
+
+        def read(self, size=-1):
+            return self.stream.read(size)
+
+    class FakeProgress:
+        def __init__(self, **kwargs):
+            self._iter_idx = 0
+            self._total_seconds = 0.25
+            self._curr_measurement = types.SimpleNamespace(time=0.25)
+            self._extra_fn = None
+
+        def set_extra(self, func):
+            self._extra_fn = func
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            return None
+
+        def update(self, amount):
+            self._iter_idx += amount
+            if self._extra_fn is not None:
+                extras.append(self._extra_fn())
+
+    monkeypatch.setattr(urllib.request, 'Request', lambda url, **kw: object())
+    monkeypatch.setattr(
+        urllib.request, 'urlopen', lambda req, timeout=None: FakeResponse()
+    )
+    monkeypatch.setattr(ub, 'ProgIter', FakeProgress)
+
+    ub.download(
+        'https://example.test/data',
+        fpath=io.BytesIO(),
+        verbose=1,
+        chunksize=len(data),
+    )
+    assert extras
+    assert extras[-1] == ' 7 KB/s'
+
 if __name__ == '__main__':
     """
     CommandLine:
