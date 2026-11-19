@@ -376,10 +376,12 @@ class chunks(Iterable[List[VT]]):
         items: Iterable[VT], chunksize: int
     ) -> Generator[list[VT], None, None]:
         sentinel = object()
-        copied_iters = [iter(items)] * chunksize
+        iterator = iter(items)
+        initial = list(it.islice(iterator, chunksize))
+        copied_iters = [it.chain(initial, iterator)] * chunksize
         chunks_with_sentinals = zip_longest(*copied_iters, fillvalue=sentinel)
         # Fill empty space in the last chunk with values from the beginning
-        bordervalues = it.cycle(iter(items))
+        bordervalues = it.cycle(initial)
         for chunk in chunks_with_sentinals:
             yield typing.cast(
                 typing.List[VT],
