@@ -4,6 +4,7 @@ import io
 import os
 import platform
 import sys
+import types
 import typing
 from os.path import basename, exists, join
 
@@ -254,6 +255,9 @@ def test_grabdata_missing_content_length(monkeypatch, tmp_path):
         def info(self):
             return _FakeHeaders()
 
+        def close(self):
+            self._buffer.close()
+
     payload = b'downloaded data'
     url = 'https://example.com/no-content-length'
     destination = tmp_path / 'content.bin'
@@ -278,6 +282,157 @@ def test_grabdata_missing_content_length(monkeypatch, tmp_path):
 
     monkeypatch.setattr('urllib.request.urlopen', _unexpected)
     ub.grabdata(url, fpath=os.fspath(destination), hasher=None, verbose=0)
+
+
+def _broken_content_length_accessor(name):
+    raise ValueError('broken Content-Length metadata')
+
+
+@pytest.mark.parametrize(
+    ('headers', 'expected_total'),
+    [
+        pytest.param({'Content-Length': '9'}, 9, id='mapping-get'),
+        # A get-only container is the case the implementation in main misses.
+        pytest.param(
+            types.SimpleNamespace(get=lambda name: '9'),
+            9,
+            id='get-only',
+        ),
+        pytest.param(
+            types.SimpleNamespace(get=lambda name: b'9'),
+            9,
+            id='bytes',
+        ),
+        pytest.param(
+            types.SimpleNamespace(get_all=lambda name: ['9']),
+            9,
+            id='get-all-only',
+        ),
+        pytest.param(
+            types.SimpleNamespace(getheaders=lambda name: ['9']),
+            9,
+            id='getheaders-only',
+        ),
+        pytest.param(
+            types.SimpleNamespace(
+                get=lambda name: 'invalid', get_all=lambda name: ['9']
+            ),
+            9,
+            id='malformed-get-falls-back',
+        ),
+        pytest.param(
+            types.SimpleNamespace(
+                get=_broken_content_length_accessor,
+                get_all=lambda name: ['9'],
+            ),
+            9,
+            id='raising-get-falls-back',
+        ),
+        pytest.param(
+            types.SimpleNamespace(
+                get=_broken_content_length_accessor,
+                get_all=_broken_content_length_accessor,
+                getheaders=lambda name: ['9'],
+            ),
+            9,
+            id='raising-accessors-fall-back',
+        ),
+        pytest.param(
+            types.SimpleNamespace(get=lambda name: None),
+            None,
+            id='missing',
+        ),
+        pytest.param(
+            types.SimpleNamespace(get=lambda name: 'invalid'),
+            None,
+            id='invalid',
+        ),
+        pytest.param(
+            types.SimpleNamespace(get=lambda name: '-9'),
+            None,
+            id='negative',
+        ),
+        pytest.param(
+            types.SimpleNamespace(get=lambda name: '0'),
+            0,
+            id='zero',
+        ),
+        pytest.param(
+            types.SimpleNamespace(get_all=lambda name: []),
+            None,
+            id='empty-get-all',
+        ),
+    ],
+)
+def test_download_content_length_progress_total(
+    monkeypatch, headers, expected_total
+):
+    """Assert the inferred total, not just successful download or caching."""
+    import urllib.request
+
+    payload = b'123456789'
+    observed_totals = []
+
+    class FakeResponse:
+        def __init__(self):
+            self.stream = io.BytesIO(payload)
+
+        def info(self):
+            return headers
+
+        def read(self, size=-1):
+            return self.stream.read(size)
+
+        def close(self):
+            self.stream.close()
+
+    original_progress = ub.ProgIter
+
+    class RecordingProgress(original_progress):
+        def __init__(self, **kwargs):
+            observed_totals.append(kwargs.get('total'))
+            super().__init__(**kwargs)
+
+    monkeypatch.setattr(
+        urllib.request, 'urlopen', lambda req, timeout=None: FakeResponse()
+    )
+    monkeypatch.setattr(ub, 'ProgIter', RecordingProgress)
+
+    output = io.BytesIO()
+    result = ub.download('https://example.test/file', fpath=output, verbose=0)
+    assert result is output
+    assert output.getvalue() == payload
+    assert observed_totals == [expected_total]
+
+
+def test_download_content_length_explicit_filesize(monkeypatch):
+    """An explicit filesize takes precedence over response metadata."""
+    import urllib.request
+
+    observed_totals = []
+    original_progress = ub.ProgIter
+
+    class RecordingProgress(original_progress):
+        def __init__(self, **kwargs):
+            observed_totals.append(kwargs.get('total'))
+            super().__init__(**kwargs)
+
+    class FakeResponse:
+        def info(self):
+            raise AssertionError('do not inspect metadata when size is given')
+
+        def read(self, size=-1):
+            return b''
+
+    monkeypatch.setattr(
+        urllib.request, 'urlopen', lambda req, timeout=None: FakeResponse()
+    )
+    monkeypatch.setattr(ub, 'ProgIter', RecordingProgress)
+
+    ub.download(
+        'https://example.test/file', fpath=io.BytesIO(), filesize=17, verbose=0
+    )
+    assert observed_totals == [17]
 
 
 def test_grabdata_value_error() -> None:

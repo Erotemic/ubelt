@@ -43,6 +43,26 @@ __all__ = ['download', 'grabdata']
 # todo: add overloads to indicate that when fpath is a str then str is returned
 
 
+def _infer_content_length(headers: object) -> int | None:
+    """Best-effort size for progress reporting; a missing header is valid.
+
+    ``urllib`` responses normally expose ``get``; some older or custom
+    header containers expose only ``get_all`` or ``getheaders``. A broken
+    accessor or malformed value must not prevent the download itself.
+    """
+    for name in ('get', 'get_all', 'getheaders'):
+        try:
+            value = getattr(headers, name)('Content-Length')
+            if name != 'get' and isinstance(value, (list, tuple)):
+                value = value[0]
+            length = int(value)
+        except Exception:
+            continue
+        if length >= 0:
+            return length
+    return None
+
+
 def download(
     url: str,
     fpath: str | os.PathLike | BinaryIO | None = None,
@@ -242,49 +262,8 @@ def download(
     req = Request(url, **requestkw_)  # type: ignore
     urldata = urlopen(req, timeout=timeout_)  # type: ignore
 
-    meta = urldata.info()
-
-    def _safe_content_length(headers):
-        """Best-effort extraction of ``Content-Length`` from header metadata."""
-
-        # ``urllib`` header containers have multiple access patterns depending on
-        # Python version / backend.  We try each in a conservative order and
-        # ignore anything that fails to coerce cleanly to an integer instead of
-        # raising, because a missing header should simply fall back to an
-        # indeterminate progress bar rather than breaking the download.
-
-        def _coerce_int(value):
-            try:
-                if isinstance(value, bytes):  # nocover
-                    value = value.decode('ascii', 'ignore')
-                return int(value)
-            except Exception:
-                return None
-
-        if hasattr(headers, 'get'):
-            header_val = headers.get('Content-Length')
-            if header_val is not None:
-                result = _coerce_int(header_val)
-                if result is not None:
-                    return result
-
-        for accessor_name in ['get_all', 'getheaders']:
-            accessor = getattr(headers, accessor_name, None)
-            if accessor is None:
-                continue
-            try:
-                values = accessor("Content-Length")
-            except Exception:  # nocover
-                continue
-            if not values:
-                continue
-            result = _coerce_int(values[0])
-            if result is not None:
-                return result
-        return None
-
     if filesize is None:
-        filesize = _safe_content_length(meta)
+        filesize = _infer_content_length(urldata.info())
 
     if hash_prefix:
         if isinstance(hasher, str):

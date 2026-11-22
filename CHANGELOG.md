@@ -32,6 +32,8 @@ This project (loosely) adheres to [Semantic Versioning](https://semver.org/spec/
   handling in local timestamp/time parsing.
 * Fixed ``zopen`` resource cleanup and delegated calls on temporary instances.
 * Fixed ``download`` request-header merging and the reported transfer rate.
+* Improved ``download`` content-length inference for different header
+  interfaces; missing or invalid lengths leave progress indeterminate.
 * Fixed symlink idempotence for equivalent target spellings and corrected the
   physical-path collision error message.
 * Fixed ANSI-aware repr alignment, bound-method injection, and zero-value base
@@ -63,7 +65,6 @@ This project (loosely) adheres to [Semantic Versioning](https://semver.org/spec/
 ### Fixes
 * Cleanup in `util_import`
 * Fixes and refactor in `util_stream`. Implemented `CaptureStream`.
-* Improved download inference of content length and progress reporting.
 * Fixed busy loop in ub.cmd
 * Fixed failure to return after timeout in ub.cmd
 
