@@ -375,21 +375,28 @@ class chunks(Iterable[List[VT]]):
     def cycle(
         items: Iterable[VT], chunksize: int
     ) -> Generator[list[VT], None, None]:
-        sentinel = object()
         iterator = iter(items)
-        initial = list(it.islice(iterator, chunksize))
-        copied_iters = [it.chain(initial, iterator)] * chunksize
-        chunks_with_sentinals = zip_longest(*copied_iters, fillvalue=sentinel)
-        # Fill empty space in the last chunk with values from the beginning
-        bordervalues = it.cycle(initial)
-        for chunk in chunks_with_sentinals:
-            yield typing.cast(
-                typing.List[VT],
-                [
-                    item if item is not sentinel else next(bordervalues)
-                    for item in chunk
-                ],
-            )
+        if chunksize == 1:
+            for item in iterator:
+                yield [item]
+            return
+
+        prefix = list(it.islice(iterator, chunksize))
+        if not prefix:
+            return
+        if len(prefix) < chunksize:
+            repeats, remainder = divmod(chunksize, len(prefix))
+            yield prefix * repeats + prefix[:remainder]
+            return
+
+        yield prefix.copy()
+        while True:
+            chunk = list(it.islice(iterator, chunksize))
+            if not chunk:
+                break
+            if len(chunk) < chunksize:
+                chunk.extend(prefix[:chunksize - len(chunk)])
+            yield chunk
 
     @staticmethod
     def replicate(
