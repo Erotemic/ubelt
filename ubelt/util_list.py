@@ -376,6 +376,9 @@ class chunks(Iterable[List[VT]]):
         items: Iterable[VT], chunksize: int
     ) -> Generator[list[VT], None, None]:
         iterator = iter(items)
+
+        # Avoid per-chunk islice/list overhead for single-item chunks.
+        # No padding is possible in this case.
         if chunksize == 1:
             for item in iterator:
                 yield [item]
@@ -384,12 +387,17 @@ class chunks(Iterable[List[VT]]):
         prefix = list(it.islice(iterator, chunksize))
         if not prefix:
             return
+
+        # If the entire input is shorter than one chunk, repeat it
+        # to fill the chunk. A single slice would not be sufficient.
         if len(prefix) < chunksize:
             repeats, remainder = divmod(chunksize, len(prefix))
             yield prefix * repeats + prefix[:remainder]
             return
 
+        # Keep the cached prefix independent of the caller's output.
         yield prefix.copy()
+
         while True:
             chunk = list(it.islice(iterator, chunksize))
             if not chunk:

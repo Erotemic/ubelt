@@ -82,3 +82,19 @@ def test_compatible_noniterable_keywords_flag() -> None:
     }
     got = ub.compatible(config, func, keywords=TruthyNonIterable())
     assert got == {'a': 2, 'e': 13, 'f': 17}
+
+
+def test_inject_bound_method_rebinds_instance() -> None:
+    import ubelt as ub
+
+    class Demo:
+        def __init__(self, value):
+            self.value = value
+
+        def get_value(self):
+            return self.value
+
+    source = Demo('source')
+    target = Demo('target')
+    ub.inject_method(target, source.get_value, 'injected')
+    assert target.injected() == 'target'

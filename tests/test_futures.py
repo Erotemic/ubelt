@@ -413,6 +413,203 @@ def test_as_completed_timeout() -> None:
         print('End of function')
 
 
+def test_serial_future_evaluates_once_on_success() -> None:
+    from ubelt.util_futures import SerialFuture
+
+    calls = []
+    callbacks = []
+
+    def worker():
+        calls.append('run')
+        return 42
+
+    future = SerialFuture(worker)
+    assert not future.done()
+    future.add_done_callback(lambda f: callbacks.append(f.result()))
+    assert callbacks == []
+
+    assert future.result() == 42
+    assert future.done()
+    assert future.exception() is None
+    assert callbacks == [42]
+    assert future.result() == 42
+    assert calls == ['run']
+
+
+def test_serial_future_evaluates_once_on_exception() -> None:
+    import pytest
+
+    from ubelt.util_futures import SerialFuture
+
+    calls = []
+    callbacks = []
+
+    class DemoError(Exception):
+        pass
+
+    def worker():
+        calls.append('run')
+        raise DemoError('boom')
+
+    future = SerialFuture(worker)
+    future.add_done_callback(lambda f: callbacks.append(f.done()))
+    assert not future.done()
+    assert callbacks == []
+
+    error = future.exception()
+    assert isinstance(error, DemoError)
+    assert future.done()
+    assert callbacks == [True]
+
+    with pytest.raises(DemoError, match='boom'):
+        future.result()
+    with pytest.raises(DemoError, match='boom'):
+        future.result()
+    assert calls == ['run']
+
+
+def test_serial_future_post_completion_paths() -> None:
+    import concurrent.futures
+
+    import pytest
+
+    from ubelt.util_futures import SerialFuture
+
+    calls = []
+    future = SerialFuture(lambda: calls.append('run') or 42)
+    assert future.result() == 42
+
+    # A direct second run is a no-op. This protects one-shot evaluation even
+    # for callers that reach the private helper.
+    future._run()
+    assert calls == ['run']
+
+    callbacks = []
+    future.add_done_callback(lambda f: callbacks.append(f.result()))
+    assert callbacks == [42]
+
+    def bad_callback(f):
+        raise RuntimeError('callback boom')
+
+    # Future callback exceptions are logged rather than propagated.
+    future.add_done_callback(bad_callback)
+
+    with pytest.raises(concurrent.futures.InvalidStateError):
+        future.set_result(43)
+    with pytest.raises(concurrent.futures.InvalidStateError):
+        future.set_exception(RuntimeError('late exception'))
+
+
+def test_serial_future_as_completed_remains_lazy() -> None:
+    import concurrent.futures
+
+    from ubelt.util_futures import SerialFuture
+
+    calls = []
+    future = SerialFuture(lambda: calls.append('run') or 3)
+    completed = list(concurrent.futures.as_completed([future]))
+    assert completed == [future]
+    assert calls == []
+    assert not future.done()
+    assert completed[0].result() == 3
+    assert calls == ['run']
+
+
+def test_serial_future_concurrent_consumers_evaluate_once() -> None:
+    """Two waiting consumers cannot both execute the pending callable."""
+    import concurrent.futures
+    import threading
+
+    from ubelt.util_futures import SerialFuture
+
+    entered = threading.Event()
+    consumer_entered = threading.Event()
+    release = threading.Event()
+    executed_twice = threading.Event()
+    calls = []
+    callbacks = []
+
+    def worker():
+        calls.append('run')
+        if len(calls) > 1:
+            executed_twice.set()
+        entered.set()
+        if not release.wait(timeout=5):
+            raise RuntimeError('test worker timed out')
+        return 42
+
+    future = SerialFuture(worker)
+    future.add_done_callback(lambda f: callbacks.append(f.result()))
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=2) as pool:
+        try:
+            first = pool.submit(future.exception)
+            assert entered.wait(timeout=5)
+
+            def second_consumer():
+                consumer_entered.set()
+                return future.result()
+
+            second = pool.submit(second_consumer)
+            assert consumer_entered.wait(timeout=5)
+            # With the old implementation the second consumer could execute
+            # the worker concurrently. A short observation period makes that
+            # interleaving observable without depending on execution order.
+            assert not executed_twice.wait(timeout=0.1)
+        finally:
+            release.set()
+        assert first.result(timeout=5) is None
+        assert second.result(timeout=5) == 42
+
+    assert calls == ['run']
+    assert callbacks == [42]
+    assert future.done()
+    assert future.result() == 42
+
+
+def test_serial_future_concurrent_exception_consumers_evaluate_once() -> None:
+    import concurrent.futures
+    import threading
+
+    import pytest
+    from ubelt.util_futures import SerialFuture
+
+    class DemoError(Exception):
+        pass
+
+    entered = threading.Event()
+    second_entered = threading.Event()
+    release = threading.Event()
+    calls = []
+
+    def worker():
+        calls.append('run')
+        entered.set()
+        if not release.wait(timeout=5):
+            raise RuntimeError('test worker timed out')
+        raise DemoError('expected failure')
+
+    future = SerialFuture(worker)
+    with concurrent.futures.ThreadPoolExecutor(max_workers=2) as pool:
+        try:
+            first = pool.submit(future.exception)
+            assert entered.wait(timeout=5)
+
+            def second_consumer():
+                second_entered.set()
+                return future.exception()
+
+            second = pool.submit(second_consumer)
+            assert second_entered.wait(timeout=5)
+        finally:
+            release.set()
+        assert isinstance(first.result(timeout=5), DemoError)
+        assert isinstance(second.result(timeout=5), DemoError)
+
+    assert calls == ['run']
+    with pytest.raises(DemoError, match='expected failure'):
+        future.result()
+
 if __name__ == '__main__':
     """
     CommandLine:
