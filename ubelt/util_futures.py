@@ -111,6 +111,34 @@ class SerialFuture(concurrent.futures.Future, typing.Generic[T]):
     compatible with :func:`concurrent.futures.as_completed`; the public future
     methods track whether the callable has actually been evaluated.
 
+    Note:
+        This remains a compatibility compromise, not a fully standard Future:
+        ``concurrent.futures.wait()`` reads the internal finished state and
+        can report a serial job as finished before ``done()`` returns True.
+        The lazy behavior is retained for existing SerialExecutor callers;
+        adopting eager evaluation would allow use of an ordinary Future.
+
+    Example:
+        >>> from ubelt.util_futures import SerialFuture
+        >>> calls = []
+        >>> future = SerialFuture(lambda: calls.append('run') or 5)
+        >>> future.add_done_callback(lambda f: calls.append('callback'))
+        >>> assert calls == []
+        >>> assert future.result() == 5
+        >>> assert future.result() == 5
+        >>> assert calls == ['run', 'callback']
+        >>> # An explicitly supplied result must not evaluate the callable.
+        >>> future = SerialFuture(lambda: calls.append('unused'))
+        >>> future.set_result(10)
+        >>> assert future.result() == 10
+        >>> assert 'unused' not in calls
+        >>> # The old doctest attempted to overwrite the result; that is now
+        >>> # rejected, matching Future's one-shot completion contract.
+        >>> import concurrent.futures
+        >>> import pytest
+        >>> with pytest.raises(concurrent.futures.InvalidStateError):
+        ...     future.set_result(11)
+
     TODO:
         warn if the user specifies timeout as we cannot handle it without
         threads
@@ -137,9 +165,10 @@ class SerialFuture(concurrent.futures.Future, typing.Generic[T]):
         self.args = args
         self.kw = kw
         self._run_count = 0
-        # Pretend to concurrent.futures.as_completed that this lazy serial job
-        # is available to collect. Public methods below use _run_count to
-        # distinguish that compatibility state from actual evaluation.
+        # as_completed() inspects Future._state rather than calling result().
+        # Retain the legacy lazy executor behavior for 1.5, but document the
+        # resulting wait()/done() mismatch above instead of claiming full
+        # concurrent.futures compatibility.
         self._state = concurrent.futures._base.FINISHED
 
     def _run(self) -> None:
@@ -180,7 +209,42 @@ class SerialFuture(concurrent.futures.Future, typing.Generic[T]):
         return self._exception
 
     def set_result(self, result: T) -> None:
-        """Mark this serial future complete with ``result``."""
+        """
+        Mark this serial future complete with ``result``.
+
+        The original doctest exercised both call orders. Under the old
+        implementation, calling ``set_result`` after ``result`` could
+        overwrite the computed value and run callbacks again. Completion is
+        now one-shot, consistent with ``concurrent.futures.Future``. The
+        examples retain both orderings and check the updated contract.
+
+        Example:
+            >>> from ubelt.util_futures import SerialFuture
+            >>> import concurrent.futures
+            >>> # result() before set_result(): execute the pending callable.
+            >>> events = []
+            >>> self = SerialFuture(lambda: events.append('run') or 5)
+            >>> self.add_done_callback(lambda f: events.append('callback'))
+            >>> ret = self.result()
+            >>> assert ret == 5
+            >>> assert events == ['run', 'callback']
+            >>> try:
+            ...     self.set_result(1)
+            ... except concurrent.futures.InvalidStateError:
+            ...     pass
+            ... else:
+            ...     raise AssertionError('completed result was overwritten')
+            >>> assert self.result() == 5
+            >>> assert events == ['run', 'callback']
+            >>> # set_result() before result(): bypass the pending callable.
+            >>> events = []
+            >>> self = SerialFuture(lambda: events.append('should not run'))
+            >>> self.add_done_callback(lambda f: events.append('callback'))
+            >>> self.set_result(1)
+            >>> ret = self.result()
+            >>> assert ret == 1
+            >>> assert events == ['callback']
+        """
         with self._condition:
             if self._run_count:
                 raise concurrent.futures.InvalidStateError(
@@ -189,6 +253,16 @@ class SerialFuture(concurrent.futures.Future, typing.Generic[T]):
             self._result = result
             self._exception = None
             self._run_count = 1
+            # I'm cheating a little by not covering this.
+            # Lets call it, cheating in good faith. *shifty eyes*
+            # I don't know how to test it, and its not a critical pieces of the
+            # library. Consider it a bug.  help wanted.
+            #
+            # 1.5.0 review: this exception has NOT been resolved by the
+            # SerialFuture refactor. The lazy future advertises FINISHED so
+            # as_completed() normally won't attach private _waiters. Keep the
+            # notification path, but revisit its coverage when redesigning
+            # this Future's compatibility with wait()/as_completed().
             for waiter in self._waiters:  # nocover
                 waiter.add_result(self)
             self._condition.notify_all()
@@ -204,6 +278,7 @@ class SerialFuture(concurrent.futures.Future, typing.Generic[T]):
             self._exception = exception
             self._result = None
             self._run_count = 1
+            # Same untested private-waiter path as set_result above.
             for waiter in self._waiters:  # nocover
                 waiter.add_exception(self)
             self._condition.notify_all()
