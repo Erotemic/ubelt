@@ -204,7 +204,6 @@ class Cacher:
         log: typing.Callable[[str], typing.Any] | None = None,
         hasher: str = 'sha1',
         protocol: int = -1,
-        cfgstr: str | None = None,
         backend: str = 'auto',
     ) -> None:
         """
@@ -257,26 +256,7 @@ class Cacher:
                 Set to either ``'pickle'`` or ``'json'`` to force backend. Defaults
                 to auto which chooses one based on the extension.
 
-            cfgstr (str | None):
-                Deprecated in favor of ``depends``.
         """
-
-        if depends is None:
-            depends = cfgstr
-
-        if cfgstr is not None:  # nocover
-            from ubelt import schedule_deprecation
-
-            schedule_deprecation(
-                modname='ubelt',
-                migration='Use depends instead',
-                name='cfgstr',
-                type='Cacher class arg',
-                deprecate='1.1.0',
-                error='1.3.0',
-                remove='1.5.0',
-            )
-            depends = cfgstr
 
         if verbose is None:
             verbose = self.VERBOSE
@@ -305,7 +285,7 @@ class Cacher:
         self.dpath = dpath
         self.fname = fname
         self.depends = depends
-        self.cfgstr = cfgstr
+        self.cfgstr = None
         self.verbose = verbose
         self.ext = ext
         self.meta = meta
@@ -317,27 +297,8 @@ class Cacher:
         if len(self.ext) > 0 and self.ext[0] != '.':
             raise ValueError('Please be explicit and use a dot in ext')
 
-    def _rectify_cfgstr(self, cfgstr: str | None = None) -> str:
-        if cfgstr is not None:  # nocover
-            from ubelt import schedule_deprecation
-
-            schedule_deprecation(
-                modname='ubelt',
-                migration=(
-                    'In general, you should not need to specify a custom '
-                    'cfgstr after the Cacher has been created. '
-                    'If you must, then you can modify the ``depends`` class '
-                    'attribute instead, but in general it is recommend to '
-                    'avoid this.'
-                ),
-                name='cfgstr',
-                type='Cacher method arg',
-                deprecate='1.1.0',
-                error='1.3.0',
-                remove='1.5.0',
-            )
-
-        cfgstr = self.cfgstr if cfgstr is None else cfgstr
+    def _rectify_cfgstr(self) -> str:
+        cfgstr = self.cfgstr
 
         if cfgstr is None and self.depends is not None:
             # lazy hashing of depends data into cfgstr
@@ -358,8 +319,8 @@ class Cacher:
         assert cfgstr is not None
         return cfgstr
 
-    def _condense_cfgstr(self, cfgstr: str | None = None) -> str:
-        cfgstr = self._rectify_cfgstr(cfgstr)
+    def _condense_cfgstr(self) -> str:
+        cfgstr = self._rectify_cfgstr()
         # The 49 char maxlen is just long enough for an 8 char name, an 1 char
         # underscore, and a 40 char sha1 hash.
         max_len = 49
@@ -378,15 +339,12 @@ class Cacher:
 
         return Path(self.get_fpath())
 
-    def get_fpath(self, cfgstr: str | None = None) -> str:
+    def get_fpath(self) -> str:
         """
         Reports the filepath that the cacher will use.
 
         It will attempt to use '{fname}_{cfgstr}{ext}' unless that is too long.
         Then cfgstr will be hashed.
-
-        Args:
-            cfgstr (str | None): overrides the instance-level cfgstr
 
         Returns:
             str
@@ -404,23 +362,20 @@ class Cacher:
             >>> self = Cacher('test_cacher3', depends='cfg1' * 32)
             >>> self.get_fpath()
         """
-        condensed = self._condense_cfgstr(cfgstr)
+        condensed = self._condense_cfgstr()
         fname_cfgstr = '{}_{}{}'.format(self.fname, condensed, self.ext)
         fpath = join(self.dpath, fname_cfgstr)
         fpath = normpath(fpath)
         return fpath
 
-    def exists(self, cfgstr: str | None = None) -> bool:
+    def exists(self) -> bool:
         """
         Check to see if the cache exists
-
-        Args:
-            cfgstr (str | None): overrides the instance-level cfgstr
 
         Returns:
             bool
         """
-        return exists(self.get_fpath(cfgstr=cfgstr))
+        return exists(self.get_fpath())
 
     def existing_versions(self) -> typing.Iterator[str]:
         """
@@ -460,14 +415,13 @@ class Cacher:
             data_fpath = join(self.dpath, fname)
             yield data_fpath
 
-    def clear(self, cfgstr: str | None = None) -> None:
+    def clear(self) -> None:
         """
         Removes the saved cache and metadata from disk
 
         Args:
-            cfgstr (str | None): overrides the instance-level cfgstr
         """
-        data_fpath = self.get_fpath(cfgstr)
+        data_fpath = self.get_fpath()
         if self.verbose > 0:
             self.log('[cacher] clear cache')
         if exists(data_fpath):
@@ -483,14 +437,9 @@ class Cacher:
             if self.verbose > 0:
                 self.log('[cacher] ... nothing to clear')
 
-    def tryload(
-        self, cfgstr: str | None = None, on_error: str = 'raise'
-    ) -> typing.Any | None:
+    def tryload(self, on_error: str = 'raise') -> typing.Any | None:
         """
         Like load, but returns None if the load fails due to a cache miss.
-
-        Args:
-            cfgstr (str | None): overrides the instance-level cfgstr
 
             on_error (str):
                 How to handle non-io errors errors. Either 'raise', which
@@ -505,7 +454,7 @@ class Cacher:
             try:
                 if self.verbose > 1:
                     self.log('[cacher] tryload fname={}'.format(self.fname))
-                return self.load(cfgstr)
+                return self.load()
             except IOError:
                 if self.verbose > 0:
                     self.log('[cacher] ... {} cache miss'.format(self.fname))
@@ -515,7 +464,7 @@ class Cacher:
                 if on_error == 'raise':
                     raise
                 elif on_error == 'clear':
-                    self.clear(cfgstr)
+                    self.clear()
                     return None
                 else:
                     raise KeyError(
@@ -528,12 +477,9 @@ class Cacher:
                 )
         return None
 
-    def load(self, cfgstr: str | None = None) -> typing.Any:
+    def load(self) -> typing.Any:
         """
         Load the data cached and raise an error if something goes wrong.
-
-        Args:
-            cfgstr (str | None): overrides the instance-level cfgstr
 
         Returns:
             object: the cached data
@@ -552,7 +498,7 @@ class Cacher:
             >>> cacher.enabled = False
             >>> assert cacher.tryload() is None
         """
-        cfgstr_ = self._rectify_cfgstr(cfgstr)
+        cfgstr_ = self._rectify_cfgstr()
 
         dpath = self.dpath
         fname = self.fname
@@ -565,7 +511,7 @@ class Cacher:
                 )
             raise IOError(3, 'Cache Loading Is Disabled')
 
-        data_fpath = self.get_fpath(cfgstr=cfgstr)
+        data_fpath = self.get_fpath()
 
         if not exists(data_fpath):
             if verbose > 2:
@@ -611,7 +557,7 @@ class Cacher:
                 self.log('[cacher] ... cache hit')
         return data
 
-    def save(self, data: typing.Any, cfgstr: str | None = None) -> None:
+    def save(self, data: typing.Any) -> None:
         """
         Writes data to path specified by ``self.fpath``.
 
@@ -620,8 +566,6 @@ class Cacher:
 
         Args:
             data (object): arbitrary pickleable object to be cached
-            cfgstr (str | None): overrides the instance-level cfgstr
-
         Example:
             >>> from ubelt.util_cache import *  # NOQA
             >>> # Normal functioning
@@ -645,15 +589,15 @@ class Cacher:
         if self.verbose > 0:
             self.log('[cacher] ... {} cache save'.format(self.fname))
 
-        cfgstr_ = self._rectify_cfgstr(cfgstr)
-        condensed = self._condense_cfgstr(cfgstr)
+        cfgstr_ = self._rectify_cfgstr()
+        condensed = self._condense_cfgstr()
 
         # Make sure the cache directory exists
         ensuredir(self.dpath)
 
         # TODO: make saving metadata optional.
         # TODO: allow the user to customize metadata.
-        data_fpath = self.get_fpath(cfgstr=cfgstr)
+        data_fpath = self.get_fpath()
         meta_fpath = data_fpath + '.meta'
 
         # Also save metadata file to reconstruct hashing
@@ -868,7 +812,6 @@ class CacheStamp:
         self,
         fname: str,
         dpath: str | os.PathLike | None,
-        cfgstr: str | None = None,
         product: str
         | os.PathLike
         | typing.Sequence[str | os.PathLike]
@@ -933,11 +876,9 @@ class CacheStamp:
                 File extension for the cache format. Can be ``'.pkl'`` or
                 ``'.json'``. Defaults to ``'.pkl'``.
 
-            cfgstr (str | None): DEPRECATED.
         """
         self.cacher = Cacher(
             fname,
-            cfgstr=cfgstr,
             dpath=dpath,
             verbose=verbose,
             enabled=enabled,
@@ -945,6 +886,8 @@ class CacheStamp:
             meta=meta,
             ext=ext,
         )
+        if hasher is not None and not isinstance(hasher, str):
+            raise TypeError('CacheStamp hasher must be a string or None')
         self.product = product
         self.hasher = hasher
         self.expires = expires
@@ -969,13 +912,11 @@ class CacheStamp:
         """
         return self.cacher.clear()
 
-    def _get_certificate(
-        self, cfgstr: typing.Any | None = None
-    ) -> dict[str, typing.Any] | None:
+    def _get_certificate(self) -> dict[str, typing.Any] | None:
         """
         Returns the stamp certificate if it exists
         """
-        certificate = self.cacher.tryload(cfgstr=cfgstr, on_error='clear')
+        certificate = self.cacher.tryload(on_error='clear')
         return certificate
 
     def _rectify_products(
@@ -1030,24 +971,7 @@ class CacheStamp:
         products = self._rectify_products(product)
         product_info: dict[str, typing.Any] = {}
         product_info.update(self._product_file_stats())
-        if self.hasher is None:
-            hasher_name = None
-        else:
-            if not isinstance(self.hasher, str):  # nocover
-                from ubelt import schedule_deprecation
-
-                schedule_deprecation(
-                    modname='ubelt',
-                    migration='Pass hasher as a string',
-                    name='hasher',
-                    type='CacheStamp arg',
-                    deprecate='1.1.0',
-                    error='1.3.0',
-                    remove='1.5.0',
-                )
-                hasher_name = self.hasher.name
-            else:
-                hasher_name = self.hasher
+        hasher_name = self.hasher
         product_info['hasher'] = hasher_name
         product_info['hash'] = self._product_file_hash(products)
         return product_info
@@ -1085,20 +1009,11 @@ class CacheStamp:
             ]
         return product_file_hash
 
-    def expired(
-        self,
-        cfgstr: typing.Any | None = None,
-        product: typing.Any | None = None,
-    ) -> bool | str:
+    def expired(self) -> bool | str:
         """
         Check to see if a previously existing stamp is still valid, if the
         expected result of that computation still exists, and if all other
         expiration criteria are met.
-
-        Args:
-            cfgstr (Any): DEPRECATED
-
-            product (Any): DEPRECATED
 
         Returns:
             bool | str:
@@ -1167,35 +1082,10 @@ class CacheStamp:
             >>> with pytest.raises(RuntimeError):
             ...     self.renew()
         """
-        if cfgstr is not None:  # nocover
-            from ubelt import schedule_deprecation
-
-            schedule_deprecation(
-                modname='ubelt',
-                migration='Do not pass cfgstr to expired. Use the class depends arg',
-                name='cfgstr',
-                type='CacheStamp.expires arg',
-                deprecate='1.1.0',
-                error='1.3.0',
-                remove='1.5.0',
-            )
-        if product is not None:  # nocover
-            from ubelt import schedule_deprecation
-
-            schedule_deprecation(
-                modname='ubelt',
-                migration='Do not pass product to expired. Use the class product arg',
-                name='product',
-                type='CacheStamp.expires arg',
-                deprecate='1.1.0',
-                error='1.3.0',
-                remove='1.5.0',
-            )
-
         if not self.cacher.enabled:
             return 'disabled'
 
-        certificate = self._get_certificate(cfgstr=cfgstr)
+        certificate = self._get_certificate()
         if certificate is None:
             # We don't have a certificate, so we are expired
             err = 'no_cert'
@@ -1217,7 +1107,7 @@ class CacheStamp:
                     print('[cacher] stamp expired {}'.format(err))
                 return err
 
-        products = self._rectify_products(product)
+        products = self._rectify_products()
         if products is None:
             # We don't have a product to check, so assume not expired
             return False
@@ -1350,9 +1240,7 @@ class CacheStamp:
             )
         return expires_abs
 
-    def _new_certificate(
-        self, cfgstr: str | None = None, product: typing.Any | None = None
-    ) -> dict[str, typing.Any]:
+    def _new_certificate(self) -> dict[str, typing.Any]:
         """
         Returns:
             dict: certificate information
@@ -1374,7 +1262,7 @@ class CacheStamp:
         """
         from ubelt.util_time import timestamp
 
-        products = self._rectify_products(product)
+        products = self._rectify_products()
         now = _localnow()
         expires = self._expires(now)
         certificate = {
@@ -1395,16 +1283,10 @@ class CacheStamp:
             certificate.update(product_info)
         return certificate
 
-    def renew(
-        self, cfgstr: str | None = None, product: str | list | None = None
-    ) -> dict[str, typing.Any] | None:
+    def renew(self) -> dict[str, typing.Any] | None:
         """
         Recertify that the product has been recomputed by writing a new
         certificate to disk.
-
-        Args:
-            cfgstr (str | None): deprecated, do not use.
-            product (str | list[object] | None): deprecated, do not use.
 
         Returns:
             dict[str, object] | None: certificate information if enabled otherwise None.
@@ -1418,35 +1300,11 @@ class CacheStamp:
         """
         if not self.cacher.enabled:
             return None
-        if cfgstr is not None:  # nocover
-            from ubelt import schedule_deprecation
-
-            schedule_deprecation(
-                modname='ubelt',
-                migration='Do not pass cfgstr to renew. Use the class depends arg',
-                name='cfgstr',
-                type='CacheStamp.renew arg',
-                deprecate='1.1.0',
-                error='1.3.0',
-                remove='1.5.0',
-            )
-        if product is not None:  # nocover
-            from ubelt import schedule_deprecation
-
-            schedule_deprecation(
-                modname='ubelt',
-                migration='Do not pass product to renew. Use the class product arg',
-                name='product',
-                type='CacheStamp.renew arg',
-                deprecate='1.1.0',
-                error='1.3.0',
-                remove='1.5.0',
-            )
-        certificate = self._new_certificate(cfgstr, product)
+        certificate = self._new_certificate()
         err = self._check_certificate_hashes(certificate)
         if err:
             raise RuntimeError(err)
-        self.cacher.save(certificate, cfgstr=cfgstr)
+        self.cacher.save(certificate)
         return certificate
 
 

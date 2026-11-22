@@ -27,27 +27,6 @@ def test_pathlib_compatability() -> None:
     assert not ub.expandpath(base).startswith('~')
 
 
-def test_tempdir() -> None:
-    import pytest
-
-    with pytest.warns(Warning):
-        temp = ub.TempDir()
-    assert temp.dpath is None
-    temp.ensure()
-    assert temp.dpath is not None
-    assert exists(temp.dpath)
-    # Double ensure for coverage
-    temp.ensure()
-    assert temp.dpath is not None
-    assert exists(temp.dpath)
-
-    dpath = temp.dpath
-    temp.cleanup()
-    assert dpath is not None
-    assert not exists(dpath)
-    assert temp.dpath is None
-
-
 def test_augpath_identity() -> None:
     assert ub.augpath('foo') == 'foo'
     assert ub.augpath('foo/bar') == join('foo', 'bar')

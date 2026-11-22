@@ -3,6 +3,7 @@ from __future__ import annotations
 import itertools as it
 import os
 import sys
+import tempfile
 import typing
 from os.path import join
 
@@ -14,19 +15,18 @@ from ubelt.util_import import PythonPathContext
 
 def test_import_modpath_basic() -> None:
     assert 'testmod' not in sys.modules
-    with pytest.warns(Warning):
-        temp = ub.TempDir()
+    temp = tempfile.TemporaryDirectory()
     with temp:
-        modpath = ub.Path(temp.dpath) / 'testmod.py'  # type: ignore
+        modpath = ub.Path(temp.name) / 'testmod.py'  # type: ignore
         text = ub.codeblock(
             """
             a = 'value'
             """
         )
         modpath.write_text(text)
-        assert temp.dpath not in sys.path
+        assert temp.name not in sys.path
         module = ub.import_module_from_path(modpath)
-        assert temp.dpath not in sys.path, 'pythonpath should remain clean'
+        assert temp.name not in sys.path, 'pythonpath should remain clean'
         assert module.a == 'value'
         assert module.__file__ == os.fspath(modpath)
         assert module.__name__ == 'testmod'
@@ -35,11 +35,8 @@ def test_import_modpath_basic() -> None:
 
 def test_import_modpath_package() -> None:
     assert '_tmproot373.sub1.sub2.testmod' not in sys.modules
-    with pytest.warns(Warning):
-        temp = ub.TempDir().start()
-    # with ub.TempDir() as temp:
-    if True:
-        dpath = ub.Path(temp.dpath)  # type: ignore
+    with tempfile.TemporaryDirectory() as tmpdir:
+        dpath = ub.Path(tmpdir)
 
         # Create a dummy package hierarchy
         root = (dpath / '_tmproot373').ensuredir()
@@ -57,9 +54,9 @@ def test_import_modpath_package() -> None:
             """
         )
         modpath.write_text(text)
-        assert temp.dpath not in sys.path
+        assert tmpdir not in sys.path
         module = ub.import_module_from_path(modpath)
-        assert temp.dpath not in sys.path, 'pythonpath should remain clean'
+        assert tmpdir not in sys.path, 'pythonpath should remain clean'
         assert module.a == 'value'
         assert module.__file__ == os.fspath(modpath)
         assert module.__name__ == '_tmproot373.sub1.sub2.testmod'
@@ -92,10 +89,9 @@ def _static_modname_to_modpath(
 
 
 def test_modname_to_modpath_single() -> None:
-    with pytest.warns(Warning):
-        temp = ub.TempDir()
+    temp = tempfile.TemporaryDirectory()
     with temp:
-        dpath = temp.dpath
+        dpath = temp.name
         assert dpath is not None
 
         # Single module
@@ -141,10 +137,9 @@ def test_modname_to_modpath_package() -> None:
     CommandLine:
         pytest testing/test_static.py::test_modname_to_modpath_package
     """
-    with pytest.warns(Warning):
-        temp = ub.TempDir()
+    temp = tempfile.TemporaryDirectory()
     with temp:
-        dpath = temp.dpath
+        dpath = temp.name
 
         # Create a dummy package hierarchy
         root = ub.ensuredir((dpath, '_tmproot927'))  # type: ignore
@@ -442,10 +437,9 @@ def test_modname_to_modpath_namespace() -> None:
     %timeit _syspath_modname_to_modpath('xdoctest.static_analysis')
     %timeit _importlib_modname_to_modpath('xdoctest.static_analysis')
     """
-    with pytest.warns(Warning):
-        temp = ub.TempDir()
+    temp = tempfile.TemporaryDirectory()
     with temp:
-        dpath = temp.dpath
+        dpath = temp.name
 
         # Some "bad" non-module directories
         tmpbad = ub.ensuredir((dpath, '_tmpbad'))  # type: ignore
@@ -483,10 +477,9 @@ def test_package_submodules() -> None:
     """
     from xdoctest import static_analysis as static
 
-    with pytest.warns(Warning):
-        temp = ub.TempDir()
+    temp = tempfile.TemporaryDirectory()
     with temp:
-        dpath = temp.dpath
+        dpath = temp.name
         assert dpath is not None
 
         # Create a dummy package hierarchy
@@ -546,10 +539,9 @@ def test_modpath_to_modname() -> None:
         pytest testing/test_static.py::test_modpath_to_modname -s
         python testing/test_static.py test_modpath_to_modname
     """
-    with pytest.warns(Warning):
-        temp = ub.TempDir()
+    temp = tempfile.TemporaryDirectory()
     with temp:
-        dpath = temp.dpath
+        dpath = temp.name
         assert dpath is not None
 
         # Create a dummy package hierarchy

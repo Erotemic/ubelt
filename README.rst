@@ -139,7 +139,7 @@ Ubelt is small. Its top-level API is defined using roughly 40 lines:
     from ubelt.util_indexable import (IndexableWalker, indexable_allclose,)
     from ubelt.util_memoize import (memoize, memoize_method, memoize_property,)
     from ubelt.util_mixins import (NiceRepr,)
-    from ubelt.util_path import (ChDir, Path, TempDir, augpath, ensuredir,
+    from ubelt.util_path import (ChDir, Path, augpath, ensuredir,
                                  expandpath, shrinkuser, userhome,)
     from ubelt.util_platform import (DARWIN, LINUX, POSIX, WIN32, find_exe,
                                      find_path, platform_cache_dir,
@@ -248,7 +248,7 @@ also modifies behavior of ``touch`` to be chainable. (New in 1.0.0)
         >>> import ubelt as ub
         >>> dpath = ub.Path('~/.cache/ubelt/demo_path').expand().ensuredir()
         >>> fpath = dpath / 'text_file.txt'
-        >>> aug_fpath = fpath.augment(suffix='.aux', ext='.jpg').touch()
+        >>> aug_fpath = fpath.augment(stemsuffix='.aux', ext='.jpg').touch()
         >>> aug_dpath = dpath.augment('demo_path2')
         >>> assert aug_fpath.read_text() == ''
         >>> fpath.write_text('text data')

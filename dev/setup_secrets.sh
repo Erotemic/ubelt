@@ -190,6 +190,51 @@ resolve_secret_value_from_varname_ptr(){
     printf '%s' "$secret_value"
 }
 
+_github_repo_from_remote_url(){
+    local remote_url="$1"
+    if [[ "$remote_url" == git@github.com:* ]]; then
+        printf '%s' "${remote_url#git@github.com:}" | sed 's/\.git$//'
+    elif [[ "$remote_url" == https://github.com/* ]]; then
+        printf '%s' "${remote_url#https://github.com/}" | sed 's/\.git$//'
+    elif [[ "$remote_url" == ssh://git@github.com/* ]]; then
+        printf '%s' "${remote_url#ssh://git@github.com/}" | sed 's/\.git$//'
+    else
+        return 1
+    fi
+}
+
+github_repo_full_name(){
+    # GH_REPO is the standard gh CLI override and is also injected by
+    # `xcookie secrets` when github_url identifies a GitHub mirror.
+    if [[ "${GH_REPO:-}" != "" ]]; then
+        printf '%s' "${GH_REPO#github.com/}"
+        return 0
+    fi
+
+    local remote_name
+    local remote_url
+    local candidate
+    local resolved=""
+    while IFS= read -r remote_name; do
+        remote_url="$(git remote get-url "$remote_name")"
+        candidate="$(_github_repo_from_remote_url "$remote_url")" || continue
+        if [[ "$resolved" == "" ]]; then
+            resolved="$candidate"
+        elif [[ "$resolved" != "$candidate" ]]; then
+            echo "Multiple GitHub repositories are configured; set GH_REPO=owner/repo explicitly." >&2
+            return 1
+        fi
+    done < <(git remote)
+
+    if [[ "$resolved" != "" ]]; then
+        printf '%s' "$resolved"
+        return 0
+    fi
+
+    echo "Unable to determine GitHub repo. Set GH_REPO=owner/repo or configure a GitHub remote." >&2
+    return 1
+}
+
 upload_one_github_secret(){
     # Upload a secret to GitHub. `gh secret set` reads the value from stdin
     # when no --body flag is given, which keeps the secret off argv (out of
@@ -198,23 +243,12 @@ upload_one_github_secret(){
     local secret_name="$1"
     local secret_value="$2"
     local environment_name="${3:-}"
+    local repo_full_name
+    repo_full_name="$(github_repo_full_name)" || return 1
     if [[ "$environment_name" == "" ]]; then
-        printf '%s' "$secret_value" | gh secret set "$secret_name"
+        printf '%s' "$secret_value" | gh secret set "$secret_name" --repo "$repo_full_name"
     else
-        printf '%s' "$secret_value" | gh secret set "$secret_name" --env "$environment_name"
-    fi
-}
-
-github_repo_full_name(){
-    local remote_url
-    remote_url="$(git remote get-url origin)"
-    if [[ "$remote_url" == git@github.com:* ]]; then
-        printf '%s' "${remote_url#git@github.com:}" | sed 's/\.git$//'
-    elif [[ "$remote_url" == https://github.com/* ]]; then
-        printf '%s' "${remote_url#https://github.com/}" | sed 's/\.git$//'
-    else
-        echo "Unable to determine GitHub repo from origin: $remote_url" >&2
-        return 1
+        printf '%s' "$secret_value" | gh secret set "$secret_name" --repo "$repo_full_name" --env "$environment_name"
     fi
 }
 
@@ -604,7 +638,17 @@ upload_gitlab_repo_secrets(){
 
     local mode="${1:-legacy}"
     local SECRET_VARNAME_ARR
-    if [[ "$mode" == "direct_gpg" ]]; then
+    if [[ "$mode" == "trusted_publishing_direct_gpg" ]]; then
+        # PyPI credentials are replaced by OIDC. GPG material is uploaded
+        # separately, so GitLab only needs the repository push credential used
+        # by the release/tag step.
+        SECRET_VARNAME_ARR=(VARNAME_PUSH_TOKEN)
+    elif [[ "$mode" == "trusted_publishing_encrypted_gpg" ]]; then
+        # Trusted Publishing removes Twine credentials, but the legacy
+        # encrypted-repo signing transport still needs CI_SECRET and the
+        # release/tag step still needs the push credential.
+        SECRET_VARNAME_ARR=(VARNAME_CI_SECRET VARNAME_PUSH_TOKEN)
+    elif [[ "$mode" == "direct_gpg" ]]; then
         # GPG material is uploaded separately by upload_gitlab_gpg_secrets;
         # CI_SECRET isn't needed in this mode.
         SECRET_VARNAME_ARR=(VARNAME_TWINE_PASSWORD VARNAME_TEST_TWINE_PASSWORD VARNAME_TWINE_USERNAME VARNAME_TEST_TWINE_USERNAME VARNAME_PUSH_TOKEN)

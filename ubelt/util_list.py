@@ -1016,6 +1016,8 @@ def argmax(
     # elif hasattr(indexable, 'index'):  # cause type annot issues
     elif isinstance(indexable, Sequence):
         if key is None:
+            if typing.TYPE_CHECKING:
+                indexable = cast(Sequence[typing.Any], indexable)
             return indexable.index(max(indexable))
         else:
             key_func = key
@@ -1073,6 +1075,8 @@ def argmin(
     # elif hasattr(indexable, 'index'): #
     elif isinstance(indexable, Sequence):
         if key is None:
+            if typing.TYPE_CHECKING:
+                indexable = cast(Sequence[typing.Any], indexable)
             return indexable.index(min(indexable))
         else:
             key_func = key

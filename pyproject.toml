@@ -9,7 +9,7 @@ mod_name = "ubelt"
 repo_name = "ubelt"
 rel_mod_parent_dpath = "."
 os = ["all"]
-min_python = '3.8'
+min_python = '3.10'
 author = "Jon Crall"
 typed = "partial"
 use_uv = true
@@ -93,7 +93,7 @@ ignore_missing_imports = true
 [tool.ty.rules]
 unused-ignore-comment = "ignore"
 unused-type-ignore-comment = "ignore"
-unresolved-import = "ignore"
+import-not-found = "ignore"
 
 [tool.ruff]
 line-length = 80

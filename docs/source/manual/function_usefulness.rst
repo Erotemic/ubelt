@@ -121,7 +121,6 @@ my own code (excluding ubelt itself).
 :func:`ubelt.get_app_config_dir<ubelt.util_platform.get_app_config_dir>`                         0
 :func:`ubelt.ensure_app_data_dir<ubelt.util_platform.ensure_app_data_dir>`                       0
 :func:`ubelt.ensure_app_config_dir<ubelt.util_platform.ensure_app_config_dir>`                   0
-:func:`ubelt.TempDir<ubelt.util_path.TempDir>`                                                   0
 :func:`ubelt.TeeStringIO<ubelt.util_stream.TeeStringIO>`                                         0
 :func:`ubelt.ReprExtensions<ubelt.util_repr.ReprExtensions>`                                     0
 :func:`ubelt.POSIX<ubelt.util_platform.POSIX>`                                                   0
@@ -299,7 +298,6 @@ my own code (excluding ubelt itself).
 :mod:`ubelt.util_path`
 ----------------------
 :func:`<ubelt.Path><ubelt.util_path.Path>`
-:func:`<ubelt.TempDir><ubelt.util_path.TempDir>`
 :func:`<ubelt.augpath><ubelt.util_path.augpath>`
 :func:`<ubelt.shrinkuser><ubelt.util_path.shrinkuser>`
 :func:`<ubelt.userhome><ubelt.util_path.userhome>`
