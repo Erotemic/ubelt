@@ -2,6 +2,16 @@
 A simple download manager
 """
 
+from __future__ import annotations
+
+import typing
+
+if typing.TYPE_CHECKING:
+    import concurrent.futures
+    import os
+    from collections.abc import Iterable
+    import ubelt as ub
+
 __all__ = ['DownloadManager']
 
 
@@ -60,8 +70,19 @@ class DownloadManager:
         >>>     print('fpath = {!r}'.format(fpath))
 
     """
-    def __init__(self, download_root=None, mode='thread', max_workers=None,
-                 cache=True):
+
+    download_root: str | os.PathLike
+    cache: bool
+    _pool: ub.JobPool[typing.Any]
+    _dl_func: typing.Callable[..., object]
+
+    def __init__(
+        self,
+        download_root: str | os.PathLike | None = None,
+        mode: str = 'thread',
+        max_workers: int = 0,
+        cache: bool = True,
+    ) -> None:
         """
         Args:
             download_root (str | PathLike): default download location
@@ -74,6 +95,21 @@ class DownloadManager:
                   "connection state" objects.
         """
         import ubelt as ub
+
+        # The download manager is overscoped and doesn't provide enough value
+        # over the simple download function. This is better suited for a
+        # separate package rather than a utility library. A proper download
+        # manager would be multiplexing connections and have many more
+        # efficiency tricks that would bloat a ubelt implementation.
+        ub.schedule_deprecation(
+            modname='ubelt',
+            name='DownloadManager',
+            type='class',
+            migration='Vendor the code if you need it.',
+            deprecate='1.4.1',
+            error='2.0.0',
+            remove='2.1.0',
+        )
         if download_root is None:
             download_root = ub.ensure_app_config_dir('ubelt', 'dlman')
         self._pool = ub.JobPool(mode=mode, max_workers=max_workers)
@@ -84,7 +120,13 @@ class DownloadManager:
         else:
             self._dl_func = ub.download
 
-    def submit(self, url, dst=None, hash_prefix=None, hasher='sha256'):
+    def submit(
+        self,
+        url: str | os.PathLike,
+        dst: str | None = None,
+        hash_prefix: str | None = None,
+        hasher: str = 'sha256',
+    ) -> concurrent.futures.Future:
         """
         Add a job to the download Queue
 
@@ -103,12 +145,22 @@ class DownloadManager:
                 a Future object that will point to the downloaded location.
         """
         job = self._pool.submit(
-            self._dl_func, url, fname=dst, dpath=self.download_root,
-            hash_prefix=hash_prefix, hasher=hasher, verbose=0,
+            self._dl_func,
+            url,
+            fname=dst,
+            dpath=self.download_root,
+            hash_prefix=hash_prefix,
+            hasher=hasher,
+            verbose=0,
         )
         return job
 
-    def as_completed(self, prog=None, desc=None, verbose=1):
+    def as_completed(
+        self,
+        prog: None | bool | type = None,
+        desc: str | None = None,
+        verbose: int = 1,
+    ) -> typing.Iterable[typing.Any]:
         """
         Generate completed jobs as they become available
 
@@ -139,27 +191,28 @@ class DownloadManager:
         """
         if prog is True:
             import ubelt as ub
+
             prog = ub.ProgIter
-        if prog is not None:
-            return prog(self._pool.as_completed(), total=len(self), desc=desc,
-                        verbose=verbose)
+        if prog:
+            _iter = self._pool.as_completed()
+            return prog(_iter, total=len(self), desc=desc, verbose=verbose)
         else:
             return self._pool.as_completed()
 
-    def shutdown(self):
+    def shutdown(self) -> None:
         """
         Cancel all jobs and close all connections.
         """
         self._pool.executor.shutdown()
 
-    def __iter__(self):
+    def __iter__(self) -> Iterable:
         """
         Returns:
             Iterable
         """
         return self.as_completed()
 
-    def __len__(self):
+    def __len__(self) -> int:
         """
         Returns:
             int

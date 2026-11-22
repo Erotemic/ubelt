@@ -1,79 +1,97 @@
-import random
-import ubelt as ub
 import itertools as it
+import random
+import typing
+
+import ubelt as ub
 
 
-def test_operators():
+def test_operators() -> None:
     """
     CommandLine:
         python ~/code/ubelt/ubelt/tests/test_oset.py test_operators
     """
     rng = random.Random(0)
 
-    def random_oset(rng, a=20, b=20):
+    def random_oset(
+        rng: random.Random, a: int = 20, b: int = 20
+    ) -> ub.OrderedSet[int]:
         return ub.OrderedSet(rng.randint(0, a) for _ in range(b))
 
-    def check_results(*results, **kw):
+    def check_results(*results: object, **kw: object) -> None:
         name = kw.get('name', 'set test')
+        assert isinstance(name, str)
         datas = kw.get('datas', [])
         if not ub.allsame(results):
-            raise AssertionError('Not all same {} for {} with datas={}'.format(
-                results, name, datas))
+            raise AssertionError(
+                'Not all same {} for {} with datas={}'.format(
+                    results, name, datas
+                )
+            )
         for a, b in it.combinations(results, 2):
             if not isinstance(a, (bool, int)):
                 assert a is not b, name + ' should all be different items'
 
-    def operator_tests(data1, data2):
+    def operator_tests(
+        data1: ub.OrderedSet[int], data2: ub.OrderedSet[int]
+    ) -> None:
+        result1: typing.Any
+        result2: typing.Any
+        result3: typing.Any
         result1 = data1.copy()
         print('====')
         print('data1 = {!r}'.format(data1))
         print('data2 = {!r}'.format(data2))
         result1.intersection_update(data2)
-        result2 = (data1 & data2)
-        result3 = (data1.intersection(data2))
-        print('result1 = {!r} result1.intersection_update(data2)'.format(result1))
+        result2 = data1 & data2
+        result3 = data1.intersection(data2)
+        print(
+            'result1 = {!r} result1.intersection_update(data2)'.format(result1)
+        )
         print('result2 = {!r} (data1 & data2) '.format(result2))
         print('result3 = {!r} (data1.intersection(data2))'.format(result3))
-        check_results(result1, result2, result3, datas=(data1, data2),
-                      name='isect')
+        check_results(
+            result1, result2, result3, datas=(data1, data2), name='isect'
+        )
 
         result1 = data1.copy()
         result1.difference_update(data2)
-        result2 = (data1 - data2)
-        result3 = (data1.difference(data2))
-        check_results(result1, result2, result3, datas=(data1, data2),
-                      name='-')
+        result2 = data1 - data2
+        result3 = data1.difference(data2)
+        check_results(result1, result2, result3, datas=(data1, data2), name='-')
 
         result1 = data1.copy()
         result1.symmetric_difference_update(data2)
-        result2 = (data1 ^ data2)
-        result3 = (data1.symmetric_difference(data2))
-        check_results(result1, result2, result3, datas=(data1, data2),
-                      name='xor')
+        result2 = data1 ^ data2
+        result3 = data1.symmetric_difference(data2)
+        check_results(
+            result1, result2, result3, datas=(data1, data2), name='xor'
+        )
 
         result1 = data1.copy()
         result1.update(data2)
-        result2 = (data1 | data2)
-        result3 = (data1.union(data2))
-        check_results(result1, result2, result3, datas=(data1, data2),
-                      name='union')
+        result2 = data1 | data2
+        result3 = data1.union(data2)
+        check_results(
+            result1, result2, result3, datas=(data1, data2), name='union'
+        )
 
         result1 = data1 <= data2
         result2 = data1.issubset(data2)
         result3 = set(data1).issubset(set(data2))
-        check_results(result1, result2, result3, datas=(data1, data2),
-                      name='subset')
+        check_results(
+            result1, result2, result3, datas=(data1, data2), name='subset'
+        )
 
         result1 = data1 >= data2
         result2 = data1.issuperset(data2)
         result3 = set(data1).issuperset(set(data2))
-        check_results(result1, result2, result3, datas=(data1, data2),
-                      name='superset')
+        check_results(
+            result1, result2, result3, datas=(data1, data2), name='superset'
+        )
 
         result1 = data1.isdisjoint(data2)
         result2 = len(data1.intersection(data2)) == 0
-        check_results(result1, result2, datas=(data1, data2),
-                      name='disjoint')
+        check_results(result1, result2, datas=(data1, data2), name='disjoint')
 
     # run tests on standard test cases
     data1 = ub.OrderedSet([5, 3, 1, 4])
@@ -99,9 +117,8 @@ def test_operators():
         operator_tests(data2, data1)
 
 
-def test_equality():
-
-    def check(a, b):
+def test_equality() -> None:
+    def check(a: ub.OrderedSet[int], b: ub.OrderedSet[int]) -> None:
         # Self checks
         assert a == a
         assert a >= a
@@ -122,7 +139,7 @@ def test_equality():
         assert b != a
         assert not b == a
 
-    a = ub.oset([])
+    a: ub.OrderedSet[int] = ub.oset([])
     b = ub.oset([1])
     c = ub.oset([1, 2])
     d = ub.oset([1, 2, 3])
@@ -141,4 +158,5 @@ if __name__ == '__main__':
         pytest ~/code/ubelt/ubelt/tests/test_oset.py
     """
     import xdoctest
+
     xdoctest.doctest_module(__file__)

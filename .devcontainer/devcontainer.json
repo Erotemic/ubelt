@@ -1,0 +1,39 @@
+{
+  "name": "ubelt Development",
+  "dockerComposeFile": ["compose.yml"],
+  "service": "dev",
+
+  "workspaceFolder": "/workspaces/ubelt",
+
+  "remoteUser": "vscode",
+  "updateRemoteUserUID": true,
+
+  "overrideCommand": false,
+
+  "containerEnv": {
+    "DEBIAN_FRONTEND": "noninteractive",
+    "PIP_DISABLE_PIP_VERSION_CHECK": "1",
+    "PYTHONDONTWRITEBYTECODE": "1"
+  },
+
+  "postCreateCommand": "bash -lc 'bash .devcontainer/scripts/post-create.sh'",
+
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "bash"
+      },
+      "extensions": [
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "redhat.vscode-yaml",
+        "editorconfig.editorconfig",
+        "charliermarsh.ruff",
+        "GitHub.vscode-pull-request-github",
+        "github.vscode-github-actions",
+        "GitHub.copilot",
+        "GitHub.copilot-chat"
+      ]
+    }
+  }
+}

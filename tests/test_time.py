@@ -1,23 +1,26 @@
-import pytest
-import ubelt as ub
 import re
+
+import pytest
 from xdoctest.utils import CaptureStdout
 
+import ubelt as ub
 
-def test_timer_nonewline():
+
+def test_timer_nonewline() -> None:
     with CaptureStdout() as cap:
         timer = ub.Timer(newline=False, verbose=1)
         timer.tic()
         timer.toc()
+    assert cap.text is not None
     assert cap.text.replace('u', '').startswith("\ntic('')...toc('')")
 
 
-def test_timestamp():
+def test_timestamp() -> None:
     stamp = ub.timestamp()
     assert re.match(r'\d+-\d+-\d+T\d+[\+\-]\d+', stamp)
 
 
-def test_timer_default_verbosity():
+def test_timer_default_verbosity() -> None:
     with CaptureStdout() as cap:
         ub.Timer('').tic().toc()
     assert cap.text == '', 'should be quiet by default when label is not given'
@@ -27,7 +30,7 @@ def test_timer_default_verbosity():
     assert cap.text != '', 'should be verbose by default when label is given'
 
 
-def test_timer_error():
+def test_timer_error() -> None:
     try:
         with ub.Timer() as timer:
             raise Exception()
@@ -36,15 +39,88 @@ def test_timer_error():
     assert timer.elapsed > 0
 
 
-def test_timestamp_corner_cases():
-    from datetime import datetime as datetime_cls
+def test_timestamp_corner_cases() -> None:
     import datetime as datetime_mod
+    from datetime import datetime as datetime_cls
+
     datetime = datetime_cls(1, 1, 1, 1, 1, 1, tzinfo=datetime_mod.timezone.utc)
     stamp = ub.timestamp(datetime)
     assert stamp == '0001-01-01T010101+0'
 
 
-def test_timeparse_minimal():
+def test_timestamp_negative_fractional_timezone() -> None:
+    import datetime as datetime_mod
+
+    tzinfo = datetime_mod.timezone(
+        datetime_mod.timedelta(hours=-3, minutes=-30)
+    )
+    datetime = datetime_mod.datetime(2020, 1, 2, 3, 4, 5, tzinfo=tzinfo)
+    stamp = ub.timestamp(datetime)
+    assert stamp == '2020-01-02T030405-0330'
+
+
+def test_timestamp_timezone_with_seconds() -> None:
+    import datetime as datetime_mod
+
+    second_tz = datetime_mod.timezone(
+        datetime_mod.timedelta(hours=-4, minutes=-56, seconds=-2)
+    )
+    datetime = datetime_mod.datetime(99, 1, 1, tzinfo=second_tz)
+    stamp = ub.timestamp(datetime)
+    assert stamp == '0099-01-01T000000-045602'
+    assert ub.timeparse(stamp, allow_dateutil=False) == datetime
+
+    subsecond_tz = datetime_mod.timezone(
+        datetime_mod.timedelta(
+            hours=1, minutes=2, seconds=3, microseconds=400000
+        )
+    )
+    datetime = datetime_mod.datetime(2020, 1, 2, tzinfo=subsecond_tz)
+    stamp = ub.timestamp(datetime)
+    assert stamp == '2020-01-02T000000+010203.4'
+    assert ub.timeparse(stamp, allow_dateutil=False) == datetime
+
+
+def test_local_timezone_respects_dst() -> None:
+    import datetime as datetime_mod
+    import os
+    import time
+
+    if not hasattr(time, 'tzset'):
+        pytest.skip('requires time.tzset')
+
+    old_tz = os.environ.get('TZ')
+    try:
+        # POSIX TZ syntax avoids depending on an installed timezone database.
+        os.environ['TZ'] = 'EST5EDT,M3.2.0,M11.1.0'
+        time.tzset()
+
+        winter = datetime_mod.datetime(2026, 1, 1, 12)
+        summer = datetime_mod.datetime(2026, 7, 1, 12)
+        assert ub.timestamp(winter, default_timezone='local').endswith('-5')
+        assert ub.timestamp(summer, default_timezone='local').endswith('-4')
+
+        winter_parsed = ub.timeparse(
+            '2026-01-01T120000',
+            default_timezone='local',
+            allow_dateutil=False,
+        )
+        summer_parsed = ub.timeparse(
+            '2026-07-01T120000',
+            default_timezone='local',
+            allow_dateutil=False,
+        )
+        assert winter_parsed.utcoffset() == datetime_mod.timedelta(hours=-5)
+        assert summer_parsed.utcoffset() == datetime_mod.timedelta(hours=-4)
+    finally:
+        if old_tz is None:
+            os.environ.pop('TZ', None)
+        else:
+            os.environ['TZ'] = old_tz
+        time.tzset()
+
+
+def test_timeparse_minimal() -> None:
     # We should always be able to parse these
     good_stamps = [
         '2000-11-22T111111.44444Z',
@@ -58,9 +134,9 @@ def test_timeparse_minimal():
         '2000-11-22T111111',
     ]
     for stamp in good_stamps:
-        result = ub.timeparse(stamp, allow_dateutil=0)
+        result = ub.timeparse(stamp, allow_dateutil=False)
         recon_stamp = ub.timestamp(result, precision=9)
-        recon_result = ub.timeparse(recon_stamp, allow_dateutil=0)
+        recon_result = ub.timeparse(recon_stamp, allow_dateutil=False)
         print('----')
         print(f'stamp        = {stamp}')
         print(f'recon_stamp  = {recon_stamp}')
@@ -69,8 +145,9 @@ def test_timeparse_minimal():
         assert recon_result == result
 
 
-def test_timeparse_with_dateutil():
+def test_timeparse_with_dateutil() -> None:
     import ubelt as ub
+
     # See Also: https://github.com/dateutil/dateutil/blob/master/tests/test_isoparser.py
     conditional_stamps = [
         'Thu Sep 25 10:36:28 2003',
@@ -138,9 +215,13 @@ def test_timeparse_with_dateutil():
     have_dateutil = bool(ub.modname_to_modpath('dateutil'))
     if have_dateutil:
         for stamp in conditional_stamps:
-            result = ub.timeparse(stamp)
+            # Some historical dates precede the range of the Windows CRT
+            # local-time conversion. This tests parsing, not local offsets.
+            result = ub.timeparse(stamp, default_timezone='utc')
             recon_stamp = ub.timestamp(result, precision=6)
-            recon_result = ub.timeparse(recon_stamp)
+            recon_result = ub.timeparse(
+                recon_stamp, default_timezone='utc'
+            )
             print('----')
             print(f'stamp        = {stamp}')
             print(f'recon_stamp  = {recon_stamp}')
@@ -149,13 +230,9 @@ def test_timeparse_with_dateutil():
             assert result == recon_result
 
 
-def test_timeparse_bad_stamps():
+def test_timeparse_bad_stamps() -> None:
     # We can never parse these types of stamps
-    bad_stamps = [
-        '',
-        'foobar',
-        '0000-00-00T00:00:00.0000+05'
-    ]
+    bad_stamps = ['', 'foobar', '0000-00-00T00:00:00.0000+05']
     for stamp in bad_stamps:
         with pytest.raises(ValueError):
             ub.timeparse(stamp)
@@ -167,4 +244,5 @@ if __name__ == '__main__':
         python ubelt/tests/test_time.py test_timer_nonewline
     """
     import xdoctest
+
     xdoctest.doctest_module(__file__)

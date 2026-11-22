@@ -1,14 +1,19 @@
 import ubelt as ub
 
 
-def test_cache_stamp():
+def test_cache_stamp() -> None:
     # stamp the computation of expensive-to-compute.txt
     dpath = ub.Path.appdir('ubelt/tests', 'test-cache-stamp').ensuredir()
     ub.delete(dpath)
     ub.ensuredir(dpath)
     product = dpath / 'expensive-to-compute.txt'
-    self = ub.CacheStamp('test1', dpath=dpath, depends='test1',
-                         product=product, hasher=None)
+    self = ub.CacheStamp(
+        'test1',
+        dpath=dpath,
+        depends='test1',
+        product=product,
+        hasher=None,  # type: ignore
+    )
     if self.expired():
         product.write_text('very expensive')
         self.renew()
@@ -27,14 +32,19 @@ def test_cache_stamp():
     assert self.expired()
 
 
-def test_cache_stamp_corrupt_product_nohasher():
+def test_cache_stamp_corrupt_product_nohasher() -> None:
     dpath = ub.Path.appdir('ubelt/tests', 'test-cache-stamp').ensuredir()
     name = 'corrupt_product_nohasher'
     ub.delete(dpath)
     ub.ensuredir(dpath)
     product = dpath / (name + '.txt')
-    self = ub.CacheStamp(name, dpath=dpath, depends=name, product=product,
-                         hasher=None)
+    self = ub.CacheStamp(
+        name,
+        dpath=dpath,
+        depends=name,
+        product=product,
+        hasher=None,  # type: ignore
+    )
     # Disable the new (as of 1.1.0) size and mtime checks
     # note: as of version 1.1.0 we also have to disable the new size and
     # mtime checks to get a non-robust mode.
@@ -49,36 +59,47 @@ def test_cache_stamp_corrupt_product_nohasher():
     assert not self.expired()
 
 
-def test_not_time_expired():
+def test_not_time_expired() -> None:
     # stamp the computation of expensive-to-compute.txt
     dpath = ub.Path.appdir('ubelt/tests', 'test-cache-stamp').ensuredir()
     ub.delete(dpath)
     ub.ensuredir(dpath)
-    self = ub.CacheStamp('test1', dpath=dpath, depends='test1',
-                         expires=10000, hasher=None)
+    self = ub.CacheStamp(
+        'test1',
+        dpath=dpath,
+        depends='test1',
+        expires=10000,
+        hasher=None,  # type: ignore
+    )
     self.renew()
     assert not self.expired()
 
 
-def test_time_expired():
+def test_time_expired() -> None:
     # stamp the computation of expensive-to-compute.txt
     dpath = ub.Path.appdir('ubelt/tests', 'test-cache-stamp').ensuredir()
     ub.delete(dpath)
     ub.ensuredir(dpath)
-    self = ub.CacheStamp('test1', dpath=dpath, depends='test1',
-                         expires=-10000, hasher=None)
+    self = ub.CacheStamp(
+        'test1',
+        dpath=dpath,
+        depends='test1',
+        expires=-10000,
+        hasher=None,  # type: ignore
+    )
     self.renew()
     assert self.expired() == 'expired_cert'
 
 
-def test_cache_stamp_corrupt_product_hasher():
+def test_cache_stamp_corrupt_product_hasher() -> None:
     dpath = ub.Path.appdir('ubelt/tests', 'test-cache-stamp').ensuredir()
     name = 'corrupt_product_hasher'
     ub.delete(dpath)
     ub.ensuredir(dpath)
     product = dpath / (name + '.txt')
-    self = ub.CacheStamp(name, dpath=dpath, depends=name, product=product,
-                         hasher='sha1')
+    self = ub.CacheStamp(
+        name, dpath=dpath, depends=name, product=product, hasher='sha1'
+    )
     if self.expired():
         product.write_text('very expensive')
         self.renew()
@@ -88,19 +109,21 @@ def test_cache_stamp_corrupt_product_hasher():
     assert self.expired()
 
 
-def test_cache_stamp_multiproduct():
+def test_cache_stamp_multiproduct() -> None:
     import os
+
     # stamp the computation of expensive-to-compute.txt
     dpath = ub.Path.appdir('ubelt/tests', 'test-cache-stamp').ensuredir()
     ub.delete(dpath)
     ub.ensuredir(dpath)
-    product = [
+    product: list[str | os.PathLike] = [
         dpath / 'product1.txt',
         os.fspath(dpath / 'product2.txt'),
         dpath / 'product3.txt',
     ]
-    self = ub.CacheStamp('somedata', dpath=dpath, depends='someconfig',
-                         product=product)
+    self = ub.CacheStamp(
+        'somedata', dpath=dpath, depends='someconfig', product=product
+    )
     if self.expired():
         for fpath in product:
             ub.Path(fpath).write_text('very expensive')
@@ -110,14 +133,16 @@ def test_cache_stamp_multiproduct():
     assert self.expired()
 
 
-def test_cache_stamp_noproduct():
+def test_cache_stamp_noproduct() -> None:
     # stamp the computation of expensive-to-compute.txt
     dpath = ub.Path.appdir('ubelt/tests', 'test-cache-stamp').ensuredir()
     ub.delete(dpath)
     ub.ensuredir(dpath)
     name = 'noproduct'
     product = dpath / (name + '.txt')
-    self = ub.CacheStamp('somedata', dpath=dpath, depends='someconfig', product=None)
+    self = ub.CacheStamp(
+        'somedata', dpath=dpath, depends='someconfig', product=None
+    )
     if self.expired():
         product.write_text('very expensive')
         self.renew()

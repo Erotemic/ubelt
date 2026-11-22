@@ -1,12 +1,45 @@
-def test_job_pool_context_manager():
+from __future__ import annotations
+
+import typing
+
+if typing.TYPE_CHECKING:
+    try:
+        from typing import assert_type
+    except ImportError:  # pragma: no cover
+        from typing_extensions import assert_type
+
     import ubelt as ub
 
-    def worker(data):
+    _typed_executor = ub.Executor(mode='serial')
+    _typed_future = _typed_executor.submit(int, '3')
+    assert_type(_typed_future.result(), int)
+    _typed_map_iter = _typed_executor.map(int, ['1', '2'])
+    assert_type(next(_typed_map_iter), int)
+    _typed_pool: ub.JobPool[int] = ub.JobPool(mode='serial')
+    _typed_pool.submit(int, '4')
+    assert_type(_typed_pool.join(), list[int])
+
+
+def _process_backend_available() -> bool:
+    import multiprocessing as mp
+
+    try:
+        ctx = mp.get_context()
+        ctx.Lock()
+    except (PermissionError, OSError):
+        return False
+    else:
+        return True
+
+
+def test_job_pool_context_manager() -> None:
+    import ubelt as ub
+
+    def worker(data: int) -> int:
         return data + 1
 
-    pool = ub.JobPool('thread', max_workers=16)
+    pool: ub.JobPool[int] = ub.JobPool('thread', max_workers=16)
     with pool:
-
         for data in ub.ProgIter(range(10), desc='submit jobs'):
             pool.submit(worker, data)
 
@@ -16,39 +49,61 @@ def test_job_pool_context_manager():
             final.append(info)
 
 
-def test_job_pool_as_completed_prog_args():
+def test_job_pool_clear_completed_thread() -> None:
     import ubelt as ub
 
-    def worker(data):
+    jobs: ub.JobPool[int] = ub.JobPool(mode='thread', max_workers=2)
+    with jobs:
+        for jobid in range(4):
+            jobs.submit(simple_worker, jobid)
+
+        for fs in jobs.as_completed():
+            fs.result()
+
+        assert len(jobs.jobs) > 0
+        jobs._clear_completed()
+        assert len(jobs.jobs) == 0
+
+
+def test_job_pool_as_completed_prog_args() -> None:
+    import ubelt as ub
+
+    def worker(data: int) -> int:
         return data + 1
 
-    pool = ub.JobPool('thread', max_workers=1)
+    pool: ub.JobPool[int] = ub.JobPool('thread', max_workers=1)
+    with pool:
+        for data in ub.ProgIter(range(10), desc='submit jobs'):
+            pool.submit(worker, data)
 
-    for data in ub.ProgIter(range(10), desc='submit jobs'):
-        pool.submit(worker, data)
+        with ub.CaptureStdout() as cap:
+            final = list(
+                pool.as_completed(
+                    desc='collect jobs', progkw={'verbose': 3, 'time_thresh': 0}
+                )
+            )
 
-    with ub.CaptureStdout() as cap:
-        final = list(pool.as_completed(desc='collect jobs', progkw={'verbose': 3, 'time_thresh': 0}))
+        print(f'cap.text={cap.text}')
+        num_lines = len(cap.text.split('\n'))  # type: ignore
+        num_jobs = len(pool.jobs)
+        assert num_lines > num_jobs
 
-    print(f'cap.text={cap.text}')
-    num_lines = len(cap.text.split('\n'))
-    num_jobs = len(pool.jobs)
-    assert num_lines > num_jobs
-
-    print('final = {!r}'.format(final))
-    pool.shutdown()
+        print('final = {!r}'.format(final))
 
 
-def test_executor_timeout():
+def test_executor_timeout() -> None:
     import pytest
-    pytest.skip(
-        'long test, demos that timeout does not work with SerialExecutor')
 
-    import ubelt as ub
+    pytest.skip(
+        'long test, demos that timeout does not work with SerialExecutor'
+    )
+
     import time
     from concurrent.futures import TimeoutError
 
-    def long_job(n, t):
+    import ubelt as ub
+
+    def long_job(n: int, t: float) -> None:
         for i in range(n):
             time.sleep(t)
 
@@ -67,156 +122,203 @@ def test_executor_timeout():
             print('ex_ = {!r}'.format(ex_))
 
 
-def test_job_pool_clear_completed():
-    import weakref
+def test_job_pool_clear_completed() -> None:
+    if not _process_backend_available():
+        import pytest
+
+        pytest.skip('process backend not permitted')
     import gc
+    import weakref
+
     import ubelt as ub
-    is_deleted = {}
-    weak_futures = {}
 
-    jobs = ub.JobPool(mode='process', max_workers=4)
+    is_deleted: dict[int, bool] = {}
+    weak_futures: dict[int, typing.Any] = {}
 
-    def make_finalizer(jobid):
-        def _finalizer():
+    jobs: ub.JobPool[int] = ub.JobPool(mode='process', max_workers=4)
+
+    def make_finalizer(jobid: int) -> typing.Callable[[], None]:
+        def _finalizer() -> None:
             is_deleted[jobid] = True
+
         return _finalizer
 
-    def debug_referrers():
+    def debug_referrers() -> None:
         if 0:
             referrers = ub.udict({})
             for jobid, ref in weak_futures.items():
                 fs = ref()
-                referrers[jobid] = 0 if fs is None else len(gc.get_referrers(fs))
+                referrers[jobid] = (
+                    0 if fs is None else len(gc.get_referrers(fs))
+                )
             print('is_deleted = {}'.format(ub.urepr(is_deleted, nl=1)))
             print('referrers = {}'.format(ub.urepr(referrers, nl=1)))
 
-    for jobid in range(10):
-        fs = jobs.submit(simple_worker, jobid)
-        weak_futures[jobid] = weakref.ref(fs)
-        is_deleted[jobid] = False
-        weakref.finalize(fs, make_finalizer(jobid))
-        del fs
+    with jobs:
+        for jobid in range(10):
+            fs = jobs.submit(simple_worker, jobid)
+            weak_futures[jobid] = weakref.ref(fs)
+            is_deleted[jobid] = False
+            weakref.finalize(fs, make_finalizer(jobid))
+            del fs
 
-    debug_referrers()
-    assert not any(is_deleted.values())
+        debug_referrers()
+        assert not any(is_deleted.values())
 
-    for fs in jobs.as_completed():
-        fs.result()
+        for fs in jobs.as_completed():
+            fs.result()
 
-    debug_referrers()
-    assert not any(is_deleted.values())
+        debug_referrers()
+        assert not any(is_deleted.values())
 
-    jobs._clear_completed()
+        jobs._clear_completed()
+    jobs.shutdown()
 
     debug_referrers()
 
     import platform
+
     if 'pypy' not in platform.python_implementation().lower():
         if not any(is_deleted.values()):
             raise AssertionError
 
-    fs = None
+    fs = typing.cast(typing.Any, None)
 
     if 'pypy' not in platform.python_implementation().lower():
         if not all(is_deleted.values()):
             raise AssertionError
 
 
-def simple_worker(jobid):
+def simple_worker(jobid: int) -> int:
     return jobid
 
 
-def test_job_pool_transient():
+def test_job_pool_transient() -> None:
+    if not _process_backend_available():
+        import pytest
+
+        pytest.skip('process backend not permitted')
     import weakref
+
     import ubelt as ub
-    is_deleted = {}
-    weak_futures = {}
 
-    jobs = ub.JobPool(mode='process', max_workers=4, transient=True)
+    is_deleted: dict[int, bool] = {}
+    weak_futures: dict[int, typing.Any] = {}
 
-    def make_finalizer(jobid):
-        def _finalizer():
+    jobs: ub.JobPool[int] = ub.JobPool(
+        mode='process', max_workers=4, transient=True
+    )
+
+    def make_finalizer(jobid: int) -> typing.Callable[[], None]:
+        def _finalizer() -> None:
             is_deleted[jobid] = True
+
         return _finalizer
 
-    for jobid in range(10):
-        fs = jobs.submit(simple_worker, jobid)
-        weak_futures[jobid] = weakref.ref(fs)
-        is_deleted[jobid] = False
-        weakref.finalize(fs, make_finalizer(jobid))
+    with jobs:
+        for jobid in range(10):
+            fs = jobs.submit(simple_worker, jobid)
+            weak_futures[jobid] = weakref.ref(fs)
+            is_deleted[jobid] = False
+            weakref.finalize(fs, make_finalizer(jobid))
 
-    if any(is_deleted.values()):
-        raise AssertionError
+        if any(is_deleted.values()):
+            raise AssertionError
 
-    for fs in jobs.as_completed():
-        fs.result()
+        for fs in jobs.as_completed():
+            fs.result()
 
     # For 3.6, pytest has an AST issue if and assert statements are used.
     # raising regular AssertionErrors to handle that.
     import platform
+
     if 'pypy' not in platform.python_implementation().lower():
         if not any(is_deleted.values()):
             raise AssertionError
 
-    fs = None
+    fs = typing.cast(typing.Any, None)
 
     if 'pypy' not in platform.python_implementation().lower():
         if not all(is_deleted.values()):
             raise AssertionError
 
 
-def test_backends():
+def test_job_pool_transient_thread() -> None:
+    import ubelt as ub
+
+    jobs: ub.JobPool[int] = ub.JobPool(
+        mode='thread', max_workers=2, transient=True
+    )
+    with jobs:
+        for jobid in range(4):
+            jobs.submit(simple_worker, jobid)
+
+        for fs in jobs.as_completed():
+            fs.result()
+
+        assert jobs.jobs == []
+
+
+def test_backends() -> None:
     import platform
     import sys
+
     # The process backend breaks pyp3 when using coverage
     if 'pypy' in platform.python_implementation().lower():
         import pytest
+
         pytest.skip('not testing process on pypy')
     if sys.platform.startswith('win32'):
         import pytest
+
         pytest.skip('not running this test on win32 for now')
+    if not _process_backend_available():
+        import pytest
+
+        pytest.skip('process backend not permitted')
     import ubelt as ub
+
     # Fork before threading!
     # https://pybay.com/site_media/slides/raymond2017-keynote/combo.html
     self1 = ub.Executor(mode='serial', max_workers=0)
-    self1.__enter__()
     self2 = ub.Executor(mode='process', max_workers=2)
-    self2.__enter__()
     self3 = ub.Executor(mode='thread', max_workers=2)
-    self3.__enter__()
-    jobs = []
-    jobs.append(self1.submit(sum, [1, 2, 3]))
-    jobs.append(self1.submit(sum, [1, 2, 3]))
-    jobs.append(self2.submit(sum, [10, 20, 30]))
-    jobs.append(self2.submit(sum, [10, 20, 30]))
-    jobs.append(self3.submit(sum, [4, 5, 5]))
-    jobs.append(self3.submit(sum, [4, 5, 5]))
-    for job in jobs:
-        result = job.result()
-        print('result = {!r}'.format(result))
-    self1.__exit__(None, None, None)
-    self2.__exit__(None, None, None)
-    self3.__exit__(None, None, None)
+
+    with self1, self2, self3:
+        jobs = []
+        jobs.append(self1.submit(sum, [1, 2, 3]))
+        jobs.append(self1.submit(sum, [1, 2, 3]))
+        jobs.append(self2.submit(sum, [10, 20, 30]))
+        jobs.append(self2.submit(sum, [10, 20, 30]))
+        jobs.append(self3.submit(sum, [4, 5, 5]))
+        jobs.append(self3.submit(sum, [4, 5, 5]))
+        for job in jobs:
+            result = job.result()
+            print('result = {!r}'.format(result))
 
 
-def test_done_callback():
+def test_done_callback() -> None:
     import ubelt as ub
+
     self1 = ub.Executor(mode='serial', max_workers=0)
     with self1:
         jobs = []
         for i in range(10):
             jobs.append(self1.submit(sum, [i + 1, i]))
         for job in jobs:
-            job.add_done_callback(lambda x: print('done callback got x = {}'.format(x)))
+            job.add_done_callback(
+                lambda x: print('done callback got x = {}'.format(x))
+            )
             result = job.result()
             print('result = {!r}'.format(result))
 
 
-def _killable_worker(kill_fpath):
+def _killable_worker(kill_fpath: typing.Any) -> None:
     """
     An infinite loop that we can kill by writing a sentinel value to disk
     """
     import ubelt as ub
+
     timer = ub.Timer().tic()
     while True:
         # Don't want for too long
@@ -226,11 +328,12 @@ def _killable_worker(kill_fpath):
             return
 
 
-def _sleepy_worker(seconds, loops=100):
+def _sleepy_worker(seconds: float, loops: int = 100) -> float | None:
     """
     An infinite loop that we can kill by writing a sentinel value to disk
     """
     import time
+
     start_time = time.monotonic()
     while True:
         time.sleep(seconds / loops)
@@ -239,25 +342,28 @@ def _sleepy_worker(seconds, loops=100):
             return elapsed
 
 
-def test_as_completed_timeout():
+def test_as_completed_timeout() -> None:
     """
     xdoctest ~/code/ubelt/tests/test_futures.py test_as_completed_timeout
     """
+    import uuid
     from concurrent.futures import TimeoutError
 
     import ubelt as ub
-    import uuid
+
     kill_fname = str(uuid.uuid4()) + '.signal'
 
     # modes = ['thread', 'process', 'serial']
     modes = ['thread', 'process']
+    if not _process_backend_available():
+        modes = ['thread']
 
     timeout = 0.1
     dpath = ub.Path.appdir('ubelt', 'tests', 'futures', 'timeout').ensuredir()
     kill_fpath = dpath / kill_fname
 
     for mode in modes:
-        jobs = ub.JobPool(mode=mode, max_workers=2)
+        jobs: ub.JobPool[float | None] = ub.JobPool(mode=mode, max_workers=2)
         with jobs:
             print('Submitting')
             timer = ub.Timer().tic()
@@ -306,6 +412,203 @@ def test_as_completed_timeout():
         kill_fpath.delete()
         print('End of function')
 
+
+def test_serial_future_evaluates_once_on_success() -> None:
+    from ubelt.util_futures import SerialFuture
+
+    calls = []
+    callbacks = []
+
+    def worker():
+        calls.append('run')
+        return 42
+
+    future = SerialFuture(worker)
+    assert not future.done()
+    future.add_done_callback(lambda f: callbacks.append(f.result()))
+    assert callbacks == []
+
+    assert future.result() == 42
+    assert future.done()
+    assert future.exception() is None
+    assert callbacks == [42]
+    assert future.result() == 42
+    assert calls == ['run']
+
+
+def test_serial_future_evaluates_once_on_exception() -> None:
+    import pytest
+
+    from ubelt.util_futures import SerialFuture
+
+    calls = []
+    callbacks = []
+
+    class DemoError(Exception):
+        pass
+
+    def worker():
+        calls.append('run')
+        raise DemoError('boom')
+
+    future = SerialFuture(worker)
+    future.add_done_callback(lambda f: callbacks.append(f.done()))
+    assert not future.done()
+    assert callbacks == []
+
+    error = future.exception()
+    assert isinstance(error, DemoError)
+    assert future.done()
+    assert callbacks == [True]
+
+    with pytest.raises(DemoError, match='boom'):
+        future.result()
+    with pytest.raises(DemoError, match='boom'):
+        future.result()
+    assert calls == ['run']
+
+
+def test_serial_future_post_completion_paths() -> None:
+    import concurrent.futures
+
+    import pytest
+
+    from ubelt.util_futures import SerialFuture
+
+    calls = []
+    future = SerialFuture(lambda: calls.append('run') or 42)
+    assert future.result() == 42
+
+    # A direct second run is a no-op. This protects one-shot evaluation even
+    # for callers that reach the private helper.
+    future._run()
+    assert calls == ['run']
+
+    callbacks = []
+    future.add_done_callback(lambda f: callbacks.append(f.result()))
+    assert callbacks == [42]
+
+    def bad_callback(f):
+        raise RuntimeError('callback boom')
+
+    # Future callback exceptions are logged rather than propagated.
+    future.add_done_callback(bad_callback)
+
+    with pytest.raises(concurrent.futures.InvalidStateError):
+        future.set_result(43)
+    with pytest.raises(concurrent.futures.InvalidStateError):
+        future.set_exception(RuntimeError('late exception'))
+
+
+def test_serial_future_as_completed_remains_lazy() -> None:
+    import concurrent.futures
+
+    from ubelt.util_futures import SerialFuture
+
+    calls = []
+    future = SerialFuture(lambda: calls.append('run') or 3)
+    completed = list(concurrent.futures.as_completed([future]))
+    assert completed == [future]
+    assert calls == []
+    assert not future.done()
+    assert completed[0].result() == 3
+    assert calls == ['run']
+
+
+def test_serial_future_concurrent_consumers_evaluate_once() -> None:
+    """Two waiting consumers cannot both execute the pending callable."""
+    import concurrent.futures
+    import threading
+
+    from ubelt.util_futures import SerialFuture
+
+    entered = threading.Event()
+    consumer_entered = threading.Event()
+    release = threading.Event()
+    executed_twice = threading.Event()
+    calls = []
+    callbacks = []
+
+    def worker():
+        calls.append('run')
+        if len(calls) > 1:
+            executed_twice.set()
+        entered.set()
+        if not release.wait(timeout=5):
+            raise RuntimeError('test worker timed out')
+        return 42
+
+    future = SerialFuture(worker)
+    future.add_done_callback(lambda f: callbacks.append(f.result()))
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=2) as pool:
+        try:
+            first = pool.submit(future.exception)
+            assert entered.wait(timeout=5)
+
+            def second_consumer():
+                consumer_entered.set()
+                return future.result()
+
+            second = pool.submit(second_consumer)
+            assert consumer_entered.wait(timeout=5)
+            # With the old implementation the second consumer could execute
+            # the worker concurrently. A short observation period makes that
+            # interleaving observable without depending on execution order.
+            assert not executed_twice.wait(timeout=0.1)
+        finally:
+            release.set()
+        assert first.result(timeout=5) is None
+        assert second.result(timeout=5) == 42
+
+    assert calls == ['run']
+    assert callbacks == [42]
+    assert future.done()
+    assert future.result() == 42
+
+
+def test_serial_future_concurrent_exception_consumers_evaluate_once() -> None:
+    import concurrent.futures
+    import threading
+
+    import pytest
+    from ubelt.util_futures import SerialFuture
+
+    class DemoError(Exception):
+        pass
+
+    entered = threading.Event()
+    second_entered = threading.Event()
+    release = threading.Event()
+    calls = []
+
+    def worker():
+        calls.append('run')
+        entered.set()
+        if not release.wait(timeout=5):
+            raise RuntimeError('test worker timed out')
+        raise DemoError('expected failure')
+
+    future = SerialFuture(worker)
+    with concurrent.futures.ThreadPoolExecutor(max_workers=2) as pool:
+        try:
+            first = pool.submit(future.exception)
+            assert entered.wait(timeout=5)
+
+            def second_consumer():
+                second_entered.set()
+                return future.exception()
+
+            second = pool.submit(second_consumer)
+            assert second_entered.wait(timeout=5)
+        finally:
+            release.set()
+        assert isinstance(first.result(timeout=5), DemoError)
+        assert isinstance(second.result(timeout=5), DemoError)
+
+    assert calls == ['run']
+    with pytest.raises(DemoError, match='expected failure'):
+        future.result()
 
 if __name__ == '__main__':
     """

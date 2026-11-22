@@ -4,7 +4,58 @@ We are currently working on porting this changelog to the specifications in
 [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 This project (loosely) adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Version 1.4.1 - Unreleased
+## Version 1.5.0 - Unreleased
+
+### Changed
+
+* Drop support for Python 3.8 and 3.9
+
+### Fixed
+
+* Bug in `ub.chunks` with `bordermode='cycle'` #201
+
+### Added
+* Added an explicit ``relative=`` mode to ``ub.symlink``. ``relative=True``
+  requests a relative symbolic-link target and ``relative=False`` requests an
+  absolute target. Changing the representation of an equivalent existing
+  symlink requires ``overwrite=True``. The temporary ``relative='legacy'``
+  mode preserves the old behavior without warnings.
+
+### Deprecated
+* Calling ``ub.symlink`` with a relative ``real_path`` and without explicitly
+  specifying ``relative=`` now emits a ``FutureWarning``. The historical
+  behavior is preserved for backwards compatibility, but callers should choose
+  an explicit mode before Ubelt 2.0.0.
+
+### Fixed
+* Fixed negative fractional and sub-minute UTC offsets, and daylight-saving
+  handling in local timestamp/time parsing.
+* Fixed ``zopen`` resource cleanup and delegated calls on temporary instances.
+* Fixed ``download`` request-header merging and the reported transfer rate.
+* Fixed symlink idempotence for equivalent target spellings and corrected the
+  physical-path collision error message.
+* Fixed ANSI-aware repr alignment, bound-method injection, and zero-value base
+  conversion.
+* Fixed ``SerialFuture`` so evaluation, exceptions, and callbacks occur once,
+  including when multiple threads request results concurrently.
+* Fixed two Windows reparse-point resource/result handling errors.
+
+
+## Version 1.4.3 - Released 2026-07-30
+
+
+## Version 1.4.2 - Released 2026-04-12
+
+### Changed
+* Improved urepr type annotations
+* Improved general type annotations
+* Removed internal helpers from urepr
+
+### Breaking
+* In order to better support static typing some corner case behaviors have changed, e.g. instead of checking `hasattr(self, '__len__')` we check `isinstance(self, Sized):` in NiceRepr.
+
+
+## Version 1.4.1 - Released 2026-02-08
 
 ### Added
 * `ub.CaptureStderr`
@@ -13,6 +64,19 @@ This project (loosely) adheres to [Semantic Versioning](https://semver.org/spec/
 * Cleanup in `util_import`
 * Fixes and refactor in `util_stream`. Implemented `CaptureStream`.
 * Improved download inference of content length and progress reporting.
+* Fixed busy loop in ub.cmd
+* Fixed failure to return after timeout in ub.cmd
+
+### Changed
+* Changed the default warning in `schedule_deprecation` from
+  `DeprecationWarning` to `FutureWarning`, which makes deprecations loud by
+  default.
+* All .pyi files have been removed. Type annotations are now inline and validated with mypy and ty.
+* if ub.cmd has detach=True, CompletedProcess will now raise a RuntimeError for ret and return None for stdout and stderr.
+* Swapped ub.Path.walk to use the 3.12 argument names and support the old names as kwargs for backwards compatibility.
+
+### Deprecated
+* Deprecated `DownloadManager`, due to being over scoped.
 
 
 ## Version 1.4.0 - Released 2025-08-16

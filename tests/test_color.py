@@ -1,6 +1,8 @@
-def test_unable_to_find_color():
-    import ubelt as ub
+def test_unable_to_find_color() -> None:
     import pytest
+
+    import ubelt as ub
+
     if ub.util_colors.NO_COLOR:
         pytest.skip()
 
@@ -9,13 +11,14 @@ def test_unable_to_find_color():
         assert text == 'text', 'bad colors should pass the text back'
 
 
-def test_global_color_disable():
+def test_global_color_disable() -> None:
     """
     CommandLine:
         xdoctest -m /home/joncrall/code/ubelt/tests/test_color.py test_global_color_disable
     """
-    import ubelt as ub
     import pytest
+
+    import ubelt as ub
 
     if ub.util_colors.NO_COLOR:
         pytest.skip()

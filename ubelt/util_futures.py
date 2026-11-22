@@ -49,16 +49,97 @@ Example:
     >>>             run_process(inputs, mode=mode, max_workers=max_workers)
     >>> print(ub.repr2(ti))
 """
+
+from __future__ import annotations
+
 import concurrent.futures
+import threading
+import typing
 from concurrent.futures import as_completed
+from typing import Protocol, cast
 
 __all__ = ['Executor', 'JobPool']
 
+T = typing.TypeVar('T')
 
-class SerialFuture(concurrent.futures.Future):
+if typing.TYPE_CHECKING:
+    from concurrent.futures import (
+        Future,
+    )
+    from types import TracebackType
+    from typing import (
+        Any,
+        Callable,
+        Generator,
+        Iterable,
+        Iterator,
+        Type,
+        cast,
+    )
+
+    class _ExecutorBackend(Protocol):
+        def __enter__(self) -> Any: ...
+        def __exit__(
+            self,
+            ex_type: Type[BaseException] | None,
+            ex_value: BaseException | None,
+            ex_traceback: TracebackType | None,
+        ) -> bool | None: ...
+        def submit(
+            self,
+            func: Callable[..., T],
+            *args: Any,
+            **kw: Any,
+        ) -> concurrent.futures.Future[T]: ...
+        def shutdown(self) -> None: ...
+        def map(
+            self,
+            fn: Callable[..., T],
+            *iterables: Iterable[Any],
+            **kwargs: Any,
+        ) -> Iterator[T]: ...
+else:
+    _ExecutorBackend = typing.Any
+
+
+class SerialFuture(concurrent.futures.Future, typing.Generic[T]):
     """
     Non-threading / multiprocessing version of future for drop in compatibility
     with concurrent.futures.
+
+    The callable is evaluated lazily the first time its result or exception is
+    requested. Internally this future advertises a finished state so it remains
+    compatible with :func:`concurrent.futures.as_completed`; the public future
+    methods track whether the callable has actually been evaluated.
+
+    Note:
+        This remains a compatibility compromise, not a fully standard Future:
+        ``concurrent.futures.wait()`` reads the internal finished state and
+        can report a serial job as finished before ``done()`` returns True.
+        The lazy behavior is retained for existing SerialExecutor callers;
+        adopting eager evaluation would allow use of an ordinary Future. Initial
+        evaluation is serialized when multiple threads request the same result.
+
+    Example:
+        >>> from ubelt.util_futures import SerialFuture
+        >>> calls = []
+        >>> future = SerialFuture(lambda: calls.append('run') or 5)
+        >>> future.add_done_callback(lambda f: calls.append('callback'))
+        >>> assert calls == []
+        >>> assert future.result() == 5
+        >>> assert future.result() == 5
+        >>> assert calls == ['run', 'callback']
+        >>> # An explicitly supplied result must not evaluate the callable.
+        >>> future = SerialFuture(lambda: calls.append('unused'))
+        >>> future.set_result(10)
+        >>> assert future.result() == 10
+        >>> assert 'unused' not in calls
+        >>> # The old doctest attempted to overwrite the result; that is now
+        >>> # rejected, matching Future's one-shot completion contract.
+        >>> import concurrent.futures
+        >>> import pytest
+        >>> with pytest.raises(concurrent.futures.InvalidStateError):
+        ...     future.set_result(11)
 
     TODO:
         warn if the user specifies timeout as we cannot handle it without
@@ -69,61 +150,154 @@ class SerialFuture(concurrent.futures.Future):
         args (Tuple): positional arguments to call the function with
         kw (Dict): keyword arguments to call the function with
     """
-    def __init__(self, func, *args, **kw):
+
+    func: typing.Callable[..., T]
+    args: tuple[typing.Any, ...]
+    kw: dict[str, typing.Any]
+    # Future initializes this list, but typeshed does not expose the attribute.
+    _done_callbacks: list[
+        typing.Callable[[concurrent.futures.Future[T]], typing.Any]
+    ]
+
+    def __init__(
+        self, func: typing.Callable[..., T], *args: typing.Any, **kw: typing.Any
+    ) -> None:
         super(SerialFuture, self).__init__()
         self.func = func
         self.args = args
         self.kw = kw
-        # self._condition = FakeCondition()
         self._run_count = 0
-        # fake being finished to cause __get_result to be called
+        # Keep the callable one-shot even if different threads request
+        # result() and exception() simultaneously. Do not use _condition here:
+        # callbacks may themselves inspect this future or involve other threads.
+        self._evaluation_lock = threading.Lock()
+        # as_completed() inspects Future._state rather than calling result().
+        # Retain the legacy lazy executor behavior for 1.5, but document the
+        # resulting wait()/done() mismatch above instead of claiming full
+        # concurrent.futures compatibility.
         self._state = concurrent.futures._base.FINISHED
 
-    def _run(self):
-        result = self.func(*self.args, **self.kw)
-        self.set_result(result)
-        self._run_count += 1
+    def _run(self) -> None:
+        if self._run_count:
+            return
+        with self._evaluation_lock:
+            if self._run_count:
+                return
+            try:
+                result = self.func(*self.args, **self.kw)
+            except BaseException as ex:
+                self.set_exception(ex)
+            else:
+                self.set_result(result)
 
-    def set_result(self, result):
+    def result(self, timeout: float | None = None) -> T:
+        """Evaluate the callable once, then return its result or raise."""
+        # Evaluate outside Future.result's condition lock; the old private
+        # _Future__get_result override ran user code while that lock was held.
+        self._run()
+        return super().result(timeout)
+
+    def done(self) -> bool:
+        """Return True once the serial callable has actually been evaluated."""
+        with self._condition:
+            return bool(self._run_count)
+
+    def add_done_callback(
+        self,
+        fn: typing.Callable[[concurrent.futures.Future[T]], typing.Any],
+    ) -> None:
+        """Attach a callback that runs after actual serial evaluation."""
+        with self._condition:
+            if not self._run_count:
+                self._done_callbacks.append(fn)
+                return
+        try:
+            fn(self)
+        except Exception:
+            concurrent.futures._base.LOGGER.exception(
+                'exception calling callback for %r', self
+            )
+
+    def exception(self, timeout: float | None = None) -> BaseException | None:
+        """Evaluate the serial callable once and return its exception, if any."""
+        self._run()
+        return super().exception(timeout)
+
+    def set_result(self, result: T) -> None:
         """
-        Overrides the implementation to revert to pre python3.8 behavior
+        Mark this serial future complete with ``result``.
+
+        The original doctest exercised both call orders. Under the old
+        implementation, calling ``set_result`` after ``result`` could
+        overwrite the computed value and run callbacks again. Completion is
+        now one-shot, consistent with ``concurrent.futures.Future``. The
+        examples retain both orderings and check the updated contract.
 
         Example:
-            >>> # Just for coverage
-            >>> from ubelt.util_futures import SerialFuture  # NOQA
-            >>> self = SerialFuture(print, 'arg1', 'arg2')
-            >>> self.add_done_callback(lambda x: print('done callback got x = {}'.format(x)))
-            >>> print('result() before set_result()')
+            >>> from ubelt.util_futures import SerialFuture
+            >>> import concurrent.futures
+            >>> # result() before set_result(): execute the pending callable.
+            >>> events = []
+            >>> self = SerialFuture(lambda: events.append('run') or 5)
+            >>> self.add_done_callback(lambda f: events.append('callback'))
             >>> ret = self.result()
-            >>> print('ret = {!r}'.format(ret))
+            >>> assert ret == 5
+            >>> assert events == ['run', 'callback']
+            >>> try:
+            ...     self.set_result(1)
+            ... except concurrent.futures.InvalidStateError:
+            ...     pass
+            ... else:
+            ...     raise AssertionError('completed result was overwritten')
+            >>> assert self.result() == 5
+            >>> assert events == ['run', 'callback']
+            >>> # set_result() before result(): bypass the pending callable.
+            >>> events = []
+            >>> self = SerialFuture(lambda: events.append('should not run'))
+            >>> self.add_done_callback(lambda f: events.append('callback'))
             >>> self.set_result(1)
             >>> ret = self.result()
-            >>> print('ret = {!r}'.format(ret))
-            >>> #
-            >>> print('set_result() before result()')
-            >>> self = SerialFuture(print, 'arg1', 'arg2')
-            >>> self.add_done_callback(lambda x: print('done callback got x = {}'.format(x)))
-            >>> self.set_result(1)
-            >>> ret = self.result()
-            >>> print('ret = {!r}'.format(ret))
+            >>> assert ret == 1
+            >>> assert events == ['callback']
         """
         with self._condition:
+            if self._run_count:
+                raise concurrent.futures.InvalidStateError(
+                    '{}: {!r}'.format(self._state, self)
+                )
             self._result = result
-            self._state = concurrent.futures._base.FINISHED
+            self._exception = None
+            self._run_count = 1
             # I'm cheating a little by not covering this.
             # Lets call it, cheating in good faith. *shifty eyes*
             # I don't know how to test it, and its not a critical pieces of the
             # library. Consider it a bug.  help wanted.
+            #
+            # 1.5.0 review: this exception has NOT been resolved by the
+            # SerialFuture refactor. The lazy future advertises FINISHED so
+            # as_completed() normally won't attach private _waiters. Keep the
+            # notification path, but revisit its coverage when redesigning
+            # this Future's compatibility with wait()/as_completed().
             for waiter in self._waiters:  # nocover
                 waiter.add_result(self)
             self._condition.notify_all()
-        self._invoke_callbacks()
+        self._invoke_callbacks()  # type: ignore
 
-    def _Future__get_result(self):
-        # overrides private __getresult method
-        if not self._run_count:
-            self._run()
-        return self._result
+    def set_exception(self, exception: BaseException | None) -> None:
+        """Mark this serial future complete with ``exception``."""
+        with self._condition:
+            if self._run_count:
+                raise concurrent.futures.InvalidStateError(
+                    '{}: {!r}'.format(self._state, self)
+                )
+            self._exception = exception
+            self._result = None
+            self._run_count = 1
+            # Same untested private-waiter path as set_result above.
+            for waiter in self._waiters:  # nocover
+                waiter.add_exception(self)
+            self._condition.notify_all()
+        self._invoke_callbacks()  # type: ignore
 
 
 # Rename to SerialPoolExecutor?
@@ -148,11 +322,19 @@ class SerialExecutor:
         >>>     for i, f in enumerate(futures):
         >>>         assert i + 1 == f.result()
     """
-    def __enter__(self):
+
+    max_workers: int
+
+    def __enter__(self) -> SerialExecutor:
         self.max_workers = 0
         return self
 
-    def __exit__(self, ex_type, ex_value, ex_traceback):
+    def __exit__(
+        self,
+        ex_type: Type[BaseException] | None,
+        ex_value: BaseException | None,
+        ex_traceback: TracebackType | None,
+    ) -> None:
         """
         Args:
             ex_type (Type[BaseException] | None):
@@ -162,9 +344,14 @@ class SerialExecutor:
         Returns:
             bool | None
         """
-        return False
+        return None
 
-    def submit(self, func, *args, **kw):
+    def submit(
+        self,
+        func: Callable[..., T],
+        *args: Any,
+        **kw: Any,
+    ) -> SerialFuture[T]:
         """
         Submit a job to be executed later
 
@@ -174,19 +361,25 @@ class SerialExecutor:
         """
         return SerialFuture(func, *args, **kw)
 
-    def shutdown(self):
+    def shutdown(self) -> None:
         """
         Ignored for the serial executor
         """
         pass
 
-    def map(self, fn, *iterables, **kwargs):
+    def map(
+        self,
+        fn: Callable[..., T],
+        *iterables: Iterable[Any],
+        **kwargs: Any,
+    ) -> Generator[T, None, None]:
         """Returns an iterator equivalent to map(fn, iter).
 
         Args:
-            fn (Callable[..., Any]):
-                A callable that will take as many arguments as there are passed
-                iterables.
+            fn (Callable[..., T]): Function to apply to items from `iterables`.
+
+            *iterables (Iterable[Any]):
+                One or more iterables supplying arguments to `fn`.
 
             timeout:
                 This argument is ignored for SerialExecutor
@@ -305,7 +498,9 @@ class Executor:
         >>>     assert results == [1, 3, 5, 7, 9, 11, 13, 15, 17, 19]
     """
 
-    def __init__(self, mode='thread', max_workers=0):
+    backend: _ExecutorBackend
+
+    def __init__(self, mode: str = 'thread', max_workers: int = 0) -> None:
         """
         Args:
             mode (str):
@@ -316,15 +511,30 @@ class Executor:
                 number of workers. If 0, serial is forced. Defaults to 0.
         """
         from concurrent import futures
+
+        backend: _ExecutorBackend
         if mode == 'serial' or max_workers == 0:
             backend = SerialExecutor()
         elif mode == 'thread':
-            backend = futures.ThreadPoolExecutor(max_workers=max_workers)
+            backend = cast(
+                _ExecutorBackend,
+                futures.ThreadPoolExecutor(max_workers=max_workers),
+            )
         elif mode == 'process':
-            backend = futures.ProcessPoolExecutor(max_workers=max_workers)
-        elif mode == 'interpreter':
+            backend = cast(
+                _ExecutorBackend,
+                futures.ProcessPoolExecutor(max_workers=max_workers),
+            )
+        elif mode == 'interpreter':  # nocover
             # Requires 3.14+
-            backend = futures.InterpreterPoolExecutor(max_workers=max_workers)
+            InterpreterPoolExecutor = getattr(
+                futures, 'InterpreterPoolExecutor', None
+            )
+            if InterpreterPoolExecutor is None:
+                raise RuntimeError(
+                    "Executor(mode='interpreter') requires Python 3.14+"
+                )
+            backend = InterpreterPoolExecutor(max_workers=max_workers)
         # elif mode == 'asyncio':
         #     # Experimental
         #     backend = AsyncIOExecutor()
@@ -332,11 +542,16 @@ class Executor:
             raise KeyError(mode)
         self.backend = backend
 
-    def __enter__(self):
+    def __enter__(self) -> Executor:
         self.backend.__enter__()
         return self
 
-    def __exit__(self, ex_type, ex_value, ex_traceback):
+    def __exit__(
+        self,
+        ex_type: Type[BaseException] | None,
+        ex_value: BaseException | None,
+        ex_traceback: TracebackType | None,
+    ) -> bool | None:
         """
         Args:
             ex_type (Type[BaseException] | None):
@@ -349,7 +564,12 @@ class Executor:
         # Note: the following call will block
         return self.backend.__exit__(ex_type, ex_value, ex_traceback)
 
-    def submit(self, func, *args, **kw):
+    def submit(
+        self,
+        func: Callable[..., T],
+        *args: Any,
+        **kw: Any,
+    ) -> concurrent.futures.Future[T]:
         """
         Calls the submit function of the underlying backend.
 
@@ -359,15 +579,30 @@ class Executor:
         """
         return self.backend.submit(func, *args, **kw)
 
-    def shutdown(self):
+    def shutdown(self) -> None:
         """
         Calls the shutdown function of the underlying backend.
         """
         return self.backend.shutdown()
 
-    def map(self, fn, *iterables, **kwargs):
+    def map(
+        self,
+        fn: Callable[..., T],
+        *iterables: Iterable[Any],
+        **kwargs: Any,
+    ) -> Iterator[T]:
         """
         Calls the map function of the underlying backend.
+
+        Args:
+            fn (Callable[..., T]): Function to apply to items from `iterables`.
+            *iterables (Iterable[Any]): One or more iterables supplying arguments to `fn`.
+            **kwargs (Any): Supports:
+                - chunksize (int): Chunk size hint for process-based backends.
+                - timeout (float | None): Optional timeout in seconds.
+
+        Returns:
+            Iterator[T]: Iterator yielding results from applying `fn`.
 
         CommandLine:
             xdoctest -m ubelt.util_futures Executor.map
@@ -393,11 +628,12 @@ class Executor:
         timeout = kwargs.pop('timeout', None)
         if len(kwargs) != 0:  # nocover
             raise ValueError('Unknown arguments {}'.format(kwargs))
-        return self.backend.map(fn, *iterables, timeout=timeout,
-                                chunksize=chunksize)
+        return self.backend.map(
+            fn, *iterables, timeout=timeout, chunksize=chunksize
+        )
 
 
-class JobPool:
+class JobPool(typing.Generic[T]):
     """
     Abstracts away boilerplate of submitting and collecting jobs
 
@@ -424,7 +660,17 @@ class JobPool:
         >>>     final.append(info)
         >>> print('final = {!r}'.format(final))
     """
-    def __init__(self, mode='thread', max_workers=0, transient=False):
+
+    executor: Executor
+    jobs: list[Future[T]]
+    transient: bool
+
+    def __init__(
+        self,
+        mode: str = 'thread',
+        max_workers: int = 0,
+        transient: bool = False,
+    ) -> None:
         """
         Args:
             mode (str):
@@ -443,10 +689,12 @@ class JobPool:
         self.transient = transient
         self.jobs = []
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.jobs)
 
-    def submit(self, func, *args, **kwargs):
+    def submit(
+        self, func: Callable[..., T], *args: Any, **kwargs: Any
+    ) -> concurrent.futures.Future[T]:
         """
         Submit a job managed by the pool
 
@@ -467,15 +715,20 @@ class JobPool:
         self.jobs.append(job)
         return job
 
-    def shutdown(self):
-        self.jobs = None
+    def shutdown(self) -> None:
+        self.jobs = []
         return self.executor.shutdown()
 
-    def __enter__(self):
+    def __enter__(self) -> JobPool[T]:
         self.executor.__enter__()
         return self
 
-    def __exit__(self, ex_type, ex_value, ex_traceback):
+    def __exit__(
+        self,
+        ex_type: Type[BaseException] | None,
+        ex_value: BaseException | None,
+        ex_traceback: TracebackType | None,
+    ) -> bool | None:
         """
         Args:
             ex_type (Type[BaseException] | None):
@@ -487,11 +740,16 @@ class JobPool:
         """
         return self.executor.__exit__(ex_type, ex_value, ex_traceback)
 
-    def _clear_completed(self):
+    def _clear_completed(self) -> None:
         active_jobs = [job for job in self.jobs if job.running()]
         self.jobs = active_jobs
 
-    def as_completed(self, timeout=None, desc=None, progkw=None):
+    def as_completed(
+        self,
+        timeout: float | None = None,
+        desc: str | None = None,
+        progkw: dict | None = None,
+    ) -> Generator[concurrent.futures.Future[T], None, None]:
         """
         Generates completed jobs in an arbitrary order
 
@@ -534,12 +792,17 @@ class JobPool:
             >>> pool.shutdown()
         """
         from ubelt.progiter import ProgIter
-        job_iter = as_completed(self.jobs, timeout=timeout)
+
+        job_iter: Iterable[concurrent.futures.Future[T]] = as_completed(
+            self.jobs, timeout=timeout
+        )
         if desc is not None:
             if progkw is None:
                 progkw = {}
             job_iter = ProgIter(
-                job_iter, desc=desc, total=len(self.jobs), **progkw)
+                job_iter, desc=desc, total=len(self.jobs), **progkw
+            )
+            # adding types to ProgIter should make this not a problem
             self._prog = job_iter
         for job in job_iter:
             if self.transient:
@@ -549,7 +812,7 @@ class JobPool:
                 self.jobs.remove(job)
             yield job
 
-    def join(self, **kwargs):
+    def join(self, **kwargs: Any) -> list[T]:
         """
         Like :func:`JobPool.as_completed`, but executes the `result` method
         of each future and returns only after all processes are complete.
@@ -559,7 +822,7 @@ class JobPool:
             **kwargs: passed to :func:`JobPool.as_completed`
 
         Returns:
-            List[Any]: list of results
+            list[Any]: list of results
 
         Example:
             >>> import ubelt as ub
@@ -584,7 +847,7 @@ class JobPool:
             results.append(result)
         return results
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[concurrent.futures.Future[T]]:
         """
         An alternative to as completed.
 

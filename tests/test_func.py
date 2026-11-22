@@ -1,44 +1,100 @@
+import typing
 
-def test_compatible_keywords():
+
+def test_compatible_keywords() -> None:
     import ubelt as ub
-    def func(a, e, f, *args, **kwargs):
+
+    def func(a: int, e: int, f: int, *args: object, **kwargs: object) -> int:
         return a * e * f
 
     config = {
-        'a': 2, 'b': 3, 'c': 7,
-        'd': 11, 'e': 13, 'f': 17,
+        'a': 2,
+        'b': 3,
+        'c': 7,
+        'd': 11,
+        'e': 13,
+        'f': 17,
     }
 
     assert ub.compatible(config, func, keywords=True) is config
-    assert ub.compatible(config, func, keywords=1) is config
+    assert ub.compatible(config, func, keywords=True) is config
     assert ub.compatible(config, func, keywords='truthy') is config
 
     assert ub.compatible(config, func, keywords=['iterable']) is not config
-    assert ub.compatible(config, func, keywords=0) is not config
-    assert ub.compatible(config, func, keywords={'b'}) == {'a': 2, 'e': 13, 'f': 17, 'b': 3}
+    assert ub.compatible(config, func, keywords=False) is not config
+    assert ub.compatible(config, func, keywords={'b'}) == {
+        'a': 2,
+        'e': 13,
+        'f': 17,
+        'b': 3,
+    }
 
 
-def test_positional_only_args():
-    import ubelt as ub
+def test_positional_only_args() -> None:
     import sys
+
     import pytest
+
+    import ubelt as ub
+
     if sys.version_info[0:2] <= (3, 7):
         pytest.skip('position only arguments syntax requires Python >= 3.8')
 
     # Define via an exec, so this test does not raise a syntax error
     # in other versions of python and skips gracefully
     pos_only_code = ub.codeblock(
-        '''
+        """
         import ubelt as ub
         def func(a, e, /,  f):
             return a * e * f
-        ''')
-    ns = {}
+        """
+    )
+    ns: dict[str, object] = {}
     exec(pos_only_code, ns, ns)
-    func = ns['func']
+    func = typing.cast(typing.Callable[..., object], ns['func'])
     config = {
-        'a': 2, 'b': 3, 'c': 7,
-        'd': 11, 'e': 13, 'f': 17,
+        'a': 2,
+        'b': 3,
+        'c': 7,
+        'd': 11,
+        'e': 13,
+        'f': 17,
     }
     pos_only = ub.compatible(config, func)
     assert sorted(pos_only) == ['f']
+
+
+def test_compatible_noniterable_keywords_flag() -> None:
+    import ubelt as ub
+
+    def func(a: int, e: int, f: int) -> int:
+        return a * e * f
+
+    class TruthyNonIterable:
+        def __bool__(self) -> bool:
+            return True
+
+    config = {
+        'a': 2,
+        'b': 3,
+        'e': 13,
+        'f': 17,
+    }
+    got = ub.compatible(config, func, keywords=TruthyNonIterable())
+    assert got == {'a': 2, 'e': 13, 'f': 17}
+
+
+def test_inject_bound_method_rebinds_instance() -> None:
+    import ubelt as ub
+
+    class Demo:
+        def __init__(self, value):
+            self.value = value
+
+        def get_value(self):
+            return self.value
+
+    source = Demo('source')
+    target = Demo('target')
+    ub.inject_method(target, source.get_value, 'injected')
+    assert target.injected() == 'target'

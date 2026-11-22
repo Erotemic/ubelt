@@ -20,14 +20,22 @@ Example:
     >>> result = ub.symlink(real_path, link_path, overwrite=True, verbose=3)
     >>> parts = result.split(os.path.sep)
     >>> print(parts[-1])
-    link_file.txt
+link_file.txt
 """
-from os.path import exists, islink, join, normpath
+
+from __future__ import annotations
+
 import os
 import sys
+import typing
 import warnings
-from ubelt import util_io
-from ubelt import util_platform
+from os.path import exists, islink, join, normpath
+
+from ubelt import util_io, util_platform
+from ubelt.util_const import NoParam
+
+if typing.TYPE_CHECKING:
+    from ubelt.util_const import NoParamType
 
 __all__ = ['symlink']
 
@@ -37,7 +45,14 @@ else:
     _win32_links = None
 
 
-def symlink(real_path, link_path, overwrite=False, verbose=0):
+def symlink(
+    real_path: str | os.PathLike,
+    link_path: str | os.PathLike,
+    overwrite: bool = False,
+    verbose: int = 0,
+    *,
+    relative: bool | typing.Literal['legacy'] | NoParamType = NoParam,
+) -> str:
     """
     Create a link ``link_path`` that mirrors ``real_path``.
 
@@ -57,8 +72,19 @@ def symlink(real_path, link_path, overwrite=False, verbose=0):
 
         verbose (int): verbosity level. Defaults to 0.
 
+        relative (bool | str):
+            Controls how the symlink target is encoded. ``True`` makes it
+            relative, ``False`` makes it absolute, and ``'legacy'`` preserves
+            historical behavior. If an existing symlink points to the correct
+            location but has the opposite representation, an explicit mode
+            requires ``overwrite=True`` to replace it; otherwise the call
+            raises ``FileExistsError``. ``'legacy'`` reuses equivalent links
+            regardless of representation. Emits a warning if omitted and
+            ``real_path`` is relative, encouraging callers to choose a mode
+            before Ubelt 2.0.0.
+
     Returns:
-        str | PathLike: link path
+        str: normalized link path
 
     Note:
         In the future we may rework and rename this function to something like
@@ -80,10 +106,14 @@ def symlink(real_path, link_path, overwrite=False, verbose=0):
         extra space will be used.
 
         More details can be found in :mod:`ubelt._win32_links`. On systems that
-        support symlinks (e.g. Linux), none of the above applies.
+        support symlinks (e.g. Linux), none of the above applies. A hard-link or
+        junction fallback cannot honor a symbolic link's relative/absolute
+        stored-target representation.
 
     Note:
-        This function may contain a bug when creating a relative link
+        The historical behavior for relative ``real_path`` inputs is retained
+        for backwards compatibility. New code should pass ``relative=True`` or
+        ``relative=False`` explicitly when ``real_path`` is relative.
 
     References:
         .. [WikiSymLink] https://en.wikipedia.org/wiki/Symbolic_link
@@ -142,6 +172,23 @@ def symlink(real_path, link_path, overwrite=False, verbose=0):
         >>> import ubelt as ub
         >>> if ub.WIN32:
         >>>     pytest.skip()  # hack for windows for now. Todo cleaner xdoctest conditional
+        >>> # Explicitly request a relocatable relative symbolic link.
+        >>> dpath = ub.Path.appdir('ubelt', 'test_symlink_relative').delete().ensuredir()
+        >>> real_path = (dpath / 'data' / 'real_file.txt')
+        >>> link_path = (dpath / 'links' / 'link_file.txt')
+        >>> real_path.parent.ensuredir()
+        >>> link_path.parent.ensuredir()
+        >>> real_path.write_text('foo')
+        >>> result = ub.symlink(real_path, link_path, relative=True)
+        >>> assert not os.path.isabs(os.readlink(result))
+        >>> assert ub.Path(result).read_text() == 'foo'
+        >>> dpath.delete()
+
+    Example:
+        >>> import pytest
+        >>> import ubelt as ub
+        >>> if ub.WIN32:
+        >>>     pytest.skip()  # hack for windows for now. Todo cleaner xdoctest conditional
         >>> # Specifying bad paths should error.
         >>> import ubelt as ub
         >>> import pytest
@@ -162,16 +209,52 @@ def symlink(real_path, link_path, overwrite=False, verbose=0):
     path = normpath(real_path)
     link = normpath(link_path)
 
-    if not os.path.isabs(path):
-        # if path is not absolute it must be specified relative to link
-        if not _can_symlink():  # nocover
-            # On windows, we need to use absolute paths
-            path = os.path.abspath(path)
-        else:
-            # FIXME: This behavior seems like it might be wrong.
-            path = os.path.relpath(path, os.path.dirname(link))
-            # abs_path = join(os.path.dirname(link), path)
-            ...
+    if relative is NoParam:
+        if not os.path.isabs(path):
+            warnings.warn(
+                'Passing a relative real_path to ub.symlink without explicitly '
+                'specifying relative= uses legacy path semantics. This is '
+                'deprecated and will require an explicit choice in ubelt 2.0.0. '
+                'Pass relative=True to encode a relative symbolic-link target, '
+                'relative=False to encode an absolute target, or '
+                'relative="legacy" to preserve the historical behavior.',
+                FutureWarning,
+                stacklevel=2,
+            )
+        relative = 'legacy'
+    elif relative is not True and relative is not False and relative != 'legacy':
+        raise ValueError(
+            'relative must be True, False, or "legacy", got {!r}'.format(
+                relative
+            )
+        )
+
+    target_is_directory = None
+    if relative == 'legacy':
+        # Historical behavior. A relative real_path names an object relative to
+        # the current working directory, but the text stored in a real symlink
+        # is converted into the link parent's coordinate system. Keep this
+        # branch byte-for-byte compatible with previous behavior where possible.
+        if not os.path.isabs(path):
+            if not _can_symlink():  # nocover
+                # On windows fallbacks, we need to use absolute paths.
+                path = os.path.abspath(path)
+            else:
+                path = os.path.relpath(path, os.path.dirname(link))
+    else:
+        # Explicit modes separate how real_path is interpreted from how an
+        # actual symbolic-link target is represented.
+        path = os.path.abspath(path)
+        if _win32_links is not None:  # nocover
+            # Windows symlink creation needs to know whether the target is a
+            # directory. Probe while path still names the source directly,
+            # before relative=True changes its coordinate system.
+            target_is_directory = os.path.isdir(path)
+        if relative:
+            if _can_symlink():
+                link_parent = os.path.dirname(os.path.abspath(link))
+                path = os.path.relpath(path, link_parent)
+            # Otherwise the Windows fallback will use an absolute source path.
 
     if verbose:
         print('Symlink: {link} -> {path}'.format(path=path, link=link))
@@ -179,47 +262,85 @@ def symlink(real_path, link_path, overwrite=False, verbose=0):
         if verbose:
             print('... already exists')
         pointed = _readlink(link)
-        if pointed == path:
+        same_target = (
+            pointed == path or _symlink_targets_equivalent(link, pointed, path)
+        )
+        # Only explicit modes promise a target representation. In legacy mode,
+        # an equivalent relative or absolute symlink remains idempotent.
+        same_representation = (
+            relative == 'legacy'
+            or os.path.isabs(pointed) == os.path.isabs(path)
+        )
+        if same_target and same_representation:
             if verbose > 1:
                 print('... and points to the right place')
             return link
         if verbose > 1:
-            if not exists(link):
-                print('... but it is broken and points somewhere else: {}'.format(pointed))
+            if same_target:
+                print('... but the stored relative/absolute form differs')
+            elif not exists(link):
+                print(
+                    '... but it is broken and points somewhere else: {}'.format(
+                        pointed
+                    )
+                )
             else:
-                # TODO: if we fix the relative symlink bug, this text might be better
-                # import pathlib
-                # abs_path = join(os.path.dirname(link), path)
-                # resolved_path = pathlib.Path(abs_path).resolve()
-                # resolved_pointed = (pathlib.Path(link).parent / pointed).resolve()
-                # if  resolved_path == resolved_pointed:
-                #     print('... and it resolves to the right location')
-                #     print('... but the pointer is different: {}'.format(pointed))
-                # else:
                 print('... but it points somewhere else: {}'.format(pointed))
         if overwrite:
             util_io.delete(link, verbose=verbose > 1)
+        elif same_target:
+            # Do not silently ignore an explicit representation request.
+            raise FileExistsError(
+                'existing symlink has a different target representation: '
+                '{!r}; pass overwrite=True to replace it'.format(link)
+            )
     elif exists(link):
         if _win32_links is None:
             if verbose:
                 print('... already exists, but its a file. This will error.')
             raise FileExistsError(
-                'cannot overwrite a physical path: "{}"'.format(path))
+                'cannot overwrite a physical path: "{}"'.format(link)
+            )
         else:  # nocover
             if verbose:
-                print('... already exists, and is either a file or hard link. '
-                      'Assuming it is a hard link. '
-                      'On non-win32 systems this would error.')
+                print(
+                    '... already exists, and is either a file or hard link. '
+                    'Assuming it is a hard link. '
+                    'On non-win32 systems this would error.'
+                )
 
     if _win32_links is None:
         os.symlink(path, link)
     else:  # nocover
-        _win32_links._symlink(path, link, overwrite=overwrite, verbose=verbose)
+        _win32_links._symlink(
+            path,
+            link,
+            overwrite=overwrite,
+            verbose=verbose,
+            target_is_directory=target_is_directory,
+        )
 
     return link
 
 
-def _readlink(link):
+def _symlink_targets_equivalent(
+    link: str | os.PathLike,
+    target1: str | os.PathLike,
+    target2: str | os.PathLike,
+) -> bool:
+    """Check if two symlink target strings name the same path."""
+    link_parent = os.path.dirname(os.path.abspath(os.fsdecode(link)))
+
+    def _normalize_target(target: str | os.PathLike) -> str:
+        target_ = os.fsdecode(target)
+        if not os.path.isabs(target_):
+            target_ = os.path.join(link_parent, target_)
+        return os.path.normcase(os.path.abspath(target_))
+
+    return _normalize_target(target1) == _normalize_target(target2)
+
+
+def _readlink(link: str | bytes | os.PathLike[str] | os.PathLike[bytes]) -> str:
     # Note:
     # https://docs.python.org/3/library/os.html#os.readlink
     # os.readlink was changed on win32 in version 3.8: Added support for
@@ -227,24 +348,29 @@ def _readlink(link):
     # typically includes \\?\ prefix) rather than the optional “print name”
     # field that was previously returned.
 
+    link_ = os.fspath(link)
+    if isinstance(link_, bytes):
+        link_ = link_.decode()
+
     if _win32_links:  # nocover
-        if _win32_links._win32_is_junction(link):
+        if _win32_links._win32_is_junction(link_):
             import platform
+
             if platform.python_implementation() == 'PyPy':
                 # On PyPy this test can have a false positive
                 # for what should be a regular link.
-                path = os.readlink(link)
+                path = os.readlink(link_)
                 junction_prefix = '\\\\?\\'
                 if path.startswith(junction_prefix):
-                    path = path[len(junction_prefix):]
+                    path = path[len(junction_prefix) :]
                     return path
-            return _win32_links._win32_read_junction(link)
+            return _win32_links._win32_read_junction(link_)
     try:
-        path = os.readlink(link)
+        path = os.readlink(link_)
         if util_platform.WIN32:  # nocover
             junction_prefix = '\\\\?\\'
             if path.startswith(junction_prefix):
-                path = path[len(junction_prefix):]
+                path = path[len(junction_prefix) :]
         return path
     except Exception:  # nocover
         # On modern operating systems, we should never get here. (I think)
@@ -253,7 +379,7 @@ def _readlink(link):
         raise
 
 
-def _can_symlink(verbose=0):  # nocover
+def _can_symlink(verbose: int = 0) -> bool:  # nocover
     """
     Return true if we have permission to create real symlinks.
     This check always returns True on non-win32 systems.
@@ -265,7 +391,7 @@ def _can_symlink(verbose=0):  # nocover
         return True
 
 
-def _dirstats(dpath=None):  # nocover
+def _dirstats(dpath: str | os.PathLike | None = None) -> None:  # nocover
     """
     Testing helper for printing directory information
     (mostly for investigating windows weirdness)
@@ -278,6 +404,7 @@ def _dirstats(dpath=None):  # nocover
         >>> _dirstats('.')
     """
     from ubelt import util_colors
+
     if dpath is None:
         dpath = os.getcwd()
     print('+--------------')
@@ -288,15 +415,18 @@ def _dirstats(dpath=None):  # nocover
         print('... does not exist')
     else:
         paths = sorted(os.listdir(dpath))
+        assert not util_platform.WIN32 or _win32_links is not None
         for path in paths:
             full_path = join(dpath, path)
             E = os.path.exists(full_path)
             L = os.path.islink(full_path)
             F = os.path.isfile(full_path)
             D = os.path.isdir(full_path)
-            J = util_platform.WIN32 and _win32_links._win32_is_junction(full_path)
+            J = util_platform.WIN32 and _win32_links._win32_is_junction(
+                full_path
+            )
             ELFDJ = [E, L, F, D, J]
-            if   ELFDJ == [1, 0, 0, 1, 0]:
+            if ELFDJ == [1, 0, 0, 1, 0]:
                 # A directory
                 path = util_colors.color_text(path, 'green')
             elif ELFDJ == [1, 0, 1, 0, 0]:
@@ -343,7 +473,11 @@ def _dirstats(dpath=None):  # nocover
                 path = util_colors.color_text(path, 'red')
             else:
                 print('dpath = {!r}'.format(dpath))
-                print('pathhttps://github.com/pypy/pypy/issues/4976 = {!r}'.format(path))
+                print(
+                    'pathhttps://github.com/pypy/pypy/issues/4976 = {!r}'.format(
+                        path
+                    )
+                )
                 raise AssertionError(str(ELFDJ) + str(path))
             line = '{E:d} {L:d} {F:d} {D:d} {J:d} - {path}'.format(**locals())
             if os.path.islink(full_path):

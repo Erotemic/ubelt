@@ -10,6 +10,8 @@ The :func:`indent` prefixes all lines in a text block with a given prefix. By
 default that prefix is 4 spaces.
 """
 
+from __future__ import annotations
+
 __all__ = [
     'indent',
     'codeblock',
@@ -19,7 +21,7 @@ __all__ = [
 ]
 
 
-def indent(text, prefix='    '):
+def indent(text: str, prefix: str = '    ') -> str:
     """
     Indents a block of text
 
@@ -41,7 +43,7 @@ def indent(text, prefix='    '):
     return prefix + text.replace('\n', '\n' + prefix)
 
 
-def codeblock(text):
+def codeblock(text: str) -> str:
     """
     Create a block of text that preserves all newlines and relative indentation
 
@@ -77,10 +79,11 @@ def codeblock(text):
         >>> print(codeblock_version)
     """
     import textwrap  # this is a slow import, do it lazy
+
     return textwrap.dedent(text).strip('\n')
 
 
-def paragraph(text):
+def paragraph(text: str) -> str:
     r"""
     Wraps multi-line strings and restructures the text to remove all newlines,
     heading, trailing, and double spaces.
@@ -110,11 +113,12 @@ def paragraph(text):
         out = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.'
     """
     import re
+
     out = re.sub(r'\s\s*', ' ', text).strip()
     return out
 
 
-def hzcat(args, sep=''):
+def hzcat(args: list[str], sep: str = '') -> str:
     """
     Horizontally concatenates strings preserving indentation
 
@@ -146,6 +150,7 @@ def hzcat(args, sep=''):
          ｜ ｜ [á, á, á]]｜ ｜ [7, θ]]
     """
     import unicodedata
+
     if '\n' in sep or '\r' in sep:
         raise ValueError('`sep` cannot contain newline characters')
 
@@ -178,7 +183,7 @@ def hzcat(args, sep=''):
     return ret
 
 
-def ensure_unicode(text):
+def ensure_unicode(text: str | bytes) -> str:
     r"""
     Casts bytes into utf8 (mostly for python2 compatibility).
 
@@ -206,10 +211,16 @@ def ensure_unicode(text):
         >>> assert (codecs.BOM_UTF8 + 'text»¿'.encode('utf8')).decode('utf8')
     """
     from ubelt.util_deprecate import schedule_deprecation
+
     schedule_deprecation(
-        modname='ubelt', name='ensure_unicode', type='function',
+        modname='ubelt',
+        name='ensure_unicode',
+        type='function',
         migration='This should not be needed in Python 3',
-        deprecate='1.2.0', error='2.0.0', remove='2.1.0')
+        deprecate='1.2.0',
+        error='2.0.0',
+        remove='2.1.0',
+    )
     if isinstance(text, str):
         return text
     elif isinstance(text, bytes):

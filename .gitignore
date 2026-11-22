@@ -95,3 +95,4 @@ _skbuild
 pip-wheel-metadata/
 
 wheelhouse
+*.tar.gz

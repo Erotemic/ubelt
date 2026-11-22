@@ -8,7 +8,7 @@ means for interacting with the command line.  This uses
 write to stdout and stderr.
 
 (2) Always specify the command as a string. The :mod:`subprocess` module
-expects the command as either a  ``List[str]`` if ``shell=False`` and ``str``
+expects the command as either a  ``list[str]`` if ``shell=False`` and ``str``
 if ``shell=True``. If necessary, :func:`ubelt.util_cmd.cmd` will automatically
 convert from one format to the other, so passing in either case will work.
 
@@ -80,8 +80,34 @@ Get programmatic access AND show it on screen
     # ubelt has "tee" functionality
     ub.cmd(['ls', '-l'], verbose=1)
 """
-import sys
+
+from __future__ import annotations
+
 import os
+import sys
+import typing
+
+if typing.TYPE_CHECKING:
+    import queue
+    import subprocess
+    import threading
+    from collections.abc import Iterator, Sequence, Mapping
+    from typing import TypedDict, NotRequired
+
+    class PopenKwargs(TypedDict):
+        bufsize: NotRequired[int]
+        executable: NotRequired[str | os.PathLike[str] | None]
+        stdin: NotRequired[int | None]
+        stdout: NotRequired[int | None]
+        stderr: NotRequired[int | None]
+        shell: NotRequired[bool]
+        cwd: NotRequired[str | os.PathLike[str] | None]
+        env: NotRequired[Mapping[str, str] | None]
+        universal_newlines: NotRequired[bool | None]
+        text: NotRequired[bool | None]
+        encoding: NotRequired[str | None]
+        errors: NotRequired[str | None]
+        # Add other Popen kwargs as needed
 
 
 __pitch__ = """
@@ -107,6 +133,11 @@ __all__ = ['cmd']
 POSIX: bool = 'posix' in sys.builtin_module_names
 WIN32: bool = sys.platform == 'win32'
 
+# Prevent hammering a CPU when nothing is happening
+# In ubelt < 1.5 this was effectively zero, we now
+# use a small poll time to avoid busy loops
+POLL_TIME = 0.01
+
 
 class CmdOutput(dict):
     """
@@ -118,45 +149,65 @@ class CmdOutput(dict):
     code that uses :func:`subprocess.run` to switch to :func:`ubelt.cmd`.
     """
 
-    @property
-    def stdout(self):
-        """
-        Returns:
-            str | bytes
-        """
-        return self['out']
+    args: str | list[str]
 
     @property
-    def stderr(self):
+    def stdout(self) -> str | bytes | None:
         """
         Returns:
-            str | bytes
+            str | bytes | None
         """
-        return self['err']
+        return self.get('out')
 
     @property
-    def returncode(self):
+    def stderr(self) -> str | bytes | None:
+        """
+        Returns:
+            str | bytes | None
+        """
+        return self.get('err')
+
+    @property
+    def returncode(self) -> int:
         """
         Returns:
             int
         """
-        return self['ret']
+        try:
+            return self['ret']
+        except KeyError:
+            # Avoid surprising KeyError; make the mode restriction explicit
+            raise RuntimeError(
+                'returncode is unavailable when detach=True'
+            ) from None
 
-    def check_returncode(self):
+    def check_returncode(self) -> None:
         """Raise CalledProcessError if the exit code is non-zero."""
         import subprocess
+
         if self.returncode:
             raise subprocess.CalledProcessError(
-                self.returncode, self.args, self.stdout, self.stderr)
+                self.returncode, self.args, self.stdout, self.stderr
+            )
 
 
-def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
-        env=None, tee_backend='auto', check=False, system=False, timeout=None,
-        capture=True,
-        # Do we support these?
-        # universal_newlines=True,
-        # stdout='unused', stderr='unused'
-        ):
+def cmd(
+    command: str | os.PathLike[str] | Sequence[str | os.PathLike[str]],
+    shell: bool = False,
+    detach: bool = False,
+    verbose: int = 0,
+    tee: bool | None = None,
+    cwd: str | os.PathLike[str] | None = None,
+    env: Mapping[str, str] | None = None,
+    tee_backend: str = 'auto',
+    check: bool = False,
+    system: bool = False,
+    timeout: float | None = None,
+    capture: bool = True,
+    # Do we support these?
+    # universal_newlines=True,
+    # stdout='unused', stderr='unused'
+) -> CmdOutput:
     """
     Executes a command in a subprocess.
 
@@ -169,7 +220,7 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
     run in the background (eventually we may return a Future object instead).
 
     Args:
-        command (str | List[str]):
+        command (str | os.PathLike[str] | Sequence[str | os.PathLike[str]]):
             command string, tuple of executable and args, or shell command.
 
         shell (bool):
@@ -189,11 +240,11 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
             from the command. If not specified, defaults to True if verbose >
             0.  If detach is True, then this argument is ignored.
 
-        cwd (str | PathLike | None):
+        cwd (str | os.PathLike[str] | None):
             Path to run command. Defaults to current working directory if
             unspecified.
 
-        env (Dict[str, str] | None):
+        env (dict[str, str] | None):
             environment passed to Popen
 
         tee_backend (str): backend for tee output.
@@ -210,6 +261,8 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
             :func:`os.system` is used to execute the command in a platform
             dependent way. Other arguments such as env, tee, timeout, and shell
             are all ignored. Defaults to False. (New in version 1.1.0)
+            NOTE: os.system is soft-deprecated, so we may avoid supporting this
+            in the future.
 
         timeout (float | None):
             If the process does not complete in ``timeout`` seconds, raise a
@@ -220,7 +273,7 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
             information dictionary. Ignored if detach or system is True.
 
     Returns:
-        dict | CmdOutput:
+        CmdOutput:
             info - information about command status.
             if detach is False ``info`` contains captured standard out,
             standard error, and the return code
@@ -345,7 +398,7 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
 
     # TODO: stdout, stderr - experimental - custom file to pipe stdout/stderr to
 
-    # Transform the input into Tuple[str] or str, depending on shell / system
+    # Transform the input into tuple[str] or str, depending on shell / system
     args, command_text = _resolve_command(command, shell=shell, system=system)
 
     if tee is None:
@@ -366,9 +419,11 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
         tee = False
 
     if verbose > 1:
-        import platform
         import getpass
+        import platform
+
         from ubelt import shrinkuser
+
         if verbose > 2:
             try:
                 log('┌─── START CMD ───')
@@ -382,8 +437,9 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
         log(ps1 + command_text)
 
     # Create a new process to execute the command
-    def make_proc():
+    def make_proc() -> subprocess.Popen[str]:
         # delay the creation of the process until we validate all args
+        popen_kwargs: PopenKwargs = {}
         popen_kwargs = {'cwd': cwd, 'env': env, 'shell': shell}
         popen_kwargs['universal_newlines'] = True
 
@@ -400,23 +456,29 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
 
     if system:
         from ubelt.util_path import ChDir
+
         with ChDir(cwd):
-            ret = os.system(command_text)
-        info = CmdOutput(**{
-            'out': None,
-            'err': None,
-            'ret': ret,
-            'cwd': cwd,
-            'command': command_text,
-        })
+            raw = os.system(command_text)  # ty: ignore[deprecated]
+            ret = _normalize_system_returncode(raw)
+        info = CmdOutput(
+            **{
+                'out': None,
+                'err': None,
+                'ret': ret,
+                'cwd': cwd,
+                'command': command_text,
+            }
+        )
     elif detach:
-        info = CmdOutput(**{
-            # Not including out/err/ret because the user could still compute
-            # them via proc. I'm open to reconsidering this design decision.
-            'proc': make_proc(),
-            'cwd': cwd,
-            'command': command_text
-        })
+        info = CmdOutput(
+            **{
+                # Not including out/err/ret because the user could still compute
+                # them via proc. I'm open to reconsidering this design decision.
+                'proc': make_proc(),
+                'cwd': cwd,
+                'command': command_text,
+            }
+        )
         if verbose > 1:  # nocover
             log('...detaching')
     else:
@@ -429,9 +491,13 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
             proc = make_proc()
             with proc:
                 out, err = _tee_output(
-                    proc=proc, stdout=stdout, stderr=stderr,
-                    backend=tee_backend, timeout=timeout,
-                    command_text=command_text)
+                    proc=proc,
+                    stdout=stdout,
+                    stderr=stderr,
+                    backend=tee_backend,
+                    timeout=timeout,
+                    command_text=command_text,
+                )
                 (out_, err_) = proc.communicate(timeout=timeout)
         elif capture:
             proc = make_proc()
@@ -445,7 +511,9 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
                     if WIN32:  # nocover
                         # Win32 needs a communicate after the kill to get the
                         # output. See stdlib for details.
-                        exc.stdout, exc.stderr = proc.communicate()
+                        exc_stdout, exc_stderr = proc.communicate()
+                        exc.stdout = typing.cast(typing.Any, exc_stdout)
+                        exc.stderr = typing.cast(typing.Any, exc_stderr)
                     else:
                         # Posix implementations already handle the populate.
                         proc.wait()
@@ -469,15 +537,17 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
         # We used the popen context manager, which means that wait was called,
         # the process has existed, so it is safe to return a reference to the
         # process object.
-        ret = proc.poll()
-        info = CmdOutput(**{
-            'out': out,
-            'err': err,
-            'ret': ret,
-            'proc': proc,
-            'cwd': cwd,
-            'command': command_text,
-        })
+        ret = typing.cast(int, proc.poll())
+        info = CmdOutput(
+            **{
+                'out': out,
+                'err': err,
+                'ret': ret,
+                'proc': proc,
+                'cwd': cwd,
+                'command': command_text,
+            }
+        )
 
     # For subprocess compatibility
     info.args = args
@@ -493,16 +563,21 @@ def cmd(command, shell=False, detach=False, verbose=0, tee=None, cwd=None,
         if check:
             if info['ret'] != 0:
                 raise subprocess.CalledProcessError(
-                    info['ret'], info['command'], info['out'], info['err'])
+                    info['ret'], info['command'], info['out'], info['err']
+                )
     return info
 
 
-def _resolve_command(command, shell=False, system=False):
+def _resolve_command(
+    command: str | os.PathLike[str] | Sequence[str | os.PathLike[str]],
+    shell: bool = False,
+    system: bool = False,
+) -> tuple[str | list[str], str]:
     """
-    Transform the input into the appropriate Tuple[str] or str form.
+    Transform the input into the appropriate tuple[str] or str form.
 
     Returns:
-        Tuple[str | Tuple[str, ...], str]:
+        tuple[str | list[str], str]:
             Arguments that can be passed to the backend and the text form of
             the command.
     """
@@ -511,10 +586,12 @@ def _resolve_command(command, shell=False, system=False):
         command_text = command
         command_tup = None
     elif isinstance(command, os.PathLike):
-        command_text = os.fspath(command)
+        path_command = typing.cast('os.PathLike[str]', command)
+        command_text = os.fspath(path_command)
         command_tup = None
     else:
         import shlex
+
         command_parts = []
         # Allow the user to specify paths as part of the command
         for part in command:
@@ -528,6 +605,7 @@ def _resolve_command(command, shell=False, system=False):
     # to text if shell is True, and to tuple if shell is False. On windows,
     # the input is text if shell is True, but can be either if shell is
     # False as noted in [SO_33560364]_.
+    args: str | list[str]
     if shell or system:
         # When shell=True, args is sent to the shell (e.g. bin/sh) as text
         args = command_text
@@ -535,25 +613,52 @@ def _resolve_command(command, shell=False, system=False):
         # When shell=False, args is a list of executable and arguments
         if command_tup is None:
             if sys.platform.startswith('win32'):  # nocover
-                # On windows when shell=False, args can be a str | List[str]
+                # On windows when shell=False, args can be a str | list[str]
                 # as noted in [SO_33560364]
                 args = command_text
             else:
-                # On linux when shell=False, args must be a List[str]
+                # On linux when shell=False, args must be a list[str]
                 import shlex
+
                 args = shlex.split(command_text)
         else:
             args = command_tup
     return args, command_text
 
 
-def _textio_iterlines(stream):
+def _normalize_system_returncode(status: int) -> int:
+    """
+    Normalize os.system() return value to match subprocess-like semantics:
+    - POSIX: exit code (0..255) or negative signal number (-SIG)
+    - Windows/non-POSIX: return status as-is (already an exit/termination code)
+    """
+    # Py3.9+ has the official decoder for POSIX wait statuses
+    fn = getattr(os, 'waitstatus_to_exitcode', None)
+    if fn is not None:
+        return fn(status)
+
+    # Py3.8 fallback
+    if os.name != 'posix':  # nocover
+        # Windows: os.system() is not a POSIX wait-status; don't decode it.
+        return status
+
+    # POSIX: decode wait status
+    if os.WIFEXITED(status):
+        return os.WEXITSTATUS(status)
+    if os.WIFSIGNALED(status):
+        return -os.WTERMSIG(status)
+
+    # Rare/unexpected for os.system, but be explicit:
+    raise ValueError(f'Unknown POSIX wait status from os.system(): {status!r}')
+
+
+def _textio_iterlines(stream: typing.IO[str]) -> Iterator[str]:
     """
     Iterates over lines in a TextIO stream until an EOF is encountered.
     This is the iterator version of stream.readlines()
 
     Args:
-        stream (io.TextIOWrapper): The stream to finish reading.
+        stream (io.TextIOBase): The stream to finish reading.
 
     Yields:
         str: a line read from the stream.
@@ -570,43 +675,62 @@ def _textio_iterlines(stream):
                 return
             line = stream.readline()
     except ValueError:  # nocover
-        # Ignore I/O operation on closed files, the process was likely
-        # killed.
+        # I/O operation on closed files, the process was likely killed.
         raise
-        ...
 
 
-def _proc_async_iter_stream(proc, stream, buffersize=1, timeout=None):
+def _proc_async_iter_stream(
+    proc: subprocess.Popen[str],
+    stream: typing.IO[str],
+    buffersize: int = 1,
+    timeout: float | None = None,
+) -> tuple[threading.Thread, queue.Queue[str | None], queue.Queue[object]]:
     """
-    Reads output from a process in a separate thread
+    Reads output from a process in a separate thread.
 
     Args:
-        proc (subprocess.Popen): The process being run
+        proc (subprocess.Popen): The process being run.
 
-        stream (io.TextIOWrapper): A stream belonging to the process
-            e.g. ``proc.stdout`` or ``proc.stderr``.
+        stream (io.TextIOBase):
+            A stream belonging to the process, e.g. ``proc.stdout`` or
+            ``proc.stderr``.
 
-        buffersize (int): Size of the returned queue.
+        buffersize (int): Maximum size of the returned output queue.
+
+        timeout (float | None):
+            If specified, the worker periodically checks if it was asked to
+            stop early.
 
     Returns:
-        queue.Queue:
-            The queue that the output lines will be asynchronously written to
-            as they are read from the stream.
+        tuple[threading.Thread, queue.Queue[str | None], queue.Queue[object]]:
+            A 3-tuple of (io_thread, out_queue, control_queue). The thread reads
+            lines from ``stream`` and pushes them onto ``out_queue``.
+            Putting any item into ``control_queue`` requests the worker stop.
     """
     import queue
     import threading
+
     # logger.debug(f"Create and start thread for {id(stream)}")
+    out_queue: queue.Queue[str | None]
+    control_queue: queue.Queue[object]
     out_queue = queue.Queue(maxsize=buffersize)
     control_queue = queue.Queue(maxsize=1)
     io_thread = threading.Thread(
-        target=_enqueue_output_thread_worker, args=(
-            proc, stream, out_queue, control_queue, timeout))
+        target=_enqueue_output_thread_worker,
+        args=(proc, stream, out_queue, control_queue, timeout),
+    )
     io_thread.daemon = True  # thread dies with the program
     io_thread.start()
     return io_thread, out_queue, control_queue
 
 
-def _enqueue_output_thread_worker(proc, stream, out_queue, control_queue, timeout=None):
+def _enqueue_output_thread_worker(
+    proc: subprocess.Popen[str],
+    stream: typing.IO[str],
+    out_queue: 'queue.Queue[str | None]',
+    control_queue: 'queue.Queue[object]',
+    timeout: float | None = None,
+) -> None:
     """
     Thread worker function
 
@@ -617,29 +741,30 @@ def _enqueue_output_thread_worker(proc, stream, out_queue, control_queue, timeou
     Args:
         proc (subprocess.Popen): The process being run
 
-        stream (io.TextIOWrapper): A stream belonging to the process
+        stream (io.TextIOBase): A stream belonging to the process
             e.g. ``proc.stdout`` or ``proc.stderr``.
 
-        out_queue (queue.Queue): The queue to write to.
+        out_queue (queue.Queue[str | None]): The queue to write to.
 
-        control_queue (queue.Queue): For sending a signal to stop the thread
+        control_queue (queue.Queue[object]): For sending a signal to stop the thread.
 
-        timeout (None | float): amount of time to allow before stopping
+        timeout (float | None): amount of time to allow before stopping
     """
     import queue
     # logger.debug(f"Start worker for {id(stream)=} with {timeout=}")
 
-    def _check_if_stopped():  # nocover
+    def _check_if_stopped() -> bool | None:  # nocover
         try:
             # Check if we were told to stop
-            control_queue.get_nowait()
+            control_queue.get(timeout=POLL_TIME)
         except queue.Empty:
             ...
         else:
             # logger.debug(f"Thread acknowledges stop request for {id(stream)}")
             return True
+        return None
 
-    def enqueue(item):  # nocover
+    def enqueue(item: str | None) -> bool:  # nocover
         # Alternate between checking if we were stopped and putting the item in
         # the queue. This helps with the issue of an open process stream on
         # exit but it doesn't fully solve the issue because we still might
@@ -656,7 +781,7 @@ def _enqueue_output_thread_worker(proc, stream, out_queue, control_queue, timeou
             if _check_if_stopped():
                 return False
             try:
-                out_queue.put(item, block=False)
+                out_queue.put(item, timeout=POLL_TIME)
                 # logger.debug('Thread put in item')
             except queue.Full:
                 pass
@@ -664,7 +789,6 @@ def _enqueue_output_thread_worker(proc, stream, out_queue, control_queue, timeou
                 return True
 
     while proc.poll() is None:
-
         # Note: if the underlying process has buffered output, we may get this
         # line well after it is initially emitted and thus be stuck waiting
         # here for some time.
@@ -692,7 +816,12 @@ def _enqueue_output_thread_worker(proc, stream, out_queue, control_queue, timeou
         return
 
 
-def _proc_iteroutput_thread(proc, timeout=None):
+def _proc_iteroutput_thread(
+    proc: subprocess.Popen[str], timeout: float | None = None
+) -> Iterator[
+    tuple[str | None, str | None]
+    | tuple[type[subprocess.TimeoutExpired], type[subprocess.TimeoutExpired]]
+]:
     """
     Iterates over output from a process line by line.
 
@@ -705,7 +834,10 @@ def _proc_iteroutput_thread(proc, timeout=None):
         but I cannot guarantee that there isn't an issue on our end.
 
     Yields:
-        Tuple[str, str]: oline, eline - stdout and stderr line
+        tuple[str | None, str | None]: oline, eline - stdout / stderr lines (at least one is not None).
+
+    Note:
+        If a timeout is specified and exceeded, this yields ``(subprocess.TimeoutExpired, subprocess.TimeoutExpired)`` as a sentinel.
 
     References:
         .. [SO_375427] https://stackoverflow.com/questions/375427/non-blocking-read-subproc
@@ -714,16 +846,29 @@ def _proc_iteroutput_thread(proc, timeout=None):
 
     # logger.debug("Create stdout/stderr streams")
     # Create threads that read stdout / stderr and queue up the output
-    stdout_thread, stdout_queue, stdout_ctrl = _proc_async_iter_stream(proc, proc.stdout, timeout=timeout)
-    stderr_thread, stderr_queue, stderr_ctrl = _proc_async_iter_stream(proc, proc.stderr, timeout=timeout)
+    if proc.stdout is None or proc.stderr is None:  # nocover
+        raise ValueError('proc stdout/stderr streams must be pipes')
+    stdout_thread, stdout_queue, stdout_ctrl = _proc_async_iter_stream(
+        proc, proc.stdout, timeout=timeout
+    )
+    stderr_thread, stderr_queue, stderr_ctrl = _proc_async_iter_stream(
+        proc, proc.stderr, timeout=timeout
+    )
 
     stdout_live = True
     stderr_live = True
 
+    start_time: float | None = None
+    timeout_exc: type[subprocess.TimeoutExpired] | None = None
     if timeout is not None:
-        from time import monotonic as _time
         import subprocess
-        start_time = _time()
+        from time import monotonic
+
+        start_time = monotonic()
+        timeout_exc = subprocess.TimeoutExpired
+
+    oline = None
+    eline = None
 
     # read from the output asynchronously until
     while stdout_live or stderr_live:
@@ -732,7 +877,11 @@ def _proc_iteroutput_thread(proc, timeout=None):
 
         if timeout is not None:
             # Check for timeouts
-            elapsed = _time() - start_time
+            from time import monotonic
+
+            assert start_time is not None
+            assert timeout_exc is not None
+            elapsed = monotonic() - start_time
             if elapsed >= timeout:
                 stdout_ctrl.put('STOP')
                 stderr_ctrl.put('STOP')
@@ -740,17 +889,18 @@ def _proc_iteroutput_thread(proc, timeout=None):
                 # because they might get stuck in a readline
                 # stdout_thread.join()
                 # stderr_thread.join()
-                yield subprocess.TimeoutExpired, subprocess.TimeoutExpired
+                yield timeout_exc, timeout_exc
+                return
 
         if stdout_live:  # pragma: nobranch
             try:
-                oline = stdout_queue.get_nowait()
+                oline = stdout_queue.get(timeout=POLL_TIME)
                 stdout_live = oline is not None
             except queue.Empty:
                 oline = None
         if stderr_live:
             try:
-                eline = stderr_queue.get_nowait()
+                eline = stderr_queue.get(timeout=POLL_TIME)
                 stderr_live = eline is not None
             except queue.Empty:
                 eline = None
@@ -758,7 +908,12 @@ def _proc_iteroutput_thread(proc, timeout=None):
             yield oline, eline
 
 
-def _proc_iteroutput_select(proc, timeout=None):
+def _proc_iteroutput_select(
+    proc: subprocess.Popen[str], timeout: float | None = None
+) -> Iterator[
+    tuple[str | None, str | None]
+    | tuple[type[subprocess.TimeoutExpired], type[subprocess.TimeoutExpired]]
+]:
     """
     Iterates over output from a process line by line
 
@@ -768,25 +923,39 @@ def _proc_iteroutput_select(proc, timeout=None):
     Args:
         proc (subprocess.Popen): the process being run
 
-        timeout (None | float): amount of time to allow before stopping
+        timeout (float | None): amount of time to allow before stopping
 
     Yields:
-        Tuple[str, str]: oline, eline - stdout and stderr line
-    """
-    from itertools import zip_longest
-    import select
+        tuple[str | None, str | None]: oline, eline - stdout / stderr lines (at least one is not None).
 
+    Note:
+        If a timeout is specified and exceeded, this yields ``(subprocess.TimeoutExpired, subprocess.TimeoutExpired)`` as a sentinel.
+    """
+    import select
+    from itertools import zip_longest
+
+    start_time: float | None = None
+    timeout_exc: type[subprocess.TimeoutExpired] | None = None
     if timeout is not None:
-        from time import monotonic as _time
         import subprocess
-        start_time = _time()
+        from time import monotonic
+
+        start_time = monotonic()
+        timeout_exc = subprocess.TimeoutExpired
+
+    assert proc.stdout is not None
+    assert proc.stderr is not None
 
     # Read output while the external program is running
     while proc.poll() is None:
         if timeout is not None:
-            elapsed = _time() - start_time
+            from time import monotonic
+
+            assert start_time is not None
+            assert timeout_exc is not None
+            elapsed = monotonic() - start_time
             if elapsed >= timeout:
-                yield subprocess.TimeoutExpired, subprocess.TimeoutExpired
+                yield timeout_exc, timeout_exc
                 return  # nocover
 
         reads = [proc.stdout.fileno(), proc.stderr.fileno()]
@@ -806,8 +975,14 @@ def _proc_iteroutput_select(proc, timeout=None):
         yield oline, eline
 
 
-def _tee_output(proc, stdout=None, stderr=None, backend='thread',
-                timeout=None, command_text=None):
+def _tee_output(
+    proc: subprocess.Popen[str],
+    stdout: typing.IO[str] | None = None,
+    stderr: typing.IO[str] | None = None,
+    backend: str = 'thread',
+    timeout: float | None = None,
+    command_text: str = '',
+) -> tuple[str, str]:
     """
     Simultaneously reports and captures stdout and stderr from a process
 
@@ -817,9 +992,9 @@ def _tee_output(proc, stdout=None, stderr=None, backend='thread',
     Args:
         proc (subprocess.Popen): the process being run
 
-        stdout (io.TextIOWrapper): typically sys.stdout
+        stdout (io.TextIOBase | None): typically sys.stdout
 
-        stderr (io.TextIOWrapper): typically sys.stderr
+        stderr (io.TextIOBase | None): typically sys.stderr
 
         backend (str): thread, select or auto
 
@@ -828,11 +1003,12 @@ def _tee_output(proc, stdout=None, stderr=None, backend='thread',
         command_text (str): used only to construct a TimeoutExpired error.
 
     Returns:
-        Tuple[str, str]: recorded stdout and stderr
+        tuple[str, str]: recorded stdout and stderr (text)
     """
     import subprocess
-    logged_out = []
-    logged_err = []
+
+    logged_out: list[str] = []
+    logged_err: list[str] = []
     if backend == 'auto':
         # backend = 'select' if POSIX else 'thread'
         backend = 'thread'
@@ -849,22 +1025,28 @@ def _tee_output(proc, stdout=None, stderr=None, backend='thread',
         # The value of "backend" should be checked before we create the
         # processes, otherwise we will have a dangling process
         raise AssertionError(
-            'Invalid backend, but the check should have already a happened')
+            'Invalid backend, but the check should have already a happened'
+        )
 
     output_gen = _proc_iteroutput(proc, timeout=timeout)
     # logger.debug("Start waiting for buffered output")
     for oline, eline in output_gen:
         if timeout is not None:
-            if oline is subprocess.TimeoutExpired or eline is subprocess.TimeoutExpired:
+            if (
+                oline is subprocess.TimeoutExpired
+                or eline is subprocess.TimeoutExpired
+            ):
                 # logger.error("Timeout error triggered!")
                 try:
                     out = ''.join(logged_out)
                 except UnicodeDecodeError:  # nocover
-                    out = '\n'.join(_.decode('utf-8') for _ in logged_out)
+                    # FIXME: this is likely unreachable code.
+                    out = '\n'.join(_.decode('utf-8') for _ in logged_out)  # type: ignore
                 try:
                     err = ''.join(logged_err)
                 except UnicodeDecodeError:  # nocover
-                    err = '\n'.join(_.decode('utf-8') for _ in logged_err)
+                    # FIXME: this is likely unreachable code.
+                    err = '\n'.join(_.decode('utf-8') for _ in logged_err)  # type: ignore
                 # Following the standard library implementation of
                 # :func:`subprocess.run`, we kill (not terminate) the process
                 # when the timeout expires. We shouldn't need the extra
@@ -875,16 +1057,18 @@ def _tee_output(proc, stdout=None, stderr=None, backend='thread',
                 raise subprocess.TimeoutExpired(command_text, timeout, out, err)
         if oline:
             # logger.debug("Write oline to stdout.write and logged_out")
+            oline_ = typing.cast(str, oline)
             if stdout:  # pragma: nobranch
-                stdout.write(oline)
+                stdout.write(oline_)
                 stdout.flush()
-            logged_out.append(oline)
+            logged_out.append(oline_)
         if eline:
             # logger.debug("Write eline to stderr.write and logged_err")
+            eline_ = typing.cast(str, eline)
             if stderr:  # pragma: nobranch
-                stderr.write(eline)
+                stderr.write(eline_)
                 stderr.flush()
-            logged_err.append(eline)
+            logged_err.append(eline_)
         # logger.debug("Continue waiting for buffered output")
 
     # The motivation for this logic is unclear.
@@ -893,11 +1077,13 @@ def _tee_output(proc, stdout=None, stderr=None, backend='thread',
     try:
         out = ''.join(logged_out)
     except UnicodeDecodeError:  # nocover
-        out = '\n'.join(_.decode('utf-8') for _ in logged_out)
+        # FIXME: this is likely unreachable code.
+        out = '\n'.join(_.decode('utf-8') for _ in logged_out)  # type: ignore
     try:
         err = ''.join(logged_err)
     except UnicodeDecodeError:  # nocover
-        err = '\n'.join(_.decode('utf-8') for _ in logged_err)
+        # FIXME: this is likely unreachable code.
+        err = '\n'.join(_.decode('utf-8') for _ in logged_err)  # type: ignore
 
     return out, err
 

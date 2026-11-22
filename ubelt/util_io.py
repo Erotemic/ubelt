@@ -9,17 +9,30 @@ written and read is unicode text.
 throw an error if the file or directory does not exist. It also contains
 workarounds for win32 issues with :mod:`shutil`.
 """
-import sys
+
+from __future__ import annotations
+
 import os
+import sys
+import typing
 from os.path import exists
 
+PathType = typing.TypeVar('PathType', bound=typing.Union[str, os.PathLike])
 
 __all__ = [
-    'readfrom', 'writeto', 'touch', 'delete',
+    'readfrom',
+    'writeto',
+    'touch',
+    'delete',
 ]
 
 
-def writeto(fpath, to_write, aslines=False, verbose=None):
+def writeto(
+    fpath: str | os.PathLike,
+    to_write: str,
+    aslines: bool = False,
+    verbose: int | None = None,
+) -> None:
     r"""
     Writes (utf8) text to a file.
 
@@ -86,27 +99,67 @@ def writeto(fpath, to_write, aslines=False, verbose=None):
         print('Writing to text file: %r ' % (fpath,))
 
     from ubelt import schedule_deprecation
+
     schedule_deprecation(
-        modname='ubelt', name='writeto', type='function',
+        modname='ubelt',
+        name='writeto',
+        type='function',
         migration='use ubelt.Path(...).write_text() instead',
-        deprecate='1.2.0', error='2.0.0', remove='2.1.0')
+        deprecate='1.2.0',
+        error='2.0.0',
+        remove='2.1.0',
+    )
 
     with open(fpath, 'wb') as file:
         if aslines:
-            to_write = map(_ensure_bytes , to_write)
-            file.writelines(to_write)
+            to_write_lines = map(_ensure_bytes, to_write)
+            file.writelines(to_write_lines)
         else:
             # convert to bytes for writing
             bytes = _ensure_bytes(to_write)
             file.write(bytes)
 
 
-def _ensure_bytes(text):
-    """ ensures text is in a suitable format for writing """
+def _ensure_bytes(text: str | bytes) -> bytes:
+    """Ensure text is in a suitable format for writing."""
+    if isinstance(text, bytes):
+        return text
     return text.encode('utf8')
 
 
-def readfrom(fpath, aslines=False, errors='replace', verbose=None):
+@typing.overload
+def readfrom(
+    fpath: str | os.PathLike,
+    aslines: typing.Literal[False] = False,
+    errors: str = 'replace',
+    verbose: int | None = None,
+) -> str: ...
+
+
+@typing.overload
+def readfrom(
+    fpath: str | os.PathLike,
+    aslines: typing.Literal[True],
+    errors: str = 'replace',
+    verbose: int | None = None,
+) -> list[str]: ...
+
+
+@typing.overload
+def readfrom(
+    fpath: str | os.PathLike,
+    aslines: bool,
+    errors: str = 'replace',
+    verbose: int | None = None,
+) -> str | list[str]: ...
+
+
+def readfrom(
+    fpath: str | os.PathLike,
+    aslines: bool = False,
+    errors: str = 'replace',
+    verbose: int | None = None,
+) -> str | list[str]:
     """
     Reads (utf8) text from a file.
 
@@ -129,14 +182,22 @@ def readfrom(fpath, aslines=False, errors='replace', verbose=None):
     if not exists(fpath):
         raise IOError('File %r does not exist' % (fpath,))
     from ubelt import schedule_deprecation
+
     schedule_deprecation(
-        modname='ubelt', name='readfrom', type='function',
+        modname='ubelt',
+        name='readfrom',
+        type='function',
         migration='use ubelt.Path(...).read_text() instead',
-        deprecate='1.2.0', error='2.0.0', remove='2.1.0')
+        deprecate='1.2.0',
+        error='2.0.0',
+        remove='2.1.0',
+    )
+    text: str | list[str]
     with open(fpath, 'rb') as file:
         if aslines:
-            text = [line.decode('utf8', errors=errors)
-                    for line in file.readlines()]
+            text = [
+                line.decode('utf8', errors=errors) for line in file.readlines()
+            ]
             if sys.platform.startswith('win32'):  # nocover
                 # fix line endings on windows
                 text = [
@@ -148,7 +209,13 @@ def readfrom(fpath, aslines=False, errors='replace', verbose=None):
     return text
 
 
-def touch(fpath, mode=0o666, dir_fd=None, verbose=0, **kwargs):
+def touch(
+    fpath: PathType,
+    mode: int = 0o666,
+    dir_fd: int | None = None,
+    verbose: int = 0,
+    **kwargs: typing.Any,
+) -> PathType:
     """
     change file timestamps
 
@@ -157,14 +224,14 @@ def touch(fpath, mode=0o666, dir_fd=None, verbose=0, **kwargs):
     Args:
         fpath (str | PathLike): name of the file
         mode (int): file permissions (python3 and unix only)
-        dir_fd (io.IOBase | None): optional directory file descriptor. If
+        dir_fd (int | None): optional directory file descriptor. If
             specified, fpath is interpreted as relative to this descriptor
             (python 3 only).
         verbose (int): verbosity
         **kwargs : extra args passed to :func:`os.utime` (python 3 only).
 
     Returns:
-        str: path to the file
+        str | PathLike: path to the file
 
     References:
         .. [SO_1158076] https://stackoverflow.com/questions/1158076/implement-touch-using-python
@@ -183,18 +250,22 @@ def touch(fpath, mode=0o666, dir_fd=None, verbose=0, **kwargs):
         print('Touching file {}'.format(fpath))
     flags = os.O_CREAT | os.O_APPEND
     with os.fdopen(os.open(fpath, flags=flags, mode=mode, dir_fd=dir_fd)) as f:
-        os.utime(f.fileno() if os.utime in os.supports_fd else fpath,
-                 dir_fd=None if os.supports_fd else dir_fd, **kwargs)
+        os.utime(
+            f.fileno() if os.utime in os.supports_fd else fpath,
+            dir_fd=None if os.supports_fd else dir_fd,
+            **kwargs,
+        )
     return fpath
 
 
-def delete(path, verbose=False):
+def delete(path: str | os.PathLike, verbose: bool | int = False) -> None:
     """
     Removes a file or recursively removes a directory.
     If a path does not exist, then this is does nothing.
 
     Args:
         path (str | PathLike): file or directory to remove
+
         verbose (bool): if True prints what is being done
 
     SeeAlso:
@@ -269,12 +340,17 @@ def delete(path, verbose=False):
         elif os.path.isdir(path):
             if verbose:  # nocover
                 print('Deleting directory="{}"'.format(path))
-            if sys.platform.startswith('win32') and sys.version_info[0:2] < (3, 8):  # nocover
+            if sys.platform.startswith('win32') and sys.version_info[0:2] < (
+                3,
+                8,
+            ):  # nocover
                 # Workaround bug that prevents shutil from working if
                 # the directory contains junctions
                 # https://bugs.python.org/issue36621
                 from ubelt import _win32_links
+
                 _win32_links._win32_rmtree(path, verbose=verbose)
             else:
                 import shutil
+
                 shutil.rmtree(path)

@@ -16,11 +16,13 @@ def bench_dict_hist_finalize():
     """
 
     import operator as op
-    import ubelt as ub
-
-    import timerit
     import random
     import string
+
+    import timerit
+
+    import ubelt as ub
+
     rng = random.Random(0)
     items = [rng.choice(string.printable) for _ in range(5000)]
     hist_ = ub.ddict(lambda: 0)
@@ -34,23 +36,29 @@ def bench_dict_hist_finalize():
     for timer in ti.reset('dict_subset_iter'):
         with timer:
             getval = op.itemgetter(1)
-            key_order = (key for (key, value) in sorted(hist_.items(), key=getval))
+            key_order = (
+                key for (key, value) in sorted(hist_.items(), key=getval)
+            )
             hist = ub.dict_subset(hist_, key_order)
 
     for timer in ti.reset('dict_subset_list'):
         with timer:
             getval = op.itemgetter(1)
-            key_order = [key for (key, value) in sorted(hist_.items(), key=getval)]
+            key_order = [
+                key for (key, value) in sorted(hist_.items(), key=getval)
+            ]
             hist = ub.dict_subset(hist_, key_order)
 
     for timer in ti.reset('direct_itemgetter'):
         with timer:
             # WINNER
             getval = op.itemgetter(1)
-            hist = OrderedDict([
-                (key, value)
-                for (key, value) in sorted(hist_.items(), key=getval)
-            ])
+            hist = OrderedDict(
+                [
+                    (key, value)
+                    for (key, value) in sorted(hist_.items(), key=getval)
+                ]
+            )
 
     del hist
 
@@ -65,11 +73,14 @@ def bench_dict_hist():
         Timed best=59.392 µs, mean=63.395 ± 11.9 µs for dict_subset_list
         Timed best=47.203 µs, mean=47.632 ± 0.2 µs for direct_itemgetter
     """
-    import ubelt as ub
-    import timerit
+    import collections
     import random
     import string
-    import collections
+
+    import timerit
+
+    import ubelt as ub
+
     rng = random.Random(0)
     items = [rng.choice(string.printable) for _ in range(5000)]
 
@@ -108,10 +119,11 @@ def bench_sort_dictionary():
         Timed best=28.810 µs, mean=29.138 ± 0.3 µs for lambda
     """
     import operator as op
-    import ubelt as ub
-
     import random
     import string
+
+    import ubelt as ub
+
     rng = random.Random(0)
     items = [rng.choice(string.printable) for _ in range(5000)]
     hist_ = ub.ddict(lambda: 0)
@@ -123,11 +135,16 @@ def bench_sort_dictionary():
         with timer:
             # WINNER
             getval = op.itemgetter(1)
-            key_order = [key for (key, value) in sorted(hist_.items(), key=getval)]
+            key_order = [
+                key for (key, value) in sorted(hist_.items(), key=getval)
+            ]
 
     for timer in ti.reset('lambda'):
         with timer:
-            key_order = [key for (key, value) in sorted(hist_.items(), key=lambda x: x[1])]
+            key_order = [
+                key
+                for (key, value) in sorted(hist_.items(), key=lambda x: x[1])
+            ]
 
     del key_order
 
@@ -139,4 +156,5 @@ if __name__ == '__main__':
         python ~/code/ubelt/dev/bench/bench_dict_hist.py bench_dict_hist_finalize
     """
     import fire
+
     fire.Fire()

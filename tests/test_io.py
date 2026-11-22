@@ -1,9 +1,11 @@
 from __future__ import unicode_literals
-from os.path import os
+
+import os
 
 
-def test_touch():
+def test_touch() -> None:
     import ubelt as ub
+
     dpath = ub.Path.appdir('ubelt', 'tests').ensuredir()
     fpath = dpath / 'touch_file'
     assert not fpath.exists()
@@ -12,16 +14,25 @@ def test_touch():
     os.unlink(fpath)
 
 
-def test_readwrite():
+def test_readwrite() -> None:
     import pytest
+
     import ubelt as ub
+
     dpath = ub.Path.appdir('ubelt', 'tests').ensuredir()
     fpath = dpath / 'testwrite.txt'
     if fpath.exists():
         os.remove(fpath)
     to_write = 'utf-8 symbols Δ, Й, ק, م, ๗, あ, 叶, 葉, and 말.'
-    with pytest.warns(DeprecationWarning):
+    with pytest.warns(Warning):
         ub.writeto(fpath, to_write, verbose=True)
-    with pytest.warns(DeprecationWarning):
+    with pytest.warns(Warning):
         read_ = ub.readfrom(fpath, verbose=True)
     assert read_ == to_write
+
+
+def test_ensure_bytes_bytes_passthrough() -> None:
+    from ubelt.util_io import _ensure_bytes
+
+    data = b'hello'
+    assert _ensure_bytes(data) is data

@@ -9,9 +9,16 @@ The :class:`TeeStringIO` does the same thing but for arbitrary streams. It is
 how the former is implemented.
 
 """
+
 from __future__ import annotations
-import sys
+
 import io
+import sys
+import typing
+
+if typing.TYPE_CHECKING:
+    from types import TracebackType
+    from typing import TextIO, Type
 
 __all__ = [
     'TeeStringIO',
@@ -37,12 +44,13 @@ class TeeStringIO(io.StringIO):
         >>> assert self.getvalue() == 'spam'
         >>> assert redirect.getvalue() == 'spam'
     """
-    def __init__(self, redirect=None):
+
+    def __init__(self, redirect: io.IOBase | None = None) -> None:
         """
         Args:
             redirect (io.IOBase): The other stream to write to.
         """
-        self.redirect = redirect  # type: io.IOBase
+        self.redirect: io.IOBase | None = redirect
         super().__init__()
 
         # Logic taken from prompt_toolkit/output/vt100.py version 3.0.5 in
@@ -51,14 +59,14 @@ class TeeStringIO(io.StringIO):
         # allow us to embed in IPython while still capturing and Teeing
         # stdout.
         if redirect is not None:
-            self.buffer = getattr(redirect, 'buffer', redirect)
+            self.buffer = getattr(redirect, 'buffer', redirect)  # type: ignore
         else:
-            self.buffer = None
+            self.buffer = None  # type: ignore
 
         # Note: mypy doesn't like this type
         # buffer (io.BufferedIOBase | io.IOBase | None): the redirected buffer attribute
 
-    def isatty(self):  # nocover
+    def isatty(self) -> bool:  # nocover
         """
         Returns true of the redirect is a terminal.
 
@@ -72,10 +80,13 @@ class TeeStringIO(io.StringIO):
         Returns:
             bool
         """
-        return (self.redirect is not None and
-                hasattr(self.redirect, 'isatty') and self.redirect.isatty())
+        return (
+            self.redirect is not None
+            and hasattr(self.redirect, 'isatty')
+            and self.redirect.isatty()
+        )
 
-    def fileno(self):
+    def fileno(self) -> int:
         """
         Returns underlying file descriptor of the redirected IOBase object
         if one exists.
@@ -114,7 +125,7 @@ class TeeStringIO(io.StringIO):
             return super().fileno()
 
     @property
-    def encoding(self):
+    def encoding(self) -> typing.Any:
         """
         Gets the encoding of the `redirect` IO object
 
@@ -141,16 +152,16 @@ class TeeStringIO(io.StringIO):
         # Returns:
         #     None | str
         if self.redirect is not None:
-            return self.redirect.encoding
+            return self.redirect.encoding  # type: ignore
         else:
             return super().encoding
 
     @encoding.setter
-    def encoding(self, value):
+    def encoding(self, value: typing.Any) -> None:
         # Adding a setter to make mypy happy
         raise AttributeError('encoding is read-only on TeeStringIO')
 
-    def write(self, msg):
+    def write(self, msg: str) -> int:
         """
         Write to this and the redirected stream
 
@@ -175,7 +186,7 @@ class TeeStringIO(io.StringIO):
             self.redirect.write(msg)
         return super().write(msg)
 
-    def flush(self):  # nocover
+    def flush(self) -> None:
         """
         Flush to this and the redirected stream
 
@@ -199,20 +210,21 @@ class CaptureStream:
         text (str | None): most recent captured chunk from :meth:`log_part`.
         parts (list[str]): all captured chunks appended by :meth:`log_part`.
         cap_stream (None | TeeStringIO): proxy stream used while capturing.
-        orig_stream (io.TextIOBase | None): original global stream restored on stop.
+        orig_stream (TextIO | None): original global stream restored on stop.
         suppress (bool): if True, do not tee to the original stream while capturing.
         enabled (bool): if False, acts as a no-op context manager.
         started (bool): True while the capture is active.
     """
+
     # ----- hooks required by subclasses -----
-    def _get_stream(self) -> io.TextIOBase:  # pragma: no cover - abstract-ish
+    def _get_stream(self) -> TextIO:  # pragma: no cover - abstract-ish
         raise NotImplementedError
 
-    def _set_stream(self, value: io.TextIOBase) -> None:  # pragma: no cover
+    def _set_stream(self, value: TextIO) -> None:  # pragma: no cover
         raise NotImplementedError
 
     # ----- implementation -----
-    def __init__(self, suppress: bool = True, enabled: bool = True):
+    def __init__(self, suppress: bool = True, enabled: bool = True) -> None:
         self.text: str | None = None
         self._pos: int = 0
         self.parts: list[str] = []
@@ -220,7 +232,7 @@ class CaptureStream:
         self.enabled: bool = enabled
         self.suppress: bool = suppress
         self.cap_stream: TeeStringIO | None = None
-        self.orig_stream: io.TextIOBase | None = None
+        self.orig_stream: TextIO | None = None
 
     def _make_proxy(self) -> TeeStringIO:
         """
@@ -228,11 +240,11 @@ class CaptureStream:
         depending on `suppress`. Called at start of each capture.
         """
         redirect = None if self.suppress else self._get_stream()
-        return TeeStringIO(redirect)
+        return TeeStringIO(redirect)  # type: ignore
 
     def log_part(self) -> None:
         """Log what has been captured since the last call to :meth:`log_part`."""
-        if self.cap_stream is None:
+        if self.cap_stream is None:  # nocover
             return
         self.cap_stream.seek(self._pos)
         text = self.cap_stream.read()
@@ -244,7 +256,7 @@ class CaptureStream:
         """
         Begin capturing. Swaps the global stream to our `TeeStringIO`.
         """
-        if not self.enabled or self.started:
+        if not self.enabled or self.started:  # pragma: nobranch
             return
         self.text = ''
         self.started = True
@@ -256,26 +268,31 @@ class CaptureStream:
         """
         Stop capturing. Restores the original global stream.
         """
-        if not self.enabled or not self.started:
+        if not self.enabled or not self.started:  # nocover
             return
         self.started = False
-        if self.orig_stream is not None:
+        if self.orig_stream is not None:  # pragma: nobranch
             self._set_stream(self.orig_stream)
         # keep cap_stream alive for reading until close/__exit__
 
     def close(self) -> None:
         """Close and drop the proxy buffer to release memory."""
-        if self.cap_stream is not None:
+        if self.cap_stream is not None:  # pragma: nobranch
             try:
                 self.cap_stream.close()
             finally:
                 self.cap_stream = None
 
-    def __enter__(self):
+    def __enter__(self) -> CaptureStream:
         self.start()
         return self
 
-    def __exit__(self, ex_type, ex_value, ex_traceback):
+    def __exit__(
+        self,
+        ex_type: Type[BaseException] | None,
+        ex_value: BaseException | None,
+        ex_traceback: TracebackType | None,
+    ) -> bool | None:
         """
         On exit, append the final part, stop, and close the proxy.
 
@@ -295,8 +312,9 @@ class CaptureStream:
                 self.close()
         if ex_traceback is not None:
             return False  # propagate exception
+        return None
 
-    def __del__(self):  # nocover
+    def __del__(self) -> None:  # nocover
         # Be robust during interpreter shutdown
         try:
             if getattr(self, 'started', False):
@@ -353,11 +371,12 @@ class CaptureStdout(CaptureStream):
         ...     print('dont capture')
         >>> assert self.text is None
     """
+
     # ---- required hooks for CaptureStream ----
-    def _get_stream(self) -> io.TextIOBase:
+    def _get_stream(self) -> TextIO:
         return sys.stdout
 
-    def _set_stream(self, value: io.TextIOBase) -> None:
+    def _set_stream(self, value: TextIO) -> None:
         sys.stdout = value
 
     # Backward-compat aliases expected by existing code/tests
@@ -368,7 +387,7 @@ class CaptureStdout(CaptureStream):
         return self.cap_stream
 
     @property
-    def orig_stdout(self) -> io.TextIOBase | None:
+    def orig_stdout(self) -> TextIO | None:
         """Backward-compatibility alias for orig_stream."""
         return self.orig_stream
 
@@ -387,8 +406,9 @@ class CaptureStderr(CaptureStream):
         ...     print('to stderr (captured)', file=sys.stderr)
         >>> assert 'to stderr (captured)' in (self.text or '')
     """
-    def _get_stream(self) -> io.TextIOBase:
+
+    def _get_stream(self) -> TextIO:
         return sys.stderr
 
-    def _set_stream(self, value: io.TextIOBase) -> None:
+    def _set_stream(self, value: TextIO) -> None:
         sys.stderr = value

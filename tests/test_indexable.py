@@ -1,7 +1,14 @@
+from __future__ import annotations
+
+import typing
+
 import ubelt as ub
 
 
-def _indexable_walker_map_v1(self, func):
+def _indexable_walker_map_v1(
+    self: typing.Any,
+    func: typing.Callable[[typing.Any], typing.Any],
+) -> typing.Any:
     # This is a one pattern for "mapping" a function over nested data and
     # preserving the structure.
     mapped = ub.AutoDict()
@@ -14,12 +21,15 @@ def _indexable_walker_map_v1(self, func):
     return mapped
 
 
-def _indexable_walker_map_v2(self, func):
+def _indexable_walker_map_v2(
+    self: typing.Any,
+    func: typing.Callable[[typing.Any], typing.Any],
+) -> typing.Any:
     # TODO: might be reasonable to add a map attribute to the indexable walker.
     # This is a another pattern for "mapping" a function over nested data and
     # preserving the structure.
     if isinstance(self.data, self.dict_cls):
-        mapped = {}
+        mapped: typing.Any = {}
     elif isinstance(self.data, self.list_cls):
         mapped = []
     else:
@@ -35,7 +45,10 @@ def _indexable_walker_map_v2(self, func):
     return mapped
 
 
-def _map_vals3(self, func):
+def _map_vals3(
+    self: typing.Any,
+    func: typing.Callable[[typing.Any], typing.Any],
+) -> typing.Any:
     """
     Defines the underlying generator used by IndexableWalker
 
@@ -65,7 +78,7 @@ def _map_vals3(self, func):
     """
     data = self.data
     if isinstance(data, self.dict_cls):
-        mapped = {}
+        mapped: typing.Any = {}
     elif isinstance(data, self.list_cls):
         mapped = []
     else:
@@ -83,9 +96,11 @@ def _map_vals3(self, func):
         for key, value in items:
             if isinstance(value, self.indexable_cls):
                 if isinstance(value, self.dict_cls):
-                    new = _parent[key] = {}
+                    new: typing.Any = {}
+                    _parent[key] = new
                 elif isinstance(value, self.list_cls):
-                    new = _parent[key] = [None] * len(value)
+                    new = [None] * len(value)
+                    _parent[key] = new
                 else:
                     raise TypeError(type(value))
                 stack.append((value, new))
@@ -129,7 +144,7 @@ def _map_vals3(self, func):
 #             print('_data = {!r}'.format(_data))
 #             print('---')
 #     """
-#     if data is None:  # pragma: nobranch
+#     if data is None:
 #         data = self.data
 #     key = None
 #     if mapped is None:
@@ -162,7 +177,7 @@ def _map_vals3(self, func):
 #                     stack.append((value, key, _mapped[key]))
 
 
-def test_indexable_walker_map_patterns():
+def test_indexable_walker_map_patterns() -> None:
     """
     Check that we can walk through an indexable and make a deep copy
     """
@@ -171,7 +186,7 @@ def test_indexable_walker_map_patterns():
         '3': {
             'foo': 'bar',
             'baz': [1, 2, ['biz']],
-        }
+        },
     }
     self = ub.IndexableWalker(data)
     func = type
@@ -182,6 +197,7 @@ def test_indexable_walker_map_patterns():
     print('mapped_v2 = {}'.format(ub.urepr(mapped_v2, nl=1)))
 
     import pytest
+
     with pytest.warns(Warning):
         assert ub.indexable_allclose(mapped_v1, mapped_v2)
 
@@ -199,12 +215,15 @@ def test_indexable_walker_map_patterns():
     self_v3 = _map_vals3(self, ub.identity)  # NOQA
 
     # change auto-dict into lists when appropriate
-    fixup = ub.IndexableWalker(self_v1)
-    for path, value in fixup:
+    fixup: typing.Any = ub.IndexableWalker(self_v1)
+    for path, value in typing.cast(
+        typing.Iterable[typing.Tuple[typing.Any, typing.Any]], fixup
+    ):
         if isinstance(value, dict) and isinstance(self[path], list):
             fixup[path] = [v for k, v in sorted(value.items())]
 
     import pytest
+
     with pytest.warns(Warning):
         assert ub.indexable_allclose(self.data, self_v2)
     with pytest.warns(Warning):
@@ -213,14 +232,16 @@ def test_indexable_walker_map_patterns():
         assert not ub.indexable_allclose(self.data, mapped_v1)
 
 
-def test_walk_iter_gen_behavior():
+def test_walk_iter_gen_behavior() -> None:
     from itertools import count
+
     import ubelt as ub
+
     # from functools import cache
     counter = count()
 
     @ub.memoize
-    def tree(b, d):
+    def tree(b: int, d: int) -> typing.Any:
         if d == 1:
             return [next(counter) for i in range(b)]
         else:
@@ -242,6 +263,7 @@ def test_walk_iter_gen_behavior():
     assert list(walker) == list(walker)
 
     import pytest
+
     # Exhausting the current iterator will cause StopIteration
     list(walker)
     with pytest.raises(StopIteration):
@@ -272,3 +294,22 @@ def test_walk_iter_gen_behavior():
 
     assert d == len(list(walker))
     assert d != c
+
+
+def test_indexable_diff_equal_nan() -> None:
+    import pytest
+
+    pytest.importorskip('numpy')
+
+    lhs = ub.IndexableWalker({'value': float('nan')})
+    info = lhs.diff({'value': float('nan')}, equal_nan=True)
+    assert info['num_differences'] == 0
+    assert info['num_approximations'] == 1
+
+
+def test_indexable_send_before_iteration() -> None:
+    import pytest
+
+    walker = ub.IndexableWalker([1])
+    with pytest.raises(TypeError):
+        walker.send(False)

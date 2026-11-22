@@ -1,8 +1,9 @@
-import ubelt as ub
 import pytest
 
+import ubelt as ub
 
-def test_auto_dict():
+
+def test_auto_dict() -> None:
     auto = ub.AutoDict()
     assert 0 not in auto
     auto[0][10][100] = None
@@ -10,8 +11,9 @@ def test_auto_dict():
     assert isinstance(auto[0], ub.AutoDict)
 
 
-def test_auto_dict_to_dict():
+def test_auto_dict_to_dict() -> None:
     from ubelt.util_dict import AutoDict
+
     auto = AutoDict()
     auto[1] = 1
     auto['n1'] = AutoDict()
@@ -25,15 +27,18 @@ def test_auto_dict_to_dict():
     static = auto.to_dict()
     print('static = {!r}'.format(static))
     assert not isinstance(static, AutoDict), '{}'.format(type(static))
-    assert not isinstance(static['n1'], AutoDict), '{}'.format(type(static['n1']))
+    assert not isinstance(static['n1'], AutoDict), '{}'.format(
+        type(static['n1'])
+    )
     assert not isinstance(static['n1']['n2'], AutoDict)
     assert isinstance(static['dict']['n3'], AutoDict)
     assert isinstance(static['dict']['n3']['n4'], AutoDict)
 
 
-def test_auto_dict_ordered():
+def test_auto_dict_ordered() -> None:
     # To Dict should respect ordering
-    from ubelt.util_dict import AutoOrderedDict, AutoDict
+    from ubelt.util_dict import AutoDict, AutoOrderedDict
+
     auto = AutoOrderedDict()
     auto[0][3] = 3
     auto[0][2] = 2
@@ -44,15 +49,17 @@ def test_auto_dict_ordered():
     static = auto.to_dict()
     print('static = {!r}'.format(static))
     assert not isinstance(static, AutoDict), 'bad cast {}'.format(type(static))
-    assert not isinstance(static[0][4], AutoDict), 'bad cast {}'.format(type(static[0][4]))
+    assert not isinstance(static[0][4], AutoDict), 'bad cast {}'.format(
+        type(static[0][4])
+    )
     assert list(auto[0].values())[0:3] == [3, 2, 1], 'maintain order'
 
 
-def test_dzip_errors():
+def test_dzip_errors() -> None:
     with pytest.raises(TypeError):
-        ub.dzip([1], 2)
+        ub.dzip([1], 2)  # type: ignore
     with pytest.raises(TypeError):
-        ub.dzip(1, [2])
+        ub.dzip(1, [2])  # type: ignore
     with pytest.raises(ValueError):
         ub.dzip([1, 2, 3], [])
     with pytest.raises(ValueError):
@@ -61,7 +68,7 @@ def test_dzip_errors():
         ub.dzip([1, 2, 3], [4, 5])
 
 
-def test_group_items_callable():
+def test_group_items_callable() -> None:
     pairs = [
         ('ham', 'protein'),
         ('jam', 'fruit'),
@@ -76,15 +83,17 @@ def test_group_items_callable():
     result1 = ub.group_items(items, groupids)
     result2 = ub.group_items(items, lut.__getitem__)
 
-    result1 = ub.map_values(set, result1)
-    result2 = ub.map_values(set, result2)
+    result1 = ub.map_values(lambda x: set(x), result1)  # type: ignore[arg-type,return-value]
+    result2 = ub.map_values(lambda x: set(x), result2)  # type: ignore[arg-type,return-value]
     assert result1 == result2
 
 
-def test_dict_hist_ordered():
+def test_dict_hist_ordered() -> None:
     import random
     import string
+
     import ubelt as ub
+
     rng = random.Random(0)
     items = [rng.choice(string.ascii_letters) for _ in range(100)]
     # Ensure that the ordered=True bug is fixed
@@ -93,7 +102,7 @@ def test_dict_hist_ordered():
     assert a == b
 
 
-def test_dict_subset_iterable():
+def test_dict_subset_iterable() -> None:
     """
     CommandLine:
         xdoctest -m ~/code/ubelt/tests/test_dict.py test_dict_subset_iterable
@@ -103,6 +112,17 @@ def test_dict_subset_iterable():
     dict_ = {k: k for k in keys_list}
     got = ub.dict_subset(dict_, iter(keys_list))
     assert dict(got) == dict_
+
+
+def test_dict_subset_default() -> None:
+    """
+    Test dict_subset with default value for missing keys.
+    """
+    dict_ = {'a': 1, 'b': 2}
+    keys = ['a', 'c', 'b']
+    got = ub.dict_subset(dict_, keys, default=0)
+    expected = {'a': 1, 'c': 0, 'b': 2}
+    assert dict(got) == expected
 
 
 # def _benchmark_groupid_sorted():
@@ -136,3 +156,30 @@ def test_dict_subset_iterable():
 #     import netharn as nh
 #     nh.util.autompl()
 #     nh.util.multi_plot(xdata, ydata)
+
+
+def test_dictionary_class_alias_runtime_identity():
+    """Typing-oriented class naming must not change the runtime API."""
+    import pickle
+
+    import ubelt as ub
+
+    assert ub.udict is ub.UDict
+    assert ub.sdict is ub.SetDict
+    assert ub.udict.__name__ == 'UDict'
+    assert ub.udict.__qualname__ == 'UDict'
+    assert ub.sdict.__name__ == 'SetDict'
+    assert ub.sdict.__qualname__ == 'SetDict'
+
+    data = ub.udict({'a': 1})
+    assert isinstance(data, ub.udict)
+    assert type(data.copy()) is ub.udict
+    assert type(data | {'b': 2}) is ub.udict
+    assert type(data.union({'b': 2})) is ub.udict
+    assert type(data.symmetric_difference({'b': 2})) is ub.udict
+    assert type(data.intersection({'a'})) is ub.udict
+    assert type(data.difference({'missing'})) is ub.udict
+    assert type({'b': 2} | data) is ub.udict
+    assert type(ub.udict.fromkeys(['a'], 1)) is ub.udict
+    assert pickle.loads(pickle.dumps(data)) == data
+    assert type(pickle.loads(pickle.dumps(data))) is ub.udict

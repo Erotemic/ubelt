@@ -2,22 +2,24 @@
 requires = [ "setuptools>=41.0.1",]
 build-backend = "setuptools.build_meta"
 
-[tool.mypy]
-ignore_missing_imports = true
 
 [tool.xcookie]
-tags = [ "purepy", "erotemic", "github",]
+tags = [ "purepy", "erotemic", "github", "mypy",]
 mod_name = "ubelt"
 repo_name = "ubelt"
 rel_mod_parent_dpath = "."
 os = ["all"]
-min_python = '3.8'
+min_python = '3.10'
 author = "Jon Crall"
 typed = "partial"
 use_uv = true
 author_email = "erotemic@gmail.com"
 description = "A Python utility belt containing simple tools, a stdlib like feel, and extra batteries"
 #ci_cpython_versions=["3.6", "3.7", "3.8", "3.9", "3.10", "3.11", "3.12", "3.13.0-beta.2"]
+ci_allow_failure = [{python-version = "3.15"}]
+typecheck_extra_paths = ["tests/typecheck_consumer.py"]
+ci_pypi_trusted_publishing = true
+ci_gpg_secret_transport = "direct_ci"
 license = "Apache 2"
 dev_status = "stable"
 classifiers = [
@@ -30,7 +32,7 @@ classifiers = [
     'Operating System :: Microsoft :: Windows',
     'Operating System :: MacOS',
     'Operating System :: POSIX :: Linux',
-    'Typing :: Stubs Only',
+    'Typing :: Typed',
 ]
 
 [tool.xcookie.setuptools]
@@ -65,6 +67,10 @@ exclude_lines = [
     "if _debug:",
     "if __name__ == .__main__.:",
     ".*if six.PY2:",
+    ".*if typing.TYPE_CHECKING:",
+    ".*if TYPE_CHECKING:",
+    "@typing.overload",
+    "@overload",
 ]
 omit = [
     "ubelt/__main__.py",
@@ -78,3 +84,33 @@ skip = ['./docs/build', './*.egg-info', './build', './htmlcov']
 count = true
 quiet-level = 3
 ignore-words-list = ['wont', 'cant', 'ANS', 'doesnt', 'arent', 'ans', 'thats', 'datas', 'isnt']
+
+
+[tool.mypy]
+ignore_missing_imports = true
+#ignore_errors = true
+
+[tool.ty.rules]
+unused-ignore-comment = "ignore"
+unused-type-ignore-comment = "ignore"
+import-not-found = "ignore"
+
+[tool.ruff]
+line-length = 80
+target-version = "py38"
+
+[tool.ruff.lint]
+# Enable Flake8 (E, F) and isort (I) rules.
+select = ["E", "F", "I"]
+# Ignore specific rules, for example, E501 (line too long) as it's handled by the formatter.
+ignore = [
+    "E501",  # line too long
+    "E402",  # Module level import not at top of file
+]
+
+[tool.ruff.format]
+quote-style = "single"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
+docstring-code-format = false

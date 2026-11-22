@@ -110,9 +110,7 @@ Notes:
 # import sys
 # sys.path.insert(0, os.path.abspath('.'))
 
-
 # -- Project information -----------------------------------------------------
-import sphinx_rtd_theme
 from os.path import exists
 from os.path import dirname
 from os.path import join
@@ -123,22 +121,26 @@ def parse_version(fpath):
     Statically parse the version number from a python file
     """
     import ast
+
     if not exists(fpath):
         raise ValueError('fpath={!r} does not exist'.format(fpath))
     with open(fpath, 'r') as file_:
         sourcecode = file_.read()
     pt = ast.parse(sourcecode)
+
     class VersionVisitor(ast.NodeVisitor):
         def visit_Assign(self, node):
             for target in node.targets:
                 if getattr(target, 'id', None) == '__version__':
-                    self.version = node.value.s
+                    self.version = node.value.value
+
     visitor = VersionVisitor()
     visitor.visit(pt)
     return visitor.version
 
+
 project = 'ubelt'
-copyright = '2025, Jon Crall'
+copyright = '2026, Jon Crall'
 author = 'Jon Crall'
 modname = 'ubelt'
 
@@ -178,12 +180,13 @@ extensions = [
 ]
 
 todo_include_todos = True
+myst_heading_anchors = 3
 napoleon_google_docstring = True
 napoleon_use_param = False
 napoleon_use_ivar = True
 
-#autoapi_type = 'python'
-#autoapi_dirs = [mod_dpath]
+# autoapi_type = 'python'
+# autoapi_dirs = [mod_dpath]
 
 autodoc_inherit_docstrings = False
 
@@ -198,7 +201,8 @@ autosummary_mock_imports = [
 ]
 
 autodoc_default_options = {  # Document callable classes
-    'special-members': '__call__'}
+    'special-members': '__call__'
+}
 
 autodoc_member_order = 'bysource'
 autoclass_content = 'both'
@@ -232,17 +236,15 @@ intersphinx_mapping = {
     'xdoctest': ('https://xdoctest.readthedocs.io/en/latest/', None),
     'networkx': ('https://networkx.org/documentation/stable/', None),
     'scriptconfig': ('https://scriptconfig.readthedocs.io/en/latest/', None),
+    'kwconf': ('https://kwconf.readthedocs.io/en/latest/', None),
     'rich': ('https://rich.readthedocs.io/en/latest/', None),
-
     'numpy': ('https://numpy.org/doc/stable/', None),
     'sympy': ('https://docs.sympy.org/latest/', None),
     'scikit-learn': ('https://scikit-learn.org/stable/', None),
     'pandas': ('https://pandas.pydata.org/docs/', None),
     'matplotlib': ('https://matplotlib.org/stable/', None),
-
     'pytest': ('https://docs.pytest.org/en/latest/', None),
     'platformdirs': ('https://platformdirs.readthedocs.io/en/latest/', None),
-
     'timerit': ('https://timerit.readthedocs.io/en/latest/', None),
     'progiter': ('https://progiter.readthedocs.io/en/latest/', None),
     'dateutil': ('https://dateutil.readthedocs.io/en/latest/', None),
@@ -270,10 +272,12 @@ python -m sphinx.ext.intersphinx https://pygments-doc.readthedocs.io/en/latest/o
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
 
-# The suffix(es) of source filenames.
-# You can specify multiple suffix as a list of string:
-#
-source_suffix = ['.rst', '.md']
+# The suffix(es) of source filenames. Mapping form avoids Sphinx
+# converting a legacy list at runtime.
+source_suffix = {
+    '.rst': 'restructuredtext',
+    '.md': 'markdown',
+}
 
 # The master toctree document.
 master_doc = 'index'
@@ -300,7 +304,6 @@ pygments_style = 'sphinx'
 # a list of builtin themes.
 #
 html_theme = 'sphinx_rtd_theme'
-html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
@@ -308,7 +311,6 @@ html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 #
 html_theme_options = {
     'collapse_navigation': False,
-    'display_version': True,
     'navigation_depth': -1,
     # 'logo_only': True,
 }
@@ -318,7 +320,10 @@ html_theme_options = {
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ['_static']
+# Keep empty by default to avoid warnings when generated projects do not
+# define custom static assets. Projects that create ``docs/source/_static``
+# can opt back in locally.
+html_static_path = []
 
 # Custom sidebar templates, must be a dictionary that maps document names
 # to template names.
@@ -358,15 +363,12 @@ latex_elements = {
     # The paper size ('letterpaper' or 'a4paper').
     #
     # 'papersize': 'letterpaper',
-
     # The font size ('10pt', '11pt' or '12pt').
     #
     # 'pointsize': '10pt',
-
     # Additional stuff for the LaTeX preamble.
     #
     # 'preamble': '',
-
     # Latex figure (float) alignment
     #
     # 'figure_align': 'htbp',
@@ -376,8 +378,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'ubelt.tex', 'ubelt Documentation',
-     'Jon Crall', 'manual'),
+    (master_doc, 'ubelt.tex', 'ubelt Documentation', 'Jon Crall', 'manual'),
 ]
 
 
@@ -385,10 +386,7 @@ latex_documents = [
 
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
-man_pages = [
-    (master_doc, 'ubelt', 'ubelt Documentation',
-     [author], 1)
-]
+man_pages = [(master_doc, 'ubelt', 'ubelt Documentation', [author], 1)]
 
 
 # -- Options for Texinfo output ----------------------------------------------
@@ -397,25 +395,32 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'ubelt', 'ubelt Documentation',
-     author, 'ubelt', 'One line description of project.',
-     'Miscellaneous'),
+    (
+        master_doc,
+        'ubelt',
+        'ubelt Documentation',
+        author,
+        'ubelt',
+        'One line description of project.',
+        'Miscellaneous',
+    ),
 ]
 
 
 # -- Extension configuration -------------------------------------------------
-from sphinx.domains.python import PythonDomain  # NOQA
-# from sphinx.application import Sphinx  # NOQA
+import os
+import time
 from typing import Any, List  # NOQA
 
+from sphinx.domains.python import PythonDomain  # NOQA
 
-# HACK TO PREVENT EXCESSIVE TIME.
-# TODO: FIXME FOR REAL
-MAX_TIME_MINUTES = None
-if MAX_TIME_MINUTES:
-    import ubelt  # NOQA
-    TIMER = ubelt.Timer()
-    TIMER.tic()
+# from sphinx.application import Sphinx  # NOQA
+
+
+# Optional limit for documentation image rendering time (disabled by default).
+_time_limit_setting = os.environ.get('XCOOKIE_DOC_MAX_TIME_MINUTES')
+MAX_TIME_MINUTES = float(_time_limit_setting) if _time_limit_setting else None
+_TIMER_START = time.monotonic()
 
 
 class PatchedPythonDomain(PythonDomain):
@@ -423,7 +428,10 @@ class PatchedPythonDomain(PythonDomain):
     References:
         https://github.com/sphinx-doc/sphinx/issues/3866
     """
-    def resolve_xref(self, env, fromdocname, builder, typ, target, node, contnode):
+
+    def resolve_xref(
+        self, env, fromdocname, builder, type, target, node, contnode
+    ):
         """
         Helps to resolves cross-references
         """
@@ -432,7 +440,8 @@ class PatchedPythonDomain(PythonDomain):
         if target.startswith('xdoc.'):
             target = 'xdoctest.' + target[3]
         return_value = super(PatchedPythonDomain, self).resolve_xref(
-            env, fromdocname, builder, typ, target, node, contnode)
+            env, fromdocname, builder, type, target, node, contnode
+        )
         return return_value
 
 
@@ -460,6 +469,7 @@ class GoogleStyleDocstringProcessor:
         alias = [alias] if not isinstance(alias, (list, tuple, set)) else alias
         alias.append(tag)
         alias = tuple(alias)
+
         # TODO: better tag patterns
         def _wrap(func):
             self.registry[tag] = {
@@ -468,6 +478,7 @@ class GoogleStyleDocstringProcessor:
                 'func': func,
             }
             return func
+
         return _wrap
 
     def _register_builtins(self):
@@ -485,9 +496,12 @@ class GoogleStyleDocstringProcessor:
             new_lines.extend(lines[1:])
             return new_lines
 
-        @self.register_section(tag='SpecialExample', alias=['Benchmark', 'Sympy', 'Doctest'])
+        @self.register_section(
+            tag='SpecialExample', alias=['Benchmark', 'Sympy', 'Doctest']
+        )
         def benchmark(lines):
             import textwrap
+
             new_lines = []
             tag = lines[0].replace(':', '').strip()
             # new_lines.append(lines[0])  # TODO: it would be nice to change the tagline.
@@ -560,7 +574,7 @@ class GoogleStyleDocstringProcessor:
         accum = []
 
         def accept():
-            """ called when we finish reading a section """
+            """called when we finish reading a section"""
             if curr_mode == '__doc__':
                 # Keep the lines as-is
                 new_lines.extend(accum)
@@ -574,7 +588,6 @@ class GoogleStyleDocstringProcessor:
             accum[:] = []
 
         for line in orig_lines:
-
             found = None
             for regitem in self.registry.values():
                 if line.startswith(regitem['alias']):
@@ -604,8 +617,15 @@ class GoogleStyleDocstringProcessor:
 
         return lines
 
-    def process_docstring_callback(self, app, what_: str, name: str, obj: Any,
-                                   options: Any, lines: List[str]) -> None:
+    def process_docstring_callback(
+        self,
+        app,
+        what_: str,
+        name: str,
+        obj: Any,
+        options: Any,
+        lines: List[str],
+    ) -> None:
         """
         Callback to be registered to autodoc-process-docstring
 
@@ -634,7 +654,9 @@ class GoogleStyleDocstringProcessor:
             https://www.sphinx-doc.org/en/master/usage/extensions/autodoc.html
         """
         if self.debug:
-            print(f'ProcessDocstring: name={name}, what_={what_}, num_lines={len(lines)}')
+            print(
+                f'ProcessDocstring: name={name}, what_={what_}, num_lines={len(lines)}'
+            )
 
         # print('BEFORE:')
         # import ubelt as ub
@@ -653,7 +675,10 @@ class GoogleStyleDocstringProcessor:
 
         render_doc_images = 0
 
-        if MAX_TIME_MINUTES and TIMER.toc() > (60 * MAX_TIME_MINUTES):
+        if (
+            MAX_TIME_MINUTES
+            and time.monotonic() - _TIMER_START > 60 * MAX_TIME_MINUTES
+        ):
             render_doc_images = False  # FIXME too slow on RTD
 
         if render_doc_images:
@@ -666,9 +691,9 @@ class GoogleStyleDocstringProcessor:
         FIX_EXAMPLE_FORMATTING = 1
         if FIX_EXAMPLE_FORMATTING:
             for idx, line in enumerate(lines):
-                if line == "Example:":
-                    lines[idx] = "**Example:**"
-                    lines.insert(idx + 1, "")
+                if line == 'Example:':
+                    lines[idx] = '**Example:**'
+                    lines.insert(idx + 1, '')
 
         REFORMAT_SECTIONS = 0
         if REFORMAT_SECTIONS:
@@ -710,7 +735,7 @@ class GoogleStyleDocstringProcessor:
                     text = found['text']
                     new_lines = []
                     for para in text.split('\n\n'):
-                        indent = para[:len(para) - len(para.lstrip())]
+                        indent = para[: len(para) - len(para.lstrip())]
                         new_paragraph = indent + paragraph(para)
                         new_lines.append(new_paragraph)
                         new_lines.append('')
@@ -729,11 +754,13 @@ class SphinxDocstring:
     """
     Helper to parse and modify sphinx docstrings
     """
+
     def __init__(docstr, lines):
         docstr.lines = lines
 
         # FORMAT THE RETURNS SECTION A BIT NICER
         import re
+
         tag_pat = re.compile(r'^:(\w*):')
         directive_pat = re.compile(r'^.. (\w*)::\s*(\w*)')
 
@@ -744,16 +771,22 @@ class SphinxDocstring:
             directive_match = directive_pat.search(line)
             if tag_match:
                 tag = tag_match.groups()[0]
-                sphinx_parts.append({
-                    'tag': tag, 'start_offset': idx,
-                    'type': 'tag',
-                })
+                sphinx_parts.append(
+                    {
+                        'tag': tag,
+                        'start_offset': idx,
+                        'type': 'tag',
+                    }
+                )
             elif directive_match:
                 tag = directive_match.groups()[0]
-                sphinx_parts.append({
-                    'tag': tag, 'start_offset': idx,
-                    'type': 'directive',
-                })
+                sphinx_parts.append(
+                    {
+                        'tag': tag,
+                        'start_offset': idx,
+                        'type': 'directive',
+                    }
+                )
 
         prev_offset = len(lines)
         for part in sphinx_parts[::-1]:
@@ -793,6 +826,7 @@ def paragraph(text):
         str: the reduced text block
     """
     import re
+
     out = re.sub(r'\s\s*', ' ', text).strip()
     return out
 
@@ -802,9 +836,12 @@ def create_doctest_figure(app, obj, name, lines):
     The idea is that each doctest that produces a figure should generate that
     and then that figure should be part of the docs.
     """
-    import xdoctest
     import sys
     import types
+
+    import xdoctest
+    import xdoctest.core
+
     if isinstance(obj, types.ModuleType):
         module = obj
     else:
@@ -818,14 +855,15 @@ def create_doctest_figure(app, obj, name, lines):
 
     # print(doctest.format_src())
     import pathlib
+
     # HACK: write to the srcdir
     doc_outdir = pathlib.Path(app.outdir)
     doc_srcdir = pathlib.Path(app.srcdir)
     doc_static_outdir = doc_outdir / '_static'
     doc_static_srcdir = doc_srcdir / '_static'
-    src_fig_dpath = (doc_static_srcdir / 'images')
+    src_fig_dpath = doc_static_srcdir / 'images'
     src_fig_dpath.mkdir(exist_ok=True, parents=True)
-    out_fig_dpath = (doc_static_outdir / 'images')
+    out_fig_dpath = doc_static_outdir / 'images'
     out_fig_dpath.mkdir(exist_ok=True, parents=True)
 
     # fig_dpath = (doc_outdir / 'autofigs' / name).mkdir(exist_ok=True)
@@ -833,6 +871,7 @@ def create_doctest_figure(app, obj, name, lines):
     fig_num = 1
 
     import kwplot
+
     kwplot.autompl(force='agg')
     plt = kwplot.autoplt()
 
@@ -843,7 +882,10 @@ def create_doctest_figure(app, obj, name, lines):
     # so we can get different figures. But we can hack it for now.
 
     import re
-    split_parts = re.split('({}\\s*\n)'.format(re.escape('.. rubric:: Example')), docstr)
+
+    split_parts = re.split(
+        '({}\\s*\n)'.format(re.escape('.. rubric:: Example')), docstr
+    )
     # split_parts = docstr.split('.. rubric:: Example')
 
     # import xdev
@@ -853,7 +895,9 @@ def create_doctest_figure(app, obj, name, lines):
         # Where the doctests starts and ends relative to the file
         start_line_offset = doctest.lineno - 1
         last_part = doctest._parts[-1]
-        last_line_offset = start_line_offset + last_part.line_offset + last_part.n_lines - 1
+        last_line_offset = (
+            start_line_offset + last_part.line_offset + last_part.n_lines - 1
+        )
         offsets = {
             'start': start_line_offset,
             'end': last_line_offset,
@@ -870,10 +914,14 @@ def create_doctest_figure(app, obj, name, lines):
     for part in split_parts:
         num_lines = part.count('\n')
 
-        doctests = list(xdoctest.core.parse_docstr_examples(
-            part, modpath=modpath, callname=name,
-            # style='google'
-        ))
+        doctests = list(
+            xdoctest.core.parse_docstr_examples(
+                part,
+                modpath=modpath,
+                callname=name,
+                # style='google'
+            )
+        )
         # print(doctests)
 
         # doctests = list(xdoctest.core.parse_docstr_examples(
@@ -894,6 +942,7 @@ def create_doctest_figure(app, obj, name, lines):
                     # Define dummy skipped exception if pytest is not available
                     class Skipped(Exception):
                         pass
+
                 try:
                     doctest.mode = 'native'
                     doctest.run(verbose=0, on_error='raise')
@@ -913,19 +962,23 @@ def create_doctest_figure(app, obj, name, lines):
                     fig_num += 1
                     # path_name = path_sanatize(name)
                     path_name = (name).replace('.', '_')
-                    fig_fpath = src_fig_dpath / f'fig_{path_name}_{fig_num:03d}.jpeg'
+                    fig_fpath = (
+                        src_fig_dpath / f'fig_{path_name}_{fig_num:03d}.jpeg'
+                    )
                     fig.savefig(fig_fpath)
                     print(f'Wrote figure: {fig_fpath}')
-                    to_insert_fpaths.append({
-                        'insert_line_index': insert_line_index,
-                        'fpath': fig_fpath,
-                    })
+                    to_insert_fpaths.append(
+                        {
+                            'insert_line_index': insert_line_index,
+                            'fpath': fig_fpath,
+                        }
+                    )
 
                 for fig in figures:
                     plt.close(fig)
                 # kwplot.close_figures(figures)
 
-        curr_line_offset += (num_lines)
+        curr_line_offset += num_lines
 
     # if len(doctests) > 1:
     #     doctests
@@ -938,6 +991,7 @@ def create_doctest_figure(app, obj, name, lines):
     end_index = len(lines)
     # Reverse order for inserts
     import shutil
+
     for info in to_insert_fpaths[::-1]:
         src_abs_fpath = info['fpath']
 
@@ -966,7 +1020,9 @@ def create_doctest_figure(app, obj, name, lines):
             insert_index = end_index
         else:
             raise KeyError(INSERT_AT)
-        lines.insert(insert_index, '.. image:: {}'.format('..' / rel_to_root_fpath))
+        lines.insert(
+            insert_index, '.. image:: {}'.format('..' / rel_to_root_fpath)
+        )
         # lines.insert(insert_index, '.. image:: {}'.format(rel_to_root_fpath))
         # lines.insert(insert_index, '.. image:: {}'.format(rel_to_static_fpath))
         lines.insert(insert_index, '')
@@ -979,8 +1035,10 @@ def postprocess_hyperlinks(app, doctree, docname):
     "autodoc-process-docstring" event.
     """
     # Your hyperlink postprocessing logic here
-    from docutils import nodes
     import pathlib
+
+    from docutils import nodes
+
     for node in doctree.traverse(nodes.reference):
         if 'refuri' in node.attributes:
             refuri = node.attributes['refuri']
@@ -989,13 +1047,15 @@ def postprocess_hyperlinks(app, doctree, docname):
                     fpath = pathlib.Path(node.document['source'])
                     parent_dpath = fpath.parent
                     if (parent_dpath / refuri).exists():
-                        node.attributes['refuri'] = refuri.replace('.rst', '.html')
+                        node.attributes['refuri'] = refuri.replace(
+                            '.rst', '.html'
+                        )
                 else:
                     raise AssertionError
 
 
 def fix_rst_todo_section(lines):
-    new_lines = []
+    # new_lines = []
     for line in lines:
         ...
     ...
@@ -1003,17 +1063,23 @@ def fix_rst_todo_section(lines):
 
 def setup(app):
     import sphinx
-    app : sphinx.application.Sphinx = app
+    import sphinx.application
+
+    app: sphinx.application.Sphinx = app
     app.add_domain(PatchedPythonDomain, override=True)
 
-    app.connect("doctree-resolved", postprocess_hyperlinks)
+    app.connect('doctree-resolved', postprocess_hyperlinks)
 
     docstring_processor = GoogleStyleDocstringProcessor()
     # https://stackoverflow.com/questions/26534184/can-sphinx-ignore-certain-tags-in-python-docstrings
-    app.connect('autodoc-process-docstring', docstring_processor.process_docstring_callback)
+    app.connect(
+        'autodoc-process-docstring',
+        docstring_processor.process_docstring_callback,
+    )
 
     def copy(src, dst):
         import shutil
+
         print(f'Copy {src} -> {dst}')
         assert src.exists()
         if not dst.parent.exists():
@@ -1024,16 +1090,17 @@ def setup(app):
     HACK_FOR_KWCOCO = 0
     if HACK_FOR_KWCOCO:
         import pathlib
+
         doc_outdir = pathlib.Path(app.outdir) / 'auto'
         doc_srcdir = pathlib.Path(app.srcdir) / 'auto'
 
         mod_dpath = doc_srcdir / '../../../kwcoco'
 
-        src_fpath = (mod_dpath / 'coco_schema.json')
+        src_fpath = mod_dpath / 'coco_schema.json'
         copy(src_fpath, doc_outdir / src_fpath.name)
         copy(src_fpath, doc_srcdir / src_fpath.name)
 
-        src_fpath = (mod_dpath / 'coco_schema_informal.rst')
+        src_fpath = mod_dpath / 'coco_schema_informal.rst'
         copy(src_fpath, doc_outdir / src_fpath.name)
         copy(src_fpath, doc_srcdir / src_fpath.name)
     return app

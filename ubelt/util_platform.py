@@ -37,30 +37,47 @@ References:
     .. [AS_appdirs] https://github.com/ActiveState/appdirs
     .. [PlatDirs] https://pypi.org/project/platformdirs/
 """
+
+from __future__ import annotations
+
+import itertools as it
 import os
 import sys
-import itertools as it
-from os.path import exists, join, isdir, expanduser, normpath
+import typing
+from os.path import exists, expanduser, isdir, join, normpath
+
+if typing.TYPE_CHECKING:
+    from collections.abc import Generator, Iterable
 
 
 __all__ = [
-    'WIN32', 'LINUX', 'DARWIN', 'POSIX',
-    'find_exe', 'find_path',
-    'ensure_app_cache_dir', 'ensure_app_config_dir', 'ensure_app_data_dir',
-    'get_app_cache_dir', 'get_app_config_dir', 'get_app_data_dir',
-    'platform_cache_dir', 'platform_config_dir', 'platform_data_dir'
+    'WIN32',
+    'LINUX',
+    'DARWIN',
+    'POSIX',
+    'find_exe',
+    'find_path',
+    'ensure_app_cache_dir',
+    'ensure_app_config_dir',
+    'ensure_app_data_dir',
+    'get_app_cache_dir',
+    'get_app_config_dir',
+    'get_app_data_dir',
+    'platform_cache_dir',
+    'platform_config_dir',
+    'platform_data_dir',
 ]
 
 # References:
 # https://stackoverflow.com/questions/446209/possible-values-from-sys-platform
-WIN32   = sys.platform == 'win32'  # type: bool
-LINUX   = sys.platform.startswith('linux')  # type: bool
-FREEBSD = sys.platform.startswith('freebsd')  # type: bool
-DARWIN  = sys.platform == 'darwin'  # type: bool
-POSIX = 'posix' in sys.builtin_module_names  # type: bool
+WIN32: bool = sys.platform == 'win32'
+LINUX: bool = sys.platform.startswith('linux')
+FREEBSD: bool = sys.platform.startswith('freebsd')
+DARWIN: bool = sys.platform == 'darwin'
+POSIX: bool = 'posix' in sys.builtin_module_names
 
 
-def platform_data_dir():
+def platform_data_dir() -> str:
     """
     Returns path for user-specific data files
 
@@ -70,7 +87,7 @@ def platform_data_dir():
     if POSIX:  # nocover
         dpath_ = os.environ.get('XDG_DATA_HOME', '~/.local/share')
     elif DARWIN:  # nocover
-        dpath_  = '~/Library/Application Support'
+        dpath_ = '~/Library/Application Support'
     elif WIN32:  # nocover
         dpath_ = os.environ.get('APPDATA', '~/AppData/Roaming')
     else:  # nocover
@@ -79,7 +96,7 @@ def platform_data_dir():
     return dpath
 
 
-def platform_config_dir():
+def platform_config_dir() -> str:
     """
     Returns a directory which should be writable for any application
     This should be used for persistent configuration files.
@@ -90,7 +107,7 @@ def platform_config_dir():
     if POSIX:  # nocover
         dpath_ = os.environ.get('XDG_CONFIG_HOME', '~/.config')
     elif DARWIN:  # nocover
-        dpath_  = '~/Library/Application Support'
+        dpath_ = '~/Library/Application Support'
     elif WIN32:  # nocover
         dpath_ = os.environ.get('APPDATA', '~/AppData/Roaming')
     else:  # nocover
@@ -99,7 +116,7 @@ def platform_config_dir():
     return dpath
 
 
-def platform_cache_dir():
+def platform_cache_dir() -> str:
     """
     Returns a directory which should be writable for any application
     This should be used for temporary deletable data.
@@ -110,7 +127,7 @@ def platform_cache_dir():
     if POSIX:  # nocover
         dpath_ = os.environ.get('XDG_CACHE_HOME', '~/.cache')
     elif DARWIN:  # nocover
-        dpath_  = '~/Library/Caches'
+        dpath_ = '~/Library/Caches'
     elif WIN32:  # nocover
         dpath_ = os.environ.get('LOCALAPPDATA', '~/AppData/Local')
     else:  # nocover
@@ -118,10 +135,11 @@ def platform_cache_dir():
     dpath = normpath(expanduser(dpath_))
     return dpath
 
+
 # ---
 
 
-def get_app_data_dir(appname, *args):
+def get_app_data_dir(appname: str, *args: str) -> str:
     r"""
     Returns a writable directory for an application.
     This should be used for temporary deletable data.
@@ -141,15 +159,21 @@ def get_app_data_dir(appname, *args):
         :func:`ensure_app_data_dir`
     """
     from ubelt.util_deprecate import schedule_deprecation
+
     schedule_deprecation(
-        modname='ubelt', name='get_app_data_dir and ensure_app_data_dir', type='function',
+        modname='ubelt',
+        name='get_app_data_dir and ensure_app_data_dir',
+        type='function',
         migration='use ubelt.Path.appdir(type="data") instead',
-        deprecate='1.2.0', error='2.0.0', remove='2.1.0')
+        deprecate='1.2.0',
+        error='2.0.0',
+        remove='2.1.0',
+    )
     dpath = join(platform_data_dir(), appname, *args)
     return dpath
 
 
-def ensure_app_data_dir(appname, *args):
+def ensure_app_data_dir(appname: str, *args: str) -> str:
     """
     Calls :func:`get_app_data_dir` but ensures the directory exists.
 
@@ -173,12 +197,13 @@ def ensure_app_data_dir(appname, *args):
         >>> assert exists(dpath)
     """
     from ubelt import util_path
+
     dpath = get_app_data_dir(appname, *args)
     util_path.ensuredir(dpath)
     return dpath
 
 
-def get_app_config_dir(appname, *args):
+def get_app_config_dir(appname: str, *args: str) -> str:
     r"""
     Returns a writable directory for an application
     This should be used for persistent configuration files.
@@ -198,15 +223,21 @@ def get_app_config_dir(appname, *args):
         :func:`ensure_app_config_dir`
     """
     from ubelt.util_deprecate import schedule_deprecation
+
     schedule_deprecation(
-        modname='ubelt', name='get_app_config_dir and ensure_app_config_dir', type='function',
+        modname='ubelt',
+        name='get_app_config_dir and ensure_app_config_dir',
+        type='function',
         migration='use ubelt.Path.appdir(type="config") instead',
-        deprecate='1.2.0', error='2.0.0', remove='2.1.0')
+        deprecate='1.2.0',
+        error='2.0.0',
+        remove='2.1.0',
+    )
     dpath = join(platform_config_dir(), appname, *args)
     return dpath
 
 
-def ensure_app_config_dir(appname, *args):
+def ensure_app_config_dir(appname: str, *args: str) -> str:
     """
     Calls :func:`get_app_config_dir` but ensures the directory exists.
 
@@ -230,12 +261,13 @@ def ensure_app_config_dir(appname, *args):
         >>> assert exists(dpath)
     """
     from ubelt import util_path
+
     dpath = get_app_config_dir(appname, *args)
     util_path.ensuredir(dpath)
     return dpath
 
 
-def get_app_cache_dir(appname, *args):
+def get_app_cache_dir(appname: str, *args: str) -> str:
     r"""
     Returns a writable directory for an application.
     This should be used for temporary deletable data.
@@ -258,15 +290,21 @@ def get_app_cache_dir(appname, *args):
         :func:`ensure_app_cache_dir`
     """
     from ubelt.util_deprecate import schedule_deprecation
+
     schedule_deprecation(
-        modname='ubelt', name='get_app_cache_dir and ensure_app_cache_dir', type='function',
+        modname='ubelt',
+        name='get_app_cache_dir and ensure_app_cache_dir',
+        type='function',
         migration='use ubelt.Path.appdir(type="cache") instead',
-        deprecate='1.2.0', error='2.0.0', remove='2.1.0')
+        deprecate='1.2.0',
+        error='2.0.0',
+        remove='2.1.0',
+    )
     dpath = join(platform_cache_dir(), appname, *args)
     return dpath
 
 
-def ensure_app_cache_dir(appname, *args):
+def ensure_app_cache_dir(appname: str, *args: str) -> str:
     """
     Calls :func:`get_app_cache_dir` but ensures the directory exists.
 
@@ -290,12 +328,41 @@ def ensure_app_cache_dir(appname, *args):
         >>> assert exists(dpath)
     """
     from ubelt import util_path
+
     dpath = get_app_cache_dir(appname, *args)
     util_path.ensuredir(dpath)
     return dpath
 
 
-def find_exe(name, multi=False, path=None):
+@typing.overload
+def find_exe(
+    name: str | os.PathLike,
+    multi: typing.Literal[False] = False,
+    path: str | Iterable[str | os.PathLike] | None = None,
+) -> str | None: ...
+
+
+@typing.overload
+def find_exe(
+    name: str | os.PathLike,
+    multi: typing.Literal[True],
+    path: str | Iterable[str | os.PathLike] | None = None,
+) -> list[str]: ...
+
+
+@typing.overload
+def find_exe(
+    name: str | os.PathLike,
+    multi: bool,
+    path: str | Iterable[str | os.PathLike] | None = None,
+) -> str | list[str] | None: ...
+
+
+def find_exe(
+    name: str | os.PathLike,
+    multi: bool = False,
+    path: str | Iterable[str | os.PathLike] | None = None,
+) -> str | list[str] | None:
     """
     Locate a command.
 
@@ -309,7 +376,7 @@ def find_exe(name, multi=False, path=None):
             if True return all matches instead of just the first.
             Defaults to False.
 
-        path (str | PathLike | Iterable[str | PathLike] | None):
+        path (str | Iterable[str | PathLike] | None):
             If specified, overrides the system PATH variable.
 
     Returns:
@@ -364,16 +431,24 @@ def find_exe(name, multi=False, path=None):
     """
     candidates = find_path(name, path=path, exact=True)
     mode = os.X_OK | os.F_OK
-    results = (fpath for fpath in candidates
-               if os.access(fpath, mode) and not isdir(fpath))
+    results = (
+        fpath
+        for fpath in candidates
+        if os.access(fpath, mode) and not isdir(fpath)
+    )
     if not multi:
         for fpath in results:
             return fpath
+        return None
     else:
         return list(results)
 
 
-def find_path(name, path=None, exact=False):
+def find_path(
+    name: str | os.PathLike,
+    path: str | Iterable[str | os.PathLike] | None = None,
+    exact: bool = False,
+) -> Generator[str, None, None]:
     """
     Search for a file or directory on your local filesystem by name
     (file must be in a directory specified in a PATH environment variable)
@@ -425,21 +500,28 @@ def find_path(name, path=None, exact=False):
     if path is None:
         path = os.environ.get('PATH', os.defpath)
     if isinstance(path, str):
-        dpaths = path.split(os.pathsep)
+        dpaths: list[str] = path.split(os.pathsep)
     else:
-        dpaths = path
-    candidates = (join(dpath, name) for dpath in dpaths)
+        dpaths = typing.cast(typing.List[str], list(path))
+    candidates: Iterable[str] = (join(dpath, name) for dpath in dpaths)
     if exact:
         if WIN32:  # nocover
             # on WIN32 allow ``name`` to omit the extension suffix by trying
             # to match with all possible "valid" suffixes specified by PATHEXT
             pathext = [''] + os.environ.get('PATHEXT', '').split(os.pathsep)
             candidates = (p + ext for p in candidates for ext in pathext)
-        candidates = filter(exists, candidates)
+        candidates = typing.cast(
+            typing.Iterable[str], filter(exists, candidates)
+        )
     else:
         import glob
-        candidates = it.chain.from_iterable(
-            glob.glob(pattern) for pattern in candidates)
+
+        candidates = typing.cast(
+            typing.Iterable[str],
+            it.chain.from_iterable(
+                glob.glob(pattern) for pattern in candidates
+            ),
+        )
 
     for candidate in candidates:
         yield candidate

@@ -8,12 +8,14 @@ This code is based on a template that lives in:
 
     ~/code/timerit/examples/benchmark_template.py
 """
+
 from functools import cache
 
 
 @cache
 def make_nested_data(num_items=10_000):
     import numpy as np
+
     items = {}
     for index in range(num_items):
         item = {
@@ -36,7 +38,9 @@ def benchmark_urepr_vs_alternatives2():
     items = make_nested_data()
 
     import timerit
+
     import ubelt as ub
+
     ti = timerit.Timerit(1, bestof=1, verbose=2)
 
     for timer in ti.reset('ubelt.repr2'):
@@ -49,10 +53,12 @@ def benchmark_urepr_vs_alternatives2():
 
 
 def benchmark_urepr_vs_alternatives():
-    import ubelt as ub
+    import pprint
+
     import pandas as pd
     import timerit
-    import pprint
+
+    import ubelt as ub
     # import inspect
 
     plot_labels = {
@@ -64,6 +70,7 @@ def benchmark_urepr_vs_alternatives():
     # Some bookkeeping needs to be done to build a dictionary that maps the
     # method names to the functions themselves.
     method_lut = {}
+
     def register_method(func):
         method_lut[func.__name__] = func
         return func
@@ -113,7 +120,9 @@ def benchmark_urepr_vs_alternatives():
         # 'size': ['zparam'],
     }
     group_labels['hue'] = list(
-        (ub.oset(basis) - {xlabel}) - set.union(set(), *map(set, group_labels.values())))
+        (ub.oset(basis) - {xlabel})
+        - set.union(set(), *map(set, group_labels.values()))
+    )
     grid_iter = list(ub.named_product(basis))
 
     # For each variation of your experiment, create a row.
@@ -123,7 +132,8 @@ def benchmark_urepr_vs_alternatives():
         group_keys = {}
         for gname, labels in group_labels.items():
             group_keys[gname + '_key'] = ub.urepr(
-                params & labels, compact=1, si=1)
+                params & labels, compact=1, si=1
+            )
         key = ub.urepr(params, compact=1, si=1)
         # Make any modifications you need to compute input kwargs for each
         # method here.
@@ -174,7 +184,11 @@ def benchmark_urepr_vs_alternatives():
     if RECORD_ALL:
         # Show the min / mean if we record all
         min_times = data.groupby('key').min().rename({'time': 'min'}, axis=1)
-        mean_times = data.groupby('key')[['time']].mean().rename({'time': 'mean'}, axis=1)
+        mean_times = (
+            data.groupby('key')[['time']]
+            .mean()
+            .rename({'time': 'mean'}, axis=1)
+        )
         stats_data = pd.concat([min_times, mean_times], axis=1)
         stats_data = stats_data.sort_values('min')
     else:
@@ -185,9 +199,13 @@ def benchmark_urepr_vs_alternatives():
         # Lets try a real ranking method
         # https://github.com/OpenDebates/openskill.py
         import openskill
+
         method_ratings = {m: openskill.Rating() for m in basis['method']}
 
-    other_keys = sorted(set(stats_data.columns) - {'key', 'method', 'min', 'mean', 'hue_key', 'size_key', 'style_key'})
+    other_keys = sorted(
+        set(stats_data.columns)
+        - {'key', 'method', 'min', 'mean', 'hue_key', 'size_key', 'style_key'}
+    )
     for params, variants in stats_data.groupby(other_keys):
         variants = variants.sort_values('mean')
         ranking = variants['method'].reset_index(drop=True)
@@ -214,8 +232,11 @@ def benchmark_urepr_vs_alternatives():
 
     if USE_OPENSKILL:
         from openskill import predict_win
+
         win_prob = predict_win([[r] for r in method_ratings.values()])
-        skill_agg = pd.Series(ub.dzip(method_ratings.keys(), win_prob)).sort_values(ascending=False)
+        skill_agg = pd.Series(
+            ub.dzip(method_ratings.keys(), win_prob)
+        ).sort_values(ascending=False)
         print('Aggregated Rankings =\n{}'.format(skill_agg))
 
     plot = True
@@ -224,6 +245,7 @@ def benchmark_urepr_vs_alternatives():
         # kwplot autosns works well for IPython and script execution.
         # not sure about notebooks.
         import kwplot
+
         sns = kwplot.autosns()
         plt = kwplot.autoplt()
 
@@ -234,7 +256,9 @@ def benchmark_urepr_vs_alternatives():
 
         # Your variables may change
         ax = kwplot.figure(fnum=1, doclf=True).gca()
-        sns.lineplot(data=data, x=xlabel, y=time_key, marker='o', ax=ax, **plotkw)
+        sns.lineplot(
+            data=data, x=xlabel, y=time_key, marker='o', ax=ax, **plotkw
+        )
         ax.set_title(plot_labels['title'])
         ax.set_xlabel(plot_labels['x'])
         ax.set_ylabel(plot_labels['y'])

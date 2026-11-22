@@ -11,6 +11,7 @@ def demo():
             return x + 2
 
     import io
+
     file = io.StringIO()
     print('--- DIS1 ---')
     dis.dis(func1, file=file)
@@ -24,7 +25,11 @@ def demo():
     print('dis1 =\n{}'.format(dis1))
     print('dis2 =\n{}'.format(dis2))
     print('dis1 == dis2 = {}'.format(dis1 == dis2))
-    print('repr(dis1) ~= repr(dis2) = {}'.format(repr(dis1)[10:] == repr(dis2)[10:]))
+    print(
+        'repr(dis1) ~= repr(dis2) = {}'.format(
+            repr(dis1)[10:] == repr(dis2)[10:]
+        )
+    )
 
 
 if __name__ == '__main__':

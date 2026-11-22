@@ -1,12 +1,15 @@
+from __future__ import annotations
+
 import io
 import os
 import platform
 import sys
-from os.path import basename, join, exists
+import typing
+from os.path import basename, exists, join
 
 import pytest
-import ubelt as ub
 
+import ubelt as ub
 
 IS_PYPY = platform.python_implementation() == 'PyPy'
 IS_WIN32 = sys.platform.startswith('win32')
@@ -16,7 +19,7 @@ TIMEOUT = (15 if IS_PYPY else 5) * 30
 
 
 @pytest.mark.timeout(TIMEOUT)
-def test_download_no_fpath():
+def test_download_no_fpath() -> None:
     # url = 'http://i.imgur.com/rqwaDag.png'
     # if not ub.argflag('--network'):
     #     pytest.skip('not running network tests')
@@ -36,7 +39,7 @@ def test_download_no_fpath():
 
 
 @pytest.mark.timeout(TIMEOUT)
-def test_download_with_fpath():
+def test_download_with_fpath() -> None:
     # url = 'http://i.imgur.com/rqwaDag.png'
     # if not ub.argflag('--network'):
     #     pytest.skip('not running network tests')
@@ -49,18 +52,19 @@ def test_download_with_fpath():
     ub.delete(fpath)
     assert not exists(fpath)
 
-    got_fpath = ub.download(url, fpath=fpath,
-                            appname='ubelt/tests/test_download')
+    got_fpath = ub.download(
+        url, fpath=fpath, appname='ubelt/tests/test_download'
+    )
     assert got_fpath == fpath
     assert exists(fpath)
 
-    with open(got_fpath, 'rb') as file:
+    with open(got_fpath, 'rb') as file:  # type: ignore
         data = file.read()
     assert len(data) > 1200, 'should have downloaded some bytes'
 
 
 @pytest.mark.timeout(TIMEOUT)
-def test_download_chunksize():
+def test_download_chunksize() -> None:
     # url = 'https://www.dropbox.com/s/jl506apezj42zjz/ibeis-win32-setup-ymd_hm-2015-08-01_16-28.exe?dl=1'
     # url = 'http://i.imgur.com/rqwaDag.png'
     # if not ub.argflag('--network'):
@@ -74,14 +78,16 @@ def test_download_chunksize():
     ub.delete(fpath)
     assert not exists(fpath)
 
-    got_fpath = ub.download(url, chunksize=2, appname='ubelt/tests/test_download')
+    got_fpath = ub.download(
+        url, chunksize=2, appname='ubelt/tests/test_download'
+    )
 
     assert got_fpath == fpath
     assert exists(fpath)
 
 
 @pytest.mark.timeout(TIMEOUT)
-def test_download_cover_hashers():
+def test_download_cover_hashers() -> None:
     # url = 'https://www.dropbox.com/s/jl506apezj42zjz/ibeis-win32-setup-ymd_hm-2015-08-01_16-28.exe?dl=1'
     # url = 'http://i.imgur.com/rqwaDag.png'
     # if not ub.argflag('--network'):
@@ -92,14 +98,24 @@ def test_download_cover_hashers():
     fname = basename(url)
 
     # add coverage for different hashers
-    ub.download(url, hasher='md5', hash_prefix='e09c80c42fda55f9d992e59ca6b33',
-                dpath=dpath, fname=fname)
-    ub.download(url, hasher='sha256', hash_prefix='bf2cb58a68f684d95a3b78ef8f',
-                dpath=dpath, fname=fname)
+    ub.download(
+        url,
+        hasher='md5',
+        hash_prefix='e09c80c42fda55f9d992e59ca6b33',
+        dpath=dpath,
+        fname=fname,
+    )
+    ub.download(
+        url,
+        hasher='sha256',
+        hash_prefix='bf2cb58a68f684d95a3b78ef8f',
+        dpath=dpath,
+        fname=fname,
+    )
 
 
 @pytest.mark.timeout(TIMEOUT)
-def test_download_hashalgo():
+def test_download_hashalgo() -> None:
     # url = 'https://www.dropbox.com/s/jl506apezj42zjz/ibeis-win32-setup-ymd_hm-2015-08-01_16-28.exe?dl=1'
     import hashlib
 
@@ -115,17 +131,19 @@ def test_download_hashalgo():
     ub.delete(fpath)
     assert not exists(fpath)
 
-    got_fpath = ub.download(url,
-                            hash_prefix='e09c80c42fda55f9d992e59ca6b3307d',
-                            appname='ubelt/tests/test_download',
-                            hasher=hashlib.md5())
+    got_fpath = ub.download(
+        url,
+        hash_prefix='e09c80c42fda55f9d992e59ca6b3307d',
+        appname='ubelt/tests/test_download',
+        hasher=hashlib.md5(),
+    )
 
     assert got_fpath == fpath
     assert exists(fpath)
 
 
 @pytest.mark.timeout(TIMEOUT)
-def test_grabdata_cache():
+def test_grabdata_cache() -> None:
     """
     Check where the url is downloaded to when fpath is not specified.
     """
@@ -150,27 +168,29 @@ def test_grabdata_cache():
 
 
 @pytest.mark.timeout(TIMEOUT)
-def test_grabdata_nohash():
+def test_grabdata_nohash() -> None:
     """
     Check where the url is downloaded to when fpath is not specified.
     """
     url = _demo_url()
-    dpath = ub.Path.appdir('ubelt/tests/test_download/test-grabdata-nohash').ensuredir()
+    dpath = ub.Path.appdir(
+        'ubelt/tests/test_download/test-grabdata-nohash'
+    ).ensuredir()
     fname = basename(url)
     fpath = (dpath / fname).delete()
     assert not fpath.exists()
-    ub.grabdata(url, fpath=fpath, hasher=None, verbose=10)
+    ub.grabdata(url, fpath=fpath, hasher=None, verbose=10)  # type: ignore
     assert fpath.exists()
     # Even without the hasher, if the size of the data changes at all
     # we should be able to detect and correct it.
     orig_text = fpath.read_text()
     fpath.write_text('corrupted')
-    ub.grabdata(url, fpath=fpath, hasher=None, verbose=10)
+    ub.grabdata(url, fpath=fpath, hasher=None, verbose=10)  # type: ignore
     assert fpath.read_text() == orig_text
 
 
 @pytest.mark.timeout(TIMEOUT)
-def test_grabdata_url_only():
+def test_grabdata_url_only() -> None:
     """
     Check where the url is downloaded to when fpath is not specified.
     """
@@ -189,7 +209,7 @@ def test_grabdata_url_only():
 
 
 @pytest.mark.timeout(TIMEOUT)
-def test_grabdata_with_fpath():
+def test_grabdata_with_fpath() -> None:
     """
     Check where the url is downloaded to when fpath is not specified.
     """
@@ -260,7 +280,7 @@ def test_grabdata_missing_content_length(monkeypatch, tmp_path):
     ub.grabdata(url, fpath=os.fspath(destination), hasher=None, verbose=0)
 
 
-def test_grabdata_value_error():
+def test_grabdata_value_error() -> None:
     """
     Check where the url is downloaded to when fpath is not specified.
     """
@@ -290,7 +310,7 @@ def test_grabdata_value_error():
 
 
 @pytest.mark.timeout(TIMEOUT * 2)
-def test_download_bad_url():
+def test_download_bad_url() -> None:
     """
     Check that we error when the url is bad
 
@@ -302,6 +322,7 @@ def test_download_bad_url():
         python tests/test_download.py test_download_bad_url --verbose
     """
     import pytest
+
     pytest.skip('This takes a long time to timeout and I dont understand why')
 
     url = 'http://www.a-very-incorrect-url.gov/does_not_exist.txt'
@@ -326,7 +347,7 @@ def test_download_bad_url():
 
 
 @pytest.mark.timeout(TIMEOUT)
-def test_grabdata_fname_only():
+def test_grabdata_fname_only() -> None:
     # url = 'http://i.imgur.com/rqwaDag.png'
     # if not ub.argflag('--network'):
     #     pytest.skip('not running network tests')
@@ -344,7 +365,7 @@ def test_grabdata_fname_only():
 
 
 @pytest.mark.timeout(TIMEOUT)
-def test_grabdata_dpath_only():
+def test_grabdata_dpath_only() -> None:
     # url = 'http://i.imgur.com/rqwaDag.png'
     # if not ub.argflag('--network'):
     #     pytest.skip('not running network tests')
@@ -360,7 +381,7 @@ def test_grabdata_dpath_only():
 
 
 @pytest.mark.timeout(TIMEOUT)
-def test_grabdata_fpath_and_dpath():
+def test_grabdata_fpath_and_dpath() -> None:
     # url = 'http://i.imgur.com/rqwaDag.png'
     # if not ub.argflag('--network'):
     #     pytest.skip('not running network tests')
@@ -371,7 +392,7 @@ def test_grabdata_fpath_and_dpath():
 
 
 # @pytest.mark.timeout(TIMEOUT)
-def test_grabdata_hash_typo():
+def test_grabdata_hash_typo() -> None:
     """
     CommandLine:
         pytest ~/code/ubelt/tests/test_download.py -k test_grabdata_hash_typo --network -s
@@ -398,45 +419,55 @@ def test_grabdata_hash_typo():
         print('[STEP1] Downloading file, but we have a typo in the hash')
         with pytest.raises(RuntimeError):
             got_fpath = ub.grabdata(
-                url, hash_prefix='e09c80c42fda5-typo-5f9d992e59ca6b3307d',
-                hasher='md5', verbose=verbose,
-                appname='ubelt/tests/test_download')
+                url,
+                hash_prefix='e09c80c42fda5-typo-5f9d992e59ca6b3307d',
+                hasher='md5',
+                verbose=verbose,
+                appname='ubelt/tests/test_download',
+            )
         assert fpath.exists()
         real_hash = ub.hash_file(fpath, hasher='md5')
         real_hash
 
-        print('[STEP2] Fixing the typo recomputes the hash, but does not redownload the file')
-        got_fpath = ub.grabdata(url,
-                                hash_prefix='e09c80c42fda55f9d992e59ca6b3307d',
-                                hasher='md5', verbose=verbose,
-                                appname='ubelt/tests/test_download')
+        print(
+            '[STEP2] Fixing the typo recomputes the hash, but does not redownload the file'
+        )
+        got_fpath = ub.grabdata(
+            url,
+            hash_prefix='e09c80c42fda55f9d992e59ca6b3307d',
+            hasher='md5',
+            verbose=verbose,
+            appname='ubelt/tests/test_download',
+        )
         assert ub.Path(got_fpath).resolve() == fpath.resolve()
         assert fpath.exists()
 
         # If we delete the .hash file we will simply recompute
         stamp_fpath.delete()
         print('[STEP3] Deleting the hash file recomputes the hash')
-        got_fpath = ub.grabdata(url, fpath=fpath,
-                                hash_prefix='e09c80c42fda55f9d992e59ca6b3307d',
-                                hasher='md5', verbose=verbose)
+        got_fpath = ub.grabdata(
+            url,
+            fpath=fpath,
+            hash_prefix='e09c80c42fda55f9d992e59ca6b3307d',
+            hasher='md5',
+            verbose=verbose,
+        )
         assert stamp_fpath.exists()
 
 
-def test_deprecated_grabdata_args():
-    # with pytest.warns(DeprecationWarning):
-    with pytest.raises(RuntimeError):
-        import hashlib
-        url = _demo_url()
-        # dpath = ub.Path.appdir('ubelt/tests/test_download').ensuredir()
-        # fname = basename(url)
-        # fpath = join(dpath, fname)
-        got_fpath = ub.grabdata(
-            url, hash_prefix='e09c80c42fda55f9d992e59ca6b3307d',
-            hasher=hashlib.md5())
-        got_fpath
+def test_grabdata_rejects_nonstring_hasher() -> None:
+    import hashlib
+
+    url = _demo_url()
+    with pytest.raises(TypeError, match='hasher must be a string'):
+        ub.grabdata(
+            url,
+            hash_prefix='e09c80c42fda55f9d992e59ca6b3307d',
+            hasher=hashlib.md5(),
+        )
 
 
-def _devcheck_progres_download_bar():
+def _devcheck_progres_download_bar() -> None:
     """
     import sys, ubelt
     sys.path.append(ubelt.expandpath('~/remote/toothbrush/code/ubelt/tests'))
@@ -449,13 +480,13 @@ def _devcheck_progres_download_bar():
     import time
 
     class DummyIO:
-        def write(self, msg):
+        def write(self, msg: str) -> None:
             time.sleep(0.0005)
             ...
 
     file = DummyIO()
     url = urls[0]
-    dl_file = ub.download(url, fpath=file, progkw=dict(desc='dling'))
+    dl_file = ub.download(url, fpath=file, progkw=dict(desc='dling'))  # type: ignore
     dl_file
 
 
@@ -482,10 +513,10 @@ class SingletonTestServer(ub.NiceRepr):
         >>> dl_file = ub.download(url)
     """
 
-    _instance = None
+    _instance: typing.Any = None
 
     @classmethod
-    def instance(cls):
+    def instance(cls) -> 'SingletonTestServer':
         if cls._instance is not None:
             self = cls._instance
         else:
@@ -493,109 +524,146 @@ class SingletonTestServer(ub.NiceRepr):
             cls._instance = self
         return self
 
-    def close(self):
-        if self.proc.poll() is None:
+    def close(self) -> None:
+        if self.proc is not None and self.proc.poll() is None:
             self.proc.terminate()
             self.proc.wait()
-        self.__class__.instance = None
+        self.__class__.instance = None  # type: ignore
 
-    def __nice__(self):
+    def __nice__(self) -> str:
+        if self.proc is None:
+            return '{} - file'.format(self.root_url)
         return '{} - {}'.format(self.root_url, self.proc.returncode)
 
-    def __init__(self):
-        import requests
-        import time
-        import sys
-        import ubelt as ub
+    def __init__(self) -> None:
         import socket
+        import sys
+        import time
         from contextlib import closing
-        def find_free_port():
+
+        import ubelt as ub
+
+        def find_free_port() -> int:
             """
             References:
                 .. [SO1365265] https://stackoverflow.com/questions/1365265/on-localhost-how-do-i-pick-a-free-port-number
             """
-            with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as s:
+            with closing(
+                socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            ) as s:
                 s.bind(('', 0))
                 s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
                 return s.getsockname()[1]
 
-        # Find an open port
-        port = find_free_port()
-        print('port = {!r}'.format(port))
-
-        dpath = ub.Path.appdir('ubelt/tests/test_download/simple_server').ensuredir()
-
-        if sys.platform.startswith('win32'):
-            pyexe = 'python'
-        else:
-            pyexe = sys.executable
-
-        server_cmd = [
-            pyexe, '-m', 'http.server', str(port)
-        ]
-        info = ub.cmd(server_cmd, detach=True, cwd=dpath)
-        proc = info['proc']
-        self.proc = proc
+        dpath = ub.Path.appdir(
+            'ubelt/tests/test_download/simple_server'
+        ).ensuredir()
         self.dpath = dpath
-        self.root_url = 'http://localhost:{}'.format(port)
 
-        if IS_PYPY and IS_WIN32:
-            # not sure why
-            import pytest
-            pytest.skip('not sure why download tests are failing on pypy win32')
-            init_sleeptime = 0.5
-            fail_sleeptime = 0.3
-            timeout = 10
+        # Fallback to file:// URLs when sockets are restricted. This keeps
+        # download tests meaningful in sandboxed environments where binding
+        # localhost is not permitted.
+        self.use_file_urls = False
+        try:
+            port = find_free_port()
+        except PermissionError:
+            # Socket creation/bind not allowed; use local file URLs instead.
+            self.use_file_urls = True
+            port = None
         else:
-            init_sleeptime = 0.002
-            fail_sleeptime = 0.01
-            timeout = 1
+            print('port = {!r}'.format(port))
 
-        time.sleep(init_sleeptime)
-        # Wait for the server to be alive
-        status_code = None
-        max_tries = 300
-        for _ in range(max_tries):
-            try:
-                resp = requests.get(self.root_url, timeout=timeout)
-            except requests.exceptions.ConnectionError:
-                time.sleep(fail_sleeptime)
+        if self.use_file_urls:
+            # No HTTP server process; serve files directly via file:// URLs.
+            self.proc = None
+            self.root_url = self.dpath.resolve().as_uri()
+        else:
+            # Normal path: spin up a localhost HTTP server for real downloads.
+            import requests  # type: ignore[import-untyped]
+
+            if sys.platform.startswith('win32'):
+                pyexe = 'python'
             else:
-                status_code = resp.status_code
-            if status_code == 200:
-                break
+                pyexe = sys.executable
 
-        poll_ret = self.proc.poll()
+            server_cmd = [pyexe, '-m', 'http.server', str(port)]
+            info = ub.cmd(server_cmd, detach=True, cwd=dpath)
+            proc = info['proc']
+            self.proc = proc
+            self.root_url = 'http://localhost:{}'.format(port)
 
-        if poll_ret is not None:
-            print('poll_ret = {!r}'.format(poll_ret))
-            print(self.proc.communicate())
-            raise AssertionError('Simple server did not start {}'.format(poll_ret))
+            if IS_PYPY and IS_WIN32:
+                # not sure why
+                import pytest
 
-        self.urls = []
+                pytest.skip(
+                    'not sure why download tests are failing on pypy win32'
+                )
+                init_sleeptime = 0.5
+                fail_sleeptime = 0.3
+                timeout = 10
+            else:
+                init_sleeptime = 0.002
+                fail_sleeptime = 0.01
+                timeout = 1
+
+            time.sleep(init_sleeptime)
+            # Wait for the server to be alive
+            status_code = None
+            max_tries = 300
+            for _ in range(max_tries):
+                try:
+                    resp = requests.get(self.root_url, timeout=timeout)
+                except requests.exceptions.ConnectionError:
+                    time.sleep(fail_sleeptime)
+                else:
+                    status_code = resp.status_code
+                if status_code == 200:
+                    break
+
+            poll_ret = self.proc.poll()
+
+            if poll_ret is not None:
+                print('poll_ret = {!r}'.format(poll_ret))
+                print(self.proc.communicate())
+                raise AssertionError(
+                    'Simple server did not start {}'.format(poll_ret)
+                )
+
+        self.urls: list[str] = []
         self.write_file()
 
-    def write_file(self, filebytes=10, num_files=1):
-        fnames = ['file_{}_{}.txt'.format(filebytes, i) for i in range(num_files)]
+    def write_file(self, filebytes: int = 10, num_files: int = 1) -> list[str]:
+        fnames = [
+            'file_{}_{}.txt'.format(filebytes, i) for i in range(num_files)
+        ]
         for fname in fnames:
             # data = ''.join(random.choices(string.ascii_letters, k=filebytes))
             data = 'a' * filebytes
             fpath = join(self.dpath, fname)
             with open(fpath, 'w') as file:
                 file.write(data)
-        urls = ['{}/{}'.format(self.root_url, fname) for fname in fnames]
+        if self.use_file_urls:
+            # Build file:// URLs when we cannot use sockets.
+            urls = [
+                ub.Path(join(self.dpath, fname)).resolve().as_uri()
+                for fname in fnames
+            ]
+        else:
+            # Build http:// URLs when we have a local server.
+            urls = ['{}/{}'.format(self.root_url, fname) for fname in fnames]
         self.urls.extend(urls)
         return urls
 
 
-def test_local_download():
+def test_local_download() -> None:
     server = SingletonTestServer.instance()
-    url = server.write_file(filebytes=int(10 * 2 ** 20))[0]
+    url = server.write_file(filebytes=int(10 * 2**20))[0]
     # also test with a timeout for lazy coverage
     ub.download(url, timeout=3000)
 
 
-def _demo_url(num_bytes=None):
+def _demo_url(num_bytes: int | None = None) -> str:
     REAL_URL = False
     if REAL_URL:
         url = 'http://i.imgur.com/rqwaDag.png'
@@ -610,7 +678,7 @@ def _demo_url(num_bytes=None):
 
 
 @pytest.mark.timeout(TIMEOUT)
-def test_download_with_progkw():
+def test_download_with_progkw() -> None:
     """
     Test that progkw is properly passed through to ub.download
     """
@@ -619,12 +687,18 @@ def test_download_with_progkw():
     fname = basename(url)
     fpath = join(dpath, fname)
     with ub.CaptureStdout() as cap:
-        ub.download(url, fpath=fpath, progkw={'verbose': 3, 'freq': 1, 'adjust': False, 'time_thresh': 0}, chunksize=128)
+        ub.download(
+            url,
+            fpath=fpath,
+            progkw={'verbose': 3, 'freq': 1, 'adjust': False, 'time_thresh': 0},
+            chunksize=128,
+        )
+    assert cap.text is not None
     assert len(cap.text.split('\n')) > 10
 
 
 @pytest.mark.timeout(TIMEOUT)
-def test_download_with_filesize():
+def test_download_with_filesize() -> None:
     """
     Test that progkw is properly passed through to ub.download
     """
@@ -633,24 +707,36 @@ def test_download_with_filesize():
     fname = basename(url)
     fpath = join(dpath, fname)
     with ub.CaptureStdout() as cap:
-        ub.download(url, filesize=11, fpath=fpath, progkw={'verbose': 3, 'freq': 1, 'adjust': False, 'time_thresh': 0}, chunksize=128)
+        ub.download(
+            url,
+            filesize=11,
+            fpath=fpath,
+            progkw={'verbose': 3, 'freq': 1, 'adjust': False, 'time_thresh': 0},
+            chunksize=128,
+        )
     import re
+
+    assert cap.text is not None
     assert re.search(r'\d\d\d\d\.\d\d%', cap.text), 'should report over 100%'
 
 
-def make_stat_dict(stat_obj):
+def make_stat_dict(stat_obj: object) -> dict[str, object]:
     # Convert the stat tuple to a dict we can manipulate
     # and ignore access time
     ignore_keys = {'st_atime', 'st_atime_ns'}
     return {
-        k: getattr(stat_obj, k) for k in dir(stat_obj)
-        if k.startswith('st_') and k not in ignore_keys}
+        k: getattr(stat_obj, k)
+        for k in dir(stat_obj)
+        if k.startswith('st_') and k not in ignore_keys
+    }
 
 
-def test_grabdata():
-    import ubelt as ub
+def test_grabdata() -> None:
     import json
     import time
+
+    import ubelt as ub
+
     # fname = 'foo.bar'
     # url = 'http://i.imgur.com/rqwaDag.png'
     # prefix1 = '944389a39dfb8fa9'
@@ -673,20 +759,25 @@ def test_grabdata():
     sleep_time = 0.1
     num_tries = 60
     for _ in range(num_tries):
-        fpath = ub.grabdata(url, fname=fname, hash_prefix=prefix1, redo=True,
-                            hasher='sha512')
+        fpath = ub.grabdata(
+            url, fname=fname, hash_prefix=prefix1, redo=True, hasher='sha512'
+        )
         stat2 = make_stat_dict(ub.Path(fpath).stat())
         # Note: the precision of mtime is too low for this test work reliably
         # https://apenwarr.ca/log/20181113
         if stat2 != stat1:
             break
-        print('... Sometimes the redownload happens so fast we need to '
-              'wait to notice the file is actually different')
+        print(
+            '... Sometimes the redownload happens so fast we need to '
+            'wait to notice the file is actually different'
+        )
         time.sleep(sleep_time)
     else:
         raise AssertionError(
             'the file stat should be modified, we waited over {}s.'.format(
-                sleep_time * num_tries))
+                sleep_time * num_tries
+            )
+        )
     #
     print('4. Check that a redownload occurs when the stamp is changed')
     stamp_fpath.write_text('corrupt-stamp')
@@ -697,51 +788,76 @@ def test_grabdata():
     ub.delete(stamp_fpath)
     fpath = ub.Path(fpath)
     fpath.write_text('corrupt-stamp')
-    assert not ub.hash_file(fpath, base='hex', hasher='sha512').startswith(prefix1)
+    assert not ub.hash_file(fpath, base='hex', hasher='sha512').startswith(
+        prefix1
+    )
     fpath = ub.grabdata(url, fname=fname, hash_prefix=prefix1, hasher='sha512')
     assert ub.hash_file(fpath, base='hex', hasher='sha512').startswith(prefix1)
 
 
-def test_grabdata_same_fpath_different_url():
+def test_grabdata_same_fpath_different_url() -> None:
     url1 = _demo_url(128 * 11)
     url2 = _demo_url(128 * 12)
     url3 = _demo_url(128 * 13)
 
     fname = 'foobar'
-    fpath1 = ub.grabdata(url1, fname=fname, hash_prefix='b7fa848cd088ae842a89ef', hasher='sha512', verbose=100)
+    fpath1 = ub.grabdata(
+        url1,
+        fname=fname,
+        hash_prefix='b7fa848cd088ae842a89ef',
+        hasher='sha512',
+        verbose=100,
+    )
     stat1 = make_stat_dict(ub.Path(fpath1).stat())
 
     # Should requesting a new url, even with the same fpath, cause redownload?
-    fpath2 = ub.grabdata(url2, fname=fname, hash_prefix=None, hasher='sha512', verbose=100)
+    fpath2 = ub.grabdata(
+        url2, fname=fname, hash_prefix=None, hasher='sha512', verbose=100
+    )
     stat2 = make_stat_dict(ub.Path(fpath2).stat())
 
-    fpath3 = ub.grabdata(url3, fname=fname, hash_prefix=None, hasher='sha512', verbose=100)
+    fpath3 = ub.grabdata(
+        url3, fname=fname, hash_prefix=None, hasher='sha512', verbose=100
+    )
     stat3 = make_stat_dict(ub.Path(fpath3).stat())
 
-    assert stat1 != stat2, 'the stats will change because we did not specify a hash prefix'
+    assert stat1 != stat2, (
+        'the stats will change because we did not specify a hash prefix'
+    )
     assert stat2 == stat3, 'we may change this behavior in the future'
 
-    fpath3 = ub.grabdata(url2, fname=fname, hash_prefix='43f92597d7eb08b57c88b6', hasher='sha512', verbose=100)
+    fpath3 = ub.grabdata(
+        url2,
+        fname=fname,
+        hash_prefix='43f92597d7eb08b57c88b6',
+        hasher='sha512',
+        verbose=100,
+    )
     stat3 = make_stat_dict(ub.Path(fpath3).stat())
-    assert stat1 != stat3, 'if we do specify a new hash, we should get a new download'
+    assert stat1 != stat3, (
+        'if we do specify a new hash, we should get a new download'
+    )
     assert url1 != url2, 'urls should be different'
     assert ub.allsame([fpath1, fpath2, fpath3]), 'all fpaths should be the same'
 
 
-def test_grabdata_delete_hash_stamp():
+def test_grabdata_delete_hash_stamp() -> None:
     import ubelt as ub
+
     fname = 'foo3.bar'
     url = _demo_url(128 * 12)
     prefix1 = '43f92597d7eb08b57c88b636'
     fpath = ub.grabdata(url, fname=fname, hash_prefix=prefix1)
-    stamp_fpath = ub.Path(fpath + '.stamp_sha512.json')
+    stamp_fpath = ub.Path(str(fpath) + '.stamp_sha512.json')
     ub.delete(stamp_fpath)
     fpath = ub.grabdata(url, fname=fname, hash_prefix=prefix1)
 
 
-def test_download_with_io():
-    import ubelt as ub
+def test_download_with_io() -> None:
     import io
+
+    import ubelt as ub
+
     url = _demo_url(128 * 3)
     file = io.BytesIO()
     fpath = ub.download(url, file)
@@ -752,23 +868,148 @@ def test_download_with_io():
     assert hashstr.startswith('45a5c851bf12d1')
 
 
-def test_download_with_sha1_hasher():
+def test_download_with_sha1_hasher() -> None:
     import ubelt as ub
+
     url = _demo_url(128 * 4)
     ub.download(url, hasher='sha1', hash_prefix='164557facb7392')
 
 
-def setup_module(module):
-    """ setup any state specific to the execution of the given module."""
+def setup_module(module: object) -> None:
+    """setup any state specific to the execution of the given module."""
     SingletonTestServer.instance()
 
 
-def teardown_module(module):
-    """ teardown any state that was previously setup with a setup_module
+def teardown_module(module: object) -> None:
+    """teardown any state that was previously setup with a setup_module
     method.
     """
     SingletonTestServer.instance().close()
 
+
+def test_download_requestkw_headers_are_merged_without_mutation(monkeypatch) -> None:
+    import copy
+    import io
+    import urllib.request
+
+    import ubelt as ub
+
+    captured = {}
+    data = b'payload'
+
+    class FakeMeta:
+        def get_all(self, key):
+            if key == 'Content-Length':
+                return [str(len(data))]
+            return None
+
+    class FakeResponse:
+        def __init__(self):
+            self.stream = io.BytesIO(data)
+
+        def info(self):
+            return FakeMeta()
+
+        def read(self, size=-1):
+            return self.stream.read(size)
+
+    def fake_request(url, **kwargs):
+        captured['url'] = url
+        captured['requestkw'] = kwargs
+        return object()
+
+    def fake_urlopen(req, timeout=None):
+        return FakeResponse()
+
+    monkeypatch.setattr(urllib.request, 'Request', fake_request)
+    monkeypatch.setattr(urllib.request, 'urlopen', fake_urlopen)
+
+    requestkw = {
+        'headers': {
+            'Authorization': 'secret',
+            'User-Agent': 'custom-agent',
+        },
+        'method': 'GET',
+    }
+    original = copy.deepcopy(requestkw)
+    file = io.BytesIO()
+    ub.download(
+        'https://example.test/data',
+        fpath=file,
+        verbose=0,
+        requestkw=requestkw,
+    )
+
+    assert requestkw == original
+    assert captured['requestkw']['method'] == 'GET'
+    assert captured['requestkw']['headers'] == {
+        'Authorization': 'secret',
+        'User-Agent': 'custom-agent',
+    }
+    assert file.getvalue() == data
+
+
+def test_download_progress_reports_rate(monkeypatch) -> None:
+    import io
+    import types
+    import urllib.request
+
+    import ubelt as ub
+
+    data = b'x' * 2048
+    extras = []
+
+    class FakeMeta:
+        def get_all(self, key):
+            if key == 'Content-Length':
+                return [str(len(data))]
+            return None
+
+    class FakeResponse:
+        def __init__(self):
+            self.stream = io.BytesIO(data)
+
+        def info(self):
+            return FakeMeta()
+
+        def read(self, size=-1):
+            return self.stream.read(size)
+
+    class FakeProgress:
+        def __init__(self, **kwargs):
+            self._iter_idx = 0
+            self._total_seconds = 0.25
+            self._curr_measurement = types.SimpleNamespace(time=0.25)
+            self._extra_fn = None
+
+        def set_extra(self, func):
+            self._extra_fn = func
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            return None
+
+        def update(self, amount):
+            self._iter_idx += amount
+            if self._extra_fn is not None:
+                extras.append(self._extra_fn())
+
+    monkeypatch.setattr(urllib.request, 'Request', lambda url, **kw: object())
+    monkeypatch.setattr(
+        urllib.request, 'urlopen', lambda req, timeout=None: FakeResponse()
+    )
+    monkeypatch.setattr(ub, 'ProgIter', FakeProgress)
+
+    ub.download(
+        'https://example.test/data',
+        fpath=io.BytesIO(),
+        verbose=1,
+        chunksize=len(data),
+    )
+    assert extras
+    assert extras[-1] == ' 7 KB/s'
 
 if __name__ == '__main__':
     """
@@ -776,4 +1017,5 @@ if __name__ == '__main__':
         pytest ubelt/tests/test_download.py
     """
     import xdoctest
+
     xdoctest.doctest_module(__file__)

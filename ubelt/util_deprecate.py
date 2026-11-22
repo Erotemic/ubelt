@@ -4,13 +4,25 @@ Currently this module provides one utility
 easily mark features in their libraries as deprecated.
 """
 
+from __future__ import annotations
 
-def schedule_deprecation(modname=None, name='?', type='?', migration='',
-                         deprecate=None, error=None, remove=None,
-                         # TODO: let the user have more control over the
-                         # message.
-                         # message=None,
-                         warncls=DeprecationWarning, stacklevel=1):
+# DEFAULT_WARN_CLASS = DeprecationWarning
+DEFAULT_WARN_CLASS: type[Warning] = FutureWarning
+
+
+def schedule_deprecation(
+    modname: str | None = None,
+    name: str = '?',
+    type: str = '?',
+    migration: str = '',
+    deprecate: str | None = None,
+    error: str | None = None,
+    remove: str | None = None,
+    # TODO: let the user have more control over the message.
+    # message=None,
+    warncls: type[Warning] | str = 'default',
+    stacklevel: int = 1,
+) -> str:
     """
     Raise a deprecation warning or error based on the version of a package.
 
@@ -62,9 +74,11 @@ def schedule_deprecation(modname=None, name='?', type='?', migration='',
             reminding the developer to remove the feature (or extend the remove
             version).  Can also be the strings: "soon" or "now".
 
-        warncls (type):
-            This is the category of warning to use. Defaults to
-            :class:`DeprecationWarning`.
+        warncls (type | str):
+            This is the category of warning to use.
+            If given as the string "default", it will defaults the global
+            ``DEFAULT_WARN_CLASS``, which can be overwritten by an application,
+            but is hard coded as :class:`FutureWarning`.
 
         stacklevel (int):
             The stacklevel can be used by wrapper functions to indicate where
@@ -80,7 +94,8 @@ def schedule_deprecation(modname=None, name='?', type='?', migration='',
 
     Note:
         The :class:`DeprecationWarning` is not visible by default.
-        https://docs.python.org/3/library/warnings.html
+        https://docs.python.org/3/library/warnings.html which is why we default
+        to :class`FutureWarning`.
 
     Example:
         >>> # xdoctest: +REQUIRES(module:packaging)
@@ -98,7 +113,7 @@ def schedule_deprecation(modname=None, name='?', type='?', migration='',
         >>> # But when the module version increases above the threshold,
         >>> # the warning is raised.
         >>> dummy_module.__version__ = '1.1.0'
-        >>> with pytest.warns(DeprecationWarning):
+        >>> with pytest.warns(Warning):
         ...     msg = ub.schedule_deprecation(
         ...         'dummy_module', 'myfunc', 'function', 'do something else',
         ...         deprecate='1.1.0', error='1.2.0', remove='1.3.0')
@@ -118,7 +133,7 @@ def schedule_deprecation(modname=None, name='?', type='?', migration='',
         >>> # When less than the deprecated version this does nothing
         >>> dummy_module.__version__ = '1.1.0'
         >>> # Now this raises warning
-        >>> with pytest.warns(DeprecationWarning):
+        >>> with pytest.warns(Warning):
         ...     dummy_module.__version__ = '1.1.0'
         ...     ub.schedule_deprecation(
         ...         'dummy_module', 'myfunc', 'function', 'do something else',
@@ -136,7 +151,7 @@ def schedule_deprecation(modname=None, name='?', type='?', migration='',
         ...         'dummy_module', 'myfunc', 'function', 'do something else',
         ...         deprecate='1.1.0', error='1.2.0', remove='1.3.0')
         >>> # When no versions are specified, it simply emits the warning
-        >>> with pytest.warns(DeprecationWarning):
+        >>> with pytest.warns(Warning):
         ...     dummy_module.__version__ = '1.1.0'
         ...     ub.schedule_deprecation(
         ...         'dummy_module', 'myfunc', 'function', 'do something else')
@@ -163,7 +178,11 @@ def schedule_deprecation(modname=None, name='?', type='?', migration='',
     """
     import sys
     import warnings
+
+    from packaging.version import Version as VersionType
     from packaging.version import parse as Version
+
+    current: str | VersionType
 
     if modname is not None:
         module = sys.modules[modname]
@@ -173,25 +192,29 @@ def schedule_deprecation(modname=None, name='?', type='?', migration='',
         # called from and fill in unspecified values.
         current = 'unknown'
 
+    if warncls == 'default':
+        warncls = DEFAULT_WARN_CLASS
+
     if modname is None:
         modname_str = ''
     else:
         modname_str = f'{modname} '
 
-    def _handle_when(when, default):
+    def _handle_when(when: object, default: bool) -> tuple[bool, str]:
         if when is None:
             is_now = default
             when_str = ''
         elif isinstance(when, str):
             if when in {'soon', 'now'}:
                 when_str = ' {}{}'.format(modname_str, when)
-                is_now = (when == 'now')
+                is_now = when == 'now'
             else:
                 when = Version(when)
                 when_str = ' in {}{}'.format(modname_str, when)
                 if current == 'unknown':
                     is_now = default
                 else:
+                    assert not isinstance(current, str)
                     is_now = current >= when
         else:
             is_now = bool(when)
@@ -204,19 +227,26 @@ def schedule_deprecation(modname=None, name='?', type='?', migration='',
 
     # TODO: make the message more customizable.
     msg = (
-        'The "{name}" {type} was deprecated{deprecate_str}, will cause '
-        'an error{error_str} and will be removed{remove_str}. The current '
-        '{modname_str}version is {current}. {migration}'
-    ).format(**locals()).strip()
+        (
+            'The "{name}" {type} was deprecated{deprecate_str}, will cause '
+            'an error{error_str} and will be removed{remove_str}. The current '
+            '{modname_str}version is {current}. {migration}'
+        )
+        .format(**locals())
+        .strip()
+    )
     if remove_now:
         raise AssertionError(
-            'Forgot to remove deprecated: ' + msg + ' ' +
-            'Remove the function, or extend the scheduled remove version.'
+            'Forgot to remove deprecated: '
+            + msg
+            + ' '
+            + 'Remove the function, or extend the scheduled remove version.'
         )
     if error_now:
         raise RuntimeError(msg)
 
     if deprecate_now:
+        assert not isinstance(warncls, str)
         warnings.warn(msg, warncls, stacklevel=1 + stacklevel)
 
     return msg

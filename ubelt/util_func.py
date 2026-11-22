@@ -13,8 +13,32 @@ arguments and returns the subset of a configuration dictionary that agrees with
 that signature.
 """
 
+from __future__ import annotations
 
-def identity(arg=None, *args, **kwargs):
+from collections.abc import Iterable as IterableABC
+import typing
+
+T = typing.TypeVar('T')
+V = typing.TypeVar('V')
+
+
+class SupportsBool(typing.Protocol):
+    def __bool__(self) -> bool: ...  # nocover
+
+
+@typing.overload
+def identity() -> None: ...
+
+
+@typing.overload
+def identity(arg: T, *args: object, **kwargs: object) -> T: ...
+
+
+def identity(
+    arg: T | None = None,
+    *args: object,
+    **kwargs: object,
+) -> T | None:
     """
     Return the value of the first argument unchanged.
 
@@ -34,12 +58,12 @@ def identity(arg=None, *args, **kwargs):
     assigning it to a value.
 
     Args:
-        arg (Any | None): The value to return unchanged.
+        arg (T | None): The value to return unchanged.
         *args: Ignored
         **kwargs: Ignored
 
     Returns:
-        Any: arg - The same value of the first positional argument.
+        T: arg - The same value of the first positional argument.
 
     References:
         .. [WikiIdentity] https://en.wikipedia.org/wiki/Identity_function
@@ -56,7 +80,11 @@ def identity(arg=None, *args, **kwargs):
     return arg
 
 
-def inject_method(self, func, name=None):
+def inject_method(
+    self: typing.Any,
+    func: typing.Callable[..., typing.Any],
+    name: str | None = None,
+) -> None:
     """
     Injects a function into an object instance as a bound method
 
@@ -91,14 +119,30 @@ def inject_method(self, func, name=None):
         >>> ub.inject_method(self, baz, 'bar')
         >>> assert self.bar() == 'baz'
     """
-    # TODO: if func is a bound method we should probably unbind it
-    new_method = func.__get__(self, self.__class__)
+    bound_func = getattr(func, '__func__', None)
+    bound_self = getattr(func, '__self__', None)
+    if bound_func is not None and bound_self is not None:
+        # Rebind methods to the requested instance rather than preserving the
+        # instance they happened to be bound to when passed in.
+        func = bound_func
+    new_method = func.__get__(self, self.__class__)  # type: ignore
     if name is None:
-        name = func.__name__
+        name = getattr(func, '__name__', None)
+        if name is None:
+            raise ValueError(
+                'func must have a __name__ attribute if name is not specified'
+            )
+    if typing.TYPE_CHECKING:
+        assert isinstance(name, str)
     setattr(self, name, new_method)
 
 
-def compatible(config, func, start=0, keywords=True):
+def compatible(
+    config: dict[str, V],
+    func: typing.Callable,
+    start: int = 0,
+    keywords: bool | str | typing.Iterable[str] | SupportsBool = True,
+) -> dict[str, V]:
     """
     Take the "compatible" subset of a dictionary that a function will accept as
     keyword arguments.
@@ -196,6 +240,7 @@ def compatible(config, func, start=0, keywords=True):
         ub.udict(report_config) & (sig.parameters)
     """
     import inspect
+
     sig = inspect.signature(func)
     argnames = []
     has_kwargs = False
@@ -206,28 +251,29 @@ def compatible(config, func, start=0, keywords=True):
             pass  # Ignore variadic positional args
         elif arg.kind == inspect.Parameter.POSITIONAL_ONLY:
             pass  # Ignore positional only arguments
-        elif arg.kind in {inspect.Parameter.POSITIONAL_OR_KEYWORD,
-                          inspect.Parameter.KEYWORD_ONLY}:
+        elif arg.kind in {
+            inspect.Parameter.POSITIONAL_OR_KEYWORD,
+            inspect.Parameter.KEYWORD_ONLY,
+        }:
             argnames.append(arg.name)
         else:  # nocover
             raise TypeError(arg.kind)
 
     # Test if keywords is a non-string iterable
     if not isinstance(keywords, (bool, str)):
-        try:
-            iter(keywords)
-        except Exception:
-            keywords = bool(keywords)
-        else:
+        if isinstance(keywords, IterableABC):
             argnames.extend(keywords)
             keywords = False
+        else:
+            keywords = bool(keywords)
 
     if has_kwargs and keywords:
         # kwargs could be anything, so keep everything
         common = config
     else:
-        common = {k: config[k] for k in argnames[start:]
-                  if k in config}  # dict-intersection
+        common = {
+            k: config[k] for k in argnames[start:] if k in config
+        }  # dict-intersection
     return common
 
 

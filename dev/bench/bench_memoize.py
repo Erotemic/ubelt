@@ -1,7 +1,6 @@
-
-
 def bench_memoize():
     import ubelt as ub
+
     @ub.memoize
     def memoized_func():
         return object()
@@ -36,6 +35,7 @@ def bench_memoize():
 
     ti.reset('memoized property').call(lambda: self.a_memoized_property)
     ti.reset('raw property').call(lambda: self.a_raw_property)
+
 
 if __name__ == '__main__':
     """
