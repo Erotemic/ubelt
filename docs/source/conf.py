@@ -408,20 +408,19 @@ texinfo_documents = [
 
 
 # -- Extension configuration -------------------------------------------------
+import os
+import time
+from typing import Any, List  # NOQA
+
 from sphinx.domains.python import PythonDomain  # NOQA
 
 # from sphinx.application import Sphinx  # NOQA
-from typing import Any, List  # NOQA
 
 
-# HACK TO PREVENT EXCESSIVE TIME.
-# TODO: FIXME FOR REAL
-MAX_TIME_MINUTES = None
-if MAX_TIME_MINUTES:
-    import ubelt  # NOQA
-
-    TIMER = ubelt.Timer()
-    TIMER.tic()
+# Optional limit for documentation image rendering time (disabled by default).
+_time_limit_setting = os.environ.get('XCOOKIE_DOC_MAX_TIME_MINUTES')
+MAX_TIME_MINUTES = float(_time_limit_setting) if _time_limit_setting else None
+_TIMER_START = time.monotonic()
 
 
 class PatchedPythonDomain(PythonDomain):
@@ -676,7 +675,10 @@ class GoogleStyleDocstringProcessor:
 
         render_doc_images = 0
 
-        if MAX_TIME_MINUTES and TIMER.toc() > (60 * MAX_TIME_MINUTES):
+        if (
+            MAX_TIME_MINUTES
+            and time.monotonic() - _TIMER_START > 60 * MAX_TIME_MINUTES
+        ):
             render_doc_images = False  # FIXME too slow on RTD
 
         if render_doc_images:
