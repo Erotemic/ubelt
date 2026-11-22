@@ -265,7 +265,6 @@ def import_module_from_path(
         >>> from os.path import join, expanduser, normpath
         >>> dpath = expanduser('~/.cache/xdoctest')
         >>> dpath = utils.ensuredir(dpath)
-        >>> #dpath = utils.TempDir().ensure()
         >>> # Write to an external module named bar
         >>> external_modpath = join(dpath, 'bar.py')
         >>> # For pypy support we have to write this using with
@@ -309,53 +308,37 @@ def import_module_from_path(
             modname = os.path.normpath(modname)
             if os.path.exists(archivepath):
                 zimp_file = zipimport.zipimporter(archivepath)
+                import importlib.util
+
+                def _load_zip_module(name: str) -> ModuleType:
+                    # zipimporter provides exec_module at the supported
+                    # Python versions, but typeshed does not model it as a
+                    # compatible LoaderProtocol for spec_from_loader.
+                    spec = importlib.util.spec_from_loader(
+                        name, typing.cast(typing.Any, zimp_file)
+                    )
+                    if spec is None:
+                        raise ImportError(f'Cannot create spec for {name!r}')
+                    module = importlib.util.module_from_spec(spec)
+                    sys.modules[name] = module  # recursive imports
+                    try:
+                        zimp_file.exec_module(module)
+                    except BaseException:
+                        sys.modules.pop(name, None)
+                        raise
+                    return module
+
                 try:
                     try:
-                        # module = zimp_file.load_module(modname)
-                        if hasattr(zimp_file, 'exec_module'):
-                            import importlib
-
-                            # Modern path (3.4+; preferred, no deprecation)
-                            spec = importlib.util.spec_from_loader(
-                                modname, zimp_file
-                            )
-                            if spec is None:
-                                raise ImportError(
-                                    f'Cannot create spec for {modname!r}'
-                                )
-                            module = importlib.util.module_from_spec(spec)
-                            sys.modules[modname] = (
-                                module  # important for recursive imports
-                            )
-                            zimp_file.exec_module(module)
-                        else:  # nocover
-                            # Legacy fallback (deprecated; only used on very old Pythons)
-                            module = zimp_file.load_module(modname)
+                        module = _load_zip_module(modname)
                     except Exception:  # nocover
-                        _modname = modname.replace('\\', '/')  # hack
-                        if hasattr(zimp_file, 'exec_module'):
-                            import importlib
-
-                            # Modern path (3.4+; preferred, no deprecation)
-                            spec = importlib.util.spec_from_loader(
-                                _modname, zimp_file
-                            )
-                            if spec is None:
-                                raise ImportError(
-                                    f'Cannot create spec for {modname!r}'
-                                )
-                            module = importlib.util.module_from_spec(spec)
-                            sys.modules[_modname] = (
-                                module  # important for recursive imports
-                            )
-                            zimp_file.exec_module(module)
-                        else:
-                            # Legacy fallback (deprecated; only used on very old Pythons)
-                            module = zimp_file.load_module(_modname)
+                        # Retain the path-separator fallback for zip entries.
+                        _modname = modname.replace('\\', '/')
+                        module = _load_zip_module(_modname)
                 except Exception as ex:  # nocover
                     text = (
                         'Encountered error in import_module_from_path '
-                        'while calling load_module: '
+                        'while importing from zip: '
                         'modpath={modpath!r}, '
                         'internal={internal!r}, '
                         'modname={modname!r}, '
@@ -1205,9 +1188,9 @@ def _parse_static_node_value(node: object) -> typing.Any:
         num_type = getattr(ast, 'Num', None)
         str_type = getattr(ast, 'Str', None)
         if num_type is not None and isinstance(node, num_type):
-            return typing.cast(typing.Any, node).n
+            return node.n
         if str_type is not None and isinstance(node, str_type):
-            return typing.cast(typing.Any, node).s
+            return node.s
 
     if isinstance(node, ast.List):
         return list(map(_parse_static_node_value, node.elts))

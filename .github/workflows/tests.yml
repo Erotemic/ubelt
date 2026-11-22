@@ -9,18 +9,15 @@ name: PurePyCI
 on:
   push:
     # Restricting push triggers to the default branch avoids running
-    # the whole pipeline twice (push + pull_request events) for every
-    # push to a PR branch. Feature branches are covered by the
-    # pull_request trigger; release branches and tags are handled by
-    # release.yml.
+    # validation twice (push + pull_request events) for every push to a PR
+    # branch. Feature branches are covered by pull_request; release refs are
+    # handled by release.yml.
     branches: [ main ]
   pull_request:
     branches: [ main ]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  # Superseded runs on the same ref are cancelled; deploy-bearing refs
-  # never trigger this workflow (release.yml owns them).
   cancel-in-progress: true
 
 jobs:
@@ -34,10 +31,10 @@ jobs:
     steps:
     - name: Checkout source
       uses: actions/checkout@v6.0.2
-    - name: Set up Python 3.14 for linting
+    - name: Set up Python 3.15 for linting
       uses: actions/setup-python@v6.2.0
       with:
-        python-version: '3.14'
+        python-version: '3.15'
     - name: Install dependencies
       run: |-
         python -m pip install pip uv -U
@@ -49,11 +46,10 @@ jobs:
     - name: Typecheck
       run: |-
         python -m pip install mypy
-        pip install -r requirements/runtime.txt
-        mypy ./ubelt
         python -m pip install ty
-        pip install -r requirements/runtime.txt
-        ty check ./ubelt
+        pip install -r requirements/runtime.txt -r requirements/tests.txt
+        mypy ./ubelt ./tests/typecheck_consumer.py
+        ty check ./ubelt ./tests/typecheck_consumer.py
   build_and_test_sdist:
     ##
     # Build the pure python package from source and test it in the
@@ -64,10 +60,10 @@ jobs:
     steps:
     - name: Checkout source
       uses: actions/checkout@v6.0.2
-    - name: Set up Python 3.14
+    - name: Set up Python 3.15
       uses: actions/setup-python@v6.2.0
       with:
-        python-version: '3.14'
+        python-version: '3.15'
     - name: Upgrade pip
       run: |-
         python -m pip install pip uv -U
@@ -77,7 +73,7 @@ jobs:
       shell: bash
       run: |-
         python -m pip install pip uv -U
-        python -m uv pip install setuptools>=0.8 wheel build twine
+        python -m uv pip install "setuptools>=77" wheel build twine
         python -m build --sdist --outdir wheelhouse
         python -m twine check ./wheelhouse/ubelt*.tar.gz
     - name: Install sdist
@@ -135,7 +131,7 @@ jobs:
         os:
         - ubuntu-latest
         python-version:
-        - '3.14'
+        - '3.15'
         arch:
         - auto
     steps:
@@ -149,7 +145,7 @@ jobs:
       shell: bash
       run: |-
         python -m pip install pip uv -U
-        python -m uv pip install setuptools>=0.8 wheel build twine
+        python -m uv pip install "setuptools>=77" wheel build twine
         python -m build --wheel --outdir wheelhouse
         python -m twine check ./wheelhouse/ubelt*.whl
     - name: Show built files
@@ -175,249 +171,212 @@ jobs:
         # Xcookie generates an explicit list of environments that will be used
         # for testing instead of using the more concise matrix notation.
         include:
-        - python-version: '3.8'
+        - python-version: '3.10'
           install-extras: tests-strict,runtime-strict
           os: ubuntu-latest
           arch: auto
           allow-prereleases: 'false'
           check-latest: 'false'
           use-lockfile: 'false'
-        - python-version: '3.8'
+        - python-version: '3.10'
           install-extras: tests-strict,runtime-strict
           os: macOS-latest
           arch: auto
           allow-prereleases: 'false'
           check-latest: 'false'
           use-lockfile: 'false'
-        - python-version: '3.8'
+        - python-version: '3.10'
           install-extras: tests-strict,runtime-strict
           os: windows-latest
           arch: auto
           allow-prereleases: 'false'
           check-latest: 'false'
           use-lockfile: 'false'
-        - python-version: '3.14'
+        - python-version: '3.15'
           install-extras: tests-strict,runtime-strict,optional-strict
+          os: ubuntu-latest
+          arch: auto
+          allow-prereleases: 'false'
+          check-latest: 'false'
+          experimental: true
+          use-lockfile: 'false'
+        - python-version: '3.15'
+          install-extras: tests-strict,runtime-strict,optional-strict
+          os: macOS-latest
+          arch: auto
+          allow-prereleases: 'false'
+          check-latest: 'false'
+          experimental: true
+          use-lockfile: 'false'
+        - python-version: '3.15'
+          install-extras: tests-strict,runtime-strict,optional-strict
+          os: windows-latest
+          arch: auto
+          allow-prereleases: 'false'
+          check-latest: 'false'
+          experimental: true
+          use-lockfile: 'false'
+        - python-version: '3.15'
+          install-extras: tests
+          os: macOS-latest
+          arch: auto
+          allow-prereleases: 'false'
+          check-latest: 'false'
+          experimental: true
+          use-lockfile: 'false'
+        - python-version: '3.15'
+          install-extras: tests
+          os: windows-latest
+          arch: auto
+          allow-prereleases: 'false'
+          check-latest: 'false'
+          experimental: true
+          use-lockfile: 'false'
+        - python-version: '3.10'
+          install-extras: tests,optional
+          os: ubuntu-latest
+          arch: auto
+          allow-prereleases: 'false'
+          check-latest: 'false'
+          use-lockfile: 'false'
+        - python-version: '3.11'
+          install-extras: tests,optional
+          os: ubuntu-latest
+          arch: auto
+          allow-prereleases: 'false'
+          check-latest: 'false'
+          use-lockfile: 'false'
+        - python-version: '3.12'
+          install-extras: tests,optional
+          os: ubuntu-latest
+          arch: auto
+          allow-prereleases: 'false'
+          check-latest: 'false'
+          use-lockfile: 'false'
+        - python-version: '3.13'
+          install-extras: tests,optional
           os: ubuntu-latest
           arch: auto
           allow-prereleases: 'false'
           check-latest: 'false'
           use-lockfile: 'false'
         - python-version: '3.14'
-          install-extras: tests-strict,runtime-strict,optional-strict
+          install-extras: tests,optional
+          os: ubuntu-latest
+          arch: auto
+          allow-prereleases: 'false'
+          check-latest: 'false'
+          use-lockfile: 'false'
+        - python-version: '3.15'
+          install-extras: tests,optional
+          os: ubuntu-latest
+          arch: auto
+          allow-prereleases: 'false'
+          check-latest: 'false'
+          experimental: true
+          use-lockfile: 'false'
+        - python-version: '3.10'
+          install-extras: tests,optional
+          os: macOS-latest
+          arch: auto
+          allow-prereleases: 'false'
+          check-latest: 'false'
+          use-lockfile: 'false'
+        - python-version: '3.11'
+          install-extras: tests,optional
+          os: macOS-latest
+          arch: auto
+          allow-prereleases: 'false'
+          check-latest: 'false'
+          use-lockfile: 'false'
+        - python-version: '3.12'
+          install-extras: tests,optional
+          os: macOS-latest
+          arch: auto
+          allow-prereleases: 'false'
+          check-latest: 'false'
+          use-lockfile: 'false'
+        - python-version: '3.13'
+          install-extras: tests,optional
           os: macOS-latest
           arch: auto
           allow-prereleases: 'false'
           check-latest: 'false'
           use-lockfile: 'false'
         - python-version: '3.14'
-          install-extras: tests-strict,runtime-strict,optional-strict
+          install-extras: tests,optional
+          os: macOS-latest
+          arch: auto
+          allow-prereleases: 'false'
+          check-latest: 'false'
+          use-lockfile: 'false'
+        - python-version: '3.15'
+          install-extras: tests,optional
+          os: macOS-latest
+          arch: auto
+          allow-prereleases: 'false'
+          check-latest: 'false'
+          experimental: true
+          use-lockfile: 'false'
+        - python-version: '3.10'
+          install-extras: tests,optional
+          os: windows-latest
+          arch: auto
+          allow-prereleases: 'false'
+          check-latest: 'false'
+          use-lockfile: 'false'
+        - python-version: '3.11'
+          install-extras: tests,optional
+          os: windows-latest
+          arch: auto
+          allow-prereleases: 'false'
+          check-latest: 'false'
+          use-lockfile: 'false'
+        - python-version: '3.12'
+          install-extras: tests,optional
+          os: windows-latest
+          arch: auto
+          allow-prereleases: 'false'
+          check-latest: 'false'
+          use-lockfile: 'false'
+        - python-version: '3.13'
+          install-extras: tests,optional
           os: windows-latest
           arch: auto
           allow-prereleases: 'false'
           check-latest: 'false'
           use-lockfile: 'false'
         - python-version: '3.14'
+          install-extras: tests,optional
+          os: windows-latest
+          arch: auto
+          allow-prereleases: 'false'
+          check-latest: 'false'
+          use-lockfile: 'false'
+        - python-version: '3.15'
+          install-extras: tests,optional
+          os: windows-latest
+          arch: auto
+          allow-prereleases: 'false'
+          check-latest: 'false'
+          experimental: true
+          use-lockfile: 'false'
+        - python-version: pypy-3.11
+          install-extras: tests
+          os: ubuntu-latest
+          arch: auto
+          allow-prereleases: 'false'
+          check-latest: 'false'
+          use-lockfile: 'false'
+        - python-version: pypy-3.11
           install-extras: tests
           os: macOS-latest
           arch: auto
           allow-prereleases: 'false'
           check-latest: 'false'
           use-lockfile: 'false'
-        - python-version: '3.14'
+        - python-version: pypy-3.11
           install-extras: tests
-          os: windows-latest
-          arch: auto
-          allow-prereleases: 'false'
-          check-latest: 'false'
-          use-lockfile: 'false'
-        - python-version: '3.8'
-          install-extras: tests,optional
-          os: ubuntu-latest
-          arch: auto
-          allow-prereleases: 'false'
-          check-latest: 'false'
-          use-lockfile: 'false'
-        - python-version: '3.9'
-          install-extras: tests,optional
-          os: ubuntu-latest
-          arch: auto
-          allow-prereleases: 'false'
-          check-latest: 'false'
-          use-lockfile: 'false'
-        - python-version: '3.10'
-          install-extras: tests,optional
-          os: ubuntu-latest
-          arch: auto
-          allow-prereleases: 'false'
-          check-latest: 'false'
-          use-lockfile: 'false'
-        - python-version: '3.11'
-          install-extras: tests,optional
-          os: ubuntu-latest
-          arch: auto
-          allow-prereleases: 'false'
-          check-latest: 'false'
-          use-lockfile: 'false'
-        - python-version: '3.12'
-          install-extras: tests,optional
-          os: ubuntu-latest
-          arch: auto
-          allow-prereleases: 'false'
-          check-latest: 'false'
-          use-lockfile: 'false'
-        - python-version: '3.13'
-          install-extras: tests,optional
-          os: ubuntu-latest
-          arch: auto
-          allow-prereleases: 'false'
-          check-latest: 'false'
-          use-lockfile: 'false'
-        - python-version: '3.14'
-          install-extras: tests,optional
-          os: ubuntu-latest
-          arch: auto
-          allow-prereleases: 'false'
-          check-latest: 'false'
-          use-lockfile: 'false'
-        - python-version: '3.15'
-          install-extras: tests,optional
-          os: ubuntu-latest
-          arch: auto
-          allow-prereleases: 'true'
-          check-latest: 'true'
-          experimental: true
-          use-lockfile: 'false'
-        - python-version: pypy-3.11
-          install-extras: tests,optional
-          os: ubuntu-latest
-          arch: auto
-          allow-prereleases: 'false'
-          check-latest: 'false'
-          use-lockfile: 'false'
-        - python-version: '3.8'
-          install-extras: tests,optional
-          os: macOS-latest
-          arch: auto
-          allow-prereleases: 'false'
-          check-latest: 'false'
-          use-lockfile: 'false'
-        - python-version: '3.9'
-          install-extras: tests,optional
-          os: macOS-latest
-          arch: auto
-          allow-prereleases: 'false'
-          check-latest: 'false'
-          use-lockfile: 'false'
-        - python-version: '3.10'
-          install-extras: tests,optional
-          os: macOS-latest
-          arch: auto
-          allow-prereleases: 'false'
-          check-latest: 'false'
-          use-lockfile: 'false'
-        - python-version: '3.11'
-          install-extras: tests,optional
-          os: macOS-latest
-          arch: auto
-          allow-prereleases: 'false'
-          check-latest: 'false'
-          use-lockfile: 'false'
-        - python-version: '3.12'
-          install-extras: tests,optional
-          os: macOS-latest
-          arch: auto
-          allow-prereleases: 'false'
-          check-latest: 'false'
-          use-lockfile: 'false'
-        - python-version: '3.13'
-          install-extras: tests,optional
-          os: macOS-latest
-          arch: auto
-          allow-prereleases: 'false'
-          check-latest: 'false'
-          use-lockfile: 'false'
-        - python-version: '3.14'
-          install-extras: tests,optional
-          os: macOS-latest
-          arch: auto
-          allow-prereleases: 'false'
-          check-latest: 'false'
-          use-lockfile: 'false'
-        - python-version: '3.15'
-          install-extras: tests,optional
-          os: macOS-latest
-          arch: auto
-          allow-prereleases: 'true'
-          check-latest: 'true'
-          experimental: true
-          use-lockfile: 'false'
-        - python-version: pypy-3.11
-          install-extras: tests,optional
-          os: macOS-latest
-          arch: auto
-          allow-prereleases: 'false'
-          check-latest: 'false'
-          use-lockfile: 'false'
-        - python-version: '3.8'
-          install-extras: tests,optional
-          os: windows-latest
-          arch: auto
-          allow-prereleases: 'false'
-          check-latest: 'false'
-          use-lockfile: 'false'
-        - python-version: '3.9'
-          install-extras: tests,optional
-          os: windows-latest
-          arch: auto
-          allow-prereleases: 'false'
-          check-latest: 'false'
-          use-lockfile: 'false'
-        - python-version: '3.10'
-          install-extras: tests,optional
-          os: windows-latest
-          arch: auto
-          allow-prereleases: 'false'
-          check-latest: 'false'
-          use-lockfile: 'false'
-        - python-version: '3.11'
-          install-extras: tests,optional
-          os: windows-latest
-          arch: auto
-          allow-prereleases: 'false'
-          check-latest: 'false'
-          use-lockfile: 'false'
-        - python-version: '3.12'
-          install-extras: tests,optional
-          os: windows-latest
-          arch: auto
-          allow-prereleases: 'false'
-          check-latest: 'false'
-          use-lockfile: 'false'
-        - python-version: '3.13'
-          install-extras: tests,optional
-          os: windows-latest
-          arch: auto
-          allow-prereleases: 'false'
-          check-latest: 'false'
-          use-lockfile: 'false'
-        - python-version: '3.14'
-          install-extras: tests,optional
-          os: windows-latest
-          arch: auto
-          allow-prereleases: 'false'
-          check-latest: 'false'
-          use-lockfile: 'false'
-        - python-version: '3.15'
-          install-extras: tests,optional
-          os: windows-latest
-          arch: auto
-          allow-prereleases: 'true'
-          check-latest: 'true'
-          experimental: true
-          use-lockfile: 'false'
-        - python-version: pypy-3.11
-          install-extras: tests,optional
           os: windows-latest
           arch: auto
           allow-prereleases: 'false'
@@ -473,7 +432,7 @@ jobs:
         echo "Installing helpers: update pip"
         python -m pip install pip uv -U
         echo "Installing helpers: setuptools"
-        python -m uv pip install setuptools>=0.8 setuptools_scm wheel build -U
+        python -m uv pip install "setuptools>=77" setuptools_scm wheel build -U
         echo "Installing helpers: tomli and pkginfo"
         python -m uv pip install tomli pkginfo packaging
         export WHEEL_FPATH=$(python -c "if 1:
@@ -538,7 +497,7 @@ jobs:
         running the pytest command inside the workspace
         ---
         "
-        python -m pytest --verbose -p pytester -p no:doctest --xdoctest --cov-config ../pyproject.toml --cov-report term --durations=100 --cov="$MOD_NAME" "$MOD_DPATH" ../tests
+        python -m pytest --verbose --xdoctest --cov-config ../pyproject.toml --cov-report term --durations=100 --cov="$MOD_NAME" "$MOD_DPATH" ../tests
         echo "pytest command finished, moving the coverage file to the repo root"
         ls -al
         # Move coverage file to a new name
@@ -575,5 +534,3 @@ jobs:
         echo "::warning title=Experimental CI failure::$message"
         echo "### Experimental CI failure" >> "$GITHUB_STEP_SUMMARY"
         echo "$message" >> "$GITHUB_STEP_SUMMARY"
-
-

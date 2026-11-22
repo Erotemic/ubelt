@@ -7,10 +7,24 @@
 name: PurePyRelease
 
 on:
+  # MAINTAINER INTENT: pushes to the default branch intentionally enter
+  # this release workflow. With deployment enabled, test_deploy publishes
+  # those artifacts to TestPyPI so every mainline merge exercises the
+  # release packaging/signing/trusted-publishing path before promotion.
+  # Do not make TestPyPI manual-only or remove the default-branch trigger
+  # unless intentionally changing that release policy.
   push:
-    branches: [ main, 'release*' ]
-    tags: [ '*' ]
+    branches: [ main, release ]
   workflow_dispatch:
+    inputs:
+      publish_target:
+        description: Optional non-production publish target
+        required: true
+        default: build-only
+        type: choice
+        options:
+          - build-only
+          - testpypi
 
 jobs:
   build_sdist:
@@ -24,15 +38,15 @@ jobs:
     steps:
     - name: Checkout source
       uses: actions/checkout@v6.0.2
-    - name: Set up Python 3.14
+    - name: Set up Python 3.15
       uses: actions/setup-python@v6.2.0
       with:
-        python-version: '3.14'
+        python-version: '3.15'
     - name: Build sdist
       shell: bash
       run: |-
         python -m pip install pip uv -U
-        python -m uv pip install setuptools>=0.8 wheel build twine
+        python -m uv pip install "setuptools>=77" wheel build twine
         python -m build --sdist --outdir wheelhouse
         python -m twine check ./wheelhouse/ubelt*.tar.gz
     - name: Show built files
@@ -55,7 +69,7 @@ jobs:
         os:
         - ubuntu-latest
         python-version:
-        - '3.14'
+        - '3.15'
         arch:
         - auto
     steps:
@@ -69,7 +83,7 @@ jobs:
       shell: bash
       run: |-
         python -m pip install pip uv -U
-        python -m uv pip install setuptools>=0.8 wheel build twine
+        python -m uv pip install "setuptools>=77" wheel build twine
         python -m build --wheel --outdir wheelhouse
         python -m twine check ./wheelhouse/ubelt*.whl
     - name: Show built files
@@ -83,7 +97,7 @@ jobs:
   test_deploy:
     name: Deploy Test
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.event.ref == 'refs/heads/main'
+    if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || (github.event_name == 'workflow_dispatch' && github.event.inputs.publish_target == 'testpypi')
     needs:
     - build_purepy_wheels
     - build_sdist
@@ -179,7 +193,7 @@ jobs:
   live_deploy:
     name: Deploy Live
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && (startsWith(github.event.ref, 'refs/tags') || startsWith(github.event.ref, 'refs/heads/release'))
+    if: github.event_name == 'push' && github.ref == 'refs/heads/release'
     needs:
     - build_purepy_wheels
     - build_sdist
@@ -273,7 +287,7 @@ jobs:
     environment: pypi
   release:
     name: Create Github Release
-    if: github.event_name == 'push' && (startsWith(github.event.ref, 'refs/tags') || startsWith(github.event.ref, 'refs/heads/release'))
+    if: github.event_name == 'push' && github.ref == 'refs/heads/release'
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -299,13 +313,8 @@ jobs:
         echo "VERSION=$VERSION"
         test -n "$VERSION" || { echo "failed to parse version" ; exit 1; }
         TAG="v$VERSION"
-        if [[ "$GITHUB_REF" == refs/tags/* ]]; then
-            EVENT_TAG="${GITHUB_REF#refs/tags/}"
-            TAG="$EVENT_TAG"
-        fi
         echo "tag=$TAG" >> "$GITHUB_OUTPUT"
     - name: Tag Release Commit
-      if: (startsWith(github.event.ref, 'refs/heads/release'))
       shell: bash
       run: |-
         TAG="${{ steps.release_meta.outputs.tag }}"
@@ -332,7 +341,7 @@ jobs:
         target_commitish: ${{ github.sha }}
         body: Automatic Release
         generate_release_notes: true
-        draft: true
+        draft: false
         prerelease: false
         files: |-
           wheelhouse/*.whl
@@ -348,11 +357,11 @@ jobs:
 # This release workflow file:
 #   .github/workflows/release.yml
 # Workflow page:
-#   github.com/Erotemic/ubelt/actions/workflows/release.yml
+#   https://github.com/Erotemic/ubelt/actions/workflows/release.yml
 # Workflow source:
-#   github.com/Erotemic/ubelt/blob/main/.github/workflows/release.yml
+#   https://github.com/Erotemic/ubelt/blob/main/.github/workflows/release.yml
 # GitHub environments:
-#   github.com/Erotemic/ubelt/settings/environments
+#   https://github.com/Erotemic/ubelt/settings/environments
 #
 # Official references:
 #   https://docs.pypi.org/trusted-publishers/
@@ -367,23 +376,23 @@ jobs:
 #        - testpypi
 #        - pypi
 #      URL:
-#        github.com/Erotemic/ubelt/settings/environments
+#        https://github.com/Erotemic/ubelt/settings/environments
 #
 #     Some xcookie setups will expect a setup like:
 #
 #        - testpypi:
 #            * environment name: testpypi
-#            * use for non-release pushes that publish to TestPyPI
+#            * used automatically for default-branch packaging smoke tests
+#              and optionally for explicit workflow_dispatch probes
 #            * usually no manual approval is needed
-#            * optionally restrict deployment branches if you only want
-#              TestPyPI publishes from selected branches
+#            * this environment is never part of a live release push
 #
 #        - pypi:
 #            * environment name: pypi
 #            * use for real releases only
 #            * require manual approval / required reviewers
 #            * prevent self-review if your org supports it
-#            * restrict deployments to release branches / version tags
+#            * restrict deployments to the exact release branch
 #
 #        - do not put TWINE_* secrets in these environments when using
 #          trusted publishing
@@ -403,6 +412,10 @@ jobs:
 #        https://pypi.org/manage/project/ubelt/settings/publishing/
 #      Account publishing page:
 #        https://pypi.org/manage/account/publishing/
+#
+#      If workspace_members publishes additional distributions,
+#      register this same repository/workflow/environment tuple as a
+#      trusted publisher for each workspace PyPI project as well.
 #
 #   3. In TestPyPI, add a trusted publisher for this project:
 #        owner: Erotemic

@@ -24,7 +24,7 @@ Testing:
     xdoctest ubelt
 """
 
-__version__ = '1.4.3'
+__version__ = '1.5.0'
 
 # Deprecated functions
 from ubelt import util_format
@@ -280,7 +280,6 @@ from ubelt.util_mixins import (
 from ubelt.util_path import (
     ChDir,
     Path,
-    TempDir,
     augpath,
     ensuredir,
     expandpath,
@@ -348,7 +347,6 @@ __all__ = [
     'ReprExtensions',
     'SetDict',
     'TeeStringIO',
-    'TempDir',
     'Timer',
     'UDict',
     'WIN32',
