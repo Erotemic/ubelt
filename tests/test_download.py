@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+import io
 import os
 import platform
 import sys
+import types
 import typing
 from os.path import basename, exists, join
 
@@ -230,6 +232,472 @@ def test_grabdata_with_fpath() -> None:
 
     ub.grabdata(url, fpath=fpath, verbose=3)
     assert exists(fpath)
+
+
+def test_grabdata_missing_content_length(monkeypatch, tmp_path):
+    class _FakeHeaders:
+        def get(self, name, default=None):
+            return None
+
+        def get_all(self, name):
+            return None
+
+        def getheaders(self, name):
+            raise KeyError(name)
+
+    class _FakeResponse:
+        def __init__(self, payload):
+            self._buffer = io.BytesIO(payload)
+
+        def read(self, size=-1):
+            return self._buffer.read(size)
+
+        def info(self):
+            return _FakeHeaders()
+
+        def close(self):
+            self._buffer.close()
+
+    payload = b'downloaded data'
+    url = 'https://example.com/no-content-length'
+    destination = tmp_path / 'content.bin'
+
+    calls = []
+
+    def _fake_urlopen(request, timeout=ub.NoParam):
+        calls.append(request)
+        return _FakeResponse(payload)
+
+    monkeypatch.setattr('urllib.request.urlopen', _fake_urlopen)
+
+    result = ub.grabdata(url, fpath=os.fspath(destination), hasher=None, verbose=0)
+    assert result == os.fspath(destination)
+    assert destination.read_bytes() == payload
+    assert len(calls) == 1
+
+    def _unexpected(*args, **kwargs):
+        # A cached result should avoid issuing any network calls on subsequent
+        # invocations, so fail loudly if ``grabdata`` reaches this stub.
+        raise AssertionError('grabdata should reuse the cached file')
+
+    monkeypatch.setattr('urllib.request.urlopen', _unexpected)
+    ub.grabdata(url, fpath=os.fspath(destination), hasher=None, verbose=0)
+
+
+def _broken_content_length_accessor(name):
+    raise ValueError('broken Content-Length metadata')
+
+
+@pytest.mark.parametrize(
+    ('headers', 'expected_total'),
+    [
+        pytest.param({'Content-Length': '9'}, 9, id='mapping-get'),
+        # A get-only container is the case the implementation in main misses.
+        pytest.param(
+            types.SimpleNamespace(get=lambda name: '9'),
+            9,
+            id='get-only',
+        ),
+        pytest.param(
+            types.SimpleNamespace(get=lambda name: b'9'),
+            9,
+            id='bytes',
+        ),
+        pytest.param(
+            types.SimpleNamespace(get_all=lambda name: ['9']),
+            9,
+            id='get-all-only',
+        ),
+        pytest.param(
+            types.SimpleNamespace(getheaders=lambda name: ['9']),
+            9,
+            id='getheaders-only',
+        ),
+        pytest.param(
+            types.SimpleNamespace(
+                get=lambda name: 'invalid', get_all=lambda name: ['9']
+            ),
+            9,
+            id='malformed-get-falls-back',
+        ),
+        pytest.param(
+            types.SimpleNamespace(
+                get=_broken_content_length_accessor,
+                get_all=lambda name: ['9'],
+            ),
+            9,
+            id='raising-get-falls-back',
+        ),
+        pytest.param(
+            types.SimpleNamespace(
+                get=_broken_content_length_accessor,
+                get_all=_broken_content_length_accessor,
+                getheaders=lambda name: ['9'],
+            ),
+            9,
+            id='raising-accessors-fall-back',
+        ),
+        pytest.param(
+            types.SimpleNamespace(get=lambda name: None),
+            None,
+            id='missing',
+        ),
+        pytest.param(
+            types.SimpleNamespace(get=lambda name: 'invalid'),
+            None,
+            id='invalid',
+        ),
+        pytest.param(
+            types.SimpleNamespace(get=lambda name: '-9'),
+            None,
+            id='negative',
+        ),
+        pytest.param(
+            types.SimpleNamespace(get=lambda name: '0'),
+            0,
+            id='zero',
+        ),
+        pytest.param(
+            types.SimpleNamespace(get_all=lambda name: []),
+            None,
+            id='empty-get-all',
+        ),
+    ],
+)
+def test_download_content_length_progress_total(
+    monkeypatch, headers, expected_total
+):
+    """Assert the inferred total, not just successful download or caching."""
+    import urllib.request
+
+    payload = b'123456789'
+    observed_totals = []
+
+    class FakeResponse:
+        def __init__(self):
+            self.stream = io.BytesIO(payload)
+
+        def info(self):
+            return headers
+
+        def read(self, size=-1):
+            return self.stream.read(size)
+
+        def close(self):
+            self.stream.close()
+
+    original_progress = ub.ProgIter
+
+    class RecordingProgress(original_progress):
+        def __init__(self, **kwargs):
+            observed_totals.append(kwargs.get('total'))
+            super().__init__(**kwargs)
+
+    monkeypatch.setattr(
+        urllib.request, 'urlopen', lambda req, timeout=None: FakeResponse()
+    )
+    monkeypatch.setattr(ub, 'ProgIter', RecordingProgress)
+
+    output = io.BytesIO()
+    result = ub.download('https://example.test/file', fpath=output, verbose=0)
+    assert result is output
+    assert output.getvalue() == payload
+    assert observed_totals == [expected_total]
+
+
+def test_download_content_length_explicit_filesize(monkeypatch):
+    """An explicit filesize takes precedence over response metadata."""
+    import urllib.request
+
+    observed_totals = []
+    original_progress = ub.ProgIter
+
+    class RecordingProgress(original_progress):
+        def __init__(self, **kwargs):
+            observed_totals.append(kwargs.get('total'))
+            super().__init__(**kwargs)
+
+    class FakeResponse:
+        def info(self):
+            raise AssertionError('do not inspect metadata when size is given')
+
+        def read(self, size=-1):
+            return b''
+
+        def close(self):
+            pass
+
+    monkeypatch.setattr(
+        urllib.request, 'urlopen', lambda req, timeout=None: FakeResponse()
+    )
+    monkeypatch.setattr(ub, 'ProgIter', RecordingProgress)
+
+    ub.download(
+        'https://example.test/file', fpath=io.BytesIO(), filesize=17, verbose=0
+    )
+    assert observed_totals == [17]
+
+
+class _TrackedDownloadResponse:
+    """Minimal urllib-like response with observable cleanup and read errors."""
+
+    def __init__(self, data, *, read_failure=False, metadata_failure=False):
+        self.buffer = io.BytesIO(data)
+        self.data_len = len(data)
+        self.read_failure = read_failure
+        self.metadata_failure = metadata_failure
+        self.read_count = 0
+        self.close_count = 0
+        self.on_read = None
+
+    def info(self):
+        if self.metadata_failure:
+            raise ValueError('bad response metadata')
+        return {'Content-Length': str(self.data_len)}
+
+    def read(self, size=-1):
+        self.read_count += 1
+        if self.on_read is not None:
+            self.on_read()
+        if self.read_failure and self.read_count == 2:
+            raise OSError('interrupted transfer')
+        return self.buffer.read(size)
+
+    def close(self):
+        self.close_count += 1
+        self.buffer.close()
+
+
+@pytest.mark.parametrize('existing', [False, True], ids=['new', 'existing'])
+@pytest.mark.parametrize(
+    'hash_ok', [False, True], ids=['bad-hash', 'valid-hash']
+)
+def test_download_verified_file_replacement(
+    monkeypatch, tmp_path, existing, hash_ok
+):
+    """A rejected transfer cannot destroy a previous destination."""
+    import hashlib
+    import urllib.request
+
+    destination = tmp_path / 'destination.bin'
+    original = b'previous valid data'
+    payload = b'new response bytes'
+    if existing:
+        destination.write_bytes(original)
+
+    response = _TrackedDownloadResponse(payload)
+    monkeypatch.setattr(urllib.request, 'urlopen', lambda *a, **kw: response)
+
+    def check_during_transfer():
+        # Even after writing some chunks, the old destination is untouched.
+        if existing:
+            assert destination.read_bytes() == original
+        else:
+            assert not destination.exists()
+        candidates = [p for p in tmp_path.iterdir() if p != destination]
+        assert len(candidates) == 1
+        assert candidates[0].is_file()
+
+    response.on_read = check_during_transfer
+    digest = hashlib.sha256(payload).hexdigest()
+    prefix = digest[:16] if hash_ok else 'bad-digest'
+
+    if hash_ok:
+        got = ub.download(
+            'https://example.test/file', fpath=destination,
+            hash_prefix=prefix, hasher='sha256', chunksize=4, verbose=0,
+        )
+        assert got == destination
+    else:
+        with pytest.raises(RuntimeError, match='invalid hash value'):
+            ub.download(
+                'https://example.test/file', fpath=destination,
+                hash_prefix=prefix, hasher='sha256', chunksize=4, verbose=0,
+            )
+
+    # Hash-typo recovery is intentionally retained if there was no file.
+    expected = payload if hash_ok or not existing else original
+    assert destination.read_bytes() == expected
+    assert list(tmp_path.iterdir()) == [destination]
+    assert response.close_count == 1
+
+
+@pytest.mark.parametrize('existing', [False, True], ids=['new', 'existing'])
+def test_download_interrupted_read_keeps_destination(
+    monkeypatch, tmp_path, existing
+):
+    """Failed reads discard temporary data and leave old files unchanged."""
+    import urllib.request
+
+    destination = tmp_path / 'destination.bin'
+    original = b'previous valid data'
+    if existing:
+        destination.write_bytes(original)
+    response = _TrackedDownloadResponse(
+        b'new response bytes', read_failure=True
+    )
+    monkeypatch.setattr(urllib.request, 'urlopen', lambda *a, **kw: response)
+
+    with pytest.raises(OSError, match='interrupted transfer'):
+        ub.download(
+            'https://example.test/file', fpath=destination,
+            chunksize=4, verbose=0,
+        )
+
+    if existing:
+        assert destination.read_bytes() == original
+        assert list(tmp_path.iterdir()) == [destination]
+    else:
+        assert not list(tmp_path.iterdir())
+    assert response.close_count == 1
+
+
+def test_download_write_error_keeps_existing_file(monkeypatch, tmp_path):
+    """Partial temporary-file writes never reach the old destination."""
+    import tempfile
+    import urllib.request
+
+    destination = tmp_path / 'destination.bin'
+    destination.write_bytes(b'previous valid data')
+    response = _TrackedDownloadResponse(b'new response bytes')
+    monkeypatch.setattr(urllib.request, 'urlopen', lambda *a, **kw: response)
+
+    original_named_temp = tempfile.NamedTemporaryFile
+
+    def failing_tempfile(*args, **kwargs):
+        tmp = original_named_temp(*args, **kwargs)
+
+        def fail_after_partial_write(data):
+            tmp.file.write(data[:1])
+            raise OSError('disk write failure')
+
+        tmp.write = fail_after_partial_write
+        return tmp
+
+    monkeypatch.setattr(tempfile, 'NamedTemporaryFile', failing_tempfile)
+    with pytest.raises(OSError, match='disk write failure'):
+        ub.download(
+            'https://example.test/file', fpath=destination,
+            verbose=0, chunksize=4,
+        )
+    assert destination.read_bytes() == b'previous valid data'
+    assert list(tmp_path.iterdir()) == [destination]
+    assert response.close_count == 1
+
+
+@pytest.mark.parametrize(
+    'hash_ok', [False, True], ids=['bad-hash', 'valid-hash']
+)
+def test_download_stream_is_caller_owned(monkeypatch, hash_ok):
+    """Caller-provided streams are never closed, even on hash failure."""
+    import hashlib
+    import urllib.request
+
+    payload = b'new response bytes'
+    response = _TrackedDownloadResponse(payload)
+    monkeypatch.setattr(urllib.request, 'urlopen', lambda *a, **kw: response)
+    stream = io.BytesIO()
+    digest = hashlib.sha256(payload).hexdigest()
+    prefix = digest[:16] if hash_ok else 'bad-digest'
+
+    if hash_ok:
+        assert ub.download(
+            'https://example.test/file', fpath=stream, hash_prefix=prefix,
+            hasher='sha256', chunksize=4, verbose=0,
+        ) is stream
+    else:
+        with pytest.raises(RuntimeError, match='invalid hash value'):
+            ub.download(
+                'https://example.test/file', fpath=stream, hash_prefix=prefix,
+                hasher='sha256', chunksize=4, verbose=0,
+            )
+    assert stream.getvalue() == payload
+    assert not stream.closed
+    assert response.close_count == 1
+
+
+@pytest.mark.parametrize(('option', 'value'), [
+    ('chunksize', 0), ('chunksize', -3), ('chunksize', 1.5),
+    ('chunksize', True), ('filesize', -1),
+])
+def test_download_invalid_sizes_prevent_network(monkeypatch, option, value):
+    """Invalid transfer sizes fail before opening a URL."""
+    import urllib.request
+
+    def unexpected_request(*args, **kwargs):
+        raise AssertionError('should not reach the network')
+
+    monkeypatch.setattr(urllib.request, 'urlopen', unexpected_request)
+    with pytest.raises(ValueError):
+        ub.download(
+            'https://example.test/file', fpath=io.BytesIO(), verbose=0,
+            **{option: value},
+        )
+
+
+def test_download_response_closes_on_metadata_failure(monkeypatch, tmp_path):
+    """Failure before opening the temporary file still closes the response."""
+    import urllib.request
+
+    destination = tmp_path / 'destination.bin'
+    destination.write_bytes(b'keep me')
+    response = _TrackedDownloadResponse(b'data', metadata_failure=True)
+    monkeypatch.setattr(urllib.request, 'urlopen', lambda *a, **kw: response)
+    with pytest.raises(ValueError, match='bad response metadata'):
+        ub.download('https://example.test/file', fpath=destination, verbose=0)
+    assert response.close_count == 1
+    assert destination.read_bytes() == b'keep me'
+    assert list(tmp_path.iterdir()) == [destination]
+
+
+def test_download_response_closes_when_tempfile_fails(monkeypatch, tmp_path):
+    """Opening the destination temp file must not leak the HTTP response."""
+    import tempfile
+    import urllib.request
+
+    response = _TrackedDownloadResponse(b'data')
+    monkeypatch.setattr(urllib.request, 'urlopen', lambda *a, **kw: response)
+
+    def fail_to_open_temp(*args, **kwargs):
+        raise OSError('cannot create temporary file')
+
+    monkeypatch.setattr(tempfile, 'NamedTemporaryFile', fail_to_open_temp)
+    destination = tmp_path / 'destination.bin'
+    with pytest.raises(OSError, match='cannot create temporary file'):
+        ub.download('https://example.test/file', fpath=destination, verbose=0)
+    assert response.close_count == 1
+    assert not list(tmp_path.iterdir())
+
+
+
+def test_download_relative_destination(monkeypatch, tmp_path):
+    """A bare relative filename uses the current directory for its temp."""
+    import urllib.request
+
+    monkeypatch.chdir(tmp_path)
+    response = _TrackedDownloadResponse(b'bytes')
+    monkeypatch.setattr(urllib.request, 'urlopen', lambda *a, **kw: response)
+    assert ub.download(
+        'https://example.test/file', fpath='relative.bin', verbose=0,
+    ) == 'relative.bin'
+    assert (tmp_path / 'relative.bin').read_bytes() == b'bytes'
+    assert list(tmp_path.iterdir()) == [tmp_path / 'relative.bin']
+    assert response.close_count == 1
+
+
+def test_download_explicit_no_param_progress(monkeypatch):
+    """The public NoParam sentinel behaves like an omitted progkw."""
+    import urllib.request
+
+    response = _TrackedDownloadResponse(b'bytes')
+    monkeypatch.setattr(urllib.request, 'urlopen', lambda *a, **kw: response)
+    dest = io.BytesIO()
+    assert ub.download(
+        'https://example.test/file', fpath=dest,
+        progkw=ub.NoParam, verbose=0,
+    ) is dest
+    assert dest.getvalue() == b'bytes'
+    assert response.close_count == 1
 
 
 def test_grabdata_value_error() -> None:
@@ -865,6 +1333,9 @@ def test_download_requestkw_headers_are_merged_without_mutation(monkeypatch) -> 
         def read(self, size=-1):
             return self.stream.read(size)
 
+        def close(self):
+            self.stream.close()
+
     def fake_request(url, **kwargs):
         captured['url'] = url
         captured['requestkw'] = kwargs
@@ -926,6 +1397,9 @@ def test_download_progress_reports_rate(monkeypatch) -> None:
 
         def read(self, size=-1):
             return self.stream.read(size)
+
+        def close(self):
+            self.stream.close()
 
     class FakeProgress:
         def __init__(self, **kwargs):

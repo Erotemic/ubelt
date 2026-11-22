@@ -43,6 +43,26 @@ __all__ = ['download', 'grabdata']
 # todo: add overloads to indicate that when fpath is a str then str is returned
 
 
+def _infer_content_length(headers: object) -> int | None:
+    """Best-effort size for progress reporting; a missing header is valid.
+
+    ``urllib`` responses normally expose ``get``; some older or custom
+    header containers expose only ``get_all`` or ``getheaders``. A broken
+    accessor or malformed value must not prevent the download itself.
+    """
+    for name in ('get', 'get_all', 'getheaders'):
+        try:
+            value = getattr(headers, name)('Content-Length')
+            if name != 'get' and isinstance(value, (list, tuple)):
+                value = value[0]
+            length = int(value)
+        except Exception:
+            continue
+        if length >= 0:
+            return length
+    return None
+
+
 def download(
     url: str,
     fpath: str | os.PathLike | BinaryIO | None = None,
@@ -74,7 +94,8 @@ def download(
             The path to download to. Defaults to basename of url and ubelt's
             application cache. If this is a :class:`io.BytesIO` object then
             information is directly written to this object (note this prevents
-            the use of temporary files).
+            the use of temporary files). Caller-provided streams are not
+            closed, and may contain partial data if the download fails.
 
         dpath (str | os.PathLike[str] | None):
             where to download the file. If unspecified `appname` is used to
@@ -97,7 +118,7 @@ def download(
             algorithm to apply to the file. Defaults to sha512.
 
         chunksize (int):
-            Download chunksize in bytes. Default to ``2 ** 13``
+            Positive download chunk size in bytes. Default to ``2 ** 13``.
 
         filesize (int | None):
             If known, the filesize in bytes. If unspecified, attempts to
@@ -134,6 +155,13 @@ def download(
         RuntimeError - if the hash does not match the hash_prefix.
 
     Note:
+        For filesystem paths, data is downloaded to a temporary file in the
+        destination directory and installed only after the transfer finishes.
+        An existing destination is preserved if a transfer or hash check fails.
+        For compatibility, a *complete* download with a mismatching hash is
+        left at the requested path when that path did not previously exist;
+        this permits correcting a mistaken hash without downloading again.
+
         Based largely on code in pytorch [TorchDL]_ with modifications
         influenced by other resources [Shichao_2012]_ [SO_15644964]_
         [SO_16694907]_.
@@ -191,8 +219,8 @@ def download(
     """
     import hashlib
     import pathlib
-    import shutil
     import tempfile
+    from contextlib import closing
 
     from ubelt import ProgIter as Progress
     from ubelt.util_platform import platform_cache_dir
@@ -206,6 +234,17 @@ def download(
         timeout_ = timeout
 
     from urllib.request import Request, urlopen
+
+    # Reject invalid sizes before starting a network request. A zero-size read
+    # would otherwise silently produce a successful, empty download.
+    if (
+        isinstance(chunksize, bool)
+        or not isinstance(chunksize, int)
+        or chunksize <= 0
+    ):
+        raise ValueError('chunksize must be a positive integer')
+    if filesize is not None and filesize < 0:
+        raise ValueError('filesize must be nonnegative')
 
     if fpath and (dpath or fname):
         raise ValueError('Cannot specify fpath with dpath or fname')
@@ -221,8 +260,9 @@ def download(
     # Check if fpath was given as an BytesIO object
     _dst_is_io_object = hasattr(fpath, 'write')
 
-    if not _dst_is_io_object and not exists(dirname(fpath)):  # type: ignore
-        raise Exception('parent of {} does not exist'.format(fpath))
+    if not _dst_is_io_object:
+        if not exists(dirname(fpath) or '.'):  # type: ignore
+            raise Exception('parent of {} does not exist'.format(fpath))
 
     if verbose:
         if _dst_is_io_object:
@@ -239,22 +279,7 @@ def download(
     if given_headers is not None:
         headers.update(given_headers)
     requestkw_['headers'] = headers
-    req = Request(url, **requestkw_)  # type: ignore
-    urldata = urlopen(req, timeout=timeout_)  # type: ignore
-
-    meta = urldata.info()
-    if filesize is None:
-        try:
-            if hasattr(meta, 'getheaders'):  # nocover
-                filesize = int(meta.getheaders('Content-Length')[0])
-            else:
-                filesize = int(meta.get_all('Content-Length')[0])
-        except Exception:  # nocover
-            # sometimes the url does not contain content length metadata
-            # TODO: find a public URL that exemplifies this or figure out how to
-            # mock it locally.
-            filesize = None
-
+    # Validate the hasher before opening a network connection.
     if hash_prefix:
         if isinstance(hasher, str):
             if hasher == 'sha1':
@@ -271,109 +296,133 @@ def download(
     if typing.TYPE_CHECKING:
         hasher = cast(HasherLike, hasher)
 
+    # A caller-supplied stream remains caller-owned. Disk destinations are
+    # written to a same-directory temporary file until transfer is complete.
     if _dst_is_io_object:
+        dest_path = None
         if typing.TYPE_CHECKING:
             fpath = cast(BinaryIO, fpath)
-        _file_write = fpath.write
-        tmp = None
     else:
-        tmp = tempfile.NamedTemporaryFile(delete=False)
-        _file_write = tmp.write
+        if typing.TYPE_CHECKING:
+            fpath = cast(str | os.PathLike, fpath)
+        dest_path = fpath
 
-    # possible optimization (have not tested or timed)
-    _urldata_read = urldata.read
+    req = Request(url, **requestkw_)  # type: ignore
+    tmp = None
     try:
-        # TODO: this outputs a lot of information that can bog down a CI
-        # Might need to update defaults of ProgIter to reduce clutter
-        _progkw = {
-            'total': filesize,
-            # 'chunksize': chunksize,
-            # 'freq': chunksize,
-            'freq': 1,
-            'time_thresh': 2,
-            'adjust': False,
-            'show_rate': False,
-        }
-        # import time
-        # start_time = time.monotonic()
+        # urlopen() supplies the response, so download() owns its cleanup.
+        # Close the response before verifying/committing the downloaded file.
+        with closing(urlopen(req, timeout=timeout_)) as urldata:  # type: ignore
+            if filesize is None:
+                filesize = _infer_content_length(urldata.info())
 
-        def _build_extra() -> str:
-            pbar._curr_measurement.time
-            bytes_down = pbar._iter_idx
-            total_seconds = pbar._total_seconds + 1e-9
-            num_kb_down = int(bytes_down) / 1024
-            kb_per_second = int(num_kb_down / (total_seconds))
-            fmt_msg = ' {:d} KB/s'
-            msg = fmt_msg.format(kb_per_second)
-            return msg
+            if dest_path is None:
+                _file_write = fpath.write  # type: ignore
+            else:
+                # Keeping the temp file on the destination filesystem allows
+                # os.replace to install the complete file atomically.
+                tmp = tempfile.NamedTemporaryFile(
+                    delete=False, dir=dirname(dest_path) or '.'
+                )
+                _file_write = tmp.write
 
-        if progkw is not None:
-            _progkw.update(progkw)  # type: ignore
-        _progkw['disable'] = not verbose
+            # possible optimization (have not tested or timed)
+            _urldata_read = urldata.read
 
-        pbar: Progress
-        pbar = Progress(**_progkw)  # type: ignore
+            # TODO: this outputs a lot of information that can bog down a CI
+            # Might need to update defaults of ProgIter to reduce clutter
+            _progkw = {
+                'total': filesize,
+                # 'chunksize': chunksize,
+                # 'freq': chunksize,
+                'freq': 1,
+                'time_thresh': 2,
+                'adjust': False,
+                'show_rate': False,
+            }
+            # import time
+            # start_time = time.monotonic()
 
-        pbar.set_extra(_build_extra)
-        with pbar:
-            _pbar_update = pbar.update
+            def _build_extra() -> str:
+                pbar._curr_measurement.time
+                bytes_down = pbar._iter_idx
+                total_seconds = pbar._total_seconds + 1e-9
+                num_kb_down = int(bytes_down) / 1024
+                kb_per_second = int(num_kb_down / (total_seconds))
+                fmt_msg = ' {:d} KB/s'
+                msg = fmt_msg.format(kb_per_second)
+                return msg
 
-            def _critical_loop() -> None:
-                # Initialize the buffer to a non-empty object
-                buffer = ' '
-                if hash_prefix:
-                    _hasher_update = hasher.update
-                    while buffer:
-                        buffer = _urldata_read(chunksize)
-                        _file_write(buffer)
-                        _hasher_update(buffer)
-                        _pbar_update(len(buffer))
-                else:
-                    # Same code as above, just without the hasher update.
-                    # (tight loop optimization: remove in-loop conditional)
-                    while buffer:
-                        buffer = _urldata_read(chunksize)
-                        _file_write(buffer)
-                        _pbar_update(len(buffer))
+            if progkw is not None and progkw is not NoParam:
+                _progkw.update(progkw)  # type: ignore
+            _progkw['disable'] = not verbose
 
-            _critical_loop()
+            pbar: Progress
+            pbar = Progress(**_progkw)  # type: ignore
 
-        if not _dst_is_io_object:
-            if typing.TYPE_CHECKING:
-                tmp = cast(tempfile._TemporaryFileWrapper, tmp)
+            pbar.set_extra(_build_extra)
+            with pbar:
+                _pbar_update = pbar.update
+
+                def _critical_loop() -> None:
+                    # Initialize the buffer to a non-empty object
+                    buffer = ' '
+                    if hash_prefix:
+                        _hasher_update = hasher.update
+                        while buffer:
+                            buffer = _urldata_read(chunksize)
+                            _file_write(buffer)
+                            _hasher_update(buffer)
+                            _pbar_update(len(buffer))
+                    else:
+                        # Same code as above, just without the hasher update.
+                        # (tight loop optimization: remove in-loop conditional)
+                        while buffer:
+                            buffer = _urldata_read(chunksize)
+                            _file_write(buffer)
+                            _pbar_update(len(buffer))
+
+                _critical_loop()
+
+        if tmp is not None:
+            # Windows cannot replace a destination while the temporary file
+            # still has an open handle.
             tmp.close()
-
-            # We keep a potentially corrupted file if the hash doesn't match.
-            # It could be the case that the user simply specified the wrong
-            # hash_prefix.
-            if typing.TYPE_CHECKING:
-                fpath = cast(str | os.PathLike, fpath)
-            shutil.move(tmp.name, fpath)
 
         if hash_prefix:
             got = hasher.hexdigest()
             if got[: len(hash_prefix)] != hash_prefix:
                 print('hash_prefix = {!r}'.format(hash_prefix))
                 print('got = {!r}'.format(got))
-                if _dst_is_io_object:
+                if dest_path is None:
                     raise RuntimeError(
                         'invalid hash value (expected "{}", got "{}")'.format(
                             hash_prefix, got
                         )
                     )
                 else:
+                    # Preserve the historical hash-typo recovery workflow:
+                    # a complete rejected download is kept when there was no
+                    # previous destination. Never overwrite an existing file
+                    # (including a dangling symlink) with unverified bytes.
+                    if not os.path.lexists(dest_path):
+                        assert tmp is not None
+                        os.replace(tmp.name, dest_path)
                     raise RuntimeError(
                         'invalid hash value for fpath={!r} '
                         '(expected "{}", got "{}")'.format(
                             fpath, hash_prefix, got
                         )
                     )
+
+        if tmp is not None:
+            # All checks passed; publish the complete file in one replacement.
+            assert dest_path is not None
+            os.replace(tmp.name, dest_path)
     finally:
-        if not _dst_is_io_object:  # nocover
-            if typing.TYPE_CHECKING:
-                tmp = cast(tempfile._TemporaryFileWrapper, tmp)
+        if tmp is not None:
             tmp.close()
-            # If for some reason the move failed, delete the temporary file
+            # If an error prevented publication, discard the temporary file.
             if exists(tmp.name):
                 os.remove(tmp.name)
     return fpath
@@ -404,7 +453,10 @@ def grabdata(
 
         fpath (str | os.PathLike[str] | None):
             The full path to download the file to. If unspecified, the
-            arguments `dpath` and `fname` are used to determine this.
+            arguments `dpath` and `fname` are used to determine this. The
+            destination is the cache identity: with no expected hash, reusing
+            this path with a different URL does not trigger a redownload.
+            Use ``redo=True`` or a different destination when needed.
 
         dpath (str | os.PathLike[str] | None):
             where to download the file. If unspecified `appname` is used to

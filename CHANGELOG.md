@@ -32,6 +32,11 @@ This project (loosely) adheres to [Semantic Versioning](https://semver.org/spec/
   handling in local timestamp/time parsing.
 * Fixed ``zopen`` resource cleanup and delegated calls on temporary instances.
 * Fixed ``download`` request-header merging and the reported transfer rate.
+* Improved ``download`` content-length inference for different header
+  interfaces; missing or invalid lengths leave progress indeterminate.
+* Hardened ``download`` file replacement: interrupted transfers and failed
+  hash checks no longer overwrite existing destinations. Close HTTP responses,
+  use same-directory temporary files, and reject invalid chunk sizes.
 * Fixed symlink idempotence for equivalent target spellings and corrected the
   physical-path collision error message.
 * Fixed ANSI-aware repr alignment, bound-method injection, and zero-value base
