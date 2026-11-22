@@ -552,7 +552,7 @@ def test_symlink_relative_modes(tmp_path) -> None:
 
     link.unlink()
     result = ub.symlink(real, link, relative=False)
-    pointed = os.readlink(result)
+    pointed = util_links._readlink(result)
     assert pointed == os.path.abspath(real)
     assert os.path.isabs(pointed)
     assert link.read_text() == 'data'
@@ -577,7 +577,7 @@ def test_symlink_explicit_modes_with_relative_source(tmp_path, monkeypatch) -> N
 
     link.unlink()
     ub.symlink('data/real.txt', 'links/link.txt', relative=False)
-    assert os.readlink(link) == os.path.abspath(real)
+    assert util_links._readlink(link) == os.path.abspath(real)
     assert link.read_text() == 'data'
 
 
@@ -876,6 +876,30 @@ def test_symlink_physical_collision_error_names_link(tmp_path) -> None:
     message = str(exc_info.value)
     assert str(link) in message
     assert str(real) not in message
+
+
+
+@pytest.mark.parametrize('can_symlink', [True, False])
+def test_win32_physical_file_collision_reports_file_exists(
+    tmp_path, monkeypatch, can_symlink
+) -> None:
+    """The Windows implementation must not silently replace a real file."""
+    from ubelt import _win32_links
+
+    source = tmp_path / 'source.txt'
+    occupied = tmp_path / 'occupied.txt'
+    source.write_text('source')
+    occupied.write_text('occupied')
+
+    monkeypatch.setattr(_win32_links, '_win32_is_junction', lambda p: False)
+    monkeypatch.setattr(
+        _win32_links, '_win32_is_hardlinked', lambda *args: False
+    )
+    monkeypatch.setattr(_win32_links, '_win32_can_symlink', lambda: can_symlink)
+
+    with pytest.raises(FileExistsError, match='occupied.txt'):
+        _win32_links._symlink(source, occupied)
+    assert occupied.read_text() == 'occupied'
 
 
 def test_win32_read_junction_closes_handle_on_error(monkeypatch) -> None:

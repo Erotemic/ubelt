@@ -233,7 +233,7 @@ def download(
     if requestkw is NoParam or requestkw is None:
         requestkw_ = {}
     else:
-        requestkw_ = dict(requestkw)
+        requestkw_ = dict(typing.cast('Mapping[str, Any]', requestkw))
     headers = {'User-Agent': 'Mozilla/5.0'}
     given_headers = requestkw_.get('headers', None)
     if given_headers is not None:

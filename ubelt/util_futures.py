@@ -124,6 +124,10 @@ class SerialFuture(concurrent.futures.Future, typing.Generic[T]):
     func: typing.Callable[..., T]
     args: tuple[typing.Any, ...]
     kw: dict[str, typing.Any]
+    # Future initializes this list, but typeshed does not expose the attribute.
+    _done_callbacks: list[
+        typing.Callable[[concurrent.futures.Future[T]], typing.Any]
+    ]
 
     def __init__(
         self, func: typing.Callable[..., T], *args: typing.Any, **kw: typing.Any
@@ -190,7 +194,7 @@ class SerialFuture(concurrent.futures.Future, typing.Generic[T]):
             self._condition.notify_all()
         self._invoke_callbacks()  # type: ignore
 
-    def set_exception(self, exception: BaseException) -> None:
+    def set_exception(self, exception: BaseException | None) -> None:
         """Mark this serial future complete with ``exception``."""
         with self._condition:
             if self._run_count:

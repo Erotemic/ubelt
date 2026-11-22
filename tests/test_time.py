@@ -215,9 +215,13 @@ def test_timeparse_with_dateutil() -> None:
     have_dateutil = bool(ub.modname_to_modpath('dateutil'))
     if have_dateutil:
         for stamp in conditional_stamps:
-            result = ub.timeparse(stamp)
+            # Some historical dates precede the range of the Windows CRT
+            # local-time conversion. This tests parsing, not local offsets.
+            result = ub.timeparse(stamp, default_timezone='utc')
             recon_stamp = ub.timestamp(result, precision=6)
-            recon_result = ub.timeparse(recon_stamp)
+            recon_result = ub.timeparse(
+                recon_stamp, default_timezone='utc'
+            )
             print('----')
             print(f'stamp        = {stamp}')
             print(f'recon_stamp  = {recon_stamp}')

@@ -245,7 +245,9 @@ def _symlink(
             else:
                 if verbose:
                     print('...and is an existing real directory!')
-                raise IOError('Cannot overwrite a real directory')
+                raise FileExistsError(
+                    'cannot overwrite a physical directory: "{}"'.format(link)
+                )
 
         elif os.path.isfile(link):
             if _win32_is_hardlinked(link, path):
@@ -256,8 +258,8 @@ def _symlink(
                 if verbose:
                     print('...and is a hard link that points somewhere else')
                 if _win32_can_symlink():
-                    raise IOError(
-                        'Cannot overwrite potentially real file if we can symlink'
+                    raise FileExistsError(
+                        'cannot overwrite a physical path: "{}"'.format(link)
                     )
         if overwrite:
             if verbose:
@@ -265,7 +267,7 @@ def _symlink(
             util_io.delete(link, verbose > 1)
         else:
             if exists(link):
-                raise IOError('Link already exists')
+                raise FileExistsError('link already exists: "{}"'.format(link))
 
     _win32_symlink2(
         path,

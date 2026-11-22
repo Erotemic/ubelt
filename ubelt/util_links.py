@@ -52,7 +52,7 @@ def symlink(
     verbose: int = 0,
     *,
     relative: bool | typing.Literal['legacy'] | NoParamType = NoParam,
-) -> str | os.PathLike:
+) -> str:
     """
     Create a link ``link_path`` that mirrors ``real_path``.
 
@@ -81,7 +81,7 @@ def symlink(
             the default behavior may change to be non-buggy).
 
     Returns:
-        str | PathLike: link path
+        str: normalized link path
 
     Note:
         In the future we may rework and rename this function to something like
