@@ -843,8 +843,12 @@ def test_symlink_idempotence_equivalent_target_spellings(tmp_path) -> None:
     os.symlink(stored_target, link)
     before = os.readlink(link)
 
-    result = ub.symlink(real, link, relative=False)
+    # Legacy mode preserves the historical identity-based idempotence.
+    result = ub.symlink(real, link, relative='legacy')
     assert os.fspath(result) == os.fspath(link)
+    assert os.readlink(link) == before
+    # With a matching relative representation, the explicit mode also reuses.
+    assert ub.symlink(real, link, relative=True) == os.fspath(link)
     assert os.readlink(link) == before
     assert link.read_text() == 'data'
 
@@ -859,7 +863,7 @@ def test_symlink_idempotence_equivalent_broken_targets(tmp_path) -> None:
 
     stored_target = os.path.relpath(missing, link.parent)
     os.symlink(stored_target, link)
-    result = ub.symlink(missing, link, relative=False)
+    result = ub.symlink(missing, link, relative='legacy')
     assert os.fspath(result) == os.fspath(link)
     assert os.readlink(link) == stored_target
     assert not link.exists()
@@ -945,3 +949,43 @@ def test_win32_read_junction_closes_handle_on_error(monkeypatch) -> None:
     with pytest.raises(RuntimeError, match='device failure'):
         _win32_links._win32_read_junction('fake-junction')
     assert closed == [123]
+
+
+@pytest.mark.parametrize(
+    'initial_relative,requested_relative', [(True, False), (False, True)]
+)
+@pytest.mark.parametrize('broken', [False, True])
+def test_symlink_explicit_representation_requires_overwrite(
+    tmp_path, capsys, initial_relative, requested_relative, broken
+) -> None:
+    """Equivalent targets do not override an explicit storage-form request."""
+    if not util_links._can_symlink():
+        pytest.skip('requires real symbolic links')
+
+    real = tmp_path / 'data' / 'real.txt'
+    link = tmp_path / 'links' / 'link.txt'
+    real.parent.mkdir()
+    link.parent.mkdir()
+    if not broken:
+        real.write_text('payload')
+
+    ub.symlink(real, link, relative=initial_relative)
+    original = util_links._readlink(link)
+    assert os.path.isabs(original) is not initial_relative
+
+    # Changing the representation is a real mutation and requires overwrite.
+    with pytest.raises(FileExistsError, match='overwrite=True'):
+        ub.symlink(real, link, relative=requested_relative, verbose=2)
+    assert 'stored relative/absolute form differs' in capsys.readouterr().out
+    assert util_links._readlink(link) == original
+
+    ub.symlink(real, link, relative=requested_relative, overwrite=True)
+    revised = util_links._readlink(link)
+    assert os.path.isabs(revised) is not requested_relative
+    assert not broken or not link.exists()
+    if not broken:
+        assert link.read_text() == 'payload'
+
+    # No overwrite is needed when the existing link already has the right form.
+    ub.symlink(real, link, relative=requested_relative)
+    assert util_links._readlink(link) == revised

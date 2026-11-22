@@ -323,21 +323,23 @@ class zopen(NiceRepr):
     def __getattr__(self, key: str) -> typing.Any:
         # Expose attributes of wrapped handle
         handle = self.__dict__.get('_handle', None)
-        if handle is not None and hasattr(handle, key):
-            assert handle is not self
+        if handle is None:
+            raise AttributeError(key)
+        assert handle is not self
+        try:
             attr = getattr(handle, key)
-            if callable(attr):
-                # Keep this zopen instance alive until delegated calls finish.
-                # Otherwise expressions like ``zopen(path).read()`` can drop
-                # the temporary zopen between attribute lookup and the call,
-                # causing __del__ to close the underlying handle too early.
-                def _proxy(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
-                    current = self._handle
-                    return getattr(current, key)(*args, **kwargs)
+        except AttributeError:
+            raise AttributeError(key) from None
+        if callable(attr):
+            # Capture the bound attribute just once. Keep this zopen instance
+            # alive through the returned closure, so a temporary zopen cannot
+            # run __del__ and close the handle before the delegated call ends.
+            def _proxy(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
+                _keepalive = self
+                return attr(*args, **kwargs)
 
-                return _proxy
-            return attr
-        raise AttributeError(key)
+            return _proxy
+        return attr
 
     def __dir__(self) -> list[str]:
         # Expose attributes of wrapped handle

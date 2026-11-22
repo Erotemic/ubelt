@@ -514,6 +514,102 @@ def test_serial_future_as_completed_remains_lazy() -> None:
     assert completed[0].result() == 3
     assert calls == ['run']
 
+
+def test_serial_future_concurrent_consumers_evaluate_once() -> None:
+    """Two waiting consumers cannot both execute the pending callable."""
+    import concurrent.futures
+    import threading
+
+    from ubelt.util_futures import SerialFuture
+
+    entered = threading.Event()
+    consumer_entered = threading.Event()
+    release = threading.Event()
+    executed_twice = threading.Event()
+    calls = []
+    callbacks = []
+
+    def worker():
+        calls.append('run')
+        if len(calls) > 1:
+            executed_twice.set()
+        entered.set()
+        if not release.wait(timeout=5):
+            raise RuntimeError('test worker timed out')
+        return 42
+
+    future = SerialFuture(worker)
+    future.add_done_callback(lambda f: callbacks.append(f.result()))
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=2) as pool:
+        try:
+            first = pool.submit(future.exception)
+            assert entered.wait(timeout=5)
+
+            def second_consumer():
+                consumer_entered.set()
+                return future.result()
+
+            second = pool.submit(second_consumer)
+            assert consumer_entered.wait(timeout=5)
+            # With the old implementation the second consumer could execute
+            # the worker concurrently. A short observation period makes that
+            # interleaving observable without depending on execution order.
+            assert not executed_twice.wait(timeout=0.1)
+        finally:
+            release.set()
+        assert first.result(timeout=5) is None
+        assert second.result(timeout=5) == 42
+
+    assert calls == ['run']
+    assert callbacks == [42]
+    assert future.done()
+    assert future.result() == 42
+
+
+def test_serial_future_concurrent_exception_consumers_evaluate_once() -> None:
+    import concurrent.futures
+    import threading
+
+    import pytest
+    from ubelt.util_futures import SerialFuture
+
+    class DemoError(Exception):
+        pass
+
+    entered = threading.Event()
+    second_entered = threading.Event()
+    release = threading.Event()
+    calls = []
+
+    def worker():
+        calls.append('run')
+        entered.set()
+        if not release.wait(timeout=5):
+            raise RuntimeError('test worker timed out')
+        raise DemoError('expected failure')
+
+    future = SerialFuture(worker)
+    with concurrent.futures.ThreadPoolExecutor(max_workers=2) as pool:
+        try:
+            first = pool.submit(future.exception)
+            assert entered.wait(timeout=5)
+
+            def second_consumer():
+                second_entered.set()
+                return future.exception()
+
+            second = pool.submit(second_consumer)
+            assert second_entered.wait(timeout=5)
+        finally:
+            release.set()
+        assert isinstance(first.result(timeout=5), DemoError)
+        assert isinstance(second.result(timeout=5), DemoError)
+
+    assert calls == ['run']
+    with pytest.raises(DemoError, match='expected failure'):
+        future.result()
+
 if __name__ == '__main__':
     """
     CommandLine:

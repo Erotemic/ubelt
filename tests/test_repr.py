@@ -501,3 +501,14 @@ def test_align_lines_with_ansi() -> None:
     aligned = _align_lines(lines, '=')
     visible = [ansi_escape.sub('', line) for line in aligned]
     assert visible[0].index('=') == visible[1].index('=')
+
+
+def test_align_lines_ansi_codes_do_not_count_toward_width() -> None:
+    """ANSI escape sequences are invisible for alignment calculations."""
+    from ubelt.util_repr import _align_lines
+
+    red = '\x1b[31m'
+    reset = '\x1b[0m'
+    lines = [f'{red}x{reset}=1', 'long=2']
+    aligned = _align_lines(lines, '=')
+    assert aligned == [f'{red}x{reset}   =1', 'long=2']

@@ -23,3 +23,35 @@ def test_zopen_temporary_method_lifetime_and_close(tmp_path) -> None:
     assert file.closed
     assert owned_zfile.fp is None
     file.close()
+
+
+def test_zopen_delegated_callable_lookup_occurs_once(tmp_path) -> None:
+    """Accessing a descriptor must not evaluate it multiple times."""
+    import ubelt as ub
+
+    path = tmp_path / 'data.txt'
+    path.write_text('hello')
+    with ub.zopen(path, 'r') as file:
+        class CountingHandle:
+            def __init__(self, inner):
+                self.inner = inner
+                self.lookups = 0
+
+            @property
+            def read(self):
+                self.lookups += 1
+                return self.inner.read
+
+            @property
+            def closed(self):
+                return self.inner.closed
+
+            def close(self):
+                return self.inner.close()
+
+        proxy = CountingHandle(file._handle)
+        file._handle = proxy
+        method = file.read
+        assert proxy.lookups == 1
+        assert method() == 'hello'
+        assert proxy.lookups == 1

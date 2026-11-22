@@ -75,10 +75,13 @@ def symlink(
         relative (bool | str):
             Controls how the symlink target is encoded. ``True`` makes it
             relative, ``False`` makes it absolute, and ``'legacy'`` preserves
-            historical behavior. Emits a warning if omitted and ``real_path``
-            is relative (buggy behavior is the default for backwards compat,
-            ensure real_path is absolute, or specify this arg, in the future
-            the default behavior may change to be non-buggy).
+            historical behavior. If an existing symlink points to the correct
+            location but has the opposite representation, an explicit mode
+            requires ``overwrite=True`` to replace it; otherwise the call
+            raises ``FileExistsError``. ``'legacy'`` reuses equivalent links
+            regardless of representation. Emits a warning if omitted and
+            ``real_path`` is relative, encouraging callers to choose a mode
+            before Ubelt 2.0.0.
 
     Returns:
         str: normalized link path
@@ -103,7 +106,9 @@ def symlink(
         extra space will be used.
 
         More details can be found in :mod:`ubelt._win32_links`. On systems that
-        support symlinks (e.g. Linux), none of the above applies.
+        support symlinks (e.g. Linux), none of the above applies. A hard-link or
+        junction fallback cannot honor a symbolic link's relative/absolute
+        stored-target representation.
 
     Note:
         The historical behavior for relative ``real_path`` inputs is retained
@@ -257,30 +262,38 @@ def symlink(
         if verbose:
             print('... already exists')
         pointed = _readlink(link)
-        if pointed == path or _symlink_targets_equivalent(link, pointed, path):
+        same_target = (
+            pointed == path or _symlink_targets_equivalent(link, pointed, path)
+        )
+        # Only explicit modes promise a target representation. In legacy mode,
+        # an equivalent relative or absolute symlink remains idempotent.
+        same_representation = (
+            relative == 'legacy'
+            or os.path.isabs(pointed) == os.path.isabs(path)
+        )
+        if same_target and same_representation:
             if verbose > 1:
                 print('... and points to the right place')
             return link
         if verbose > 1:
-            if not exists(link):
+            if same_target:
+                print('... but the stored relative/absolute form differs')
+            elif not exists(link):
                 print(
                     '... but it is broken and points somewhere else: {}'.format(
                         pointed
                     )
                 )
             else:
-                # TODO: if we fix the relative symlink bug, this text might be better
-                # import pathlib
-                # abs_path = join(os.path.dirname(link), path)
-                # resolved_path = pathlib.Path(abs_path).resolve()
-                # resolved_pointed = (pathlib.Path(link).parent / pointed).resolve()
-                # if  resolved_path == resolved_pointed:
-                #     print('... and it resolves to the right location')
-                #     print('... but the pointer is different: {}'.format(pointed))
-                # else:
                 print('... but it points somewhere else: {}'.format(pointed))
         if overwrite:
             util_io.delete(link, verbose=verbose > 1)
+        elif same_target:
+            # Do not silently ignore an explicit representation request.
+            raise FileExistsError(
+                'existing symlink has a different target representation: '
+                '{!r}; pass overwrite=True to replace it'.format(link)
+            )
     elif exists(link):
         if _win32_links is None:
             if verbose:

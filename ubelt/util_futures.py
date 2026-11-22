@@ -53,6 +53,7 @@ Example:
 from __future__ import annotations
 
 import concurrent.futures
+import threading
 import typing
 from concurrent.futures import as_completed
 from typing import Protocol, cast
@@ -116,7 +117,8 @@ class SerialFuture(concurrent.futures.Future, typing.Generic[T]):
         ``concurrent.futures.wait()`` reads the internal finished state and
         can report a serial job as finished before ``done()`` returns True.
         The lazy behavior is retained for existing SerialExecutor callers;
-        adopting eager evaluation would allow use of an ordinary Future.
+        adopting eager evaluation would allow use of an ordinary Future. Initial
+        evaluation is serialized when multiple threads request the same result.
 
     Example:
         >>> from ubelt.util_futures import SerialFuture
@@ -165,6 +167,10 @@ class SerialFuture(concurrent.futures.Future, typing.Generic[T]):
         self.args = args
         self.kw = kw
         self._run_count = 0
+        # Keep the callable one-shot even if different threads request
+        # result() and exception() simultaneously. Do not use _condition here:
+        # callbacks may themselves inspect this future or involve other threads.
+        self._evaluation_lock = threading.Lock()
         # as_completed() inspects Future._state rather than calling result().
         # Retain the legacy lazy executor behavior for 1.5, but document the
         # resulting wait()/done() mismatch above instead of claiming full
@@ -174,12 +180,22 @@ class SerialFuture(concurrent.futures.Future, typing.Generic[T]):
     def _run(self) -> None:
         if self._run_count:
             return
-        try:
-            result = self.func(*self.args, **self.kw)
-        except BaseException as ex:
-            self.set_exception(ex)
-        else:
-            self.set_result(result)
+        with self._evaluation_lock:
+            if self._run_count:
+                return
+            try:
+                result = self.func(*self.args, **self.kw)
+            except BaseException as ex:
+                self.set_exception(ex)
+            else:
+                self.set_result(result)
+
+    def result(self, timeout: float | None = None) -> T:
+        """Evaluate the callable once, then return its result or raise."""
+        # Evaluate outside Future.result's condition lock; the old private
+        # _Future__get_result override ran user code while that lock was held.
+        self._run()
+        return super().result(timeout)
 
     def done(self) -> bool:
         """Return True once the serial callable has actually been evaluated."""
@@ -204,9 +220,8 @@ class SerialFuture(concurrent.futures.Future, typing.Generic[T]):
 
     def exception(self, timeout: float | None = None) -> BaseException | None:
         """Evaluate the serial callable once and return its exception, if any."""
-        if not self._run_count:
-            self._run()
-        return self._exception
+        self._run()
+        return super().exception(timeout)
 
     def set_result(self, result: T) -> None:
         """
@@ -283,18 +298,6 @@ class SerialFuture(concurrent.futures.Future, typing.Generic[T]):
                 waiter.add_exception(self)
             self._condition.notify_all()
         self._invoke_callbacks()  # type: ignore
-
-    def _Future__get_result(self) -> typing.Any:
-        # Override Future's private result helper so lazy serial jobs execute on
-        # first collection while still appearing available to as_completed.
-        if not self._run_count:
-            self._run()
-        if self._exception is not None:
-            try:
-                raise self._exception
-            finally:
-                self = None  # type: ignore
-        return self._result
 
 
 # Rename to SerialPoolExecutor?

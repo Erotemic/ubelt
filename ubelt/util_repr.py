@@ -1302,18 +1302,16 @@ def _align_lines(
 
     tup_list = [line.split(character) for line in line_list]
 
-    handle_ansi = True
-    if handle_ansi:  # nocover
-        # Remove ansi from length calculation
-        # References: http://stackoverflow.com/questions/14693701remove-ansi
-        ansi_escape = re.compile(r'\x1b[^m]*m')
+    # Remove ANSI codes from displayed width calculations. The alternative
+    # branch was unreachable (handle_ansi was always True).
+    # References: http://stackoverflow.com/questions/14693701remove-ansi
+    ansi_escape = re.compile(r'\x1b[^m]*m')
 
     # Find how much padding is needed
     maxlen = 0
     for tup in tup_list:
         if len(tup) >= rpos + 1:
-            if handle_ansi:  # nocover
-                tup = [ansi_escape.sub('', x) for x in tup]
+            tup = [ansi_escape.sub('', x) for x in tup]
             left_lenlist = list(map(len, tup[0:rpos]))
             left_len = sum(left_lenlist) + lpos * len(replchar)
             maxlen = max(maxlen, left_len)
@@ -1325,12 +1323,9 @@ def _align_lines(
             lhs = character.join(tup[0:rpos])
             rhs = character.join(tup[rpos:])
             # pad the new line with requested justification
-            if handle_ansi:  # nocover
-                visible_lhs = ansi_escape.sub('', lhs)
-                padlen = maxlen - len(visible_lhs)
-                newline = lhs + (' ' * padlen) + replchar + rhs
-            else:  # nocover
-                newline = lhs.ljust(maxlen) + replchar + rhs
+            visible_lhs = ansi_escape.sub('', lhs)
+            padlen = maxlen - len(visible_lhs)
+            newline = lhs + (' ' * padlen) + replchar + rhs
             new_lines.append(newline)
         else:
             new_lines.append(replchar.join(tup))

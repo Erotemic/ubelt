@@ -17,8 +17,9 @@ This project (loosely) adheres to [Semantic Versioning](https://semver.org/spec/
 ### Added
 * Added an explicit ``relative=`` mode to ``ub.symlink``. ``relative=True``
   requests a relative symbolic-link target and ``relative=False`` requests an
-  absolute target. The temporary ``relative='legacy'`` mode preserves the old
-  behavior without warnings.
+  absolute target. Changing the representation of an equivalent existing
+  symlink requires ``overwrite=True``. The temporary ``relative='legacy'``
+  mode preserves the old behavior without warnings.
 
 ### Deprecated
 * Calling ``ub.symlink`` with a relative ``real_path`` and without explicitly
@@ -35,7 +36,8 @@ This project (loosely) adheres to [Semantic Versioning](https://semver.org/spec/
   physical-path collision error message.
 * Fixed ANSI-aware repr alignment, bound-method injection, and zero-value base
   conversion.
-* Fixed ``SerialFuture`` so evaluation, exceptions, and callbacks occur once.
+* Fixed ``SerialFuture`` so evaluation, exceptions, and callbacks occur once,
+  including when multiple threads request results concurrently.
 * Fixed two Windows reparse-point resource/result handling errors.
 
 
