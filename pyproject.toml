@@ -1,7 +1,60 @@
 [build-system]
-requires = [ "setuptools>=41.0.1",]
+requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
+[project]
+name = "ubelt"
+description = "A Python utility belt containing simple tools, a stdlib like feel, and extra batteries"
+authors = [{name = "Jon Crall", email = "erotemic@gmail.com"}]
+requires-python = ">=3.10"
+readme = {file = "README.rst", content-type = "text/x-rst"}
+license = "Apache-2.0"
+license-files = ["LICENSE"]
+keywords = ["utility", "python", "hashing", "caching", "stdlib", "path", "pathlib", "dictionary", "download"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Utilities",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: MacOS",
+    "Operating System :: POSIX :: Linux",
+    "Typing :: Typed",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+]
+dynamic = ["version", "dependencies", "optional-dependencies"]
+
+[project.urls]
+Homepage = "https://github.com/Erotemic/ubelt"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["ubelt", "ubelt.*"]
+namespaces = false
+
+[tool.setuptools.package-data]
+ubelt = ["py.typed", "*.pyi"]
+
+[tool.setuptools.dynamic]
+version = {attr = "ubelt.__version__"}
+dependencies = {file = ["requirements/runtime.txt"]}
+
+[tool.setuptools.dynamic.optional-dependencies]
+runtime = {file = ["requirements/runtime.txt"]}
+tests = {file = ["requirements/tests.txt"]}
+optional = {file = ["requirements/optional.txt"]}
+dev = {file = ["requirements/dev.txt"]}
+docs = {file = ["requirements/docs.txt"]}
+types = {file = ["requirements/types.txt"]}
+# Preserve the former "all" extra: runtime + testing + optional packages.
+all = {file = ["requirements/runtime.txt", "requirements/tests.txt", "requirements/optional.txt"]}
 
 [tool.xcookie]
 tags = [ "purepy", "erotemic", "github", "mypy",]
@@ -100,7 +153,7 @@ import-not-found = "ignore"
 
 [tool.ruff]
 line-length = 80
-target-version = "py38"
+target-version = "py310"
 
 [tool.ruff.lint]
 # Enable Flake8 (E, F) and isort (I) rules.

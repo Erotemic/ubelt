@@ -33,8 +33,9 @@ Every agent-authored commit must carry a `Co-authored-by:` trailer naming the ex
 
 ## Dependencies & Packaging
 
-* Requirements in `requirements/*.txt`, dynamically referenced from `setup.py`.
-* Keep them synced; migration to full `pyproject.toml` pending.
+* Package metadata and dependencies are declared in `pyproject.toml`.
+* Dependency extras read `requirements/*.txt` through
+  `tool.setuptools.dynamic`; keep these files in sync.
 
 ## Documentation
 
