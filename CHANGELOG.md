@@ -10,6 +10,10 @@ This project (loosely) adheres to [Semantic Versioning](https://semver.org/spec/
 
 * Drop support for Python 3.8 and 3.9
 
+### Fixed
+
+* Bug in `ub.chunks` with `bordermode='cycle'` #201
+
 
 ## Version 1.4.3 - Released 2026-07-30
 
