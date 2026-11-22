@@ -16,7 +16,8 @@ use_uv = true
 author_email = "erotemic@gmail.com"
 description = "A Python utility belt containing simple tools, a stdlib like feel, and extra batteries"
 #ci_cpython_versions=["3.6", "3.7", "3.8", "3.9", "3.10", "3.11", "3.12", "3.13.0-beta.2"]
-ci_allow_failure = [{python-version = "3.15"}]
+#ci_allow_failure = [{python-version = "3.15"}]
+ci_allow_failure = []
 typecheck_extra_paths = ["tests/typecheck_consumer.py"]
 ci_pypi_trusted_publishing = true
 ci_gpg_secret_transport = "direct_ci"
@@ -97,7 +98,7 @@ unresolved-import = "ignore"
 
 [tool.ruff]
 line-length = 80
-target-version = "py38"
+target-version = "py310"
 
 [tool.ruff.lint]
 # Enable Flake8 (E, F) and isort (I) rules.
