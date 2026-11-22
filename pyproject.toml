@@ -22,6 +22,8 @@ ci_pypi_trusted_publishing = true
 ci_gpg_secret_transport = "direct_ci"
 license = "Apache 2"
 dev_status = "stable"
+use_setup_py = false
+use_pyproject_requirements = false
 classifiers = [
     # List of classifiers available at:
     # https://pypi.python.org/pypi?%3Aaction=list_classifiers

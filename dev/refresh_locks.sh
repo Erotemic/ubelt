@@ -11,6 +11,7 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
+mkdir -p requirements/locks
 uv lock
 
 # Strict CI variant extras: runtime
