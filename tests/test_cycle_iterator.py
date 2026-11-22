@@ -33,3 +33,32 @@ def test_cycle_chunks_does_not_materialize_input():
     assert consumed == [0, 1, 2]
     assert next(chunks) == [3, 4, 5]
     assert consumed == list(range(6))
+
+
+@pytest.mark.parametrize('size', [1, 3])
+def test_cycle_chunks_yield_independent_lists(size):
+    values = list(range(size + 1))
+    result = iter(ub.chunks(iter(values), size, bordermode='cycle'))
+    first = next(result)
+    first[:] = [-1] * size
+    expected_last = [
+        values[(size + offset) % len(values)] for offset in range(size)
+    ]
+    assert next(result) == expected_last
+    with pytest.raises(StopIteration):
+        next(result)
+
+
+@pytest.mark.parametrize('size', [1, 3])
+def test_cycle_chunks_defers_source_error(size):
+    error = RuntimeError('source failed after a full chunk')
+
+    def source():
+        yield from range(size)
+        raise error
+
+    result = iter(ub.chunks(source(), size, bordermode='cycle'))
+    assert next(result) == list(range(size))
+    with pytest.raises(RuntimeError) as exc_info:
+        next(result)
+    assert exc_info.value is error
