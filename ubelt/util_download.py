@@ -523,23 +523,11 @@ def grabdata(
     if dpath is None or fname is None:
         dpath, fname = split(fpath)
 
-    hasher_name: str | None = None
-    if hasher is not None:
-        if isinstance(hasher, str):
-            hasher_name = hasher
-        else:  # nocover
-            from ubelt import schedule_deprecation
-
-            schedule_deprecation(
-                modname='ubelt',
-                migration='Pass hasher as a string, otherwise unexpected behavior can occur',
-                name='hasher',
-                type='grabdata arg',
-                deprecate='1.1.0',
-                error='1.3.0',
-                remove='1.5.0',
-            )
-            hasher_name = getattr(hasher, 'name', None)
+    # A hash object was deprecated long ago; only an algorithm name (or None)
+    # is accepted by grabdata.  ``download`` has its own hasher handling.
+    if hasher is not None and not isinstance(hasher, str):
+        raise TypeError('grabdata hasher must be a string or None')
+    hasher_name = hasher
 
     if hasher_name is not None and hash_prefix:
         depends = hasher_name

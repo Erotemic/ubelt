@@ -1515,7 +1515,7 @@ class SetDict(typing.Dict[KT, VT]):
 
     # - reverse versions
 
-    def __ror__(
+    def __ror__(  # type: ignore[override]
         self, other: Mapping[KT2, VT2], /
     ) -> SetDict[KT | KT2, VT | VT2]:
         """
@@ -2192,7 +2192,7 @@ class UDict(SetDict[KT, VT]):
             self, other: Mapping[KT2, VT2], /
         ) -> UDict[KT | KT2, VT | VT2]: ...
 
-        def __ror__(
+        def __ror__(  # type: ignore[override]
             self, other: Mapping[KT2, VT2], /
         ) -> UDict[KT | KT2, VT | VT2]: ...
 

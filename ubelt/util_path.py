@@ -38,7 +38,6 @@ import platform
 import stat
 import sys
 import typing
-import warnings
 from os.path import (
     dirname,
     exists,
@@ -63,7 +62,6 @@ PathType = typing.TypeVar('PathType', bound=typing.Union[str, os.PathLike])
 
 __all__ = [
     'Path',
-    'TempDir',
     'augpath',
     'shrinkuser',
     'userhome',
@@ -509,111 +507,6 @@ class ChDir:
             os.chdir(self._orig_dpath)
 
 
-class TempDir:
-    """
-    Context for creating and cleaning up temporary directories.
-
-    Warning:
-
-        DEPRECATED. Use :mod:`tempfile` instead.
-
-    Note:
-        This exists because :class:`tempfile.TemporaryDirectory` was
-        introduced in Python 3.2. Thus once ubelt no longer supports
-        python 2.7, this class will be deprecated.
-
-    Attributes:
-        dpath (str | None): the temporary path
-
-    Note:
-        # WE MAY WANT TO KEEP THIS FOR WINDOWS.
-
-    Example:
-        >>> from ubelt.util_path import *  # NOQA
-        >>> with TempDir() as self:
-        >>>     dpath = self.dpath
-        >>>     assert exists(dpath)
-        >>> assert not exists(dpath)
-
-    Example:
-        >>> from ubelt.util_path import *  # NOQA
-        >>> self = TempDir()
-        >>> dpath = self.ensure()
-        >>> assert exists(dpath)
-        >>> self.cleanup()
-        >>> assert not exists(dpath)
-    """
-
-    dpath: str | None
-
-    def __init__(self) -> None:
-        from ubelt import schedule_deprecation
-
-        schedule_deprecation(
-            modname='ubelt',
-            migration='Use tempfile instead',
-            name='TempDir',
-            type='class',
-            deprecate='1.2.0',
-            error='1.5.0',
-            remove='1.5.0',
-        )
-        self.dpath = None
-
-    def __del__(self) -> None:
-        self.cleanup()
-
-    def ensure(self) -> str:
-        """
-        Returns:
-            str: the path
-        """
-        import tempfile
-
-        if not self.dpath:
-            self.dpath = tempfile.mkdtemp()
-        return self.dpath
-
-    def cleanup(self) -> None:
-        if self.dpath:
-            import shutil
-
-            shutil.rmtree(self.dpath)
-            self.dpath = None
-
-    def start(self) -> TempDir:
-        """
-        Returns:
-            TempDir: self
-        """
-        self.ensure()
-        return self
-
-    def __enter__(self) -> TempDir:
-        """
-        Returns:
-            TempDir: self
-        """
-        return self.start()
-
-    def __exit__(
-        self,
-        ex_type: Type[BaseException] | None,
-        ex_value: BaseException | None,
-        ex_traceback: TracebackType | None,
-    ) -> None:
-        """
-        Args:
-            ex_type (Type[BaseException] | None):
-            ex_value (BaseException | None):
-            ex_traceback (TracebackType | None):
-
-        Returns:
-            None
-        """
-        self.cleanup()
-
-
 if typing.TYPE_CHECKING:
     _PathBase = pathlib.Path
 else:
@@ -875,7 +768,6 @@ class Path(_PathBase):
         tail: str = '',
         relative: str | os.PathLike | None = None,
         multidot: bool = False,
-        suffix: str = '',
     ) -> 'Path':
         """
         Create a new path with a different extension, basename, directory,
@@ -1001,33 +893,6 @@ class Path(_PathBase):
             >>>     print('path.augment(ext={}) = {}'.format(ext, ub.repr2(method_augment, nl=1)))
             >>>     print('--')
         """
-        if suffix:  # nocover
-            from ubelt.util_deprecate import schedule_deprecation
-
-            schedule_deprecation(
-                'ubelt',
-                'suffix',
-                'arg',
-                deprecate='1.1.3',
-                remove='1.5.0',
-                migration='Use stemsuffix instead',
-            )
-            if not stemsuffix:
-                stemsuffix = suffix
-            warnings.warn(
-                'DEVELOPER NOTICE: The ubelt.Path.augment function may '
-                'experience a BACKWARDS INCOMPATIBLE update in the future '
-                'having to do with the suffix argument to ub.Path.augment '
-                'To avoid any issue use the ``stemsuffix` argument or use the '
-                '``ubelt.augpath`` function instead. '
-                'If you see this warning, please make an '
-                'issue on https://github.com/Erotemic/ubelt/issues indicating '
-                'that there are users of this function in the wild. If there '
-                'are none, then this signature will be "fixed", but if anyone '
-                'depends on this feature then we will continue to support it as '
-                'is.'
-            )
-
         aug = augpath(
             self,
             suffix=stemsuffix,

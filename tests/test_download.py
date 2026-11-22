@@ -407,21 +407,16 @@ def test_grabdata_hash_typo() -> None:
         assert stamp_fpath.exists()
 
 
-def test_deprecated_grabdata_args() -> None:
-    # with pytest.warns(DeprecationWarning):
-    with pytest.raises(RuntimeError):
-        import hashlib
+def test_grabdata_rejects_nonstring_hasher() -> None:
+    import hashlib
 
-        url = _demo_url()
-        # dpath = ub.Path.appdir('ubelt/tests/test_download').ensuredir()
-        # fname = basename(url)
-        # fpath = join(dpath, fname)
-        got_fpath = ub.grabdata(
+    url = _demo_url()
+    with pytest.raises(TypeError, match='hasher must be a string'):
+        ub.grabdata(
             url,
             hash_prefix='e09c80c42fda55f9d992e59ca6b3307d',
             hasher=hashlib.md5(),
         )
-        got_fpath
 
 
 def _devcheck_progres_download_bar() -> None:

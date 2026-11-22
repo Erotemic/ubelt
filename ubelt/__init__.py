@@ -280,7 +280,6 @@ from ubelt.util_mixins import (
 from ubelt.util_path import (
     ChDir,
     Path,
-    TempDir,
     augpath,
     ensuredir,
     expandpath,
@@ -348,7 +347,6 @@ __all__ = [
     'ReprExtensions',
     'SetDict',
     'TeeStringIO',
-    'TempDir',
     'Timer',
     'UDict',
     'WIN32',

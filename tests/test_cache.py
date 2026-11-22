@@ -176,15 +176,20 @@ def test_cache_depends() -> None:
     assert cfgstr.startswith('8a82eef87cb905220841f95')
 
 
-def test_cache_cfgstr() -> None:
-    """
-    TODO: remove when cfgstr is removed
-    """
-    # with pytest.warns(DeprecationWarning):
-    with pytest.raises(RuntimeError):
-        cacher1 = ub.Cacher('name', cfgstr='abc')
-        cacher1
-        # assert cacher1.depends == 'abc'
+def test_cache_cfgstr_removed() -> None:
+    # cfgstr was removed at 1.5.0 in favor of depends.
+    with pytest.raises(TypeError):
+        ub.Cacher('name', cfgstr='abc')  # type: ignore[call-arg]
+    cacher = ub.Cacher('name', depends='abc')
+    assert cacher.depends == 'abc'
+    assert cacher._rectify_cfgstr() == 'abc'
+
+
+def test_cache_stamp_rejects_nonstring_hasher() -> None:
+    import hashlib
+
+    with pytest.raises(TypeError, match='hasher must be a string'):
+        ub.CacheStamp('bad-hasher', dpath='.', hasher=hashlib.md5())  # type: ignore[arg-type]
 
 
 def test_cache_stamp_with_hash() -> None:
