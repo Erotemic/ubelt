@@ -11,13 +11,14 @@ rel_mod_parent_dpath = "."
 os = ["all"]
 min_python = '3.10'
 author = "Jon Crall"
-typed = "partial"
+typed = true
 use_uv = true
 author_email = "erotemic@gmail.com"
 description = "A Python utility belt containing simple tools, a stdlib like feel, and extra batteries"
 #ci_cpython_versions=["3.6", "3.7", "3.8", "3.9", "3.10", "3.11", "3.12", "3.13.0-beta.2"]
-ci_allow_failure = [{python-version = "3.15"}]
+ci_allow_failure = []
 typecheck_extra_paths = ["tests/typecheck_consumer.py"]
+enable_gpg = true
 ci_pypi_trusted_publishing = true
 ci_gpg_secret_transport = "direct_ci"
 license = "Apache 2"
