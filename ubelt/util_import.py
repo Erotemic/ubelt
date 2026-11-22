@@ -315,7 +315,7 @@ def import_module_from_path(
                     # Python versions, but typeshed does not model it as a
                     # compatible LoaderProtocol for spec_from_loader.
                     spec = importlib.util.spec_from_loader(
-                        name, zimp_file  # type: ignore[arg-type]
+                        name, typing.cast(typing.Any, zimp_file)
                     )
                     if spec is None:
                         raise ImportError(f'Cannot create spec for {name!r}')
@@ -1188,9 +1188,9 @@ def _parse_static_node_value(node: object) -> typing.Any:
         num_type = getattr(ast, 'Num', None)
         str_type = getattr(ast, 'Str', None)
         if num_type is not None and isinstance(node, num_type):
-            return typing.cast(typing.Any, node).n
+            return node.n
         if str_type is not None and isinstance(node, str_type):
-            return typing.cast(typing.Any, node).s
+            return node.s
 
     if isinstance(node, ast.List):
         return list(map(_parse_static_node_value, node.elts))

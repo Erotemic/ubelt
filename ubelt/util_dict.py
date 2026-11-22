@@ -1515,7 +1515,7 @@ class SetDict(typing.Dict[KT, VT]):
 
     # - reverse versions
 
-    def __ror__(  # type: ignore[override]
+    def __ror__(  # type: ignore[override]  # ty: ignore[incompatible-method-override]
         self, other: Mapping[KT2, VT2], /
     ) -> SetDict[KT | KT2, VT | VT2]:
         """
@@ -1540,7 +1540,9 @@ class SetDict(typing.Dict[KT, VT]):
         """
         return typing.cast(
             'SetDict[KT | KT2, VT | VT2]',
-            type(self)(other).union(self, cls=type(self)),
+            typing.cast(
+                'type[SetDict[KT2, VT2]]', type(self)
+            )(other).union(self, cls=type(self)),
         )
 
     def __rand__(
@@ -1568,7 +1570,9 @@ class SetDict(typing.Dict[KT, VT]):
         """
         return typing.cast(
             'SetDict[KT2, VT2]',
-            type(self)(other).intersection(self, cls=type(self)),
+            typing.cast(
+                'type[SetDict[KT2, VT2]]', type(self)
+            )(other).intersection(self, cls=type(self)),
         )
 
     def __rsub__(
@@ -1596,7 +1600,9 @@ class SetDict(typing.Dict[KT, VT]):
         """
         return typing.cast(
             'SetDict[KT2, VT2]',
-            type(self)(other).difference(self, cls=type(self)),
+            typing.cast(
+                'type[SetDict[KT2, VT2]]', type(self)
+            )(other).difference(self, cls=type(self)),
         )
 
     def __rxor__(
@@ -1624,7 +1630,9 @@ class SetDict(typing.Dict[KT, VT]):
         """
         return typing.cast(
             'SetDict[KT | KT2, VT | VT2]',
-            type(self)(other).symmetric_difference(self, cls=type(self)),
+            typing.cast(
+                'type[SetDict[KT2, VT2]]', type(self)
+            )(other).symmetric_difference(self, cls=type(self)),
         )
 
     # - inplace versions
@@ -2192,7 +2200,7 @@ class UDict(SetDict[KT, VT]):
             self, other: Mapping[KT2, VT2], /
         ) -> UDict[KT | KT2, VT | VT2]: ...
 
-        def __ror__(  # type: ignore[override]
+        def __ror__(  # type: ignore[override]  # ty: ignore[incompatible-method-override]
             self, other: Mapping[KT2, VT2], /
         ) -> UDict[KT | KT2, VT | VT2]: ...
 

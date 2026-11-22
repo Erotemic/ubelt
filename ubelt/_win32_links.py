@@ -611,7 +611,10 @@ def _win32_rmtree(path: str | os.PathLike, verbose: int = 0) -> None:
             print('path = {!r}'.format(path))
             print('exc_info = {!r}'.format(exc_info))
 
-        shutil.rmtree(path, onerror=onerror)
+        if sys.version_info >= (3, 12):
+            shutil.rmtree(path, onexc=onerror)
+        else:  # nocover: Python 3.10-3.11 lacks onexc
+            shutil.rmtree(path, onerror=onerror)  # ty: ignore[deprecated]
 
 
 def _win32_is_hardlinked(
