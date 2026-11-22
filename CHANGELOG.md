@@ -39,6 +39,9 @@ This project (loosely) adheres to [Semantic Versioning](https://semver.org/spec/
 * Fixed two Windows reparse-point resource/result handling errors.
 
 
+## Version 1.4.3 - Released 2026-07-30
+
+
 ## Version 1.4.2 - Released 2026-04-12
 
 ### Changed

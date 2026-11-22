@@ -4,6 +4,7 @@ import ubelt as ub
 
 
 def test_indexable_python_float_does_not_use_numpy_isclose():
+    """Python float comparisons should not depend on NumPy behavior."""
     import unittest.mock
 
     import pytest
@@ -22,6 +23,7 @@ def test_indexable_python_float_does_not_use_numpy_isclose():
 
 
 def test_indexable_numpy_float_scalars_use_numpy_isclose():
+    """NumPy floating scalars should use NumPy's scalar comparison path."""
     import pytest
 
     np = pytest.importorskip('numpy')
@@ -36,6 +38,7 @@ def test_indexable_numpy_float_scalars_use_numpy_isclose():
 
 
 def test_indexable_python_nan_does_not_use_numpy_isclose():
+    """Python NaNs use the standard-library path even when NumPy is present."""
     import unittest.mock
 
     import pytest
