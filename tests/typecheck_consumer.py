@@ -5,10 +5,7 @@ import typing
 
 import ubelt as ub
 
-try:
-    from typing import assert_type
-except ImportError:  # pragma: no cover
-    from typing_extensions import assert_type
+from typing_extensions import assert_type
 
 
 def consumer_typing_contract(variable_flag: bool) -> None:

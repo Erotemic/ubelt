@@ -88,6 +88,7 @@ if typing.TYPE_CHECKING:
     from typing import Type
 
     from _typeshed import SupportsWrite
+    from typing_extensions import Self
 
 from itertools import islice
 from typing import Iterable
@@ -198,7 +199,7 @@ class _TQDMCompat:
     ) -> None:  # pragma: no cover
         raise NotImplementedError
 
-    def begin(self) -> typing.Self:  # pragma: no cover
+    def begin(self) -> Self:  # pragma: no cover
         raise NotImplementedError
 
     def end(self) -> None:  # pragma: no cover

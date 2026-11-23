@@ -81,13 +81,13 @@ if typing.TYPE_CHECKING:
         List,
         MutableMapping,
         Optional,
-        Self,
         Set,
         Type,
         cast,
     )
 
     from _typeshed import SupportsKeysAndGetItem
+    from typing_extensions import Self
 
     from ubelt.util_const import NoParamType
 
