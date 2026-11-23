@@ -470,12 +470,20 @@ jobs:
                 echo "USE_UV_LOCK=true but LOCK_REQUIREMENTS is empty"
                 exit 1
             fi
-            if [[ ! -f "$LOCK_REQUIREMENTS" ]]; then
-                echo "Missing checked-in lock requirements: $LOCK_REQUIREMENTS"
+            if [[ ! -f uv.lock ]]; then
+                echo "Missing uv.lock; run dev/refresh_locks.sh and commit uv.lock"
                 exit 1
             fi
-            echo "Using checked-in lock requirements: $LOCK_REQUIREMENTS"
-            cat "$LOCK_REQUIREMENTS"
+            UV_EXPORT_EXTRAS=()
+            if [[ -n "${INSTALL_EXTRAS:-}" ]]; then
+                IFS="," read -r -a UV_EXTRAS <<< "$INSTALL_EXTRAS"
+                for extra in "${UV_EXTRAS[@]}"; do
+                    UV_EXPORT_EXTRAS+=(--extra "$extra")
+                done
+            fi
+            mkdir -p "$(dirname "$LOCK_REQUIREMENTS")"
+            echo "Exporting constraints from uv.lock for ${INSTALL_EXTRAS:-runtime}"
+            python -m uv export --locked --no-emit-project --format requirements.txt --no-hashes "${UV_EXPORT_EXTRAS[@]}" -o "$LOCK_REQUIREMENTS"
             LOCK_ARGS=(--constraint "$LOCK_REQUIREMENTS")
         fi
         python -m uv pip install --prerelease=allow "${LOCK_ARGS[@]}" "${INSTALL_TARGET}"
