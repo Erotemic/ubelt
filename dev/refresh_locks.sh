@@ -14,6 +14,13 @@ cd "$(dirname "$0")/.."
 mkdir -p requirements/locks
 uv lock
 
-# Strict CI variant extras: runtime
+# Strict CI variant extras: tests
 uv export --frozen --no-emit-project --format requirements.txt --no-hashes \
-    -o requirements/locks/runtime.txt
+    --extra tests \
+    -o requirements/locks/tests.txt
+
+# Strict CI variant extras: tests, optional
+uv export --frozen --no-emit-project --format requirements.txt --no-hashes \
+    --extra tests \
+    --extra optional \
+    -o requirements/locks/tests-optional.txt
