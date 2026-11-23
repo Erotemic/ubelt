@@ -92,21 +92,21 @@ if typing.TYPE_CHECKING:
     import subprocess
     import threading
     from collections.abc import Iterator, Sequence, Mapping
-    from typing import TypedDict, NotRequired
+    from typing import TypedDict
 
-    class PopenKwargs(TypedDict):
-        bufsize: NotRequired[int]
-        executable: NotRequired[str | os.PathLike[str] | None]
-        stdin: NotRequired[int | None]
-        stdout: NotRequired[int | None]
-        stderr: NotRequired[int | None]
-        shell: NotRequired[bool]
-        cwd: NotRequired[str | os.PathLike[str] | None]
-        env: NotRequired[Mapping[str, str] | None]
-        universal_newlines: NotRequired[bool | None]
-        text: NotRequired[bool | None]
-        encoding: NotRequired[str | None]
-        errors: NotRequired[str | None]
+    class PopenKwargs(TypedDict, total=False):
+        bufsize: int
+        executable: str | os.PathLike[str] | None
+        stdin: int | None
+        stdout: int | None
+        stderr: int | None
+        shell: bool
+        cwd: str | os.PathLike[str] | None
+        env: Mapping[str, str] | None
+        universal_newlines: bool | None
+        text: bool | None
+        encoding: str | None
+        errors: str | None
         # Add other Popen kwargs as needed
 
 

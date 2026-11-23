@@ -52,12 +52,7 @@ import sys
 import typing
 
 from ubelt import util_hash
-from typing import cast, Mapping
-
-try:
-    from typing import Concatenate, ParamSpec
-except ImportError:  # pragma: no cover
-    from typing_extensions import Concatenate, ParamSpec
+from typing import Concatenate, Mapping, ParamSpec, cast
 
 if typing.TYPE_CHECKING:
     from typing import Callable

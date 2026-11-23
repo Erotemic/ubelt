@@ -43,6 +43,8 @@ This project (loosely) adheres to [Semantic Versioning](https://semver.org/spec/
   conversion.
 * Fixed ``SerialFuture`` so evaluation, exceptions, and callbacks occur once,
   including when multiple threads request results concurrently.
+* Fixed static typing compatibility with Python 3.10, including
+  annotations using ``Self``, ``Unpack``, and ``ParamSpec``.
 * Fixed two Windows reparse-point resource/result handling errors.
 
 

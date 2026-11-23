@@ -61,10 +61,7 @@ from ubelt import util_list, util_str
 if typing.TYPE_CHECKING:
     from typing import Any, Callable, Collection, Iterable, TypedDict
 
-    try:
-        from typing import Unpack
-    except ImportError:  # pragma: no cover
-        from typing_extensions import Unpack
+    from typing_extensions import Unpack
 
     class LeafInfo(TypedDict, total=False):
         max_height: int

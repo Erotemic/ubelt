@@ -2,6 +2,5 @@
 # Install dependency packages
 pip install -r requirements.txt
 
-# new pep makes this not always work
-# pip install -e .
-python setup.py develop
+# Install ubelt in editable mode using pyproject.toml metadata.
+python -m pip install -e .
