@@ -59,6 +59,11 @@ achieve 100% test coverage (with minor exceptions on Windows).
 
 Read the docs here: https://ubelt.readthedocs.io/en/latest
 
+For a compact reference usable by developers and coding assistants, see
+`llms.txt <llms.txt>`__, `llms-full.txt <llms-full.txt>`__, and the
+`task-oriented cookbook <cookbook.md>`__. These are also included in the wheel
+under ``ubelt/_docs/``.
+
 These are some of the tasks that ubelt's API enables:
 
   - extended pathlib with expand, ensuredir, endswith, augment, delete (ub.Path)
@@ -157,7 +162,7 @@ Installation:
 =============
 
 Ubelt is distributed on pypi as a universal wheel and can be pip installed on
-Python 3.6+. Installations are tested on CPython and PyPy implementations.
+Python 3.10+. Installations are tested on CPython and PyPy implementations.
 
 ::
 
@@ -173,7 +178,9 @@ version of ubelt.
 +------------------+---------------------------------------------+
 | Python Version   | Most Recent Supported Ubelt Version         |
 +==================+=============================================+
-| 3.8 - 3.14       | latest                                      |
+| 3.10 - 3.14      | latest                                      |
++------------------+---------------------------------------------+
+| 3.8 - 3.9        | 1.4.3                                       |
 +------------------+---------------------------------------------+
 | 3.6 - 3.7        | 1.3.8                                       |
 +------------------+---------------------------------------------+

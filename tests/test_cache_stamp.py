@@ -149,3 +149,28 @@ def test_cache_stamp_noproduct() -> None:
     assert not self.expired()
     product.write_text('corrupted')
     assert not self.expired()
+
+
+def test_cache_stamp_custom_log(tmp_path, capsys):
+    import os
+
+    product = tmp_path / 'product.txt'
+    messages = []
+    stamp = ub.CacheStamp('report', dpath=tmp_path, depends='v1',
+                          product=product, verbose=1, log=messages.append)
+    assert stamp.expired() == 'no_cert'
+    assert '[cacher] stamp expired no_cert' in messages
+    product.write_text('one')
+    stamp.renew()
+    stat = product.stat()
+    product.write_text('two')
+    os.utime(product, ns=(stat.st_atime_ns, stat.st_mtime_ns))
+    assert stamp.expired() == 'hash_diff'
+    assert any('invalid hash value' in msg for msg in messages)
+    assert '[cacher] stamp expired hash_diff' in messages
+    assert not capsys.readouterr().out
+    messages.clear()
+    stamp.cacher.verbose = 0
+    assert stamp.expired() == 'hash_diff'
+    assert not messages
+    assert not capsys.readouterr().out

@@ -40,7 +40,7 @@ include = ["ubelt", "ubelt.*"]
 namespaces = false
 
 [tool.setuptools.package-data]
-ubelt = ["py.typed", "*.pyi"]
+ubelt = ["py.typed", "*.pyi", "_docs/*.txt", "_docs/*.md"]
 
 [tool.setuptools.dynamic]
 version = {attr = "ubelt.__version__"}

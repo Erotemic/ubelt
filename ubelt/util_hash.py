@@ -1468,7 +1468,7 @@ def hash_data(
     extensions: HashableExtensions | None = None,
 ) -> str:
     """
-    Get a unique hash depending on the state of the data.
+    Get a hash depending on the state of the data.
 
     Args:
         data (Any):
@@ -1507,6 +1507,17 @@ def hash_data(
         np.int16, np.int8, np.uint64, np.uint32, np.uint16, np.uint8,
         np.float16, np.float32, np.float64, np.float128, np.ndarray, bytes,
         str, int, float, long (in python2), list, tuple, set, and dict
+
+    Warning:
+        The legacy structured-data encoding is not unambiguous: distinct inputs
+        can produce identical bytes before hashing. For example,
+        ``hash_data(['a_,_b']) == hash_data(['a', 'b'])``. Even ``types=True``
+        does not eliminate all such collisions (e.g. ``['a_,_TXTb']`` versus
+        ``['a', 'b']``). This behavior is retained for hash compatibility.
+        Do not use this encoding for security-sensitive identifiers or where
+        distinct structured inputs must have distinct encodings. Choose an
+        application-appropriate, unambiguous serialization and hash its bytes
+        with ``hashlib`` instead.
 
     Returns:
         str: text representing the hashed data

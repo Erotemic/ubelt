@@ -10,11 +10,13 @@ This project (loosely) adheres to [Semantic Versioning](https://semver.org/spec/
 
 * Drop support for Python 3.8 and 3.9
 
-### Fixed
-
-* Bug in `ub.chunks` with `bordermode='cycle'` #201
-
 ### Added
+* Added ``Cacher.tryload(default=...)`` to distinguish a cache miss from a
+  cached value of ``None``.
+* Added ``CacheStamp(log=...)`` and routed stamp diagnostics through the
+  internal ``Cacher.log`` callable, preserving default verbosity and output.
+* Added a task-oriented cookbook and generated compact API reference for
+  developers and coding assistants, also included in the wheel.
 * Added an explicit ``relative=`` mode to ``ub.symlink``. ``relative=True``
   requests a relative symbolic-link target and ``relative=False`` requests an
   absolute target. Changing the representation of an equivalent existing
@@ -28,6 +30,11 @@ This project (loosely) adheres to [Semantic Versioning](https://semver.org/spec/
   an explicit mode before Ubelt 2.0.0.
 
 ### Fixed
+* Bug in `ub.chunks` with `bordermode='cycle'` #201
+* Fixed explicit ``Cacher(backend='pickle')`` validation and repeated
+  computation of cached ``None`` values in ``Cacher.ensure()``.
+* Documented ambiguities in the legacy ``hash_data`` encoding without
+  changing existing hashes.
 * Fixed negative fractional and sub-minute UTC offsets, and daylight-saving
   handling in local timestamp/time parsing.
 * Fixed ``zopen`` resource cleanup and delegated calls on temporary instances.

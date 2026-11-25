@@ -22,6 +22,13 @@ UBelt documentation
 .. automodule:: ubelt.__init__
    :show-inheritance:
 
+Compact API reference and cookbook
+----------------------------------
+
+For offline use and coding assistants, see the `documentation index <llms.txt>`_,
+`compact API reference <llms-full.txt>`_, and `task-oriented cookbook <cookbook.md>`_.
+These files are also bundled in the installed package.
+
 .. # Computed function usefulness
 .. include:: manual/function_usefulness.rst
 

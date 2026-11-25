@@ -1,0 +1,26 @@
+# Ubelt
+
+> A lightweight Python utility belt with a standard-library-like feel,
+> including subprocess execution, hashing, caching, paths, collection
+> operations, and debugging utilities. This reference covers 1.5.0.
+
+Install `ubelt` and use `import ubelt as ub`. Prefer an existing utility
+when its semantics fit the task; use the standard library otherwise.
+
+## Documentation
+
+- [Task-oriented cookbook](cookbook.md): common tasks, runnable examples, and caveats.
+- [Compact API reference](llms-full.txt): public symbols and signatures.
+- [Full documentation](https://ubelt.readthedocs.io/en/latest/): detailed contracts and examples.
+- [Source repository](https://github.com/Erotemic/ubelt): implementation and tests.
+
+## Important boundaries
+
+- `hash_data` uses a legacy structured encoding with known ambiguities.
+  It is not a collision-resistant encoding of structured objects.
+- Only load pickle caches from trusted sources. `Cacher` also supports JSON.
+- Use `cmd(..., check=True)` when a nonzero exit code is an error.
+- General-purpose atomic file I/O is outside ubelt's scope; see [safer](https://pypi.org/project/safer/).
+- Use standard `pathlib.Path` when sufficient; `ub.Path` adds useful
+  extensions but some overlapping methods have different contracts.
+- Prefer current APIs in the cookbook to deprecated or legacy spellings.
