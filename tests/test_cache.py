@@ -237,3 +237,36 @@ def test_cache_stamp_with_hash() -> None:
         # Disabling the hash check makes us rely on size / mtime, but is faster
         stamp._expire_checks['hash'] = False
         assert not stamp.expired()
+
+
+def test_explicit_pickle_and_cached_none(tmp_path):
+    cacher = ub.Cacher('none', depends='v1', dpath=tmp_path,
+                       backend='pickle', verbose=0)
+    calls = []
+
+    def compute():
+        calls.append(1)
+        return None
+
+    missing = object()
+    assert cacher.tryload() is None
+    assert cacher.tryload(default=missing) is missing
+    assert cacher.ensure(compute) is None
+    assert cacher.tryload(default=missing) is None
+    assert cacher.ensure(compute) is None
+    assert calls == [1]
+    cacher.enabled = False
+    assert cacher.tryload(default=missing) is missing
+    assert cacher.ensure(compute) is None
+    assert calls == [1, 1]
+
+
+def test_tryload_default_on_clear(tmp_path):
+    cacher = ub.Cacher('corrupt', depends='v1', dpath=tmp_path,
+                       backend='json', ext='.json', verbose=0)
+    ub.Path(cacher.fpath).write_text('invalid json')
+    missing = object()
+    with pytest.raises(ValueError):
+        cacher.tryload(default=missing)
+    assert cacher.tryload('clear', default=missing) is missing
+    assert not cacher.exists()

@@ -1,1 +1,3 @@
 include requirements/*.txt
+include llms.txt llms-full.txt cookbook.md
+include dev/maintain/generate_llm_docs.py

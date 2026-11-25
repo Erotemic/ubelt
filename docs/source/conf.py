@@ -325,6 +325,9 @@ html_theme_options = {
 # can opt back in locally.
 html_static_path = []
 
+# Publish the same versioned text resources included in the wheel.
+html_extra_path = ['../../ubelt/_docs']
+
 # Custom sidebar templates, must be a dictionary that maps document names
 # to template names.
 #

@@ -214,8 +214,10 @@ class Cacher:
 
             depends (object | None):
                 Indicate dependencies of this cache.  If the dependencies change,
-                then the cache is recomputed.  New in version 0.8.9, replaces
-                ``cfgstr``.
+                then the cache is recomputed. Short strings can be used
+                directly in filenames; use filename-safe strings (or hash
+                arbitrary strings explicitly with ``ub.hash_data``). New in
+                version 0.8.9, replaces ``cfgstr``.
 
             dpath (str | os.PathLike[str] | None):
                 Specifies where to save the cache. If unspecified, Cacher defaults
@@ -255,6 +257,8 @@ class Cacher:
             backend (str):
                 Set to either ``'pickle'`` or ``'json'`` to force backend. Defaults
                 to auto which chooses one based on the extension.
+                Only load pickle caches from trusted sources: unpickling can
+                execute arbitrary code.
 
         """
 
@@ -279,7 +283,7 @@ class Cacher:
             else:
                 backend = 'pickle'
         else:
-            if backend not in {'json', 'pickel'}:
+            if backend not in {'json', 'pickle'}:
                 raise ValueError(backend)
 
         self.dpath = dpath
@@ -437,18 +441,26 @@ class Cacher:
             if self.verbose > 0:
                 self.log('[cacher] ... nothing to clear')
 
-    def tryload(self, on_error: str = 'raise') -> typing.Any | None:
+    def tryload(
+        self, on_error: str = 'raise', *, default: typing.Any = None
+    ) -> typing.Any:
         """
-        Like load, but returns None if the load fails due to a cache miss.
+        Like load, but returns a default value on a cache miss.
 
+        Args:
             on_error (str):
-                How to handle non-io errors errors. Either 'raise', which
+                How to handle non-IO errors. Either 'raise', which
                 re-raises the exception, or 'clear' which deletes the cache and
-                returns None. Defaults to 'raise'.
+                returns the default. Defaults to 'raise'.
+
+            default (object):
+                Returned on a cache miss, when caching is disabled, or when
+                an error is handled by clearing the cache. Defaults to None.
+                Pass a unique sentinel to distinguish a miss from cached None.
 
         Returns:
-            object | None:
-                the cached data if it exists, otherwise returns None
+            object:
+                The cached data if it exists, otherwise the default.
         """
         if self.enabled:
             try:
@@ -465,7 +477,7 @@ class Cacher:
                     raise
                 elif on_error == 'clear':
                     self.clear()
-                    return None
+                    return default
                 else:
                     raise KeyError(
                         'Unknown method on_error={}'.format(on_error)
@@ -475,7 +487,7 @@ class Cacher:
                 self.log(
                     '[cacher] ... cache disabled: fname={}'.format(self.fname)
                 )
-        return None
+        return default
 
     def load(self) -> typing.Any:
         """
@@ -699,8 +711,9 @@ class Cacher:
             >>> assert data1 == data2
             >>> cacher.clear()
         """
-        data = self.tryload()
-        if data is None:
+        missing = object()
+        data = self.tryload(default=missing)
+        if data is missing:
             data = func(*args, **kwargs)
             self.save(data)
         return data
@@ -828,6 +841,7 @@ class CacheStamp:
         | datetime_mod.timedelta
         | None = None,
         ext: str = '.pkl',
+        log: typing.Callable[[str], typing.Any] | None = None,
     ) -> None:
         """
         Args:
@@ -876,6 +890,10 @@ class CacheStamp:
                 File extension for the cache format. Can be ``'.pkl'`` or
                 ``'.json'``. Defaults to ``'.pkl'``.
 
+            log (collections.abc.Callable[[str], object] | None):
+                Reporting callable passed to the internal Cacher. Defaults to
+                print, and is subject to the existing verbosity setting.
+
         """
         self.cacher = Cacher(
             fname,
@@ -885,6 +903,7 @@ class CacheStamp:
             depends=depends,
             meta=meta,
             ext=ext,
+            log=log,
         )
         if hasher is not None and not isinstance(hasher, str):
             raise TypeError('CacheStamp hasher must be a string or None')
@@ -1090,7 +1109,7 @@ class CacheStamp:
             # We don't have a certificate, so we are expired
             err = 'no_cert'
             if self.cacher.verbose > 0:  # pragma: nobranch
-                print('[cacher] stamp expired {}'.format(err))
+                self.cacher.log('[cacher] stamp expired {}'.format(err))
             return err
 
         expires = certificate.get('expires', None)
@@ -1104,7 +1123,7 @@ class CacheStamp:
                 # We are expired
                 err = 'expired_cert'
                 if self.cacher.verbose > 0:  # pragma: nobranch
-                    print('[cacher] stamp expired {}'.format(err))
+                    self.cacher.log('[cacher] stamp expired {}'.format(err))
                 return err
 
         products = self._rectify_products()
@@ -1115,7 +1134,7 @@ class CacheStamp:
             # We are expired if the expected product does not exist
             err = 'missing_products'
             if self.cacher.verbose > 0:  # pragma: nobranch
-                print('[cacher] stamp expired {}'.format(err))
+                self.cacher.log('[cacher] stamp expired {}'.format(err))
             return err
         else:
             # First test to see if the size or mtime of the files has changed
@@ -1128,7 +1147,7 @@ class CacheStamp:
                     # The sizes are different, we are expired
                     err = 'size_diff'
                     if self.cacher.verbose > 0:  # pragma: nobranch
-                        print('[cacher] stamp expired {}'.format(err))
+                        self.cacher.log('[cacher] stamp expired {}'.format(err))
                     return err
             mtimes = certificate.get('mtime', None)
             if mtimes is not None and self._expire_checks['mtime']:
@@ -1136,7 +1155,7 @@ class CacheStamp:
                     # The sizes are different, we are expired
                     err = 'mtime_diff'
                     if self.cacher.verbose > 0:  # pragma: nobranch
-                        print('[cacher] stamp expired {}'.format(err))
+                        self.cacher.log('[cacher] stamp expired {}'.format(err))
                     return err
 
             cert_err: str | None = self._check_certificate_hashes(certificate)
@@ -1150,7 +1169,7 @@ class CacheStamp:
                 product_file_hash = self._product_file_hash(products)
                 if product_file_hash != certificate_hash:
                     if self.cacher.verbose > 0:  # pragma: nobranch
-                        print(
+                        self.cacher.log(
                             'invalid hash value (expected "{}", got "{}")'.format(
                                 product_file_hash, certificate_hash
                             )
@@ -1158,7 +1177,7 @@ class CacheStamp:
                     # The hash is different, we are expired
                     err = 'hash_diff'
                     if self.cacher.verbose > 0:  # pragma: nobranch
-                        print('[cacher] stamp expired {}'.format(err))
+                        self.cacher.log('[cacher] stamp expired {}'.format(err))
                     return err
 
         # All tests passed, we are not expired
@@ -1174,7 +1193,7 @@ class CacheStamp:
             for pref_hash, cert_hash in zip(hash_prefixes, certificate_hash):
                 if not cert_hash.startswith(pref_hash):
                     if self.cacher.verbose > 0:  # pragma: nobranch
-                        print(
+                        self.cacher.log(
                             'invalid hash prefix value (expected "{}", got "{}")'.format(
                                 pref_hash, cert_hash
                             )
