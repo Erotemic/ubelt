@@ -1513,7 +1513,9 @@ def hash_data(
         can produce identical bytes before hashing. For example,
         ``hash_data(['a_,_b']) == hash_data(['a', 'b'])``. Even ``types=True``
         does not eliminate all such collisions (e.g. ``['a_,_TXTb']`` versus
-        ``['a', 'b']``). This behavior is retained for hash compatibility.
+        ``['a', 'b']``). This behavior is retained in Ubelt 1.x for hash
+        compatibility. These encoding ambiguities will be addressed in
+        Ubelt 2.0, which may change existing hash values.
         Do not use this encoding for security-sensitive identifiers or where
         distinct structured inputs must have distinct encodings. Choose an
         application-appropriate, unambiguous serialization and hash its bytes
