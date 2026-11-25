@@ -152,8 +152,6 @@ def test_cache_stamp_noproduct() -> None:
 
 
 def test_cache_stamp_custom_log(tmp_path, capsys):
-    import os
-
     product = tmp_path / 'product.txt'
     messages = []
     stamp = ub.CacheStamp('report', dpath=tmp_path, depends='v1',
@@ -162,9 +160,10 @@ def test_cache_stamp_custom_log(tmp_path, capsys):
     assert '[cacher] stamp expired no_cert' in messages
     product.write_text('one')
     stamp.renew()
-    stat = product.stat()
+    # Isolate the hash check without relying on an exact mtime round trip
+    # through os.utime, which is not portable across interpreters/filesystems.
+    stamp._expire_checks['mtime'] = False
     product.write_text('two')
-    os.utime(product, ns=(stat.st_atime_ns, stat.st_mtime_ns))
     assert stamp.expired() == 'hash_diff'
     assert any('invalid hash value' in msg for msg in messages)
     assert '[cacher] stamp expired hash_diff' in messages
